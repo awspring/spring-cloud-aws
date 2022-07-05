@@ -74,7 +74,7 @@ public class S3AutoConfiguration {
 			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer,
 			ObjectProvider<MetricPublisher> metricPublisherObjectProvider) {
 		MetricPublisher metricPublisher = createSpecificMetricPublisher(metricPublisherObjectProvider.getIfAvailable(),
-				properties);
+				properties, awsClientBuilderConfigurer);
 		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(), this.properties,
 				configurer.getIfAvailable(), metricPublisher);
 		builder.serviceConfiguration(s3ServiceConfiguration());

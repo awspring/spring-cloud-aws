@@ -62,7 +62,7 @@ public class DynamoDbAutoConfiguration {
 			ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
 			ObjectProvider<MetricPublisher> metricPublisherObjectProvider) {
 		MetricPublisher metricPublisher = createSpecificMetricPublisher(metricPublisherObjectProvider.getIfAvailable(),
-				properties);
+				properties, awsClientBuilderConfigurer);
 		return awsClientBuilderConfigurer.configure(DynamoDbClient.builder(), properties, configurer.getIfAvailable(),
 				metricPublisher);
 	}

@@ -16,9 +16,12 @@
 package io.awspring.cloud.autoconfigure.core;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.autoconfigure.metrics.CloudWatchProperties;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.time.Duration;
 import java.util.Optional;
+
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -26,11 +29,14 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
 
 /**
  * Provides a convenience method to apply common configuration to any {@link AwsClientBuilder}.
@@ -88,12 +94,21 @@ public class AwsClientBuilderConfigurer {
 	}
 
 	public static @Nullable MetricPublisher createSpecificMetricPublisher(MetricPublisher metricPublisher,
-			AwsClientProperties properties) {
+			AwsClientProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
+
 		if (ClassUtils.isPresent("software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher", null)
 				&& properties.getMetrics() != null) {
 			if (properties.getMetrics().getEnabled() == null || properties.getMetrics().getEnabled()) {
-				CloudWatchMetricPublisher.Builder builder = CloudWatchMetricPublisher.builder();
 				PropertyMapper propertyMapper = PropertyMapper.get();
+
+				CloudWatchAsyncClientBuilder cloudWatchAsyncClientBuilder = CloudWatchAsyncClient.builder();
+				CloudWatchProperties cloudWatchProperties = new CloudWatchProperties();
+				propertyMapper.from(cloudWatchProperties.getEndpoint()).whenNonNull().to(cloudWatchProperties::setEndpoint);
+				propertyMapper.from(cloudWatchProperties.getRegion()).whenNonNull().to(cloudWatchProperties::setRegion);
+				CloudWatchAsyncClient cloudWatchAsyncClient = awsClientBuilderConfigurer.configure(cloudWatchAsyncClientBuilder, cloudWatchProperties, null, null).build();
+
+				CloudWatchMetricPublisher.Builder builder = CloudWatchMetricPublisher.builder();
+				builder.cloudWatchClient(cloudWatchAsyncClient);
 				propertyMapper.from(properties.getMetrics()::getNamespace).whenNonNull().to(builder::namespace);
 				propertyMapper.from(properties.getMetrics()::getUploadFrequencyInSeconds).whenNonNull()
 						.to(v -> builder.uploadFrequency(Duration.ofSeconds(v)));

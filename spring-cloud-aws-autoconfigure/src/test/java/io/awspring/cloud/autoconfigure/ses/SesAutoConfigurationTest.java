@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
+import io.awspring.cloud.autoconfigure.core.CloudWatchMetricsPublisherAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import java.net.URI;
@@ -54,7 +55,7 @@ class SesAutoConfigurationTest {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, SesAutoConfiguration.class));
+				CloudWatchMetricsPublisherAutoConfiguration.class, CredentialsProviderAutoConfiguration.class, SesAutoConfiguration.class));
 
 	@Test
 	void mailSenderWithJavaMail() {

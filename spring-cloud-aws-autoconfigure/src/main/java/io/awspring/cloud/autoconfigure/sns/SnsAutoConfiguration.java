@@ -67,7 +67,7 @@ public class SnsAutoConfiguration {
 			ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer,
 			ObjectProvider<MetricPublisher> metricPublisherObjectProvider) {
 		MetricPublisher metricPublisher = createSpecificMetricPublisher(metricPublisherObjectProvider.getIfAvailable(),
-				properties);
+				properties, awsClientBuilderConfigurer);
 		return awsClientBuilderConfigurer.configure(SnsClient.builder(), properties, configurer.getIfAvailable(),
 				metricPublisher);
 	}

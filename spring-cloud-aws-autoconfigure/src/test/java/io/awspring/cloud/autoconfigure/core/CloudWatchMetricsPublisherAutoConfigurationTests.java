@@ -15,32 +15,31 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import software.amazon.awssdk.metrics.MetricPublisher;
-import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
 
-class AwsAutoConfigurationTests {
+import static org.assertj.core.api.Assertions.assertThat;
+
+class CloudWatchMetricsPublisherAutoConfigurationTests {
 
 	private static ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(
-					AutoConfigurations.of(CredentialsProviderAutoConfiguration.class, AwsAutoConfiguration.class))
-			.withBean(CustomRegionProvider.class);
+		.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+		.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+			CredentialsProviderAutoConfiguration.class,
+			CloudWatchMetricsPublisherAutoConfiguration.class,
+			AwsAutoConfiguration.class));
 
 	@Test
-	void doesNotCreateMetricsPublisherWhenDisabledExplicitlyAndDependencyInClasspath() {
-		contextRunner.withPropertyValues("spring.cloud.aws.metrics.enabled:false")
-				.run((context) -> assertThat(context).doesNotHaveBean(MetricPublisher.class));
+	void createsMetricsPublisherByDefaultWhenDependencyInClasspath() {
+		contextRunner.run((context) -> assertThat(context).hasSingleBean(MetricPublisher.class));
 	}
 
 	@Test
-	void doesNotCreateMetricsPublisherWhenDependencyNotInClasspath() {
-		contextRunner.withClassLoader(new FilteredClassLoader(CloudWatchMetricPublisher.class))
-				.run((context) -> assertThat(context).doesNotHaveBean(MetricPublisher.class));
+	void createsMetricsPublisherWhenSpecifiedExplicitlyAndDependencyInClasspath() {
+		contextRunner.withPropertyValues("spring.cloud.aws.metrics.enabled:true")
+				.run((context) -> assertThat(context).hasSingleBean(MetricPublisher.class));
 	}
 
 }

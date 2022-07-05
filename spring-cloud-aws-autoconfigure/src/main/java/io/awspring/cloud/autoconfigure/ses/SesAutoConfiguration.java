@@ -61,7 +61,7 @@ public class SesAutoConfiguration {
 			ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer,
 			ObjectProvider<MetricPublisher> metricPublisherObjectProvider) {
 		MetricPublisher metricPublisher = createSpecificMetricPublisher(metricPublisherObjectProvider.getIfAvailable(),
-				properties);
+				properties, awsClientBuilderConfigurer);
 		return awsClientBuilderConfigurer.configure(SesClient.builder(), properties, configurer.getIfAvailable(),
 				metricPublisher);
 	}
