@@ -19,18 +19,18 @@ import org.springframework.lang.Nullable;
 
 public class CloudWatchMetricsPublisherProperties {
 	@Nullable
-	Boolean enabled;
+	private boolean enabled;
 	@Nullable
-	String namespace;
+	private String namespace;
 	@Nullable
-	Long uploadFrequencyInSeconds;
+	private Long uploadFrequencyInSeconds;
 
 	@Nullable
-	public Boolean getEnabled() {
+	public boolean getEnabled() {
 		return enabled;
 	}
 
-	public void setEnabled(@Nullable Boolean enabled) {
+	public void setEnabled(@Nullable boolean enabled) {
 		this.enabled = enabled;
 	}
 

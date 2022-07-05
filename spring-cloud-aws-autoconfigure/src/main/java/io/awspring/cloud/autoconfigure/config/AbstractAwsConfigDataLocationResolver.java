@@ -157,8 +157,7 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 
 		MetricPublisher metricPublisher = getMetricPublisher(context);
 
-		if ((awsProperties.getMetrics() == null || awsProperties.getMetrics().getEnabled() == null
-				|| (awsProperties.getMetrics().getEnabled() != null && awsProperties.getMetrics().getEnabled()))
+		if ((awsProperties.getMetrics() == null || awsProperties.getMetrics().getEnabled())
 				&& metricPublisher != null) {
 			ClientOverrideConfiguration.Builder clientOverrideConfigurationBuilder = new SpringCloudClientConfiguration()
 					.clientOverrideConfiguration().toBuilder();

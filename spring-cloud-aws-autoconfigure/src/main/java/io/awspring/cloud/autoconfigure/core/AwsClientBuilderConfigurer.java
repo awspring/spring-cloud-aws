@@ -42,6 +42,8 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
  * @since 3.0
  */
 public class AwsClientBuilderConfigurer {
+	public static final boolean IS_CLOUDWATCH_METRIC_PUBLISHER_PRESENT = ClassUtils
+			.isPresent("software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher", null);
 	private final AwsCredentialsProvider credentialsProvider;
 	private final AwsRegionProvider regionProvider;
 	private final AwsProperties awsProperties;
@@ -93,9 +95,8 @@ public class AwsClientBuilderConfigurer {
 	public static @Nullable MetricPublisher createSpecificMetricPublisher(MetricPublisher metricPublisher,
 			AwsClientProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
 
-		if (ClassUtils.isPresent("software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher", null)
-				&& properties.getMetrics() != null) {
-			if (properties.getMetrics().getEnabled() == null || properties.getMetrics().getEnabled()) {
+		if (IS_CLOUDWATCH_METRIC_PUBLISHER_PRESENT && properties.getMetrics() != null) {
+			if (properties.getMetrics().getEnabled()) {
 				PropertyMapper propertyMapper = PropertyMapper.get();
 
 				CloudWatchAsyncClientBuilder cloudWatchAsyncClientBuilder = CloudWatchAsyncClient.builder();
@@ -113,7 +114,7 @@ public class AwsClientBuilderConfigurer {
 						.to(v -> builder.uploadFrequency(Duration.ofSeconds(v)));
 				return builder.build();
 			}
-			if (properties.getMetrics().getEnabled() != null && !properties.getMetrics().getEnabled()) {
+			else {
 				return null;
 			}
 

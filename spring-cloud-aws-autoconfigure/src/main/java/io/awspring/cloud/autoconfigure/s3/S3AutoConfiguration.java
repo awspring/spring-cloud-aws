@@ -62,7 +62,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 public class S3AutoConfiguration {
 
-	private static S3Properties properties;
+	private final S3Properties properties;
 
 	public S3AutoConfiguration(S3Properties properties) {
 		this.properties = properties;
