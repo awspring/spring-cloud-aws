@@ -143,13 +143,4 @@ class RegionProviderAutoConfigurationTests {
 
 	}
 
-	static class CustomRegionProvider implements AwsRegionProvider {
-
-		@Override
-		public Region getRegion() {
-			return null;
-		}
-
-	}
-
 }

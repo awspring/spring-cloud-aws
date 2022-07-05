@@ -34,6 +34,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
+import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -41,9 +42,9 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.internal.transform.MetricCollectionAggregator;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
-import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
 /**
  *
@@ -108,12 +109,39 @@ class DynamoDbAutoConfigurationTest {
 
 				});
 	}
+
+	@Test
+	void usesSpecificMetricsClientPropertiesIfSpecified() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.metrics.enabled:true",
+				"spring.cloud.aws.dynamodb.metrics.namespace:custom").run(context -> {
+					assertThat(context).hasSingleBean(MetricPublisher.class);
+					assertThat(context).hasSingleBean(DynamoDbClientBuilder.class);
+					assertThat(context.getBean(DynamoDbClientBuilder.class).overrideConfiguration().metricPublishers()
+							.size()).isEqualTo(1);
+					CloudWatchMetricPublisher metricPublisher = (CloudWatchMetricPublisher) context
+							.getBean(DynamoDbClientBuilder.class).overrideConfiguration().metricPublishers().get(0);
+					MetricCollectionAggregator metricAggregator = (MetricCollectionAggregator) ReflectionTestUtils
+							.getField(metricPublisher, "metricAggregator");
+					String namespace = (String) ReflectionTestUtils.getField(metricAggregator, "namespace");
+					assertThat(namespace).isEqualTo("custom");
+				});
+	}
+
+	@Test
+	void doesNotUseMetricsClientIfDisabledForclient() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.metrics.enabled:false").run(context -> {
+			assertThat(context.getBean(DynamoDbClientBuilder.class).overrideConfiguration().metricPublishers().size())
+					.isEqualTo(0);
+		});
+	}
+
 	@Test
 	void usesMetricsPublisherIfAvailable() {
 		this.contextRunner.run(context -> {
 			assertThat(context).hasSingleBean(MetricPublisher.class);
 			assertThat(context).hasSingleBean(DynamoDbClientBuilder.class);
-			assertThat(context.getBean(DynamoDbClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(1);
+			assertThat(context.getBean(DynamoDbClientBuilder.class).overrideConfiguration().metricPublishers().size())
+					.isEqualTo(1);
 		});
 	}
 
@@ -122,9 +150,11 @@ class DynamoDbAutoConfigurationTest {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(CloudWatchMetricPublisher.class)).run(context -> {
 			assertThat(context).doesNotHaveBean(MetricPublisher.class);
 			assertThat(context).hasSingleBean(DynamoDbClientBuilder.class);
-			assertThat(context.getBean(DynamoDbClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(0);
+			assertThat(context.getBean(DynamoDbClientBuilder.class).overrideConfiguration().metricPublishers().size())
+					.isEqualTo(0);
 		});
 	}
+
 	@Test
 	void customDynamoDbClientConfigurer() {
 		this.contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomAwsClientConfig.class)

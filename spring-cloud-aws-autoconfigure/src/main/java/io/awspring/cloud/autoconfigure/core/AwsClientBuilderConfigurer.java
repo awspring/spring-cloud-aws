@@ -17,14 +17,18 @@ package io.awspring.cloud.autoconfigure.core;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import java.time.Duration;
 import java.util.Optional;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
@@ -81,5 +85,25 @@ public class AwsClientBuilderConfigurer {
 		return clientProperties != null && StringUtils.hasLength(clientProperties.getRegion())
 				? Region.of(clientProperties.getRegion())
 				: this.regionProvider.getRegion();
+	}
+
+	public static @Nullable MetricPublisher createSpecificMetricPublisher(MetricPublisher metricPublisher,
+			AwsClientProperties properties) {
+		if (ClassUtils.isPresent("software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher", null)
+				&& properties.getMetrics() != null) {
+			if (properties.getMetrics().getEnabled() == null || properties.getMetrics().getEnabled()) {
+				CloudWatchMetricPublisher.Builder builder = CloudWatchMetricPublisher.builder();
+				PropertyMapper propertyMapper = PropertyMapper.get();
+				propertyMapper.from(properties.getMetrics()::getNamespace).whenNonNull().to(builder::namespace);
+				propertyMapper.from(properties.getMetrics()::getUploadFrequencyInSeconds).whenNonNull()
+						.to(v -> builder.uploadFrequency(Duration.ofSeconds(v)));
+				return builder.build();
+			}
+			if (properties.getMetrics().getEnabled() != null && !properties.getMetrics().getEnabled()) {
+				return null;
+			}
+
+		}
+		return metricPublisher;
 	}
 }

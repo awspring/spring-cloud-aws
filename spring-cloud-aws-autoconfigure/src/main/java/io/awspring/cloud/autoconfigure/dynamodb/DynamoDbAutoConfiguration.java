@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.autoconfigure.dynamodb;
 
+import static io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer.createSpecificMetricPublisher;
+
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -58,9 +60,11 @@ public class DynamoDbAutoConfiguration {
 	@Bean
 	public DynamoDbClientBuilder dynamoDbClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
-			ObjectProvider<MetricPublisher> metricPublisher) {
+			ObjectProvider<MetricPublisher> metricPublisherObjectProvider) {
+		MetricPublisher metricPublisher = createSpecificMetricPublisher(metricPublisherObjectProvider.getIfAvailable(),
+				properties);
 		return awsClientBuilderConfigurer.configure(DynamoDbClient.builder(), properties, configurer.getIfAvailable(),
-				metricPublisher.getIfAvailable());
+				metricPublisher);
 	}
 
 	@ConditionalOnMissingBean

@@ -32,11 +32,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.internal.transform.MetricCollectionAggregator;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.SesClientBuilder;
 
@@ -89,11 +91,38 @@ class SesAutoConfigurationTest {
 	}
 
 	@Test
+	void usesSpecificMetricsClientPropertiesIfSpecified() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.ses.metrics.enabled:true",
+				"spring.cloud.aws.ses.metrics.namespace:custom").run(context -> {
+					assertThat(context).hasSingleBean(MetricPublisher.class);
+					assertThat(context).hasSingleBean(SesClientBuilder.class);
+					assertThat(
+							context.getBean(SesClientBuilder.class).overrideConfiguration().metricPublishers().size())
+									.isEqualTo(1);
+					CloudWatchMetricPublisher metricPublisher = (CloudWatchMetricPublisher) context
+							.getBean(SesClientBuilder.class).overrideConfiguration().metricPublishers().get(0);
+					MetricCollectionAggregator metricAggregator = (MetricCollectionAggregator) ReflectionTestUtils
+							.getField(metricPublisher, "metricAggregator");
+					String namespace = (String) ReflectionTestUtils.getField(metricAggregator, "namespace");
+					assertThat(namespace).isEqualTo("custom");
+				});
+	}
+
+	@Test
+	void doesNotUseMetricsClientIfDisabledForclient() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.ses.metrics.enabled:false").run(context -> {
+			assertThat(context.getBean(SesClientBuilder.class).overrideConfiguration().metricPublishers().size())
+					.isEqualTo(0);
+		});
+	}
+
+	@Test
 	void usesMetricsPublisherIfAvailable() {
 		this.contextRunner.run(context -> {
 			assertThat(context).hasSingleBean(MetricPublisher.class);
 			assertThat(context).hasSingleBean(SesClientBuilder.class);
-			assertThat(context.getBean(SesClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(1);
+			assertThat(context.getBean(SesClientBuilder.class).overrideConfiguration().metricPublishers().size())
+					.isEqualTo(1);
 		});
 	}
 
@@ -102,7 +131,8 @@ class SesAutoConfigurationTest {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(CloudWatchMetricPublisher.class)).run(context -> {
 			assertThat(context).doesNotHaveBean(MetricPublisher.class);
 			assertThat(context).hasSingleBean(SesClientBuilder.class);
-			assertThat(context.getBean(SesClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(0);
+			assertThat(context.getBean(SesClientBuilder.class).overrideConfiguration().metricPublishers().size())
+					.isEqualTo(0);
 		});
 	}
 

@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.autoconfigure.s3;
 
+import static io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer.createSpecificMetricPublisher;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
@@ -60,7 +62,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 public class S3AutoConfiguration {
 
-	private final S3Properties properties;
+	private static S3Properties properties;
 
 	public S3AutoConfiguration(S3Properties properties) {
 		this.properties = properties;
@@ -70,9 +72,11 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean
 	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer,
-			ObjectProvider<MetricPublisher> metricPublisher) {
+			ObjectProvider<MetricPublisher> metricPublisherObjectProvider) {
+		MetricPublisher metricPublisher = createSpecificMetricPublisher(metricPublisherObjectProvider.getIfAvailable(),
+				properties);
 		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(), this.properties,
-				configurer.getIfAvailable(), metricPublisher.getIfAvailable());
+				configurer.getIfAvailable(), metricPublisher);
 		builder.serviceConfiguration(s3ServiceConfiguration());
 		return builder;
 	}
@@ -139,5 +143,4 @@ public class S3AutoConfiguration {
 		return new InMemoryBufferingS3OutputStreamProvider(s3Client,
 				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 	}
-
 }

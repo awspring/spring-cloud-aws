@@ -53,6 +53,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.internal.transform.MetricCollectionAggregator;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
@@ -95,7 +96,33 @@ class S3AutoConfigurationTests {
 		this.contextRunner.run(context -> {
 			assertThat(context).hasSingleBean(MetricPublisher.class);
 			assertThat(context).hasSingleBean(S3ClientBuilder.class);
-			assertThat(context.getBean(S3ClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(1);
+			assertThat(context.getBean(S3ClientBuilder.class).overrideConfiguration().metricPublishers().size())
+					.isEqualTo(1);
+		});
+	}
+
+	@Test
+	void usesSpecificMetricsClientPropertiesIfSpecified() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.metrics.enabled:true",
+				"spring.cloud.aws.s3.metrics.namespace:custom").run(context -> {
+					assertThat(context).hasSingleBean(MetricPublisher.class);
+					assertThat(context).hasSingleBean(S3ClientBuilder.class);
+					assertThat(context.getBean(S3ClientBuilder.class).overrideConfiguration().metricPublishers().size())
+							.isEqualTo(1);
+					CloudWatchMetricPublisher metricPublisher = (CloudWatchMetricPublisher) context
+							.getBean(S3ClientBuilder.class).overrideConfiguration().metricPublishers().get(0);
+					MetricCollectionAggregator metricAggregator = (MetricCollectionAggregator) ReflectionTestUtils
+							.getField(metricPublisher, "metricAggregator");
+					String namespace = (String) ReflectionTestUtils.getField(metricAggregator, "namespace");
+					assertThat(namespace).isEqualTo("custom");
+				});
+	}
+
+	@Test
+	void doesNotUseMetricsClientIfDisabledForclient() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.metrics.enabled:false").run(context -> {
+			assertThat(context.getBean(S3ClientBuilder.class).overrideConfiguration().metricPublishers().size())
+					.isEqualTo(0);
 		});
 	}
 
@@ -104,7 +131,8 @@ class S3AutoConfigurationTests {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(CloudWatchMetricPublisher.class)).run(context -> {
 			assertThat(context).doesNotHaveBean(MetricPublisher.class);
 			assertThat(context).hasSingleBean(S3ClientBuilder.class);
-			assertThat(context.getBean(S3ClientBuilder.class).overrideConfiguration().metricPublishers().size()).isEqualTo(0);
+			assertThat(context.getBean(S3ClientBuilder.class).overrideConfiguration().metricPublishers().size())
+					.isEqualTo(0);
 		});
 	}
 

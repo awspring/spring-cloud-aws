@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.sns;
 
+import static io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer.createSpecificMetricPublisher;
 import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,14 +60,16 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
 @ConditionalOnProperty(name = "spring.cloud.aws.sns.enabled", havingValue = "true", matchIfMissing = true)
 public class SnsAutoConfiguration {
 
-
 	@ConditionalOnMissingBean
 	@Bean
-	public SnsClientBuilder snsClientBuilder(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-							   ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer,
-							   ObjectProvider<MetricPublisher> metricPublisher) {
+	public SnsClientBuilder snsClientBuilder(SnsProperties properties,
+			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+			ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer,
+			ObjectProvider<MetricPublisher> metricPublisherObjectProvider) {
+		MetricPublisher metricPublisher = createSpecificMetricPublisher(metricPublisherObjectProvider.getIfAvailable(),
+				properties);
 		return awsClientBuilderConfigurer.configure(SnsClient.builder(), properties, configurer.getIfAvailable(),
-			metricPublisher.getIfAvailable());
+				metricPublisher);
 	}
 
 	@ConditionalOnMissingBean
