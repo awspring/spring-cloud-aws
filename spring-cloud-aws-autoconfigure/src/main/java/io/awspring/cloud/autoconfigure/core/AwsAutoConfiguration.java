@@ -15,11 +15,19 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.metrics.LoggingMetricPublisher;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+
+import java.time.Duration;
 
 /**
  * Autoconfigures AWS environment.
@@ -35,6 +43,16 @@ public class AwsAutoConfiguration {
 
 	public AwsAutoConfiguration(AwsProperties awsProperties) {
 		this.awsProperties = awsProperties;
+	}
+
+	@ConditionalOnClass(CloudWatchMetricPublisher.class)
+	static class MetricsAutoConfiguration {
+		@Bean
+		@ConditionalOnMissingBean
+		@ConditionalOnProperty(name = "spring.cloud.aws.metrics-enabled", havingValue = "true", matchIfMissing = true)
+		MetricPublisher cloudWatchMetricPublisher() {
+			return CloudWatchMetricPublisher.builder().build();
+		}
 	}
 
 	@Bean

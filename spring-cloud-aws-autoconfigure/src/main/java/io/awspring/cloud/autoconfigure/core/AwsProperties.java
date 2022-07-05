@@ -15,12 +15,13 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
-import static io.awspring.cloud.autoconfigure.core.AwsProperties.CONFIG_PREFIX;
-
-import java.net.URI;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
+
+import java.net.URI;
+
+import static io.awspring.cloud.autoconfigure.core.AwsProperties.CONFIG_PREFIX;
 
 /**
  * Configuration properties for AWS environment.
@@ -61,6 +62,9 @@ public class AwsProperties {
 	private Boolean fipsEnabled;
 
 	@Nullable
+	private Boolean metricsEnabled;
+
+	@Nullable
 	public URI getEndpoint() {
 		return this.endpoint;
 	}
@@ -94,5 +98,14 @@ public class AwsProperties {
 
 	public void setFipsEnabled(@Nullable Boolean fipsEnabled) {
 		this.fipsEnabled = fipsEnabled;
+	}
+
+	@Nullable
+	public Boolean getMetricsEnabled() {
+		return metricsEnabled;
+	}
+
+	public void setMetricsEnabled(@Nullable Boolean metricsEnabled) {
+		this.metricsEnabled = metricsEnabled;
 	}
 }

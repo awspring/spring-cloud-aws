@@ -22,9 +22,6 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.ConfigurableBootstrapContext;
@@ -40,8 +37,16 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Base class for AWS specific {@link ConfigDataLocationResolver}s.
@@ -151,7 +156,23 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 			builder.endpointOverride(awsProperties.getEndpoint());
 		}
 		builder.credentialsProvider(credentialsProvider);
-		builder.overrideConfiguration(new SpringCloudClientConfiguration().clientOverrideConfiguration());
+
+		Optional<MetricPublisher> metricPublisher;
+		try {
+			Class.forName("software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher");
+			metricPublisher = Optional.of(context.get(CloudWatchMetricPublisher.class));
+		}
+		catch (IllegalStateException | ClassNotFoundException e) {
+			metricPublisher = Optional.empty();
+		}
+		ClientOverrideConfiguration.Builder clientOverrideConfigurationBuilder = new SpringCloudClientConfiguration()
+				.clientOverrideConfigurationBuilder();
+		if ((awsProperties.getMetricsEnabled() == null || awsProperties.getMetricsEnabled())
+				&& (properties.getMetricsEnabled() == null || properties.getMetricsEnabled())
+				&& metricPublisher.isPresent()) {
+			clientOverrideConfigurationBuilder.addMetricPublisher(metricPublisher.get());
+		}
+		builder.overrideConfiguration(clientOverrideConfigurationBuilder.build());
 		return builder;
 	}
 

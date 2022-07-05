@@ -37,6 +37,12 @@ public abstract class AwsClientProperties {
 	@Nullable
 	private String region;
 
+	/**
+	 * Overrides the global enablement of the CloudWatch MetricsPublisher.
+	 */
+	@Nullable
+	private Boolean metricsEnabled;
+
 	@Nullable
 	public URI getEndpoint() {
 		return this.endpoint;
@@ -53,5 +59,14 @@ public abstract class AwsClientProperties {
 
 	public void setRegion(String region) {
 		this.region = region;
+	}
+
+	@Nullable
+	public Boolean getMetricsEnabled() {
+		return metricsEnabled;
+	}
+
+	public void setMetricsEnabled(@Nullable Boolean metricsEnabled) {
+		this.metricsEnabled = metricsEnabled;
 	}
 }
