@@ -15,13 +15,13 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.lang.Nullable;
-import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
+import static io.awspring.cloud.autoconfigure.core.AwsProperties.CONFIG_PREFIX;
 
 import java.net.URI;
-
-import static io.awspring.cloud.autoconfigure.core.AwsProperties.CONFIG_PREFIX;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.lang.Nullable;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 
 /**
  * Configuration properties for AWS environment.
@@ -56,13 +56,17 @@ public class AwsProperties {
 	private Boolean dualstackEnabled;
 
 	/**
+	 * Configure metrics properties to send to CloudWatch if needed
+	 */
+	@NestedConfigurationProperty
+	@Nullable
+	private CloudWatchMetricsPublisherProperties metrics;
+
+	/**
 	 * Configure whether the SDK should use the AWS fips endpoints.
 	 */
 	@Nullable
 	private Boolean fipsEnabled;
-
-	@Nullable
-	private Boolean metricsEnabled;
 
 	@Nullable
 	public URI getEndpoint() {
@@ -101,11 +105,11 @@ public class AwsProperties {
 	}
 
 	@Nullable
-	public Boolean getMetricsEnabled() {
-		return metricsEnabled;
+	public CloudWatchMetricsPublisherProperties getMetrics() {
+		return metrics;
 	}
 
-	public void setMetricsEnabled(@Nullable Boolean metricsEnabled) {
-		this.metricsEnabled = metricsEnabled;
+	public void setMetrics(@Nullable CloudWatchMetricsPublisherProperties metrics) {
+		this.metrics = metrics;
 	}
 }

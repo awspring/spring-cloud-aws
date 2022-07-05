@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.SesClientBuilder;
 
@@ -54,9 +55,10 @@ public class SesAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public SesClient sesClient(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer) {
-		return awsClientBuilderConfigurer.configure(SesClient.builder(), properties, configurer.getIfAvailable())
-				.build();
+			ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer,
+			ObjectProvider<MetricPublisher> metricPublisher) {
+		return awsClientBuilderConfigurer.configure(SesClient.builder(), properties, configurer.getIfAvailable(),
+				metricPublisher.getIfAvailable()).build();
 	}
 
 	@Bean

@@ -31,6 +31,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 
@@ -56,9 +57,10 @@ public class DynamoDbAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public DynamoDbClient dynamoDbClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer) {
-		return awsClientBuilderConfigurer.configure(DynamoDbClient.builder(), properties, configurer.getIfAvailable())
-				.build();
+			ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
+			ObjectProvider<MetricPublisher> metricPublisher) {
+		return awsClientBuilderConfigurer.configure(DynamoDbClient.builder(), properties, configurer.getIfAvailable(),
+				metricPublisher.getIfAvailable()).build();
 	}
 
 	@ConditionalOnMissingBean

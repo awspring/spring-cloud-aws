@@ -34,6 +34,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
@@ -67,9 +68,10 @@ public class CloudWatchExportAutoConfiguration {
 	@ConditionalOnMissingBean
 	public CloudWatchAsyncClient cloudWatchAsyncClient(CloudWatchProperties properties,
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer) {
-		return awsClientBuilderConfigurer
-				.configure(CloudWatchAsyncClient.builder(), properties, configurer.getIfAvailable()).build();
+			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer,
+			ObjectProvider<MetricPublisher> metricPublisher) {
+		return awsClientBuilderConfigurer.configure(CloudWatchAsyncClient.builder(), properties,
+				configurer.getIfAvailable(), metricPublisher.getIfAvailable()).build();
 	}
 
 	@Bean

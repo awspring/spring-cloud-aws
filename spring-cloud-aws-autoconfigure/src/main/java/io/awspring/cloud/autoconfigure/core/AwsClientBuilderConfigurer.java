@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.core;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import java.util.Optional;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -26,8 +27,6 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
-
-import java.util.Optional;
 
 /**
  * Provides a convenience method to apply common configuration to any {@link AwsClientBuilder}.
@@ -46,8 +45,7 @@ public class AwsClientBuilderConfigurer {
 		this.credentialsProvider = credentialsProvider;
 		this.regionProvider = regionProvider;
 		this.awsProperties = awsProperties;
-		this.clientOverrideConfiguration = new SpringCloudClientConfiguration()
-				.clientOverrideConfiguration();
+		this.clientOverrideConfiguration = new SpringCloudClientConfiguration().clientOverrideConfiguration();
 	}
 
 	public <T extends AwsClientBuilder<?, ?>> T configure(T builder) {
@@ -56,14 +54,15 @@ public class AwsClientBuilderConfigurer {
 
 	public <T extends AwsClientBuilder<?, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
 			@Nullable AwsClientCustomizer<T> customizer, MetricPublisher metricPublisher) {
-		ClientOverrideConfiguration.Builder clientOverrideConfigurationBuilder = clientOverrideConfiguration.toBuilder();
+		ClientOverrideConfiguration.Builder clientOverrideConfigurationBuilder = clientOverrideConfiguration
+				.toBuilder();
 		Assert.notNull(builder, "builder is required");
 		Assert.notNull(clientProperties, "clientProperties are required");
-		if(metricPublisher != null) {
+		if (metricPublisher != null) {
 			clientOverrideConfigurationBuilder.addMetricPublisher(metricPublisher).build();
 		}
 		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties))
-			.overrideConfiguration(clientOverrideConfigurationBuilder.build());
+				.overrideConfiguration(clientOverrideConfigurationBuilder.build());
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(clientProperties).map(AwsClientProperties::getEndpoint)
 				.ifPresent(builder::endpointOverride);

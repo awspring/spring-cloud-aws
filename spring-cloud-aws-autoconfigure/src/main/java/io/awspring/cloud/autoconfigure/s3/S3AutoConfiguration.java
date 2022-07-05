@@ -43,6 +43,7 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -68,9 +69,10 @@ public class S3AutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer) {
+			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer,
+			ObjectProvider<MetricPublisher> metricPublisher) {
 		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(), this.properties,
-				configurer.getIfAvailable());
+				configurer.getIfAvailable(), metricPublisher.getIfAvailable());
 		builder.serviceConfiguration(s3ServiceConfiguration());
 		return builder;
 	}
