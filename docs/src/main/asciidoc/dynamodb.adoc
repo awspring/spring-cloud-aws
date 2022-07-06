@@ -96,6 +96,18 @@ public class DynamoDbService {
 }
 ----
 
+===Using DynamoDB Accelerator
+
+The starter automatically configures and registers an `software.amazon.dax.ClusterDaxClient` bean if it finds the following is added to the project:
+
+[source,xml]
+----
+<dependency>
+	<groupId>software.amazon.dax</groupId>
+	<artifactId>amazon-dax-client</artifactId>
+</dependency>
+----
+
 === Configuration
 
 The Spring Boot Starter for DynamoDb provides the following configuration options:
@@ -106,6 +118,19 @@ The Spring Boot Starter for DynamoDb provides the following configuration option
 | `spring.cloud.aws.dynamodb.enabled` | Enables the DynamoDb integration. | No | `true`
 | `spring.cloud.aws.dynamodb.endpoint` | Configures endpoint used by `DynamoDbClient`. | No |
 | `spring.cloud.aws.dynamodb.region` | Configures region used by `DynamoDbClient`. | No |
+
+| `spring.cloud.aws.dynamodb.dax.idleTimeoutMillis` |Timeout for idle connections with the DAX cluster. | No | `30000`
+| `spring.cloud.aws.dynamodb.dax.url` | DAX cluster endpoint. | Yes |
+| `spring.cloud.aws.dynamodb.dax.connectionTtlMillis` |  Connection time to live. | No | `0`
+| `spring.cloud.aws.dynamodb.dax.connectTimeoutMillis` | Connection timeout | No | `1000`
+| `spring.cloud.aws.dynamodb.dax.requestTimeoutMillis` | Request timeout for connections with the DAX cluster. | No | `1000`
+| `spring.cloud.aws.dynamodb.dax.writeRetries` | Number of times to retry writes, initial try is not counted. | No | `2`
+| `spring.cloud.aws.dynamodb.dax.readRetries` | Number of times to retry reads, initial try is not counted. | No | `2`
+| `spring.cloud.aws.dynamodb.dax.clusterUpdateIntervalMillis` | Interval between polling of cluster members for membership changes. | No | `4000`
+| `spring.cloud.aws.dynamodb.dax.endpointRefreshTimeoutMillis` | Timeout for endpoint refresh. | No | `6000`
+| `spring.cloud.aws.dynamodb.dax.maxConcurrency` | Maximum number of concurrent requests. | No | 1000
+| `spring.cloud.aws.dynamodb.dax.maxPendingConnectionAcquires` | Maximum number of pending Connections to acquire. | No | 10000
+| `spring.cloud.aws.dynamodb.dax.skipHostNameVerification` | Skips hostname verification in url. | No |
 |===
 
 === IAM Permissions

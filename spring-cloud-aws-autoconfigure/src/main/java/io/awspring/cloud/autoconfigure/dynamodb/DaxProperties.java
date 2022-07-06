@@ -28,8 +28,14 @@ public class DaxProperties {
 	/**
 	 * DAX cluster endpoint.
 	 */
-	private String url = "";
+	private String url;
+	/**
+	 * Connection time to live.
+	 */
 	private int connectionTtlMillis = 0;
+	/**
+	 * Connection timeout.
+	 */
 	private int connectTimeoutMillis = 1000;
 	/**
 	 * Request timeout for connections with the DAX cluster.
@@ -47,9 +53,21 @@ public class DaxProperties {
 	 * Interval between polling of cluster members for membership changes.
 	 */
 	private int clusterUpdateIntervalMillis = 4000;
+	/**
+	 * Timeout for endpoint refresh.
+	 */
 	private int endpointRefreshTimeoutMillis = 6000;
+	/**
+	 * Maximum number of concurrent requests.
+	 */
 	private int maxConcurrency = 1000;
+	/**
+	 * Maximum number of pending Connections to acquire.
+	 */
 	private int maxPendingConnectionAcquires = 10000;
+	/**
+	 * Skips hostname verification in url.
+	 */
 	private boolean skipHostNameVerification;
 
 	public int getIdleTimeoutMillis() {
