@@ -41,10 +41,10 @@ import software.amazon.dax.ClusterDaxClient;
 class DynamoDbAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
-			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, DynamoDbAutoConfiguration.class,
-					AwsAutoConfiguration.class));
+			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1",
+					"spring.cloud.aws.credentials.accessKey:noop", "spring.cloud.aws.credentials.secretKey:noop")
+			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+					CredentialsProviderAutoConfiguration.class, DynamoDbAutoConfiguration.class));
 
 	@Test
 	void dynamoDBAutoConfigurationIsDisabled() {
