@@ -49,6 +49,9 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 
 	private final TopicArnResolver topicArnResolver;
 
+	public SnsTemplate(SnsClient snsClient) {
+		this(snsClient, new CachingTopicArnResolver(new DefaultTopicArnResolver(snsClient)), null);
+	}
 	public SnsTemplate(SnsClient snsClient, @Nullable MessageConverter messageConverter) {
 		this(snsClient, new CachingTopicArnResolver(new DefaultTopicArnResolver(snsClient)), messageConverter);
 	}

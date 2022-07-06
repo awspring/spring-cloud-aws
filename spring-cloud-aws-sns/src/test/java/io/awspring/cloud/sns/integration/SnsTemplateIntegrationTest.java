@@ -32,6 +32,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
+import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 
 /**
  * Integration tests for {@link SnsTemplate}.
@@ -50,12 +51,12 @@ class SnsTemplateIntegrationTest {
 			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SNS).withReuse(true);
 
 	@BeforeAll
-	public static void createTable() {
+	public static void createSnsTemplate() {
 		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(DYNAMODB))
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
-		snsTemplate = new SnsTemplate(snsClient, null);
+		snsTemplate = new SnsTemplate(snsClient);
 	}
 
 	@Test
@@ -66,15 +67,18 @@ class SnsTemplateIntegrationTest {
 	@Test
 	void send_validTextMessage_usesTopicChannel_send_arn() {
 		String topic_arn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
+		snsClient.subscribe(SubscribeRequest.builder().protocol("http")
+			.endpoint("http://host.testcontainers.internal:8080/testTopic").topicArn(topic_arn).build());
 		snsTemplate.convertAndSend(topic_arn, "message");
 	}
 
 	@Test
 	void send_validPersonObject_usesTopicChannel_send_arn() {
 		String topic_arn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
+		snsClient.subscribe(SubscribeRequest.builder().protocol("http")
+			.endpoint("http://host.testcontainers.internal:8080/testTopic").topicArn(topic_arn).build());
 		snsTemplate.sendNotification(topic_arn, SnsNotification.builder(new Person("foo")).groupId("groupId")
 				.deduplicationId("deduplicationId").header("header-1", "value-1").subject("subject").build());
-
 	}
 
 }
