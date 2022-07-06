@@ -21,6 +21,7 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.dynamodb.*;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -34,6 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
@@ -57,11 +59,11 @@ public class DynamoDbAutoConfiguration {
 
 		@ConditionalOnMissingBean
 		@Bean
-		public DynamoDbClient dynamoDbClient(ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
-				DynamoDbProperties properties, AwsCredentialsProvider credentialsProvider,
-				AwsRegionProvider regionProvider) throws IOException {
+		public DynamoDbClient dynamoDbClient(DynamoDbProperties properties, AwsCredentialsProvider credentialsProvider,
+				AwsRegionProvider regionProvider, ObjectProvider<List<MetricPublisher>> metricsPublishers)
+				throws IOException {
 			DaxProperties dax = properties.getDax();
-			return ClusterDaxClient.builder().overrideConfiguration(software.amazon.dax.Configuration.builder()
+			software.amazon.dax.Configuration.Builder configuration = software.amazon.dax.Configuration.builder()
 					.idleTimeoutMillis(dax.getIdleTimeoutMillis()).connectionTtlMillis(dax.getConnectionTtlMillis())
 					.connectTimeoutMillis(dax.getConnectTimeoutMillis())
 					.requestTimeoutMillis(dax.getRequestTimeoutMillis()).writeRetries(dax.getWriteRetries())
@@ -71,7 +73,11 @@ public class DynamoDbAutoConfiguration {
 					.maxPendingConnectionAcquires(dax.getMaxPendingConnectionAcquires())
 					.skipHostNameVerification(dax.isSkipHostNameVerification())
 					.region(AwsClientBuilderConfigurer.resolveRegion(properties, regionProvider))
-					.credentialsProvider(credentialsProvider).url(properties.getEndpoint().toString()).build()).build();
+					.credentialsProvider(credentialsProvider).url(properties.getDax().getUrl());
+			if (metricsPublishers.getIfAvailable() != null) {
+				metricsPublishers.getIfAvailable().forEach(configuration::addMetricPublisher);
+			}
+			return ClusterDaxClient.builder().overrideConfiguration(configuration.build()).build();
 		}
 
 	}

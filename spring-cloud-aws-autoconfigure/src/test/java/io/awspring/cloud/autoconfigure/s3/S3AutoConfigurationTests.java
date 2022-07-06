@@ -62,7 +62,7 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
 class S3AutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1", "spring.cloud.aws.dynamodb.enabled:false")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
 

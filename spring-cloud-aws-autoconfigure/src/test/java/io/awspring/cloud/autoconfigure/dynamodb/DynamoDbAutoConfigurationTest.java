@@ -56,7 +56,7 @@ class DynamoDbAutoConfigurationTest {
 	void dynamoDBAutoConfigurationIsEnabled() {
 		this.contextRunner
 				.withPropertyValues("spring.cloud.aws.dynamodb.enabled:true",
-						"spring.cloud.aws.dynamodb.endpoint:dax://something.dax-clusters.us-east-1.amazonaws.com")
+						"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
 				.run(context -> {
 					assertThat(context).hasSingleBean(DynamoDbClient.class);
 					assertThat(context).hasSingleBean(DynamoDbTemplate.class);
@@ -72,7 +72,7 @@ class DynamoDbAutoConfigurationTest {
 	void withCustomEndpoint() {
 		this.contextRunner
 				.withPropertyValues(
-						"spring.cloud.aws.dynamodb.endpoint:dax://something.dax-clusters.us-east-1.amazonaws.com")
+						"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
 				.run(context -> {
 					assertThat(context).hasSingleBean(DynamoDbClient.class);
 					assertThat(context).hasSingleBean(DynamoDbTemplate.class);
@@ -88,7 +88,7 @@ class DynamoDbAutoConfigurationTest {
 	void customTableResolverResolverCanBeConfigured() {
 		this.contextRunner
 				.withPropertyValues(
-						"spring.cloud.aws.dynamodb.endpoint:dax://something.dax-clusters.us-east-1.amazonaws.com")
+						"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
 				.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomDynamoDbConfiguration.class).run(context -> {
 					DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver = context
 							.getBean(DynamoDbTableSchemaResolver.class);
@@ -109,7 +109,7 @@ class DynamoDbAutoConfigurationTest {
 	@Test
 	void customDynamoDbClientDaxSettings() {
 		this.contextRunner.withPropertyValues(
-				"spring.cloud.aws.dynamodb.endpoint:dax://something.dax-clusters.us-east-1.amazonaws.com",
+				"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com",
 				"spring.cloud.aws.dynamodb.dax.writeRetries:4",
 				"spring.cloud.aws.dynamodb.dax.connectTimeoutMillis:4000").run(context -> {
 					ClusterDaxClient client = context.getBean(ClusterDaxClient.class);

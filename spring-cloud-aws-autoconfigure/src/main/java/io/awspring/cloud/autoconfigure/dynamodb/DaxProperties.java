@@ -18,15 +18,34 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 /**
  * Properties used to configure {@link software.amazon.dax.ClusterDaxClient}
  * @author Matej Nedić
- * @since 3.0.0
+ * @since 3.0.0x
  */
 public class DaxProperties {
+	/**
+	 * Timeout for idle connections with the DAX cluster.
+	 */
 	private int idleTimeoutMillis = 30000;
+	/**
+	 * DAX cluster endpoint.
+	 */
+	private String url = "";
 	private int connectionTtlMillis = 0;
 	private int connectTimeoutMillis = 1000;
+	/**
+	 * Request timeout for connections with the DAX cluster.
+	 */
 	private int requestTimeoutMillis = 1000;
+	/**
+	 * Number of times to retry writes, initial try is not counted.
+	 */
 	private int writeRetries = 2;
+	/**
+	 * Number of times to retry reads, initial try is not counted.
+	 */
 	private int readRetries = 2;
+	/**
+	 * Interval between polling of cluster members for membership changes.
+	 */
 	private int clusterUpdateIntervalMillis = 4000;
 	private int endpointRefreshTimeoutMillis = 6000;
 	private int maxConcurrency = 1000;
@@ -119,5 +138,13 @@ public class DaxProperties {
 
 	public void setSkipHostNameVerification(boolean skipHostNameVerification) {
 		this.skipHostNameVerification = skipHostNameVerification;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
 	}
 }
