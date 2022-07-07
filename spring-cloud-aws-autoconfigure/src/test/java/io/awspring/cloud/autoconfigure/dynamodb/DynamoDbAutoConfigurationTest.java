@@ -20,11 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.dynamodb.DynamoDbTableNameResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTableSchemaResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTemplate;
+import io.awspring.cloud.s3.S3OutputStreamProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,6 +35,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.dax.ClusterDaxClient;
 
 /**
@@ -42,7 +47,7 @@ class DynamoDbAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1",
-					"spring.cloud.aws.credentials.accessKey:noop", "spring.cloud.aws.credentials.secretKey:noop")
+					"spring.cloud.aws.credentials.access-key:noop", "spring.cloud.aws.credentials.secret-key:noop")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, DynamoDbAutoConfiguration.class));
 
@@ -63,7 +68,7 @@ class DynamoDbAutoConfigurationTest {
 					assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
 
 					ClusterDaxClient client = context.getBean(ClusterDaxClient.class);
-					software.amazon.dax.Configuration configuration = getConfiugration(client);
+					software.amazon.dax.Configuration configuration = getConfiguration(client);
 					assertThat(configuration.url()).isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
 				});
 	}
@@ -79,7 +84,7 @@ class DynamoDbAutoConfigurationTest {
 					assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
 
 					ClusterDaxClient client = context.getBean(ClusterDaxClient.class);
-					software.amazon.dax.Configuration configuration = getConfiugration(client);
+					software.amazon.dax.Configuration configuration = getConfiguration(client);
 					assertThat(configuration.url()).isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
 				});
 	}
@@ -107,20 +112,28 @@ class DynamoDbAutoConfigurationTest {
 	}
 
 	@Test
+	void testWhenClusterDaxClientIsNotOnClassPath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(ClusterDaxClient.class)).run(context -> {
+			assertThat(context).hasSingleBean(DynamoDbClient.class);
+			assertThat(context.getBean(DynamoDbClient.class)).isNotInstanceOf(ClusterDaxClient.class);
+		});
+	}
+
+	@Test
 	void customDynamoDbClientDaxSettings() {
 		this.contextRunner.withPropertyValues(
 				"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com",
 				"spring.cloud.aws.dynamodb.dax.writeRetries:4",
 				"spring.cloud.aws.dynamodb.dax.connectTimeoutMillis:4000").run(context -> {
 					ClusterDaxClient client = context.getBean(ClusterDaxClient.class);
-					software.amazon.dax.Configuration configuration = getConfiugration(client);
+					software.amazon.dax.Configuration configuration = getConfiguration(client);
 					assertThat(configuration.url()).isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
 					assertThat(configuration.writeRetries()).isEqualTo(4);
 					assertThat(configuration.connectTimeoutMillis()).isEqualTo(4000);
 				});
 	}
 
-	private software.amazon.dax.Configuration getConfiugration(ClusterDaxClient client) {
+	private software.amazon.dax.Configuration getConfiguration(ClusterDaxClient client) {
 		return ((software.amazon.dax.Configuration) ReflectionTestUtils.getField(
 				ReflectionTestUtils.getField(ReflectionTestUtils.getField(client, "client"), "cluster"),
 				"configuration"));

@@ -62,16 +62,16 @@ public class DynamoDbAutoConfiguration {
 		public DynamoDbClient dynamoDbClient(DynamoDbProperties properties, AwsCredentialsProvider credentialsProvider,
 				AwsRegionProvider regionProvider, ObjectProvider<List<MetricPublisher>> metricsPublishers)
 				throws IOException {
-			DaxProperties dax = properties.getDax();
+			DaxProperties daxProperties = properties.getDax();
 			software.amazon.dax.Configuration.Builder configuration = software.amazon.dax.Configuration.builder()
-					.idleTimeoutMillis(dax.getIdleTimeoutMillis()).connectionTtlMillis(dax.getConnectionTtlMillis())
-					.connectTimeoutMillis(dax.getConnectTimeoutMillis())
-					.requestTimeoutMillis(dax.getRequestTimeoutMillis()).writeRetries(dax.getWriteRetries())
-					.readRetries(dax.getReadRetries()).clusterUpdateIntervalMillis(dax.getClusterUpdateIntervalMillis())
-					.endpointRefreshTimeoutMillis(dax.getEndpointRefreshTimeoutMillis())
-					.maxConcurrency(dax.getMaxConcurrency())
-					.maxPendingConnectionAcquires(dax.getMaxPendingConnectionAcquires())
-					.skipHostNameVerification(dax.isSkipHostNameVerification())
+					.idleTimeoutMillis(daxProperties.getIdleTimeoutMillis()).connectionTtlMillis(daxProperties.getConnectionTtlMillis())
+					.connectTimeoutMillis(daxProperties.getConnectTimeoutMillis())
+					.requestTimeoutMillis(daxProperties.getRequestTimeoutMillis()).writeRetries(daxProperties.getWriteRetries())
+					.readRetries(daxProperties.getReadRetries()).clusterUpdateIntervalMillis(daxProperties.getClusterUpdateIntervalMillis())
+					.endpointRefreshTimeoutMillis(daxProperties.getEndpointRefreshTimeoutMillis())
+					.maxConcurrency(daxProperties.getMaxConcurrency())
+					.maxPendingConnectionAcquires(daxProperties.getMaxPendingConnectionAcquires())
+					.skipHostNameVerification(daxProperties.isSkipHostNameVerification())
 					.region(AwsClientBuilderConfigurer.resolveRegion(properties, regionProvider))
 					.credentialsProvider(credentialsProvider).url(properties.getDax().getUrl());
 			if (metricsPublishers.getIfAvailable() != null) {

@@ -48,7 +48,7 @@ import software.amazon.awssdk.services.ses.SesClientBuilder;
 class SesAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1", "spring.cloud.aws.dynamodb.enabled:false")
+			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, SesAutoConfiguration.class));
 

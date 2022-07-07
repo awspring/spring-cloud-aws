@@ -228,8 +228,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				"--spring.cloud.aws.secretsmanager.endpoint="
 						+ localstack.getEndpointOverride(SECRETSMANAGER).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-1", "--spring.cloud.aws.dynamodb.enabled=false",
-				"--spring.cloud.aws.s3.enabled=false")) {
+				"--spring.cloud.aws.region.static=eu-west-1", "--spring.cloud.aws.dynamodb.enabled=false")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 		}
 	}
@@ -243,8 +242,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=" + REGION, "--spring.cloud.aws.dynamodb.enabled=false",
-				"--spring.cloud.aws.s3.enabled=false")) {
+				"--spring.cloud.aws.region.static=" + REGION, "--spring.cloud.aws.dynamodb.enabled=false")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 		}
 	}
@@ -260,7 +258,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				"--" + endpointProperty + "=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug",
-				"--spring.cloud.aws.dynamodb.enabled=false", "--spring.cloud.aws.s3.enabled=false");
+				"--spring.cloud.aws.dynamodb.enabled=false");
 	}
 
 	private static void createSecret(LocalStackContainer localstack, String secretName, String parameterValue,

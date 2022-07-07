@@ -18,7 +18,7 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 /**
  * Properties used to configure {@link software.amazon.dax.ClusterDaxClient}
  * @author Matej Nedić
- * @since 3.0.0x
+ * @since 3.0.0
  */
 public class DaxProperties {
 	/**
