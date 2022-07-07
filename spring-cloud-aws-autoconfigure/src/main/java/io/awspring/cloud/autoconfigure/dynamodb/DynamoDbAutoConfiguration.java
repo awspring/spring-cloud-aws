@@ -64,10 +64,12 @@ public class DynamoDbAutoConfiguration {
 				throws IOException {
 			DaxProperties daxProperties = properties.getDax();
 			software.amazon.dax.Configuration.Builder configuration = software.amazon.dax.Configuration.builder()
-					.idleTimeoutMillis(daxProperties.getIdleTimeoutMillis()).connectionTtlMillis(daxProperties.getConnectionTtlMillis())
+					.idleTimeoutMillis(daxProperties.getIdleTimeoutMillis())
+					.connectionTtlMillis(daxProperties.getConnectionTtlMillis())
 					.connectTimeoutMillis(daxProperties.getConnectTimeoutMillis())
-					.requestTimeoutMillis(daxProperties.getRequestTimeoutMillis()).writeRetries(daxProperties.getWriteRetries())
-					.readRetries(daxProperties.getReadRetries()).clusterUpdateIntervalMillis(daxProperties.getClusterUpdateIntervalMillis())
+					.requestTimeoutMillis(daxProperties.getRequestTimeoutMillis())
+					.writeRetries(daxProperties.getWriteRetries()).readRetries(daxProperties.getReadRetries())
+					.clusterUpdateIntervalMillis(daxProperties.getClusterUpdateIntervalMillis())
 					.endpointRefreshTimeoutMillis(daxProperties.getEndpointRefreshTimeoutMillis())
 					.maxConcurrency(daxProperties.getMaxConcurrency())
 					.maxPendingConnectionAcquires(daxProperties.getMaxPendingConnectionAcquires())

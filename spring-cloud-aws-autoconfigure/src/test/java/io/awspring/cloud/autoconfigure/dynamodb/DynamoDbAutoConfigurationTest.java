@@ -17,26 +17,31 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.dynamodb.DynamoDbTableNameResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTableSchemaResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTemplate;
-import io.awspring.cloud.s3.S3OutputStreamProvider;
+import java.net.URI;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 import software.amazon.dax.ClusterDaxClient;
 
 /**
@@ -120,6 +125,30 @@ class DynamoDbAutoConfigurationTest {
 	}
 
 	@Test
+	void withDynamoDbClientCustomEndpoint() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(ClusterDaxClient.class))
+				.withPropertyValues("spring.cloud.aws.dynamodb.endpoint:http://localhost:8090").run(context -> {
+					assertThat(context).hasSingleBean(DynamoDbClient.class);
+					assertThat(context).hasSingleBean(DynamoDbTemplate.class);
+					assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
+
+					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(DynamoDbClient.class));
+					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+					assertThat(client.isEndpointOverridden()).isTrue();
+				});
+	}
+
+	@Test
+	void customDynamoDbClientConfigurer() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(ClusterDaxClient.class))
+				.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomAwsClientConfig.class).run(context -> {
+					ConfiguredAwsClient sesClient = new ConfiguredAwsClient(context.getBean(DynamoDbClient.class));
+					assertThat(sesClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1999));
+					assertThat(sesClient.getSyncHttpClient()).isNotNull();
+				});
+	}
+
+	@Test
 	void customDynamoDbClientDaxSettings() {
 		this.contextRunner.withPropertyValues(
 				"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com",
@@ -168,6 +197,30 @@ class DynamoDbAutoConfigurationTest {
 		public String resolve(Class clazz) {
 			return null;
 		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomAwsClientConfig {
+
+		@Bean
+		AwsClientCustomizer<DynamoDbClientBuilder> snsClientBuilderAwsClientConfigurer() {
+			return new DynamoDbAutoConfigurationTest.CustomAwsClientConfig.DynamoDbClientCustomizer();
+		}
+
+		static class DynamoDbClientCustomizer implements AwsClientCustomizer<DynamoDbClientBuilder> {
+			@Override
+			@Nullable
+			public ClientOverrideConfiguration overrideConfiguration() {
+				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1999)).build();
+			}
+
+			@Override
+			@Nullable
+			public SdkHttpClient httpClient() {
+				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+			}
+		}
+
 	}
 
 }
