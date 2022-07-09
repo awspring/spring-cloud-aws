@@ -25,6 +25,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +50,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
  * Integration tests for {@link S3Template}.
  *
  * @author Maciej Walkowiak
+ * @author yoshida
  */
 @Testcontainers
 class S3TemplateIntegrationTests {
@@ -183,6 +186,22 @@ class S3TemplateIntegrationTests {
 			String result = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
 			assertThat(result).isEqualTo("hello");
 		}
+	}
+
+	@Test
+	void retrieveMetadata() throws IOException {
+		Map<String, String> metadata = new HashMap<>();
+		metadata.put("key", "keyValue");
+		metadata.put("camelCaseKey", "camelCaseKeyValue");
+
+		client.putObject(r -> r.bucket("test-bucket").key("metadata.txt").metadata(metadata), RequestBody.fromString("hello"));
+		S3Resource resource = s3Template.download("test-bucket", "metadata.txt");
+
+		assertThat(resource.metadata())
+			.containsEntry("key", "keyValue")
+			// retrieved as lower case
+			.containsEntry("camelcasekey", "camelCaseKeyValue")
+			.doesNotContainKey("camelCaseKey");
 	}
 
 	private void bucketDoesNotExist(ListBucketsResponse r, String bucketName) {
