@@ -78,7 +78,7 @@ class SnsTemplateIntegrationTest {
 		return application.run("--spring.cloud.aws.sns.region=" + REGION,
 				"--spring.cloud.aws.sns.endpoint=" + localstack.getEndpointOverride(SNS).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-1", "--spring.cloud.aws.dynamodb.enabled=false");
+				"--spring.cloud.aws.region.static=eu-west-1");
 	}
 
 	@SpringBootApplication

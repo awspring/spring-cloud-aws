@@ -28,10 +28,10 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -53,9 +53,10 @@ import software.amazon.dax.ClusterDaxClient;
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.dynamodb.enabled", havingValue = "true", matchIfMissing = true)
 public class DynamoDbAutoConfiguration {
+	@ConditionalOnProperty(name = "spring.cloud.aws.dynamodb.dax.url")
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(name = "software.amazon.dax.ClusterDaxClient")
-	static class DaxDynamoDbClient {
+	class DaxDynamoDbClient {
 
 		@ConditionalOnMissingBean
 		@Bean
@@ -84,9 +85,9 @@ public class DynamoDbAutoConfiguration {
 
 	}
 
+	@Conditional(MissingDaxUrlCondition.class)
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnMissingClass("software.amazon.dax.ClusterDaxClient")
-	static class StandardDynamoDbClient {
+	class StandardDynamoDbClient {
 
 		@ConditionalOnMissingBean
 		@Bean

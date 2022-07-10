@@ -126,8 +126,8 @@ class DynamoDbAutoConfigurationTest {
 
 	@Test
 	void withDynamoDbClientCustomEndpoint() {
-		this.contextRunner.withClassLoader(new FilteredClassLoader(ClusterDaxClient.class))
-				.withPropertyValues("spring.cloud.aws.dynamodb.endpoint:http://localhost:8090").run(context -> {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.endpoint:http://localhost:8090")
+				.run(context -> {
 					assertThat(context).hasSingleBean(DynamoDbClient.class);
 					assertThat(context).hasSingleBean(DynamoDbTemplate.class);
 					assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
@@ -139,9 +139,19 @@ class DynamoDbAutoConfigurationTest {
 	}
 
 	@Test
+	void dynamoDbClientConfiguredSinceNoUrl() {
+		this.contextRunner.run(context -> {
+			assertThat(context).hasSingleBean(DynamoDbClient.class);
+			assertThat(context).hasSingleBean(DynamoDbTemplate.class);
+			assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
+			assertThat(context).doesNotHaveBean(ClusterDaxClient.class);
+		});
+	}
+
+	@Test
 	void customDynamoDbClientConfigurer() {
-		this.contextRunner.withClassLoader(new FilteredClassLoader(ClusterDaxClient.class))
-				.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomAwsClientConfig.class).run(context -> {
+		this.contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomAwsClientConfig.class)
+				.run(context -> {
 					ConfiguredAwsClient sesClient = new ConfiguredAwsClient(context.getBean(DynamoDbClient.class));
 					assertThat(sesClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1999));
 					assertThat(sesClient.getSyncHttpClient()).isNotNull();
