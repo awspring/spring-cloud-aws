@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
 
@@ -47,13 +48,14 @@ public class CloudWatchMetricsPublisherAutoConfiguration {
 	@ConditionalOnMissingBean
 	@ConditionalOnProperty(name = "spring.cloud.aws.metrics.enabled", havingValue = "true", matchIfMissing = true)
 	MetricPublisher cloudWatchMetricPublisher(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+			AwsRegionProvider awsRegionProvider,
 			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer) {
 		PropertyMapper propertyMapper = PropertyMapper.get();
 
 		CloudWatchAsyncClientBuilder cloudWatchAsyncClientBuilder = CloudWatchAsyncClient.builder();
 		CloudWatchProperties cloudWatchProperties = new CloudWatchProperties();
-		propertyMapper.from(cloudWatchProperties.getEndpoint()).whenNonNull().to(cloudWatchProperties::setEndpoint);
-		propertyMapper.from(cloudWatchProperties.getRegion()).whenNonNull().to(cloudWatchProperties::setRegion);
+		propertyMapper.from(awsProperties.getEndpoint()).whenNonNull().to(cloudWatchProperties::setEndpoint);
+		propertyMapper.from(awsRegionProvider.getRegion().id()).whenNonNull().to(cloudWatchProperties::setRegion);
 		CloudWatchAsyncClient cloudWatchAsyncClient = awsClientBuilderConfigurer
 				.configure(cloudWatchAsyncClientBuilder, cloudWatchProperties, configurer.getIfAvailable(), null)
 				.build();

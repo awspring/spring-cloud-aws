@@ -101,9 +101,8 @@ public class AwsClientBuilderConfigurer {
 
 				CloudWatchAsyncClientBuilder cloudWatchAsyncClientBuilder = CloudWatchAsyncClient.builder();
 				CloudWatchProperties cloudWatchProperties = new CloudWatchProperties();
-				propertyMapper.from(cloudWatchProperties.getEndpoint()).whenNonNull()
-						.to(cloudWatchProperties::setEndpoint);
-				propertyMapper.from(cloudWatchProperties.getRegion()).whenNonNull().to(cloudWatchProperties::setRegion);
+				propertyMapper.from(properties.getEndpoint()).whenNonNull().to(cloudWatchProperties::setEndpoint);
+				propertyMapper.from(properties.getRegion()).whenNonNull().to(cloudWatchProperties::setRegion);
 				CloudWatchAsyncClient cloudWatchAsyncClient = awsClientBuilderConfigurer
 						.configure(cloudWatchAsyncClientBuilder, cloudWatchProperties, null, null).build();
 
