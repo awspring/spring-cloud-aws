@@ -40,7 +40,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
  * @author Agim Emruli
  * @author Alain Sahli
  * @author Maciej Walkowiak
- * @author yoshida
+ * @author Yuki Yoshida
  * @since 3.0
  */
 public class S3Resource extends AbstractResource implements WritableResource {
