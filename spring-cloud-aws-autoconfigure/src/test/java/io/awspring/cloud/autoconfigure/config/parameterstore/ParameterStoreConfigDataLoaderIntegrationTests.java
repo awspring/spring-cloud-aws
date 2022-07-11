@@ -37,6 +37,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -46,6 +47,8 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.internal.transform.MetricCollectionAggregator;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
@@ -208,6 +211,37 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"--logging.level.io.awspring.cloud.parameterstore=debug")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 		}
+	}
+
+	@Test
+	void clientIsConfiguredWithConfigurerProvidedToBootstrapRegistry2() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.parameterstore.metrics.namespace=custom",
+				"--spring.config.import=aws-parameterstore:/config/spring/",
+				"--spring.cloud.aws.parameterstore.region=" + REGION,
+				"--spring.cloud.aws.endpoint=http://non-existing-host/",
+				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1",
+				"--logging.level.io.awspring.cloud.parameterstore=debug")) {
+
+			CloudWatchMetricPublisher metricPublisher = (CloudWatchMetricPublisher) context.getBean(SsmClient.class)
+					.overrideConfiguration().metricPublishers().get(0);
+			MetricCollectionAggregator metricAggregator = (MetricCollectionAggregator) ReflectionTestUtils
+					.getField(metricPublisher, "metricAggregator");
+
+			String namespace = (String) ReflectionTestUtils.getField(metricAggregator, "namespace");
+			assertThat(namespace).isEqualTo("custom");
+		}
+	}
+
+	@Test
+	void parameterStoreUsesCustomEndpointForMetricsIfDefined() {
+
 	}
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,

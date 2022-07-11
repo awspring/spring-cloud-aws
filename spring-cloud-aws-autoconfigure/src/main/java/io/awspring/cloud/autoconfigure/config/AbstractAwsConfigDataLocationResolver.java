@@ -22,7 +22,8 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
-import io.micrometer.core.lang.Nullable;
+import java.net.URI;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -35,16 +36,19 @@ import org.springframework.boot.context.config.ConfigDataLocationResolver;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.ConfigDataResource;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 
 /**
  * Base class for AWS specific {@link ConfigDataLocationResolver}s.
@@ -57,6 +61,10 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		implements ConfigDataLocationResolver<T> {
 
 	protected abstract String getPrefix();
+
+	private final boolean CLOUDWATCH_METRICS_PUBLISHER_IN_CLASSPATH = ClassUtils.isPresent(
+			"software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher",
+			getClass().getClassLoader());
 
 	@Override
 	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
@@ -155,37 +163,50 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		}
 		builder.credentialsProvider(credentialsProvider);
 
-		MetricPublisher metricPublisher = getMetricPublisher(context);
-
-		if ((awsProperties.getMetrics() == null || awsProperties.getMetrics().getEnabled())
-				&& metricPublisher != null) {
+		if (CLOUDWATCH_METRICS_PUBLISHER_IN_CLASSPATH) {
+			CloudWatchMetricPublisher metricPublisher = createMetricPublisher(awsProperties, properties, regionProvider,
+					builder, credentialsProvider);
 			ClientOverrideConfiguration.Builder clientOverrideConfigurationBuilder = new SpringCloudClientConfiguration()
 					.clientOverrideConfiguration().toBuilder();
 			clientOverrideConfigurationBuilder.addMetricPublisher(metricPublisher);
 			builder.overrideConfiguration(clientOverrideConfigurationBuilder.build());
 		}
+
 		return builder;
 	}
 
-	private static @Nullable MetricPublisher getMetricPublisher(BootstrapContext context) {
-		try {
-			Class.forName("software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher");
-			return context.get(MetricPublisher.class);
+	// TODO: This is very ugly, also not registering any bean but rather just creating the client.
+	private <T extends AwsClientBuilder<?, ?>> CloudWatchMetricPublisher createMetricPublisher(
+			AwsProperties awsProperties, AwsClientProperties awsClientProperties, AwsRegionProvider regionProvider,
+			T clientBuilder, AwsCredentialsProvider credentialsProvider) {
+		CloudWatchMetricPublisher.Builder builder = CloudWatchMetricPublisher.builder();
+		PropertyMapper map = PropertyMapper.get();
+		if ((awsClientProperties.getMetrics() != null && awsClientProperties.getMetrics().getEnabled())) {
+			CloudWatchAsyncClient cloudwatchAsyncClient = createCloudwatchAsyncClient(awsClientProperties.getRegion(),
+					awsClientProperties.getEndpoint(), credentialsProvider);
+
+			map.from(awsClientProperties.getMetrics()::getNamespace).whenNonNull().to(builder::namespace);
+			map.from(awsClientProperties.getMetrics()::getUploadFrequencyInSeconds).whenNonNull()
+					.to(v -> builder.uploadFrequency(Duration.ofSeconds(v)));
+			builder.cloudWatchClient(cloudwatchAsyncClient);
 		}
-		catch (IllegalStateException | ClassNotFoundException e) {
-			return null;
+		else if (awsProperties.getMetrics() == null
+				|| (awsProperties.getMetrics() != null && awsProperties.getMetrics().getEnabled())) {
+			CloudWatchAsyncClient cloudwatchAsyncClient = createCloudwatchAsyncClient(regionProvider.getRegion().id(),
+					awsProperties.getEndpoint(), credentialsProvider);
+			if (awsProperties.getMetrics() != null) {
+				map.from(awsProperties.getMetrics()::getNamespace).whenNonNull().to(builder::namespace);
+				map.from(awsProperties.getMetrics()::getUploadFrequencyInSeconds).whenNonNull()
+						.to(v -> builder.uploadFrequency(Duration.ofSeconds(v)));
+			}
+			builder.cloudWatchClient(cloudwatchAsyncClient);
 		}
+		return builder.build();
 	}
 
-	protected void createMetricPublisher(ConfigDataLocationResolverContext resolverContext) {
-		try {
-			Class.forName("software.amazon.awssdk.metrics.publishers.cloudwatch.CloudWatchMetricPublisher");
-		}
-		catch (IllegalStateException | ClassNotFoundException ignored) {
-			// ignored, means that the optional dependency is not in the classpath
-			return;
-		}
-
+	private <T extends AwsClientBuilder<?, ?>> CloudWatchAsyncClient createCloudwatchAsyncClient(String region,
+			URI endpoint, AwsCredentialsProvider credentialsProvider) {
+		return CloudWatchAsyncClient.builder().region(Region.of(region)).endpointOverride(endpoint)
+				.credentialsProvider(credentialsProvider).build();
 	}
-
 }

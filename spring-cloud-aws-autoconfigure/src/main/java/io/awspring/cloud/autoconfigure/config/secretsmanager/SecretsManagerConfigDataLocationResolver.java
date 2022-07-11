@@ -69,7 +69,6 @@ public class SecretsManagerConfigDataLocationResolver
 		registerBean(resolverContext, CredentialsProperties.class,
 				loadCredentialsProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
-		createMetricPublisher(resolverContext);
 		registerAndPromoteBean(resolverContext, SecretsManagerClient.class, this::createAwsSecretsManagerClient);
 		SecretsManagerPropertySources propertySources = new SecretsManagerPropertySources();
 
