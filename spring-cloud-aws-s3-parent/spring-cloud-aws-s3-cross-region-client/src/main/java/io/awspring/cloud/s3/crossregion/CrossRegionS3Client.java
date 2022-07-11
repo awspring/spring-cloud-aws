@@ -42,11 +42,15 @@ public class CrossRegionS3Client implements S3Client {
 
 	private static final int DEFAULT_BUCKET_CACHE_SIZE = 20;
 
+	public static final String BUCKET_REDIRECT_HEADER = "x-amz-bucket-region";
+
 	private final Map<Region, S3Client> clientCache = new ConcurrentHashMap<>(Region.regions().size());
 
 	private final S3Client defaultS3Client;
 
-	private final ConcurrentLruCache<String, S3Client> bucketCache;
+	private final S3ClientBuilder clientBuilder;
+
+	private final ConcurrentHashMap<String, S3Client> bucketCache;
 
 	public CrossRegionS3Client(S3ClientBuilder clientBuilder) {
 		this(DEFAULT_BUCKET_CACHE_SIZE, clientBuilder);
@@ -54,13 +58,8 @@ public class CrossRegionS3Client implements S3Client {
 
 	public CrossRegionS3Client(int bucketCacheSize, S3ClientBuilder clientBuilder) {
 		this.defaultS3Client = clientBuilder.build();
-		this.bucketCache = new ConcurrentLruCache<>(bucketCacheSize, bucket -> {
-			Region region = resolveBucketRegion(bucket);
-			return clientCache.computeIfAbsent(region, r -> {
-				LOGGER.debug("Creating new S3 client for region: {}", r);
-				return clientBuilder.region(r).build();
-			});
-		});
+		this.clientBuilder = clientBuilder;
+		this.bucketCache = new ConcurrentHashMap<>(bucketCacheSize);
 	}
 
 	@Override
@@ -79,14 +78,20 @@ public class CrossRegionS3Client implements S3Client {
 		return clientCache;
 	}
 
+	protected S3Client discoverBucketClient(String bucket) {
+		return getClient(resolveBucketRegion(bucket));
+	}
+
+	protected S3Client getClient(Region region) {
+		return clientCache.computeIfAbsent(region, r -> {
+			LOGGER.debug("Creating new S3 client for region: {}", r);
+			return clientBuilder.region(r).build();
+		});
+	}
+
 	private <Result> Result executeInBucketRegion(String bucket, Function<S3Client, Result> fn) {
 		try {
-			if (bucketCache.contains(bucket)) {
-				return fn.apply(bucketCache.get(bucket));
-			}
-			else {
-				return fn.apply(defaultS3Client);
-			}
+			return fn.apply(bucketCache.getOrDefault(bucket, defaultS3Client));
 		}
 		catch (S3Exception e) {
 			if (LOGGER.isTraceEnabled()) {
@@ -99,7 +104,14 @@ public class CrossRegionS3Client implements S3Client {
 			// "PermanentRedirect" means that the bucket is in different region than the
 			// defaultS3Client is configured for
 			if ("PermanentRedirect".equals(e.awsErrorDetails().errorCode())) {
-				return fn.apply(bucketCache.get(bucket));
+				e.awsErrorDetails()
+					.sdkHttpResponse()
+					.firstMatchingHeader(BUCKET_REDIRECT_HEADER)
+					.map(Region::of)
+					.map(this::getClient)
+					.ifPresent(r -> bucketCache.put(bucket, r));
+
+				return fn.apply(bucketCache.computeIfAbsent(bucket, this::discoverBucketClient));
 			}
 			else {
 				throw e;
