@@ -13,38 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.sms.attributes;
+package io.awspring.cloud.sns;
 
-public class ADM {
-	private Long ttl;
+import static org.mockito.ArgumentMatchers.argThat;
 
-	public Long getTtl() {
-		return ttl;
-	}
+import java.util.function.Consumer;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
 
-	public void setTtl(Long ttl) {
-		this.ttl = ttl;
-	}
-
-	public static Builder builder() {
-		return new Builder();
-	}
-
-	public static final class Builder {
-		private Long ttl;
-
-		private Builder() {
-		}
-
-		public Builder withTtl(Long ttl) {
-			this.ttl = ttl;
-			return this;
-		}
-
-		public ADM build() {
-			ADM aDM = new ADM();
-			aDM.setTtl(ttl);
-			return aDM;
-		}
+public class Matchers {
+	public static PublishRequest requestMatches(Consumer<PublishRequest> consumer) {
+		return argThat(it -> {
+			consumer.accept(it);
+			return true;
+		});
 	}
 }

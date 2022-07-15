@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.core;
+package io.awspring.cloud.sns.sms.core;
 
-import static org.mockito.ArgumentMatchers.argThat;
+import io.awspring.cloud.sns.sms.attributes.SmsMessageAttributes;
+import java.util.Map;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
-import java.util.function.Consumer;
-import software.amazon.awssdk.services.sns.model.PublishRequest;
+/**
+ * @author Matej Nedic
+ * @since 3.0.0
+ */
+public interface MessageAttributeConverter {
 
-class Matchers {
-	static PublishRequest requestMatches(Consumer<PublishRequest> consumer) {
-		return argThat(it -> {
-			consumer.accept(it);
-			return true;
-		});
-	}
+	Map<String, MessageAttributeValue> convert(SmsMessageAttributes attr);
 }

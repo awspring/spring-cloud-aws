@@ -24,6 +24,8 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
+import io.awspring.cloud.sns.sms.core.MessageAttributeConverter;
+import io.awspring.cloud.sns.sms.core.SnsSmsTemplate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
@@ -75,6 +77,14 @@ public class SnsAutoConfiguration {
 		objectMapper.ifPresent(converter::setObjectMapper);
 		return topicArnResolver.map(it -> new SnsTemplate(snsClient, it, converter))
 				.orElseGet(() -> new SnsTemplate(snsClient, converter));
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	public SnsSmsTemplate snsSmsTemplate(SnsClient snsClient,
+			Optional<MessageAttributeConverter> messageAttributeConverter) {
+		return messageAttributeConverter.map(it -> new SnsSmsTemplate(snsClient, it))
+				.orElseGet(() -> new SnsSmsTemplate(snsClient));
 	}
 
 	@Configuration(proxyBeanMethods = false)

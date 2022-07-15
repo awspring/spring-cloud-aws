@@ -1,10 +1,25 @@
+/*
+ * Copyright 2013-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.awspring.cloud.sns.sms.attributes;
 
 /**
  * @author Matej Nedic
  * @since 3.0.0
  */
-public class SnsSmsAttributes {
+public class SmsMessageAttributes {
 	private String senderID;
 	private String originationNumber;
 	private String maxPrice;
@@ -110,6 +125,49 @@ public class SnsSmsAttributes {
 		this.wns = wns;
 	}
 
+	public String getMessageGroupId() {
+		return messageGroupId;
+	}
+
+	public String getDeduplicationId() {
+		return deduplicationId;
+	}
+
+	public String getMessageStructure() {
+		return messageStructure;
+	}
+
+	public ADM getAdm() {
+		return adm;
+	}
+
+	public APN getApn() {
+		return apn;
+	}
+
+	public Baidu getBaidu() {
+		return baidu;
+	}
+
+	public FCM getFcm() {
+		return fcm;
+	}
+
+	public MacOS getMacOS() {
+		return macOS;
+	}
+
+	public MPNS getMpns() {
+		return mpns;
+	}
+
+	public WNS getWns() {
+		return wns;
+	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
 
 	public static final class Builder {
 		private String senderID;
@@ -130,10 +188,6 @@ public class SnsSmsAttributes {
 		private WNS wns;
 
 		private Builder() {
-		}
-
-		public static Builder aSnsSmsAttributes() {
-			return new Builder();
 		}
 
 		public Builder withSenderID(String senderID) {
@@ -216,25 +270,25 @@ public class SnsSmsAttributes {
 			return this;
 		}
 
-		public SnsSmsAttributes build() {
-			SnsSmsAttributes snsSmsAttributes = new SnsSmsAttributes();
-			snsSmsAttributes.setSenderID(senderID);
-			snsSmsAttributes.setOriginationNumber(originationNumber);
-			snsSmsAttributes.setMaxPrice(maxPrice);
-			snsSmsAttributes.setSmsType(smsType);
-			snsSmsAttributes.setEntityId(entityId);
-			snsSmsAttributes.setTemplateId(templateId);
-			snsSmsAttributes.setMessageGroupId(messageGroupId);
-			snsSmsAttributes.setDeduplicationId(deduplicationId);
-			snsSmsAttributes.setMessageStructure(messageStructure);
-			snsSmsAttributes.setAdm(adm);
-			snsSmsAttributes.setApn(apn);
-			snsSmsAttributes.setBaidu(baidu);
-			snsSmsAttributes.setFcm(fcm);
-			snsSmsAttributes.setMacOS(macOS);
-			snsSmsAttributes.setMpns(mpns);
-			snsSmsAttributes.setWns(wns);
-			return snsSmsAttributes;
+		public SmsMessageAttributes build() {
+			SmsMessageAttributes smsMessageAttributes = new SmsMessageAttributes();
+			smsMessageAttributes.setSenderID(senderID);
+			smsMessageAttributes.setOriginationNumber(originationNumber);
+			smsMessageAttributes.setMaxPrice(maxPrice);
+			smsMessageAttributes.setSmsType(smsType);
+			smsMessageAttributes.setEntityId(entityId);
+			smsMessageAttributes.setTemplateId(templateId);
+			smsMessageAttributes.setMessageGroupId(messageGroupId);
+			smsMessageAttributes.setDeduplicationId(deduplicationId);
+			smsMessageAttributes.setMessageStructure(messageStructure);
+			smsMessageAttributes.setAdm(adm);
+			smsMessageAttributes.setApn(apn);
+			smsMessageAttributes.setBaidu(baidu);
+			smsMessageAttributes.setFcm(fcm);
+			smsMessageAttributes.setMacOS(macOS);
+			smsMessageAttributes.setMpns(mpns);
+			smsMessageAttributes.setWns(wns);
+			return smsMessageAttributes;
 		}
 	}
 }

@@ -24,6 +24,7 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
+import io.awspring.cloud.sns.sms.core.SnsSmsTemplate;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
@@ -68,6 +69,7 @@ class SnsAutoConfigurationTest {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.enabled:true").run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
+			assertThat(context).hasSingleBean(SnsSmsTemplate.class);
 			assertThat(context).hasBean("snsWebMvcConfigurer");
 
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
@@ -111,6 +113,7 @@ class SnsAutoConfigurationTest {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(WebMvcConfigurer.class)).run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
+			assertThat(context).hasSingleBean(SnsSmsTemplate.class);
 			assertThat(context).doesNotHaveBean("snsWebMvcConfigurer");
 		});
 	}

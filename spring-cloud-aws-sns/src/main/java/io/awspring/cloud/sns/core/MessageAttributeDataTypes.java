@@ -23,7 +23,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
  * @author Alain Sahli
  * @since 1.0
  */
-final class MessageAttributeDataTypes {
+public final class MessageAttributeDataTypes {
 
 	/**
 	 * Binary message attribute data type.

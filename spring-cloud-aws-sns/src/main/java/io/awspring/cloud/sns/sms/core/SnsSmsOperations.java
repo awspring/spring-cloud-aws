@@ -13,38 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.sms.attributes;
+package io.awspring.cloud.sns.sms.core;
 
-public class ADM {
-	private Long ttl;
+import io.awspring.cloud.sns.sms.attributes.SmsMessageAttributes;
 
-	public Long getTtl() {
-		return ttl;
-	}
+/**
+ * @author Matej Nedic
+ * @since 3.0.0
+ */
+public interface SnsSmsOperations {
+	void send(String phoneNumber, String message);
 
-	public void setTtl(Long ttl) {
-		this.ttl = ttl;
-	}
+	void send(String phoneNumber, String message, SmsMessageAttributes attributes);
 
-	public static Builder builder() {
-		return new Builder();
-	}
+	void sendToTopicArn(String topicArn, String message);
 
-	public static final class Builder {
-		private Long ttl;
+	void sendToTopicArn(String topicArn, String message, SmsMessageAttributes attributes);
 
-		private Builder() {
-		}
+	void sendToTargetArn(String targetArn, String message);
 
-		public Builder withTtl(Long ttl) {
-			this.ttl = ttl;
-			return this;
-		}
-
-		public ADM build() {
-			ADM aDM = new ADM();
-			aDM.setTtl(ttl);
-			return aDM;
-		}
-	}
+	void sendToTargetArn(String targetArn, String message, SmsMessageAttributes attributes);
 }
