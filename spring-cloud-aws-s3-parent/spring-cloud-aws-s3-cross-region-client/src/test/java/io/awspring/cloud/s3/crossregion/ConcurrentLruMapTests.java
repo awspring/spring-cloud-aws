@@ -17,6 +17,9 @@ package io.awspring.cloud.s3.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class ConcurrentLruMapTests {
@@ -90,4 +93,19 @@ class ConcurrentLruMapTests {
 		assertThat(map.cache()).hasSize(1);
 	}
 
+	@Test
+	void limitsNumberOfEntriesWhenAddedConcurrently() throws InterruptedException {
+		ExecutorService executorService = Executors.newFixedThreadPool(10);
+		ConcurrentLruMap<String, String> map = new ConcurrentLruMap<>(3);
+
+		for (int i = 0; i < 100; i++) {
+			final int index = i;
+			executorService.submit(() -> map.put("k" + index, "v" + index));
+		}
+		executorService.awaitTermination(1, TimeUnit.SECONDS);
+
+		assertThat(map.size()).isEqualTo(3);
+		assertThat(map.queue()).hasSize(3);
+		assertThat(map.cache()).hasSize(3);
+	}
 }
