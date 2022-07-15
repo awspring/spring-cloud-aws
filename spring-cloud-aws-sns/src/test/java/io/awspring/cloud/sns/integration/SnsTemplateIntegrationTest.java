@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sns.integration;
 
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
 import io.awspring.cloud.sns.Person;
@@ -32,7 +31,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
-import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 
 /**
  * Integration tests for {@link SnsTemplate}.
@@ -52,7 +50,7 @@ class SnsTemplateIntegrationTest {
 
 	@BeforeAll
 	public static void createSnsTemplate() {
-		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(DYNAMODB))
+		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(SNS))
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
