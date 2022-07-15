@@ -21,11 +21,12 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ConcurrentLruCache;
 
 /**
  * Simple LRU (Least Recently Used) map, bounded by a specified cache limit.
  *
- * Based on {@link ConcurrentLruMap} with the difference that instead of generating values using generator function,
+ * Based on {@link ConcurrentLruCache} with the difference that instead of generating values using generator function,
  * entries can be added with {@link #put(Object, Object)} method.
  *
  * <p>
