@@ -56,7 +56,7 @@ public class DynamoDbAutoConfiguration {
 	@ConditionalOnProperty(name = "spring.cloud.aws.dynamodb.dax.url")
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(name = "software.amazon.dax.ClusterDaxClient")
-	class DaxDynamoDbClient {
+	static class DaxDynamoDbClient {
 
 		@ConditionalOnMissingBean
 		@Bean
@@ -87,7 +87,7 @@ public class DynamoDbAutoConfiguration {
 
 	@Conditional(MissingDaxUrlCondition.class)
 	@Configuration(proxyBeanMethods = false)
-	class StandardDynamoDbClient {
+	static class StandardDynamoDbClient {
 
 		@ConditionalOnMissingBean
 		@Bean
