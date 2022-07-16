@@ -31,11 +31,14 @@ import java.lang.annotation.Target;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -220,6 +223,23 @@ class S3ResourceIntegrationTests {
 		GetObjectResponse result = client
 				.getObject(request -> request.bucket("first-bucket").key("new-file.txt").build()).response();
 		assertThat(result.contentType()).isEqualTo("text/plain");
+	}
+
+	@Test
+	void retrievesMetadata() {
+		Map<String, String> metadata = new HashMap<>();
+		metadata.put("key", "keyValue");
+		metadata.put("camelCaseKey", "camelCaseKeyValue");
+
+		client.putObject(r -> r.bucket("first-bucket").key("metadata.txt").metadata(metadata),
+				RequestBody.fromString("hello"));
+
+		S3Resource resource = s3Resource("s3://first-bucket/metadata.txt",
+				new InMemoryBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()));
+
+		assertThat(resource.metadata()).containsEntry("key", "keyValue")
+				// retrieved as lower case
+				.containsEntry("camelcasekey", "camelCaseKeyValue").doesNotContainKey("camelCaseKey");
 	}
 
 	@NotNull
