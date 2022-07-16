@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
 import org.springframework.lang.Nullable;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
  * @author Agim Emruli
  * @author Alain Sahli
  * @author Maciej Walkowiak
+ * @author Yuki Yoshida
  * @since 3.0
  */
 public class S3Resource extends AbstractResource implements WritableResource {
@@ -146,6 +148,13 @@ public class S3Resource extends AbstractResource implements WritableResource {
 				+ "getInputStream() to retrieve the contents of the object!");
 	}
 
+	public Map<String, String> metadata() {
+		if (headMetadata == null) {
+			fetchMetadata();
+		}
+		return headMetadata.metadata;
+	}
+
 	private void fetchMetadata() {
 		HeadObjectResponse response = s3Client.headObject(request -> request.bucket(location.getBucket())
 				.key(location.getObject()).versionId(location.getVersion()));
@@ -165,10 +174,13 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 		private final String contentType;
 
+		private final Map<String, String> metadata;
+
 		HeadMetadata(HeadObjectResponse headObjectResponse) {
 			this.contentLength = headObjectResponse.contentLength();
 			this.lastModified = headObjectResponse.lastModified();
 			this.contentType = headObjectResponse.contentType();
+			this.metadata = headObjectResponse.metadata();
 		}
 
 	}
