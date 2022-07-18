@@ -27,6 +27,7 @@ import io.awspring.cloud.dynamodb.DynamoDbTableSchemaResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 import java.net.URI;
 import java.time.Duration;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -34,7 +35,6 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
-import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -56,126 +56,148 @@ class DynamoDbAutoConfigurationTest {
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, DynamoDbAutoConfiguration.class));
 
-	@Test
-	void dynamoDBAutoConfigurationIsDisabled() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.enabled:false")
-				.run(context -> assertThat(context).doesNotHaveBean(DynamoDbClient.class));
+	@Nested
+	class DynamoDbTests {
+		@Test
+		void dynamoDBAutoConfigurationIsDisabled() {
+			contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.enabled:false")
+					.run(context -> assertThat(context).doesNotHaveBean(DynamoDbClient.class));
+		}
+
+		@Test
+		void customTableResolverResolverCanBeConfigured() {
+			contextRunner.withUserConfiguration(CustomDynamoDbConfiguration.class).run(context -> {
+				DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver = context
+						.getBean(DynamoDbTableSchemaResolver.class);
+				DynamoDbTableNameResolver dynamoDBDynamoDbTableNameResolver = context
+						.getBean(DynamoDbTableNameResolver.class);
+
+				assertThat(dynamoDbTableSchemaResolver).isNotNull();
+				assertThat(dynamoDBDynamoDbTableNameResolver).isNotNull();
+
+				assertThat(dynamoDbTableSchemaResolver).isInstanceOf(CustomDynamoDBDynamoDbTableSchemaResolver.class);
+				assertThat(dynamoDBDynamoDbTableNameResolver)
+						.isInstanceOf(CustomDynamoDBDynamoDbTableNameResolver.class);
+
+			});
+		}
+
+		@Test
+		void doesNotCreateDaxClientWhenDaxNotInClasspath() {
+			contextRunner.withClassLoader(new FilteredClassLoader(ClusterDaxClient.class)).run(context -> {
+				assertThat(context).hasSingleBean(DynamoDbClient.class);
+				assertThat(context.getBean(DynamoDbClient.class)).isNotInstanceOf(ClusterDaxClient.class);
+			});
+		}
+
+		@Test
+		void withDynamoDbClientCustomEndpoint() {
+			contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.endpoint:http://localhost:8090")
+					.run(context -> {
+						assertThat(context).hasSingleBean(DynamoDbClient.class);
+						assertThat(context).hasSingleBean(DynamoDbTemplate.class);
+						assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
+
+						ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(DynamoDbClient.class));
+						assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
+						assertThat(client.isEndpointOverridden()).isTrue();
+					});
+		}
+
+		@Test
+		void dynamoDbClientConfiguredSinceNoUrl() {
+			contextRunner.run(context -> {
+				assertThat(context).hasSingleBean(DynamoDbClient.class);
+				assertThat(context).hasSingleBean(DynamoDbTemplate.class);
+				assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
+				assertThat(context).doesNotHaveBean(ClusterDaxClient.class);
+			});
+		}
+
+		@Test
+		void customDynamoDbClientConfigurer() {
+			contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomAwsClientConfig.class)
+					.run(context -> {
+						ConfiguredAwsClient dynamoDbClient = new ConfiguredAwsClient(
+								context.getBean(DynamoDbClient.class));
+						assertThat(dynamoDbClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1999));
+						assertThat(dynamoDbClient.getSyncHttpClient()).isNotNull();
+					});
+		}
 	}
 
-	@Test
-	void dynamoDBAutoConfigurationIsEnabled() {
-		this.contextRunner
-				.withPropertyValues("spring.cloud.aws.dynamodb.enabled:true",
-						"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
-				.run(context -> {
-					assertThat(context).hasSingleBean(DynamoDbClient.class);
-					assertThat(context).hasSingleBean(DynamoDbTemplate.class);
-					assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
+	@Nested
+	class DaxTests {
 
-					ClusterDaxClient client = context.getBean(ClusterDaxClient.class);
-					software.amazon.dax.Configuration configuration = getConfiguration(client);
-					assertThat(configuration.url()).isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
-				});
-	}
+		@Test
+		void customClusterDaxClientDaxSettings() {
+			contextRunner.withPropertyValues(
+					"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com",
+					"spring.cloud.aws.dynamodb.dax.writeRetries:4",
+					"spring.cloud.aws.dynamodb.dax.connectTimeoutMillis:4000").run(context -> {
+						ConfiguredDaxClient daxClient = new ConfiguredDaxClient(
+								context.getBean(ClusterDaxClient.class));
+						assertThat(daxClient.getUrl())
+								.isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
+						assertThat(daxClient.getWriteRetries()).isEqualTo(4);
+						assertThat(daxClient.getConnectTimeoutMillis()).isEqualTo(4000);
+					});
+		}
 
-	@Test
-	void withCustomEndpoint() {
-		this.contextRunner
-				.withPropertyValues(
-						"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
-				.run(context -> {
-					assertThat(context).hasSingleBean(DynamoDbClient.class);
-					assertThat(context).hasSingleBean(DynamoDbTemplate.class);
-					assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
+		@Test
+		void clusterDaxClientWithCustomEndpoint() {
+			contextRunner
+					.withPropertyValues(
+							"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
+					.run(context -> {
+						assertThat(context).hasSingleBean(DynamoDbClient.class);
+						assertThat(context).hasSingleBean(DynamoDbTemplate.class);
+						assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
 
-					ClusterDaxClient client = context.getBean(ClusterDaxClient.class);
-					software.amazon.dax.Configuration configuration = getConfiguration(client);
-					assertThat(configuration.url()).isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
-				});
-	}
+						ConfiguredDaxClient daxClient = new ConfiguredDaxClient(
+								context.getBean(ClusterDaxClient.class));
+						assertThat(daxClient.getUrl())
+								.isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
+					});
+		}
 
-	@Test
-	void customTableResolverResolverCanBeConfigured() {
-		this.contextRunner
-				.withPropertyValues(
-						"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
-				.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomDynamoDbConfiguration.class).run(context -> {
-					DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver = context
-							.getBean(DynamoDbTableSchemaResolver.class);
-					DynamoDbTableNameResolver dynamoDBDynamoDbTableNameResolver = context
-							.getBean(DynamoDbTableNameResolver.class);
+		@Test
+		void clusterDaxClient_CustomUrl_DefaultValues() {
+			contextRunner
+					.withPropertyValues(
+							"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
+					.run(context -> {
+						ConfiguredDaxClient daxClient = new ConfiguredDaxClient(
+								context.getBean(ClusterDaxClient.class));
+						assertThat(daxClient.getUrl())
+								.isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
+						assertThat(daxClient.getWriteRetries()).isEqualTo(2);
+						assertThat(daxClient.getConnectTimeoutMillis()).isEqualTo(1000);
+					});
+		}
 
-					assertThat(dynamoDbTableSchemaResolver).isNotNull();
-					assertThat(dynamoDBDynamoDbTableNameResolver).isNotNull();
+		@Test
+		void customTableResolverResolverCanBeConfigured() {
+			contextRunner
+					.withPropertyValues(
+							"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
+					.withUserConfiguration(CustomDynamoDbConfiguration.class).run(context -> {
+						DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver = context
+								.getBean(DynamoDbTableSchemaResolver.class);
+						DynamoDbTableNameResolver dynamoDBDynamoDbTableNameResolver = context
+								.getBean(DynamoDbTableNameResolver.class);
 
-					assertThat(dynamoDbTableSchemaResolver)
-							.isInstanceOf(CustomDynamoDBDynamoDbTableSchemaResolver.class);
-					assertThat(dynamoDBDynamoDbTableNameResolver)
-							.isInstanceOf(CustomDynamoDBDynamoDbTableNameResolver.class);
+						assertThat(dynamoDbTableSchemaResolver).isNotNull();
+						assertThat(dynamoDBDynamoDbTableNameResolver).isNotNull();
 
-				});
-	}
+						assertThat(dynamoDbTableSchemaResolver)
+								.isInstanceOf(CustomDynamoDBDynamoDbTableSchemaResolver.class);
+						assertThat(dynamoDBDynamoDbTableNameResolver)
+								.isInstanceOf(CustomDynamoDBDynamoDbTableNameResolver.class);
 
-	@Test
-	void testWhenClusterDaxClientIsNotOnClassPath() {
-		this.contextRunner.withClassLoader(new FilteredClassLoader(ClusterDaxClient.class)).run(context -> {
-			assertThat(context).hasSingleBean(DynamoDbClient.class);
-			assertThat(context.getBean(DynamoDbClient.class)).isNotInstanceOf(ClusterDaxClient.class);
-		});
-	}
+					});
+		}
 
-	@Test
-	void withDynamoDbClientCustomEndpoint() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.endpoint:http://localhost:8090")
-				.run(context -> {
-					assertThat(context).hasSingleBean(DynamoDbClient.class);
-					assertThat(context).hasSingleBean(DynamoDbTemplate.class);
-					assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
-
-					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(DynamoDbClient.class));
-					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
-					assertThat(client.isEndpointOverridden()).isTrue();
-				});
-	}
-
-	@Test
-	void dynamoDbClientConfiguredSinceNoUrl() {
-		this.contextRunner.run(context -> {
-			assertThat(context).hasSingleBean(DynamoDbClient.class);
-			assertThat(context).hasSingleBean(DynamoDbTemplate.class);
-			assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
-			assertThat(context).doesNotHaveBean(ClusterDaxClient.class);
-		});
-	}
-
-	@Test
-	void customDynamoDbClientConfigurer() {
-		this.contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomAwsClientConfig.class)
-				.run(context -> {
-					ConfiguredAwsClient sesClient = new ConfiguredAwsClient(context.getBean(DynamoDbClient.class));
-					assertThat(sesClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1999));
-					assertThat(sesClient.getSyncHttpClient()).isNotNull();
-				});
-	}
-
-	@Test
-	void customDynamoDbClientDaxSettings() {
-		this.contextRunner.withPropertyValues(
-				"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com",
-				"spring.cloud.aws.dynamodb.dax.writeRetries:4",
-				"spring.cloud.aws.dynamodb.dax.connectTimeoutMillis:4000").run(context -> {
-					ClusterDaxClient client = context.getBean(ClusterDaxClient.class);
-					software.amazon.dax.Configuration configuration = getConfiguration(client);
-					assertThat(configuration.url()).isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
-					assertThat(configuration.writeRetries()).isEqualTo(4);
-					assertThat(configuration.connectTimeoutMillis()).isEqualTo(4000);
-				});
-	}
-
-	private software.amazon.dax.Configuration getConfiguration(ClusterDaxClient client) {
-		return ((software.amazon.dax.Configuration) ReflectionTestUtils.getField(
-				ReflectionTestUtils.getField(ReflectionTestUtils.getField(client, "client"), "cluster"),
-				"configuration"));
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -213,7 +235,7 @@ class DynamoDbAutoConfigurationTest {
 	static class CustomAwsClientConfig {
 
 		@Bean
-		AwsClientCustomizer<DynamoDbClientBuilder> snsClientBuilderAwsClientConfigurer() {
+		AwsClientCustomizer<DynamoDbClientBuilder> dynamoDbClientBuilderAwsClientConfigurer() {
 			return new DynamoDbAutoConfigurationTest.CustomAwsClientConfig.DynamoDbClientCustomizer();
 		}
 

@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.lang.Nullable;
 
 /**
  * Properties related to AWS DynamoDB.
@@ -30,9 +31,13 @@ public class DynamoDbProperties extends AwsClientProperties {
 	 * The prefix used for AWS credentials related properties.
 	 */
 	public static final String PREFIX = "spring.cloud.aws.dynamodb";
+	/**
+	 * Properties that are used to configure {{@link software.amazon.dax.ClusterDaxClient}}.
+	 */
+	@Nullable
+	private DaxProperties dax;
 
-	private DaxProperties dax = new DaxProperties();
-
+	@Nullable
 	public DaxProperties getDax() {
 		return dax;
 	}

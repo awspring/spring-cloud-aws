@@ -96,7 +96,7 @@ public class DynamoDbService {
 }
 ----
 
-===Using DynamoDB Accelerator
+=== Using DynamoDB Accelerator
 
 The starter automatically configures and registers an `software.amazon.dax.ClusterDaxClient` bean if it finds the following is added to the project:
 
