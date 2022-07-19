@@ -15,22 +15,29 @@
  */
 package io.awspring.cloud.sns.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.sns.Person;
-import io.awspring.cloud.sns.core.SnsNotification;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.JsonNode;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 /**
  * Integration tests for {@link SnsTemplate}.
@@ -43,10 +50,12 @@ class SnsTemplateIntegrationTest {
 	private static final String TOPIC_NAME = "my_topic_name";
 	private static SnsTemplate snsTemplate;
 	private static SnsClient snsClient;
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+	private static SqsClient sqsClient;
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SNS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SNS).withServices(SQS).withReuse(true);
 
 	@BeforeAll
 	public static void createSnsTemplate() {
@@ -54,25 +63,47 @@ class SnsTemplateIntegrationTest {
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
-		snsTemplate = new SnsTemplate(snsClient);
+		sqsClient = SqsClient.builder().endpointOverride(localstack.getEndpointOverride(SQS))
+				.region(Region.of(localstack.getRegion()))
+				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
+				.build();
+		MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
+		mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
+		snsTemplate = new SnsTemplate(snsClient, mappingJackson2MessageConverter);
 	}
 
 	@Test
-	void send_validTextMessage_usesTopicChannel_auto_create() {
-		snsTemplate.convertAndSend(TOPIC_NAME, "message");
+	void send_validTextMessage_usesTopicChannel_send_arn_read_by_sqs() {
+		String queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
+		String topicArn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
+		snsClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueUrl));
+
+		snsTemplate.convertAndSend(topicArn, "message");
+
+		await().untilAsserted(() -> {
+			ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
+			assertThat(response.hasMessages()).isTrue();
+			JsonNode body = objectMapper.readTree(response.messages().get(0).body());
+			assertThat(body.get("Message").asText()).isEqualTo("message");
+		});
 	}
 
 	@Test
-	void send_validTextMessage_usesTopicChannel_send_arn() {
+	void send_validPersonObject_usesTopicChannel_send_arn_read_sqs() {
+		String queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
 		String topic_arn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
-		snsTemplate.convertAndSend(topic_arn, "message");
-	}
 
-	@Test
-	void send_validPersonObject_usesTopicChannel_send_arn() {
-		String topic_arn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
-		snsTemplate.sendNotification(topic_arn, SnsNotification.builder(new Person("foo")).groupId("groupId")
-				.deduplicationId("deduplicationId").header("header-1", "value-1").subject("subject").build());
+		snsClient.subscribe(r -> r.topicArn(topic_arn).protocol("sqs").endpoint(queueUrl));
+
+		snsTemplate.convertAndSend(topic_arn, new Person("foo"));
+
+		await().untilAsserted(() -> {
+			ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
+			assertThat(response.hasMessages()).isTrue();
+			Person person = objectMapper.readValue(
+					objectMapper.readTree(response.messages().get(0).body()).get("Message").asText(), Person.class);
+			assertThat(person.getName()).isEqualTo("foo");
+		});
 	}
 
 }
