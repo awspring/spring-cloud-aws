@@ -21,6 +21,9 @@ package io.awspring.cloud.sns.sms.attributes;
  */
 public class AttributeCodes {
 
+	private AttributeCodes() {
+	};
+
 	public static final String SENDER_ID = "AWS.SNS.SMS.SenderID";
 	public static final String ORIGINATION_NUMBER = "AWS.MM.SMS.OriginationNumber";
 	public static final String MAX_PRICE = "AWS.SNS.SMS.MaxPrice";

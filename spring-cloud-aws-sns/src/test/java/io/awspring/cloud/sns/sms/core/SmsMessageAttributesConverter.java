@@ -1,24 +1,37 @@
+/*
+ * Copyright 2013-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.awspring.cloud.sns.sms.core;
 
 import io.awspring.cloud.sns.core.MessageAttributeDataTypes;
 import io.awspring.cloud.sns.sms.attributes.*;
+import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
-
-import java.util.Map;
 
 /**
  * @author Matej Nedic
  * @since 3.0.0
  */
-public class SmsMessageAttributesConverter {
+class SmsMessageAttributesConverter {
 	void testUpperLvlFields() {
 		SmsMessageAttributes smsMessageAttributes = SmsMessageAttributes.builder().smsType(SmsType.PROMOTIONAL)
-			.senderID("Sender_007").originationNumber("09091s").maxPrice("100")
-			.entityId("SPRING_CLOUD_AWS").templateId("Template192").build();
-		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes
-			.convert();
+				.senderID("Sender_007").originationNumber("09091s").maxPrice("100").entityId("SPRING_CLOUD_AWS")
+				.templateId("Template192").build();
+		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes.convert();
 		MessageAttributeValue smsType = messageAttributeValueMap.get(AttributeCodes.SMS_TYPE);
 		Assertions.assertThat(smsType.dataType()).isEqualTo(MessageAttributeDataTypes.STRING);
 		Assertions.assertThat(smsType.stringValue()).isEqualTo(SmsType.PROMOTIONAL.type);
@@ -47,12 +60,10 @@ public class SmsMessageAttributesConverter {
 
 	@Test
 	void testBaidu_ADM() {
-		SmsMessageAttributes smsMessageAttributes = SmsMessageAttributes
-			.builder().baidu(Baidu.builder().messageType("newMessage").messageKey("messageKey")
-				.ttl(100L).deployStatus("ready").build())
-			.adm(ADM.builder().ttl(200L).build()).build();
-		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes
-			.convert();
+		SmsMessageAttributes smsMessageAttributes = SmsMessageAttributes.builder().baidu(Baidu.builder()
+				.messageType("newMessage").messageKey("messageKey").ttl(100L).deployStatus("ready").build())
+				.adm(ADM.builder().ttl(200L).build()).build();
+		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes.convert();
 
 		MessageAttributeValue messageKey = messageAttributeValueMap.get(AttributeCodes.BAIDU_MESSAGE_KEY);
 		Assertions.assertThat(messageKey.dataType()).isEqualTo(MessageAttributeDataTypes.STRING);
@@ -80,11 +91,10 @@ public class SmsMessageAttributesConverter {
 	@Test
 	void testFCM_MacOS_MPNS() {
 		SmsMessageAttributes smsMessageAttributes = SmsMessageAttributes.builder()
-			.macOS(MacOS.builder().ttl(200L).sandboxTtl(300L).build()).mpns(MPNS.builder()
-				.ttl(400L).type("goodType").notificationClass("I am notified YAY!").build())
-			.fcm(FCM.builder().fcmTtl(600L).gcmTtl(700L).build()).build();
-		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes
-			.convert();
+				.macOS(MacOS.builder().ttl(200L).sandboxTtl(300L).build())
+				.mpns(MPNS.builder().ttl(400L).type("goodType").notificationClass("I am notified YAY!").build())
+				.fcm(FCM.builder().fcmTtl(600L).gcmTtl(700L).build()).build();
+		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes.convert();
 
 		MessageAttributeValue macOSTtl = messageAttributeValueMap.get(AttributeCodes.MACOS_TTL);
 		Assertions.assertThat(macOSTtl.dataType()).isEqualTo(MessageAttributeDataTypes.NUMBER);
@@ -103,7 +113,7 @@ public class SmsMessageAttributesConverter {
 		Assertions.assertThat(mpnsType.stringValue()).isEqualTo("goodType");
 
 		MessageAttributeValue mpnsNotificationClass = messageAttributeValueMap
-			.get(AttributeCodes.MPNS_NOTIFICATION_CLASS);
+				.get(AttributeCodes.MPNS_NOTIFICATION_CLASS);
 		Assertions.assertThat(mpnsNotificationClass.dataType()).isEqualTo(MessageAttributeDataTypes.STRING);
 		Assertions.assertThat(mpnsNotificationClass.stringValue()).isEqualTo("I am notified YAY!");
 
@@ -121,11 +131,10 @@ public class SmsMessageAttributesConverter {
 	@Test
 	void testWNS() {
 		SmsMessageAttributes smsMessageAttributes = SmsMessageAttributes.builder()
-			.wns(WNS.builder().cachePolicy("always").group("test").match("matched")
-				.tag("tag007").ttl(100L).suppressPopUp("true").type("strong").build())
-			.build();
-		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes
-			.convert();
+				.wns(WNS.builder().cachePolicy("always").group("test").match("matched").tag("tag007").ttl(100L)
+						.suppressPopUp("true").type("strong").build())
+				.build();
+		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes.convert();
 
 		MessageAttributeValue wnsTTL = messageAttributeValueMap.get(AttributeCodes.WNS_TTL);
 		Assertions.assertThat(wnsTTL.dataType()).isEqualTo(MessageAttributeDataTypes.NUMBER);
@@ -161,21 +170,20 @@ public class SmsMessageAttributesConverter {
 	@Test
 	void testAll() {
 		SmsMessageAttributes smsMessageAttributes = SmsMessageAttributes.builder().smsType(SmsType.PROMOTIONAL)
-			.senderID("Sender_007").originationNumber("09091s").maxPrice("100")
-			.entityId("SPRING_CLOUD_AWS").templateId("Template192")
-			.macOS(MacOS.builder().ttl(200L).sandboxTtl(300L).build())
-			.baidu(Baidu.builder().messageType("newMessage").messageKey("messageKey").ttl(100L)
-				.deployStatus("ready").build())
-			.adm(ADM.builder().ttl(200L).build())
-			.mpns(MPNS.builder().ttl(400L).type("goodType").notificationClass("I am notified YAY!")
-				.build())
-			.fcm(FCM.builder().fcmTtl(600L).gcmTtl(700L).build())
-			.wns(WNS.builder().cachePolicy("always").group("test").match("matched")
-				.tag("tag007").ttl(100L).suppressPopUp("true").type("strong").build())
-			.apn(APN.builder().ttl(100L).mdmTtl(200L).mdmSandboxTtl(300L).passbookTtl(400L).passbookSandboxTtl(500L).sandboxTtl(600L).voipTtl(700L).voipSandboxTtl(800L).collapseId("collapsed").priority("high").pushType("always").topic("topic").build())
-			.build();
-		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes
-			.convert();
+				.senderID("Sender_007").originationNumber("09091s").maxPrice("100").entityId("SPRING_CLOUD_AWS")
+				.templateId("Template192").macOS(MacOS.builder().ttl(200L).sandboxTtl(300L).build())
+				.baidu(Baidu.builder().messageType("newMessage").messageKey("messageKey").ttl(100L)
+						.deployStatus("ready").build())
+				.adm(ADM.builder().ttl(200L).build())
+				.mpns(MPNS.builder().ttl(400L).type("goodType").notificationClass("I am notified YAY!").build())
+				.fcm(FCM.builder().fcmTtl(600L).gcmTtl(700L).build())
+				.wns(WNS.builder().cachePolicy("always").group("test").match("matched").tag("tag007").ttl(100L)
+						.suppressPopUp("true").type("strong").build())
+				.apn(APN.builder().ttl(100L).mdmTtl(200L).mdmSandboxTtl(300L).passbookTtl(400L).passbookSandboxTtl(500L)
+						.sandboxTtl(600L).voipTtl(700L).voipSandboxTtl(800L).collapseId("collapsed").priority("high")
+						.pushType("always").topic("topic").build())
+				.build();
+		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes.convert();
 
 		MessageAttributeValue wnsTTL = messageAttributeValueMap.get(AttributeCodes.WNS_TTL);
 		Assertions.assertThat(wnsTTL.dataType()).isEqualTo(MessageAttributeDataTypes.NUMBER);
@@ -222,7 +230,7 @@ public class SmsMessageAttributesConverter {
 		Assertions.assertThat(mpnsType.stringValue()).isEqualTo("goodType");
 
 		MessageAttributeValue mpnsNotificationClass = messageAttributeValueMap
-			.get(AttributeCodes.MPNS_NOTIFICATION_CLASS);
+				.get(AttributeCodes.MPNS_NOTIFICATION_CLASS);
 		Assertions.assertThat(mpnsNotificationClass.dataType()).isEqualTo(MessageAttributeDataTypes.STRING);
 		Assertions.assertThat(mpnsNotificationClass.stringValue()).isEqualTo("I am notified YAY!");
 
@@ -294,15 +302,14 @@ public class SmsMessageAttributesConverter {
 		Assertions.assertThat(apnPassbookTtl.dataType()).isEqualTo(MessageAttributeDataTypes.NUMBER);
 		Assertions.assertThat(apnPassbookTtl.stringValue()).isEqualTo("400");
 
-		MessageAttributeValue apnPassbookTtlSandbox = messageAttributeValueMap.get(AttributeCodes.APN_PASSBOOK_SANDBOX_TTL);
+		MessageAttributeValue apnPassbookTtlSandbox = messageAttributeValueMap
+				.get(AttributeCodes.APN_PASSBOOK_SANDBOX_TTL);
 		Assertions.assertThat(apnPassbookTtlSandbox.dataType()).isEqualTo(MessageAttributeDataTypes.NUMBER);
 		Assertions.assertThat(apnPassbookTtlSandbox.stringValue()).isEqualTo("500");
 
 		MessageAttributeValue apnVoipTtl = messageAttributeValueMap.get(AttributeCodes.APN_VOIP_TTL);
 		Assertions.assertThat(apnVoipTtl.dataType()).isEqualTo(MessageAttributeDataTypes.NUMBER);
 		Assertions.assertThat(apnVoipTtl.stringValue()).isEqualTo("700");
-
-
 
 		MessageAttributeValue apnTtl = messageAttributeValueMap.get(AttributeCodes.APN_TTL);
 		Assertions.assertThat(apnTtl.dataType()).isEqualTo(MessageAttributeDataTypes.NUMBER);
@@ -311,7 +318,6 @@ public class SmsMessageAttributesConverter {
 		MessageAttributeValue apnVoipTtlSandbox = messageAttributeValueMap.get(AttributeCodes.APN_VOIP_SANDBOX_TTL);
 		Assertions.assertThat(apnVoipTtlSandbox.dataType()).isEqualTo(MessageAttributeDataTypes.NUMBER);
 		Assertions.assertThat(apnVoipTtlSandbox.stringValue()).isEqualTo("800");
-
 
 		MessageAttributeValue apnCollapseId = messageAttributeValueMap.get(AttributeCodes.APN_COLLAPSE_ID);
 		Assertions.assertThat(apnCollapseId.dataType()).isEqualTo(MessageAttributeDataTypes.STRING);

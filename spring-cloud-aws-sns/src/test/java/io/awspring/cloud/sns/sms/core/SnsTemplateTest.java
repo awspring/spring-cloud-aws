@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
  * @author Matej Nedic
  * @since 3.0.0
  */
-public class SnsTemplateTest {
+class SnsTemplateTest {
 
 	private final SnsClient snsClient = mock(SnsClient.class);
 

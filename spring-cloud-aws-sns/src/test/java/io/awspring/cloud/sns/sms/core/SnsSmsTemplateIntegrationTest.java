@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
  * @since 3.0.0
  */
 @Testcontainers
-public class SnsSmsTemplateIntegrationTest {
+class SnsSmsTemplateIntegrationTest {
 	private static SnsSmsTemplate snsSmsTemplate;
 	private static SnsClient snsClient;
 
