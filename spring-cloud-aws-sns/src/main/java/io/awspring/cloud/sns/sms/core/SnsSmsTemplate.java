@@ -27,15 +27,9 @@ import software.amazon.awssdk.services.sns.model.PublishRequest;
 public class SnsSmsTemplate implements SnsSmsOperations {
 
 	private final SnsClient snsClient;
-	private final MessageAttributeConverter messageAttributeConverter;
 
 	public SnsSmsTemplate(SnsClient snsClient) {
-		this(snsClient, new DefaultMessageAttributeConverter());
-	}
-
-	public SnsSmsTemplate(SnsClient snsClient, MessageAttributeConverter messageAttributeConverter) {
 		this.snsClient = snsClient;
-		this.messageAttributeConverter = messageAttributeConverter;
 	}
 
 	@Override
@@ -45,8 +39,10 @@ public class SnsSmsTemplate implements SnsSmsOperations {
 
 	@Override
 	public void send(String phoneNumber, String message, @Nullable SmsMessageAttributes attributes) {
-		PublishRequest.Builder publishRequest = PublishRequest.builder().phoneNumber(phoneNumber).message(message)
-				.messageAttributes(this.messageAttributeConverter.convert(attributes));
+		PublishRequest.Builder publishRequest = PublishRequest.builder().phoneNumber(phoneNumber).message(message);
+		if (attributes != null) {
+			publishRequest.messageAttributes(attributes.convert());
+		}
 		populatePublishRequest(publishRequest, attributes);
 		this.snsClient.publish(publishRequest.build());
 	}
@@ -58,8 +54,10 @@ public class SnsSmsTemplate implements SnsSmsOperations {
 
 	@Override
 	public void sendToTopicArn(String topicArn, String message, @Nullable SmsMessageAttributes attributes) {
-		PublishRequest.Builder publishRequest = PublishRequest.builder().topicArn(topicArn).message(message)
-				.messageAttributes(this.messageAttributeConverter.convert(attributes));
+		PublishRequest.Builder publishRequest = PublishRequest.builder().topicArn(topicArn).message(message);
+		if (attributes != null) {
+			publishRequest.messageAttributes(attributes.convert());
+		}
 		populatePublishRequest(publishRequest, attributes);
 		this.snsClient.publish(publishRequest.build());
 
@@ -72,8 +70,10 @@ public class SnsSmsTemplate implements SnsSmsOperations {
 
 	@Override
 	public void sendToTargetArn(String targetArn, String message, @Nullable SmsMessageAttributes attributes) {
-		PublishRequest.Builder publishRequest = PublishRequest.builder().targetArn(targetArn).message(message)
-				.messageAttributes(this.messageAttributeConverter.convert(attributes));
+		PublishRequest.Builder publishRequest = PublishRequest.builder().targetArn(targetArn).message(message);
+		if (attributes != null) {
+			publishRequest.messageAttributes(attributes.convert());
+		}
 		populatePublishRequest(publishRequest, attributes);
 		this.snsClient.publish(publishRequest.build());
 	}

@@ -15,7 +15,10 @@
  */
 package io.awspring.cloud.sns.sms.attributes;
 
-public class MPNS {
+import java.util.Map;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+
+public final class MPNS implements ConvertToMessageAttributes {
 	private String notificationClass;
 	private Long ttl;
 	private String type;
@@ -48,6 +51,16 @@ public class MPNS {
 		return new Builder();
 	}
 
+	@Override
+	public void convertAndPopulate(Map<String, MessageAttributeValue> attributeValueMap) {
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.MPNS_TTL, this.getTtl(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.MPNS_TYPE, this.getType(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.MPNS_NOTIFICATION_CLASS,
+				this.getNotificationClass(), attributeValueMap);
+	}
+
 	public static final class Builder {
 		private String notificationClass;
 		private Long ttl;
@@ -56,17 +69,17 @@ public class MPNS {
 		private Builder() {
 		}
 
-		public Builder withNotificationClass(String notificationClass) {
+		public Builder notificationClass(String notificationClass) {
 			this.notificationClass = notificationClass;
 			return this;
 		}
 
-		public Builder withTtl(Long ttl) {
+		public Builder ttl(Long ttl) {
 			this.ttl = ttl;
 			return this;
 		}
 
-		public Builder withType(String type) {
+		public Builder type(String type) {
 			this.type = type;
 			return this;
 		}

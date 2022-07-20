@@ -53,9 +53,8 @@ public class SnsTemplateTest {
 
 	@Test
 	void sendsTextMessageWithAttributes() {
-		snsTemplate.send("000 000 000", "this is message",
-				SmsMessageAttributes.builder().withMessageGroupId("tst").withDeduplicationId("3t")
-						.withMessageStructure("JSON").withSenderID("agent007").withOriginationNumber("202").build());
+		snsTemplate.send("000 000 000", "this is message", SmsMessageAttributes.builder().messageGroupId("tst")
+				.deduplicationId("3t").messageStructure("JSON").senderID("agent007").originationNumber("202").build());
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.phoneNumber()).isEqualTo("000 000 000");
@@ -71,8 +70,8 @@ public class SnsTemplateTest {
 	@Test
 	void sendsTextMessageWithAttributes_targetArn() {
 		snsTemplate.sendToTargetArn("arn:something:something", "this is message",
-				SmsMessageAttributes.builder().withMessageGroupId("tst").withDeduplicationId("3t")
-						.withMessageStructure("JSON").withSenderID("agent007").withOriginationNumber("202").build());
+				SmsMessageAttributes.builder().messageGroupId("tst").deduplicationId("3t").messageStructure("JSON")
+						.senderID("agent007").originationNumber("202").build());
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.targetArn()).isEqualTo("arn:something:something");
@@ -88,8 +87,8 @@ public class SnsTemplateTest {
 	@Test
 	void sendsTextMessageWithAttributes_topicArn() {
 		snsTemplate.sendToTopicArn("arn:something:something", "this is message",
-				SmsMessageAttributes.builder().withMessageGroupId("tst").withDeduplicationId("3t")
-						.withMessageStructure("JSON").withSenderID("agent007").withOriginationNumber("202").build());
+				SmsMessageAttributes.builder().messageGroupId("tst").deduplicationId("3t").messageStructure("JSON")
+						.senderID("agent007").originationNumber("202").build());
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.topicArn()).isEqualTo("arn:something:something");

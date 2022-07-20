@@ -18,6 +18,7 @@ package io.awspring.cloud.sns.sms.core;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
 import io.awspring.cloud.sns.sms.attributes.SmsMessageAttributes;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -53,13 +54,14 @@ public class SnsSmsTemplateIntegrationTest {
 
 	@Test
 	void sendValidMessage_ToPhoneNumber() {
-		snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!");
+		Assertions
+				.assertDoesNotThrow(() -> snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!"));
 	}
 
 	@Test
 	void sendValidMessage_ToPhoneNumber_WithAttributes() {
-		snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!",
-				SmsMessageAttributes.builder().withSenderID("AWSPRING").withMaxPrice("1.00").build());
+		Assertions.assertDoesNotThrow(() -> snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!",
+				SmsMessageAttributes.builder().senderID("AWSPRING").maxPrice("1.00").build()));
 	}
 
 }

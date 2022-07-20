@@ -15,7 +15,10 @@
  */
 package io.awspring.cloud.sns.sms.attributes;
 
-public class WNS {
+import java.util.Map;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+
+public final class WNS implements ConvertToMessageAttributes {
 
 	private String cachePolicy;
 	private String group;
@@ -85,6 +88,22 @@ public class WNS {
 		return new Builder();
 	}
 
+	@Override
+	public void convertAndPopulate(Map<String, MessageAttributeValue> attributeValueMap) {
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.WNS_CACHE_POLICY, this.getCachePolicy(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.WNS_GROUP, this.getGroup(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.WNS_MATCH, this.getMatch(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.WNS_TAG, this.getTag(), attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.WNS_TYPE, this.getType(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.WNS_SUPPRESS_POPUP,
+				this.getSuppressPopUp(), attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.WNS_TTL, this.getTtl(), attributeValueMap);
+	}
+
 	public static final class Builder {
 		private String cachePolicy;
 		private String group;
@@ -97,37 +116,37 @@ public class WNS {
 		private Builder() {
 		}
 
-		public Builder withCachePolicy(String cachePolicy) {
+		public Builder cachePolicy(String cachePolicy) {
 			this.cachePolicy = cachePolicy;
 			return this;
 		}
 
-		public Builder withGroup(String group) {
+		public Builder group(String group) {
 			this.group = group;
 			return this;
 		}
 
-		public Builder withMatch(String match) {
+		public Builder match(String match) {
 			this.match = match;
 			return this;
 		}
 
-		public Builder withSuppressPopUp(String suppressPopUp) {
+		public Builder suppressPopUp(String suppressPopUp) {
 			this.suppressPopUp = suppressPopUp;
 			return this;
 		}
 
-		public Builder withTag(String tag) {
+		public Builder tag(String tag) {
 			this.tag = tag;
 			return this;
 		}
 
-		public Builder withTtl(Long ttl) {
+		public Builder ttl(Long ttl) {
 			this.ttl = ttl;
 			return this;
 		}
 
-		public Builder withType(String type) {
+		public Builder type(String type) {
 			this.type = type;
 			return this;
 		}

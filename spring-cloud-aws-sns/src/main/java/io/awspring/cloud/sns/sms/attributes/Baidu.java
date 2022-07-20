@@ -15,7 +15,10 @@
  */
 package io.awspring.cloud.sns.sms.attributes;
 
-public class Baidu {
+import java.util.Map;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+
+public final class Baidu implements ConvertToMessageAttributes {
 	private String deployStatus;
 	private String messageKey;
 	private String messageType;
@@ -57,6 +60,18 @@ public class Baidu {
 		return new Builder();
 	}
 
+	@Override
+	public void convertAndPopulate(Map<String, MessageAttributeValue> attributeValueMap) {
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.BAIDU_DEPLOY_STATUS,
+				this.getDeployStatus(), attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.BAIDU_MESSAGE_KEY, this.getMessageKey(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.BAIDU_MESSAGE_TYPE, this.getMessageType(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.BAIDU_TTL, this.getTtl(),
+				attributeValueMap);
+	}
+
 	public static final class Builder {
 		private String deployStatus;
 		private String messageKey;
@@ -66,22 +81,22 @@ public class Baidu {
 		private Builder() {
 		}
 
-		public Builder withDeployStatus(String deployStatus) {
+		public Builder deployStatus(String deployStatus) {
 			this.deployStatus = deployStatus;
 			return this;
 		}
 
-		public Builder withMessageKey(String messageKey) {
+		public Builder messageKey(String messageKey) {
 			this.messageKey = messageKey;
 			return this;
 		}
 
-		public Builder withMessageType(String messageType) {
+		public Builder messageType(String messageType) {
 			this.messageType = messageType;
 			return this;
 		}
 
-		public Builder withTtl(Long ttl) {
+		public Builder ttl(Long ttl) {
 			this.ttl = ttl;
 			return this;
 		}

@@ -15,7 +15,10 @@
  */
 package io.awspring.cloud.sns.sms.attributes;
 
-public class ADM {
+import java.util.Map;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+
+public final class ADM implements ConvertToMessageAttributes {
 	private Long ttl;
 
 	public Long getTtl() {
@@ -30,13 +33,18 @@ public class ADM {
 		return new Builder();
 	}
 
+	@Override
+	public void convertAndPopulate(Map<String, MessageAttributeValue> attributeValueMap) {
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.ADM_TTL, this.getTtl(), attributeValueMap);
+	}
+
 	public static final class Builder {
 		private Long ttl;
 
 		private Builder() {
 		}
 
-		public Builder withTtl(Long ttl) {
+		public Builder ttl(Long ttl) {
 			this.ttl = ttl;
 			return this;
 		}

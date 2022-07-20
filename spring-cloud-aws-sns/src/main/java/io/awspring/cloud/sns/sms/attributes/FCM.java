@@ -15,7 +15,10 @@
  */
 package io.awspring.cloud.sns.sms.attributes;
 
-public class FCM {
+import java.util.Map;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+
+public final class FCM implements ConvertToMessageAttributes {
 	private Long fcmTtl;
 	private Long gcmTtl;
 
@@ -39,6 +42,14 @@ public class FCM {
 		return new Builder();
 	}
 
+	@Override
+	public void convertAndPopulate(Map<String, MessageAttributeValue> attributeValueMap) {
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.FCM_TTL, this.getFcmTtl(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.GCM_TTL, this.getGcmTtl(),
+				attributeValueMap);
+	}
+
 	public static final class Builder {
 		private Long fcmTtl;
 		private Long gcmTtl;
@@ -46,12 +57,12 @@ public class FCM {
 		private Builder() {
 		}
 
-		public Builder withFcmTtl(Long fcmTtl) {
+		public Builder fcmTtl(Long fcmTtl) {
 			this.fcmTtl = fcmTtl;
 			return this;
 		}
 
-		public Builder withGcmTtl(Long gcmTtl) {
+		public Builder gcmTtl(Long gcmTtl) {
 			this.gcmTtl = gcmTtl;
 			return this;
 		}

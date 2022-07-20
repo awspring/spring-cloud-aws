@@ -15,6 +15,13 @@
  */
 package io.awspring.cloud.sns.sms.attributes;
 
+import static io.awspring.cloud.sns.sms.attributes.ConvertToMessageAttributes.populateMapWithNumberValue;
+import static io.awspring.cloud.sns.sms.attributes.ConvertToMessageAttributes.populateMapWithStringValue;
+
+import java.util.HashMap;
+import java.util.Map;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+
 /**
  * @author Matej Nedic
  * @since 3.0.0
@@ -36,6 +43,39 @@ public class SmsMessageAttributes {
 	private MacOS macOS;
 	private MPNS mpns;
 	private WNS wns;
+
+	public Map<String, MessageAttributeValue> convert() {
+		Map<String, MessageAttributeValue> map = new HashMap<>();
+		populateMapWithStringValue(AttributeCodes.SENDER_ID, this.getSenderID(), map);
+		populateMapWithStringValue(AttributeCodes.ORIGINATION_NUMBER, this.getOriginationNumber(), map);
+		populateMapWithNumberValue(AttributeCodes.MAX_PRICE, this.getMaxPrice(), map);
+		populateMapWithStringValue(AttributeCodes.SMS_TYPE, this.getSmsType() != null ? this.getSmsType().type : null,
+				map);
+		populateMapWithStringValue(AttributeCodes.ENTITY_ID, this.getEntityId(), map);
+		populateMapWithStringValue(AttributeCodes.TEMPLATE_ID, this.getTemplateId(), map);
+		if (this.getAdm() != null) {
+			this.getAdm().convertAndPopulate(map);
+		}
+		if (this.getApn() != null) {
+			this.getApn().convertAndPopulate(map);
+		}
+		if (this.getBaidu() != null) {
+			this.getBaidu().convertAndPopulate(map);
+		}
+		if (this.getFcm() != null) {
+			this.getFcm().convertAndPopulate(map);
+		}
+		if (this.getMacOS() != null) {
+			this.getMacOS().convertAndPopulate(map);
+		}
+		if (this.getMpns() != null) {
+			this.getMpns().convertAndPopulate(map);
+		}
+		if (this.getWns() != null) {
+			this.getWns().convertAndPopulate(map);
+		}
+		return map;
+	}
 
 	public String getSenderID() {
 		return senderID;
@@ -190,82 +230,86 @@ public class SmsMessageAttributes {
 		private Builder() {
 		}
 
-		public Builder withSenderID(String senderID) {
+		public static Builder aSmsMessageAttributes() {
+			return new Builder();
+		}
+
+		public Builder senderID(String senderID) {
 			this.senderID = senderID;
 			return this;
 		}
 
-		public Builder withOriginationNumber(String originationNumber) {
+		public Builder originationNumber(String originationNumber) {
 			this.originationNumber = originationNumber;
 			return this;
 		}
 
-		public Builder withMaxPrice(String maxPrice) {
+		public Builder maxPrice(String maxPrice) {
 			this.maxPrice = maxPrice;
 			return this;
 		}
 
-		public Builder withSmsType(SmsType smsType) {
+		public Builder smsType(SmsType smsType) {
 			this.smsType = smsType;
 			return this;
 		}
 
-		public Builder withEntityId(String entityId) {
+		public Builder entityId(String entityId) {
 			this.entityId = entityId;
 			return this;
 		}
 
-		public Builder withTemplateId(String templateId) {
+		public Builder templateId(String templateId) {
 			this.templateId = templateId;
 			return this;
 		}
 
-		public Builder withMessageGroupId(String messageGroupId) {
+		public Builder messageGroupId(String messageGroupId) {
 			this.messageGroupId = messageGroupId;
 			return this;
 		}
 
-		public Builder withDeduplicationId(String deduplicationId) {
+		public Builder deduplicationId(String deduplicationId) {
 			this.deduplicationId = deduplicationId;
 			return this;
 		}
 
-		public Builder withMessageStructure(String messageStructure) {
+		public Builder messageStructure(String messageStructure) {
 			this.messageStructure = messageStructure;
 			return this;
 		}
 
-		public Builder withAdm(ADM adm) {
+		public Builder adm(ADM adm) {
 			this.adm = adm;
 			return this;
 		}
 
-		public Builder withApn(APN apn) {
+		public Builder apn(APN apn) {
 			this.apn = apn;
 			return this;
 		}
 
-		public Builder withBaidu(Baidu baidu) {
+		public Builder baidu(Baidu baidu) {
 			this.baidu = baidu;
 			return this;
 		}
 
-		public Builder withFcm(FCM fcm) {
+		public Builder fcm(FCM fcm) {
 			this.fcm = fcm;
 			return this;
 		}
 
-		public Builder withMacOS(MacOS macOS) {
+		public Builder macOS(MacOS macOS) {
 			this.macOS = macOS;
 			return this;
 		}
 
-		public Builder withMpns(MPNS mpns) {
+		public Builder mpns(MPNS mpns) {
 			this.mpns = mpns;
 			return this;
 		}
 
-		public Builder withWns(WNS wns) {
+		public Builder wns(WNS wns) {
 			this.wns = wns;
 			return this;
 		}

@@ -15,7 +15,10 @@
  */
 package io.awspring.cloud.sns.sms.attributes;
 
-public class MacOS {
+import java.util.Map;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+
+public final class MacOS implements ConvertToMessageAttributes {
 	private Long sandboxTtl;
 	private Long ttl;
 
@@ -39,6 +42,14 @@ public class MacOS {
 		return new Builder();
 	}
 
+	@Override
+	public void convertAndPopulate(Map<String, MessageAttributeValue> attributeValueMap) {
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.MACOS_TTL, this.getTtl(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.MACOS_SANDBOX_TTL, this.getSandboxTtl(),
+				attributeValueMap);
+	}
+
 	public static final class Builder {
 		private Long sandboxTtl;
 		private Long ttl;
@@ -46,12 +57,12 @@ public class MacOS {
 		private Builder() {
 		}
 
-		public Builder withSandboxTtl(Long sandboxTtl) {
+		public Builder sandboxTtl(Long sandboxTtl) {
 			this.sandboxTtl = sandboxTtl;
 			return this;
 		}
 
-		public Builder withTtl(Long ttl) {
+		public Builder ttl(Long ttl) {
 			this.ttl = ttl;
 			return this;
 		}

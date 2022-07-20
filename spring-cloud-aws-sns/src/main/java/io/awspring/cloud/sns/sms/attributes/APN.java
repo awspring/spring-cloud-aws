@@ -15,7 +15,10 @@
  */
 package io.awspring.cloud.sns.sms.attributes;
 
-public class APN {
+import java.util.Map;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+
+public final class APN implements ConvertToMessageAttributes {
 	private Long mdmTtl;
 	private Long mdmSandboxTtl;
 	private Long passbookTtl;
@@ -125,6 +128,37 @@ public class APN {
 		this.ttl = ttl;
 	}
 
+	@Override
+	public void convertAndPopulate(Map<String, MessageAttributeValue> attributeValueMap) {
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.APN_COLLAPSE_ID, this.getCollapseId(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.APN_PRIORITY, this.getPriority(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.APN_PUSH_TYPE, this.getPushType(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithStringValue(AttributeCodes.APN_TOPIC, this.getTopic(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.APN_TTL, this.getTtl(), attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.APN_MDM_TTL, this.getMdmTtl(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.APN_MDM_SANDBOX_TTL,
+				this.getMdmSandboxTtl(), attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.APN_PASSBOOK_TTL, this.getPassbookTtl(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.APN_PASSBOOK_SANDBOX_TTL,
+				this.getPassbookSandboxTtl(), attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.APN_VOIP_TTL, this.getVoipTtl(),
+				attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.APN_VOIP_SANDBOX_TTL,
+				this.getVoipSandboxTtl(), attributeValueMap);
+		ConvertToMessageAttributes.populateMapWithNumberValue(AttributeCodes.APN_SANDBOX_TTL, this.getSandboxTtl(),
+				attributeValueMap);
+	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
 	public static final class Builder {
 		private Long mdmTtl;
 		private Long mdmSandboxTtl;
@@ -142,66 +176,62 @@ public class APN {
 		private Builder() {
 		}
 
-		public static Builder anAPN() {
-			return new Builder();
-		}
-
-		public Builder withMdmTtl(Long mdmTtl) {
+		public Builder mdmTtl(Long mdmTtl) {
 			this.mdmTtl = mdmTtl;
 			return this;
 		}
 
-		public Builder withMdmSandboxTtl(Long mdmSandboxTtl) {
+		public Builder mdmSandboxTtl(Long mdmSandboxTtl) {
 			this.mdmSandboxTtl = mdmSandboxTtl;
 			return this;
 		}
 
-		public Builder withPassbookTtl(Long passbookTtl) {
+		public Builder passbookTtl(Long passbookTtl) {
 			this.passbookTtl = passbookTtl;
 			return this;
 		}
 
-		public Builder withPassbookSandboxTtl(Long passbookSandboxTtl) {
+		public Builder passbookSandboxTtl(Long passbookSandboxTtl) {
 			this.passbookSandboxTtl = passbookSandboxTtl;
 			return this;
 		}
 
-		public Builder withVoipTtl(Long voipTtl) {
+		public Builder voipTtl(Long voipTtl) {
 			this.voipTtl = voipTtl;
 			return this;
 		}
 
-		public Builder withVoipSandboxTtl(Long voipSandboxTtl) {
+		public Builder voipSandboxTtl(Long voipSandboxTtl) {
 			this.voipSandboxTtl = voipSandboxTtl;
 			return this;
 		}
 
-		public Builder withCollapseId(String collapseId) {
+		public Builder collapseId(String collapseId) {
 			this.collapseId = collapseId;
 			return this;
 		}
 
-		public Builder withPriority(String priority) {
+		public Builder priority(String priority) {
 			this.priority = priority;
 			return this;
 		}
 
-		public Builder withPushType(String pushType) {
+		public Builder pushType(String pushType) {
 			this.pushType = pushType;
 			return this;
 		}
 
-		public Builder withTopic(String topic) {
+		public Builder topic(String topic) {
 			this.topic = topic;
 			return this;
 		}
 
-		public Builder withSandboxTtl(Long sandboxTtl) {
+		public Builder sandboxTtl(Long sandboxTtl) {
 			this.sandboxTtl = sandboxTtl;
 			return this;
 		}
 
-		public Builder withTtl(Long ttl) {
+		public Builder ttl(Long ttl) {
 			this.ttl = ttl;
 			return this;
 		}
