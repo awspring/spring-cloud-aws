@@ -30,20 +30,20 @@ import software.amazon.awssdk.services.sns.SnsClient;
  * @author Matej Nedic
  * @since 3.0.0
  */
-class SnsTemplateTest {
+class SnsSmsTemplateTest {
 
 	private final SnsClient snsClient = mock(SnsClient.class);
 
-	private SnsSmsTemplate snsTemplate;
+	private SnsSmsTemplate snsSmsTemplate;
 
 	@BeforeEach
 	void init() {
-		snsTemplate = new SnsSmsTemplate(snsClient);
+		snsSmsTemplate = new SnsSmsTemplate(snsClient);
 	}
 
 	@Test
 	void sendsTextMessage() {
-		snsTemplate.send("000 000 000", "this is message");
+		snsSmsTemplate.send("000 000 000", "this is message");
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.phoneNumber()).isEqualTo("000 000 000");
@@ -53,7 +53,7 @@ class SnsTemplateTest {
 
 	@Test
 	void sendsTextMessageWithAttributes() {
-		snsTemplate.send("000 000 000", "this is message", SmsMessageAttributes.builder().messageGroupId("tst")
+		snsSmsTemplate.send("000 000 000", "this is message", SmsMessageAttributes.builder().messageGroupId("tst")
 				.deduplicationId("3t").messageStructure("JSON").senderID("agent007").originationNumber("202").build());
 
 		verify(snsClient).publish(requestMatches(r -> {
@@ -69,7 +69,7 @@ class SnsTemplateTest {
 
 	@Test
 	void sendsTextMessageWithAttributes_targetArn() {
-		snsTemplate.sendToTargetArn("arn:something:something", "this is message",
+		snsSmsTemplate.sendToTargetArn("arn:something:something", "this is message",
 				SmsMessageAttributes.builder().messageGroupId("tst").deduplicationId("3t").messageStructure("JSON")
 						.senderID("agent007").originationNumber("202").build());
 
@@ -86,7 +86,7 @@ class SnsTemplateTest {
 
 	@Test
 	void sendsTextMessageWithAttributes_topicArn() {
-		snsTemplate.sendToTopicArn("arn:something:something", "this is message",
+		snsSmsTemplate.sendToTopicArn("arn:something:something", "this is message",
 				SmsMessageAttributes.builder().messageGroupId("tst").deduplicationId("3t").messageStructure("JSON")
 						.senderID("agent007").originationNumber("202").build());
 

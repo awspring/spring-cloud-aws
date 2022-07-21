@@ -91,6 +91,37 @@ class NotificationService {
 }
 ----
 
+
+==== SNS SMS Template
+
+The starter automatically configures and registers a `SnsSmsTemplate` bean providing higher level abstractions for sending SMS.
+`SnsSmsTemplate` is simple operation that will help you send SMS messages with ease.
+
+It supports sending notifications with payload of type:
+
+* `String` - what you pass we send.
+
+To set MessageAttributes for SMS create `SnsMessageAttributes` and set values you want. More about MessageAttributes can be found https://docs.aws.amazon.com/sns/latest/dg/sms_publish-to-phone.html[here] and https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html[here].
+
+[source,java]
+----
+import io.awspring.cloud.sns.sms.core.SnsSmsTemplate;
+
+class NotificationService {
+	private SnsSmsTemplate snsSmsTemplate;
+
+	NotificationService(SnsSmsTemplate snsSmsTemplate) {
+		this.snsSmsTemplate = snsSmsTemplate;
+	}
+
+	void sendSms() {
+        // sends String payload
+		snsTemplate.send("000 000 000", "this is message", SmsMessageAttributes.builder().messageGroupId("tst")
+				.deduplicationId("3").messageStructure("JSON").senderID("springCloudAWS").originationNumber("202").build());
+	}
+}
+----
+
 === Using SNS Client
 
 To have access to all lower level SNS operations, we recommend using `SnsClient` from AWS SDK. `SnsClient` bean is autoconfigured by `SnsAutoConfiguration`.
