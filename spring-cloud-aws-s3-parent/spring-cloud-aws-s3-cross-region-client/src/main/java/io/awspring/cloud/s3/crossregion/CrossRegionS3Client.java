@@ -43,6 +43,7 @@ public class CrossRegionS3Client implements S3Client {
 	private static final int DEFAULT_BUCKET_CACHE_SIZE = 20;
 
 	public static final String BUCKET_REDIRECT_HEADER = "x-amz-bucket-region";
+	private static final int HTTP_CODE_PERMANENT_REDIRECT = 301;
 
 	private final Map<Region, S3Client> clientCache = new ConcurrentHashMap<>(Region.regions().size());
 
@@ -101,9 +102,9 @@ public class CrossRegionS3Client implements S3Client {
 				LOGGER.debug("Exception when requesting S3 for bucket: {}: [{}] {}", bucket,
 						e.awsErrorDetails().errorCode(), e.awsErrorDetails().errorMessage());
 			}
-			// "PermanentRedirect" means that the bucket is in different region than the
+			// A 301 error code ("PermanentRedirect") means that the bucket is in different region than the
 			// defaultS3Client is configured for
-			if ("PermanentRedirect".equals(e.awsErrorDetails().errorCode())) {
+			if (e.awsErrorDetails().sdkHttpResponse().statusCode() == HTTP_CODE_PERMANENT_REDIRECT) {
 				e.awsErrorDetails()
 					.sdkHttpResponse()
 					.firstMatchingHeader(BUCKET_REDIRECT_HEADER)

@@ -48,6 +48,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
  * Integration tests for {@link S3Template}.
  *
  * @author Maciej Walkowiak
+ * @author Yuki Yoshida
  */
 @Testcontainers
 class S3TemplateIntegrationTests {

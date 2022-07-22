@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -124,8 +125,12 @@ class CrossRegionS3ClientTests {
 	}
 
 	private void createBucket(String s, Region region) {
-		when(defaultClient.listObjects(ListObjectsRequest.builder().bucket(s).build())).thenThrow(S3Exception.builder()
-				.awsErrorDetails(AwsErrorDetails.builder().errorCode("PermanentRedirect").build()).build());
+		when(defaultClient.listObjects(ListObjectsRequest.builder().bucket(s).build()))
+				.thenThrow(
+						S3Exception.builder()
+								.awsErrorDetails(AwsErrorDetails.builder()
+										.sdkHttpResponse(SdkHttpResponse.builder().statusCode(301).build()).build())
+								.build());
 		when(defaultClient.getBucketLocation(GetBucketLocationRequest.builder().bucket(s).build()))
 				.thenReturn(GetBucketLocationResponse.builder().locationConstraint(region.id()).build());
 	}
