@@ -20,15 +20,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.ConcurrentLruCache;
-import org.springframework.util.StringUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
-import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -41,13 +38,16 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 	private static final Logger LOGGER = LoggerFactory.getLogger("io.awspring.cloud.s3.CrossRegionS3Client");
 
 	private static final int DEFAULT_BUCKET_CACHE_SIZE = 20;
+	public static final String BUCKET_REDIRECT_HEADER = "x-amz-bucket-region";
 	private static final int HTTP_CODE_PERMANENT_REDIRECT = 301;
 
 	private final Map<Region, S3Client> clientCache = new ConcurrentHashMap<>(Region.regions().size());
 
 	private final S3Client defaultS3Client;
 
-	private final ConcurrentLruCache<String, S3Client> bucketCache;
+	private final S3ClientBuilder clientBuilder;
+
+	private final ConcurrentLruMap<String, S3Client> bucketCache;
 
 	public CrossRegionS3ClientTemplate(S3ClientBuilder clientBuilder) {
 		this(DEFAULT_BUCKET_CACHE_SIZE, clientBuilder);
@@ -55,13 +55,8 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 
 	public CrossRegionS3ClientTemplate(int bucketCacheSize, S3ClientBuilder clientBuilder) {
 		this.defaultS3Client = clientBuilder.build();
-		this.bucketCache = new ConcurrentLruCache<>(bucketCacheSize, bucket -> {
-			Region region = resolveBucketRegion(bucket);
-			return clientCache.computeIfAbsent(region, r -> {
-				LOGGER.debug("Creating new S3 client for region: {}", r);
-				return clientBuilder.region(r).build();
-			});
-		});
+		this.clientBuilder = clientBuilder;
+		this.bucketCache = new ConcurrentLruMap<>(bucketCacheSize);
 	}
 
 	@Override
@@ -80,6 +75,13 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 		return clientCache;
 	}
 
+	protected S3Client getClient(Region region) {
+		return clientCache.computeIfAbsent(region, r -> {
+			LOGGER.debug("Creating new S3 client for region: {}", r);
+			return clientBuilder.region(r).build();
+		});
+	}
+
 	private <Result> Result executeInBucketRegion(String bucket, Function<S3Client, Result> fn) {
 		try {
 			if (bucketCache.contains(bucket)) {
@@ -94,28 +96,24 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 				LOGGER.trace("Exception when requesting S3: {}", e.awsErrorDetails().errorCode(), e);
 			}
 			else {
-				LOGGER.debug("Exception when requesting S3 for bucket: {}: [{}] {}", bucket,
-						e.awsErrorDetails().errorCode(), e.awsErrorDetails().errorMessage());
+				LOGGER.debug("Exception when requesting S3 for bucket: {}: details=[{}, {}], httpcode={}", bucket,
+						e.awsErrorDetails().errorCode(), e.awsErrorDetails().errorMessage(),
+						e.awsErrorDetails().sdkHttpResponse().statusCode());
 			}
 			// A 301 error code ("PermanentRedirect") means that the bucket is in different region than the
 			// defaultS3Client is configured for
 			if (e.awsErrorDetails().sdkHttpResponse().statusCode() == HTTP_CODE_PERMANENT_REDIRECT) {
-				return fn.apply(bucketCache.get(bucket));
+				S3Client newClient = e.awsErrorDetails().sdkHttpResponse().firstMatchingHeader(BUCKET_REDIRECT_HEADER)
+						.map(Region::of).map(this::getClient)
+						.orElseThrow(() -> RegionDiscoveryException.ofMissingHeader(e));
+
+				bucketCache.put(bucket, newClient);
+				return fn.apply(newClient);
 			}
 			else {
 				throw e;
 			}
 		}
-	}
-
-	private Region resolveBucketRegion(String bucket) {
-		LOGGER.debug("Resolving region for bucket {}", bucket);
-		String bucketLocation = defaultS3Client
-				.getBucketLocation(GetBucketLocationRequest.builder().bucket(bucket).build())
-				.locationConstraintAsString();
-		Region region = StringUtils.hasLength(bucketLocation) ? Region.of(bucketLocation) : Region.US_EAST_1;
-		LOGGER.debug("Region for bucket {} is {}", bucket, region);
-		return region;
 	}
 
 	@Override
@@ -126,6 +124,19 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 	@Override
 	public void close() {
 		this.clientCache.values().forEach(SdkAutoCloseable::close);
+	}
+
+	public static class RegionDiscoveryException extends RuntimeException {
+		private static final String HEADER_ERROR_TEMPLATE = "Not able to find the '%s' header in the S3Exception http details (%s)";
+
+		public RegionDiscoveryException(String message, S3Exception e) {
+			super(message, e);
+		}
+
+		public static RegionDiscoveryException ofMissingHeader(S3Exception e) {
+			return new RegionDiscoveryException(String.format(HEADER_ERROR_TEMPLATE, BUCKET_REDIRECT_HEADER,
+					e.awsErrorDetails().sdkHttpResponse().headers()), e);
+		}
 	}
 
 }

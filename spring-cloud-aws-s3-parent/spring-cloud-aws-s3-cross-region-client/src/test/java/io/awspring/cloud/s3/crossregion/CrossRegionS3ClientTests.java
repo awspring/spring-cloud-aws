@@ -16,9 +16,11 @@
 package io.awspring.cloud.s3.crossregion;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -29,12 +31,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
-import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
-import software.amazon.awssdk.services.s3.model.GetBucketLocationResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -120,8 +121,34 @@ class CrossRegionS3ClientTests {
 		crossRegionS3Client.listObjects(r -> r.bucket("first-bucket"));
 		crossRegionS3Client.listObjects(r -> r.bucket("first-bucket"));
 
-		// ensure bucket location was requested only once
-		verify(defaultClient).getBucketLocation(GetBucketLocationRequest.builder().bucket("first-bucket").build());
+		// ensure defaultClient is only used the first time.
+		verify(defaultClient, times(1)).listObjects(any(ListObjectsRequest.class));
+		verify(clients.get(Region.EU_WEST_2), times(2)).listObjects(any(ListObjectsRequest.class));
+	}
+
+	@Test
+	void exceptionIfRegionHeaderMissing() {
+		when(defaultClient.listObjects(ListObjectsRequest.builder().bucket("first-bucket").build()))
+				.thenThrow(
+						S3Exception.builder()
+								.awsErrorDetails(AwsErrorDetails.builder()
+										.sdkHttpResponse(SdkHttpResponse.builder().statusCode(301).build()).build())
+								.build());
+
+		assertThatThrownBy(() -> crossRegionS3Client.listObjects(r -> r.bucket("first-bucket")))
+				.isInstanceOf(CrossRegionS3Client.RegionDiscoveryException.class);
+	}
+
+	@Test
+	void exceptionPassthroughIfRegionIrrelevant() {
+		AwsServiceException exceptionToThrow = S3Exception.builder().awsErrorDetails(
+				AwsErrorDetails.builder().sdkHttpResponse(SdkHttpResponse.builder().statusCode(404).build()).build())
+				.build();
+		when(defaultClient.listObjects(ListObjectsRequest.builder().bucket("first-bucket").build()))
+				.thenThrow(exceptionToThrow);
+
+		assertThatThrownBy(() -> crossRegionS3Client.listObjects(r -> r.bucket("first-bucket")))
+				.isEqualTo(exceptionToThrow);
 	}
 
 	private void createBucket(String s, Region region) {
@@ -129,10 +156,10 @@ class CrossRegionS3ClientTests {
 				.thenThrow(
 						S3Exception.builder()
 								.awsErrorDetails(AwsErrorDetails.builder()
-										.sdkHttpResponse(SdkHttpResponse.builder().statusCode(301).build()).build())
+										.sdkHttpResponse(SdkHttpResponse.builder().statusCode(301)
+												.appendHeader(CrossRegionS3Client.BUCKET_REDIRECT_HEADER, region.id()).build())
+										.build())
 								.build());
-		when(defaultClient.getBucketLocation(GetBucketLocationRequest.builder().bucket(s).build()))
-				.thenReturn(GetBucketLocationResponse.builder().locationConstraint(region.id()).build());
 	}
 
 }
