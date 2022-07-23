@@ -7,7 +7,6 @@ on:
       - 2.4.x
       - 2.3.x
       - 2.2.x
-      - version-2.4.2
 
 env:
   # https://github.com/actions/checkout/issues/440#issuecomment-854240996
@@ -37,7 +36,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Build docs
-        run: for i in {1..10}; do ./mvnw clean package javadoc:aggregate -Pdocs,spring -DskipTests=true -e; done
+        run: ./mvnw clean package javadoc:aggregate -Pdocs,spring -DskipTests=true -e
       - name: Upload to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY }}
