@@ -76,4 +76,9 @@ public class ConfigUtils {
 		return this;
 	}
 
+	public <T> ConfigUtils acceptMany(Collection<T> values, Consumer<T> consumer) {
+		values.forEach(consumer);
+		return this;
+	}
+
 }

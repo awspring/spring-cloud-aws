@@ -42,16 +42,16 @@ public class BeforeProcessingContextInterceptorExecutionStage<T> implements Mess
 
 	@Override
 	public CompletableFuture<Message<T>> process(Message<T> message, MessageProcessingContext<T> context) {
-		logger.trace("Processing message {}", MessageHeaderUtils.getId(message));
+		logger.trace("Processing context interceptors for messages {}", MessageHeaderUtils.getId(message));
 		return context.getInterceptors().stream().reduce(CompletableFuture.completedFuture(message),
 			(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept), (a, b) -> a);
 	}
 
 	@Override
 	public CompletableFuture<Collection<Message<T>>> process(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
-		logger.trace("Processing messages {}", MessageHeaderUtils.getId(messages));
+		logger.trace("Processing context interceptors for messages {}", MessageHeaderUtils.getId(messages));
 		return context.getInterceptors().stream().reduce(CompletableFuture.completedFuture(messages),
-			(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept), (a, b) -> a);
+			(messagesFuture, interceptor) -> messagesFuture.thenCompose(interceptor::intercept), (a, b) -> a);
 	}
 
 }

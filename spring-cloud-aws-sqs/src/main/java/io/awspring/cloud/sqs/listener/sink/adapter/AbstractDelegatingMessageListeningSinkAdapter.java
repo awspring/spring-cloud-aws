@@ -17,21 +17,21 @@ package io.awspring.cloud.sqs.listener.sink.adapter;
 
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.LifecycleUtils;
-import io.awspring.cloud.sqs.listener.AsyncMessageListener;
+import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
-import io.awspring.cloud.sqs.listener.sink.AbstractMessageListeningSink;
 import io.awspring.cloud.sqs.listener.sink.MessageProcessingPipelineSink;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
-import io.awspring.cloud.sqs.listener.sink.TaskExecutorAwareComponent;
-import org.springframework.context.SmartLifecycle;
+import io.awspring.cloud.sqs.listener.TaskExecutorAware;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.Assert;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractDelegatingMessageListeningSinkAdapter<T> implements MessageProcessingPipelineSink<T>, TaskExecutorAwareComponent {
+public abstract class AbstractDelegatingMessageListeningSinkAdapter<T> implements MessageProcessingPipelineSink<T>, TaskExecutorAware, SqsAsyncClientAware {
 
 	private final MessageSink<T> delegate;
 
@@ -50,9 +50,14 @@ public abstract class AbstractDelegatingMessageListeningSinkAdapter<T> implement
 
 	@Override
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		ConfigUtils.INSTANCE
-			.acceptIfInstance(this.delegate, TaskExecutorAwareComponent.class,
+		ConfigUtils.INSTANCE.acceptIfInstance(this.delegate, TaskExecutorAware.class,
 				teac -> teac.setTaskExecutor(taskExecutor));
+	}
+
+	@Override
+	public void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
+		ConfigUtils.INSTANCE.acceptIfInstance(this.delegate, SqsAsyncClientAware.class,
+			saca -> saca.setSqsAsyncClient(sqsAsyncClient));
 	}
 
 	@Override
@@ -68,6 +73,11 @@ public abstract class AbstractDelegatingMessageListeningSinkAdapter<T> implement
 	@Override
 	public boolean isRunning() {
 		return LifecycleUtils.isRunning(this.delegate);
+	}
+
+	@Override
+	public void configure(ContainerOptions containerOptions) {
+		this.delegate.configure(containerOptions);
 	}
 
 	protected MessageSink<T> getDelegate() {

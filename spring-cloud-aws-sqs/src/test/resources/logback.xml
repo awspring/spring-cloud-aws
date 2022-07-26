@@ -25,11 +25,14 @@
 	<logger name="io.awspring.cloud.sqs" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.SqsMessageListenerContainer" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.sink" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityExtendingSinkAdapter" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.interceptor" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.pipeline" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.source.SqsMessageSource" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.acknowledgement" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.SqsIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.SqsFifoIntegrationTests" level="INFO"/>
 
 	<root level="warn">
 		<appender-ref ref="STDOUT"/>

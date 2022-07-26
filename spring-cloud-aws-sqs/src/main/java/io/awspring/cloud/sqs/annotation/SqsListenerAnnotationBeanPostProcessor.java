@@ -160,8 +160,8 @@ public class SqsListenerAnnotationBeanPostProcessor
 						resolveExpression().asInteger(sqsListenerAnnotation.pollTimeoutSeconds(), "pollTimeoutSeconds"))
 				.maxInflightMessagesPerQueue(resolveExpression()
 						.asInteger(sqsListenerAnnotation.maxInflightMessagesPerQueue(), "maxInflightMessagesPerQueue"))
-				.minimumVisibility(
-						resolveExpression().asInteger(sqsListenerAnnotation.minimumVisibility(), "minimumVisibility"))
+				.messageVisibility(
+						resolveExpression().asInteger(sqsListenerAnnotation.messageVisibilitySeconds(), "messageVisibility"))
 				.async(CompletionStage.class.isAssignableFrom(method.getReturnType())).build();
 	}
 

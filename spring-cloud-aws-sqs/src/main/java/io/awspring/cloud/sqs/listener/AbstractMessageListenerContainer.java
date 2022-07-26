@@ -15,18 +15,13 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import io.awspring.cloud.sqs.listener.acknowledgement.AckHandler;
-import io.awspring.cloud.sqs.listener.acknowledgement.OnSuccessAckHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.LoggingErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
-import io.awspring.cloud.sqs.listener.sink.FanOutMessageSink;
-import io.awspring.cloud.sqs.listener.sink.MessageProcessingPipelineSink;
-import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
-import io.awspring.cloud.sqs.listener.source.MessageSourceFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -53,10 +48,6 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private final LoggingErrorHandler<T> DEFAULT_ERROR_HANDLER = new LoggingErrorHandler<>();
 
-	private final OnSuccessAckHandler<T> DEFAULT_ACK_HANDLER = new OnSuccessAckHandler<>();
-
-	private final FanOutMessageSink<T> DEFAULT_MESSAGE_SINK = new FanOutMessageSink<>();
-
 	private final Object lifecycleMonitor = new Object();
 
 	private volatile boolean isRunning;
@@ -65,15 +56,11 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private Collection<String> queueNames = new ArrayList<>();
 
-	private MessageSourceFactory<T> messageSourceFactory;
+	private ContainerComponentFactory<T> containerComponentFactory;
 
 	private AsyncMessageListener<T> messageListener;
 
 	private AsyncErrorHandler<T> errorHandler = DEFAULT_ERROR_HANDLER;
-
-	private AckHandler<T> ackHandler = DEFAULT_ACK_HANDLER;
-
-	private MessageSink<T> messageSink = DEFAULT_MESSAGE_SINK;
 
 	private final Collection<AsyncMessageInterceptor<T>> messageInterceptors = new ArrayList<>();
 
@@ -141,22 +128,8 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 		this.messageListener = asyncMessageListener;
 	}
 
-	/**
-	 * Set the {@link AckHandler} instance to be used by this container.
-	 * @param ackHandler the instance.
-	 */
-	public void setAckHandler(AckHandler<T> ackHandler) {
-		Assert.notNull(ackHandler, "ackHandler cannot be null");
-		this.ackHandler = ackHandler;
-	}
-
-	public void setMessageSourceFactory(MessageSourceFactory<T> messageSourceFactory) {
-		this.messageSourceFactory = messageSourceFactory;
-	}
-
-	@Override
-	public void setMessageSink(MessageSink<T> messageSink) {
-		this.messageSink = messageSink;
+	public void setContainerComponentFactory(ContainerComponentFactory<T> containerComponentFactory) {
+		this.containerComponentFactory = containerComponentFactory;
 	}
 
 	/**
@@ -172,8 +145,8 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	 * Return the {@link MessageSource} instances used by this container.
 	 * @return the instances.
 	 */
-	public MessageSourceFactory<T> getMessageSourceFactory() {
-		return this.messageSourceFactory;
+	public ContainerComponentFactory<T> getContainerComponentFactory() {
+		return this.containerComponentFactory;
 	}
 
 	/**
@@ -190,22 +163,6 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	 */
 	public AsyncErrorHandler<T> getErrorHandler() {
 		return this.errorHandler;
-	}
-
-	/**
-	 * Return the {@link AckHandler} instance used by this container.
-	 * @return the instance.
-	 */
-	public AckHandler<T> getAckHandler() {
-		return this.ackHandler;
-	}
-
-	/**
-	 * Return the {@link MessageProcessingPipelineSink} instances used by this container.
-	 * @return the instance.
-	 */
-	public MessageSink<T> getMessageSink() {
-		return this.messageSink;
 	}
 
 	/**

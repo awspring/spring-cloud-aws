@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.listener.pipeline;
 
+import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 /**
  * Stage responsible for executing the {@link AsyncMessageInterceptor}s.
@@ -47,26 +49,22 @@ public class AfterProcessingContextInterceptorExecutionStage<T> implements Messa
 
 	@Override
 	public CompletableFuture<Message<T>> process(Message<T> message, MessageProcessingContext<T> context) {
-		logger.debug("Processing message {}", MessageHeaderUtils.getId(message));
-		return this.pipeline.process(message, context).exceptionally(t -> logError(message, t)).thenCompose(msg -> context.getInterceptors().stream().reduce(CompletableFuture.completedFuture(msg),
-			(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::afterProcessing), (a, b) -> a));
+		return this.pipeline.process(message, context).thenApply(msg -> context
+				.getInterceptors()
+				.stream()
+				.reduce(CompletableFuture.completedFuture(msg),
+					(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::afterProcessing), (a, b) -> a))
+			.thenCompose(Function.identity());
 	}
 
 	@Override
 	public CompletableFuture<Collection<Message<T>>> process(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
-		logger.debug("Processing {} messages", messages.size());
-		return this.pipeline.process(messages, context).exceptionally(t -> logError(messages, t)).thenCompose(msg -> context.getInterceptors().stream().reduce(CompletableFuture.completedFuture(msg),
-			(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::afterProcessing), (a, b) -> a));
-	}
-
-	private Message<T> logError(Message<T> message, Throwable t) {
-		logger.error("Error processing message {}", MessageHeaderUtils.getId(message), t);
-		return message;
-	}
-
-	private Collection<Message<T>> logError(Collection<Message<T>> messages, Throwable t) {
-		logger.error("Error processing messages {}", MessageHeaderUtils.getId(messages), t);
-		return messages;
+		return this.pipeline.process(messages, context).thenApply(msg -> context
+				.getInterceptors()
+				.stream()
+				.reduce(CompletableFuture.completedFuture(msg),
+					(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::afterProcessing), (a, b) -> a))
+			.thenCompose(Function.identity());
 	}
 
 }

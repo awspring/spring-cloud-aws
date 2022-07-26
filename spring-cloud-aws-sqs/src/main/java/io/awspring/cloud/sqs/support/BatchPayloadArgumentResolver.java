@@ -71,7 +71,7 @@ public class BatchPayloadArgumentResolver implements HandlerMethodArgumentResolv
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
 		Class<?> parameterClass = ResolvableType.forType(parameter.getGenericParameterType()).toClass();
-		return Collection.class.isAssignableFrom(parameterClass) || List.class.isAssignableFrom(parameterClass);
+		return Collection.class.isAssignableFrom(parameterClass);
 	}
 
 	@Override

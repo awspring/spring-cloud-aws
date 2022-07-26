@@ -17,11 +17,13 @@ package io.awspring.cloud.sqs.listener;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
 
 import io.awspring.cloud.sqs.BackPressureMode;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
  * Contains the options to be used by the {@link MessageListenerContainer} at runtime.
@@ -45,19 +47,26 @@ public class ContainerOptions {
 
 	private static final BackPressureMode DEFAULT_THROUGHPUT_CONFIGURATION = BackPressureMode.AUTO;
 
+	private static final MessageDeliveryStrategy DEFAULT_MESSAGE_DELIVERY_STRATEGY = MessageDeliveryStrategy.SINGLE_MESSAGE;
+
 	private int maxInflightMessagesPerQueue = DEFAULT_MAX_INFLIGHT_MSG_PER_QUEUE;
 
 	private int messagesPerPoll = DEFAULT_MESSAGES_PER_POLL;
 
 	private Duration pollTimeout = DEFAULT_POLL_TIMEOUT;
 
-	private Duration semaphoreAcquireTimeout = DEFAULT_SEMAPHORE_TIMEOUT;
+	private Duration permitAcquireTimeout = DEFAULT_SEMAPHORE_TIMEOUT;
 
 	private Duration shutDownTimeout = DEFAULT_SHUTDOWN_TIMEOUT;
 
 	private TaskExecutor sinkTaskExecutor;
 
 	private BackPressureMode backPressureMode = DEFAULT_THROUGHPUT_CONFIGURATION;
+
+	private MessageDeliveryStrategy messageDeliveryStrategy = DEFAULT_MESSAGE_DELIVERY_STRATEGY;
+
+	private Collection<QueueAttributeName> queueAttributeNames = Collections.singletonList(QueueAttributeName.ALL);
+	private Duration messageVisibility;
 
 	public static ContainerOptions create() {
 		return new ContainerOptions();
@@ -74,12 +83,12 @@ public class ContainerOptions {
 
 	/**
 	 * Set the maximum time the polling thread should wait for permits.
-	 * @param semaphoreAcquireTimeout the timeout.
+	 * @param permitAcquireTimeout the timeout.
 	 * @return this instance.
 	 */
-	public ContainerOptions permitAcquireTimeout(Duration semaphoreAcquireTimeout) {
-		Assert.notNull(semaphoreAcquireTimeout, "semaphoreAcquireTimeout cannot be null");
-		this.semaphoreAcquireTimeout = semaphoreAcquireTimeout;
+	public ContainerOptions permitAcquireTimeout(Duration permitAcquireTimeout) {
+		Assert.notNull(permitAcquireTimeout, "semaphoreAcquireTimeout cannot be null");
+		this.permitAcquireTimeout = permitAcquireTimeout;
 		return this;
 	}
 
@@ -104,6 +113,12 @@ public class ContainerOptions {
 		return this;
 	}
 
+	public ContainerOptions messageDeliveryStrategy(MessageDeliveryStrategy messageDeliveryStrategy) {
+		Assert.notNull(messageDeliveryStrategy, "messageDeliveryStrategy cannot be null");
+		this.messageDeliveryStrategy = messageDeliveryStrategy;
+		return this;
+	}
+
 	public ContainerOptions sinkTaskExecutor(TaskExecutor sinkTaskExecutor) {
 		Assert.notNull(sinkTaskExecutor, "sinkTaskExecutor cannot be null");
 		this.sinkTaskExecutor = sinkTaskExecutor;
@@ -117,6 +132,16 @@ public class ContainerOptions {
 
 	public ContainerOptions backPressureMode(BackPressureMode backPressureMode) {
 		this.backPressureMode = backPressureMode;
+		return this;
+	}
+
+	public ContainerOptions queueAttributes(Collection<QueueAttributeName> queueAttributeNames) {
+		this.queueAttributeNames = queueAttributeNames;
+		return this;
+	}
+
+	public ContainerOptions messageVisibility(Duration messageVisibility) {
+		this.messageVisibility = messageVisibility;
 		return this;
 	}
 
@@ -148,8 +173,8 @@ public class ContainerOptions {
 	 * Return the maximum time the polling thread should wait for permits.
 	 * @return the timeout.
 	 */
-	public Duration getSemaphoreAcquireTimeout() {
-		return this.semaphoreAcquireTimeout;
+	public Duration getPermitAcquireTimeout() {
+		return this.permitAcquireTimeout;
 	}
 
 	public TaskExecutor getSinkTaskExecutor() {
@@ -164,6 +189,18 @@ public class ContainerOptions {
 		return this.backPressureMode;
 	}
 
+	public MessageDeliveryStrategy getMessageDeliveryStrategy() {
+		return this.messageDeliveryStrategy;
+	}
+
+	public Collection<QueueAttributeName> getQueueAttributeNames() {
+		return this.queueAttributeNames;
+	}
+
+	public Duration getMessageVisibility() {
+		return this.messageVisibility;
+	}
+
 	/**
 	 * Create a shallow copy of these options.
 	 * @return the copy.
@@ -174,12 +211,14 @@ public class ContainerOptions {
 		return newCopy;
 	}
 
-	public void configure(ConfigurableContainerComponent configurable) {
-		configurable.configure(this);
+	public ContainerOptions configure(ConfigurableContainerComponent configurable) {
+		configurable.configure(createCopy());
+		return this;
 	}
 
-	public void configure(Collection<? extends ConfigurableContainerComponent> configurables) {
+	public ContainerOptions configure(Collection<? extends ConfigurableContainerComponent> configurables) {
 		configurables.forEach(this::configure);
+		return this;
 	}
 
 	/**
@@ -191,4 +230,5 @@ public class ContainerOptions {
 				this.messagesPerPoll, this.maxInflightMessagesPerQueue));
 		Assert.isTrue(this.messagesPerPoll <= 10, "messagesPerPoll must be less than or equal to 10.");
 	}
+
 }

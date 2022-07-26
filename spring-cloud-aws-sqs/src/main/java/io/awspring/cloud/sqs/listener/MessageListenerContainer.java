@@ -15,8 +15,6 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import io.awspring.cloud.sqs.listener.sink.MessageSink;
-import io.awspring.cloud.sqs.listener.source.MessageSourceFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.messaging.Message;
 
@@ -37,24 +35,11 @@ public interface MessageListenerContainer<T> extends SmartLifecycle {
 	String getId();
 
 	/**
-	 * Set the factory that will be used to create
-	 * {@link io.awspring.cloud.sqs.listener.source.MessageSource} instances for this
-	 * container.
-	 * @param messageSourceFactory the factory instance.
-	 */
-	void setMessageSourceFactory(MessageSourceFactory<T> messageSourceFactory);
-
-	/**
-	 * Set the {@link MessageSink} instance that will be used to emit messages in this
-	 * container.
-	 * @param messageSink the sink instance.
-	 */
-	void setMessageSink(MessageSink<T> messageSink);
-
-	/**
 	 * Set the listener to be used to receive messages.
 	 * @param asyncMessageListener the message listener instance.
 	 */
 	void setAsyncMessageListener(AsyncMessageListener<T> asyncMessageListener);
+
+	ContainerOptions getContainerOptions();
 
 }

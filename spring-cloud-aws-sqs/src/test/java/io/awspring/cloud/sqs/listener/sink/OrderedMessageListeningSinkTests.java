@@ -32,7 +32,7 @@ class OrderedMessageListeningSinkTests {
 			return CompletableFuture.completedFuture(msg);
 		});
 		sink.start();
-		sink.emit(messagesToEmit, new MessageProcessingContext<>(Collections.emptyList())).join();
+		sink.emit(messagesToEmit, MessageProcessingContext.create()).join();
 		sink.stop();
 		assertThat(received).containsSequence(messagesToEmit);
 	}
