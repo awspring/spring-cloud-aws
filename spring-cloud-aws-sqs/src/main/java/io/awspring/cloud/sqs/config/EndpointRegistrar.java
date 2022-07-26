@@ -59,7 +59,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	private String defaultListenerContainerFactoryBeanName = DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME;
 
-	private final Collection<AbstractEndpoint> endpoints = new ArrayList<>();
+	private final Collection<Endpoint> endpoints = new ArrayList<>();
 
 	private Collection<MessageConverter> messageConverters = new ArrayList<>();
 
@@ -126,7 +126,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 		this.objectMapper = objectMapper;
 	}
 
-	public <E extends AbstractEndpoint> void registerEndpoint(E endpoint) {
+	public void registerEndpoint(Endpoint endpoint) {
 		this.endpoints.add(endpoint);
 	}
 
@@ -141,13 +141,13 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 		this.endpoints.forEach(this::process);
 	}
 
-	private void process(AbstractEndpoint endpoint) {
+	private void process(Endpoint endpoint) {
 		logger.debug("Processing endpoint {}", endpoint);
 		this.listenerContainerRegistry.registerListenerContainer(createContainerFor(endpoint));
 	}
 
 	@SuppressWarnings("unchecked")
-	public <E extends AbstractEndpoint> MessageListenerContainer<?> createContainerFor(E endpoint) {
+	public MessageListenerContainer<?> createContainerFor(Endpoint endpoint) {
 		String factoryBeanName = getListenerContainerFactoryName(endpoint);
 		Assert.isTrue(this.beanFactory.containsBean(factoryBeanName),
 				() -> "No factory bean with name " + factoryBeanName + " found for endpoint " + endpoint.getId());

@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.listener.sink;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ public class BatchMessageSink<T> extends AbstractMessageListeningSink<T> {
 
 	@Override
 	protected CompletableFuture<Void> doEmit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
-		logger.trace("Emitting {} messages", messages.size());
+		logger.trace("Emitting messages {}", MessageHeaderUtils.getId(messages));
 		return execute(messages, context);
 	}
 

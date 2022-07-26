@@ -107,6 +107,6 @@ public @interface SqsListener {
 	 * @return the minimum visibility for this endpoint.
 	 * @see io.awspring.cloud.sqs.listener.interceptor.MessageVisibilityExtenderInterceptor
 	 */
-	String minimumVisibility() default "";
+	String messageVisibilitySeconds() default "";
 
 }

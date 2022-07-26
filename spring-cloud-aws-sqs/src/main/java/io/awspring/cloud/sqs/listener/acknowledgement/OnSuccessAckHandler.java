@@ -43,7 +43,8 @@ public class OnSuccessAckHandler<T> implements AckHandler<T> {
 		logger.trace("Acknowledging message {}", MessageHeaderUtils.getId(message));
 		try {
 			return MessageHeaderUtils.getAcknowledgement(message).acknowledge()
-					.exceptionally(t -> logError(message, t));
+				.thenRun(() -> logger.trace("Message {} acknowledged", MessageHeaderUtils.getId(message)))
+				.exceptionally(t -> logError(message, t));
 		}
 		catch (Exception e) {
 			logError(message, e);
@@ -65,7 +66,7 @@ public class OnSuccessAckHandler<T> implements AckHandler<T> {
 		return client
 				.deleteMessageBatch(req -> req.queueUrl(queueUrl)
 						.entries(handles.stream().map(this::toDeleteRequest).collect(Collectors.toList())).build())
-				.thenRun(() -> logger.info("Acknowledged {} messages", messages.size()));
+				.thenRun(() -> logger.trace("Acknowledged messages {}", MessageHeaderUtils.getId(messages)));
 	}
 
 	private DeleteMessageBatchRequestEntry toDeleteRequest(String handle) {

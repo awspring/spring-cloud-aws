@@ -20,7 +20,10 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 
 import com.amazonaws.auth.AWSCredentials;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -46,9 +49,17 @@ abstract class BaseSqsIntegrationTest {
 	protected static final String RECEIVE_FROM_MANY_2_QUEUE_NAME = "receive_many_test_queue_2";
 	protected static final String RECEIVE_BATCH_1_QUEUE_NAME = "receive_batch_test_queue_1";
 	protected static final String RECEIVE_BATCH_2_QUEUE_NAME = "receive_batch_test_queue_2";
-	protected static final String MANUALLY_CREATE_CONTAINER_QUEUE_NAME = "manually_create_container_test_queue";
 	protected static final String MANUALLY_START_CONTAINER = "manually_start_container_test_queue";
+	protected static final String MANUALLY_CREATE_CONTAINER_QUEUE_NAME = "manually_create_container_test_queue";
 	protected static final String MANUALLY_CREATE_FACTORY_QUEUE_NAME = "manually_create_factory_test_queue";
+	protected static final String FIFO_RECEIVES_MESSAGE_IN_ORDER_QUEUE_NAME = "fifo_receives_messages_in_order.fifo";
+	protected static final String FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME = "fifo_receives_messages_in_order_many_groups.fifo";
+	protected static final String FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME = "fifo_stops_processing_on_error.fifo";
+	protected static final String FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME = "fifo_receives_batches_many_groups.fifo";
+	protected static final String FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME = "fifo_manually_create_container_test_queue.fifo";
+	protected static final String FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME = "fifo_manually_create_factory_test_queue.fifo";
+	protected static final String FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME = "fifo_manually_create_batch_container_test_queue.fifo";
+	protected static final String FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME = "fifo_manually_create_batch_factory_test_queue.fifo";
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
@@ -85,14 +96,49 @@ abstract class BaseSqsIntegrationTest {
 						.attributes(singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "1")).build()),
 				client.createQueue(req -> req.queueName(RECEIVE_FROM_MANY_1_QUEUE_NAME).build()),
 				client.createQueue(req -> req.queueName(RECEIVE_FROM_MANY_2_QUEUE_NAME).build()),
-				client.createQueue(req -> req.queueName(RECEIVE_BATCH_1_QUEUE_NAME).build()),
-				client.createQueue(req -> req.queueName(RECEIVE_BATCH_2_QUEUE_NAME).build()),
+				client.createQueue(req -> req.queueName(RECEIVE_BATCH_1_QUEUE_NAME)
+					.attributes(singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "10")).build()),
+				client.createQueue(req -> req.queueName(RECEIVE_BATCH_2_QUEUE_NAME)
+					.attributes(singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "10")).build()),
 				client.createQueue(req -> req.queueName(RESOLVES_PARAMETER_TYPES_QUEUE_NAME)
-						.attributes(singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "1")).build()),
+						.attributes(singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "20")).build()),
 				client.createQueue(req -> req.queueName(RESOLVES_POJO_TYPES_QUEUE_NAME).build()),
 				client.createQueue(req -> req.queueName(MANUALLY_CREATE_CONTAINER_QUEUE_NAME).build()),
 				client.createQueue(req -> req.queueName(MANUALLY_START_CONTAINER).build()),
-				client.createQueue(req -> req.queueName(MANUALLY_CREATE_FACTORY_QUEUE_NAME).build())).join();
+				client.createQueue(req -> req.queueName(MANUALLY_CREATE_FACTORY_QUEUE_NAME)),
+				client.createQueue(req -> req.queueName(FIFO_RECEIVES_MESSAGE_IN_ORDER_QUEUE_NAME)
+					.attributes(getAttributesFifoVisibility("20"))
+					.build()),
+				client.createQueue(req -> req.queueName(FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME)
+					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
+					.build()),
+				client.createQueue(req -> req.queueName(FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME)
+					.attributes(getAttributesFifoVisibility("2"))
+					.build()),
+				client.createQueue(req -> req.queueName(FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME)
+					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
+					.build()),
+				client.createQueue(req -> req.queueName(FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME)
+					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
+					.build()),
+				client.createQueue(req -> req.queueName(FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME)
+					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
+					.build()),
+				client.createQueue(req -> req.queueName(FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME)
+					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
+					.build()),
+				client.createQueue(req -> req.queueName(FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME)
+					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
+					.build())
+				)
+			.join();
+	}
+
+	private static Map<QueueAttributeName, String> getAttributesFifoVisibility(String visibility) {
+		Map<QueueAttributeName, String> attributesMap = new HashMap<>();
+		attributesMap.put(QueueAttributeName.FIFO_QUEUE, "true");
+		attributesMap.put(QueueAttributeName.VISIBILITY_TIMEOUT, visibility);
+		return attributesMap;
 	}
 
 	protected static SqsAsyncClient createAsyncClient() {

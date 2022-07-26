@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener.source;
+package io.awspring.cloud.sqs.listener;
+
+import org.springframework.core.task.TaskExecutor;
 
 /**
- * An abstraction for creating {@link MessageSource} instances for a given endpoint name.
+ * Enables a class to receive a container managed {@link TaskExecutor}.
+ * Note that this is not automatic - changes to the container should be necessary
+ * to actually receive the instance.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface MessageSourceFactory<T> {
+public interface TaskExecutorAware {
 
 	/**
-	 * Create a {@link MessageSource} instance.
-	 * @return the created instance.
+	 * Set the task executor.
+	 * @param taskExecutor the task e.xecutor
 	 */
-	MessageSource<T> create();
+	void setTaskExecutor(TaskExecutor taskExecutor);
 
 }

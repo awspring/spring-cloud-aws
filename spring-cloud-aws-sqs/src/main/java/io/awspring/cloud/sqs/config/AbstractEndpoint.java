@@ -15,13 +15,10 @@
  */
 package io.awspring.cloud.sqs.config;
 
-import io.awspring.cloud.sqs.ConfigUtils;
-import io.awspring.cloud.sqs.listener.AbstractMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
+import io.awspring.cloud.sqs.listener.MessageDeliveryStrategy;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.adapter.AsyncMessagingMessageListenerAdapter;
-import io.awspring.cloud.sqs.listener.sink.BatchMessageSink;
-import io.awspring.cloud.sqs.listener.sink.FanOutMessageSink;
 import io.awspring.cloud.sqs.listener.sink.MessageProcessingPipelineSink;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -30,7 +27,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import io.awspring.cloud.sqs.listener.source.MessageSourceFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.util.Assert;
@@ -100,30 +96,15 @@ public abstract class AbstractEndpoint implements Endpoint {
 	}
 
 	/**
-	 * Set a {@link MessageProcessingPipelineSink} to handle messages polled from this endpoint. If none is provided, one will be
-	 * created depending on the endpoint's configuration.
-	 * @param messageSink the sink.
-	 */
-	public void setMessageSink(MessageProcessingPipelineSink<?> messageSink) {
-		this.messageSink = messageSink;
-	}
-
-	/**
 	 * Configure the provided container for this endpoint.
 	 * @param container the container to be configured.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setupContainer(MessageListenerContainer container) {
 		container.setAsyncMessageListener(createMessageListener());
-		container.setMessageSink(createOrGetMessageSink());
-		container.setMessageSourceFactory(createMessageSourceFactory());
-		ConfigUtils.INSTANCE.acceptIfInstance(container, AbstractMessageListenerContainer.class,
-			abstractContainer -> abstractContainer.setMessageSink(createOrGetMessageSink()));
 	}
 
-	protected abstract MessageSourceFactory<?> createMessageSourceFactory();
-
-	private boolean inferAndValidateBatchParameters() {
+	public MessageDeliveryStrategy getMessageDeliveryStrategy() {
 		Type[] genericParameterTypes = this.method.getGenericParameterTypes();
 		boolean batch = inferBatch(genericParameterTypes);
 		if (batch && genericParameterTypes.length > 1) {
@@ -132,7 +113,7 @@ public abstract class AbstractEndpoint implements Endpoint {
 							+ "Batch methods can have a single parameter, either a List or a Collection, of Message<T> or T types.",
 					this.method.getName(), this.id));
 		}
-		return batch;
+		return batch ? MessageDeliveryStrategy.BATCH : MessageDeliveryStrategy.SINGLE_MESSAGE;
 	}
 
 	private boolean inferBatch(Type[] genericParameterTypes) {
@@ -142,13 +123,6 @@ public abstract class AbstractEndpoint implements Endpoint {
 	private boolean isCollectionType(Type type) {
 		return type instanceof ParameterizedType && (((ParameterizedType) type).getRawType().equals(Collection.class)
 				|| ((ParameterizedType) type).getRawType().equals(List.class));
-	}
-
-	private MessageProcessingPipelineSink<?> createOrGetMessageSink() {
-		if (this.messageSink != null) {
-			return this.messageSink;
-		}
-		return inferAndValidateBatchParameters() ? new BatchMessageSink<>() : new FanOutMessageSink<>();
 	}
 
 	private AsyncMessageListener<?> createMessageListener() {

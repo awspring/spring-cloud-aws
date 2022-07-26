@@ -15,14 +15,27 @@
  */
 package io.awspring.cloud.sqs.listener;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
 /**
  * Queue attributes extracted from SQS.
  *
  * @author Tomaz Fernandes
  * @since 3.0
- * @see QueueAttributesResolver
  */
 public class QueueAttributes {
+
+	private static final Logger logger = LoggerFactory.getLogger(QueueAttributes.class);
+
+	private final String queueName;
 
 	private final String queueUrl;
 
@@ -39,7 +52,8 @@ public class QueueAttributes {
 	 * @param visibilityTimeout the visibility timeout for this queue.
 	 * @param isFifo whether this is a FIFO queue.
 	 */
-	public QueueAttributes(String queueUrl, boolean hasRedrivePolicy, Integer visibilityTimeout, boolean isFifo) {
+	private QueueAttributes(String queueName, String queueUrl, boolean hasRedrivePolicy, Integer visibilityTimeout, boolean isFifo) {
+		this.queueName = queueName;
 		this.hasRedrivePolicy = hasRedrivePolicy;
 		this.queueUrl = queueUrl;
 		this.visibilityTimeout = visibilityTimeout;
@@ -66,6 +80,7 @@ public class QueueAttributes {
 	 * Return the visibility timeout for this queue.
 	 * @return the visibility timeout.
 	 */
+	@Nullable
 	public Integer getVisibilityTimeout() {
 		return this.visibilityTimeout;
 	}
@@ -77,4 +92,34 @@ public class QueueAttributes {
 	boolean isFifo() {
 		return this.isFifo;
 	}
+
+	public String getQueueName() {
+		return this.queueName;
+	}
+
+	public static QueueAttributes fetchFor(String queueName, SqsAsyncClient sqsAsyncClient) {
+		try {
+			logger.debug("Fetching attributes for queue {}", queueName);
+			String queueUrl = sqsAsyncClient.getQueueUrl(req -> req.queueName(queueName)).get().queueUrl();
+			Map<QueueAttributeName, String> attributes = sqsAsyncClient
+				.getQueueAttributes(req -> req.queueUrl(queueUrl).attributeNames(QueueAttributeName.ALL)).get().attributes();
+			boolean hasRedrivePolicy = attributes.containsKey(QueueAttributeName.REDRIVE_POLICY);
+			boolean isFifo = queueName.endsWith(".fifo");
+			return new QueueAttributes(queueName, queueUrl, hasRedrivePolicy, getVisibility(attributes), isFifo);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Interrupted while fetching attributes for queue " + queueName, e);
+		}
+		catch (ExecutionException e) {
+			throw new IllegalStateException("ExecutionException while fetching attributes for queue " + queueName, e);
+		}
+	}
+
+	@Nullable
+	private static Integer getVisibility(Map<QueueAttributeName, String> attributes) {
+		String visibilityTimeout = attributes.get(QueueAttributeName.VISIBILITY_TIMEOUT);
+		return visibilityTimeout != null ? Integer.parseInt(visibilityTimeout) : null;
+	}
+
 }

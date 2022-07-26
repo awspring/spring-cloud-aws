@@ -18,7 +18,7 @@ package io.awspring.cloud.sqs.config;
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
-import io.awspring.cloud.sqs.listener.interceptor.MessageVisibilityExtenderInterceptor;
+
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,23 +58,23 @@ public class SqsMessageListenerContainerFactory<T>
 	}
 
 	@Override
-	protected SqsMessageListenerContainer<T> createContainerInstance(Endpoint endpoint,
-			ContainerOptions containerOptions) {
+	protected SqsMessageListenerContainer<T> createContainerInstance(Endpoint endpoint, ContainerOptions containerOptions) {
 		logger.debug("Creating {} for endpoint {}", SqsMessageListenerContainer.class.getSimpleName(), endpoint);
 		Assert.notNull(this.sqsAsyncClientSupplier, "No asyncClient set");
 		SqsAsyncClient asyncClient = this.sqsAsyncClientSupplier.get();
-		return new SqsMessageListenerContainer<>(asyncClient, configureContainerOptions(endpoint, containerOptions));
+		return new SqsMessageListenerContainer<>(asyncClient, containerOptions);
 	}
 
-	private ContainerOptions configureContainerOptions(Endpoint endpoint, ContainerOptions options) {
-		if (endpoint instanceof SqsEndpoint) {
-			SqsEndpoint sqsEndpoint = (SqsEndpoint) endpoint;
-			ConfigUtils.INSTANCE
-					.acceptIfNotNull(sqsEndpoint.getMaxInflightMessagesPerQueue(), options::maxInflightMessagesPerQueue)
-					.acceptIfNotNull(sqsEndpoint.getPollTimeout(), options::pollTimeout)
-					.acceptIfNotNull(sqsEndpoint.getMinimumVisibility(), this::addVisibilityExtender);
-		}
-		return options;
+	protected void doConfigureContainerOptions(Endpoint endpoint, ContainerOptions options) {
+		ConfigUtils.INSTANCE
+			.acceptIfInstance(endpoint, SqsEndpoint.class, sqsEndpoint -> configureFromSqsEndpoint(sqsEndpoint, options));
+	}
+
+	private void configureFromSqsEndpoint(SqsEndpoint sqsEndpoint, ContainerOptions options) {
+		ConfigUtils.INSTANCE
+				.acceptIfNotNull(sqsEndpoint.getMaxInflightMessagesPerQueue(), options::maxInflightMessagesPerQueue)
+				.acceptIfNotNull(sqsEndpoint.getPollTimeout(), options::pollTimeout)
+				.acceptIfNotNull(sqsEndpoint.getMessageVisibilityDuration(), options::messageVisibility);
 	}
 
 	/**
@@ -97,12 +97,6 @@ public class SqsMessageListenerContainerFactory<T>
 	public void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 		Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null.");
 		setSqsAsyncClientSupplier(() -> sqsAsyncClient);
-	}
-
-	private void addVisibilityExtender(Integer minTimeToProcess) {
-		MessageVisibilityExtenderInterceptor<T> interceptor = new MessageVisibilityExtenderInterceptor<>();
-		interceptor.setMinimumVisibility(minTimeToProcess);
-		super.addAsyncMessageInterceptor(interceptor);
 	}
 
 }

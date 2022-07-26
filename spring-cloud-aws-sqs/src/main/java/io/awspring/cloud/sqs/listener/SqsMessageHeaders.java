@@ -63,6 +63,8 @@ public class SqsMessageHeaders extends MessageHeaders {
 
 	public static final String SQS_LOGICAL_RESOURCE_ID = "LogicalResourceId";
 
+	public static final String SQS_QUEUE_URL = "QueueUrl";
+
 	public static final String RECEIPT_HANDLE_MESSAGE_ATTRIBUTE_NAME = "ReceiptHandle";
 
 	public static final String MESSAGE_ID_MESSAGE_ATTRIBUTE_NAME = "MessageId";
@@ -76,8 +78,6 @@ public class SqsMessageHeaders extends MessageHeaders {
 	public static final String QUEUE_VISIBILITY = "QueueVisibility";
 
 	public static final String ACKNOWLEDGMENT_HEADER = "acknowledgement";
-
-	public static final String SQS_CLIENT_HEADER = "sqs-client";
 
 	public SqsMessageHeaders(Map<String, Object> headers) {
 		super(headers, getId(headers), getTimestamp(headers));

@@ -40,6 +40,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
+import org.springframework.messaging.Message;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -120,8 +121,6 @@ class SqsAutoConfigurationTest {
 					assertThat(ReflectionTestUtils.getField(factory, "containerOptions")).isNotNull()
 							.extracting("maxInflightMessagesPerQueue").isEqualTo(19);
 					assertThat(ReflectionTestUtils.getField(factory, "errorHandler")).isNotNull();
-					assertThat(ReflectionTestUtils.getField(factory, "ackHandler")).isNotNull();
-					assertThat(ReflectionTestUtils.getField(factory, "messageSinkSupplier")).isNotNull();
 					assertThat(ReflectionTestUtils.getField(factory, "messageInterceptors")).asList().isNotEmpty();
 				});
 	}
@@ -135,20 +134,14 @@ class SqsAutoConfigurationTest {
 		}
 
 		@Bean
-		AckHandler<Object> ackHandler() {
-			return (msg) -> CompletableFuture.completedFuture(null);
+		AsyncMessageInterceptor<?> asyncMessageInterceptor() {
+			return new AsyncMessageInterceptor<Object>() {
+				@Override
+				public CompletableFuture<Message<Object>> intercept(Message<Object> message) {
+					return CompletableFuture.completedFuture(message);
+				}
+			};
 		}
-
-//		@Bean TODO: Restore this
-//		Supplier<MessageListeningSink<Object>> messageSink() {
-//			return () -> (msgs, listener) -> msgs.stream().map(listener::onMessage)
-//					.map(future -> future.thenApply(theVoid -> 1)).collect(Collectors.toList());
-//		}
-
-//		@Bean
-//		AsyncMessageInterceptor<?> asyncMessageInterceptor() {
-//			return CompletableFuture::completedFuture;
-//		}
 
 		@Bean
 		ContainerOptions containerOptions() {
