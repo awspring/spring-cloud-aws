@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.config.appconfig;
 
 import io.awspring.cloud.appconfig.RequestContext;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
@@ -69,7 +70,7 @@ public class AppConfigDataLocationResolver extends AbstractAwsConfigDataLocation
 		contexts.forEach(propertySourceContext -> locations
 				.add(new AppConfigDataResource(splitContext(propertySourceContext), location.isOptional(), sources)));
 
-		return super.resolveProfileSpecific(resolverContext, location, profiles);
+		return locations;
 	}
 
 	public static RequestContext splitContext(String context) {
@@ -94,6 +95,15 @@ public class AppConfigDataLocationResolver extends AbstractAwsConfigDataLocation
 	protected AppConfigDataClient createAppConfigDataClient(BootstrapContext context) {
 		AppConfigDataClientBuilder builder = configure(AppConfigDataClient.builder(),
 				context.get(AppConfigProperties.class), context);
+		try {
+			AwsAppConfigDataClientCustomizer configurer = context.get(AwsAppConfigDataClientCustomizer.class);
+			if (configurer != null) {
+				AwsClientCustomizer.apply(configurer, builder);
+			}
+		}
+		catch (IllegalStateException e) {
+			log.debug("Bean of type AwsAppConfigDataClientCustomizer is not registered: " + e.getMessage());
+		}
 		return builder.build();
 	}
 

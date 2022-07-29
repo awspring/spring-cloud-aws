@@ -31,7 +31,7 @@ public class AppConfigPropertySources {
 	 * Creates property source for given context.
 	 * @param context property source context equivalent to the parameter name
 	 * @param optional if creating context should fail with exception if parameter cannot be loaded
-	 * @param client App Config Data client
+	 * @param client AppConfigDataClient
 	 * @return a property source or null if file could not be loaded and optional is set to true
 	 */
 	@Nullable

@@ -35,7 +35,7 @@ public class AppConfigDataResource extends ConfigDataResource {
 	}
 
 	/**
-	 * Returns context which is equal to App Config name.
+	 * Returns context which is equal to AppConfig name.
 	 * @return the context
 	 */
 	public RequestContext getContext() {

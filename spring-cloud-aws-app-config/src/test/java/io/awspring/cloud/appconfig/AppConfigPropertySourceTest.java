@@ -32,11 +32,11 @@ import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSes
 
 public class AppConfigPropertySourceTest {
 
-	AppConfigDataClient appConfigDataClient = mock(AppConfigDataClient.class);
+	private final AppConfigDataClient appConfigDataClient = mock(AppConfigDataClient.class);
 
 	@Test
 	void loadYamlAppConfigFile() throws IOException {
-		byte[] yamlFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream("test.yaml"));
+		byte[] yamlFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream("working-spring-dynamodb.yaml"));
 		StartConfigurationSessionResponse startConfigurationSessionResponse = StartConfigurationSessionResponse
 				.builder().initialConfigurationToken("20").build();
 
