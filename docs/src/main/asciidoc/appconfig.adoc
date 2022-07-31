@@ -19,7 +19,12 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
 To fetch configuration from AppConfig and add them to Spring's environment properties, add `spring.config.import` property to `application.properties`:
 
-For example, assuming that the ApplicationName in AppConfig is `cool-spring-application`, ConfigurationProfileName is "ProductionConfig" and Environment is "prod"
+When specifying key all below values must be set:
+1. ApplicationName or ApplicationIdentifier
+2. ConfigurationProfileName or ConfigurationProfileIdentifier
+3. EnvironmentName or EnvironmentIdentifier
+
+For example, assuming that the ApplicationName in AppConfig is `cool-spring-application`, ConfigurationProfileName is "ProductionConfig" and EnvironmentName is "prod"
 
 [source,properties]
 ----
