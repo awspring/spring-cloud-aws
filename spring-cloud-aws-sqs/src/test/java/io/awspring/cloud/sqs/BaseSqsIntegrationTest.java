@@ -15,20 +15,22 @@
  */
 package io.awspring.cloud.sqs;
 
-import static java.util.Collections.singletonMap;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import com.amazonaws.auth.AWSCredentials;
-import java.io.IOException;
+
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -36,52 +38,37 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 @Testcontainers
 abstract class BaseSqsIntegrationTest {
 
-	protected static final String RECEIVES_MESSAGE_QUEUE_NAME = "receives_message_test_queue";
-	protected static final String DOES_NOT_ACK_ON_ERROR_QUEUE_NAME = "does_not_ack_test_queue";
-	protected static final String RESOLVES_PARAMETER_TYPES_QUEUE_NAME = "resolves_parameter_type_test_queue";
-	protected static final String RESOLVES_POJO_TYPES_QUEUE_NAME = "resolves_pojo_test_queue";
-	protected static final String RECEIVE_FROM_MANY_1_QUEUE_NAME = "receive_many_test_queue_1";
-	protected static final String RECEIVE_FROM_MANY_2_QUEUE_NAME = "receive_many_test_queue_2";
-	protected static final String RECEIVE_BATCH_1_QUEUE_NAME = "receive_batch_test_queue_1";
-	protected static final String RECEIVE_BATCH_2_QUEUE_NAME = "receive_batch_test_queue_2";
-	protected static final String MANUALLY_START_CONTAINER = "manually_start_container_test_queue";
-	protected static final String MANUALLY_CREATE_CONTAINER_QUEUE_NAME = "manually_create_container_test_queue";
-	protected static final String MANUALLY_CREATE_FACTORY_QUEUE_NAME = "manually_create_factory_test_queue";
-	protected static final String FIFO_RECEIVES_MESSAGE_IN_ORDER_QUEUE_NAME = "fifo_receives_messages_in_order.fifo";
-	protected static final String FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME = "fifo_receives_messages_in_order_many_groups.fifo";
-	protected static final String FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME = "fifo_stops_processing_on_error.fifo";
-	protected static final String FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME = "fifo_receives_batches_many_groups.fifo";
-	protected static final String FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME = "fifo_manually_create_container_test_queue.fifo";
-	protected static final String FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME = "fifo_manually_create_factory_test_queue.fifo";
-	protected static final String FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME = "fifo_manually_create_batch_container_test_queue.fifo";
-	protected static final String FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME = "fifo_manually_create_batch_factory_test_queue.fifo";
+	private static final Logger logger = LoggerFactory.getLogger(BaseSqsIntegrationTest.class);
 
-	@Container
+	protected static final boolean useLocalStackClient = true;
+
+	protected static final boolean purgeQueues = false;
+
+	private static final String LOCAL_STACK_VERSION = "localstack/localstack:1.0.3";
+
+	private static final Object beforeAllMonitor = new Object();
+
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SQS).withReuse(false);
+			DockerImageName.parse(LOCAL_STACK_VERSION)).withServices(SQS).withReuse(true);
 
 	static StaticCredentialsProvider credentialsProvider;
 
 	@BeforeAll
-	static void beforeAll() throws IOException, InterruptedException {
-		// create needed queues in SQS
-		// TODO: Not working as expected due to some port mapping issue - will look into in the future
-		localstack.execInContainer("awslocal", "io/awspring/cloud/sqs", "create-queue", "--queue-name",
-				RECEIVES_MESSAGE_QUEUE_NAME);
-		localstack.execInContainer("awslocal", "io/awspring/cloud/sqs", "create-queue", "--queue-name",
-				DOES_NOT_ACK_ON_ERROR_QUEUE_NAME);
-		localstack.execInContainer("awslocal", "io/awspring/cloud/sqs", "create-queue", "--queue-name",
-				RECEIVE_FROM_MANY_1_QUEUE_NAME);
-
-		AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
-		credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
-				.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
-		createQueues(createAsyncClient());
+	static void beforeAll() {
+		synchronized (beforeAllMonitor) {
+			if (!localstack.isRunning()) {
+				localstack.start();
+				AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
+				credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
+					.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
+			}
+		}
 	}
 
 	@DynamicPropertySource
@@ -90,58 +77,61 @@ abstract class BaseSqsIntegrationTest {
 		registry.add("spring.cloud.aws.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
 	}
 
-	private static void createQueues(SqsAsyncClient client) {
-		CompletableFuture.allOf(client.createQueue(req -> req.queueName(RECEIVES_MESSAGE_QUEUE_NAME).build()),
-				client.createQueue(req -> req.queueName(DOES_NOT_ACK_ON_ERROR_QUEUE_NAME)
-						.attributes(singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "1")).build()),
-				client.createQueue(req -> req.queueName(RECEIVE_FROM_MANY_1_QUEUE_NAME).build()),
-				client.createQueue(req -> req.queueName(RECEIVE_FROM_MANY_2_QUEUE_NAME).build()),
-				client.createQueue(req -> req.queueName(RECEIVE_BATCH_1_QUEUE_NAME)
-					.attributes(singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "10")).build()),
-				client.createQueue(req -> req.queueName(RECEIVE_BATCH_2_QUEUE_NAME)
-					.attributes(singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "10")).build()),
-				client.createQueue(req -> req.queueName(RESOLVES_PARAMETER_TYPES_QUEUE_NAME)
-						.attributes(singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "20")).build()),
-				client.createQueue(req -> req.queueName(RESOLVES_POJO_TYPES_QUEUE_NAME).build()),
-				client.createQueue(req -> req.queueName(MANUALLY_CREATE_CONTAINER_QUEUE_NAME).build()),
-				client.createQueue(req -> req.queueName(MANUALLY_START_CONTAINER).build()),
-				client.createQueue(req -> req.queueName(MANUALLY_CREATE_FACTORY_QUEUE_NAME)),
-				client.createQueue(req -> req.queueName(FIFO_RECEIVES_MESSAGE_IN_ORDER_QUEUE_NAME)
-					.attributes(getAttributesFifoVisibility("20"))
-					.build()),
-				client.createQueue(req -> req.queueName(FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME)
-					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
-					.build()),
-				client.createQueue(req -> req.queueName(FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME)
-					.attributes(getAttributesFifoVisibility("2"))
-					.build()),
-				client.createQueue(req -> req.queueName(FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME)
-					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
-					.build()),
-				client.createQueue(req -> req.queueName(FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME)
-					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
-					.build()),
-				client.createQueue(req -> req.queueName(FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME)
-					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
-					.build()),
-				client.createQueue(req -> req.queueName(FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME)
-					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
-					.build()),
-				client.createQueue(req -> req.queueName(FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME)
-					.attributes(singletonMap(QueueAttributeName.FIFO_QUEUE, "true"))
-					.build())
-				)
-			.join();
+	protected static CompletableFuture<?> createQueue(SqsAsyncClient client, String queueName) {
+		return createQueue(client, queueName, Collections.emptyMap());
 	}
 
-	private static Map<QueueAttributeName, String> getAttributesFifoVisibility(String visibility) {
-		Map<QueueAttributeName, String> attributesMap = new HashMap<>();
-		attributesMap.put(QueueAttributeName.FIFO_QUEUE, "true");
-		attributesMap.put(QueueAttributeName.VISIBILITY_TIMEOUT, visibility);
-		return attributesMap;
+	protected static CompletableFuture<?> createFifoQueue(SqsAsyncClient client, String queueName) {
+		return createFifoQueue(client, queueName, Collections.emptyMap());
+	}
+
+	protected static CompletableFuture<?> createFifoQueue(SqsAsyncClient client, String queueName, Map<QueueAttributeName, String> additionalAttributes) {
+		Map<QueueAttributeName, String> attributes = new HashMap<>(additionalAttributes);
+		attributes.put(QueueAttributeName.FIFO_QUEUE, "true");
+		return createQueue(client, queueName, attributes);
+	}
+
+	protected static CompletableFuture<?> createQueue(SqsAsyncClient client, String queueName, Map<QueueAttributeName, String> attributes) {
+		logger.debug("Creating queue {} with attributes {}", queueName, attributes);
+		return client.createQueue(req -> getCreateQueueRequest(queueName, attributes, req))
+			.handle((v, t) -> {
+				if (t != null) {
+					logger.error("Error creating queue {} with attributes {}", queueName, attributes, t);
+					return CompletableFutures.failedFuture(t);
+				}
+				if (purgeQueues) {
+					String queueUrl = v.queueUrl();
+					logger.debug("Purging queue {}", queueName);
+					return client.purgeQueue(req -> req.queueUrl(queueUrl).build());
+				} else {
+					logger.debug("Skipping purge for queue {}", queueName);
+					return CompletableFuture.completedFuture(null);
+				}
+			}).thenCompose(x -> x).whenComplete((v, t) -> {
+				if (t != null) {
+					logger.error("Error purging queue {}", queueName, t);
+					return;
+				}
+				logger.debug("Done purging queue {}", queueName);
+			});
+	}
+
+	private static CreateQueueRequest getCreateQueueRequest(String queueName, Map<QueueAttributeName, String> attributes, CreateQueueRequest.Builder builder) {
+		if (!attributes.isEmpty()) {
+			builder.attributes(attributes);
+		}
+		return builder
+			.queueName(queueName)
+			.build();
 	}
 
 	protected static SqsAsyncClient createAsyncClient() {
+		return useLocalStackClient
+					? createLocalStackClient()
+					: SqsAsyncClient.builder().build();
+	}
+
+	protected static SqsAsyncClient createLocalStackClient() {
 		return SqsAsyncClient.builder()
 			.credentialsProvider(credentialsProvider)
 			.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
@@ -149,12 +139,59 @@ abstract class BaseSqsIntegrationTest {
 	}
 
 	protected static SqsAsyncClient createHighThroughputAsyncClient() {
-		return SqsAsyncClient.builder().httpClientBuilder(NettyNioAsyncHttpClient.builder()
+		return useLocalStackClient
+			? createLocalStackClient()
+			: SqsAsyncClient.builder().httpClientBuilder(NettyNioAsyncHttpClient.builder()
 				//.maxConcurrency(6000)
 			)
-			.credentialsProvider(credentialsProvider)
-			.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
 			.build();
+	}
+
+	protected static class Sleeper {
+
+		private static final Random RANDOM = new Random();
+
+		private int bound = 1000;
+
+		private boolean sleepEnabled = false;
+
+		private boolean random = true;
+
+		public void sleep() {
+			sleep(this.bound);
+		}
+		public void sleep(int amount) {
+			if (!sleepEnabled) {
+				return;
+			}
+			try {
+				Thread.sleep(getSleepTime(amount));
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new RuntimeException(e);
+			}
+		}
+
+		private long getSleepTime(int amount) {
+			return this.random
+				? RANDOM.nextInt(amount)
+				: amount;
+		}
+
+		public Sleeper setBound(int bound) {
+			this.bound = bound;
+			return this;
+		}
+
+		public Sleeper setSleepEnabled(boolean sleepEnabled) {
+			this.sleepEnabled = sleepEnabled;
+			return this;
+		}
+
+		public Sleeper setRandom(boolean random) {
+			this.random = random;
+			return this;
+		}
 	}
 
 }

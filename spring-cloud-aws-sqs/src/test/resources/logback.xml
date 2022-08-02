@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2013-2019 the original author or authors.
+  ~ Copyright 2022 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,11 +28,16 @@
 	<logger name="io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityExtendingSinkAdapter" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.interceptor" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.pipeline" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.listener.source.SqsMessageSource" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.source" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.acknowledgement" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.QueueAttributes" level="INFO"/>
+
 	<logger name="io.awspring.cloud.sqs.SqsIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.SqsIntegrationLoadTests" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.SqsFifoIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.SqsPojoConversionIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.BaseSqsIntegrationTest" level="INFO"/>
 
 	<root level="warn">
 		<appender-ref ref="STDOUT"/>

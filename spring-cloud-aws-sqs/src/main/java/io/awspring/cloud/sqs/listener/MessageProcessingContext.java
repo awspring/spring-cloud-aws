@@ -29,9 +29,9 @@ public class MessageProcessingContext<T> {
 	}
 
 	public MessageProcessingContext<T> addInterceptor(AsyncMessageInterceptor<T> interceptor) {
-		List<AsyncMessageInterceptor<T>> interceptors = new ArrayList<>(this.interceptors);
-		interceptors.add(interceptor);
-		return new MessageProcessingContext<>(interceptors, this.backPressureReleaseCallback);
+		List<AsyncMessageInterceptor<T>> contextInterceptors = new ArrayList<>(this.interceptors);
+		contextInterceptors.add(interceptor);
+		return new MessageProcessingContext<>(contextInterceptors, this.backPressureReleaseCallback);
 	}
 
 	public List<AsyncMessageInterceptor<T>> getInterceptors() {

@@ -72,21 +72,20 @@ public class SqsMessageListenerContainer<T> extends AbstractMessageListenerConta
 
 	@Override
 	protected void doStart() {
-		determineAndConfigureComponentFactory();
-		this.messageSources = createMessageSources();
-		this.messageSink = super.getContainerComponentFactory().createMessageSink();
-		configureComponents();
-		LifecycleUtils.start(this.messageSink, this.messageSources);
-	}
-
-	private void determineAndConfigureComponentFactory() {
-		if (getContainerComponentFactory() == null) {
-			setContainerComponentFactory(determineComponentFactory());
-		}
-		getContainerOptions().configure(getContainerComponentFactory());
+		ContainerComponentFactory<T> componentFactory = determineComponentFactory();
+		this.messageSources = createMessageSources(componentFactory);
+		this.messageSink = componentFactory.createMessageSink(getContainerOptions());
+		configureComponents(componentFactory);
+		LifecycleUtils.startParallel(this.messageSink, this.messageSources);
 	}
 
 	private ContainerComponentFactory<T> determineComponentFactory() {
+		return getContainerComponentFactory() != null
+			? getContainerComponentFactory()
+			: createComponentFactory();
+	}
+
+	private ContainerComponentFactory<T> createComponentFactory() {
 		Assert.isTrue(getQueueNames().stream().map(this::isFifoQueue).distinct().count() == 1,
 			"The container must contain either all FIFO or all Standard queues.");
 		return isFifoQueue(getQueueNames().iterator().next())
@@ -98,22 +97,22 @@ public class SqsMessageListenerContainer<T> extends AbstractMessageListenerConta
 		return name.endsWith(".fifo");
 	}
 
-	private Collection<MessageSource<T>> createMessageSources() {
+	private Collection<MessageSource<T>> createMessageSources(ContainerComponentFactory<T> componentFactory) {
 		return getQueueNames()
 			.stream()
-			.map(this::createMessageSource)
+			.map(queueName -> createMessageSource(queueName, componentFactory))
 			.collect(Collectors.toList());
 	}
 
-	private MessageSource<T> createMessageSource(String queueName) {
-		MessageSource<T> messageSource = getContainerComponentFactory().createMessageSource();
+	private MessageSource<T> createMessageSource(String queueName, ContainerComponentFactory<T> componentFactory) {
+		MessageSource<T> messageSource = componentFactory.createMessageSource(getContainerOptions());
 		ConfigUtils.INSTANCE
 			.acceptIfInstance(messageSource, PollingMessageSource.class, pms -> pms.setPollingEndpointName(queueName));
 		return messageSource;
 	}
 
 	@SuppressWarnings("unchecked")
-	private void configureComponents() {
+	private void configureComponents(ContainerComponentFactory<T> componentFactory) {
 		getContainerOptions()
 			.configure(this.messageSources)
 			.configure(this.messageSink);
@@ -122,12 +121,12 @@ public class SqsMessageListenerContainer<T> extends AbstractMessageListenerConta
 			.acceptManyIfInstance(this.messageSources, SqsAsyncClientAware.class, asca -> asca.setSqsAsyncClient(this.sqsAsyncClient))
 			.acceptManyIfInstance(this.messageSources, PollingMessageSource.class, pms -> pms.setBackPressureHandler(createBackPressureHandler()))
 			.acceptManyIfInstance(this.messageSources, TaskExecutorAware.class, teac -> teac.setTaskExecutor(createSourceTaskExecutor()))
+			.acceptIfInstance(this.messageSink, SqsAsyncClientAware.class, asca -> asca.setSqsAsyncClient(this.sqsAsyncClient))
 			.acceptIfInstance(this.messageSink, TaskExecutorAware.class, teac -> teac.setTaskExecutor(getOrCreateSinkTaskExecutor()))
-			.acceptIfInstance(this.messageSink, MessageProcessingPipelineSink.class, mls -> mls.setMessagePipeline(createMessageProcessingPipeline()))
-			.acceptIfInstance(this.messageSink, SqsAsyncClientAware.class, asca -> asca.setSqsAsyncClient(this.sqsAsyncClient));
+			.acceptIfInstance(this.messageSink, MessageProcessingPipelineSink.class, mls -> mls.setMessagePipeline(createMessageProcessingPipeline(componentFactory)));
 	}
 
-	private MessageProcessingPipeline<T> createMessageProcessingPipeline() {
+	private MessageProcessingPipeline<T> createMessageProcessingPipeline(ContainerComponentFactory<T> componentFactory) {
 		return MessageProcessingPipelineBuilder
 			.<T>first(BeforeProcessingContextInterceptorExecutionStage::new)
 			.then(BeforeProcessingInterceptorExecutionStage::new)
@@ -140,7 +139,7 @@ public class SqsMessageListenerContainer<T> extends AbstractMessageListenerConta
 				.interceptors(getMessageInterceptors())
 				.messageListener(getMessageListener())
 				.errorHandler(getErrorHandler())
-				.ackHandler(getContainerComponentFactory().createAckHandler()).build());
+				.ackHandler(componentFactory.createAckHandler(getContainerOptions())).build());
 	}
 
 	private SemaphoreBackPressureHandler createBackPressureHandler() {
@@ -179,7 +178,7 @@ public class SqsMessageListenerContainer<T> extends AbstractMessageListenerConta
 
 	@Override
 	protected void doStop() {
-		LifecycleUtils.stop(this.messageSources, this.messageSink);
+		LifecycleUtils.stopParallel(this.messageSources, this.messageSink);
 		disposeSinkTaskExecutor();
 		logger.debug("Container {} stopped", getId());
 	}

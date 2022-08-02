@@ -8,12 +8,12 @@ import io.awspring.cloud.sqs.listener.source.MessageSource;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface ContainerComponentFactory<T> extends ConfigurableContainerComponent {
+public interface ContainerComponentFactory<T> {
 
-	MessageSource<T> createMessageSource();
+	MessageSource<T> createMessageSource(ContainerOptions options);
 
-	MessageSink<T> createMessageSink();
+	MessageSink<T> createMessageSink(ContainerOptions options);
 
-	AckHandler<T> createAckHandler();
+	AckHandler<T> createAckHandler(ContainerOptions options);
 
 }

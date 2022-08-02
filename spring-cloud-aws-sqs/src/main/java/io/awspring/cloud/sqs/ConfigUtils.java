@@ -65,7 +65,7 @@ public class ConfigUtils {
 	}
 
 	public <T> ConfigUtils acceptIfInstance(Object value, Class<T> clazz, Consumer<T> consumer) {
-		if (clazz.isAssignableFrom(value.getClass())) {
+		if (value != null && clazz.isAssignableFrom(value.getClass())) {
 			consumer.accept(clazz.cast(value));
 		}
 		return this;

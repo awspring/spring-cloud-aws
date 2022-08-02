@@ -15,15 +15,11 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Queue attributes extracted from SQS.
@@ -33,31 +29,21 @@ import java.util.concurrent.ExecutionException;
  */
 public class QueueAttributes {
 
-	private static final Logger logger = LoggerFactory.getLogger(QueueAttributes.class);
-
 	private final String queueName;
 
 	private final String queueUrl;
 
-	private final boolean hasRedrivePolicy;
-
-	private final Integer visibilityTimeout;
-
-	private final boolean isFifo;
+	private final Map<QueueAttributeName, String> attributes;
 
 	/**
 	 * Create an instance with the provided arguments.
 	 * @param queueUrl the url for this queue.
-	 * @param hasRedrivePolicy whether this queue has a redrive policy.
-	 * @param visibilityTimeout the visibility timeout for this queue.
-	 * @param isFifo whether this is a FIFO queue.
+	 * @param attributes
 	 */
-	private QueueAttributes(String queueName, String queueUrl, boolean hasRedrivePolicy, Integer visibilityTimeout, boolean isFifo) {
+	public QueueAttributes(String queueName, String queueUrl, Map<QueueAttributeName, String> attributes) {
 		this.queueName = queueName;
-		this.hasRedrivePolicy = hasRedrivePolicy;
 		this.queueUrl = queueUrl;
-		this.visibilityTimeout = visibilityTimeout;
-		this.isFifo = isFifo;
+		this.attributes = attributes;
 	}
 
 	/**
@@ -68,58 +54,17 @@ public class QueueAttributes {
 		return this.queueUrl;
 	}
 
-	/**
-	 * Return whether this queue has a redrive policy.
-	 * @return true if this queue has a redrive policy.
-	 */
-	public boolean hasRedrivePolicy() {
-		return this.hasRedrivePolicy;
-	}
-
-	/**
-	 * Return the visibility timeout for this queue.
-	 * @return the visibility timeout.
-	 */
-	@Nullable
-	public Integer getVisibilityTimeout() {
-		return this.visibilityTimeout;
-	}
-
-	/**
-	 * Return whether this is a FIFO queue.
-	 * @return true if this is a FIFO queue.
-	 */
-	boolean isFifo() {
-		return this.isFifo;
-	}
-
 	public String getQueueName() {
 		return this.queueName;
 	}
 
-	public static QueueAttributes fetchFor(String queueName, SqsAsyncClient sqsAsyncClient) {
-		try {
-			logger.debug("Fetching attributes for queue {}", queueName);
-			String queueUrl = sqsAsyncClient.getQueueUrl(req -> req.queueName(queueName)).get().queueUrl();
-			Map<QueueAttributeName, String> attributes = sqsAsyncClient
-				.getQueueAttributes(req -> req.queueUrl(queueUrl).attributeNames(QueueAttributeName.ALL)).get().attributes();
-			boolean hasRedrivePolicy = attributes.containsKey(QueueAttributeName.REDRIVE_POLICY);
-			boolean isFifo = queueName.endsWith(".fifo");
-			return new QueueAttributes(queueName, queueUrl, hasRedrivePolicy, getVisibility(attributes), isFifo);
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new IllegalStateException("Interrupted while fetching attributes for queue " + queueName, e);
-		}
-		catch (ExecutionException e) {
-			throw new IllegalStateException("ExecutionException while fetching attributes for queue " + queueName, e);
-		}
+	public Map<QueueAttributeName, String> getQueueAttributes() {
+		return new HashMap<>(this.attributes);
 	}
 
 	@Nullable
-	private static Integer getVisibility(Map<QueueAttributeName, String> attributes) {
-		String visibilityTimeout = attributes.get(QueueAttributeName.VISIBILITY_TIMEOUT);
-		return visibilityTimeout != null ? Integer.parseInt(visibilityTimeout) : null;
+	public String getQueueAttribute(QueueAttributeName queueAttributeName) {
+		return this.attributes.get(queueAttributeName);
 	}
 
 }

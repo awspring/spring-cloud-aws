@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,18 @@ import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.MessageDeliveryStrategy;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.adapter.AsyncMessagingMessageListenerAdapter;
-import io.awspring.cloud.sqs.listener.sink.MessageProcessingPipelineSink;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
+import org.springframework.core.BridgeMethodResolver;
+import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.util.Assert;
+
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Base class for implementing an {@link Endpoint}.
@@ -52,8 +53,6 @@ public abstract class AbstractEndpoint implements Endpoint {
 	private Method method;
 
 	private MessageHandlerMethodFactory handlerMethodFactory;
-
-	private MessageProcessingPipelineSink<?> messageSink;
 
 	protected AbstractEndpoint(Collection<String> logicalNames, @Nullable String listenerContainerFactoryName,
 			String id, Boolean async) {
@@ -96,6 +95,15 @@ public abstract class AbstractEndpoint implements Endpoint {
 	}
 
 	/**
+	 * Set the {@link MessageHandlerMethodFactory} to be used for handling messages in this endpoint.
+	 * @param handlerMethodFactory the factory.
+	 */
+	public void setHandlerMethodFactory(MessageHandlerMethodFactory handlerMethodFactory) {
+		Assert.notNull(handlerMethodFactory, "handlerMethodFactory cannot be null");
+		this.handlerMethodFactory = handlerMethodFactory;
+	}
+
+	/**
 	 * Configure the provided container for this endpoint.
 	 * @param container the container to be configured.
 	 */
@@ -104,40 +112,32 @@ public abstract class AbstractEndpoint implements Endpoint {
 		container.setAsyncMessageListener(createMessageListener());
 	}
 
-	public MessageDeliveryStrategy getMessageDeliveryStrategy() {
-		Type[] genericParameterTypes = this.method.getGenericParameterTypes();
-		boolean batch = inferBatch(genericParameterTypes);
-		if (batch && genericParameterTypes.length > 1) {
+	public void configureMessageDeliveryStrategy(Consumer<MessageDeliveryStrategy> consumer) {
+		List<MethodParameter> parameters = getMethodParameters();
+		boolean batch = hasParameterOfType(parameters, List.class);
+		if ((batch && parameters.size() > 1)) {
 			throw new IllegalArgumentException(String.format(
-					"Method %s in endpoint %s has invalid parameters for batch processing. "
-							+ "Batch methods can have a single parameter, either a List or a Collection, of Message<T> or T types.",
-					this.method.getName(), this.id));
+					"Method %s from class %s in endpoint %s has invalid parameters for batch processing. "
+							+ "Batch methods can have a single List parameter, either of Message<T> or T types.",
+					this.method.getName(), this.method.getDeclaringClass(), this.id));
 		}
-		return batch ? MessageDeliveryStrategy.BATCH : MessageDeliveryStrategy.SINGLE_MESSAGE;
+		consumer.accept(batch ? MessageDeliveryStrategy.BATCH : MessageDeliveryStrategy.SINGLE_MESSAGE);
 	}
 
-	private boolean inferBatch(Type[] genericParameterTypes) {
-		return Arrays.stream(genericParameterTypes).anyMatch(this::isCollectionType);
+	private boolean hasParameterOfType(List<MethodParameter> parameters, Class<?> clazz) {
+		return parameters.stream().anyMatch(param -> clazz.isAssignableFrom(param.getParameterType()));
 	}
 
-	private boolean isCollectionType(Type type) {
-		return type instanceof ParameterizedType && (((ParameterizedType) type).getRawType().equals(Collection.class)
-				|| ((ParameterizedType) type).getRawType().equals(List.class));
+	private List<MethodParameter> getMethodParameters() {
+		return IntStream.range(0, BridgeMethodResolver.findBridgedMethod(this.method).getParameterCount())
+				.mapToObj(index -> new MethodParameter(this.method, index))
+				.collect(Collectors.toList());
 	}
 
 	private AsyncMessageListener<?> createMessageListener() {
 		Assert.notNull(this.handlerMethodFactory, "No handlerMethodFactory has been set");
 		return new AsyncMessagingMessageListenerAdapter<>(
 				this.handlerMethodFactory.createInvocableHandlerMethod(this.bean, this.method));
-	}
-
-	/**
-	 * Set the {@link MessageHandlerMethodFactory} to be used for handling messages in this endpoint.
-	 * @param handlerMethodFactory the factory.
-	 */
-	public void setHandlerMethodFactory(MessageHandlerMethodFactory handlerMethodFactory) {
-		Assert.notNull(handlerMethodFactory, "handlerMethodFactory cannot be null");
-		this.handlerMethodFactory = handlerMethodFactory;
 	}
 
 }

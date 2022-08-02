@@ -62,12 +62,12 @@ public abstract class AbstractDelegatingMessageListeningSinkAdapter<T> implement
 
 	@Override
 	public void start() {
-		LifecycleUtils.start(this.delegate);
+		LifecycleUtils.startParallel(this.delegate);
 	}
 
 	@Override
 	public void stop() {
-		LifecycleUtils.stop(this.delegate);
+		LifecycleUtils.stopParallel(this.delegate);
 	}
 
 	@Override

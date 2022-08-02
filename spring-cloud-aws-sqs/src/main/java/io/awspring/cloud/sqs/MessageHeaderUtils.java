@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sqs;
 
-import io.awspring.cloud.sqs.listener.SqsMessageHeaders;
+import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
 
 import java.util.Collection;
@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.util.Assert;
 
 /**
  * Utility class for extracting {@link MessageHeaders} from a {@link Message}.
@@ -48,6 +47,10 @@ public class MessageHeaderUtils {
 				() -> "No ID found for message " + message).toString();
 	}
 
+	public static <T> String getId(Collection<Message<T>> messages) {
+		return messages.stream().map(MessageHeaderUtils::getId).collect(Collectors.joining("; "));
+	}
+
 	/**
 	 * Return the message's {@link Acknowledgement}
 	 * @param message the message.
@@ -55,27 +58,16 @@ public class MessageHeaderUtils {
 	 */
 	public static Acknowledgement getAcknowledgement(Message<?> message) {
 		return Objects.requireNonNull(
-				message.getHeaders().get(SqsMessageHeaders.ACKNOWLEDGMENT_HEADER, Acknowledgement.class),
+				message.getHeaders().get(SqsHeaders.SQS_ACKNOWLEDGMENT_HEADER, Acknowledgement.class),
 				() -> "No Acknowledgment found for message " + message);
-	}
-
-	public static Object getHeader(Message<?> message, String headerName) {
-		return Objects.requireNonNull(message.getHeaders().get(headerName),
-			() -> String.format("Header %s not found in message %s", headerName, getId(message)));
-	}
-
-	public static <T> T getHeader(Message<?> message, String headerName, Class<T> classToCast) {
-		Object header = getHeader(message, headerName);
-		Assert.isInstanceOf(classToCast, header,
-			() -> String.format("Header %s from message %s not instance of class %s", header, getId(message), classToCast));
-		return classToCast.cast(header);
 	}
 
 	public static <T, U> Collection<T> getHeader(Collection<Message<U>> messages, String headerName, Class<T> classToCast) {
 		return messages.stream().map(msg -> getHeader(msg, headerName, classToCast)).collect(Collectors.toList());
 	}
 
-	public static <T> String getId(Collection<Message<T>> messages) {
-		return messages.stream().map(MessageHeaderUtils::getId).collect(Collectors.joining("; "));
+	public static <T> T getHeader(Message<?> message, String headerName, Class<T> classToCast) {
+		return Objects.requireNonNull(message.getHeaders().get(headerName, classToCast), () -> String.format("Header %s not found in message %s", headerName, getId(message)));
 	}
+
 }
