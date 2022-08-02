@@ -1,6 +1,5 @@
 package io.awspring.cloud.sqs.listener;
 
-import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.acknowledgement.AckHandler;
 import io.awspring.cloud.sqs.listener.acknowledgement.OnSuccessAckHandler;
 import io.awspring.cloud.sqs.listener.sink.BatchMessageSink;
@@ -11,8 +10,6 @@ import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityExtendingSin
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.SqsMessageSource;
 import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 import java.time.Duration;
 import java.util.function.Function;
@@ -23,51 +20,41 @@ import java.util.function.Function;
  */
 public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> {
 
-	private MessageDeliveryStrategy messageDeliveryStrategy;
-
-	private Duration messageVisibility;
-
 	@Override
-	public void configure(ContainerOptions containerOptions) {
-		this.messageDeliveryStrategy = containerOptions.getMessageDeliveryStrategy();
-		this.messageVisibility = containerOptions.getMessageVisibility();
-	}
-
-	@Override
-	public MessageSource<T> createMessageSource() {
+	public MessageSource<T> createMessageSource(ContainerOptions options) {
 		return new SqsMessageSource<>();
 	}
 
 	@Override
-	public MessageSink<T> createMessageSink() {
-		return new MessageGroupingSinkAdapter<>(maybeWrapWithVisibilityAdapter(createDeliverySink()), getMessageHeader());
+	public MessageSink<T> createMessageSink(ContainerOptions options) {
+		MessageSink<T> deliverySink = createDeliverySink(options.getMessageDeliveryStrategy());
+		return new MessageGroupingSinkAdapter<>(maybeWrapWithVisibilityAdapter(deliverySink, options.getMessageVisibility()), getMessageGroupingHeader());
 	}
 
-	private MessageSink<T> createDeliverySink() {
-		return MessageDeliveryStrategy.SINGLE_MESSAGE.equals(this.messageDeliveryStrategy)
+	private MessageSink<T> createDeliverySink(MessageDeliveryStrategy messageDeliveryStrategy) {
+		return MessageDeliveryStrategy.SINGLE_MESSAGE.equals(messageDeliveryStrategy)
 			? new OrderedMessageListeningSink<>()
 			: new BatchMessageSink<>();
 	}
 
-	private MessageSink<T> maybeWrapWithVisibilityAdapter(MessageSink<T> deliverySink) {
-		return this.messageVisibility != null
-			? addMessageVisibilityExtendingSinkAdapter(deliverySink)
+	private MessageSink<T> maybeWrapWithVisibilityAdapter(MessageSink<T> deliverySink, Duration messageVisibility) {
+		return messageVisibility != null
+			? addMessageVisibilityExtendingSinkAdapter(deliverySink, messageVisibility)
 			: deliverySink;
 	}
 
-	private MessageVisibilityExtendingSinkAdapter<T> addMessageVisibilityExtendingSinkAdapter(MessageSink<T> deliverySink) {
+	private MessageVisibilityExtendingSinkAdapter<T> addMessageVisibilityExtendingSinkAdapter(MessageSink<T> deliverySink, Duration messageVisibility) {
 		MessageVisibilityExtendingSinkAdapter<T> visibilityAdapter = new MessageVisibilityExtendingSinkAdapter<>(deliverySink);
-		visibilityAdapter.setVisibilityStrategy(MessageVisibilityExtendingSinkAdapter.Strategy.REMAINING_ORIGINAL_BATCH_MESSAGES);
-		visibilityAdapter.setMessageVisibility(this.messageVisibility);
+		visibilityAdapter.setMessageVisibility(messageVisibility);
 		return visibilityAdapter;
 	}
 
-	private Function<Message<T>, String> getMessageHeader() {
-		return message -> MessageHeaderUtils.getHeader(message, SqsMessageHeaders.SQS_GROUP_ID_HEADER, String.class);
+	private Function<Message<T>, String> getMessageGroupingHeader() {
+		return message -> message.getHeaders().get(SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER, String.class);
 	}
 
 	@Override
-	public AckHandler<T> createAckHandler() {
+	public AckHandler<T> createAckHandler(ContainerOptions containerOptions) {
 		return new OnSuccessAckHandler<>();
 	}
 

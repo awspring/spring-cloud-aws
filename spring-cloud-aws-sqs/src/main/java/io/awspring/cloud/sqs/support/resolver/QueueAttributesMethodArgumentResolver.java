@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support;
+package io.awspring.cloud.sqs.support.resolver;
 
-import io.awspring.cloud.sqs.listener.SqsMessageHeaders;
+import io.awspring.cloud.sqs.listener.QueueAttributes;
+import io.awspring.cloud.sqs.listener.SqsHeaders;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**
- * Resolves original SQS message object {@link (software.amazon.awssdk.services.sqs.model.Message)} from Spring
- * Messaging message object {@link Message}.
- *
- * @author Maciej Walkowiak
+ * @author Tomaz Fernandes
+ * @since 3.0
  */
-public class SqsMessageMethodArgumentResolver implements HandlerMethodArgumentResolver {
+public class QueueAttributesMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		return software.amazon.awssdk.services.sqs.model.Message.class.isAssignableFrom(parameter.getParameterType());
+		return QueueAttributes.class.isAssignableFrom(parameter.getParameterType());
 	}
 
 	@Override
 	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
-		return message.getHeaders().get(SqsMessageHeaders.SOURCE_DATA_HEADER);
+		return message.getHeaders().get(SqsHeaders.SQS_QUEUE_ATTRIBUTES_HEADER);
 	}
 }

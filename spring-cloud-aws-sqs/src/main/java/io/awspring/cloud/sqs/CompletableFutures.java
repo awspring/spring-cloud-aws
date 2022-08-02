@@ -13,8 +13,11 @@ import java.util.function.Function;
  */
 public class CompletableFutures {
 
+	private CompletableFutures() {
+	}
+
 	/**
-	 * Create a exceptionally completed {@link CompletableFuture}.
+	 * Create an exceptionally completed {@link CompletableFuture}.
 	 * @param t the throwable.
 	 * @param <T> the future type.
 	 * @return the completable future instance.

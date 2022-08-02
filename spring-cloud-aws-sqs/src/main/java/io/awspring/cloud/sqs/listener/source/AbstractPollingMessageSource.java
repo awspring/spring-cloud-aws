@@ -185,7 +185,7 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 	}
 
 	private Collection<Message<T>> handlePollingException(Throwable t) {
-		logger.error("Error polling for messages.", t);
+		logger.error("Error polling for messages in queue {}.", this.pollingEndpointName, t);
 		return Collections.emptyList();
 	}
 

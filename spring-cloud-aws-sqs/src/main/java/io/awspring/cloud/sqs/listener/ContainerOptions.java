@@ -15,15 +15,19 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-
 import io.awspring.cloud.sqs.BackPressureMode;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+
+import java.time.Duration;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Contains the options to be used by the {@link MessageListenerContainer} at runtime.
@@ -49,6 +53,12 @@ public class ContainerOptions {
 
 	private static final MessageDeliveryStrategy DEFAULT_MESSAGE_DELIVERY_STRATEGY = MessageDeliveryStrategy.SINGLE_MESSAGE;
 
+	private static final List<QueueAttributeName> DEFAULT_QUEUE_ATTRIBUTES_NAMES = Collections.emptyList();
+
+	private static final List<String> DEFAULT_MESSAGE_ATTRIBUTES_NAMES = Collections.singletonList(QueueAttributeName.ALL.toString());
+
+	private static final List<String> DEFAULT_MESSAGE_SYSTEM_ATTRIBUTES = Collections.singletonList(QueueAttributeName.ALL.toString());
+
 	private int maxInflightMessagesPerQueue = DEFAULT_MAX_INFLIGHT_MSG_PER_QUEUE;
 
 	private int messagesPerPoll = DEFAULT_MESSAGES_PER_POLL;
@@ -59,13 +69,20 @@ public class ContainerOptions {
 
 	private Duration shutDownTimeout = DEFAULT_SHUTDOWN_TIMEOUT;
 
-	private TaskExecutor sinkTaskExecutor;
-
 	private BackPressureMode backPressureMode = DEFAULT_THROUGHPUT_CONFIGURATION;
 
 	private MessageDeliveryStrategy messageDeliveryStrategy = DEFAULT_MESSAGE_DELIVERY_STRATEGY;
 
-	private Collection<QueueAttributeName> queueAttributeNames = Collections.singletonList(QueueAttributeName.ALL);
+	private Collection<QueueAttributeName> queueAttributeNames = DEFAULT_QUEUE_ATTRIBUTES_NAMES;
+
+	private Collection<String> messageAttributeNames = DEFAULT_MESSAGE_ATTRIBUTES_NAMES;
+
+	private Collection<String> messageSystemAttributeNames = DEFAULT_MESSAGE_SYSTEM_ATTRIBUTES;
+
+	private MessagingMessageConverter<?> messageConverter;
+
+	private TaskExecutor sinkTaskExecutor;
+
 	private Duration messageVisibility;
 
 	public static ContainerOptions create() {
@@ -140,8 +157,23 @@ public class ContainerOptions {
 		return this;
 	}
 
+	public ContainerOptions messageAttributes(Collection<String> messageAttributeNames) {
+		this.messageAttributeNames = messageAttributeNames;
+		return this;
+	}
+
+	public ContainerOptions messageSystemAttributes(Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
+		this.messageSystemAttributeNames = messageSystemAttributeNames.stream().map(MessageSystemAttributeName::toString).collect(Collectors.toList());
+		return this;
+	}
+
 	public ContainerOptions messageVisibility(Duration messageVisibility) {
 		this.messageVisibility = messageVisibility;
+		return this;
+	}
+
+	public ContainerOptions messageConverter(MessagingMessageConverter<?> messageConverter) {
+		this.messageConverter = messageConverter;
 		return this;
 	}
 
@@ -197,8 +229,20 @@ public class ContainerOptions {
 		return this.queueAttributeNames;
 	}
 
+	public Collection<String> getMessageAttributeNames() {
+		return this.messageAttributeNames;
+	}
+
+	public Collection<String> getMessageSystemAttributeNames() {
+		return this.messageSystemAttributeNames;
+	}
+
 	public Duration getMessageVisibility() {
 		return this.messageVisibility;
+	}
+
+	public MessagingMessageConverter<?> getMessageConverter() {
+		return this.messageConverter;
 	}
 
 	/**

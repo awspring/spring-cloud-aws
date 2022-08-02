@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.LifecycleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,11 +88,12 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 			logger.debug("Starting registry {}", this);
 			this.running = true;
 			if (this.isParallelLifecycleManagement) {
-				this.listenerContainers.parallelStream().forEach(MessageListenerContainer::start);
+				LifecycleUtils.startParallel(this.listenerContainers);
 			}
 			else {
 				this.listenerContainers.forEach(MessageListenerContainer::start);
 			}
+			logger.debug("Registry {} started", this);
 		}
 	}
 
@@ -103,7 +103,7 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 			logger.debug("Stopping registry {}", this);
 			this.running = false;
 			if (this.isParallelLifecycleManagement) {
-				this.listenerContainers.parallelStream().forEach(MessageListenerContainer::stop);
+				LifecycleUtils.stopParallel(this.listenerContainers);
 			}
 			else {
 				this.listenerContainers.forEach(MessageListenerContainer::stop);

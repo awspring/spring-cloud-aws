@@ -22,6 +22,9 @@ import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -32,6 +35,7 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -61,7 +65,9 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	private final Collection<Endpoint> endpoints = new ArrayList<>();
 
-	private Collection<MessageConverter> messageConverters = new ArrayList<>();
+	private Consumer<List<MessageConverter>> messageConvertersConsumer = converters -> {};
+
+	private Consumer<List<HandlerMethodArgumentResolver>> methodArgumentResolversConsumer = resolvers -> {};
 
 	private ObjectMapper objectMapper;
 
@@ -108,10 +114,6 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 		this.messageListenerContainerRegistryBeanName = messageListenerContainerRegistryBeanName;
 	}
 
-	public void setMessageConverters(Collection<MessageConverter> messageConverters) {
-		this.messageConverters = messageConverters;
-	}
-
 	/**
 	 * Set to false if {@link org.springframework.context.SmartLifecycle} management by the
 	 * {@link io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry} should be made sequentially rather than
@@ -124,6 +126,31 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
+	}
+
+	public void manageMessageConverters(Consumer<List<MessageConverter>> convertersManager) {
+		this.messageConvertersConsumer = convertersManager;
+	}
+
+	public void manageMethodArgumentResolvers(Consumer<List<HandlerMethodArgumentResolver>> resolversManager) {
+		this.methodArgumentResolversConsumer = resolversManager;
+	}
+
+	public Consumer<List<MessageConverter>> getMessageConverterConsumer() {
+		return this.messageConvertersConsumer;
+	}
+
+	public Consumer<List<HandlerMethodArgumentResolver>> getMethodArgumentResolversConsumer() {
+		return this.methodArgumentResolversConsumer;
+	}
+
+	public ObjectMapper getObjectMapper() {
+		return this.objectMapper;
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
 	}
 
 	public void registerEndpoint(Endpoint endpoint) {
@@ -146,8 +173,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 		this.listenerContainerRegistry.registerListenerContainer(createContainerFor(endpoint));
 	}
 
-	@SuppressWarnings("unchecked")
-	public MessageListenerContainer<?> createContainerFor(Endpoint endpoint) {
+	private MessageListenerContainer<?> createContainerFor(Endpoint endpoint) {
 		String factoryBeanName = getListenerContainerFactoryName(endpoint);
 		Assert.isTrue(this.beanFactory.containsBean(factoryBeanName),
 				() -> "No factory bean with name " + factoryBeanName + " found for endpoint " + endpoint.getId());
@@ -161,16 +187,4 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 				: this.defaultListenerContainerFactoryBeanName;
 	}
 
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.beanFactory = beanFactory;
-	}
-
-	public Collection<MessageConverter> getMessageConverters() {
-		return this.messageConverters;
-	}
-
-	public ObjectMapper getObjectMapper() {
-		return this.objectMapper;
-	}
 }

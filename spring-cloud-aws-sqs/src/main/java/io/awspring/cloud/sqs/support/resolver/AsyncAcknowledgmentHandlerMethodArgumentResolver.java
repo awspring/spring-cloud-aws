@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support;
+package io.awspring.cloud.sqs.support.resolver;
 
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
 import org.springframework.core.MethodParameter;

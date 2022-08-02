@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support;
+package io.awspring.cloud.sqs.support.resolver;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -42,7 +41,7 @@ import org.springframework.validation.annotation.Validated;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class BatchPayloadArgumentResolver implements HandlerMethodArgumentResolver {
+public class BatchPayloadMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private final MessageConverter converter;
 
@@ -53,7 +52,7 @@ public class BatchPayloadArgumentResolver implements HandlerMethodArgumentResolv
 	 * Create a new {@code BatchPayloadArgumentResolver} with the given {@link MessageConverter}.
 	 * @param messageConverter the MessageConverter to use (required)
 	 */
-	public BatchPayloadArgumentResolver(MessageConverter messageConverter) {
+	public BatchPayloadMethodArgumentResolver(MessageConverter messageConverter) {
 		this(messageConverter, null);
 	}
 
@@ -62,7 +61,7 @@ public class BatchPayloadArgumentResolver implements HandlerMethodArgumentResolv
 	 * @param messageConverter the MessageConverter to use (required)
 	 * @param validator the Validator to use (optional)
 	 */
-	public BatchPayloadArgumentResolver(MessageConverter messageConverter, @Nullable Validator validator) {
+	public BatchPayloadMethodArgumentResolver(MessageConverter messageConverter, @Nullable Validator validator) {
 		Assert.notNull(messageConverter, "MessageConverter must not be null");
 		this.converter = messageConverter;
 		this.validator = validator;
@@ -79,9 +78,12 @@ public class BatchPayloadArgumentResolver implements HandlerMethodArgumentResolv
 		Class<?> targetClass = resolveTargetClass(parameter);
 		boolean isMessageParameter = Message.class
 				.isAssignableFrom(ResolvableType.forMethodParameter(parameter).getNested(2).toClass());
-		return getPayloadAsCollection(message).stream().filter(msg -> msg instanceof Message).map(Message.class::cast)
-				.map(msg -> convertAndValidatePayload(parameter, msg, targetClass, isMessageParameter))
-				.collect(Collectors.toList());
+		return getPayloadAsCollection(message)
+			.stream()
+			.filter(msg -> Message.class.isAssignableFrom(msg.getClass()))
+			.map(Message.class::cast)
+			.map(msg -> convertAndValidatePayload(parameter, msg, targetClass, isMessageParameter))
+			.collect(Collectors.toList());
 	}
 
 	private Collection<?> getPayloadAsCollection(Message<?> message) {
@@ -89,7 +91,7 @@ public class BatchPayloadArgumentResolver implements HandlerMethodArgumentResolv
 		if (payload instanceof Collection && !((Collection<?>) payload).isEmpty()) {
 			return (Collection<?>) payload;
 		}
-		throw new IllegalArgumentException("Payload must be a non-empty Collection: " + payload);
+		throw new IllegalArgumentException("Payload must be a non-empty Collection: " + message);
 	}
 
 	private Object convertAndValidatePayload(MethodParameter parameter, Message<?> message, Class<?> targetClass,

@@ -102,10 +102,6 @@ public @interface SqsListener {
 	String pollTimeoutSeconds() default "";
 
 	/**
-	 * The minimum amount of seconds a message needs to be processed by this listener. If by the time the message is
-	 * processed the remaining visibility is less than this value, it will be automatically extended to this value.
-	 * @return the minimum visibility for this endpoint.
-	 * @see io.awspring.cloud.sqs.listener.interceptor.MessageVisibilityExtenderInterceptor
 	 */
 	String messageVisibilitySeconds() default "";
 

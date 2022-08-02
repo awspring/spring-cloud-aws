@@ -15,9 +15,9 @@
  */
 package io.awspring.cloud.sqs.listener;
 
+import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
-import io.awspring.cloud.sqs.listener.errorhandler.LoggingErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
@@ -46,8 +46,6 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMessageListenerContainer.class);
 
-	private final LoggingErrorHandler<T> DEFAULT_ERROR_HANDLER = new LoggingErrorHandler<>();
-
 	private final Object lifecycleMonitor = new Object();
 
 	private volatile boolean isRunning;
@@ -60,7 +58,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private AsyncMessageListener<T> messageListener;
 
-	private AsyncErrorHandler<T> errorHandler = DEFAULT_ERROR_HANDLER;
+	private AsyncErrorHandler<T> errorHandler = (m, t) -> CompletableFutures.failedFuture(t);
 
 	private final Collection<AsyncMessageInterceptor<T>> messageInterceptors = new ArrayList<>();
 
@@ -215,7 +213,8 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 			return;
 		}
 		synchronized (this.lifecycleMonitor) {
-			Assert.state(!this.queueNames.isEmpty(), "Queue logical names not set");
+			Assert.state(!this.queueNames.isEmpty(), "Queue names not set");
+			Assert.notNull(this.messageListener, "messageListener cannot be null");
 			this.isRunning = true;
 			if (this.id == null) {
 				this.id = resolveContainerId();
@@ -228,8 +227,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	}
 
 	private String resolveContainerId() {
-		return "io.awspring.cloud.sqs.sqsListenerEndpointContainer#"
-				+ this.queueNames.stream().findFirst().orElseGet(() -> UUID.randomUUID().toString());
+		return "io.awspring.cloud.sqs.sqsListenerEndpointContainer#" + UUID.randomUUID();
 	}
 
 	protected void doStart() {

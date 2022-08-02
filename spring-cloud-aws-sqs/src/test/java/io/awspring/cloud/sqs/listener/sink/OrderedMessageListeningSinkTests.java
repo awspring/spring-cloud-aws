@@ -22,9 +22,10 @@ class OrderedMessageListeningSinkTests {
 
 	@Test
 	void shouldEmitInOrder() {
-		List<Message<Integer>> messagesToEmit = IntStream.range(0, 100000)
+		int numberOfMessagesToEmit = 1000;
+		List<Message<Integer>> messagesToEmit = IntStream.range(0, numberOfMessagesToEmit)
 			.mapToObj(index -> MessageBuilder.withPayload(index).build()).collect(toList());
-		List<Message<Integer>> received = new ArrayList<>(100000);
+		List<Message<Integer>> received = new ArrayList<>(numberOfMessagesToEmit);
 		AbstractMessageListeningSink<Integer> sink = new OrderedMessageListeningSink<>();
 		sink.setTaskExecutor(Runnable::run);
 		sink.setMessagePipeline((msg, ctx) -> {

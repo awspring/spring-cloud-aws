@@ -64,8 +64,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	}
 
 	/**
-	 * Set the {@link ErrorHandler} instance to be used by containers created with this factory. If none is provided, a
-	 * default {@link io.awspring.cloud.sqs.listener.errorhandler.LoggingErrorHandler} is used. The component will be
+	 * Set the {@link ErrorHandler} instance to be used by containers created with this factory. The component will be
 	 * adapted to an {@link AsyncErrorHandler}.
 	 * @param errorHandler the error handler instance.
 	 */
@@ -75,8 +74,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	}
 
 	/**
-	 * Set the {@link AsyncErrorHandler} instance to be used by containers created with this factory. If none is
-	 * provided, a default {@link io.awspring.cloud.sqs.listener.errorhandler.LoggingErrorHandler} is used.
+	 * Set the {@link AsyncErrorHandler} instance to be used by containers created with this factory.
 	 * @param errorHandler the error handler instance.
 	 */
 	public void setAsyncErrorHandler(AsyncErrorHandler<T> errorHandler) {
@@ -125,8 +123,9 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 		this.messageListener = messageListener;
 	}
 
-	public void setContainerComponentFactory(ContainerComponentFactory<T> containerComponentFactory) {
-		this.containerComponentFactory = containerComponentFactory;
+	public void setContainerComponentFactory(ContainerComponentFactory<T> containerComponentFactorySupplier) {
+		Assert.notNull(containerComponentFactorySupplier, "containerComponentFactory cannot be null");
+		this.containerComponentFactory = containerComponentFactorySupplier;
 	}
 
 	/**
@@ -155,7 +154,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	private void configureContainerOptions(Endpoint endpoint, ContainerOptions options) {
 		ConfigUtils.INSTANCE
 			.acceptIfInstance(endpoint, AbstractEndpoint.class, abstractEndpoint ->
-				options.messageDeliveryStrategy(abstractEndpoint.getMessageDeliveryStrategy()));
+				abstractEndpoint.configureMessageDeliveryStrategy(options::messageDeliveryStrategy));
 		doConfigureContainerOptions(endpoint, options);
 	}
 

@@ -19,7 +19,7 @@ import io.awspring.cloud.sqs.listener.ListenerExecutionFailedException;
 import java.util.Collection;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
-import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 
 /**
  *
@@ -47,7 +47,7 @@ public abstract class MessagingMessageListenerAdapter<T> {
 
 	protected final Object invokeHandler(Collection<Message<T>> messages) {
 		try {
-			return handlerMethod.invoke(new GenericMessage<>(messages));
+			return handlerMethod.invoke(MessageBuilder.withPayload(messages).build());
 		}
 		catch (Exception ex) {
 			throw new ListenerExecutionFailedException("Listener failed to process message", ex);

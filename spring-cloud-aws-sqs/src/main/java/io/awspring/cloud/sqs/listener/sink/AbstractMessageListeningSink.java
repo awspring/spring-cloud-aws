@@ -126,8 +126,8 @@ public abstract class AbstractMessageListeningSink<T> implements MessageProcessi
 	}
 
 	private String getOrCreateId() {
-		return taskExecutor instanceof ThreadPoolTaskExecutor
-			? ((ThreadPoolTaskExecutor) taskExecutor).getThreadNamePrefix()
+		return this.taskExecutor instanceof ThreadPoolTaskExecutor
+			? ((ThreadPoolTaskExecutor) this.taskExecutor).getThreadNamePrefix()
 			: UUID.randomUUID().toString();
 	}
 
