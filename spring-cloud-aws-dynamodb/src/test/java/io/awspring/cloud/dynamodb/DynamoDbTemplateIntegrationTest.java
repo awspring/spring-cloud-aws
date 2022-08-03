@@ -44,7 +44,7 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(DYNAMODB).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.0.3")).withServices(DYNAMODB).withReuse(true);
 
 	@BeforeAll
 	public static void createTable() {
