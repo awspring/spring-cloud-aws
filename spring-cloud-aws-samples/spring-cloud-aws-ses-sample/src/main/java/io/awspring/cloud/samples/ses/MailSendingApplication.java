@@ -53,7 +53,7 @@ public class MailSendingApplication {
 	 * logs in debug mode.
 	 */
 	private static final LocalStackContainer localStack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.2")).withEnv(Collections.singletonMap("DEBUG", "1"))
+			DockerImageName.parse("localstack/localstack:1.0.3")).withEnv(Collections.singletonMap("DEBUG", "1"))
 					.withServices(SES);
 
 	public static void main(String[] args) {
