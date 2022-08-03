@@ -36,7 +36,8 @@ public class AppConfigPropertySourceTest {
 
 	@Test
 	void loadYamlAppConfigFile() throws IOException {
-		byte[] yamlFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream("working-spring-dynamodb.yaml"));
+		byte[] yamlFile = FileCopyUtils
+				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("working-spring-dynamodb.yaml"));
 		StartConfigurationSessionResponse startConfigurationSessionResponse = StartConfigurationSessionResponse
 				.builder().initialConfigurationToken("20").build();
 
@@ -44,7 +45,7 @@ public class AppConfigPropertySourceTest {
 				.thenReturn(startConfigurationSessionResponse);
 
 		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
-				.configuration(SdkBytes.fromByteArray(yamlFile)).build();
+				.configuration(SdkBytes.fromByteArray(yamlFile)).contentType("application/x-yaml").build();
 		when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any())).thenReturn(response);
 		RequestContext requestContext = RequestContext.builder().applicationIdentifier("myapp")
 				.environmentIdentifier("test").configurationProfileIdentifier("1").context("myapp_1_test").build();
@@ -54,6 +55,58 @@ public class AppConfigPropertySourceTest {
 		appConfigPropertySource.init();
 		Assertions.assertThat(appConfigPropertySource.getProperty("spring.cloud.aws.dynamodb.enabled"))
 				.isEqualTo(Boolean.TRUE);
-		Assertions.assertThat(appConfigPropertySource.getProperty("spring.cloud.aws.dynamodb.endpoint")).isEqualTo("localhost://123123");
+		Assertions.assertThat(appConfigPropertySource.getProperty("spring.cloud.aws.dynamodb.endpoint"))
+				.isEqualTo("localhost://123123");
+	}
+
+	@Test
+	void loadJsonAppConfigFile() throws IOException {
+		byte[] yamlFile = FileCopyUtils
+				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("working-json-file.json"));
+		StartConfigurationSessionResponse startConfigurationSessionResponse = StartConfigurationSessionResponse
+				.builder().initialConfigurationToken("20").build();
+
+		when(appConfigDataClient.startConfigurationSession((StartConfigurationSessionRequest) any()))
+				.thenReturn(startConfigurationSessionResponse);
+
+		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
+				.configuration(SdkBytes.fromByteArray(yamlFile)).contentType("application/json").build();
+		when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any())).thenReturn(response);
+		RequestContext requestContext = RequestContext.builder().applicationIdentifier("myapp")
+				.environmentIdentifier("test").configurationProfileIdentifier("1").context("myapp_1_test").build();
+
+		AppConfigPropertySource appConfigPropertySource = new AppConfigPropertySource(requestContext,
+				appConfigDataClient);
+		appConfigPropertySource.init();
+		Assertions.assertThat(appConfigPropertySource.getProperty("cloud.aws.dynamodb.enabled"))
+				.isEqualTo(Boolean.TRUE);
+		Assertions.assertThat(appConfigPropertySource.getProperty("cloud.aws.dynamodb.region")).isEqualTo("eu-west-2");
+		Assertions.assertThat(appConfigPropertySource.getProperty("cloud.aws.s3.enabled")).isEqualTo(Boolean.FALSE);
+		Assertions.assertThat(appConfigPropertySource.getProperty("cloud.aws.s3.region")).isEqualTo("eu-west-2");
+		Assertions.assertThat(appConfigPropertySource.getProperty("server.port")).isEqualTo(8089);
+	}
+
+	@Test
+	void loadTextPropertiesAppConfigFile() throws IOException {
+		byte[] yamlFile = FileCopyUtils
+				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("working-properties-file.properties"));
+		StartConfigurationSessionResponse startConfigurationSessionResponse = StartConfigurationSessionResponse
+				.builder().initialConfigurationToken("20").build();
+
+		when(appConfigDataClient.startConfigurationSession((StartConfigurationSessionRequest) any()))
+				.thenReturn(startConfigurationSessionResponse);
+
+		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
+				.configuration(SdkBytes.fromByteArray(yamlFile)).contentType("text/plain").build();
+		when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any())).thenReturn(response);
+		RequestContext requestContext = RequestContext.builder().applicationIdentifier("myapp")
+				.environmentIdentifier("test").configurationProfileIdentifier("1").context("myapp_1_test").build();
+
+		AppConfigPropertySource appConfigPropertySource = new AppConfigPropertySource(requestContext,
+				appConfigDataClient);
+		appConfigPropertySource.init();
+		Assertions.assertThat(appConfigPropertySource.getProperty("cloud.aws.sqs.enabled")).isEqualTo("false");
+		Assertions.assertThat(appConfigPropertySource.getProperty("cloud.aws.dynamodb.region")).isEqualTo("eu-west-2");
+		Assertions.assertThat(appConfigPropertySource.getProperty("cloud.aws.s3.enabled")).isEqualTo("false");
 	}
 }

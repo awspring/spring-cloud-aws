@@ -24,6 +24,11 @@ When specifying key all below values must be set:
 2. ConfigurationProfileName or ConfigurationProfileIdentifier
 3. EnvironmentName or EnvironmentIdentifier
 
+Spring Cloud AWS AppConfig supports following file types:
+1. Yaml
+2. Plain text (properties)
+3. Json
+
 For example, assuming that the ApplicationName in AppConfig is `cool-spring-application`, ConfigurationProfileName is "ProductionConfig" and EnvironmentName is "prod"
 
 [source,properties]
@@ -42,7 +47,7 @@ To load multiple configurations, separate their names with `;`:
 
 [source,properties]
 ----
-spring.config.import=aws-app-config:cool-spring-application___ProductionConfig___prod;new-spring-application___ProdConfig___prod
+spring.config.import=aws-app-config:cool-spring-application___ProductionConfig___prod;new-spring-application___ProdConfig___prod2
 ----
 
 If some config files are required, and other ones are optional, list them as separate entries in `spring.config.import` property:
@@ -50,7 +55,7 @@ If some config files are required, and other ones are optional, list them as sep
 [source,properties]
 ----
 spring.config.import[0]=optional:aws-app-config:new-spring-application___ProdConfig___prod
-spring.config.import[1]=aws-app-config:cool-spring-application___ProductionConfig___prod
+spring.config.import[1]=aws-app-config:cool-spring-application___ProductionConfig___prod2
 ----
 
 Fetched config file properties can be referenced with `@Value`, bound to `@ConfigurationProperties` classes, or referenced in `application.properties` file.
@@ -190,8 +195,8 @@ Following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2"]
 |===
-|  Get config value:
-| TO::DO
+| Start session | `appconfig:StartConfigurationSession`
+| Get configuration | `appconfig:GetLatestConfiguration`
 |===
 
 Sample IAM policy granting access to AppConfig:
@@ -201,9 +206,15 @@ Sample IAM policy granting access to AppConfig:
 {
     "Version": "2012-10-17",
     "Statement": [
-        {
-            TO:DO
-        }
+     {
+                "Sid": "VisualEditor0",
+                "Effect": "Allow",
+                "Action": [
+                    "appconfig:GetLatestConfiguration",
+                    "appconfig:StartConfigurationSession"
+                ],
+                "Resource": "yourARN"
+            }
     ]
 }
 ----

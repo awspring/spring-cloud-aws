@@ -15,13 +15,14 @@
  */
 package io.awspring.cloud.appconfig;
 
+import java.io.IOException;
 import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationRequest;
@@ -34,6 +35,10 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 	// logger must stay static non-final so that it can be set with a value in
 	// AppConfigDataLoader
 	private static Log LOG = LogFactory.getLog(AppConfigPropertySource.class);
+
+	private static final String YAML_TYPE = "application/x-yaml";
+	private static final String TEXT_TYPE = "text/plain";
+	private static final String JSON_TYPE = "application/json";
 
 	private final String configurationProfileIdentifier;
 	private final String environmentIdentifier;
@@ -48,7 +53,7 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 
 	}
 
-	public void init() {
+	public void init() throws IOException {
 		StartConfigurationSessionRequest sessionRequest = StartConfigurationSessionRequest.builder()
 				.environmentIdentifier(this.environmentIdentifier).applicationIdentifier(this.applicationIdentifier)
 				.configurationProfileIdentifier(this.configurationProfileIdentifier).build();
@@ -70,11 +75,26 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 		return this.properties.get(name);
 	}
 
-	private void getParameters(GetLatestConfigurationRequest request) {
+	private void getParameters(GetLatestConfigurationRequest request) throws IOException {
 		GetLatestConfigurationResponse response = this.source.getLatestConfiguration(request);
+		if (response.contentType().equals(YAML_TYPE) || response.contentType().equals(JSON_TYPE)) {
+			resolveYamlOrJson(response);
+		}
+		else if (response.contentType().equals(TEXT_TYPE)) {
+			resolveText(response);
+		}
+	}
+
+	// YAML is a superset of JSON, which means you can parse JSON with a YAML parser
+	private void resolveYamlOrJson(GetLatestConfigurationResponse response) {
 		YamlPropertiesFactoryBean bean = new YamlPropertiesFactoryBean();
-		bean.setResources(new ByteArrayResource(response.configuration().asByteArray()));
+		bean.setResources(new InputStreamResource(response.configuration().asInputStream()));
 		properties = bean.getObject();
+	}
+
+	private void resolveText(GetLatestConfigurationResponse response) throws IOException {
+		properties = new Properties();
+		properties.load(response.configuration().asInputStream());
 	}
 
 }
