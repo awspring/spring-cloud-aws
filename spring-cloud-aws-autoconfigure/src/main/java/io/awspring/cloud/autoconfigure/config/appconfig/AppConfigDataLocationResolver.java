@@ -70,6 +70,10 @@ public class AppConfigDataLocationResolver extends AbstractAwsConfigDataLocation
 		contexts.forEach(propertySourceContext -> locations
 				.add(new AppConfigDataResource(splitContext(propertySourceContext), location.isOptional(), sources)));
 
+		if (!location.isOptional() && locations.isEmpty()) {
+			throw new AppConfigKeysMissingException(
+					"No AppConfig keys provided in `spring.config.import=aws-appconfig:` configuration.");
+		}
 		return locations;
 	}
 
