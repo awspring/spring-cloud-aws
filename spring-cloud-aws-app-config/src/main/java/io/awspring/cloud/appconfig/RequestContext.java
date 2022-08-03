@@ -28,6 +28,9 @@ public class RequestContext {
 	 * ApplicationIdentifier or ApplicationName that is used to fetch SessionToken.
 	 */
 	private String applicationIdentifier;
+	/**
+	 * Full context name which was used to extract values configurationProfileIdentifier, environmentIdentifier and applicationIdentifier.
+	 */
 	private String context;
 
 	public String getConfigurationProfileIdentifier() {

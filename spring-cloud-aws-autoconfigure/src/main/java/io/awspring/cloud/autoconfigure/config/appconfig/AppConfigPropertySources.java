@@ -40,7 +40,7 @@ public class AppConfigPropertySources {
 		Assert.notNull(context, "RequestContext is required");
 		Assert.notNull(client, "AppConfigDataClient is required");
 
-		LOG.info("Loading property from AWS AppConfig with name: " + context + ", optional: " + optional);
+		LOG.info("Loading property from AWS AppConfig with name: " + context.getContext() + ", optional: " + optional);
 		try {
 			AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
 			propertySource.init();

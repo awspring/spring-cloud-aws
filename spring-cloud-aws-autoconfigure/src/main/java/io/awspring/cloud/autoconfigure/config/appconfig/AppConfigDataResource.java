@@ -35,15 +35,15 @@ public class AppConfigDataResource extends ConfigDataResource {
 	}
 
 	/**
-	 * Returns context which is equal to AppConfig name.
-	 * @return the context
+	 * Returns {@link RequestContext} which contains values of a context name and values extracted from a context name.
+	 * @return the {@link RequestContext} object.
 	 */
 	public RequestContext getContext() {
 		return this.context;
 	}
 
 	/**
-	 * If application startup should fail when secret cannot be loaded or does not exist.
+	 * If application startup should fail when file cannot be loaded or does not exist.
 	 * @return is optional
 	 */
 	public boolean isOptional() {
