@@ -69,9 +69,7 @@ public class SecretsManagerConfigDataLocationResolver
 		registerBean(resolverContext, CredentialsProperties.class,
 				loadCredentialsProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
-
 		registerAndPromoteBean(resolverContext, SecretsManagerClient.class, this::createAwsSecretsManagerClient);
-
 		SecretsManagerPropertySources propertySources = new SecretsManagerPropertySources();
 
 		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));

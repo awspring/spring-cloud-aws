@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.autoconfigure.ses;
 
+import static io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer.createSpecificMetricPublisher;
+
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -33,6 +35,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.SesClientBuilder;
 
@@ -53,10 +56,20 @@ public class SesAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public SesClient sesClient(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer) {
-		return awsClientBuilderConfigurer.configure(SesClient.builder(), properties, configurer.getIfAvailable())
-				.build();
+	public SesClientBuilder sesClientBuilder(SesProperties properties,
+			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+			ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer,
+			ObjectProvider<MetricPublisher> metricPublisherObjectProvider) {
+		MetricPublisher metricPublisher = createSpecificMetricPublisher(metricPublisherObjectProvider.getIfAvailable(),
+				properties, awsClientBuilderConfigurer);
+		return awsClientBuilderConfigurer.configure(SesClient.builder(), properties, configurer.getIfAvailable(),
+				metricPublisher);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public SesClient sesClient(SesClientBuilder sesClientBuilder) {
+		return sesClientBuilder.build();
 	}
 
 	@Bean

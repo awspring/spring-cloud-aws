@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure;
 
+import io.awspring.cloud.autoconfigure.core.CloudWatchMetricsPublisherProperties;
 import java.net.URI;
 import org.springframework.lang.Nullable;
 
@@ -37,6 +38,12 @@ public abstract class AwsClientProperties {
 	@Nullable
 	private String region;
 
+	/**
+	 * Overrides the global enablement of the CloudWatch MetricsPublisher.
+	 */
+	@Nullable
+	private CloudWatchMetricsPublisherProperties metrics;
+
 	@Nullable
 	public URI getEndpoint() {
 		return this.endpoint;
@@ -53,5 +60,14 @@ public abstract class AwsClientProperties {
 
 	public void setRegion(String region) {
 		this.region = region;
+	}
+
+	@Nullable
+	public CloudWatchMetricsPublisherProperties getMetrics() {
+		return metrics;
+	}
+
+	public void setMetrics(@Nullable CloudWatchMetricsPublisherProperties metrics) {
+		this.metrics = metrics;
 	}
 }
