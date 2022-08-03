@@ -133,8 +133,8 @@ class DynamoDbAutoConfigurationTest {
 		void customClusterDaxClientDaxSettings() {
 			contextRunner.withPropertyValues(
 					"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com",
-					"spring.cloud.aws.dynamodb.dax.writeRetries:4",
-					"spring.cloud.aws.dynamodb.dax.connectTimeoutMillis:4000").run(context -> {
+					"spring.cloud.aws.dynamodb.dax.write-retries:4",
+					"spring.cloud.aws.dynamodb.dax.connect-timeoutMillis:4000").run(context -> {
 						ConfiguredDaxClient daxClient = new ConfiguredDaxClient(
 								context.getBean(ClusterDaxClient.class));
 						assertThat(daxClient.getUrl())

@@ -34,10 +34,8 @@ public class DynamoDbProperties extends AwsClientProperties {
 	/**
 	 * Properties that are used to configure {{@link software.amazon.dax.ClusterDaxClient}}.
 	 */
-	@Nullable
-	private DaxProperties dax;
+	private DaxProperties dax = new DaxProperties();
 
-	@Nullable
 	public DaxProperties getDax() {
 		return dax;
 	}

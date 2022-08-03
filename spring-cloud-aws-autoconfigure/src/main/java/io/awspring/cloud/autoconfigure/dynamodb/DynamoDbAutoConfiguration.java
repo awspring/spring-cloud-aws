@@ -62,7 +62,7 @@ public class DynamoDbAutoConfiguration {
 		@ConditionalOnMissingBean
 		@Bean
 		public DynamoDbClient dynamoDbClient(DynamoDbProperties properties, AwsCredentialsProvider credentialsProvider,
-				AwsRegionProvider regionProvider, ObjectProvider<List<MetricPublisher>> metricsPublishers)
+				AwsRegionProvider regionProvider)
 				throws IOException {
 			DaxProperties daxProperties = properties.getDax();
 			software.amazon.dax.Configuration.Builder configuration = software.amazon.dax.Configuration.builder()
@@ -78,9 +78,6 @@ public class DynamoDbAutoConfiguration {
 					.skipHostNameVerification(daxProperties.isSkipHostNameVerification())
 					.region(AwsClientBuilderConfigurer.resolveRegion(properties, regionProvider))
 					.credentialsProvider(credentialsProvider).url(properties.getDax().getUrl());
-			if (metricsPublishers.getIfAvailable() != null) {
-				metricsPublishers.getIfAvailable().forEach(configuration::addMetricPublisher);
-			}
 			return ClusterDaxClient.builder().overrideConfiguration(configuration.build()).build();
 		}
 
