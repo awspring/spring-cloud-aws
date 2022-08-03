@@ -152,14 +152,12 @@ class CrossRegionS3ClientTests {
 	}
 
 	private void createBucket(String s, Region region) {
-		when(defaultClient.listObjects(ListObjectsRequest.builder().bucket(s).build()))
-				.thenThrow(
-						S3Exception.builder()
-								.awsErrorDetails(AwsErrorDetails.builder()
-										.sdkHttpResponse(SdkHttpResponse.builder().statusCode(301)
-												.appendHeader(CrossRegionS3Client.BUCKET_REDIRECT_HEADER, region.id()).build())
-										.build())
-								.build());
+		when(defaultClient.listObjects(ListObjectsRequest.builder().bucket(s).build())).thenThrow(S3Exception.builder()
+				.awsErrorDetails(AwsErrorDetails.builder()
+						.sdkHttpResponse(SdkHttpResponse.builder().statusCode(301)
+								.appendHeader(CrossRegionS3Client.BUCKET_REDIRECT_HEADER, region.id()).build())
+						.build())
+				.build());
 	}
 
 }
