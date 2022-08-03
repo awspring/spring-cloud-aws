@@ -23,6 +23,10 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 
+/**
+ * @author Matej Nedic
+ * @since 3.0
+ */
 public class AppConfigPropertySources {
 
 	private static Log LOG = LogFactory.getLog(AppConfigPropertySources.class);

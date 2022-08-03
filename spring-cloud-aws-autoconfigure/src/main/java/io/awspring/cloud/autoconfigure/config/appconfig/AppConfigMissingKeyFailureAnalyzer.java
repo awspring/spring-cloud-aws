@@ -18,6 +18,10 @@ package io.awspring.cloud.autoconfigure.config.appconfig;
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
+/**
+ * @author Matej Nedic
+ * @since 3.0
+ */
 public class AppConfigMissingKeyFailureAnalyzer extends AbstractFailureAnalyzer<AppConfigKeysMissingException> {
 
 	@Override

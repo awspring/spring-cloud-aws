@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author Matej Nedic
+ * @since 3.0
  */
 @ConfigurationProperties(AppConfigProperties.CONFIG_PREFIX)
 public class AppConfigProperties extends AwsClientProperties {

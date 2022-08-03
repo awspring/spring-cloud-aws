@@ -15,6 +15,10 @@
  */
 package io.awspring.cloud.appconfig;
 
+/**
+ * @author Matej Nedic
+ * @since 3.0
+ */
 public class RequestContext {
 	/**
 	 * ConfigurationProfileIdentifier or ConfigurationProfileName that is used to fetch SessionToken.
@@ -29,7 +33,8 @@ public class RequestContext {
 	 */
 	private String applicationIdentifier;
 	/**
-	 * Full context name which was used to extract values configurationProfileIdentifier, environmentIdentifier and applicationIdentifier.
+	 * Full context name which was used to extract values configurationProfileIdentifier, environmentIdentifier and
+	 * applicationIdentifier.
 	 */
 	private String context;
 

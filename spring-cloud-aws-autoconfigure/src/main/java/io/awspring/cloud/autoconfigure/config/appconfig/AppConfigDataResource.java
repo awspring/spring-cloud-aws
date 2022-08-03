@@ -20,6 +20,10 @@ import java.util.Objects;
 import org.springframework.boot.context.config.ConfigDataResource;
 import org.springframework.core.style.ToStringCreator;
 
+/**
+ * @author Matej Nedic
+ * @since 3.0
+ */
 public class AppConfigDataResource extends ConfigDataResource {
 
 	private final RequestContext context;

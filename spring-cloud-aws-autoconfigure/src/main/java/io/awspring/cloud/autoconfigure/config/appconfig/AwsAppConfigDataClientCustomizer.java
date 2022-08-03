@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.appconfigdata.AppConfigDataClientBuilder;
 
 /**
  * @author Matej Nedic
- * @since 3.0.0
+ * @since 3.0
  */
 public interface AwsAppConfigDataClientCustomizer extends AwsClientCustomizer<AppConfigDataClientBuilder> {
 }

@@ -36,6 +36,10 @@ import org.springframework.boot.context.properties.bind.Binder;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClientBuilder;
 
+/**
+ * @author Matej Nedic
+ * @since 3.0
+ */
 public class AppConfigDataLocationResolver extends AbstractAwsConfigDataLocationResolver<AppConfigDataResource> {
 
 	public static final String PREFIX = "aws-appconfig:";

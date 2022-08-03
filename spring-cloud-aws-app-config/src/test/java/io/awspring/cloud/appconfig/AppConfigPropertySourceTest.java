@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfiguratio
 import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionRequest;
 import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionResponse;
 
-public class AppConfigPropertySourceTest {
+class AppConfigPropertySourceTest {
 
 	private final AppConfigDataClient appConfigDataClient = mock(AppConfigDataClient.class);
 

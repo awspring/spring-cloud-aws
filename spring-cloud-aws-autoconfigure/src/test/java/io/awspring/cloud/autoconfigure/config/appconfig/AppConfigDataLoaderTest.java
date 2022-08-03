@@ -48,7 +48,7 @@ import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSes
 import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionResponse;
 
 @ExtendWith(OutputCaptureExtension.class)
-public class AppConfigDataLoaderTest {
+class AppConfigDataLoaderTest {
 
 	static final AppConfigDataClient appConfigDataClient = Mockito.mock(AppConfigDataClient.class);
 

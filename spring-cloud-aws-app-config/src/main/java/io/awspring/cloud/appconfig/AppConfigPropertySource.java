@@ -30,6 +30,10 @@ import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfiguratio
 import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionRequest;
 import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionResponse;
 
+/**
+ * @author Matej Nedic
+ * @since 3.0
+ */
 public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigDataClient> {
 
 	// logger must stay static non-final so that it can be set with a value in

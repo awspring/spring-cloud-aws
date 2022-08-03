@@ -26,6 +26,10 @@ import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 
+/**
+ * @author Matej Nedic
+ * @since 3.0
+ */
 public class AppConfigDataLoader implements ConfigDataLoader<AppConfigDataResource> {
 
 	public AppConfigDataLoader(DeferredLogFactory logFactory) {

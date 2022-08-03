@@ -15,6 +15,10 @@
  */
 package io.awspring.cloud.autoconfigure.config.appconfig;
 
+/**
+ * @author Matej Nedic
+ * @since 3.0
+ */
 public class AppConfigKeysMissingException extends RuntimeException {
 
 	AppConfigKeysMissingException(String message) {
