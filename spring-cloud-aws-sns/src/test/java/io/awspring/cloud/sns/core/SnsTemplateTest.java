@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.awspring.cloud.sns.Person;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -137,18 +138,6 @@ class SnsTemplateTest {
 			assertThat(r.messageGroupId()).isNull();
 			assertThat(r.messageDeduplicationId()).isNull();
 		}));
-	}
-
-	static class Person {
-		private final String name;
-
-		public Person(String name) {
-			this.name = name;
-		}
-
-		public String getName() {
-			return name;
-		}
 	}
 
 }
