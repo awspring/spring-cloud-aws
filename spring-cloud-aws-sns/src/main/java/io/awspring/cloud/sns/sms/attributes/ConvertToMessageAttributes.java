@@ -21,7 +21,7 @@ import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.STRING;
 import java.util.Map;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
-public interface ConvertToMessageAttributes {
+interface ConvertToMessageAttributes {
 
 	void convertAndPopulate(Map<String, MessageAttributeValue> attributeValueMap);
 

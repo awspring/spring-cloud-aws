@@ -16,8 +16,9 @@
 package io.awspring.cloud.sns.sms.attributes;
 
 /**
- * Helper class that is used to reference field of {@link SmsMessageAttributes} to key that will be used in {@link software.amazon.awssdk.services.sns.model.PublishRequest}.
- 
+ * Helper class that is used to reference field of {@link SmsMessageAttributes} to key that will be used in
+ * {@link software.amazon.awssdk.services.sns.model.PublishRequest}.
+ * 
  * @author Matej Nedic
  * @since 3.0.0
  */
