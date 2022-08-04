@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
  * Properties related to AWS DynamoDB.
@@ -33,6 +34,7 @@ public class DynamoDbProperties extends AwsClientProperties {
 	/**
 	 * Properties that are used to configure {@link software.amazon.dax.ClusterDaxClient}.
 	 */
+	@NestedConfigurationProperty
 	private DaxProperties dax = new DaxProperties();
 
 	public DaxProperties getDax() {
