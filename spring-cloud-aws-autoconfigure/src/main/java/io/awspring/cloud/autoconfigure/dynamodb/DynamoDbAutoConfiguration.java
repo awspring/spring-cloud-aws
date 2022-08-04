@@ -75,6 +75,7 @@ public class DynamoDbAutoConfiguration {
 			propertyMapper.from(daxProperties.getRequestTimeoutMillis()).whenNonNull()
 					.to(configuration::requestTimeoutMillis);
 			propertyMapper.from(daxProperties.getWriteRetries()).whenNonNull().to(configuration::writeRetries);
+			propertyMapper.from(daxProperties.getReadRetries()).whenNonNull().to(configuration::readRetries);
 			propertyMapper.from(daxProperties.getClusterUpdateIntervalMillis()).whenNonNull()
 					.to(configuration::clusterUpdateIntervalMillis);
 			propertyMapper.from(daxProperties.getEndpointRefreshTimeoutMillis()).whenNonNull()

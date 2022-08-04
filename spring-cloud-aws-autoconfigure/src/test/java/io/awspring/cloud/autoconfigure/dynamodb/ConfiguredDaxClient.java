@@ -43,6 +43,10 @@ class ConfiguredDaxClient {
 		return configuration.writeRetries();
 	}
 
+	public int getReadRetries() {
+		return configuration.readRetries();
+	}
+
 	public int getConnectTimeoutMillis() {
 		return configuration.connectTimeoutMillis();
 	}

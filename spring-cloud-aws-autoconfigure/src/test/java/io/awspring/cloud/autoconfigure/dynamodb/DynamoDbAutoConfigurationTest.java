@@ -134,7 +134,7 @@ class DynamoDbAutoConfigurationTest {
 		void propertiesAreAppliedToDaxClient() {
 			contextRunner.withPropertyValues(
 					"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com",
-					"spring.cloud.aws.dynamodb.dax.write-retries:4",
+					"spring.cloud.aws.dynamodb.dax.write-retries:4", "spring.cloud.aws.dynamodb.dax.read-retries:5",
 					"spring.cloud.aws.dynamodb.dax.idle-timeout-millis:10",
 					"spring.cloud.aws.dynamodb.dax.request-timeout-millis:20",
 					"spring.cloud.aws.dynamodb.dax.connection-ttl-millis:30",
@@ -149,6 +149,7 @@ class DynamoDbAutoConfigurationTest {
 						assertThat(daxClient.getUrl())
 								.isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
 						assertThat(daxClient.getWriteRetries()).isEqualTo(4);
+						assertThat(daxClient.getReadRetries()).isEqualTo(5);
 						assertThat(daxClient.getIdleTimeoutMillis()).isEqualTo(10);
 						assertThat(daxClient.getRequestTimeoutMillis()).isEqualTo(20);
 						assertThat(daxClient.getConnectionTtlMillis()).isEqualTo(30);
@@ -172,6 +173,7 @@ class DynamoDbAutoConfigurationTest {
 						assertThat(daxClient.getUrl())
 								.isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
 						assertThat(daxClient.getWriteRetries()).isEqualTo(2);
+						assertThat(daxClient.getReadRetries()).isEqualTo(2);
 						assertThat(daxClient.getIdleTimeoutMillis()).isEqualTo(30000);
 						assertThat(daxClient.getRequestTimeoutMillis()).isEqualTo(1000);
 						assertThat(daxClient.getConnectionTtlMillis()).isEqualTo(0);
