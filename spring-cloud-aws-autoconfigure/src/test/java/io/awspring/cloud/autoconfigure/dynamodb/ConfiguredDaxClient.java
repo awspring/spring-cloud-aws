@@ -46,4 +46,36 @@ class ConfiguredDaxClient {
 	public int getConnectTimeoutMillis() {
 		return configuration.connectTimeoutMillis();
 	}
+
+	public int getRequestTimeoutMillis() {
+		return configuration.requestTimeoutMillis();
+	}
+
+	public int getClusterUpdateIntervalMillis() {
+		return configuration.clusterUpdateIntervalMillis();
+	}
+
+	public int getEndpointRefreshTimeoutMillis() {
+		return configuration.endpointRefreshTimeoutMillis();
+	}
+
+	public int getConnectionTtlMillis() {
+		return configuration.connectionTtlMillis();
+	}
+
+	public int getIdleTimeoutMillis() {
+		return configuration.idleTimeoutMillis();
+	}
+
+	public int getMaxConcurrency() {
+		return configuration.maxConcurrency();
+	}
+
+	public int getMaxPendingConnectionAcquires() {
+		return configuration.maxPendingConnectionAcquires();
+	}
+
+	public boolean getSkipHostNameVerification() {
+		return configuration.skipHostNameVerification();
+	}
 }

@@ -45,6 +45,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 import software.amazon.dax.ClusterDaxClient;
 
 /**
+ * Tests for {@link DynamoDbAutoConfiguration}.
  *
  * @author Matej Nedic
  */
@@ -130,17 +131,56 @@ class DynamoDbAutoConfigurationTest {
 	class DaxTests {
 
 		@Test
-		void customClusterDaxClientDaxSettings() {
+		void propertiesAreAppliedToDaxClient() {
 			contextRunner.withPropertyValues(
 					"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com",
 					"spring.cloud.aws.dynamodb.dax.write-retries:4",
-					"spring.cloud.aws.dynamodb.dax.connect-timeoutMillis:4000").run(context -> {
+					"spring.cloud.aws.dynamodb.dax.idle-timeout-millis:10",
+					"spring.cloud.aws.dynamodb.dax.request-timeout-millis:20",
+					"spring.cloud.aws.dynamodb.dax.connection-ttl-millis:30",
+					"spring.cloud.aws.dynamodb.dax.cluster-update-interval-millis:40",
+					"spring.cloud.aws.dynamodb.dax.endpoint-refresh-timeout-millis:50",
+					"spring.cloud.aws.dynamodb.dax.max-concurrency:60",
+					"spring.cloud.aws.dynamodb.dax.max-pending-connection-acquires:70",
+					"spring.cloud.aws.dynamodb.dax.skip-hostname-verification:true",
+					"spring.cloud.aws.dynamodb.dax.connect-timeout-millis:80").run(context -> {
 						ConfiguredDaxClient daxClient = new ConfiguredDaxClient(
 								context.getBean(ClusterDaxClient.class));
 						assertThat(daxClient.getUrl())
 								.isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
 						assertThat(daxClient.getWriteRetries()).isEqualTo(4);
-						assertThat(daxClient.getConnectTimeoutMillis()).isEqualTo(4000);
+						assertThat(daxClient.getIdleTimeoutMillis()).isEqualTo(10);
+						assertThat(daxClient.getRequestTimeoutMillis()).isEqualTo(20);
+						assertThat(daxClient.getConnectionTtlMillis()).isEqualTo(30);
+						assertThat(daxClient.getClusterUpdateIntervalMillis()).isEqualTo(40);
+						assertThat(daxClient.getEndpointRefreshTimeoutMillis()).isEqualTo(50);
+						assertThat(daxClient.getMaxConcurrency()).isEqualTo(60);
+						assertThat(daxClient.getMaxPendingConnectionAcquires()).isEqualTo(70);
+						assertThat(daxClient.getSkipHostNameVerification()).isTrue();
+						assertThat(daxClient.getConnectTimeoutMillis()).isEqualTo(80);
+					});
+		}
+
+		@Test
+		void defaultsAreUsedWhenPropertiesAreNotSet() {
+			contextRunner
+					.withPropertyValues(
+							"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
+					.run(context -> {
+						ConfiguredDaxClient daxClient = new ConfiguredDaxClient(
+								context.getBean(ClusterDaxClient.class));
+						assertThat(daxClient.getUrl())
+								.isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
+						assertThat(daxClient.getWriteRetries()).isEqualTo(2);
+						assertThat(daxClient.getIdleTimeoutMillis()).isEqualTo(30000);
+						assertThat(daxClient.getRequestTimeoutMillis()).isEqualTo(1000);
+						assertThat(daxClient.getConnectionTtlMillis()).isEqualTo(0);
+						assertThat(daxClient.getClusterUpdateIntervalMillis()).isEqualTo(4000);
+						assertThat(daxClient.getEndpointRefreshTimeoutMillis()).isEqualTo(6000);
+						assertThat(daxClient.getMaxConcurrency()).isEqualTo(1000);
+						assertThat(daxClient.getMaxPendingConnectionAcquires()).isEqualTo(10000);
+						assertThat(daxClient.getSkipHostNameVerification()).isFalse();
+						assertThat(daxClient.getConnectTimeoutMillis()).isEqualTo(1000);
 					});
 		}
 

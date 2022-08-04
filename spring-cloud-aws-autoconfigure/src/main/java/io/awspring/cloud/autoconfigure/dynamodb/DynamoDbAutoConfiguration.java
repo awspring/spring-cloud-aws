@@ -21,7 +21,6 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.dynamodb.*;
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -31,12 +30,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
@@ -62,21 +61,31 @@ public class DynamoDbAutoConfiguration {
 		@ConditionalOnMissingBean
 		@Bean
 		public DynamoDbClient dynamoDbClient(DynamoDbProperties properties, AwsCredentialsProvider credentialsProvider,
-				AwsRegionProvider regionProvider)
-				throws IOException {
+				AwsRegionProvider regionProvider) throws IOException {
 			DaxProperties daxProperties = properties.getDax();
-			software.amazon.dax.Configuration.Builder configuration = software.amazon.dax.Configuration.builder()
-					.idleTimeoutMillis(daxProperties.getIdleTimeoutMillis())
-					.connectionTtlMillis(daxProperties.getConnectionTtlMillis())
-					.connectTimeoutMillis(daxProperties.getConnectTimeoutMillis())
-					.requestTimeoutMillis(daxProperties.getRequestTimeoutMillis())
-					.writeRetries(daxProperties.getWriteRetries()).readRetries(daxProperties.getReadRetries())
-					.clusterUpdateIntervalMillis(daxProperties.getClusterUpdateIntervalMillis())
-					.endpointRefreshTimeoutMillis(daxProperties.getEndpointRefreshTimeoutMillis())
-					.maxConcurrency(daxProperties.getMaxConcurrency())
-					.maxPendingConnectionAcquires(daxProperties.getMaxPendingConnectionAcquires())
-					.skipHostNameVerification(daxProperties.isSkipHostNameVerification())
-					.region(AwsClientBuilderConfigurer.resolveRegion(properties, regionProvider))
+
+			PropertyMapper propertyMapper = PropertyMapper.get();
+			software.amazon.dax.Configuration.Builder configuration = software.amazon.dax.Configuration.builder();
+			propertyMapper.from(daxProperties.getIdleTimeoutMillis()).whenNonNull()
+					.to(configuration::idleTimeoutMillis);
+			propertyMapper.from(daxProperties.getConnectionTtlMillis()).whenNonNull()
+					.to(configuration::connectionTtlMillis);
+			propertyMapper.from(daxProperties.getConnectTimeoutMillis()).whenNonNull()
+					.to(configuration::connectTimeoutMillis);
+			propertyMapper.from(daxProperties.getRequestTimeoutMillis()).whenNonNull()
+					.to(configuration::requestTimeoutMillis);
+			propertyMapper.from(daxProperties.getWriteRetries()).whenNonNull().to(configuration::writeRetries);
+			propertyMapper.from(daxProperties.getClusterUpdateIntervalMillis()).whenNonNull()
+					.to(configuration::clusterUpdateIntervalMillis);
+			propertyMapper.from(daxProperties.getEndpointRefreshTimeoutMillis()).whenNonNull()
+					.to(configuration::endpointRefreshTimeoutMillis);
+			propertyMapper.from(daxProperties.getMaxConcurrency()).whenNonNull().to(configuration::maxConcurrency);
+			propertyMapper.from(daxProperties.getMaxPendingConnectionAcquires()).whenNonNull()
+					.to(configuration::maxPendingConnectionAcquires);
+			propertyMapper.from(daxProperties.getSkipHostNameVerification()).whenNonNull()
+					.to(configuration::skipHostNameVerification);
+
+			configuration.region(AwsClientBuilderConfigurer.resolveRegion(properties, regionProvider))
 					.credentialsProvider(credentialsProvider).url(properties.getDax().getUrl());
 			return ClusterDaxClient.builder().overrideConfiguration(configuration.build()).build();
 		}

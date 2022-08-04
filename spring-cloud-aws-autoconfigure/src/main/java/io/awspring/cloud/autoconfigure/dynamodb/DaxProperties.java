@@ -15,8 +15,11 @@
  */
 package io.awspring.cloud.autoconfigure.dynamodb;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Properties used to configure {@link software.amazon.dax.ClusterDaxClient}
+ *
  * @author Matej Nedić
  * @since 3.0.0
  */
@@ -24,145 +27,169 @@ public class DaxProperties {
 	/**
 	 * Timeout for idle connections with the DAX cluster.
 	 */
-	private int idleTimeoutMillis = 30000;
+	@Nullable
+	private Integer idleTimeoutMillis;
 	/**
 	 * DAX cluster endpoint.
 	 */
+	@Nullable
 	private String url;
 	/**
 	 * Connection time to live.
 	 */
-	private int connectionTtlMillis = 0;
+	@Nullable
+	private Integer connectionTtlMillis;
 	/**
 	 * Connection timeout.
 	 */
-	private int connectTimeoutMillis = 1000;
+	@Nullable
+	private Integer connectTimeoutMillis;
 	/**
 	 * Request timeout for connections with the DAX cluster.
 	 */
-	private int requestTimeoutMillis = 1000;
+	@Nullable
+	private Integer requestTimeoutMillis;
 	/**
 	 * Number of times to retry writes, initial try is not counted.
 	 */
-	private int writeRetries = 2;
+	@Nullable
+	private Integer writeRetries;
 	/**
 	 * Number of times to retry reads, initial try is not counted.
 	 */
-	private int readRetries = 2;
+	@Nullable
+	private Integer readRetries;
 	/**
 	 * Interval between polling of cluster members for membership changes.
 	 */
-	private int clusterUpdateIntervalMillis = 4000;
+	@Nullable
+	private Integer clusterUpdateIntervalMillis;
 	/**
 	 * Timeout for endpoint refresh.
 	 */
-	private int endpointRefreshTimeoutMillis = 6000;
+	@Nullable
+	private Integer endpointRefreshTimeoutMillis;
 	/**
 	 * Maximum number of concurrent requests.
 	 */
-	private int maxConcurrency = 1000;
+	@Nullable
+	private Integer maxConcurrency;
 	/**
 	 * Maximum number of pending Connections to acquire.
 	 */
-	private int maxPendingConnectionAcquires = 10000;
+	@Nullable
+	private Integer maxPendingConnectionAcquires;
 	/**
 	 * Skips hostname verification in url.
 	 */
-	private boolean skipHostNameVerification;
+	@Nullable
+	private Boolean skipHostNameVerification;
 
-	public int getIdleTimeoutMillis() {
+	@Nullable
+	public Integer getIdleTimeoutMillis() {
 		return idleTimeoutMillis;
 	}
 
-	public void setIdleTimeoutMillis(int idleTimeoutMillis) {
+	public void setIdleTimeoutMillis(@Nullable Integer idleTimeoutMillis) {
 		this.idleTimeoutMillis = idleTimeoutMillis;
 	}
 
-	public int getConnectionTtlMillis() {
+	@Nullable
+	public Integer getConnectionTtlMillis() {
 		return connectionTtlMillis;
 	}
 
-	public void setConnectionTtlMillis(int connectionTtlMillis) {
+	public void setConnectionTtlMillis(@Nullable Integer connectionTtlMillis) {
 		this.connectionTtlMillis = connectionTtlMillis;
 	}
 
-	public int getConnectTimeoutMillis() {
+	@Nullable
+	public Integer getConnectTimeoutMillis() {
 		return connectTimeoutMillis;
 	}
 
-	public void setConnectTimeoutMillis(int connectTimeoutMillis) {
+	public void setConnectTimeoutMillis(@Nullable Integer connectTimeoutMillis) {
 		this.connectTimeoutMillis = connectTimeoutMillis;
 	}
 
-	public int getRequestTimeoutMillis() {
+	@Nullable
+	public Integer getRequestTimeoutMillis() {
 		return requestTimeoutMillis;
 	}
 
-	public void setRequestTimeoutMillis(int requestTimeoutMillis) {
+	public void setRequestTimeoutMillis(@Nullable Integer requestTimeoutMillis) {
 		this.requestTimeoutMillis = requestTimeoutMillis;
 	}
 
-	public int getWriteRetries() {
+	@Nullable
+	public Integer getWriteRetries() {
 		return writeRetries;
 	}
 
-	public void setWriteRetries(int writeRetries) {
+	public void setWriteRetries(@Nullable Integer writeRetries) {
 		this.writeRetries = writeRetries;
 	}
 
-	public int getReadRetries() {
+	@Nullable
+	public Integer getReadRetries() {
 		return readRetries;
 	}
 
-	public void setReadRetries(int readRetries) {
+	public void setReadRetries(@Nullable Integer readRetries) {
 		this.readRetries = readRetries;
 	}
 
-	public int getClusterUpdateIntervalMillis() {
+	@Nullable
+	public Integer getClusterUpdateIntervalMillis() {
 		return clusterUpdateIntervalMillis;
 	}
 
-	public void setClusterUpdateIntervalMillis(int clusterUpdateIntervalMillis) {
+	public void setClusterUpdateIntervalMillis(@Nullable Integer clusterUpdateIntervalMillis) {
 		this.clusterUpdateIntervalMillis = clusterUpdateIntervalMillis;
 	}
 
-	public int getEndpointRefreshTimeoutMillis() {
+	@Nullable
+	public Integer getEndpointRefreshTimeoutMillis() {
 		return endpointRefreshTimeoutMillis;
 	}
 
-	public void setEndpointRefreshTimeoutMillis(int endpointRefreshTimeoutMillis) {
+	public void setEndpointRefreshTimeoutMillis(@Nullable Integer endpointRefreshTimeoutMillis) {
 		this.endpointRefreshTimeoutMillis = endpointRefreshTimeoutMillis;
 	}
 
-	public int getMaxConcurrency() {
+	@Nullable
+	public Integer getMaxConcurrency() {
 		return maxConcurrency;
 	}
 
-	public void setMaxConcurrency(int maxConcurrency) {
+	public void setMaxConcurrency(@Nullable Integer maxConcurrency) {
 		this.maxConcurrency = maxConcurrency;
 	}
 
-	public int getMaxPendingConnectionAcquires() {
+	@Nullable
+	public Integer getMaxPendingConnectionAcquires() {
 		return maxPendingConnectionAcquires;
 	}
 
-	public void setMaxPendingConnectionAcquires(int maxPendingConnectionAcquires) {
+	public void setMaxPendingConnectionAcquires(@Nullable Integer maxPendingConnectionAcquires) {
 		this.maxPendingConnectionAcquires = maxPendingConnectionAcquires;
 	}
 
-	public boolean isSkipHostNameVerification() {
+	@Nullable
+	public Boolean getSkipHostNameVerification() {
 		return skipHostNameVerification;
 	}
 
-	public void setSkipHostNameVerification(boolean skipHostNameVerification) {
+	public void setSkipHostNameVerification(@Nullable Boolean skipHostNameVerification) {
 		this.skipHostNameVerification = skipHostNameVerification;
 	}
 
+	@Nullable
 	public String getUrl() {
 		return url;
 	}
 
-	public void setUrl(String url) {
+	public void setUrl(@Nullable String url) {
 		this.url = url;
 	}
 }
