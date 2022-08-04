@@ -31,7 +31,7 @@ public class DynamoDbProperties extends AwsClientProperties {
 	 */
 	public static final String PREFIX = "spring.cloud.aws.dynamodb";
 	/**
-	 * Properties that are used to configure {{@link software.amazon.dax.ClusterDaxClient}}.
+	 * Properties that are used to configure {@link software.amazon.dax.ClusterDaxClient}.
 	 */
 	private DaxProperties dax = new DaxProperties();
 
