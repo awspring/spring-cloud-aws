@@ -1,12 +1,26 @@
 |===
 |Name | Default | Description
 
+|spring.cloud.aws.cloudwatch.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.cloudwatch.region |  | Overrides the default region.
 |spring.cloud.aws.credentials.access-key |  | The access key to be used with a static provider.
 |spring.cloud.aws.credentials.instance-profile | `false` | Configures an instance profile credentials provider with no further configuration.
 |spring.cloud.aws.credentials.profile |  | The AWS profile.
 |spring.cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
 |spring.cloud.aws.defaults-mode |  | Sets the {@link DefaultsMode} that will be used to determine how certain default configuration options are resolved in the SDK.
 |spring.cloud.aws.dualstack-enabled |  | Configure whether the SDK should use the AWS dualstack endpoint.
+|spring.cloud.aws.dynamodb.dax.cluster-update-interval-millis |  | Interval between polling of cluster members for membership changes.
+|spring.cloud.aws.dynamodb.dax.connect-timeout-millis |  | Connection timeout.
+|spring.cloud.aws.dynamodb.dax.connection-ttl-millis |  | Connection time to live.
+|spring.cloud.aws.dynamodb.dax.endpoint-refresh-timeout-millis |  | Timeout for endpoint refresh.
+|spring.cloud.aws.dynamodb.dax.idle-timeout-millis |  | Timeout for idle connections with the DAX cluster.
+|spring.cloud.aws.dynamodb.dax.max-concurrency |  | Maximum number of concurrent requests.
+|spring.cloud.aws.dynamodb.dax.max-pending-connection-acquires |  | Maximum number of pending Connections to acquire.
+|spring.cloud.aws.dynamodb.dax.read-retries |  | Number of times to retry reads, initial try is not counted.
+|spring.cloud.aws.dynamodb.dax.request-timeout-millis |  | Request timeout for connections with the DAX cluster.
+|spring.cloud.aws.dynamodb.dax.skip-host-name-verification |  | Skips hostname verification in url.
+|spring.cloud.aws.dynamodb.dax.url |  | DAX cluster endpoint.
+|spring.cloud.aws.dynamodb.dax.write-retries |  | Number of times to retry writes, initial try is not counted.
 |spring.cloud.aws.dynamodb.enabled | `true` | Enables DynamoDb integration.
 |spring.cloud.aws.dynamodb.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.dynamodb.region |  | Overrides the default region.

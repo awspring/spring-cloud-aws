@@ -27,6 +27,7 @@
 		<spotless.version>2.22.0</spotless.version>
 		<awssdk-v2.version>2.17.209</awssdk-v2.version>
 		<awssdk-v1.version>1.12.238</awssdk-v1.version>
+		<amazon.dax.version>2.0.1</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 	</properties>
 
@@ -46,6 +47,13 @@
 				<version>${awssdk-v1.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>software.amazon.dax</groupId>
+				<artifactId>amazon-dax-client</artifactId>
+				<version>${amazon.dax.version}</version>
+				<optional>true</optional>
 			</dependency>
 
 			<dependency>
