@@ -38,9 +38,9 @@ public class SqsEndpoint extends AbstractEndpoint {
 	private final Integer messageVisibility;
 
 	private SqsEndpoint(Collection<String> logicalEndpointNames, String listenerContainerFactoryName,
-			Integer maxInflightMessagesPerQueue, Integer pollTimeoutSeconds, Integer messageVisibility, Boolean async,
-			String id) {
-		super(logicalEndpointNames, listenerContainerFactoryName, id, async);
+						Integer maxInflightMessagesPerQueue, Integer pollTimeoutSeconds, Integer messageVisibility,
+						String id) {
+		super(logicalEndpointNames, listenerContainerFactoryName, id);
 		this.maxInflightMessagesPerQueue = maxInflightMessagesPerQueue;
 		this.pollTimeoutSeconds = pollTimeoutSeconds;
 		this.messageVisibility = messageVisibility;
@@ -74,10 +74,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 	}
 
 	/**
-	 * The minimum amount of seconds a message needs to be processed by this method. If by the time the message is
-	 * processed the remaining visibility is less than this value, it will be automatically extended to this value.
-	 * @return the minimum visibility for this endpoint.
-	 * @see io.awspring.cloud.sqs.listener.interceptor.MessageVisibilityExtenderInterceptor
+	 *
 	 */
 	@Nullable
 	public Duration getMessageVisibilityDuration() {
@@ -124,11 +121,6 @@ public class SqsEndpoint extends AbstractEndpoint {
 			return this;
 		}
 
-		public SqsEndpointBuilder async(boolean async) {
-			this.async = async;
-			return this;
-		}
-
 		public SqsEndpointBuilder id(String id) {
 			this.id = id;
 			return this;
@@ -136,7 +128,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 		public SqsEndpoint build() {
 			return new SqsEndpoint(this.logicalEndpointNames, this.factoryName, this.maxInflightMessagesPerQueue,
-					this.pollTimeoutSeconds, this.messageVisibility, this.async, this.id);
+					this.pollTimeoutSeconds, this.messageVisibility, this.id);
 		}
 	}
 

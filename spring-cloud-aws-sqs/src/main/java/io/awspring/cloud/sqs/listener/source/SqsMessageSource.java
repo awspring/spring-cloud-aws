@@ -28,6 +28,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementExecutor;
+import io.awspring.cloud.sqs.listener.acknowledgement.ExecutingAcknowledgementProcessor;
+import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.context.ContextAwareMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.context.MessageConversionContext;
@@ -82,6 +85,8 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T> impleme
 
 	private int messageVisibility;
 
+	private int pollTimeout;
+
 	@Override
 	public void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 		Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null.");
@@ -91,6 +96,7 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T> impleme
 	@Override
 	public void configure(ContainerOptions containerOptions) {
 		super.configure(containerOptions);
+		this.pollTimeout = (int) containerOptions.getPollTimeout().getSeconds();
 		this.queueAttributeNames = containerOptions.getQueueAttributeNames();
 		this.messageAttributeNames = containerOptions.getMessageAttributeNames();
 		this.messageSystemAttributeNames = containerOptions.getMessageSystemAttributeNames();
@@ -99,6 +105,7 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T> impleme
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected void doStart() {
 		Assert.notNull(this.sqsAsyncClient, "sqsAsyncClient not set.");
 		Assert.notNull(this.queueAttributeNames, "queueAttributeNames not set.");
@@ -106,7 +113,18 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T> impleme
 		QueueAttributes queueAttributes = QueueAttributesProvider.fetch(getPollingEndpointName(), this.sqsAsyncClient, this.queueAttributeNames);
 		this.queueUrl = queueAttributes.getQueueUrl();
 		this.messageConversionContext = maybeCreateConversionContext();
-		configureConversionContext(queueAttributes);
+		ConfigUtils.INSTANCE
+			.acceptIfInstance(this.messageConversionContext, SqsAsyncClientAware.class, saca -> saca.setSqsAsyncClient(this.sqsAsyncClient))
+			.acceptIfInstance(this.messageConversionContext, QueueAttributesAware.class, qaa -> qaa.setQueueAttributes(queueAttributes))
+			.acceptIfInstance(getAcknowledgmentProcessor(), ExecutingAcknowledgementProcessor.class,
+				eap -> eap.setAcknowledgementExecutor(createAcknowledgementExecutor(queueAttributes)));
+	}
+
+	private AcknowledgementExecutor<T> createAcknowledgementExecutor(QueueAttributes queueAttributes) {
+		SqsAcknowledgementExecutor<T> executor = new SqsAcknowledgementExecutor<>();
+		executor.setQueueAttributes(queueAttributes);
+		executor.setSqsAsyncClient(this.sqsAsyncClient);
+		return executor;
 	}
 
 	@Nullable
@@ -114,12 +132,6 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T> impleme
 		return this.messagingMessageConverter instanceof ContextAwareMessagingMessageConverter
 			? ((ContextAwareMessagingMessageConverter<?>) this.messagingMessageConverter).createMessageConversionContext()
 			: null;
-	}
-
-	private void configureConversionContext(QueueAttributes queueAttributes) {
-		ConfigUtils.INSTANCE
-			.acceptIfInstance(this.messageConversionContext, SqsAsyncClientAware.class, saca -> saca.setSqsAsyncClient(this.sqsAsyncClient))
-			.acceptIfInstance(this.messageConversionContext, QueueAttributesAware.class, qaa -> qaa.setQueueAttributes(queueAttributes));
 	}
 
 	@Override
@@ -140,7 +152,7 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T> impleme
 			.maxNumberOfMessages(maxNumberOfMessages)
 			.attributeNamesWithStrings(this.messageSystemAttributeNames)
 			.messageAttributeNames(this.messageAttributeNames)
-			.waitTimeSeconds(getPollTimeoutSeconds());
+			.waitTimeSeconds(this.pollTimeout);
 
 		if (this.messageVisibility >= 0) {
 			builder.visibilityTimeout(this.messageVisibility);
@@ -174,7 +186,7 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T> impleme
 
 	private void logMessagesReceived(Collection<Message> v, Throwable t) {
 		if (v != null) {
-			logger.trace("Received {} messages from queue {}", v.size(), this.queueUrl);
+			logger.debug("Received {} messages from queue {}", v.size(), this.queueUrl);
 		}
 	}
 

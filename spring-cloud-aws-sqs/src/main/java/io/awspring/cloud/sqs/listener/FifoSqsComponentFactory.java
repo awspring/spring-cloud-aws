@@ -1,7 +1,10 @@
 package io.awspring.cloud.sqs.listener;
 
-import io.awspring.cloud.sqs.listener.acknowledgement.AckHandler;
-import io.awspring.cloud.sqs.listener.acknowledgement.OnSuccessAckHandler;
+import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
+import io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
+import io.awspring.cloud.sqs.listener.acknowledgement.ImmediateAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.sink.BatchMessageSink;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.sink.OrderedMessageListeningSink;
@@ -19,6 +22,13 @@ import java.util.function.Function;
  * @since 3.0
  */
 public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> {
+
+	// Immediate (sync) ack
+	private static final Duration DEFAULT_FIFO_SQS_ACK_INTERVAL = Duration.ZERO;
+
+	private static final Integer DEFAULT_FIFO_SQS_ACK_THRESHOLD = 0;
+
+	private static final AcknowledgementOrdering DEFAULT_FIFO_SQS_ACK_ORDERING = AcknowledgementOrdering.ORDERED;
 
 	@Override
 	public MessageSource<T> createMessageSource(ContainerOptions options) {
@@ -54,8 +64,27 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> 
 	}
 
 	@Override
-	public AckHandler<T> createAckHandler(ContainerOptions containerOptions) {
-		return new OnSuccessAckHandler<>();
+	public AcknowledgementProcessor<T> createAcknowledgementProcessor(ContainerOptions options) {
+		return (options.getAcknowledgementInterval() == null || options.getAcknowledgementInterval() == Duration.ZERO)
+			&& (options.getAcknowledgementThreshold() == null || options.getAcknowledgementThreshold() == 0)
+				? createAndConfigureImmediateProcessor(options)
+				: createAndConfigureBatchingAckProcessor(options);
+	}
+
+	private ImmediateAcknowledgementProcessor<T> createAndConfigureImmediateProcessor(ContainerOptions options) {
+		ImmediateAcknowledgementProcessor<T> processor = new ImmediateAcknowledgementProcessor<>();
+		ConfigUtils.INSTANCE
+			.acceptIfNotNullOrElse(processor::setAcknowledgementOrdering, options.getAcknowledgementOrdering(), DEFAULT_FIFO_SQS_ACK_ORDERING);
+		return processor;
+	}
+
+	private BatchingAcknowledgementProcessor<T> createAndConfigureBatchingAckProcessor(ContainerOptions options) {
+		BatchingAcknowledgementProcessor<T> processor = new BatchingAcknowledgementProcessor<>();
+		ConfigUtils.INSTANCE
+			.acceptIfNotNullOrElse(processor::setAcknowledgementInterval, options.getAcknowledgementInterval(), DEFAULT_FIFO_SQS_ACK_INTERVAL)
+			.acceptIfNotNullOrElse(processor::setAcknowledgementThreshold, options.getAcknowledgementThreshold(), DEFAULT_FIFO_SQS_ACK_THRESHOLD)
+			.acceptIfNotNullOrElse(processor::setAcknowledgementOrdering, options.getAcknowledgementOrdering(), DEFAULT_FIFO_SQS_ACK_ORDERING);
+		return processor;
 	}
 
 }

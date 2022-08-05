@@ -13,37 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener.errorhandler;
+package io.awspring.cloud.sqs.listener.acknowledgement.handler;
 
-import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 
 /**
- * Default {@link AsyncErrorHandler} implementation that logs errors.
- *
- * @param <T> the {@link Message} payload type.
+ * Default {@link AcknowledgementHandler} implementation that only acknowledges on success.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class LoggingErrorHandler<T> implements AsyncErrorHandler<T> {
+public class OnSuccessAcknowledgementHandler<T> implements AcknowledgementHandler<T> {
 
-	private static final Logger logger = LoggerFactory.getLogger(LoggingErrorHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(OnSuccessAcknowledgementHandler.class);
 
 	@Override
-	public CompletableFuture<Void> handleError(Message<T> message, Throwable t) {
-		logger.error("Error processing message {}", MessageHeaderUtils.getId(message), t);
-		return CompletableFutures.failedFuture(t);
+	public CompletableFuture<Void> onSuccess(Message<T> message, AcknowledgementCallback<T> callback) {
+		logger.trace("Acknowledging message {}", MessageHeaderUtils.getId(message));
+		return callback.onAcknowledge(message);
 	}
 
 	@Override
-	public CompletableFuture<Void> handleError(Collection<Message<T>> messages, Throwable t) {
-		logger.error("Error processing {} messages", messages.size(), t);
-		return CompletableFutures.failedFuture(t);
+	public CompletableFuture<Void> onSuccess(Collection<Message<T>> messages, AcknowledgementCallback<T> callback) {
+		logger.trace("Acknowledging messages {}", MessageHeaderUtils.getId(messages));
+		return callback.onAcknowledge(messages);
 	}
+
 }

@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener.acknowledgement;
+package io.awspring.cloud.sqs.listener.acknowledgement.handler;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
 import io.awspring.cloud.sqs.CompletableFutures;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import org.springframework.messaging.Message;
 
 /**
@@ -30,7 +31,7 @@ import org.springframework.messaging.Message;
  * @since 3.0
  */
 @FunctionalInterface
-public interface AckHandler<T> {
+public interface AcknowledgementHandler<T> {
 
 	/**
 	 * Called by the {@link io.awspring.cloud.sqs.listener.MessageListenerContainer} when the {@link Message} is
@@ -38,9 +39,9 @@ public interface AckHandler<T> {
 	 * @param message the message.
 	 * @return a completable future.
 	 */
-	CompletableFuture<Void> onSuccess(Message<T> message);
+	CompletableFuture<Void> onSuccess(Message<T> message, AcknowledgementCallback<T> callback);
 
-	default CompletableFuture<Void> onSuccess(Collection<Message<T>> messages) {
+	default CompletableFuture<Void> onSuccess(Collection<Message<T>> messages, AcknowledgementCallback<T> callback) {
 		return CompletableFutures
 			.failedFuture(new UnsupportedOperationException("Batch not implemented for this component"));
 	}
@@ -52,11 +53,11 @@ public interface AckHandler<T> {
 	 * @param t the error thrown by the listener.
 	 * @return a completable future.
 	 */
-	default CompletableFuture<Void> onError(Message<T> message, Throwable t) {
+	default CompletableFuture<Void> onError(Message<T> message, Throwable t, AcknowledgementCallback<T> callback) {
 		return CompletableFuture.completedFuture(null);
 	}
 
-	default CompletableFuture<Void> onError(Collection<Message<T>> messages, Throwable t) {
+	default CompletableFuture<Void> onError(Collection<Message<T>> messages, Throwable t, AcknowledgementCallback<T> callback) {
 		return CompletableFuture.completedFuture(null);
 	}
 

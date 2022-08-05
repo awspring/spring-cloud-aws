@@ -43,6 +43,16 @@ public class ConfigUtils {
 		return this;
 	}
 
+	public <T> ConfigUtils acceptIfNotNullOrElse(Consumer<T> consumer, T value, T fallback) {
+		if (value != null) {
+			consumer.accept(value);
+		}
+		else {
+			consumer.accept(fallback);
+		}
+		return this;
+	}
+
 	public <T, V> ConfigUtils acceptBothIfNoneNull(T firstValue, V secondValue, BiConsumer<T, V> consumer) {
 		if (firstValue != null && secondValue != null) {
 			consumer.accept(firstValue, secondValue);

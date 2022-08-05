@@ -18,10 +18,11 @@ package io.awspring.cloud.sqs.listener.sink;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
-import io.awspring.cloud.sqs.listener.TaskExecutorAware;
+import io.awspring.cloud.sqs.listener.ExecutorAware;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ import org.springframework.util.Assert;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractMessageListeningSink<T> implements MessageProcessingPipelineSink<T>, TaskExecutorAware {
+public abstract class AbstractMessageListeningSink<T> implements MessageProcessingPipelineSink<T>, ExecutorAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMessageListeningSink.class);
 
@@ -48,7 +49,7 @@ public abstract class AbstractMessageListeningSink<T> implements MessageProcessi
 
 	private volatile boolean running;
 
-	private TaskExecutor taskExecutor;
+	private Executor executor;
 
 	private MessageProcessingPipeline<T> messageProcessingPipeline;
 
@@ -61,9 +62,9 @@ public abstract class AbstractMessageListeningSink<T> implements MessageProcessi
 	}
 
 	@Override
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		Assert.notNull(taskExecutor, "taskExecutor cannot be null");
-		this.taskExecutor = taskExecutor;
+	public void setExecutor(Executor executor) {
+		Assert.notNull(executor, "executor cannot be null");
+		this.executor = executor;
 	}
 
 	@Override
@@ -89,8 +90,8 @@ public abstract class AbstractMessageListeningSink<T> implements MessageProcessi
 	 * @return the processing result.
 	 */
 	protected CompletableFuture<Void> execute(Message<T> message, MessageProcessingContext<T> context) {
-		return doExecute(() -> this.messageProcessingPipeline.process(message, context), context)
-			.whenComplete((v, t) -> context.executeBackPressureReleaseCallback());
+		return doExecute(() -> this.messageProcessingPipeline.process(message, context))
+			.whenComplete((v, t) -> context.runBackPressureReleaseCallback());
 	}
 
 	/**
@@ -101,13 +102,12 @@ public abstract class AbstractMessageListeningSink<T> implements MessageProcessi
 	 * @return the processing result.
 	 */
 	protected CompletableFuture<Void> execute(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
-		return doExecute(() -> this.messageProcessingPipeline.process(messages, context), context)
-			.whenComplete((v, t) -> messages.forEach(msg -> context.executeBackPressureReleaseCallback()));
+		return doExecute(() -> this.messageProcessingPipeline.process(messages, context))
+			.whenComplete((v, t) -> messages.forEach(msg -> context.runBackPressureReleaseCallback()));
 	}
 
-	private CompletableFuture<Void> doExecute(Supplier<CompletableFuture<?>> supplier, MessageProcessingContext<T> context) {
-		return CompletableFuture.supplyAsync(supplier, this.taskExecutor)
-			.thenCompose(x -> x).thenRun(() -> {});
+	private CompletableFuture<Void> doExecute(Supplier<CompletableFuture<?>> supplier) {
+		return CompletableFuture.supplyAsync(supplier, this.executor).thenCompose(x -> x).thenRun(() -> {});
 	}
 
 	@Override
@@ -118,7 +118,7 @@ public abstract class AbstractMessageListeningSink<T> implements MessageProcessi
 		}
 		synchronized (this.lifecycleMonitor) {
 			Assert.notNull(this.messageProcessingPipeline, "messageListener not set");
-			Assert.notNull(this.taskExecutor, "taskExecutor not set");
+			Assert.notNull(this.executor, "taskExecutor not set");
 			this.id = getOrCreateId();
 			logger.debug("Starting sink {}", this.id);
 			this.running = true;
@@ -126,8 +126,8 @@ public abstract class AbstractMessageListeningSink<T> implements MessageProcessi
 	}
 
 	private String getOrCreateId() {
-		return this.taskExecutor instanceof ThreadPoolTaskExecutor
-			? ((ThreadPoolTaskExecutor) this.taskExecutor).getThreadNamePrefix()
+		return this.executor instanceof ThreadPoolTaskExecutor
+			? ((ThreadPoolTaskExecutor) this.executor).getThreadNamePrefix()
 			: UUID.randomUUID().toString();
 	}
 

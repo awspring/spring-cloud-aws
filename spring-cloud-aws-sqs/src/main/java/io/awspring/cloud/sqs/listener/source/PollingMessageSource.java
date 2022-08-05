@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.listener.source;
 
 import io.awspring.cloud.sqs.listener.BackPressureHandler;
-import io.awspring.cloud.sqs.listener.TaskExecutorAware;
+import io.awspring.cloud.sqs.listener.ExecutorAware;
 import org.springframework.context.SmartLifecycle;
 
 /**
@@ -24,7 +24,7 @@ import org.springframework.context.SmartLifecycle;
  *
  * @param <T> the message payload type.
  */
-public interface PollingMessageSource<T> extends MessageSource<T>, SmartLifecycle, TaskExecutorAware {
+public interface PollingMessageSource<T> extends AcknowledgingMessageSource<T>, SmartLifecycle, ExecutorAware {
 
 	/**
 	 * Set the endpoint logical name that will be polled by this source.

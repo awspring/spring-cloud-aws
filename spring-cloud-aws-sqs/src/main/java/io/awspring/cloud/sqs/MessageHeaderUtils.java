@@ -70,4 +70,8 @@ public class MessageHeaderUtils {
 		return Objects.requireNonNull(message.getHeaders().get(headerName, classToCast), () -> String.format("Header %s not found in message %s", headerName, getId(message)));
 	}
 
+	public static String getHeaderAsString(Message<?> message, String headerName) {
+		return getHeader(message, headerName, String.class);
+	}
+
 }

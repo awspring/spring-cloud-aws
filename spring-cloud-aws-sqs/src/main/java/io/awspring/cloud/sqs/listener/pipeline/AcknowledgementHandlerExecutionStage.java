@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs.listener.pipeline;
 
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
-import io.awspring.cloud.sqs.listener.acknowledgement.AckHandler;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,22 +27,22 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Stage responsible for executing the {@link AckHandler}.
+ * Stage responsible for executing the {@link AcknowledgementHandler}.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class AckHandlerExecutionStage<T> implements MessageProcessingPipeline<T> {
+public class AcknowledgementHandlerExecutionStage<T> implements MessageProcessingPipeline<T> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AckHandlerExecutionStage.class);
+	private static final Logger logger = LoggerFactory.getLogger(AcknowledgementHandlerExecutionStage.class);
 
 	private final MessageProcessingPipeline<T> wrapped;
 
-	private final AckHandler<T> ackHandler;
+	private final AcknowledgementHandler<T> acknowledgementHandler;
 
-	public AckHandlerExecutionStage(MessageProcessingConfiguration<T> configuration, MessageProcessingPipeline<T> wrapped) {
+	public AcknowledgementHandlerExecutionStage(MessageProcessingConfiguration<T> configuration, MessageProcessingPipeline<T> wrapped) {
 		this.wrapped = wrapped;
-		this.ackHandler = configuration.getAckHandler();
+		this.acknowledgementHandler = configuration.getAckHandler();
 	}
 
 	@Override
@@ -50,8 +50,8 @@ public class AckHandlerExecutionStage<T> implements MessageProcessingPipeline<T>
 		logger.trace("Processing message {}", MessageHeaderUtils.getId(message));
 		return CompletableFutures.handleCompose(this.wrapped.process(message, context),
 			(v, t) -> t == null
-				? ackHandler.onSuccess(v)
-				: ackHandler.onError(message, t)
+				? acknowledgementHandler.onSuccess(v, context.getAcknowledgmentCallback())
+				: acknowledgementHandler.onError(message, t, context.getAcknowledgmentCallback())
 					.thenCompose(theVoid -> CompletableFutures.failedFuture(t)))
 			.thenApply(theVoid -> message);
 	}
@@ -61,8 +61,8 @@ public class AckHandlerExecutionStage<T> implements MessageProcessingPipeline<T>
 		logger.trace("Processing messages {}", MessageHeaderUtils.getId(messages));
 		return CompletableFutures.handleCompose(this.wrapped.process(messages, context),
 			(v, t) -> t == null
-				? ackHandler.onSuccess(v)
-				: ackHandler.onError(messages, t)
+				? acknowledgementHandler.onSuccess(v, context.getAcknowledgmentCallback())
+				: acknowledgementHandler.onError(messages, t, context.getAcknowledgmentCallback())
 					.thenCompose(theVoid -> CompletableFutures.failedFuture(t)))
 			.thenApply(theVoid -> messages);
 	}

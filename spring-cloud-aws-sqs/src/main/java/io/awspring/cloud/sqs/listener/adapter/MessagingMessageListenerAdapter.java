@@ -23,7 +23,7 @@ import org.springframework.messaging.support.MessageBuilder;
 
 /**
  *
- * Base class for invoking a {@link InvocableHandlerMethod}.
+ * Base class for invoking an {@link InvocableHandlerMethod}.
  *
  * @author Tomaz Fernandes
  * @since 3.0

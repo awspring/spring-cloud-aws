@@ -27,7 +27,8 @@ import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.StandardSqsComponentFactory;
 import io.awspring.cloud.sqs.listener.Visibility;
-import io.awspring.cloud.sqs.listener.acknowledgement.AckHandler;
+import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgement;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler;
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
@@ -160,7 +161,6 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.manuallyCreatedFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.manuallyCreatedFactorySourceFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.manuallyCreatedFactorySinkLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.manuallyCreatedFactoryAckHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	private void sendMessageTo(String receivesMessageQueueName) throws InterruptedException, ExecutionException {
@@ -211,10 +211,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 		@SqsListener(queueNames = RESOLVES_PARAMETER_TYPES_QUEUE_NAME, messageVisibilitySeconds = "1", id = "resolves-parameter")
 		void listen(Message<String> message, MessageHeaders headers, Acknowledgement ack, Visibility visibility,
-					QueueAttributes queueAttributes,
+					QueueAttributes queueAttributes, AsyncAcknowledgement asyncAck,
 					software.amazon.awssdk.services.sqs.model.Message originalMessage) throws Exception {
 			Assert.notNull(headers, "Received null MessageHeaders");
-			Assert.notNull(ack, "Received null AsyncAcknowledgement");
+			Assert.notNull(ack, "Received null Acknowledgement");
+			Assert.notNull(asyncAck, "Received null AsyncAcknowledgement");
 			Assert.notNull(visibility, "Received null Visibility");
 			Assert.notNull(queueAttributes, "Received null QueueAttributes");
 			Assert.notNull(originalMessage, "Received null software.amazon.awssdk.services.sqs.model.Message");
@@ -242,7 +243,6 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		final CountDownLatch manuallyStartedContainerLatch2 = new CountDownLatch(1);
 		final CountDownLatch manuallyCreatedFactorySourceFactoryLatch = new CountDownLatch(1);
 		final CountDownLatch manuallyCreatedFactorySinkLatch = new CountDownLatch(1);
-		final CountDownLatch manuallyCreatedFactoryAckHandlerLatch = new CountDownLatch(1);
 		final CountDownLatch manuallyCreatedFactoryLatch = new CountDownLatch(1);
 		final CountDownLatch invocableHandlerMethodLatch = new CountDownLatch(1);
 
@@ -310,12 +310,6 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				public MessageSink<String> createMessageSink(ContainerOptions options) {
 					latchContainer.manuallyCreatedFactorySinkLatch.countDown();
 					return super.createMessageSink(options);
-				}
-
-				@Override
-				public AckHandler<String> createAckHandler(ContainerOptions options) {
-					latchContainer.manuallyCreatedFactoryAckHandlerLatch.countDown();
-					return super.createAckHandler(options);
 				}
 			});
 			factory.setSqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient());

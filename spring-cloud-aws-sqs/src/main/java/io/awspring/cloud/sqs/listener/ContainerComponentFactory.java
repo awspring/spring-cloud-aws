@@ -1,6 +1,6 @@
 package io.awspring.cloud.sqs.listener;
 
-import io.awspring.cloud.sqs.listener.acknowledgement.AckHandler;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 
@@ -14,6 +14,6 @@ public interface ContainerComponentFactory<T> {
 
 	MessageSink<T> createMessageSink(ContainerOptions options);
 
-	AckHandler<T> createAckHandler(ContainerOptions options);
+	AcknowledgementProcessor<T> createAcknowledgementProcessor(ContainerOptions options);
 
 }

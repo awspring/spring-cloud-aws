@@ -6,7 +6,6 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
@@ -27,7 +26,7 @@ class OrderedMessageListeningSinkTests {
 			.mapToObj(index -> MessageBuilder.withPayload(index).build()).collect(toList());
 		List<Message<Integer>> received = new ArrayList<>(numberOfMessagesToEmit);
 		AbstractMessageListeningSink<Integer> sink = new OrderedMessageListeningSink<>();
-		sink.setTaskExecutor(Runnable::run);
+		sink.setExecutor(Runnable::run);
 		sink.setMessagePipeline((msg, ctx) -> {
 			received.add(msg);
 			return CompletableFuture.completedFuture(msg);

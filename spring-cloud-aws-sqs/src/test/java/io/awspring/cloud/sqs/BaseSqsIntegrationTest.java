@@ -48,11 +48,9 @@ abstract class BaseSqsIntegrationTest {
 
 	protected static final boolean useLocalStackClient = true;
 
-	protected static final boolean purgeQueues = false;
+	protected static final boolean purgeQueues = true;
 
 	private static final String LOCAL_STACK_VERSION = "localstack/localstack:1.0.3";
-
-	private static final Object beforeAllMonitor = new Object();
 
 	static LocalStackContainer localstack = new LocalStackContainer(
 			DockerImageName.parse(LOCAL_STACK_VERSION)).withServices(SQS).withReuse(true);
@@ -60,14 +58,12 @@ abstract class BaseSqsIntegrationTest {
 	static StaticCredentialsProvider credentialsProvider;
 
 	@BeforeAll
-	static void beforeAll() {
-		synchronized (beforeAllMonitor) {
-			if (!localstack.isRunning()) {
-				localstack.start();
-				AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
-				credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
-					.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
-			}
+	static synchronized void beforeAll() {
+		if (!localstack.isRunning()) {
+			localstack.start();
+			AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
+			credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
+				.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
 		}
 	}
 
@@ -103,7 +99,8 @@ abstract class BaseSqsIntegrationTest {
 					String queueUrl = v.queueUrl();
 					logger.debug("Purging queue {}", queueName);
 					return client.purgeQueue(req -> req.queueUrl(queueUrl).build());
-				} else {
+				}
+				else {
 					logger.debug("Skipping purge for queue {}", queueName);
 					return CompletableFuture.completedFuture(null);
 				}
@@ -142,55 +139,72 @@ abstract class BaseSqsIntegrationTest {
 		return useLocalStackClient
 			? createLocalStackClient()
 			: SqsAsyncClient.builder().httpClientBuilder(NettyNioAsyncHttpClient.builder()
-				//.maxConcurrency(6000)
+				.maxConcurrency(6000)
 			)
 			.build();
 	}
 
-	protected static class Sleeper {
+	protected static class LoadSimulator {
 
 		private static final Random RANDOM = new Random();
 
 		private int bound = 1000;
 
-		private boolean sleepEnabled = false;
+		private boolean loadEnabled = false;
 
-		private boolean random = true;
+		private boolean random = false;
 
-		public void sleep() {
-			sleep(this.bound);
+		public void runLoad() {
+			runLoad(this.bound);
 		}
-		public void sleep(int amount) {
-			if (!sleepEnabled) {
+
+		public void runLoad(int amount) {
+			if (!this.loadEnabled) {
 				return;
 			}
 			try {
-				Thread.sleep(getSleepTime(amount));
+				Thread.sleep(getLoadTime(amount));
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new RuntimeException(e);
 			}
 		}
 
-		private long getSleepTime(int amount) {
+		private long getLoadTime(int amount) {
 			return this.random
 				? RANDOM.nextInt(amount)
 				: amount;
 		}
 
-		public Sleeper setBound(int bound) {
+		public LoadSimulator setBound(int bound) {
 			this.bound = bound;
 			return this;
 		}
 
-		public Sleeper setSleepEnabled(boolean sleepEnabled) {
-			this.sleepEnabled = sleepEnabled;
+		public LoadSimulator setLoadEnabled(boolean loadEnabled) {
+			this.loadEnabled = loadEnabled;
 			return this;
 		}
 
-		public Sleeper setRandom(boolean random) {
+		public LoadSimulator setRandom(boolean random) {
 			this.random = random;
 			return this;
+		}
+
+		@Override
+		public String toString() {
+			if (!this.loadEnabled) {
+				return "no load";
+			}
+			StringBuilder sb = new StringBuilder();
+			if (this.random) {
+				sb.append("random load of up to ");
+			}
+			else {
+				sb.append("load of ");
+			}
+			sb.append(this.bound).append("ms");
+			return sb.toString();
 		}
 	}
 
