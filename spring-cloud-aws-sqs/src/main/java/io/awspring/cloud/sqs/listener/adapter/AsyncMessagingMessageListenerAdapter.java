@@ -37,27 +37,16 @@ public class AsyncMessagingMessageListenerAdapter<T> extends MessagingMessageLis
 		super(handlerMethod);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public CompletableFuture<Void> onMessage(Message<T> message) {
-		try {
-			Object result = super.invokeHandler(message);
-			return result instanceof CompletableFuture ? ((CompletableFuture<?>) result).thenRun(() -> {
-			}) : CompletableFuture.completedFuture(null);
-		}
-		catch (Exception e) {
-			return CompletableFutures.failedFuture(e);
-		}
+		return (CompletableFuture<Void>) super.invokeHandler(message);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public CompletableFuture<Void> onMessage(Collection<Message<T>> messages) {
-		try {
-			Object result = super.invokeHandler(messages);
-			return result instanceof CompletableFuture ? ((CompletableFuture<?>) result).thenRun(() -> {
-			}) : CompletableFuture.completedFuture(null);
-		}
-		catch (Exception e) {
-			return CompletableFutures.failedFuture(e);
-		}
+		return (CompletableFuture<Void>) super.invokeHandler(messages);
 	}
+
 }

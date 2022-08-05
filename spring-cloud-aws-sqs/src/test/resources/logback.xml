@@ -30,8 +30,10 @@
 	<logger name="io.awspring.cloud.sqs.listener.pipeline" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.source" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.acknowledgement" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementProcessor" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.QueueAttributes" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.AsyncComponentAdapters" level="INFO"/>
 
 	<logger name="io.awspring.cloud.sqs.SqsIntegrationTests" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.SqsIntegrationLoadTests" level="INFO"/>

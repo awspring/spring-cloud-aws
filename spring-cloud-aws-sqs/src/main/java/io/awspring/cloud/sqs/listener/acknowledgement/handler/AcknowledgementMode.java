@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener.acknowledgement;
+package io.awspring.cloud.sqs.listener.acknowledgement.handler;
 
 /**
- * Interface representing a message acknowledgement.
- *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface Acknowledgement {
+public enum AcknowledgementMode {
 
-	/**
-	 * Acknowledge the message.
-	 */
-	void acknowledge();
+	ON_SUCCESS,
+
+	ALWAYS,
+
+	MANUAL
 
 }

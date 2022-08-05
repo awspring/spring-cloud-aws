@@ -18,12 +18,13 @@ package io.awspring.cloud.sqs.annotation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.ExpressionResolvingHelper;
-import io.awspring.cloud.sqs.config.AbstractEndpoint;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
+import io.awspring.cloud.sqs.config.HandlerMethodEndpoint;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsListenerCustomizer;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.support.resolver.AcknowledgementHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.AsyncAcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
@@ -38,7 +39,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.springframework.aop.support.AopUtils;
@@ -112,11 +112,11 @@ public class SqsListenerAnnotationBeanPostProcessor
 	}
 
 	private Endpoint createEndpointFromAnnotation(Object bean, Method method, SqsListener annotation) {
-		Endpoint endpoint = doCreateEndpointFromAnnotation(bean, method, annotation);
-		ConfigUtils.INSTANCE.acceptIfInstance(endpoint, AbstractEndpoint.class, ae -> {
-				ae.setBean(bean);
-				ae.setMethod(method);
-				ae.setHandlerMethodFactory(this.delegatingHandlerMethodFactory);
+		Endpoint endpoint = doCreateEndpointFromAnnotation(annotation);
+		ConfigUtils.INSTANCE.acceptIfInstance(endpoint, HandlerMethodEndpoint.class, hme -> {
+				hme.setBean(bean);
+				hme.setMethod(method);
+				hme.setHandlerMethodFactory(this.delegatingHandlerMethodFactory);
 			});
 		return endpoint;
 	}
@@ -127,8 +127,7 @@ public class SqsListenerAnnotationBeanPostProcessor
 
 	@Override
 	public void afterSingletonsInstantiated() {
-		ConfigUtils.INSTANCE
-			.acceptIfInstance(this.beanFactory, ListableBeanFactory.class,
+		ConfigUtils.INSTANCE.acceptIfInstance(this.beanFactory, ListableBeanFactory.class,
 					lbf -> lbf.getBeansOfType(SqsListenerCustomizer.class).values()
 						.forEach(customizer -> customizer.configure(this.endpointRegistrar)));
 		this.endpointRegistrar.setBeanFactory(this.beanFactory);
@@ -166,8 +165,7 @@ public class SqsListenerAnnotationBeanPostProcessor
 		return new CompositeMessageConverter(messageConverters);
 	}
 
-	private Endpoint doCreateEndpointFromAnnotation(Object bean, Method method,
-			SqsListener sqsListenerAnnotation) {
+	private Endpoint doCreateEndpointFromAnnotation(SqsListener sqsListenerAnnotation) {
 		return SqsEndpoint.from(resolveDestinationNames(sqsListenerAnnotation.value()))
 				.factoryBeanName(resolveExpression().asString(sqsListenerAnnotation.factory(), "factory"))
 				.id(getEndpointId(sqsListenerAnnotation))
@@ -177,7 +175,7 @@ public class SqsListenerAnnotationBeanPostProcessor
 						.asInteger(sqsListenerAnnotation.maxInflightMessagesPerQueue(), "maxInflightMessagesPerQueue"))
 				.messageVisibility(
 						resolveExpression().asInteger(sqsListenerAnnotation.messageVisibilitySeconds(), "messageVisibility"))
-				.async(CompletionStage.class.isAssignableFrom(method.getReturnType())).build();
+				.build();
 	}
 
 	private String getEndpointId(SqsListener kafkaListener) {
@@ -196,7 +194,9 @@ public class SqsListenerAnnotationBeanPostProcessor
 	}
 
 	private List<HandlerMethodArgumentResolver> createArgumentResolvers(MessageConverter messageConverter) {
-		return Arrays.asList(new AsyncAcknowledgmentHandlerMethodArgumentResolver(SqsHeaders.SQS_ACKNOWLEDGMENT_HEADER),
+		return Arrays.asList(
+				new AcknowledgementHandlerMethodArgumentResolver(),
+				new AsyncAcknowledgmentHandlerMethodArgumentResolver(),
 				new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_HEADER),
 				new SqsMessageMethodArgumentResolver(),
 				new QueueAttributesMethodArgumentResolver(),

@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.listener.pipeline;
 
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
-import io.awspring.cloud.sqs.listener.acknowledgement.AckHandler;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import org.springframework.util.Assert;
@@ -38,13 +38,13 @@ public class MessageProcessingConfiguration<T> {
 
 	private final AsyncErrorHandler<T> errorHandler;
 
-	private final AckHandler<T> ackHandler;
+	private final AcknowledgementHandler<T> acknowledgementHandler;
 
 	private MessageProcessingConfiguration(Builder<T> builder) {
 		this.messageInterceptors = builder.messageInterceptors;
 		this.messageListener = builder.messageListener;
 		this.errorHandler = builder.errorHandler;
-		this.ackHandler = builder.ackHandler;
+		this.acknowledgementHandler = builder.acknowledgementHandler;
 	}
 
 	public static <T> MessageProcessingConfiguration.Builder<T> builder() {
@@ -63,8 +63,8 @@ public class MessageProcessingConfiguration<T> {
 		return this.errorHandler;
 	}
 
-	public AckHandler<T> getAckHandler() {
-		return this.ackHandler;
+	public AcknowledgementHandler<T> getAckHandler() {
+		return this.acknowledgementHandler;
 	}
 
 	public static class Builder<T> {
@@ -72,7 +72,7 @@ public class MessageProcessingConfiguration<T> {
 		private Collection<AsyncMessageInterceptor<T>> messageInterceptors;
 		private AsyncMessageListener<T> messageListener;
 		private AsyncErrorHandler<T> errorHandler;
-		private AckHandler<T> ackHandler;
+		private AcknowledgementHandler<T> acknowledgementHandler;
 
 		public Builder<T> interceptors(Collection<AsyncMessageInterceptor<T>> messageInterceptors) {
 			this.messageInterceptors = messageInterceptors;
@@ -89,15 +89,15 @@ public class MessageProcessingConfiguration<T> {
 			return this;
 		}
 
-		public Builder<T> ackHandler(AckHandler<T> ackHandler) {
-			this.ackHandler = ackHandler;
+		public Builder<T> ackHandler(AcknowledgementHandler<T> acknowledgementHandler) {
+			this.acknowledgementHandler = acknowledgementHandler;
 			return this;
 		}
 
 		public MessageProcessingConfiguration<T> build() {
 			Assert.notNull(this.messageListener, "messageListener cannot be null provided");
 			Assert.notNull(this.errorHandler, "No error handler provided");
-			Assert.notNull(this.ackHandler, "No ackHandler provided");
+			Assert.notNull(this.acknowledgementHandler, "No ackHandler provided");
 			Assert.notNull(this.messageInterceptors, "messageInterceptors cannot be null");
 			return new MessageProcessingConfiguration<>(this);
 		}

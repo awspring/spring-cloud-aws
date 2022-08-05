@@ -16,6 +16,8 @@
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -27,7 +29,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class SqsAcknowledge implements Acknowledgement {
+public class SqsAcknowledge implements AsyncAcknowledgement, Acknowledgement {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsAcknowledge.class);
 
@@ -53,22 +55,21 @@ public class SqsAcknowledge implements Acknowledgement {
 	}
 
 	@Override
-	public CompletableFuture<Void> acknowledge() {
+	public CompletableFuture<Void> acknowledgeAsync() {
 		return this.sqsAsyncClient.deleteMessage(req -> req.queueUrl(this.queueUrl).receiptHandle(this.receiptHandle))
 				.thenRun(() -> logger.trace("Acknowledged message with handle {} from queue {}", this.receiptHandle,
 						this.queueUrl));
 	}
 
-	// TODO: Probably remove these getters as part of AckHandler design
-	public String getQueueUrl() {
-		return queueUrl;
-	}
-
-	public String getReceiptHandle() {
-		return receiptHandle;
-	}
-
-	public SqsAsyncClient getSqsAsyncClient() {
-		return sqsAsyncClient;
+	@Override
+	public void acknowledge() {
+		try {
+			acknowledgeAsync().get();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Interrupted while acknowledging message " + this.receiptHandle);
+		} catch (ExecutionException e) {
+			throw new IllegalStateException("Error while acknowledging message " + this.receiptHandle);
+		}
 	}
 }

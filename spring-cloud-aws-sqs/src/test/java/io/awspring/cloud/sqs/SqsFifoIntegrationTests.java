@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -89,8 +90,6 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final String FLAKY_ON_LOCALSTACK = "Test disabled because it's flaky under LocalStack, but passes every time on AWS";
 
-	private final int numberOfMessages = 5;
-
 	@Autowired
 	LatchContainer latchContainer;
 
@@ -114,7 +113,13 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	ReceivesBatchesFromManyGroupsListener receivesBatchesFromManyGroupsListener;
 
 	@Autowired
-	Sleeper sleeper;
+	LoadSimulator loadSimulator;
+
+	@Autowired
+	Settings settings;
+
+	@Autowired
+	MessagesContainer messagesContainer;
 
 	@BeforeAll
 	static void beforeTests() {
@@ -135,22 +140,37 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		return Collections.singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, value);
 	}
 
+	private static class Settings implements SmartInitializingSingleton {
+
+		@Autowired
+		LoadSimulator loadSimulator;
+
+		private final int messagesPerTest = 5;
+
+		@Override
+		public void afterSingletonsInstantiated() {
+			loadSimulator.setLoadEnabled(false);
+			loadSimulator.setBound(1000);
+			loadSimulator.setRandom(true);
+		}
+	}
+
 	@Test
 	void receivesMessagesInOrder() throws Exception {
-		latchContainer.receivesMessageLatch = new CountDownLatch(this.numberOfMessages);
+		latchContainer.receivesMessageLatch = new CountDownLatch(this.settings.messagesPerTest);
 		String messageGroupId = UUID.randomUUID().toString();
-		List<String> values = IntStream.range(0, this.numberOfMessages).mapToObj(String::valueOf).collect(toList());
+		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf).collect(toList());
 		String queueUrl = fetchQueueUrl(FIFO_RECEIVES_MESSAGES_IN_ORDER_QUEUE_NAME);
 		sendMessageTo(queueUrl, values, messageGroupId);
-		assertThat(latchContainer.receivesMessageLatch.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesMessageLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(receivesMessageInOrderListener.receivedMessages).containsExactlyElementsOf(values);
 	}
 
 	////@Disabled(FLAKY_ON_LOCALSTACK)
 	@Test
 	void receivesMessagesInOrderFromManyMessageGroups() throws Exception {
-		latchContainer.receivesMessageManyGroupsLatch = new CountDownLatch(this.numberOfMessages * 3);
-		List<String> values = IntStream.range(0, this.numberOfMessages).mapToObj(String::valueOf).collect(toList());
+		latchContainer.receivesMessageManyGroupsLatch = new CountDownLatch(this.settings.messagesPerTest * 3);
+		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf).collect(toList());
 		String messageGroupId1 = UUID.randomUUID().toString();
 		String messageGroupId2 = UUID.randomUUID().toString();
 		String messageGroupId3 = UUID.randomUUID().toString();
@@ -168,8 +188,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void stopsProcessingAfterException() throws Exception {
 		latchContainer.stopsProcessingOnErrorLatch1 = new CountDownLatch(4);
-		latchContainer.stopsProcessingOnErrorLatch1 = new CountDownLatch(this.numberOfMessages + 1);
-		List<String> values = IntStream.range(0, this.numberOfMessages).mapToObj(String::valueOf).collect(toList());
+		latchContainer.stopsProcessingOnErrorLatch1 = new CountDownLatch(this.settings.messagesPerTest + 1);
+		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf).collect(toList());
 		String messageGroupId = UUID.randomUUID().toString();
 		String queueUrl = fetchQueueUrl(FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME);
 		sendMessageTo(queueUrl, values, messageGroupId);
@@ -177,14 +197,14 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(stopsOnErrorListener.receivedMessagesBeforeException).containsExactlyElementsOf(values.stream().limit(4).collect(toList()));
 		assertThat(latchContainer.stopsProcessingOnErrorLatch2.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(stopsOnErrorListener.receivedMessagesBeforeException).containsExactlyElementsOf(values.stream().limit(4).collect(toList()));
-		assertThat(stopsOnErrorListener.receivedMessagesAfterException).containsExactlyElementsOf(values.subList(3, this.numberOfMessages));
+		assertThat(stopsOnErrorListener.receivedMessagesAfterException).containsExactlyElementsOf(values.subList(3, this.settings.messagesPerTest));
 	}
 
 	//@Disabled(FLAKY_ON_LOCALSTACK)
 	@Test
 	void receivesBatchesManyGroups() throws Exception {
-		latchContainer.receivesBatchManyGroupsLatch = new CountDownLatch(numberOfMessages * 3);
-		List<String> values = IntStream.range(0, this.numberOfMessages).mapToObj(String::valueOf).collect(toList());
+		latchContainer.receivesBatchManyGroupsLatch = new CountDownLatch(this.settings.messagesPerTest * 3);
+		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf).collect(toList());
 		String messageGroupId1 = UUID.randomUUID().toString();
 		String messageGroupId2 = UUID.randomUUID().toString();
 		String messageGroupId3 = UUID.randomUUID().toString();
@@ -198,13 +218,10 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(receivesBatchesFromManyGroupsListener.receivedMessages.get(messageGroupId3)).containsExactlyElementsOf(values);
 	}
 
-	@Autowired
-	MessagesContainer messagesContainer;
-
 	@Test
 	void manuallyCreatesContainer() throws Exception {
 		String queueUrl = fetchQueueUrl(FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME);
-		List<String> values = IntStream.range(0, this.numberOfMessages).mapToObj(String::valueOf).collect(toList());
+		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf).collect(toList());
 		sendMessageTo(queueUrl, values, UUID.randomUUID().toString());
 		assertThat(latchContainer.manuallyCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(messagesContainer.manuallyCreatedContainerMessages).containsExactlyElementsOf(values);
@@ -213,7 +230,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void manuallyCreatesBatchContainer() throws Exception {
 		String queueUrl = fetchQueueUrl(FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME);
-		List<String> values = IntStream.range(0, this.numberOfMessages).mapToObj(String::valueOf).collect(toList());
+		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf).collect(toList());
 		sendMessageTo(queueUrl, values, UUID.randomUUID().toString());
 		assertThat(latchContainer.manuallyCreatedBatchContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(messagesContainer.manuallyCreatedBatchContainerMessages).containsExactlyElementsOf(values);
@@ -222,7 +239,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void manuallyCreatesFactory() throws Exception {
 		String queueUrl = fetchQueueUrl(FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME);
-		List<String> values = IntStream.range(0, this.numberOfMessages).mapToObj(String::valueOf).collect(toList());
+		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf).collect(toList());
 		sendMessageTo(queueUrl, values, UUID.randomUUID().toString());
 		assertThat(latchContainer.manuallyCreatedFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(messagesContainer.manuallyCreatedFactoryMessages).containsExactlyElementsOf(values);
@@ -231,7 +248,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void manuallyCreatesBatchFactory() throws Exception {
 		String queueUrl = fetchQueueUrl(FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME);
-		List<String> values = IntStream.range(0, this.numberOfMessages).mapToObj(String::valueOf).collect(toList());
+		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf).collect(toList());
 		sendMessageTo(queueUrl, values, UUID.randomUUID().toString());
 		assertThat(latchContainer.manuallyCreatedBatchFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(messagesContainer.manuallyCreatedBatchFactoryMessages).containsExactlyElementsOf(values);
@@ -245,13 +262,13 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		LatchContainer latchContainer;
 
 		@Autowired
-		Sleeper sleeper;
+		LoadSimulator loadSimulator;
 
 		@SqsListener(queueNames = FIFO_RECEIVES_MESSAGES_IN_ORDER_QUEUE_NAME)
-		void listen(String message) throws Exception {
-			logger.debug("Received message in listener method: " + message);
-			sleeper.sleep();
-			receivedMessages.add(message);
+		void listen(Message<String> message) {
+			logger.debug("Received message with id {} and payload {} from ReceivesMessageInOrderListener", MessageHeaderUtils.getId(message), message.getPayload());
+			loadSimulator.runLoad();
+			receivedMessages.add(message.getPayload());
 			latchContainer.receivesMessageLatch.countDown();
 		}
 	}
@@ -264,12 +281,12 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		LatchContainer latchContainer;
 
 		@Autowired
-		Sleeper sleeper;
+		LoadSimulator loadSimulator;
 
 		@SqsListener(queueNames = FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME)
 		void listen(String message, @Header(SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER) String groupId) {
 			logger.debug("Received message in listener method: " + message);
-			sleeper.sleep();
+			loadSimulator.runLoad();
 			receivedMessages.computeIfAbsent(groupId, newGroupId -> Collections.synchronizedList(new ArrayList<>())).add(message);
 			latchContainer.receivesMessageManyGroupsLatch.countDown();
 			logger.debug("Message {} processed.", message);
@@ -288,12 +305,12 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		LatchContainer latchContainer;
 
 		@Autowired
-		Sleeper sleeper;
+		LoadSimulator loadSimulator;
 
 		@SqsListener(queueNames = FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME, messageVisibilitySeconds = "2")
 		void listen(String message) throws Exception {
 			logger.debug("Received message in listener method: " + message);
-			sleeper.sleep(500);
+			loadSimulator.runLoad(500);
 			if (!hasThrown.get()) {
 				this.receivedMessagesBeforeException.add(message);
 			}
@@ -520,8 +537,13 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
-		Sleeper sleeper() {
-			return new Sleeper();
+		LoadSimulator loadSimulator() {
+			return new LoadSimulator();
+		}
+
+		@Bean
+		Settings settings() {
+			return new Settings();
 		}
 
 		@Bean

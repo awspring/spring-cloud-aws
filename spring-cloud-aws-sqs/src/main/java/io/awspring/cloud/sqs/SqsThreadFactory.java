@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener.acknowledgement;
+package io.awspring.cloud.sqs;
 
-import java.util.concurrent.CompletableFuture;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
  * @author Tomaz Fernandes
  * @since 3.0
  */
-// TODO: TBD
-public interface AckFrequencyHandler {
+public class SqsThreadFactory extends CustomizableThreadFactory {
 
-	CompletableFuture<Void> registerAck(Acknowledgement ack);
-
-	enum AckFrequency {
-
-		EACH,
-
-		BATCH,
-
-		TIME,
-
-		COUNT,
-
-		COUNT_OR_TIME
-
+	@Override
+	public Thread createThread(Runnable runnable) {
+		SqsThread thread = new SqsThread(getThreadGroup(), runnable, nextThreadName());
+		thread.setDaemon(false);
+		thread.setPriority(Thread.NORM_PRIORITY);
+		return thread;
 	}
+
 }

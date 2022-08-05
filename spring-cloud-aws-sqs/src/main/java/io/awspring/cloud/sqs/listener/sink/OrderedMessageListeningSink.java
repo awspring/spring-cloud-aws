@@ -45,7 +45,7 @@ public class OrderedMessageListeningSink<T> extends AbstractMessageListeningSink
 					if (t == null) {
 						return execute(msg, context);
 					}
-					context.executeBackPressureReleaseCallback();
+					context.runBackPressureReleaseCallback();
 					return CompletableFutures.failedFuture(t);
 				}), (a, b) -> a);
 	}

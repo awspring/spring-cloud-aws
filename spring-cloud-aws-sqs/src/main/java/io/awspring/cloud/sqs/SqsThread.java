@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener.acknowledgement;
+package io.awspring.cloud.sqs;
 
 /**
- * Interface representing a message acknowledgement.
- *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface Acknowledgement {
+public class SqsThread extends Thread {
 
-	/**
-	 * Acknowledge the message.
-	 */
-	void acknowledge();
+	public SqsThread(ThreadGroup threadGroup, Runnable runnable, String nextThreadName) {
+		super(threadGroup, runnable, nextThreadName);
+	}
 
+	public SqsThread() {
+		super();
+	}
 }

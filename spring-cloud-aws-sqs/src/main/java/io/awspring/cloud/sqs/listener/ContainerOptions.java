@@ -16,8 +16,10 @@
 package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.BackPressureMode;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
-import org.springframework.core.task.TaskExecutor;
+import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
@@ -27,6 +29,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -59,6 +62,10 @@ public class ContainerOptions {
 
 	private static final List<String> DEFAULT_MESSAGE_SYSTEM_ATTRIBUTES = Collections.singletonList(QueueAttributeName.ALL.toString());
 
+	private static final MessagingMessageConverter<?> DEFAULT_MESSAGE_CONVERTER = new SqsMessagingMessageConverter();
+
+	private static final AcknowledgementMode DEFAULT_ACKNOWLEDGEMENT_MODE = AcknowledgementMode.ON_SUCCESS;
+
 	private int maxInflightMessagesPerQueue = DEFAULT_MAX_INFLIGHT_MSG_PER_QUEUE;
 
 	private int messagesPerPoll = DEFAULT_MESSAGES_PER_POLL;
@@ -67,7 +74,7 @@ public class ContainerOptions {
 
 	private Duration permitAcquireTimeout = DEFAULT_SEMAPHORE_TIMEOUT;
 
-	private Duration shutDownTimeout = DEFAULT_SHUTDOWN_TIMEOUT;
+	private Duration sourceShutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT;
 
 	private BackPressureMode backPressureMode = DEFAULT_THROUGHPUT_CONFIGURATION;
 
@@ -79,9 +86,17 @@ public class ContainerOptions {
 
 	private Collection<String> messageSystemAttributeNames = DEFAULT_MESSAGE_SYSTEM_ATTRIBUTES;
 
-	private MessagingMessageConverter<?> messageConverter;
+	private MessagingMessageConverter<?> messageConverter = DEFAULT_MESSAGE_CONVERTER;
 
-	private TaskExecutor sinkTaskExecutor;
+	private AcknowledgementMode acknowledgementMode = DEFAULT_ACKNOWLEDGEMENT_MODE;
+
+	private AcknowledgementOrdering acknowledgementOrdering;
+
+	private Duration acknowledgementInterval;
+
+	private Integer acknowledgementThreshold;
+
+	private Executor containerComponentsTaskExecutor;
 
 	private Duration messageVisibility;
 
@@ -136,14 +151,14 @@ public class ContainerOptions {
 		return this;
 	}
 
-	public ContainerOptions sinkTaskExecutor(TaskExecutor sinkTaskExecutor) {
-		Assert.notNull(sinkTaskExecutor, "sinkTaskExecutor cannot be null");
-		this.sinkTaskExecutor = sinkTaskExecutor;
+	public ContainerOptions containerComponentsTaskExecutor(Executor executor) {
+		Assert.notNull(executor, "executor cannot be null");
+		this.containerComponentsTaskExecutor = executor;
 		return this;
 	}
 
-	public ContainerOptions shutDownTimeout(Duration shutDownTimeout) {
-		this.shutDownTimeout = shutDownTimeout;
+	public ContainerOptions sourceShutdownTimeout(Duration sourceShutdownTimeout) {
+		this.sourceShutdownTimeout = sourceShutdownTimeout;
 		return this;
 	}
 
@@ -169,6 +184,26 @@ public class ContainerOptions {
 
 	public ContainerOptions messageVisibility(Duration messageVisibility) {
 		this.messageVisibility = messageVisibility;
+		return this;
+	}
+
+	public ContainerOptions acknowledgementInterval(Duration acknowledgementInterval) {
+		this.acknowledgementInterval = acknowledgementInterval;
+		return this;
+	}
+
+	public ContainerOptions acknowledgementThreshold(Integer acknowledgementThreshold) {
+		this.acknowledgementThreshold = acknowledgementThreshold;
+		return this;
+	}
+
+	public ContainerOptions acknowledgementMode(AcknowledgementMode acknowledgementMode) {
+		this.acknowledgementMode = acknowledgementMode;
+		return this;
+	}
+
+	public ContainerOptions acknowledgementOrdering(AcknowledgementOrdering acknowledgementOrdering) {
+		this.acknowledgementOrdering = acknowledgementOrdering;
 		return this;
 	}
 
@@ -209,12 +244,12 @@ public class ContainerOptions {
 		return this.permitAcquireTimeout;
 	}
 
-	public TaskExecutor getSinkTaskExecutor() {
-		return this.sinkTaskExecutor;
+	public Executor getContainerComponentsTaskExecutor() {
+		return this.containerComponentsTaskExecutor;
 	}
 
-	public Duration getShutDownTimeout() {
-		return this.shutDownTimeout;
+	public Duration getSourceShutdownTimeout() {
+		return this.sourceShutdownTimeout;
 	}
 
 	public BackPressureMode getBackPressureMode() {
@@ -243,6 +278,22 @@ public class ContainerOptions {
 
 	public MessagingMessageConverter<?> getMessageConverter() {
 		return this.messageConverter;
+	}
+
+	public Duration getAcknowledgementInterval() {
+		return this.acknowledgementInterval;
+	}
+
+	public Integer getAcknowledgementThreshold() {
+		return this.acknowledgementThreshold;
+	}
+
+	public AcknowledgementMode getAcknowledgementMode() {
+		return this.acknowledgementMode;
+	}
+
+	public AcknowledgementOrdering getAcknowledgementOrdering() {
+		return this.acknowledgementOrdering;
 	}
 
 	/**
@@ -274,5 +325,4 @@ public class ContainerOptions {
 				this.messagesPerPoll, this.maxInflightMessagesPerQueue));
 		Assert.isTrue(this.messagesPerPoll <= 10, "messagesPerPoll must be less than or equal to 10.");
 	}
-
 }

@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener.acknowledgement;
+package io.awspring.cloud.sqs.listener;
+
+import java.util.concurrent.Executor;
 
 /**
- * Interface representing a message acknowledgement.
+ * Enables a class to receive a container managed {@link Executor}.
+ * Note that this is not automatic - changes to the container should be necessary
+ * to actually receive the instance.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface Acknowledgement {
+public interface ExecutorAware {
 
 	/**
-	 * Acknowledge the message.
+	 * Set the task executor.
+	 * @param taskExecutor the task e.xecutor
 	 */
-	void acknowledge();
+	void setExecutor(Executor taskExecutor);
 
 }

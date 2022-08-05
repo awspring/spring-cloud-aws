@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs.listener.acknowledgement;
 
-import org.springframework.core.task.TaskExecutor;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * Enables a class to receive a container managed {@link TaskExecutor}.
- * Note that this is not automatic - changes to the container should be necessary
- * to actually receive the instance.
+ * Interface representing a message acknowledgement.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface TaskExecutorAware {
+public interface AsyncAcknowledgement {
 
 	/**
-	 * Set the task executor.
-	 * @param taskExecutor the task e.xecutor
+	 * Acknowledge the message asynchronously.
+	 * @return a completable future.
 	 */
-	void setTaskExecutor(TaskExecutor taskExecutor);
+	CompletableFuture<Void> acknowledgeAsync();
 
 }

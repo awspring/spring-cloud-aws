@@ -15,19 +15,23 @@
  */
 package io.awspring.cloud.sqs.config;
 
+import io.awspring.cloud.sqs.listener.AsyncComponentAdapters;
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.MessageDeliveryStrategy;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.adapter.AsyncMessagingMessageListenerAdapter;
+import io.awspring.cloud.sqs.listener.adapter.BlockingMessagingMessageListenerAdapter;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
+import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -38,15 +42,13 @@ import java.util.stream.IntStream;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractEndpoint implements Endpoint {
+public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 
 	private final Collection<String> logicalNames;
 
 	private final String listenerContainerFactoryName;
 
 	private final String id;
-
-	private final Boolean async;
 
 	private Object bean;
 
@@ -55,12 +57,11 @@ public abstract class AbstractEndpoint implements Endpoint {
 	private MessageHandlerMethodFactory handlerMethodFactory;
 
 	protected AbstractEndpoint(Collection<String> logicalNames, @Nullable String listenerContainerFactoryName,
-			String id, Boolean async) {
+							   String id) {
 		Assert.notEmpty(logicalNames, "logicalNames cannot be empty.");
 		this.id = id;
 		this.logicalNames = logicalNames;
 		this.listenerContainerFactoryName = listenerContainerFactoryName;
-		this.async = async;
 	}
 
 	@Override
@@ -82,6 +83,7 @@ public abstract class AbstractEndpoint implements Endpoint {
 	 * Set the bean instance to be used when handling a message for this endpoint.
 	 * @param bean the bean instance.
 	 */
+	@Override
 	public void setBean(Object bean) {
 		this.bean = bean;
 	}
@@ -90,6 +92,7 @@ public abstract class AbstractEndpoint implements Endpoint {
 	 * Set the method to be used when handling a message for this endpoint.
 	 * @param method the method.
 	 */
+	@Override
 	public void setMethod(Method method) {
 		this.method = method;
 	}
@@ -98,6 +101,7 @@ public abstract class AbstractEndpoint implements Endpoint {
 	 * Set the {@link MessageHandlerMethodFactory} to be used for handling messages in this endpoint.
 	 * @param handlerMethodFactory the factory.
 	 */
+	@Override
 	public void setHandlerMethodFactory(MessageHandlerMethodFactory handlerMethodFactory) {
 		Assert.notNull(handlerMethodFactory, "handlerMethodFactory cannot be null");
 		this.handlerMethodFactory = handlerMethodFactory;
@@ -136,8 +140,10 @@ public abstract class AbstractEndpoint implements Endpoint {
 
 	private AsyncMessageListener<?> createMessageListener() {
 		Assert.notNull(this.handlerMethodFactory, "No handlerMethodFactory has been set");
-		return new AsyncMessagingMessageListenerAdapter<>(
-				this.handlerMethodFactory.createInvocableHandlerMethod(this.bean, this.method));
+		InvocableHandlerMethod handlerMethod = this.handlerMethodFactory.createInvocableHandlerMethod(this.bean, this.method);
+		return CompletionStage.class.isAssignableFrom(handlerMethod.getReturnType().getParameterType())
+			? new AsyncMessagingMessageListenerAdapter<>(handlerMethod)
+			: AsyncComponentAdapters.adapt(new BlockingMessagingMessageListenerAdapter<>(handlerMethod));
 	}
 
 }

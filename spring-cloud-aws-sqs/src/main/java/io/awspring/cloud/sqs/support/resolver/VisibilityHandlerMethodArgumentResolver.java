@@ -41,7 +41,7 @@ public class VisibilityHandlerMethodArgumentResolver implements HandlerMethodArg
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		if (!message.getHeaders().containsKey(this.visibilityHeaderName)
 				|| message.getHeaders().get(this.visibilityHeaderName) == null) {
 			throw new IllegalArgumentException(
