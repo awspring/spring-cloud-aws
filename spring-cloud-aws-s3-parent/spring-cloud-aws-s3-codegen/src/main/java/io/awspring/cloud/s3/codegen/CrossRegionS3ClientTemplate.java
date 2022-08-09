@@ -90,10 +90,8 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 
 	private <Result> Result executeInBucketRegion(String bucket, Function<S3Client, Result> fn) {
 		try {
-			if (bucketCache.contains(bucket)) {
-				return fn.apply(bucketCache.get(bucket));
-			}
-			else {
+			// If the bucket isn't cached, safely attempt to run fn using the default client
+			if (!bucketCache.contains(bucket)) {
 				return fn.apply(defaultS3Client);
 			}
 		}
@@ -107,19 +105,21 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 						e.awsErrorDetails().sdkHttpResponse().statusCode());
 			}
 			// A 301 error code ("PermanentRedirect") means that the bucket is in different region than the
-			// defaultS3Client is configured for
-			if (e.awsErrorDetails().sdkHttpResponse().statusCode() == HTTP_CODE_PERMANENT_REDIRECT) {
-				S3Client newClient = e.awsErrorDetails().sdkHttpResponse().firstMatchingHeader(BUCKET_REDIRECT_HEADER)
-						.map(Region::of).map(this::getClient)
-						.orElseThrow(() -> RegionDiscoveryException.ofMissingHeader(e));
-
-				bucketCache.put(bucket, newClient);
-				return fn.apply(newClient);
-			}
-			else {
+			// defaultS3Client is configured for.
+			if (e.awsErrorDetails().sdkHttpResponse().statusCode() != HTTP_CODE_PERMANENT_REDIRECT) {
 				throw e;
 			}
+
+			S3Client newClient = e.awsErrorDetails().sdkHttpResponse().firstMatchingHeader(BUCKET_REDIRECT_HEADER)
+					.map(Region::of).map(this::getClient)
+					.orElseThrow(() -> RegionDiscoveryException.ofMissingHeader(e));
+			bucketCache.put(bucket, newClient);
 		}
+
+		// If we have reached this point, either a client for this bucket was already cached, or an exception occurred
+		// when we tried to run fn with the default client and we subsequently discovered the correct region and cached
+		// the client. Any error thrown by this call shouldn't be an InvalidRegion error.
+		return fn.apply(bucketCache.get(bucket));
 	}
 
 	@Override
