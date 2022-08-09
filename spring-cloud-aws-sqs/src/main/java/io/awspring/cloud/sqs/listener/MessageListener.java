@@ -15,9 +15,8 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import org.springframework.messaging.Message;
-
 import java.util.Collection;
+import org.springframework.messaging.Message;
 
 /**
  * Interface to process incoming {@link Message}s.

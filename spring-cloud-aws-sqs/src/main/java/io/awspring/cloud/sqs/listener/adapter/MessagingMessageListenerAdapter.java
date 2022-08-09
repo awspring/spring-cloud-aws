@@ -15,43 +15,29 @@
  */
 package io.awspring.cloud.sqs.listener.adapter;
 
-import io.awspring.cloud.sqs.listener.ListenerExecutionFailedException;
+import io.awspring.cloud.sqs.listener.MessageListener;
 import java.util.Collection;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
-import org.springframework.messaging.support.MessageBuilder;
 
 /**
- *
- * Base class for invoking an {@link InvocableHandlerMethod}.
- *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class MessagingMessageListenerAdapter<T> {
+public class MessagingMessageListenerAdapter<T> extends AbstractMethodInvokingListenerAdapter<T>
+		implements MessageListener<T> {
 
-	private final InvocableHandlerMethod handlerMethod;
-
-	protected MessagingMessageListenerAdapter(InvocableHandlerMethod handlerMethod) {
-		this.handlerMethod = handlerMethod;
+	public MessagingMessageListenerAdapter(InvocableHandlerMethod handlerMethod) {
+		super(handlerMethod);
 	}
 
-	protected final Object invokeHandler(Message<T> message) {
-		try {
-			return handlerMethod.invoke(message);
-		}
-		catch (Exception ex) {
-			throw new ListenerExecutionFailedException("Listener failed to process message", ex);
-		}
+	@Override
+	public void onMessage(Message<T> message) {
+		super.invokeHandler(message);
 	}
 
-	protected final Object invokeHandler(Collection<Message<T>> messages) {
-		try {
-			return handlerMethod.invoke(MessageBuilder.withPayload(messages).build());
-		}
-		catch (Exception ex) {
-			throw new ListenerExecutionFailedException("Listener failed to process message", ex);
-		}
+	@Override
+	public void onMessage(Collection<Message<T>> messages) {
+		super.invokeHandler(messages);
 	}
-
 }

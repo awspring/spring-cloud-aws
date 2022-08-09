@@ -18,13 +18,11 @@ package io.awspring.cloud.sqs;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import com.amazonaws.auth.AWSCredentials;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,8 +50,8 @@ abstract class BaseSqsIntegrationTest {
 
 	private static final String LOCAL_STACK_VERSION = "localstack/localstack:1.0.3";
 
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse(LOCAL_STACK_VERSION)).withServices(SQS).withReuse(true);
+	static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse(LOCAL_STACK_VERSION))
+			.withServices(SQS).withReuse(true);
 
 	static StaticCredentialsProvider credentialsProvider;
 
@@ -63,7 +61,7 @@ abstract class BaseSqsIntegrationTest {
 			localstack.start();
 			AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
 			credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
-				.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
+					.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
 		}
 	}
 
@@ -81,67 +79,61 @@ abstract class BaseSqsIntegrationTest {
 		return createFifoQueue(client, queueName, Collections.emptyMap());
 	}
 
-	protected static CompletableFuture<?> createFifoQueue(SqsAsyncClient client, String queueName, Map<QueueAttributeName, String> additionalAttributes) {
+	protected static CompletableFuture<?> createFifoQueue(SqsAsyncClient client, String queueName,
+			Map<QueueAttributeName, String> additionalAttributes) {
 		Map<QueueAttributeName, String> attributes = new HashMap<>(additionalAttributes);
 		attributes.put(QueueAttributeName.FIFO_QUEUE, "true");
 		return createQueue(client, queueName, attributes);
 	}
 
-	protected static CompletableFuture<?> createQueue(SqsAsyncClient client, String queueName, Map<QueueAttributeName, String> attributes) {
+	protected static CompletableFuture<?> createQueue(SqsAsyncClient client, String queueName,
+			Map<QueueAttributeName, String> attributes) {
 		logger.debug("Creating queue {} with attributes {}", queueName, attributes);
-		return client.createQueue(req -> getCreateQueueRequest(queueName, attributes, req))
-			.handle((v, t) -> {
-				if (t != null) {
-					logger.error("Error creating queue {} with attributes {}", queueName, attributes, t);
-					return CompletableFutures.failedFuture(t);
-				}
-				if (purgeQueues) {
-					String queueUrl = v.queueUrl();
-					logger.debug("Purging queue {}", queueName);
-					return client.purgeQueue(req -> req.queueUrl(queueUrl).build());
-				}
-				else {
-					logger.debug("Skipping purge for queue {}", queueName);
-					return CompletableFuture.completedFuture(null);
-				}
-			}).thenCompose(x -> x).whenComplete((v, t) -> {
-				if (t != null) {
-					logger.error("Error purging queue {}", queueName, t);
-					return;
-				}
-				logger.debug("Done purging queue {}", queueName);
-			});
+		return client.createQueue(req -> getCreateQueueRequest(queueName, attributes, req)).handle((v, t) -> {
+			if (t != null) {
+				logger.error("Error creating queue {} with attributes {}", queueName, attributes, t);
+				return CompletableFutures.failedFuture(t);
+			}
+			if (purgeQueues) {
+				String queueUrl = v.queueUrl();
+				logger.debug("Purging queue {}", queueName);
+				return client.purgeQueue(req -> req.queueUrl(queueUrl).build());
+			}
+			else {
+				logger.debug("Skipping purge for queue {}", queueName);
+				return CompletableFuture.completedFuture(null);
+			}
+		}).thenCompose(x -> x).whenComplete((v, t) -> {
+			if (t != null) {
+				logger.error("Error purging queue {}", queueName, t);
+				return;
+			}
+			logger.debug("Done purging queue {}", queueName);
+		});
 	}
 
-	private static CreateQueueRequest getCreateQueueRequest(String queueName, Map<QueueAttributeName, String> attributes, CreateQueueRequest.Builder builder) {
+	private static CreateQueueRequest getCreateQueueRequest(String queueName,
+			Map<QueueAttributeName, String> attributes, CreateQueueRequest.Builder builder) {
 		if (!attributes.isEmpty()) {
 			builder.attributes(attributes);
 		}
-		return builder
-			.queueName(queueName)
-			.build();
+		return builder.queueName(queueName).build();
 	}
 
 	protected static SqsAsyncClient createAsyncClient() {
-		return useLocalStackClient
-					? createLocalStackClient()
-					: SqsAsyncClient.builder().build();
+		return useLocalStackClient ? createLocalStackClient() : SqsAsyncClient.builder().build();
 	}
 
 	protected static SqsAsyncClient createLocalStackClient() {
-		return SqsAsyncClient.builder()
-			.credentialsProvider(credentialsProvider)
-			.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
-			.build();
+		return SqsAsyncClient.builder().credentialsProvider(credentialsProvider)
+				.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
+				.build();
 	}
 
 	protected static SqsAsyncClient createHighThroughputAsyncClient() {
-		return useLocalStackClient
-			? createLocalStackClient()
-			: SqsAsyncClient.builder().httpClientBuilder(NettyNioAsyncHttpClient.builder()
-				.maxConcurrency(6000)
-			)
-			.build();
+		return useLocalStackClient ? createLocalStackClient()
+				: SqsAsyncClient.builder().httpClientBuilder(NettyNioAsyncHttpClient.builder().maxConcurrency(6000))
+						.build();
 	}
 
 	protected static class LoadSimulator {
@@ -164,16 +156,15 @@ abstract class BaseSqsIntegrationTest {
 			}
 			try {
 				Thread.sleep(getLoadTime(amount));
-			} catch (InterruptedException e) {
+			}
+			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				throw new RuntimeException(e);
 			}
 		}
 
 		private long getLoadTime(int amount) {
-			return this.random
-				? RANDOM.nextInt(amount)
-				: amount;
+			return this.random ? RANDOM.nextInt(amount) : amount;
 		}
 
 		public LoadSimulator setBound(int bound) {

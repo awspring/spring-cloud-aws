@@ -16,15 +16,12 @@
 package io.awspring.cloud.sqs.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.sqs.ConfigUtils;
-import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -65,13 +62,13 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	private final Collection<Endpoint> endpoints = new ArrayList<>();
 
-	private Consumer<List<MessageConverter>> messageConvertersConsumer = converters -> {};
+	private Consumer<List<MessageConverter>> messageConvertersConsumer = converters -> {
+	};
 
-	private Consumer<List<HandlerMethodArgumentResolver>> methodArgumentResolversConsumer = resolvers -> {};
+	private Consumer<List<HandlerMethodArgumentResolver>> methodArgumentResolversConsumer = resolvers -> {
+	};
 
 	private ObjectMapper objectMapper;
-
-	private boolean isParallelLifecycleManagement = true;
 
 	/**
 	 * Set a custom {@link MessageHandlerMethodFactory} implementation.
@@ -114,16 +111,6 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 		this.messageListenerContainerRegistryBeanName = messageListenerContainerRegistryBeanName;
 	}
 
-	/**
-	 * Set to false if {@link org.springframework.context.SmartLifecycle} management by the
-	 * {@link io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry} should be made sequentially rather than
-	 * in parallel.
-	 * @param parallelLifecycleManagement the value.
-	 */
-	public void setParallelLifecycleManagement(boolean parallelLifecycleManagement) {
-		this.isParallelLifecycleManagement = parallelLifecycleManagement;
-	}
-
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
@@ -163,20 +150,18 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 			this.listenerContainerRegistry = beanFactory.getBean(this.messageListenerContainerRegistryBeanName,
 					MessageListenerContainerRegistry.class);
 		}
-		ConfigUtils.INSTANCE.acceptIfInstance(this.listenerContainerRegistry, DefaultListenerContainerRegistry.class,
-			dlcr -> dlcr.setParallelLifecycleManagement(this.isParallelLifecycleManagement));
 		this.endpoints.forEach(this::process);
 	}
 
 	private void process(Endpoint endpoint) {
-		logger.debug("Processing endpoint {}", endpoint);
+		logger.debug("Processing endpoint {}", endpoint.getId());
 		this.listenerContainerRegistry.registerListenerContainer(createContainerFor(endpoint));
 	}
 
 	private MessageListenerContainer<?> createContainerFor(Endpoint endpoint) {
 		String factoryBeanName = getListenerContainerFactoryName(endpoint);
-		Assert.isTrue(this.beanFactory.containsBean(factoryBeanName),
-				() -> "No factory bean with name " + factoryBeanName + " found for endpoint " + endpoint.getId());
+		Assert.isTrue(this.beanFactory.containsBean(factoryBeanName), () -> "No factory bean with name "
+				+ factoryBeanName + " found for endpoint names " + endpoint.getLogicalNames());
 		return this.beanFactory.getBean(factoryBeanName, MessageListenerContainerFactory.class)
 				.createContainer(endpoint);
 	}

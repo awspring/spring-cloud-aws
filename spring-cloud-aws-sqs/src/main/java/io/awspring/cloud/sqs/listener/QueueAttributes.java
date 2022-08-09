@@ -15,11 +15,10 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import org.springframework.lang.Nullable;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
  * Queue attributes extracted from SQS.

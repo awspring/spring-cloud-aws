@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,11 @@ package io.awspring.cloud.sqs.listener.pipeline;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Stage responsible for executing the {@link AsyncMessageInterceptor}s.
@@ -35,23 +32,25 @@ import java.util.concurrent.CompletableFuture;
  */
 public class BeforeProcessingContextInterceptorExecutionStage<T> implements MessageProcessingPipeline<T> {
 
-	private static final Logger logger = LoggerFactory.getLogger(BeforeProcessingContextInterceptorExecutionStage.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(BeforeProcessingContextInterceptorExecutionStage.class);
 
 	public BeforeProcessingContextInterceptorExecutionStage(MessageProcessingConfiguration<T> configuration) {
 	}
 
 	@Override
 	public CompletableFuture<Message<T>> process(Message<T> message, MessageProcessingContext<T> context) {
-		logger.trace("Processing context interceptors for messages {}", MessageHeaderUtils.getId(message));
+		logger.trace("Processing messages {}", MessageHeaderUtils.getId(message));
 		return context.getInterceptors().stream().reduce(CompletableFuture.completedFuture(message),
-			(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept), (a, b) -> a);
+				(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept), (a, b) -> a);
 	}
 
 	@Override
-	public CompletableFuture<Collection<Message<T>>> process(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
-		logger.trace("Processing context interceptors for messages {}", MessageHeaderUtils.getId(messages));
+	public CompletableFuture<Collection<Message<T>>> process(Collection<Message<T>> messages,
+			MessageProcessingContext<T> context) {
+		logger.trace("Processing messages {}", MessageHeaderUtils.getId(messages));
 		return context.getInterceptors().stream().reduce(CompletableFuture.completedFuture(messages),
-			(messagesFuture, interceptor) -> messagesFuture.thenCompose(interceptor::intercept), (a, b) -> a);
+				(messagesFuture, interceptor) -> messagesFuture.thenCompose(interceptor::intercept), (a, b) -> a);
 	}
 
 }

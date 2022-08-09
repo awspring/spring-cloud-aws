@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,17 @@ package io.awspring.cloud.sqs.listener;
 import java.time.Duration;
 
 /**
- * Abstraction to handle backpressure within a
- * {@link io.awspring.cloud.sqs.listener.source.MessageSource}.
+ * Abstraction to handle backpressure within a {@link io.awspring.cloud.sqs.listener.source.MessageSource}.
  *
- * Implementations must be thread-safe if being shared among sources within a container.
- * Strategies can be semaphore-based, rate limiter-based, a mix of both, or any other.
+ * Implementations must be thread-safe if being shared among sources within a container. Strategies can be
+ * semaphore-based, rate limiter-based, a mix of both, or any other.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public interface BackPressureHandler {
 
-	void setClientId(String clientId);
-
-	int request() throws InterruptedException;
+	int request(int amount) throws InterruptedException;
 
 	void release(int amount);
 

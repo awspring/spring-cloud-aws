@@ -15,11 +15,9 @@
  */
 package io.awspring.cloud.sqs.listener.acknowledgement.handler;
 
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-
-import io.awspring.cloud.sqs.CompletableFutures;
-import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import org.springframework.messaging.Message;
 
 /**
@@ -30,7 +28,6 @@ import org.springframework.messaging.Message;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-@FunctionalInterface
 public interface AcknowledgementHandler<T> {
 
 	/**
@@ -39,11 +36,12 @@ public interface AcknowledgementHandler<T> {
 	 * @param message the message.
 	 * @return a completable future.
 	 */
-	CompletableFuture<Void> onSuccess(Message<T> message, AcknowledgementCallback<T> callback);
+	default CompletableFuture<Void> onSuccess(Message<T> message, AcknowledgementCallback<T> callback) {
+		return CompletableFuture.completedFuture(null);
+	}
 
 	default CompletableFuture<Void> onSuccess(Collection<Message<T>> messages, AcknowledgementCallback<T> callback) {
-		return CompletableFutures
-			.failedFuture(new UnsupportedOperationException("Batch not implemented for this component"));
+		return CompletableFuture.completedFuture(null);
 	}
 
 	/**
@@ -57,7 +55,8 @@ public interface AcknowledgementHandler<T> {
 		return CompletableFuture.completedFuture(null);
 	}
 
-	default CompletableFuture<Void> onError(Collection<Message<T>> messages, Throwable t, AcknowledgementCallback<T> callback) {
+	default CompletableFuture<Void> onError(Collection<Message<T>> messages, Throwable t,
+			AcknowledgementCallback<T> callback) {
 		return CompletableFuture.completedFuture(null);
 	}
 

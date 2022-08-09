@@ -15,15 +15,13 @@
  */
 package io.awspring.cloud.sqs.listener.errorhandler;
 
-import org.springframework.messaging.Message;
-
 import java.util.Collection;
+import org.springframework.messaging.Message;
 
 /**
  * @author Tomaz Fernandes
  * @since 3.0
  */
-@FunctionalInterface
 public interface ErrorHandler<T> {
 
 	/**
@@ -31,7 +29,8 @@ public interface ErrorHandler<T> {
 	 * @param message the message.
 	 * @param t the thrown exception.
 	 */
-	void handle(Message<T> message, Throwable t);
+	default void handle(Message<T> message, Throwable t) {
+	}
 
 	/**
 	 * Handle errors thrown when processing a batch of {@link Message}s.
@@ -39,7 +38,6 @@ public interface ErrorHandler<T> {
 	 * @param t the thrown exception.
 	 */
 	default void handle(Collection<Message<T>> messages, Throwable t) {
-		throw new UnsupportedOperationException("Batch not implemented by this error handler");
 	}
 
 }

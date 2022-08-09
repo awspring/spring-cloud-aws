@@ -15,29 +15,22 @@
  */
 package io.awspring.cloud.sqs.listener.sink;
 
+import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-
-import io.awspring.cloud.sqs.MessageHeaderUtils;
-import io.awspring.cloud.sqs.listener.MessageProcessingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 
 /**
- * {@link MessageSink} implementation that emits the whole received batch of messages to
- * the configured {@link io.awspring.cloud.sqs.listener.AsyncMessageListener}.
+ * {@link MessageSink} implementation that emits the whole received batch of messages to the configured
+ * {@link io.awspring.cloud.sqs.listener.AsyncMessageListener}.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class BatchMessageSink<T> extends AbstractMessageListeningSink<T> {
-
-	Logger logger = LoggerFactory.getLogger(BatchMessageSink.class);
+public class BatchMessageSink<T> extends AbstractMessageProcessingPipelineSink<T> {
 
 	@Override
 	protected CompletableFuture<Void> doEmit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
-		logger.trace("Emitting messages {}", MessageHeaderUtils.getId(messages));
 		return execute(messages, context);
 	}
 

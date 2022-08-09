@@ -15,11 +15,11 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import java.util.ArrayList;
+import io.awspring.cloud.sqs.LifecycleHandler;
 import java.util.Collection;
 import java.util.Collections;
-
-import io.awspring.cloud.sqs.LifecycleUtils;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -44,9 +44,7 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultListenerContainerRegistry.class);
 
-	private final Collection<MessageListenerContainer<?>> listenerContainers = new ArrayList<>();
-
-	private boolean isParallelLifecycleManagement = true;
+	private final Map<String, MessageListenerContainer<?>> listenerContainers = new ConcurrentHashMap<>();
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -54,67 +52,41 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 
 	@Override
 	public void registerListenerContainer(MessageListenerContainer<?> listenerContainer) {
-		logger.debug("Registering listener container {}", listenerContainer);
 		Assert.state(getContainerById(listenerContainer.getId()) == null,
 				() -> "Already registered container with id " + listenerContainer.getId());
-		this.listenerContainers.add(listenerContainer);
+		logger.debug("Registering listener container {}", listenerContainer.getId());
+		this.listenerContainers.put(listenerContainer.getId(), listenerContainer);
 	}
 
 	@Override
 	public Collection<MessageListenerContainer<?>> getListenerContainers() {
-		return Collections.unmodifiableCollection(this.listenerContainers);
+		return Collections.unmodifiableCollection(this.listenerContainers.values());
 	}
 
 	@Nullable
 	@Override
 	public MessageListenerContainer<?> getContainerById(String id) {
 		Assert.notNull(id, "id cannot be null.");
-		return this.listenerContainers.stream().filter(container -> container.getId().equals(id)).findFirst()
-				.orElse(null);
-	}
-
-	/**
-	 * Set to false if {@link org.springframework.context.SmartLifecycle} management should be made sequentially rather
-	 * than in parallel.
-	 * @param parallelLifecycleManagement the value.
-	 */
-	public void setParallelLifecycleManagement(boolean parallelLifecycleManagement) {
-		this.isParallelLifecycleManagement = parallelLifecycleManagement;
+		return this.listenerContainers.get(id);
 	}
 
 	@Override
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
-			logger.debug("Starting registry {}", this);
+			logger.debug("Starting {}", getClass().getSimpleName());
+			LifecycleHandler.get().start(this.listenerContainers.values());
 			this.running = true;
-			if (this.isParallelLifecycleManagement) {
-				LifecycleUtils.startParallel(this.listenerContainers);
-			}
-			else {
-				this.listenerContainers.forEach(MessageListenerContainer::start);
-			}
-			logger.debug("Registry {} started", this);
+			logger.debug("{} started", getClass().getSimpleName());
 		}
 	}
 
 	@Override
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
-			logger.debug("Stopping registry {}", this);
+			logger.debug("Stopping {}", getClass().getSimpleName());
 			this.running = false;
-			if (this.isParallelLifecycleManagement) {
-				LifecycleUtils.stopParallel(this.listenerContainers);
-			}
-			else {
-				this.listenerContainers.forEach(MessageListenerContainer::stop);
-			}
+			LifecycleHandler.get().stop(this.listenerContainers.values());
 		}
-	}
-
-	@Override
-	public void stop(Runnable callback) {
-		stop();
-		callback.run();
 	}
 
 	@Override

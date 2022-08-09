@@ -17,15 +17,14 @@ package io.awspring.cloud.sqs.listener.acknowledgement.handler;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-
 /**
- * Default {@link AcknowledgementHandler} implementation that only acknowledges on success.
+ * {@link AcknowledgementHandler} implementation that acknowledges both on success and errors.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -53,7 +52,8 @@ public class AlwaysAcknowledgementHandler<T> implements AcknowledgementHandler<T
 	}
 
 	@Override
-	public CompletableFuture<Void> onError(Collection<Message<T>> messages, Throwable t, AcknowledgementCallback<T> callback) {
+	public CompletableFuture<Void> onError(Collection<Message<T>> messages, Throwable t,
+			AcknowledgementCallback<T> callback) {
 		logger.trace("Acknowledging messages {} on error {}", MessageHeaderUtils.getId(messages), t);
 		return callback.onAcknowledge(messages);
 	}

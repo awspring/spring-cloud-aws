@@ -15,10 +15,9 @@
  */
 package io.awspring.cloud.sqs.listener.errorhandler;
 
+import io.awspring.cloud.sqs.CompletableFutures;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-
-import io.awspring.cloud.sqs.CompletableFutures;
 import org.springframework.messaging.Message;
 
 /**
@@ -31,7 +30,6 @@ import org.springframework.messaging.Message;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-@FunctionalInterface
 public interface AsyncErrorHandler<T> {
 
 	/**
@@ -40,11 +38,12 @@ public interface AsyncErrorHandler<T> {
 	 * @param t the thrown exception.
 	 * @return a completable future.
 	 */
-	CompletableFuture<Void> handleError(Message<T> message, Throwable t);
+	default CompletableFuture<Void> handle(Message<T> message, Throwable t) {
+		return CompletableFutures.failedFuture(t);
+	}
 
-	default CompletableFuture<Void> handleError(Collection<Message<T>> messages, Throwable t) {
-		return CompletableFutures
-			.failedFuture(new UnsupportedOperationException("Batch not implemented for this ErrorHandler", t));
+	default CompletableFuture<Void> handle(Collection<Message<T>> messages, Throwable t) {
+		return CompletableFutures.failedFuture(t);
 	}
 
 }

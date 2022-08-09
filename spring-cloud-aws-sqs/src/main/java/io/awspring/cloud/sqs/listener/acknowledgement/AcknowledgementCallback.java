@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,9 @@
  */
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
-import io.awspring.cloud.sqs.CompletableFutures;
-import io.awspring.cloud.sqs.MessageHeaderUtils;
-import org.springframework.messaging.Message;
-
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import org.springframework.messaging.Message;
 
 /**
  * @author Tomaz Fernandes
@@ -28,14 +25,12 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface AcknowledgementCallback<T> {
 
-    default CompletableFuture<Void> onAcknowledge(Message<T> message) {
-		return CompletableFutures.failedFuture(
-			new UnsupportedOperationException("AcknowledgeCallback not implemented. Message: " + MessageHeaderUtils.getId(message)));
+	default CompletableFuture<Void> onAcknowledge(Message<T> message) {
+		return CompletableFuture.completedFuture(null);
 	}
 
 	default CompletableFuture<Void> onAcknowledge(Collection<Message<T>> messages) {
-		return CompletableFutures.failedFuture(
-			new UnsupportedOperationException("AcknowledgeCallback not implemented. Message: " + MessageHeaderUtils.getId(messages)));
+		return CompletableFuture.completedFuture(null);
 	}
 
 }

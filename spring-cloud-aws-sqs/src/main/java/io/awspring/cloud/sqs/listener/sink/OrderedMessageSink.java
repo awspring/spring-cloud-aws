@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,11 @@
  */
 package io.awspring.cloud.sqs.listener.sink;
 
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -33,9 +32,9 @@ import org.springframework.messaging.Message;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class OrderedMessageListeningSink<T> extends AbstractMessageListeningSink<T> {
+public class OrderedMessageSink<T> extends AbstractMessageProcessingPipelineSink<T> {
 
-	Logger logger = LoggerFactory.getLogger(OrderedMessageListeningSink.class);
+	private static final Logger logger = LoggerFactory.getLogger(OrderedMessageSink.class);
 
 	@Override
 	protected CompletableFuture<Void> doEmit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {

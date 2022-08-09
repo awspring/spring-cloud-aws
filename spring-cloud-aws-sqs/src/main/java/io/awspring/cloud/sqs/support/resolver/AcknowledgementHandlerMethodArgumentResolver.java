@@ -16,10 +16,13 @@
 package io.awspring.cloud.sqs.support.resolver;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -33,9 +36,12 @@ public class AcknowledgementHandlerMethodArgumentResolver implements HandlerMeth
 		return ClassUtils.isAssignable(Acknowledgement.class, parameter.getParameterType());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
-		return MessageHeaderUtils.getAcknowledgement(message);
+		AcknowledgementCallback<Object> callback = message.getHeaders().get(SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class);
+		Assert.notNull(callback, "No acknowledgement found for message " + MessageHeaderUtils.getId(message) + ". AcknowledgeMode should be MANUAL.");
+		return (Acknowledgement) () -> callback.onAcknowledge((Message<Object>) message).join();
 	}
 
 }

@@ -30,23 +30,32 @@ import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class AsyncMessagingMessageListenerAdapter<T> extends MessagingMessageListenerAdapter<T>
+public class AsyncMessagingMessageListenerAdapter<T> extends AbstractMethodInvokingListenerAdapter<T>
 		implements AsyncMessageListener<T> {
 
 	public AsyncMessagingMessageListenerAdapter(InvocableHandlerMethod handlerMethod) {
 		super(handlerMethod);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public CompletableFuture<Void> onMessage(Message<T> message) {
-		return (CompletableFuture<Void>) super.invokeHandler(message);
+		return CompletableFutures.exceptionallyCompose(invokeAsyncHandler(message),
+				t -> CompletableFutures.failedFuture(createListenerException(message, t)));
+	}
+
+	@Override
+	public CompletableFuture<Void> onMessage(Collection<Message<T>> messages) {
+		return CompletableFutures.exceptionallyCompose(invokeAsyncHandler(messages),
+				t -> CompletableFutures.failedFuture(createListenerException(messages, t)));
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
-	public CompletableFuture<Void> onMessage(Collection<Message<T>> messages) {
+	private CompletableFuture<Void> invokeAsyncHandler(Collection<Message<T>> messages) {
 		return (CompletableFuture<Void>) super.invokeHandler(messages);
 	}
 
+	@SuppressWarnings("unchecked")
+	private CompletableFuture<Void> invokeAsyncHandler(Message<T> message) {
+		return (CompletableFuture<Void>) super.invokeHandler(message);
+	}
 }

@@ -1,37 +1,55 @@
+/*
+ * Copyright 2013-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.awspring.cloud.sqs.listener.source;
-
 
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.listener.BackPressureHandler;
+import io.awspring.cloud.sqs.listener.BatchAwareBackPressureHandler;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
+import io.awspring.cloud.sqs.listener.TaskExecutorAware;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
-import org.springframework.util.CustomizableThreadCreator;
-import org.springframework.util.StringUtils;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.concurrent.CompletionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
- * Base {@link PollingMessageSource} implementation with
- * {@link org.springframework.context.SmartLifecycle} and backpressure handling capabilities.
+ * Base {@link PollingMessageSource} implementation with {@link org.springframework.context.SmartLifecycle} and
+ * backpressure handling capabilities.
  *
- * The connected {@link MessageSink} should use the provided completion callback to signal
- * each completed message processing.
+ * The connected {@link MessageSink} should use the provided completion callback to signal each completed message
+ * processing.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractPollingMessageSource<T> implements PollingMessageSource<T> {
+public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessageConvertingMessageSource<T, S>
+		implements PollingMessageSource<T>, IdentifiableContainerComponent {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractPollingMessageSource.class);
 
@@ -39,9 +57,9 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 
 	private Duration shutdownTimeout;
 
-	private Executor executor;
+	private TaskExecutor taskExecutor;
 
-	private BackPressureHandler backPressureHandler;
+	private BatchAwareBackPressureHandler backPressureHandler;
 
 	private AcknowledgementProcessor<T> acknowledgmentProcessor;
 
@@ -51,12 +69,21 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 
 	private final Object lifecycleMonitor = new Object();
 
-	private final Collection<CompletableFuture<?>> pollingFutures = Collections.synchronizedCollection(new ArrayList<>());
+	private final Collection<CompletableFuture<?>> pollingFutures = Collections
+			.synchronizedCollection(new ArrayList<>());
 
-	@SuppressWarnings("unchecked")
+	private String id;
+
 	@Override
 	public void configure(ContainerOptions containerOptions) {
-		this.shutdownTimeout = containerOptions.getSourceShutdownTimeout();
+		super.configure(containerOptions);
+		this.shutdownTimeout = containerOptions.getShutdownTimeout();
+	}
+
+	@Override
+	public void setId(String id) {
+		Assert.notNull(id, "id cannot be null");
+		this.id = id;
 	}
 
 	@Override
@@ -68,7 +95,9 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 	@Override
 	public void setBackPressureHandler(BackPressureHandler backPressureHandler) {
 		Assert.notNull(backPressureHandler, "backPressureHandler cannot be null");
-		this.backPressureHandler = backPressureHandler;
+		Assert.isInstanceOf(BatchAwareBackPressureHandler.class, backPressureHandler,
+				getClass().getSimpleName() + " requires a " + BatchAwareBackPressureHandler.class);
+		this.backPressureHandler = (BatchAwareBackPressureHandler) backPressureHandler;
 	}
 
 	@Override
@@ -78,22 +107,20 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 	}
 
 	@Override
-	public void setExecutor(Executor executor) {
-		Assert.notNull(executor, "executor cannot be null.");
-		addEndpointNameToPrefix(executor);
-		this.executor = executor;
-	}
-
-	private void addEndpointNameToPrefix(Executor taskExecutor) {
-		ConfigUtils.INSTANCE
-			.acceptIfInstance(taskExecutor, CustomizableThreadCreator.class,
-				ctc -> ctc.setThreadNamePrefix(ctc.getThreadNamePrefix() + this.pollingEndpointName + "-"));
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		Assert.notNull(taskExecutor, "taskExecutor cannot be null");
+		this.taskExecutor = taskExecutor;
 	}
 
 	@Override
 	public void setMessageSink(MessageSink<T> messageSink) {
-		Assert.notNull(messageSink, "messageSink cannot be null.");
+		Assert.notNull(messageSink, "messageSink cannot be null");
 		this.messageSink = messageSink;
+	}
+
+	@Override
+	public String getId() {
+		return this.id;
 	}
 
 	@Override
@@ -104,15 +131,25 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 	@Override
 	public void start() {
 		if (isRunning()) {
-			logger.debug("Message source for queue {} already running.", this.pollingEndpointName);
+			logger.debug("{} for queue {} already running", getClass().getSimpleName(), this.pollingEndpointName);
 			return;
 		}
 		synchronized (this.lifecycleMonitor) {
-			Assert.notNull(this.messageSink, "No MessageSink was set");
-			logger.debug("Starting MessageSource for queue {}", this.pollingEndpointName);
+			Assert.notNull(this.id, "id not set");
+			Assert.notNull(this.messageSink, "messageSink not set");
+			Assert.notNull(this.backPressureHandler, "backPressureHandler not set");
+			Assert.notNull(this.acknowledgmentProcessor, "acknowledgmentProcessor not set");
+			logger.debug("Starting {} for queue {}", getClass().getSimpleName(), this.pollingEndpointName);
 			this.running = true;
-			this.backPressureHandler.setClientId(this.pollingEndpointName);
+			ConfigUtils.INSTANCE
+					.acceptIfInstance(this.backPressureHandler, IdentifiableContainerComponent.class,
+							icc -> icc.setId(this.id))
+					.acceptIfInstance(this.acknowledgmentProcessor, IdentifiableContainerComponent.class,
+							icc -> icc.setId(this.id))
+					.acceptIfInstance(this.acknowledgmentProcessor, TaskExecutorAware.class,
+							ea -> ea.setTaskExecutor(this.taskExecutor));
 			doStart();
+			setupAcknowledgementConversion(this.acknowledgmentProcessor.getAcknowledgementCallback());
 			this.acknowledgmentProcessor.start();
 			startPollingThread();
 		}
@@ -122,7 +159,7 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 	}
 
 	private void startPollingThread() {
-		this.executor.execute(this::pollAndEmitMessages);
+		this.taskExecutor.execute(this::pollAndEmitMessages);
 	}
 
 	private void pollAndEmitMessages() {
@@ -132,40 +169,51 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 					continue;
 				}
 				logger.trace("Requesting permits for queue {}", this.pollingEndpointName);
-				final int acquiredPermits = this.backPressureHandler.request();
+				final int acquiredPermits = this.backPressureHandler.requestBatch();
 				if (acquiredPermits == 0) {
-					logger.trace("No permits acquired for queue {}.", this.pollingEndpointName);
+					logger.trace("No permits acquired for queue {}", this.pollingEndpointName);
 					continue;
 				}
 				logger.trace("{} permits acquired for queue {}", acquiredPermits, this.pollingEndpointName);
 				if (!isRunning()) {
-					logger.debug("MessageSource was stopped after permits where acquired. Returning {} permits.", acquiredPermits);
+					logger.debug("MessageSource was stopped after permits where acquired. Returning {} permits",
+							acquiredPermits);
 					this.backPressureHandler.release(acquiredPermits);
 					continue;
 				}
+				// @formatter:off
 				managePollingFuture(doPollForMessages(acquiredPermits))
 					.exceptionally(this::handlePollingException)
 					.thenApply(msgs -> releaseUnusedPermits(acquiredPermits, msgs))
+					.thenApply(this::convertMessages)
 					.thenCompose(this::emitMessagesToPipeline)
 					.exceptionally(this::handleSinkException);
+				// @formatter:on
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				throw new IllegalStateException("MessageSource thread interrupted for endpoint " + this.pollingEndpointName, e);
+				throw new IllegalStateException(
+						"MessageSource thread interrupted for endpoint " + this.pollingEndpointName, e);
 			}
 			catch (Exception e) {
-				logger.error("Error in MessageSource for queue {}. Resuming.", this.pollingEndpointName, e);
+				logger.error("Error in MessageSource for queue {}. Resuming", this.pollingEndpointName, e);
 			}
 		}
-		logger.debug("Execution thread stopped for queue {}.", this.pollingEndpointName);
+		logger.debug("Execution thread stopped for queue {}", this.pollingEndpointName);
 	}
 
-	protected abstract CompletableFuture<Collection<Message<T>>> doPollForMessages(int messagesToRequest);
+	protected abstract CompletableFuture<Collection<S>> doPollForMessages(int messagesToRequest);
 
-	public Collection<Message<T>> releaseUnusedPermits(int permits, Collection<Message<T>> msgs) {
-		int permitsToRelease = permits - msgs.size();
-		logger.trace("Releasing {} unused permits for queue {}", permitsToRelease, this.pollingEndpointName);
-		this.backPressureHandler.release(permitsToRelease);
+	public Collection<S> releaseUnusedPermits(int permits, Collection<S> msgs) {
+		if (msgs.isEmpty()) {
+			this.backPressureHandler.releaseBatch();
+			logger.trace("Released batch of unused permits for queue {}", this.pollingEndpointName);
+		}
+		else {
+			int permitsToRelease = permits - msgs.size();
+			this.backPressureHandler.release(permitsToRelease);
+			logger.trace("Released {} unused permits for queue {}", permitsToRelease, this.pollingEndpointName);
+		}
 		return msgs;
 	}
 
@@ -176,22 +224,30 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 		return this.messageSink.emit(messages, createContext());
 	}
 
-	private MessageProcessingContext<T> createContext() {
-		return MessageProcessingContext.<T>create()
-			.setBackPressureReleaseCallback(() -> {
-				logger.debug("Releasing permit for queue {}", this.pollingEndpointName);
-				this.backPressureHandler.release(1);
-			})
-			.setAcknowledgmentCallback(this.acknowledgmentProcessor.getAcknowledgementCallback());
+	// @formatter:off
+	protected MessageProcessingContext<T> createContext() {
+		return MessageProcessingContext.<T> create()
+			.setBackPressureReleaseCallback(this::releaseBackPressure)
+			.setAcknowledgmentCallback(getAcknowledgementCallback());
+	}
+	// @formatter:on
+
+	protected AcknowledgementCallback<T> getAcknowledgementCallback() {
+		return this.acknowledgmentProcessor.getAcknowledgementCallback();
 	}
 
-	private Void handleSinkException(Throwable throwable) {
-		logger.warn("Sink returned an error.", throwable);
+	private void releaseBackPressure() {
+		logger.debug("Releasing permit for queue {}", this.pollingEndpointName);
+		this.backPressureHandler.release(1);
+	}
+
+	private Void handleSinkException(Throwable t) {
+		logger.error("Error processing message", t instanceof CompletionException ? t.getCause() : t);
 		return null;
 	}
 
-	private Collection<Message<T>> handlePollingException(Throwable t) {
-		logger.error("Error polling for messages in queue {}.", this.pollingEndpointName, t);
+	private Collection<S> handlePollingException(Throwable t) {
+		logger.error("Error polling for messages in queue {}", this.pollingEndpointName, t);
 		return Collections.emptyList();
 	}
 
@@ -212,15 +268,16 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 	@Override
 	public void stop() {
 		if (!isRunning()) {
-			logger.debug("Message source for queue {} not running.", this.pollingEndpointName);
+			logger.debug("{} for queue {} not running", getClass().getSimpleName(), this.pollingEndpointName);
 		}
 		synchronized (this.lifecycleMonitor) {
-			logger.debug("Stopping MessageSource for queue {}", this.pollingEndpointName);
+			logger.debug("Stopping {} for queue {}", getClass().getSimpleName(), this.pollingEndpointName);
 			this.running = false;
 			waitExistingTasksToFinish();
 			doStop();
 			this.pollingFutures.forEach(pollingFuture -> pollingFuture.cancel(true));
-			logger.debug("MessageSource for queue {} stopped", this.pollingEndpointName);
+			this.acknowledgmentProcessor.stop();
+			logger.debug("{} for queue {} stopped", getClass().getSimpleName(), this.pollingEndpointName);
 		}
 	}
 
@@ -228,15 +285,15 @@ public abstract class AbstractPollingMessageSource<T> implements PollingMessageS
 	}
 
 	private void waitExistingTasksToFinish() {
-		Duration shutDownTimeout = this.shutdownTimeout;
-		if (shutDownTimeout.isZero()) {
-			logger.debug("Container shutdown timeout set to zero - not waiting for tasks to finish.");
+		if (this.shutdownTimeout.isZero()) {
+			logger.debug("Shutdown timeout set to zero for queue {} - not waiting for tasks to finish",
+					this.pollingEndpointName);
 			return;
 		}
-		boolean tasksFinished = this.backPressureHandler.drain(shutDownTimeout);
+		boolean tasksFinished = this.backPressureHandler.drain(this.shutdownTimeout);
 		if (!tasksFinished) {
-			logger.warn("Tasks did not finish in {} seconds for queue {}, proceeding with shutdown.",
-				shutDownTimeout.getSeconds(), this.pollingEndpointName);
+			logger.warn("Tasks did not finish in {} seconds for queue {}, proceeding with shutdown",
+					this.shutdownTimeout.getSeconds(), this.pollingEndpointName);
 		}
 	}
 

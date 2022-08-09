@@ -26,20 +26,16 @@ import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
-
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
-import org.springframework.messaging.Message;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -117,7 +113,7 @@ class SqsAutoConfigurationTest {
 					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
 					SqsMessageListenerContainerFactory<?> factory = context
 							.getBean(SqsMessageListenerContainerFactory.class);
-					assertThat(ReflectionTestUtils.getField(factory, "containerOptions")).isNotNull()
+					assertThat(ReflectionTestUtils.getField(factory, "containerOptionsBuilder")).isNotNull()
 							.extracting("maxInflightMessagesPerQueue").isEqualTo(19);
 					assertThat(ReflectionTestUtils.getField(factory, "errorHandler")).isNotNull();
 					assertThat(ReflectionTestUtils.getField(factory, "messageInterceptors")).asList().isNotEmpty();
@@ -129,22 +125,19 @@ class SqsAutoConfigurationTest {
 
 		@Bean
 		AsyncErrorHandler<Object> asyncErrorHandler() {
-			return (t, msg) -> CompletableFuture.completedFuture(null);
+			return new AsyncErrorHandler<Object>() {
+			};
 		}
 
 		@Bean
 		AsyncMessageInterceptor<?> asyncMessageInterceptor() {
 			return new AsyncMessageInterceptor<Object>() {
-				@Override
-				public CompletableFuture<Message<Object>> intercept(Message<Object> message) {
-					return CompletableFuture.completedFuture(message);
-				}
 			};
 		}
 
 		@Bean
 		ContainerOptions containerOptions() {
-			return ContainerOptions.create().maxInflightMessagesPerQueue(19);
+			return ContainerOptions.builder().maxInflightMessagesPerQueue(19).build();
 		}
 
 	}

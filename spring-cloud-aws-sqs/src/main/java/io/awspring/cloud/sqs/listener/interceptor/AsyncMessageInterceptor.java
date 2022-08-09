@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@ package io.awspring.cloud.sqs.listener.interceptor;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-
-import io.awspring.cloud.sqs.CompletableFutures;
 import org.springframework.messaging.Message;
 
 /**
@@ -35,8 +33,7 @@ import org.springframework.messaging.Message;
 public interface AsyncMessageInterceptor<T> {
 
 	/**
-	 * Perform an action on the message or return a different one before processing.
-	 * Executed before processing.
+	 * Perform an action on the message or return a different one before processing. Executed before processing.
 	 * @param message the message to be intercepted.
 	 * @return a completable future containing the resulting message.
 	 */
@@ -58,8 +55,8 @@ public interface AsyncMessageInterceptor<T> {
 	 * @param message the messages to be intercepted.
 	 * @return a completable future containing the resulting message.
 	 */
-	default CompletableFuture<Message<T>> afterProcessing(Message<T> message) {
-		return CompletableFuture.completedFuture(message);
+	default CompletableFuture<Void> afterProcessing(Message<T> message, Throwable t) {
+		return CompletableFuture.completedFuture(null);
 	}
 
 	/**
@@ -67,8 +64,8 @@ public interface AsyncMessageInterceptor<T> {
 	 * @param messages the messages to be intercepted.
 	 * @return a completable future containing the resulting message.
 	 */
-	default CompletableFuture<Collection<Message<T>>> afterProcessing(Collection<Message<T>> messages) {
-		return CompletableFuture.completedFuture(messages);
+	default CompletableFuture<Void> afterProcessing(Collection<Message<T>> messages, Throwable t) {
+		return CompletableFuture.completedFuture(null);
 	}
 
 }

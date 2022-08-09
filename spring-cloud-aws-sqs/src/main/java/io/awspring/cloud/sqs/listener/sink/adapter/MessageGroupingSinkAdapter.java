@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,22 @@ package io.awspring.cloud.sqs.listener.sink.adapter;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
-import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
-
 import java.util.Collection;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public class MessageGroupingSinkAdapter<T> extends AbstractDelegatingMessageListeningSinkAdapter<T> {
+
+	private static final Logger logger = LoggerFactory.getLogger(MessageGroupingSinkAdapter.class);
 
 	private final Function<Message<T>, String> groupingFunction;
 
@@ -41,12 +43,15 @@ public class MessageGroupingSinkAdapter<T> extends AbstractDelegatingMessageList
 		this.groupingFunction = groupingFunction;
 	}
 
+	// @formatter:off
 	@Override
 	public CompletableFuture<Void> emit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
+		logger.trace("Emitting messages {}", MessageHeaderUtils.getId(messages));
 		return CompletableFuture.allOf(messages.stream().collect(Collectors.groupingBy(this.groupingFunction))
 			.values().stream()
 			.map(messageBatch -> getDelegate().emit(messageBatch, context))
 			.toArray(CompletableFuture[]::new));
 	}
+	// @formatter:on
 
 }

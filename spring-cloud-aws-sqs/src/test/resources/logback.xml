@@ -24,22 +24,26 @@
 
 	<logger name="io.awspring.cloud.sqs" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.SqsMessageListenerContainer" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.AsyncComponentAdapters" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.QueueAttributesResolver" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.source" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.sink" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.sink.AbstractMessageProcessingPipelineSink" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityExtendingSinkAdapter" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.interceptor" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.pipeline" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.listener.source" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.acknowledgement" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementProcessor" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.listener.QueueAttributes" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.listener.AsyncComponentAdapters" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.acknowledgement.handler" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor" level="INFO"/>
 
-	<logger name="io.awspring.cloud.sqs.SqsIntegrationTests" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.SqsIntegrationLoadTests" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.SqsFifoIntegrationTests" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.SqsPojoConversionIntegrationTests" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.BaseSqsIntegrationTest" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.SqsIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.SqsFifoIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.SqsLoadIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.SqsInterceptorIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.SqsMessageConversionIntegrationTests" level="INFO"/>
 
 	<root level="warn">
 		<appender-ref ref="STDOUT"/>

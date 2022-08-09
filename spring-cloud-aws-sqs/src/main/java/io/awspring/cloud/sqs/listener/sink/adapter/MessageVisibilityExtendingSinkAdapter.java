@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,6 @@ import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
-import org.springframework.util.StopWatch;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,12 +28,19 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 
 /**
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class MessageVisibilityExtendingSinkAdapter<T> extends AbstractDelegatingMessageListeningSinkAdapter<T> implements SqsAsyncClientAware {
+public class MessageVisibilityExtendingSinkAdapter<T> extends AbstractDelegatingMessageListeningSinkAdapter<T>
+		implements SqsAsyncClientAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(MessageVisibilityExtendingSinkAdapter.class);
 
@@ -70,24 +69,24 @@ public class MessageVisibilityExtendingSinkAdapter<T> extends AbstractDelegating
 	@Override
 	public CompletableFuture<Void> emit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
 		logger.trace("Adding visibility interceptor for messages {}", MessageHeaderUtils.getId(messages));
-		return getDelegate().emit(messages, context.addInterceptor(new OriginalBatchMessageVisibilityExtendingInterceptor(messages)));
+		return getDelegate().emit(messages,
+				context.addInterceptor(new OriginalBatchMessageVisibilityExtendingInterceptor(messages)));
 	}
 
 	private CompletableFuture<Collection<Message<T>>> changeVisibility(Collection<Message<T>> messages) {
 		logger.trace("Changing visibility of messages {} to {} seconds", MessageHeaderUtils.getId(messages),
-			this.messageVisibility);
-		return this.sqsAsyncClient.changeMessageVisibilityBatch(req -> req
-				.entries(getEntries(messages))
-				.queueUrl(getQueueUrl(messages))
-				.build())
-			.whenComplete((v, t) -> logResult(messages, t))
-			.thenApply(theVoid -> messages);
+				this.messageVisibility);
+		return this.sqsAsyncClient
+				.changeMessageVisibilityBatch(
+						req -> req.entries(getEntries(messages)).queueUrl(getQueueUrl(messages)).build())
+				.whenComplete((v, t) -> logResult(messages, t)).thenApply(theVoid -> messages);
 	}
 
 	private String getQueueUrl(Collection<Message<T>> messages) {
 		return messages.iterator().next().getHeaders().get(SqsHeaders.SQS_QUEUE_URL_HEADER, String.class);
 	}
 
+	// @formatter:off
 	private Collection<ChangeMessageVisibilityBatchRequestEntry> getEntries(Collection<Message<T>> messages) {
 		return MessageHeaderUtils
 			.getHeader(messages, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, String.class)
@@ -97,11 +96,13 @@ public class MessageVisibilityExtendingSinkAdapter<T> extends AbstractDelegating
 				.visibilityTimeout(this.messageVisibility).build())
 			.collect(Collectors.toList());
 	}
+	// @formatter:on
 
 	private void logResult(Collection<Message<T>> messages, Throwable t) {
 		if (t == null) {
 			logger.trace("Finished changing visibility for messages {}", MessageHeaderUtils.getId(messages));
-		} else {
+		}
+		else {
 			logger.error("Error changing visibility for messages {}", MessageHeaderUtils.getId(messages));
 		}
 	}
@@ -117,6 +118,7 @@ public class MessageVisibilityExtendingSinkAdapter<T> extends AbstractDelegating
 			this.initialBatchSize = originalMessageBatch.size();
 		}
 
+		// @formatter:off
 		@Override
 		public CompletableFuture<Message<T>> intercept(Message<T> message) {
 			return originalMessageBatchCopy.size() == initialBatchSize
@@ -130,17 +132,18 @@ public class MessageVisibilityExtendingSinkAdapter<T> extends AbstractDelegating
 				? CompletableFuture.completedFuture(messages)
 				: changeVisibility(this.originalMessageBatchCopy).thenApply(response -> messages);
 		}
+		// @formatter:on
 
 		@Override
-		public CompletableFuture<Collection<Message<T>>> afterProcessing(Collection<Message<T>> messages) {
+		public CompletableFuture<Void> afterProcessing(Collection<Message<T>> messages, Throwable t) {
 			this.originalMessageBatchCopy.removeAll(messages);
-			return CompletableFuture.completedFuture(messages);
+			return CompletableFuture.completedFuture(null);
 		}
 
 		@Override
-		public CompletableFuture<Message<T>> afterProcessing(Message<T> message) {
+		public CompletableFuture<Void> afterProcessing(Message<T> message, Throwable t) {
 			this.originalMessageBatchCopy.remove(message);
-			return CompletableFuture.completedFuture(message);
+			return CompletableFuture.completedFuture(null);
 		}
 
 	}

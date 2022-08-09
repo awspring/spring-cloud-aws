@@ -15,18 +15,16 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.UUID;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
@@ -48,7 +46,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private final Object lifecycleMonitor = new Object();
 
-	private volatile boolean isRunning;
+	private boolean isRunning;
 
 	private String id;
 
@@ -58,11 +56,12 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private AsyncMessageListener<T> messageListener;
 
-	private AsyncErrorHandler<T> errorHandler = (m, t) -> CompletableFutures.failedFuture(t);
+	private AsyncErrorHandler<T> errorHandler = new AsyncErrorHandler<T>() {
+	};
 
 	private final Collection<AsyncMessageInterceptor<T>> messageInterceptors = new ArrayList<>();
 
-	private final ContainerOptions containerOptions;
+	private ContainerOptions containerOptions;
 
 	protected AbstractMessageListenerContainer(ContainerOptions containerOptions) {
 		Assert.notNull(containerOptions, "containerOptions cannot be null");
@@ -70,11 +69,12 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	}
 
 	/**
-	 * Set the id for this container instance. The id will be used for creating the processing thread name.
+	 * Set the id for this container instance.
 	 * @param id the id.
 	 */
+	@Override
 	public void setId(String id) {
-		Assert.state(this.id == null, () -> "id already set for container " + this.id);
+		Assert.notNull(id, "id cannot be null");
 		this.id = id;
 	}
 
@@ -92,7 +92,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	 * Set the {@link AsyncErrorHandler} instance to be used by this container.
 	 * @param errorHandler the instance.
 	 */
-	public void setAsyncErrorHandler(AsyncErrorHandler<T> errorHandler) {
+	public void setErrorHandler(AsyncErrorHandler<T> errorHandler) {
 		Assert.notNull(errorHandler, "errorHandler cannot be null");
 		this.errorHandler = errorHandler;
 	}
@@ -103,7 +103,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	 * @param messageInterceptor the interceptor instances.
 	 */
 	public void addMessageInterceptor(MessageInterceptor<T> messageInterceptor) {
-		Assert.notNull(messageInterceptor, "messageInterceptors cannot be null");
+		Assert.notNull(messageInterceptor, "messageInterceptor cannot be null");
 		this.messageInterceptors.add(AsyncComponentAdapters.adapt(messageInterceptor));
 	}
 
@@ -112,11 +112,12 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	 * in order.
 	 * @param messageInterceptor the interceptor instances.
 	 */
-	public void addAsyncMessageInterceptor(AsyncMessageInterceptor<T> messageInterceptor) {
-		Assert.notNull(messageInterceptor, "messageInterceptors cannot be null");
+	public void addMessageInterceptor(AsyncMessageInterceptor<T> messageInterceptor) {
+		Assert.notNull(messageInterceptor, "messageInterceptor cannot be null");
 		this.messageInterceptors.add(messageInterceptor);
 	}
 
+	@Override
 	public void setMessageListener(MessageListener<T> messageListener) {
 		this.messageListener = AsyncComponentAdapters.adapt(messageListener);
 	}
@@ -126,7 +127,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 		this.messageListener = asyncMessageListener;
 	}
 
-	public void setContainerComponentFactory(ContainerComponentFactory<T> containerComponentFactory) {
+	public void setComponentFactory(ContainerComponentFactory<T> containerComponentFactory) {
 		this.containerComponentFactory = containerComponentFactory;
 	}
 
@@ -135,6 +136,13 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	 * restart.
 	 * @return the container options.
 	 */
+	public void configure(Consumer<ContainerOptions.Builder> options) {
+		Assert.state(!isRunning(), "Stop the container before making changes to the options");
+		ContainerOptions.Builder builder = this.containerOptions.toBuilder();
+		options.accept(builder);
+		this.containerOptions = builder.build();
+	}
+
 	public ContainerOptions getContainerOptions() {
 		return this.containerOptions;
 	}
@@ -223,11 +231,14 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 			logger.debug("Starting container {}", getId());
 			doStart();
 		}
-		logger.debug("Container started {}", this.id);
+		logger.info("Container {} started", this.id);
 	}
 
 	private String resolveContainerId() {
-		return "io.awspring.cloud.sqs.sqsListenerEndpointContainer#" + UUID.randomUUID();
+		String firstQueueName = this.queueNames.iterator().next();
+		return firstQueueName.startsWith("http")
+				? firstQueueName.substring(Math.max(firstQueueName.length() - 10, 0)) + "-container"
+				: firstQueueName.substring(0, Math.min(15, firstQueueName.length())) + "-container";
 	}
 
 	protected void doStart() {
@@ -243,7 +254,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 			this.isRunning = false;
 			doStop();
 		}
-		logger.debug("Container stopped {}", this.id);
+		logger.info("Container {} stopped", this.id);
 	}
 
 	protected void doStop() {
