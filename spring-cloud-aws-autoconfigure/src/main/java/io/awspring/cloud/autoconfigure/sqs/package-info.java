@@ -15,7 +15,7 @@
  */
 
 /**
- * Auto-configuration for Amazon SNS (Simple Notification Service) integrations.
+ * Auto-configuration for Amazon SQS (Simple Queue Service) integrations.
  */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields

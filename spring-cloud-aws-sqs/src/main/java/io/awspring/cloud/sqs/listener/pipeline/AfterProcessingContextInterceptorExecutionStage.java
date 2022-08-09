@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,15 @@
 package io.awspring.cloud.sqs.listener.pipeline;
 
 import io.awspring.cloud.sqs.CompletableFutures;
-import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.listener.ListenerExecutionFailedException;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.messaging.Message;
-
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.messaging.Message;
 
 /**
  * Stage responsible for executing the {@link AsyncMessageInterceptor}s.
@@ -39,32 +36,42 @@ public class AfterProcessingContextInterceptorExecutionStage<T> implements Messa
 
 	private static final Logger logger = LoggerFactory.getLogger(AfterProcessingContextInterceptorExecutionStage.class);
 
-	private final MessageProcessingPipeline<T> pipeline;
+	public AfterProcessingContextInterceptorExecutionStage(MessageProcessingConfiguration<T> configuration) {
+	}
 
-	public AfterProcessingContextInterceptorExecutionStage(MessageProcessingConfiguration<T> configuration,
-															   MessageProcessingPipeline<T> pipeline) {
+	// @formatter:off
+	@Override
+	public CompletableFuture<Message<T>> process(CompletableFuture<Message<T>> messageFuture, MessageProcessingContext<T> context) {
+		return CompletableFutures.handleCompose(messageFuture,
+				(v, t) -> t == null
+					? applyInterceptors(v, null, context.getInterceptors())
+					: applyInterceptors(ListenerExecutionFailedException.unwrapMessage(t), t, context.getInterceptors())
+						.thenCompose(msg -> CompletableFutures.failedFuture(t)));
+	}
 
-		this.pipeline = pipeline;
+	private CompletableFuture<Message<T>> applyInterceptors(Message<T> message, Throwable t, List<AsyncMessageInterceptor<T>> messageInterceptors) {
+		return messageInterceptors.stream()
+			.reduce(CompletableFuture.<Void>completedFuture(null),
+				(voidFuture, interceptor) -> voidFuture.thenCompose(theVoid -> interceptor.afterProcessing(message, t)), (a, b) -> a)
+			.thenApply(theVoid -> message);
 	}
 
 	@Override
-	public CompletableFuture<Message<T>> process(Message<T> message, MessageProcessingContext<T> context) {
-		return this.pipeline.process(message, context).thenApply(msg -> context
-				.getInterceptors()
-				.stream()
-				.reduce(CompletableFuture.completedFuture(msg),
-					(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::afterProcessing), (a, b) -> a))
-			.thenCompose(Function.identity());
+	public CompletableFuture<Collection<Message<T>>> processMany(CompletableFuture<Collection<Message<T>>> messagesFuture, MessageProcessingContext<T> context) {
+		return CompletableFutures.handleCompose(messagesFuture,
+			(v, t) -> t == null
+				? applyInterceptors(v, null, context.getInterceptors())
+				: applyInterceptors(ListenerExecutionFailedException.unwrapMessages(t), t, context.getInterceptors())
+					.thenCompose(msg -> CompletableFutures.failedFuture(t)));
 	}
 
-	@Override
-	public CompletableFuture<Collection<Message<T>>> process(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
-		return this.pipeline.process(messages, context).thenApply(msg -> context
-				.getInterceptors()
-				.stream()
-				.reduce(CompletableFuture.completedFuture(msg),
-					(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::afterProcessing), (a, b) -> a))
-			.thenCompose(Function.identity());
+	private CompletableFuture<Collection<Message<T>>> applyInterceptors(Collection<Message<T>> messages, Throwable t,
+			List<AsyncMessageInterceptor<T>> messageInterceptors) {
+		return messageInterceptors.stream()
+			.reduce(CompletableFuture.<Void>completedFuture(null),
+				(voidFuture, interceptor) -> voidFuture.thenCompose(theVoid -> interceptor.afterProcessing(messages, t)), (a, b) -> a)
+			.thenApply(theVoid -> messages);
 	}
+	// @formatter:on
 
 }

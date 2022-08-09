@@ -17,14 +17,14 @@ package io.awspring.cloud.sqs.listener.acknowledgement.handler;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-
 /**
+ * {@link AcknowledgementHandler} implementation that never acknowledges.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -41,6 +41,19 @@ public class NeverAcknowledgementHandler<T> implements AcknowledgementHandler<T>
 
 	@Override
 	public CompletableFuture<Void> onSuccess(Collection<Message<T>> messages, AcknowledgementCallback<T> callback) {
+		logger.trace("Skipping acks for messages {}", MessageHeaderUtils.getId(messages));
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<Void> onError(Message<T> message, Throwable t, AcknowledgementCallback<T> callback) {
+		logger.trace("Skipping ack for message {}", MessageHeaderUtils.getId(message));
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<Void> onError(Collection<Message<T>> messages, Throwable t,
+			AcknowledgementCallback<T> callback) {
 		logger.trace("Skipping acks for messages {}", MessageHeaderUtils.getId(messages));
 		return CompletableFuture.completedFuture(null);
 	}

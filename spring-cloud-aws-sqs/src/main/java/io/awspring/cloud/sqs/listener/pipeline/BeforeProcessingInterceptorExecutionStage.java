@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,13 @@
 package io.awspring.cloud.sqs.listener.pipeline;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
-import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
+import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Stage responsible for executing the {@link AsyncMessageInterceptor}s.
@@ -47,14 +44,15 @@ public class BeforeProcessingInterceptorExecutionStage<T> implements MessageProc
 	public CompletableFuture<Message<T>> process(Message<T> message, MessageProcessingContext<T> context) {
 		logger.trace("Processing message {}", MessageHeaderUtils.getId(message));
 		return this.messageInterceptors.stream().reduce(CompletableFuture.completedFuture(message),
-			(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept), (a, b) -> a);
+				(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept), (a, b) -> a);
 	}
 
 	@Override
-	public CompletableFuture<Collection<Message<T>>> process(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
+	public CompletableFuture<Collection<Message<T>>> process(Collection<Message<T>> messages,
+			MessageProcessingContext<T> context) {
 		logger.trace("Processing messages {}", MessageHeaderUtils.getId(messages));
 		return this.messageInterceptors.stream().reduce(CompletableFuture.completedFuture(messages),
-			(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept), (a, b) -> a);
+				(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept), (a, b) -> a);
 	}
 
 }

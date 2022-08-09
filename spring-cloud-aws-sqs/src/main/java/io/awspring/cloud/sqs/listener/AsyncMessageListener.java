@@ -15,10 +15,9 @@
  */
 package io.awspring.cloud.sqs.listener;
 
+import io.awspring.cloud.sqs.CompletableFutures;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-
-import io.awspring.cloud.sqs.CompletableFutures;
 import org.springframework.messaging.Message;
 
 /**
@@ -43,7 +42,7 @@ public interface AsyncMessageListener<T> {
 
 	default CompletableFuture<Void> onMessage(Collection<Message<T>> messages) {
 		return CompletableFutures
-			.failedFuture(new UnsupportedOperationException("Batch not implemented for this ErrorHandler"));
+				.failedFuture(new UnsupportedOperationException("Batch not implemented by this AsyncMessageListener"));
 	}
 
 }

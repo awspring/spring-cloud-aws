@@ -73,6 +73,7 @@ public class BatchPayloadMethodArgumentResolver implements HandlerMethodArgument
 		return Collection.class.isAssignableFrom(parameterClass);
 	}
 
+	// @formatter:off
 	@Override
 	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		Class<?> targetClass = resolveTargetClass(parameter);
@@ -85,6 +86,7 @@ public class BatchPayloadMethodArgumentResolver implements HandlerMethodArgument
 			.map(msg -> convertAndValidatePayload(parameter, msg, targetClass, isMessageParameter))
 			.collect(Collectors.toList());
 	}
+	// @formatter:on
 
 	private Collection<?> getPayloadAsCollection(Message<?> message) {
 		Object payload = message.getPayload();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,39 +16,18 @@
 package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.ConfigUtils;
-import io.awspring.cloud.sqs.LifecycleUtils;
-import io.awspring.cloud.sqs.SqsThreadFactory;
-import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler;
-import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
-import io.awspring.cloud.sqs.listener.acknowledgement.handler.AlwaysAcknowledgementHandler;
-import io.awspring.cloud.sqs.listener.acknowledgement.handler.NeverAcknowledgementHandler;
-import io.awspring.cloud.sqs.listener.acknowledgement.handler.OnSuccessAcknowledgementHandler;
-import io.awspring.cloud.sqs.listener.pipeline.AcknowledgementHandlerExecutionStage;
-import io.awspring.cloud.sqs.listener.pipeline.AfterProcessingContextInterceptorExecutionStage;
-import io.awspring.cloud.sqs.listener.pipeline.BeforeProcessingContextInterceptorExecutionStage;
-import io.awspring.cloud.sqs.listener.pipeline.ErrorHandlerExecutionStage;
-import io.awspring.cloud.sqs.listener.pipeline.BeforeProcessingInterceptorExecutionStage;
-import io.awspring.cloud.sqs.listener.pipeline.AfterProcessingInterceptorExecutionStage;
-import io.awspring.cloud.sqs.listener.pipeline.MessageListenerExecutionStage;
-import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingConfiguration;
-import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
-import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipelineBuilder;
-import io.awspring.cloud.sqs.listener.sink.MessageProcessingPipelineSink;
+import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
+import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
+import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
+import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
-import io.awspring.cloud.sqs.listener.source.AcknowledgingMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
-import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
-
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.stream.Collectors;
-
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
@@ -61,184 +40,156 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class SqsMessageListenerContainer<T> extends AbstractMessageListenerContainer<T> {
+public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListenerContainer<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsMessageListenerContainer.class);
 
 	private final SqsAsyncClient sqsAsyncClient;
 
-	private Collection<MessageSource<T>> messageSources;
-
-	private MessageSink<T> messageSink;
-
-	private Executor componentsTaskExecutor;
-
 	public SqsMessageListenerContainer(SqsAsyncClient sqsAsyncClient, ContainerOptions options) {
 		super(options);
+		Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null");
 		this.sqsAsyncClient = sqsAsyncClient;
 	}
 
+	public SqsMessageListenerContainer(SqsAsyncClient sqsAsyncClient) {
+		this(sqsAsyncClient, ContainerOptions.builder().build());
+	}
+
+	// @formatter:off
 	@Override
-	protected void doStart() {
-		ContainerComponentFactory<T> componentFactory = determineComponentFactory();
-		this.messageSources = createMessageSources(componentFactory);
-		this.messageSink = componentFactory.createMessageSink(getContainerOptions());
-		configureComponents(componentFactory);
-		LifecycleUtils.startParallel(this.messageSink, this.messageSources);
-	}
-
-	private ContainerComponentFactory<T> determineComponentFactory() {
-		return getContainerComponentFactory() != null
-			? getContainerComponentFactory()
-			: createComponentFactory();
-	}
-
-	private ContainerComponentFactory<T> createComponentFactory() {
+	protected ContainerComponentFactory<T> createComponentFactory() {
 		Assert.isTrue(getQueueNames().stream().map(this::isFifoQueue).distinct().count() == 1,
 			"The container must contain either all FIFO or all Standard queues.");
 		return isFifoQueue(getQueueNames().iterator().next())
 			? new FifoSqsComponentFactory<>()
 			: new StandardSqsComponentFactory<>();
 	}
+	// @formatter:on
 
 	private boolean isFifoQueue(String name) {
 		return name.endsWith(".fifo");
 	}
 
-	private Collection<MessageSource<T>> createMessageSources(ContainerComponentFactory<T> componentFactory) {
-		return getQueueNames()
-			.stream()
-			.map(queueName -> createMessageSource(queueName, componentFactory))
-			.collect(Collectors.toList());
-	}
-
-	private MessageSource<T> createMessageSource(String queueName, ContainerComponentFactory<T> componentFactory) {
-		MessageSource<T> messageSource = componentFactory.createMessageSource(getContainerOptions());
-		ConfigUtils.INSTANCE
-			.acceptIfInstance(messageSource, PollingMessageSource.class, pms -> pms.setPollingEndpointName(queueName));
-		return messageSource;
-	}
-
-	private void configureComponents(ContainerComponentFactory<T> componentFactory) {
-		this.componentsTaskExecutor = resolveTaskExecutor();
-		getContainerOptions()
-			.configure(this.messageSources)
-			.configure(this.messageSink);
-		configureMessageSources(componentFactory);
-		configureMessageSink();
-		configurePipelineComponents();
-	}
-
-	@SuppressWarnings("unchecked")
-	private void configureMessageSources(ContainerComponentFactory<T> componentFactory) {
-		ConfigUtils.INSTANCE
-			.acceptMany(this.messageSources, source -> source.setMessageSink(this.messageSink))
-			.acceptManyIfInstance(this.messageSources, SqsAsyncClientAware.class, asca -> asca.setSqsAsyncClient(this.sqsAsyncClient))
-			.acceptManyIfInstance(this.messageSources, PollingMessageSource.class, pms -> pms.setBackPressureHandler(createBackPressureHandler()))
-			.acceptManyIfInstance(this.messageSources, AcknowledgingMessageSource.class, ams -> ams.setAcknowledgementProcessor(componentFactory.createAcknowledgementProcessor(getContainerOptions())))
-			.acceptManyIfInstance(this.messageSources, ExecutorAware.class, teac -> teac.setExecutor(createSourceTaskExecutor()));
-	}
-
-	@SuppressWarnings("unchecked")
-	private void configureMessageSink() {
-		ConfigUtils.INSTANCE
-			.acceptIfInstance(this.messageSink, SqsAsyncClientAware.class, asca -> asca.setSqsAsyncClient(this.sqsAsyncClient))
-			.acceptIfInstance(this.messageSink, ExecutorAware.class, teac -> teac.setExecutor(this.componentsTaskExecutor))
-			.acceptIfInstance(this.messageSink, MessageProcessingPipelineSink.class, mls -> mls.setMessagePipeline(createMessageProcessingPipeline()));
-	}
-
-	private void configurePipelineComponents() {
-		ConfigUtils.INSTANCE
-			.acceptManyIfInstance(getMessageInterceptors(), ExecutorAware.class, teac -> teac.setExecutor(this.componentsTaskExecutor))
-			.acceptIfInstance(getMessageListener(), ExecutorAware.class, teac -> teac.setExecutor(this.componentsTaskExecutor))
-			.acceptIfInstance(getErrorHandler(), ExecutorAware.class, teac -> teac.setExecutor(this.componentsTaskExecutor));
-	}
-
-	private MessageProcessingPipeline<T> createMessageProcessingPipeline() {
-		return MessageProcessingPipelineBuilder
-			.<T>first(BeforeProcessingContextInterceptorExecutionStage::new)
-			.then(BeforeProcessingInterceptorExecutionStage::new)
-			.then(MessageListenerExecutionStage::new)
-			.thenWrapWith(ErrorHandlerExecutionStage::new)
-			.thenWrapWith(AcknowledgementHandlerExecutionStage::new)
-			.then(AfterProcessingInterceptorExecutionStage::new)
-			.thenWrapWith(AfterProcessingContextInterceptorExecutionStage::new)
-			.build(MessageProcessingConfiguration.<T>builder()
-				.interceptors(getMessageInterceptors())
-				.messageListener(getMessageListener())
-				.errorHandler(getErrorHandler())
-				.ackHandler(createAcknowledgementHandler(getContainerOptions()))
-				.build());
-	}
-
-	private Executor resolveTaskExecutor() {
-		return getContainerOptions().getContainerComponentsTaskExecutor() != null
-			? getContainerOptions().getContainerComponentsTaskExecutor()
-			: createComponentsTaskExecutor();
-	}
-
-	private SemaphoreBackPressureHandler createBackPressureHandler() {
-		return SemaphoreBackPressureHandler
-			.builder()
-			.batchSize(getContainerOptions().getMessagesPerPoll())
-			.totalPermits(getContainerOptions().getMaxInFlightMessagesPerQueue())
-			.acquireTimeout(getContainerOptions().getPermitAcquireTimeout())
-			.throughputConfiguration(getContainerOptions().getBackPressureMode())
-			.build();
-	}
-
-	private Executor createSourceTaskExecutor() {
-		SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
-		executor.setThreadNamePrefix(getId() + "#message_source");
-		return executor;
-	}
-
-	private Executor createComponentsTaskExecutor() {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		int poolSize = getContainerOptions().getMaxInFlightMessagesPerQueue() * this.messageSources.size();
-		executor.setMaxPoolSize(poolSize);
-		executor.setCorePoolSize(getContainerOptions().getMessagesPerPoll());
-		executor.setQueueCapacity(0);
-		executor.setAllowCoreThreadTimeOut(true);
-		executor.setThreadFactory(createSqsThreadFactory());
-		executor.afterPropertiesSet();
-		return executor;
-	}
-
-	private SqsThreadFactory createSqsThreadFactory() {
-		SqsThreadFactory threadFactory = new SqsThreadFactory();
-		threadFactory.setThreadNamePrefix(getId() + "-");
-		return threadFactory;
-	}
-
-	private AcknowledgementHandler<T> createAcknowledgementHandler(ContainerOptions options) {
-		AcknowledgementMode mode = options.getAcknowledgementMode();
-		return AcknowledgementMode.ON_SUCCESS.equals(mode)
-			? new OnSuccessAcknowledgementHandler<>()
-			: AcknowledgementMode.ALWAYS.equals(mode)
-			? new AlwaysAcknowledgementHandler<>()
-			: new NeverAcknowledgementHandler<>();
+	@Override
+	protected void doConfigureMessageSources(Collection<MessageSource<T>> messageSources) {
+		ConfigUtils.INSTANCE.acceptManyIfInstance(messageSources, SqsAsyncClientAware.class,
+				asca -> asca.setSqsAsyncClient(this.sqsAsyncClient));
 	}
 
 	@Override
-	protected void doStop() {
-		LifecycleUtils.stopParallel(this.messageSources, this.messageSink);
-		shutdownComponentsTaskExecutor();
-		logger.debug("Container {} stopped", getId());
+	protected void doConfigureMessageSink(MessageSink<T> messageSink) {
+		ConfigUtils.INSTANCE.acceptIfInstance(messageSink, SqsAsyncClientAware.class,
+				asca -> asca.setSqsAsyncClient(this.sqsAsyncClient));
 	}
 
-	private void shutdownComponentsTaskExecutor() {
-		if (this.componentsTaskExecutor instanceof DisposableBean) {
-			try {
-				((DisposableBean) this.componentsTaskExecutor).destroy();
-			}
-			catch (Exception e) {
-				throw new IllegalStateException("Error destroying TaskExecutor for sink in container " + getId());
-			}
+	public static <T> Builder<T> builder() {
+		return new Builder<>();
+	}
+
+	public static class Builder<T> {
+
+		private final Collection<String> queueNames = new ArrayList<>();
+
+		private final Collection<AsyncMessageInterceptor<T>> asyncMessageInterceptors = new ArrayList<>();
+
+		private final Collection<MessageInterceptor<T>> messageInterceptors = new ArrayList<>();
+
+		private SqsAsyncClient sqsAsyncClient;
+
+		private ContainerComponentFactory<T> componentFactory;
+
+		private AsyncMessageListener<T> asyncMessageListener;
+
+		private MessageListener<T> messageListener;
+
+		private String id;
+
+		private AsyncErrorHandler<T> asyncErrorHandler;
+
+		private ErrorHandler<T> errorHandler;
+
+		private Consumer<ContainerOptions.Builder> options = options -> {
+		};
+
+		public Builder<T> id(String id) {
+			this.id = id;
+			return this;
 		}
-		else if (this.componentsTaskExecutor instanceof ExecutorService) {
-			((ExecutorService) this.componentsTaskExecutor).shutdownNow();
+
+		public Builder<T> sqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
+			this.sqsAsyncClient = sqsAsyncClient;
+			return this;
 		}
+
+		public Builder<T> queueNames(String... queueNames) {
+			this.queueNames.addAll(Arrays.asList(queueNames));
+			return this;
+		}
+
+		public Builder<T> queueNames(Collection<String> queueNames) {
+			this.queueNames.addAll(queueNames);
+			return this;
+		}
+
+		public Builder<T> componentFactory(ContainerComponentFactory<T> componentFactory) {
+			this.componentFactory = componentFactory;
+			return this;
+		}
+
+		public Builder<T> asyncMessageListener(AsyncMessageListener<T> asyncMessageListener) {
+			this.asyncMessageListener = asyncMessageListener;
+			return this;
+		}
+
+		public Builder<T> messageListener(MessageListener<T> messageListener) {
+			this.messageListener = messageListener;
+			return this;
+		}
+
+		public Builder<T> errorHandler(AsyncErrorHandler<T> asyncErrorHandler) {
+			this.asyncErrorHandler = asyncErrorHandler;
+			return this;
+		}
+
+		public Builder<T> errorHandler(ErrorHandler<T> errorHandler) {
+			this.errorHandler = errorHandler;
+			return this;
+		}
+
+		public Builder<T> messageInterceptor(AsyncMessageInterceptor<T> asyncMessageInterceptor) {
+			this.asyncMessageInterceptors.add(asyncMessageInterceptor);
+			return this;
+		}
+
+		public Builder<T> messageInterceptors(MessageInterceptor<T> messageInterceptor) {
+			this.messageInterceptors.add(messageInterceptor);
+			return this;
+		}
+
+		public Builder<T> configure(Consumer<ContainerOptions.Builder> options) {
+			this.options = options;
+			return this;
+		}
+
+		// @formatter:off
+		public SqsMessageListenerContainer<T> build() {
+			SqsMessageListenerContainer<T> container = new SqsMessageListenerContainer<>(this.sqsAsyncClient);
+			ConfigUtils.INSTANCE
+					.acceptIfNotNull(this.id, container::setId)
+					.acceptIfNotNull(this.messageListener, container::setMessageListener)
+					.acceptIfNotNull(this.asyncMessageListener, container::setAsyncMessageListener)
+					.acceptIfNotNull(this.errorHandler, container::setErrorHandler)
+					.acceptIfNotNull(this.asyncErrorHandler, container::setErrorHandler)
+					.acceptIfNotNull(this.componentFactory, container::setComponentFactory)
+					.acceptIfNotEmpty(this.queueNames, container::setQueueNames);
+			this.messageInterceptors.forEach(container::addMessageInterceptor);
+			this.asyncMessageInterceptors.forEach(container::addMessageInterceptor);
+			container.configure(this.options);
+			return container;
+		}
+		// @formatter:on
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2020 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class SqsHeaders {
 
 	public static final String SQS_RECEIVED_AT_HEADER = SQS_HEADER_PREFIX + "ReceivedAt";
 
-	public static final String SQS_ACKNOWLEDGMENT_HEADER = SQS_HEADER_PREFIX + "Acknowledgement";
+	public static final String SQS_ACKNOWLEDGMENT_CALLBACK_HEADER = SQS_HEADER_PREFIX + "Acknowledgement";
 
 	public static final String SQS_QUEUE_ATTRIBUTES_HEADER = SQS_HEADER_PREFIX + "QueueAttributes";
 
@@ -56,7 +56,7 @@ public class SqsHeaders {
 
 	public static class MessageSystemAttribute {
 
-		private MessageSystemAttribute(){
+		private MessageSystemAttribute() {
 		}
 
 		/**
@@ -77,7 +77,8 @@ public class SqsHeaders {
 		/**
 		 * ApproximateFirstReceiveTimestamp header in a SQS message.
 		 */
-		public static final String SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP = SQS_MSA_HEADER_PREFIX + "ApproximateFirstReceiveTimestamp";
+		public static final String SQS_APPROXIMATE_FIRST_RECEIVE_TIMESTAMP = SQS_MSA_HEADER_PREFIX
+				+ "ApproximateFirstReceiveTimestamp";
 
 		/**
 		 * ApproximateReceiveCount header in a SQS message.

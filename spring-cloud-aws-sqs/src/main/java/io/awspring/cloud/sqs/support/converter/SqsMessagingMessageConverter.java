@@ -1,10 +1,23 @@
+/*
+ * Copyright 2013-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.awspring.cloud.sqs.support.converter;
 
 import io.awspring.cloud.sqs.listener.SqsHeaders;
-import io.awspring.cloud.sqs.support.converter.context.ContextAwareHeaderMapper;
-import io.awspring.cloud.sqs.support.converter.context.ContextAwareMessagingMessageConverter;
-import io.awspring.cloud.sqs.support.converter.context.MessageConversionContext;
-import io.awspring.cloud.sqs.support.converter.context.SqsMessageConversionContext;
+
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -17,13 +30,12 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
 
-import java.util.function.Function;
-
 /**
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class SqsMessagingMessageConverter implements ContextAwareMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
+public class SqsMessagingMessageConverter
+		implements ContextAwareMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsMessagingMessageConverter.class);
 
@@ -37,9 +49,9 @@ public class SqsMessagingMessageConverter implements ContextAwareMessagingMessag
 
 	private HeaderMapper<software.amazon.awssdk.services.sqs.model.Message> headerMapper = DEFAULT_HEADER_MAPPER;
 
-	private Function<Message<?>, Class<?>> payloadTypeMapper = this::defaultHeaderTypeMapping;
+	private Function<Message<String>, Class<?>> payloadTypeMapper = this::defaultHeaderTypeMapping;
 
-	public void setPayloadTypeMapper(Function<Message<?>, Class<?>> payloadTypeMapper) {
+	public void setPayloadTypeMapper(Function<Message<String>, Class<?>> payloadTypeMapper) {
 		Assert.notNull(payloadTypeMapper, "payloadTypeMapper cannot be null");
 		this.payloadTypeMapper = payloadTypeMapper;
 	}
@@ -65,20 +77,23 @@ public class SqsMessagingMessageConverter implements ContextAwareMessagingMessag
 	}
 
 	@Override
-	public Message<?> toMessagingMessage(software.amazon.awssdk.services.sqs.model.Message message, @Nullable MessageConversionContext context) {
+	public Message<?> toMessagingMessage(software.amazon.awssdk.services.sqs.model.Message message,
+			@Nullable MessageConversionContext context) {
 		logger.trace("Converting message {} to messaging message", message.messageId());
 		MessageHeaders messageHeaders = createMessageHeaders(message, context);
 		return MessageBuilder.createMessage(convertPayload(message, messageHeaders), messageHeaders);
 	}
 
-	private MessageHeaders createMessageHeaders(software.amazon.awssdk.services.sqs.model.Message message, MessageConversionContext context) {
+	private MessageHeaders createMessageHeaders(software.amazon.awssdk.services.sqs.model.Message message,
+			MessageConversionContext context) {
 		MessageHeaders messageHeaders = this.headerMapper.toHeaders(message);
 		return context != null && this.headerMapper instanceof ContextAwareHeaderMapper
-			? addContextHeaders(message, context, messageHeaders)
-			: messageHeaders;
+				? addContextHeaders(message, context, messageHeaders)
+				: messageHeaders;
 	}
 
-	private MessageHeaders addContextHeaders(software.amazon.awssdk.services.sqs.model.Message message, MessageConversionContext context, MessageHeaders messageHeaders) {
+	private MessageHeaders addContextHeaders(software.amazon.awssdk.services.sqs.model.Message message,
+			MessageConversionContext context, MessageHeaders messageHeaders) {
 		MessageHeaders contextHeaders = getContextHeaders(message, context);
 		MessageHeaderAccessor accessor = new MessageHeaderAccessor();
 		accessor.copyHeaders(messageHeaders);
@@ -86,16 +101,18 @@ public class SqsMessagingMessageConverter implements ContextAwareMessagingMessag
 		return accessor.getMessageHeaders();
 	}
 
-	private MessageHeaders getContextHeaders(software.amazon.awssdk.services.sqs.model.Message message, MessageConversionContext context) {
-		return ((ContextAwareHeaderMapper<software.amazon.awssdk.services.sqs.model.Message>) this.headerMapper).getContextHeaders(message, context);
+	private MessageHeaders getContextHeaders(software.amazon.awssdk.services.sqs.model.Message message,
+			MessageConversionContext context) {
+		return ((ContextAwareHeaderMapper<software.amazon.awssdk.services.sqs.model.Message>) this.headerMapper)
+				.createContextHeaders(message, context);
 	}
 
-	private Object convertPayload(software.amazon.awssdk.services.sqs.model.Message message, MessageHeaders messageHeaders) {
+	private Object convertPayload(software.amazon.awssdk.services.sqs.model.Message message,
+			MessageHeaders messageHeaders) {
 		Message<String> messagingMessage = MessageBuilder.createMessage(message.body(), messageHeaders);
 		Class<?> targetType = this.payloadTypeMapper.apply(messagingMessage);
-		return targetType != null
-			? this.payloadMessageConverter.fromMessage(messagingMessage, targetType)
-			: message.body();
+		return targetType != null ? this.payloadMessageConverter.fromMessage(messagingMessage, targetType)
+				: message.body();
 	}
 
 	@Nullable
@@ -106,9 +123,16 @@ public class SqsMessagingMessageConverter implements ContextAwareMessagingMessag
 		}
 		try {
 			return Class.forName(header);
-		} catch (ClassNotFoundException e) {
+		}
+		catch (ClassNotFoundException e) {
 			throw new IllegalArgumentException("No class found with name " + header);
 		}
+	}
+
+	@Override
+	public software.amazon.awssdk.services.sqs.model.Message fromMessagingMessage(Message<?> message) {
+		// To be implemented for `SqsTemplate`
+		throw new UnsupportedOperationException("fromMessagingMessage not implemented");
 	}
 
 }

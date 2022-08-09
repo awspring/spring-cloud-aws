@@ -15,19 +15,18 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import io.awspring.cloud.sqs.SqsThread;
+import io.awspring.cloud.sqs.MessageExecutionThread;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.messaging.Message;
-
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.messaging.Message;
 
 /**
  * Utility class for adapting blocking components to asynchronous
@@ -72,36 +71,37 @@ public class AsyncComponentAdapters {
 		return new BlockingMessageListenerAdapter<>(messageListener);
 	}
 
-	public static abstract class AbstractThreadingComponentAdapter implements ExecutorAware {
+	public static abstract class AbstractThreadingComponentAdapter implements TaskExecutorAware {
 
-		private Executor executor;
+		private TaskExecutor taskExecutor;
 
 		@Override
-		public void setExecutor(Executor executor) {
-			this.executor = executor;
+		public void setTaskExecutor(TaskExecutor taskExecutor) {
+			this.taskExecutor = taskExecutor;
 		}
 
 		protected <T> CompletableFuture<T> execute(Supplier<T> executable) {
-			if (Thread.currentThread() instanceof SqsThread) {
-				logger.trace("Already in a {}, not switching", SqsThread.class.getSimpleName());
+			if (Thread.currentThread() instanceof MessageExecutionThread) {
+				logger.trace("Already in a {}, not switching", MessageExecutionThread.class.getSimpleName());
 				return AsyncExecutionAdapters.adaptFromBlocking(executable);
 			}
-			logger.trace("Not in a {}, submitting to executor", SqsThread.class.getSimpleName());
-			return CompletableFuture.supplyAsync(executable, this.executor);
+			logger.trace("Not in a {}, submitting to executor", MessageExecutionThread.class.getSimpleName());
+			return CompletableFuture.supplyAsync(executable, this.taskExecutor);
 		}
 
 		protected CompletableFuture<Void> execute(Runnable executable) {
-			if (Thread.currentThread() instanceof SqsThread) {
-				logger.trace("Already in a {}, not switching", SqsThread.class.getSimpleName());
+			if (Thread.currentThread() instanceof MessageExecutionThread) {
+				logger.trace("Already in a {}, not switching", MessageExecutionThread.class.getSimpleName());
 				return AsyncExecutionAdapters.adaptFromBlocking(executable);
 			}
-			logger.trace("Not in a {}, submitting to executor", SqsThread.class.getSimpleName());
-			return CompletableFuture.runAsync(executable, this.executor);
+			logger.trace("Not in a {}, submitting to executor", MessageExecutionThread.class.getSimpleName());
+			return CompletableFuture.runAsync(executable, this.taskExecutor);
 		}
 
 	}
 
-	public static class BlockingMessageInterceptorAdapter<T> extends AbstractThreadingComponentAdapter implements AsyncMessageInterceptor<T> {
+	public static class BlockingMessageInterceptorAdapter<T> extends AbstractThreadingComponentAdapter
+			implements AsyncMessageInterceptor<T> {
 
 		private final MessageInterceptor<T> blockingMessageInterceptor;
 
@@ -119,9 +119,19 @@ public class AsyncComponentAdapters {
 			return execute(() -> this.blockingMessageInterceptor.intercept(messages));
 		}
 
+		@Override
+		public CompletableFuture<Void> afterProcessing(Message<T> message, Throwable t) {
+			return execute(() -> this.blockingMessageInterceptor.afterProcessing(message, t));
+		}
+
+		@Override
+		public CompletableFuture<Void> afterProcessing(Collection<Message<T>> messages, Throwable t) {
+			return execute(() -> this.blockingMessageInterceptor.afterProcessing(messages, t));
+		}
 	}
 
-	public static class BlockingMessageListenerAdapter<T> extends AbstractThreadingComponentAdapter implements AsyncMessageListener<T> {
+	public static class BlockingMessageListenerAdapter<T> extends AbstractThreadingComponentAdapter
+			implements AsyncMessageListener<T> {
 
 		private final MessageListener<T> blockingMessageListener;
 
@@ -140,7 +150,8 @@ public class AsyncComponentAdapters {
 		}
 	}
 
-	public static class BlockingErrorHandlerAdapter<T> extends AbstractThreadingComponentAdapter implements AsyncErrorHandler<T> {
+	public static class BlockingErrorHandlerAdapter<T> extends AbstractThreadingComponentAdapter
+			implements AsyncErrorHandler<T> {
 
 		private final ErrorHandler<T> blockingErrorHandler;
 
@@ -149,12 +160,12 @@ public class AsyncComponentAdapters {
 		}
 
 		@Override
-		public CompletableFuture<Void> handleError(Message<T> message, Throwable t) {
+		public CompletableFuture<Void> handle(Message<T> message, Throwable t) {
 			return execute(() -> this.blockingErrorHandler.handle(message, t));
 		}
 
 		@Override
-		public CompletableFuture<Void> handleError(Collection<Message<T>> messages, Throwable t) {
+		public CompletableFuture<Void> handle(Collection<Message<T>> messages, Throwable t) {
 			return execute(() -> this.blockingErrorHandler.handle(messages, t));
 		}
 

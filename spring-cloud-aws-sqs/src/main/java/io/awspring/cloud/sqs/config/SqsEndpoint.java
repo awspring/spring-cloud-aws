@@ -16,10 +16,9 @@
 package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
-import org.springframework.lang.Nullable;
-
 import java.time.Duration;
 import java.util.Collection;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link Endpoint} implementation for SQS endpoints.
@@ -38,8 +37,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 	private final Integer messageVisibility;
 
 	private SqsEndpoint(Collection<String> logicalEndpointNames, String listenerContainerFactoryName,
-						Integer maxInflightMessagesPerQueue, Integer pollTimeoutSeconds, Integer messageVisibility,
-						String id) {
+			Integer maxInflightMessagesPerQueue, Integer pollTimeoutSeconds, Integer messageVisibility, String id) {
 		super(logicalEndpointNames, listenerContainerFactoryName, id);
 		this.maxInflightMessagesPerQueue = maxInflightMessagesPerQueue;
 		this.pollTimeoutSeconds = pollTimeoutSeconds;

@@ -16,34 +16,29 @@
 package io.awspring.cloud.sqs.listener.source;
 
 import io.awspring.cloud.sqs.ConfigUtils;
-import io.awspring.cloud.sqs.QueueAttributesProvider;
-import io.awspring.cloud.sqs.listener.QueueAttributesAware;
-import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
+import io.awspring.cloud.sqs.listener.QueueAttributesAware;
+import io.awspring.cloud.sqs.listener.QueueAttributesResolver;
+import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
+import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementExecutor;
 import io.awspring.cloud.sqs.listener.acknowledgement.ExecutingAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
-import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
-import io.awspring.cloud.sqs.support.converter.context.ContextAwareMessagingMessageConverter;
-import io.awspring.cloud.sqs.support.converter.context.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import java.util.Collection;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
-import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
  * {@link MessageSource} implementation for polling messages from a SQS queue and converting them to messaging
@@ -65,17 +60,19 @@ import software.amazon.awssdk.services.sqs.model.Message;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class SqsMessageSource<T> extends AbstractPollingMessageSource<T> implements SqsAsyncClientAware {
+public class SqsMessageSource<T> extends AbstractPollingMessageSource<T, Message> implements SqsAsyncClientAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsMessageSource.class);
+
+	private static final int MESSAGE_VISIBILITY_DISABLED = -1;
 
 	private SqsAsyncClient sqsAsyncClient;
 
 	private String queueUrl;
 
-	private MessagingMessageConverter<Message> messagingMessageConverter;
+	private QueueAttributes queueAttributes;
 
-	private MessageConversionContext messageConversionContext;
+	private QueueNotFoundStrategy queueNotFoundStrategy;
 
 	private Collection<QueueAttributeName> queueAttributeNames;
 
@@ -100,48 +97,70 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T> impleme
 		this.queueAttributeNames = containerOptions.getQueueAttributeNames();
 		this.messageAttributeNames = containerOptions.getMessageAttributeNames();
 		this.messageSystemAttributeNames = containerOptions.getMessageSystemAttributeNames();
-		this.messagingMessageConverter = getOrCreateMessageConverter(containerOptions);
-		this.messageVisibility = containerOptions.getMessageVisibility() != null ? (int) containerOptions.getMessageVisibility().getSeconds() : -1;
+		this.queueNotFoundStrategy = containerOptions.getQueueNotFoundStrategy();
+		this.messageVisibility = containerOptions.getMessageVisibility() != null
+				? (int) containerOptions.getMessageVisibility().getSeconds()
+				: MESSAGE_VISIBILITY_DISABLED;
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected void doStart() {
 		Assert.notNull(this.sqsAsyncClient, "sqsAsyncClient not set.");
 		Assert.notNull(this.queueAttributeNames, "queueAttributeNames not set.");
-		Assert.notNull(this.messagingMessageConverter, "messagingMessageConverter not set.");
-		QueueAttributes queueAttributes = QueueAttributesProvider.fetch(getPollingEndpointName(), this.sqsAsyncClient, this.queueAttributeNames);
-		this.queueUrl = queueAttributes.getQueueUrl();
-		this.messageConversionContext = maybeCreateConversionContext();
-		ConfigUtils.INSTANCE
-			.acceptIfInstance(this.messageConversionContext, SqsAsyncClientAware.class, saca -> saca.setSqsAsyncClient(this.sqsAsyncClient))
-			.acceptIfInstance(this.messageConversionContext, QueueAttributesAware.class, qaa -> qaa.setQueueAttributes(queueAttributes))
-			.acceptIfInstance(getAcknowledgmentProcessor(), ExecutingAcknowledgementProcessor.class,
-				eap -> eap.setAcknowledgementExecutor(createAcknowledgementExecutor(queueAttributes)));
+		this.queueAttributes = resolveQueueAttributes();
+		this.queueUrl = this.queueAttributes.getQueueUrl();
+		configureConversionContextAndAcknowledgement();
 	}
 
-	private AcknowledgementExecutor<T> createAcknowledgementExecutor(QueueAttributes queueAttributes) {
-		SqsAcknowledgementExecutor<T> executor = new SqsAcknowledgementExecutor<>();
+	@SuppressWarnings("unchecked")
+	private void configureConversionContextAndAcknowledgement() {
+		ConfigUtils.INSTANCE
+				.acceptIfInstance(getMessageConversionContext(), SqsAsyncClientAware.class,
+						saca -> saca.setSqsAsyncClient(this.sqsAsyncClient))
+				.acceptIfInstance(getMessageConversionContext(), QueueAttributesAware.class,
+						qaa -> qaa.setQueueAttributes(this.queueAttributes))
+				.acceptIfInstance(getAcknowledgmentProcessor(), ExecutingAcknowledgementProcessor.class, eap -> eap
+						.setAcknowledgementExecutor(createAndConfigureAcknowledgementExecutor(this.queueAttributes)));
+	}
+
+	// @formatter:off
+	private QueueAttributes resolveQueueAttributes() {
+		return QueueAttributesResolver.builder()
+			.queueName(getPollingEndpointName())
+			.sqsAsyncClient(this.sqsAsyncClient)
+			.queueAttributeNames(this.queueAttributeNames)
+			.queueNotFoundStrategy(this.queueNotFoundStrategy).build()
+			.resolveQueueAttributes()
+			.join();
+	}
+	// @formatter:on
+
+	protected AcknowledgementExecutor<T> createAndConfigureAcknowledgementExecutor(QueueAttributes queueAttributes) {
+		SqsAcknowledgementExecutor<T> executor = createAcknowledgementExecutorInstance();
 		executor.setQueueAttributes(queueAttributes);
 		executor.setSqsAsyncClient(this.sqsAsyncClient);
 		return executor;
 	}
 
-	@Nullable
-	private MessageConversionContext maybeCreateConversionContext() {
-		return this.messagingMessageConverter instanceof ContextAwareMessagingMessageConverter
-			? ((ContextAwareMessagingMessageConverter<?>) this.messagingMessageConverter).createMessageConversionContext()
-			: null;
+	protected SqsAcknowledgementExecutor<T> createAcknowledgementExecutorInstance() {
+		return new SqsAcknowledgementExecutor<>();
 	}
 
 	@Override
-	protected CompletableFuture<Collection<org.springframework.messaging.Message<T>>> doPollForMessages(int maxNumberOfMessages) {
+	protected MessagingMessageConverter<Message> createMessageConverter() {
+		return new SqsMessagingMessageConverter();
+	}
+
+	// @formatter:off
+	@Override
+	protected CompletableFuture<Collection<Message>> doPollForMessages(
+			int maxNumberOfMessages) {
 		logger.debug("Polling queue {} for {} messages.", this.queueUrl, maxNumberOfMessages);
 		return sqsAsyncClient
 			.receiveMessage(createRequest(maxNumberOfMessages))
 			.thenApply(ReceiveMessageResponse::messages)
-			.whenComplete(this::logMessagesReceived)
-			.thenApply(this::convertMessages);
+			.thenApply(collectionList -> (Collection<Message>) collectionList)
+			.whenComplete(this::logMessagesReceived);
 	}
 
 	private ReceiveMessageRequest createRequest(int maxNumberOfMessages) {
@@ -159,34 +178,17 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T> impleme
 		}
 		return builder.build();
 	}
-
-	private Collection<org.springframework.messaging.Message<T>> convertMessages(List<Message> msgs) {
-		return msgs.stream()
-			.map(this::convertMessage)
-			.collect(Collectors.toList());
-	}
-
-	@SuppressWarnings("unchecked")
-	private org.springframework.messaging.Message<T> convertMessage(Message msg) {
-		return this.messagingMessageConverter instanceof ContextAwareMessagingMessageConverter
-			? (org.springframework.messaging.Message<T>) getContextAwareConverter().toMessagingMessage(msg, this.messageConversionContext)
-			: (org.springframework.messaging.Message<T>) this.messagingMessageConverter.toMessagingMessage(msg);
-	}
-
-	private ContextAwareMessagingMessageConverter<Message> getContextAwareConverter() {
-		return (ContextAwareMessagingMessageConverter<Message>) this.messagingMessageConverter;
-	}
-
-	@SuppressWarnings("unchecked")
-	private MessagingMessageConverter<Message> getOrCreateMessageConverter(ContainerOptions containerOptions) {
-		return containerOptions.getMessageConverter() != null
-			? (MessagingMessageConverter<Message>) containerOptions.getMessageConverter()
-			: new SqsMessagingMessageConverter();
-	}
+	// @formatter:on
 
 	private void logMessagesReceived(Collection<Message> v, Throwable t) {
 		if (v != null) {
-			logger.debug("Received {} messages from queue {}", v.size(), this.queueUrl);
+			if (logger.isTraceEnabled()) {
+				logger.trace("Received messages {} from queue {}",
+						v.stream().map(Message::messageId).collect(Collectors.toList()), this.queueUrl);
+			}
+			else {
+				logger.debug("Received {} messages from queue {}", v.size(), this.queueUrl);
+			}
 		}
 	}
 

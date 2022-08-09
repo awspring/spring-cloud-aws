@@ -16,17 +16,15 @@
 package io.awspring.cloud.sqs.listener.acknowledgement.handler;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
-
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-
-import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 
 /**
- * Default {@link AcknowledgementHandler} implementation that only acknowledges on success.
+ * {@link AcknowledgementHandler} implementation that only acknowledges on success.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -45,6 +43,19 @@ public class OnSuccessAcknowledgementHandler<T> implements AcknowledgementHandle
 	public CompletableFuture<Void> onSuccess(Collection<Message<T>> messages, AcknowledgementCallback<T> callback) {
 		logger.trace("Acknowledging messages {}", MessageHeaderUtils.getId(messages));
 		return callback.onAcknowledge(messages);
+	}
+
+	@Override
+	public CompletableFuture<Void> onError(Message<T> message, Throwable t, AcknowledgementCallback<T> callback) {
+		logger.trace("Skipping ack for message {}", MessageHeaderUtils.getId(message));
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public CompletableFuture<Void> onError(Collection<Message<T>> messages, Throwable t,
+			AcknowledgementCallback<T> callback) {
+		logger.trace("Skipping acks for messages {}", MessageHeaderUtils.getId(messages));
+		return CompletableFuture.completedFuture(null);
 	}
 
 }

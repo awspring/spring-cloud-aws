@@ -23,8 +23,9 @@ import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
+import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
-
+import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -35,7 +36,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.util.ReflectionUtils;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 
@@ -66,15 +66,19 @@ public class SqsAutoConfiguration {
 	@Bean
 	public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(
 			ObjectProvider<SqsAsyncClient> sqsAsyncClient, ObjectProvider<ContainerOptions> containerOptions,
-			ObjectProvider<AsyncErrorHandler<Object>> errorHandler,
-			ObjectProvider<AsyncMessageInterceptor<Object>> interceptors) {
+			ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
+			ObjectProvider<ErrorHandler<Object>> errorHandler,
+			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
+			ObjectProvider<MessageInterceptor<Object>> interceptors) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
-		containerOptions
-				.ifAvailable(options -> ReflectionUtils.shallowCopyFieldState(options, factory.getContainerOptions()));
+		containerOptions.ifAvailable(
+				providedOptions -> factory.configure(options -> options.fromBuilder(providedOptions.toBuilder())));
 		sqsAsyncClient.ifAvailable(factory::setSqsAsyncClient);
-		errorHandler.ifAvailable(factory::setAsyncErrorHandler);
-		interceptors.forEach(factory::addAsyncMessageInterceptor);
+		asyncErrorHandler.ifAvailable(factory::setErrorHandler);
+		errorHandler.ifAvailable(factory::setErrorHandler);
+		interceptors.forEach(factory::addMessageInterceptor);
+		asyncInterceptors.forEach(factory::addMessageInterceptor);
 		return factory;
 	}
 
