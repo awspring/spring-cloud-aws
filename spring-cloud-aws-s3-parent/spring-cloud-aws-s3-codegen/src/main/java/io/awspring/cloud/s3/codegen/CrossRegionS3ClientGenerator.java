@@ -57,7 +57,7 @@ public final class CrossRegionS3ClientGenerator {
 
 	public static void main(String[] args) throws IOException {
 		if (args.length != 1) {
-			throw new RuntimeException("Need 1 parameter: the JavaParser source checkout root directory.");
+			throw new IllegalArgumentException("Need 1 parameter: the JavaParser source checkout root directory.");
 		}
 
 		// load template class

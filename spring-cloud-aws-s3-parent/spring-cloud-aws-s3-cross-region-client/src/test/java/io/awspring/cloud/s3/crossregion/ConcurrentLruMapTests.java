@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.s3.crossregion;
 
-import static io.awspring.cloud.s3.crossregion.CrossRegionS3Client.ConcurrentLruMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.concurrent.ExecutorService;
