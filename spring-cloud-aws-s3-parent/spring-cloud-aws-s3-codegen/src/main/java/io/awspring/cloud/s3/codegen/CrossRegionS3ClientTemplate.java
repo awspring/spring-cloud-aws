@@ -16,6 +16,7 @@
 package io.awspring.cloud.s3.codegen;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -89,6 +90,11 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 	}
 
 	private <Result> Result executeInBucketRegion(String bucket, Function<S3Client, Result> fn) {
+		return this.executeInBucketRegion(bucket, fn, true);
+	}
+
+	private <Result> Result executeInBucketRegion(String bucket, Function<S3Client, Result> fn,
+			boolean allowRecursiveRegionSearch) {
 		try {
 			// If the bucket isn't cached, safely attempt to run fn using the default client
 			if (!bucketCache.contains(bucket)) {
@@ -104,21 +110,34 @@ public class CrossRegionS3ClientTemplate implements S3Client {
 						e.awsErrorDetails().errorCode(), e.awsErrorDetails().errorMessage(),
 						e.awsErrorDetails().sdkHttpResponse().statusCode());
 			}
+
 			// A 301 error code ("PermanentRedirect") means that the bucket is in different region than the
 			// defaultS3Client is configured for.
 			if (e.awsErrorDetails().sdkHttpResponse().statusCode() != HTTP_CODE_PERMANENT_REDIRECT) {
 				throw e;
 			}
 
-			S3Client newClient = e.awsErrorDetails().sdkHttpResponse().firstMatchingHeader(BUCKET_REDIRECT_HEADER)
-					.map(Region::of).map(this::getClient)
-					.orElseThrow(() -> RegionDiscoveryException.ofMissingHeader(e));
-			bucketCache.put(bucket, newClient);
+			Optional<Region> discoveredRegion = e.awsErrorDetails().sdkHttpResponse()
+					.firstMatchingHeader(BUCKET_REDIRECT_HEADER).map(Region::of);
+
+			if (discoveredRegion.isPresent()) {
+				LOGGER.debug("Region for bucket was discovered to be {} and is being cached", discoveredRegion.get());
+				bucketCache.put(bucket, this.getClient(discoveredRegion.get()));
+			}
+			else if (allowRecursiveRegionSearch) {
+				LOGGER.debug(
+						"The error headers did not contain the bucket region header, attempting to find the bucket via a HeadBucket request");
+				this.executeInBucketRegion(bucket, c -> c.headBucket(b -> b.bucket(bucket)), false);
+			}
+			else {
+				throw RegionDiscoveryException.ofMissingHeader(e);
+			}
 		}
 
-		// If we have reached this point, either a client for this bucket was already cached, or an exception occurred
-		// when we tried to run fn with the default client and we subsequently discovered the correct region and cached
-		// the client. Any error thrown by this call shouldn't be an InvalidRegion error.
+		// If we have reached this point, either
+		// * a client for this bucket was already cached
+		// * using the default client failed, the error had the region header, and we cached the bucket's new client.
+		// Thus, any error thrown by this call shouldn't be an InvalidRegion error.
 		return fn.apply(bucketCache.get(bucket));
 	}
 
