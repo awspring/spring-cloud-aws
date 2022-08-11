@@ -29,7 +29,6 @@ import io.awspring.cloud.s3.S3Operations;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
-import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import io.awspring.cloud.s3.crossregion.DefaultCrossRegionS3Client;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
@@ -97,7 +96,7 @@ public class S3AutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass(CrossRegionS3Client.class)
+	@ConditionalOnClass(DefaultCrossRegionS3Client.class)
 	static class CrossRegionS3ClientConfiguration {
 
 		@Bean
@@ -109,7 +108,7 @@ public class S3AutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnMissingClass("io.awspring.cloud.s3.crossregion.CrossRegionS3Client")
+	@ConditionalOnMissingClass("io.awspring.cloud.s3.crossregion.DefaultCrossRegionS3Client")
 	static class StandardS3ClientConfiguration {
 
 		@Bean

@@ -40,7 +40,7 @@ import org.springframework.util.ConcurrentLruCache;
  * @author Juergen Hoeller
  * @author Maciej Walkowiak
  */
-public class ConcurrentLruMap<K, V> {
+class ConcurrentLruMap<K, V> {
 
 	private final int sizeLimit;
 

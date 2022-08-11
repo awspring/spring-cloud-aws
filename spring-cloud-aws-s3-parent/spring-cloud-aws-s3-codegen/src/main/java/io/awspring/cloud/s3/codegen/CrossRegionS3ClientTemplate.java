@@ -23,7 +23,7 @@ import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.WriteGetObjectResponseRequest;
 import software.amazon.awssdk.services.s3.model.WriteGetObjectResponseResponse;
 
-public abstract class CrossRegionS3ClientTemplate implements S3Client {
+abstract class CrossRegionS3ClientTemplate implements S3Client {
 
 	@Override
 	public abstract ListBucketsResponse listBuckets(ListBucketsRequest request);
