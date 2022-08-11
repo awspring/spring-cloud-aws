@@ -38,12 +38,12 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
- * Unit tests for {@link DefaultCrossRegionS3Client}. Integration testing with Localstack is not possible due to:
+ * Unit tests for {@link CrossRegionS3Client}. Integration testing with Localstack is not possible due to:
  * https://github.com/localstack/localstack/issues/5748
  *
  * @author Maciej Walkowiak
  */
-class DefaultCrossRegionS3ClientTests {
+class CrossRegionS3ClientTests {
 
 	private final S3ClientBuilder mock = mock(S3ClientBuilder.class);
 
@@ -57,7 +57,7 @@ class DefaultCrossRegionS3ClientTests {
 	 */
 	private final Map<Region, S3Client> clients = new HashMap<>();
 
-	private DefaultCrossRegionS3Client crossRegionS3Client;
+	private CrossRegionS3Client crossRegionS3Client;
 
 	@BeforeEach
 	void beforeEach() {
@@ -72,7 +72,7 @@ class DefaultCrossRegionS3ClientTests {
 				.thenAnswer(invocationOnMock -> builders.get(invocationOnMock.getArgument(0, Region.class)));
 
 		when(mock.build()).thenReturn(defaultClient);
-		crossRegionS3Client = new DefaultCrossRegionS3Client(mock);
+		crossRegionS3Client = new CrossRegionS3Client(mock);
 	}
 
 	@Test
@@ -134,7 +134,7 @@ class DefaultCrossRegionS3ClientTests {
 										.sdkHttpResponse(SdkHttpResponse.builder().statusCode(301).build()).build())
 								.build());
 		assertThatThrownBy(() -> crossRegionS3Client.headBucket(r -> r.bucket("first-bucket")))
-				.isInstanceOf(DefaultCrossRegionS3Client.RegionDiscoveryException.class);
+				.isInstanceOf(CrossRegionS3Client.RegionDiscoveryException.class);
 		verify(defaultClient, times(1)).headBucket(HeadBucketRequest.builder().bucket("first-bucket").build());
 	}
 
@@ -163,14 +163,14 @@ class DefaultCrossRegionS3ClientTests {
 		when(defaultClient.listObjects(ListObjectsRequest.builder().bucket(s).build())).thenThrow(S3Exception.builder()
 				.awsErrorDetails(AwsErrorDetails.builder()
 						.sdkHttpResponse(SdkHttpResponse.builder().statusCode(301)
-								.appendHeader(DefaultCrossRegionS3Client.BUCKET_REDIRECT_HEADER, region.id()).build())
+								.appendHeader(CrossRegionS3Client.BUCKET_REDIRECT_HEADER, region.id()).build())
 						.build())
 				.build());
 		when(defaultClient.headBucket(any(Consumer.class))).thenCallRealMethod();
 		when(defaultClient.headBucket(HeadBucketRequest.builder().bucket(s).build())).thenThrow(S3Exception.builder()
 				.awsErrorDetails(AwsErrorDetails.builder()
 						.sdkHttpResponse(SdkHttpResponse.builder().statusCode(301)
-								.appendHeader(DefaultCrossRegionS3Client.BUCKET_REDIRECT_HEADER, region.id()).build())
+								.appendHeader(CrossRegionS3Client.BUCKET_REDIRECT_HEADER, region.id()).build())
 						.build())
 				.build());
 		when(defaultClient.createBucket(any(Consumer.class))).thenCallRealMethod();

@@ -31,7 +31,8 @@ import io.awspring.cloud.s3.S3ObjectConverter;
 import io.awspring.cloud.s3.S3OutputStream;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3Template;
-import io.awspring.cloud.s3.crossregion.DefaultCrossRegionS3Client;
+import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
+
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
@@ -71,7 +72,7 @@ class S3AutoConfigurationTests {
 		this.contextRunner.run(context -> {
 			assertThat(context).hasSingleBean(S3Client.class);
 			S3Client s3Client = context.getBean(S3Client.class);
-			assertThat(s3Client).isInstanceOf(DefaultCrossRegionS3Client.class);
+			assertThat(s3Client).isInstanceOf(CrossRegionS3Client.class);
 
 			assertThat(context).hasSingleBean(S3ClientBuilder.class);
 			assertThat(context).hasSingleBean(S3Properties.class);
@@ -102,21 +103,21 @@ class S3AutoConfigurationTests {
 		@Test
 		void byDefaultCreatesCrossRegionS3Client() {
 			contextRunner.run(context -> assertThat(context).getBean(S3Client.class)
-					.isInstanceOf(DefaultCrossRegionS3Client.class));
+					.isInstanceOf(CrossRegionS3Client.class));
 		}
 
 		@Test
 		void s3ClientCanBeOverwritten() {
 			contextRunner.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
 				assertThat(context).hasSingleBean(S3Client.class);
-				assertThat(context).getBean(S3Client.class).isNotInstanceOf(DefaultCrossRegionS3Client.class);
+				assertThat(context).getBean(S3Client.class).isNotInstanceOf(CrossRegionS3Client.class);
 			});
 		}
 
 		@Test
 		void createsStandardClientWhenCrossRegionModuleIsNotInClasspath() {
-			contextRunner.withClassLoader(new FilteredClassLoader(DefaultCrossRegionS3Client.class)).run(context -> {
-				assertThat(context).doesNotHaveBean(DefaultCrossRegionS3Client.class);
+			contextRunner.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
+				assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
 				assertThat(context).hasSingleBean(S3Client.class);
 			});
 		}

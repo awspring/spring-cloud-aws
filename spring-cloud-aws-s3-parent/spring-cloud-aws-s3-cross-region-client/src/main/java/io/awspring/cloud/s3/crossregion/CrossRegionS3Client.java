@@ -29,7 +29,7 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-public class DefaultCrossRegionS3Client extends AbstractCrossRegionS3Client {
+public class CrossRegionS3Client extends AbstractCrossRegionS3Client {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger("io.awspring.cloud.s3.CrossRegionS3Client");
 
@@ -45,11 +45,11 @@ public class DefaultCrossRegionS3Client extends AbstractCrossRegionS3Client {
 
 	private final ConcurrentLruMap<String, S3Client> bucketCache;
 
-	public DefaultCrossRegionS3Client(S3ClientBuilder clientBuilder) {
+	public CrossRegionS3Client(S3ClientBuilder clientBuilder) {
 		this(DEFAULT_BUCKET_CACHE_SIZE, clientBuilder);
 	}
 
-	public DefaultCrossRegionS3Client(int bucketCacheSize, S3ClientBuilder clientBuilder) {
+	public CrossRegionS3Client(int bucketCacheSize, S3ClientBuilder clientBuilder) {
 		this.defaultS3Client = clientBuilder.build();
 		this.clientBuilder = clientBuilder;
 		this.bucketCache = new ConcurrentLruMap<>(bucketCacheSize);
