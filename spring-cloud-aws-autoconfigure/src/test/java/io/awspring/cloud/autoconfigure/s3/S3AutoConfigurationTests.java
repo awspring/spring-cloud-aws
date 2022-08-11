@@ -32,7 +32,6 @@ import io.awspring.cloud.s3.S3OutputStream;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
-
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
@@ -102,8 +101,8 @@ class S3AutoConfigurationTests {
 	class S3ClientTests {
 		@Test
 		void byDefaultCreatesCrossRegionS3Client() {
-			contextRunner.run(context -> assertThat(context).getBean(S3Client.class)
-					.isInstanceOf(CrossRegionS3Client.class));
+			contextRunner.run(
+					context -> assertThat(context).getBean(S3Client.class).isInstanceOf(CrossRegionS3Client.class));
 		}
 
 		@Test

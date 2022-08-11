@@ -30,7 +30,6 @@ import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
-
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
