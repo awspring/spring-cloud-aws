@@ -38,18 +38,18 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3Client;
 
 /**
- * Generates CrossRegionS3Client class from {@link CrossRegionS3ClientTemplate}.
+ * Generates AbstractCrossRegionS3Client class from {@link AbstractCrossRegionS3ClientTemplate}.
  *
  * Generated methods wrap every bucket-specific {@link S3Client} method with
- * {@link CrossRegionS3ClientTemplate#executeInBucketRegion(String, Function)} and every bucket-independent
- * {@link S3Client} method with {@link CrossRegionS3ClientTemplate#executeInDefaultRegion(Function)}
+ * {@link AbstractCrossRegionS3ClientTemplate#executeInBucketRegion(String, Function)} and every bucket-independent
+ * {@link S3Client} method with {@link AbstractCrossRegionS3ClientTemplate#executeInDefaultRegion(Function)}
  *
  * @author Maciej Walkowiak
  * @since 3.0
  */
-public final class CrossRegionS3ClientGenerator {
+public final class AbstractCrossRegionS3ClientGenerator {
 
-	private CrossRegionS3ClientGenerator() {
+	private AbstractCrossRegionS3ClientGenerator() {
 
 	}
 
@@ -60,29 +60,29 @@ public final class CrossRegionS3ClientGenerator {
 
 		// load template class
 		final Path source = Paths.get(args[0], "..", "spring-cloud-aws-s3-codegen", "src", "main", "java", "io",
-				"awspring", "cloud", "s3", "codegen", "CrossRegionS3ClientTemplate.java");
+				"awspring", "cloud", "s3", "codegen", "AbstractCrossRegionS3ClientTemplate.java");
 		CompilationUnit compilationUnit = StaticJavaParser.parse(source);
 		compilationUnit.setPackageDeclaration("io.awspring.cloud.s3.crossregion");
 		ClassOrInterfaceDeclaration classOrInterfaceDeclaration = compilationUnit
-				.getClassByName("CrossRegionS3ClientTemplate")
-				.orElseThrow(() -> new IllegalStateException("Class CrossRegionS3ClientTemplate not found"));
+				.getClassByName("AbstractCrossRegionS3ClientTemplate")
+				.orElseThrow(() -> new IllegalStateException("Class AbstractCrossRegionS3ClientTemplate not found"));
 
 		// rename class and constructors
-		classOrInterfaceDeclaration.setName("CrossRegionS3Client");
+		classOrInterfaceDeclaration.setName("AbstractCrossRegionS3Client");
 		classOrInterfaceDeclaration.getConstructors()
-				.forEach(constructorDeclaration -> constructorDeclaration.setName("CrossRegionS3Client"));
+				.forEach(constructorDeclaration -> constructorDeclaration.setName("AbstractCrossRegionS3Client"));
 
 		// add methods
 		addOverriddenMethods(classOrInterfaceDeclaration);
 
 		// generate target file
 		final Path generatedJavaCcRoot = Paths.get(args[0], "..", "spring-cloud-aws-s3-cross-region-client", "src",
-				"main", "java", "io", "awspring", "cloud", "s3", "crossregion", "CrossRegionS3Client.java");
+				"main", "java", "io", "awspring", "cloud", "s3", "crossregion", "AbstractCrossRegionS3Client.java");
 		Files.write(generatedJavaCcRoot, Collections.singletonList(compilationUnit.toString()));
 	}
 
 	private static void addOverriddenMethods(ClassOrInterfaceDeclaration crossRegionS3Client) {
-		TypeSolver typeSolver = new ClassLoaderTypeSolver(CrossRegionS3ClientGenerator.class.getClassLoader());
+		TypeSolver typeSolver = new ClassLoaderTypeSolver(AbstractCrossRegionS3ClientGenerator.class.getClassLoader());
 		ResolvedReferenceTypeDeclaration resolvedReferenceTypeDeclaration = typeSolver
 				.solveType(S3Client.class.getName());
 		resolvedReferenceTypeDeclaration.getAllMethods().stream()

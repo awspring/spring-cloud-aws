@@ -18,7 +18,7 @@ package io.awspring.cloud.s3.codegen;
 import java.util.function.Function;
 import software.amazon.awssdk.services.s3.S3Client;
 
-abstract class CrossRegionS3ClientTemplate implements S3Client {
+abstract class AbstractCrossRegionS3ClientTemplate implements S3Client {
 
 	abstract <R> R executeInBucketRegion(String bucket, Function<S3Client, R> fn);
 

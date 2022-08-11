@@ -29,7 +29,7 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-public class DefaultCrossRegionS3Client extends CrossRegionS3Client {
+public class DefaultCrossRegionS3Client extends AbstractCrossRegionS3Client {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger("io.awspring.cloud.s3.CrossRegionS3Client");
 

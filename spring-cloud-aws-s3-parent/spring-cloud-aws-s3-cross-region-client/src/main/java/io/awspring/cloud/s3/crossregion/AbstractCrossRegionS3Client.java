@@ -20,7 +20,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3Client;
 
-abstract class CrossRegionS3Client implements S3Client {
+abstract class AbstractCrossRegionS3Client implements S3Client {
 
 	abstract <R> R executeInBucketRegion(String bucket, Function<S3Client, R> fn);
 
