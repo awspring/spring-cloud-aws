@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -66,6 +65,11 @@ public class DefaultCrossRegionS3Client extends CrossRegionS3Client {
 			LOGGER.debug("Creating new S3 client for region: {}", r);
 			return clientBuilder.region(r).build();
 		});
+	}
+
+	@Override
+	<R> R executeInDefaultRegion(Function<S3Client, R> fn) {
+		return fn.apply(defaultS3Client);
 	}
 
 	@Override
@@ -136,19 +140,6 @@ public class DefaultCrossRegionS3Client extends CrossRegionS3Client {
 			return new RegionDiscoveryException(String.format(HEADER_ERROR_TEMPLATE, BUCKET_REDIRECT_HEADER,
 					e.awsErrorDetails().sdkHttpResponse().headers()), e);
 		}
-	}
-
-	// Functions which do not require region
-
-	@Override
-	public ListBucketsResponse listBuckets(ListBucketsRequest request) throws AwsServiceException, SdkClientException {
-		return defaultS3Client.listBuckets(request);
-	}
-
-	@Override
-	public WriteGetObjectResponseResponse writeGetObjectResponse(WriteGetObjectResponseRequest request,
-			RequestBody requestBody) throws AwsServiceException, SdkClientException {
-		return defaultS3Client.writeGetObjectResponse(request, requestBody);
 	}
 
 	// Functions which are guaranteed to have the region headers, according to

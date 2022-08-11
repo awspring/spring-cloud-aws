@@ -16,23 +16,13 @@
 package io.awspring.cloud.s3.codegen;
 
 import java.util.function.Function;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
-import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
-import software.amazon.awssdk.services.s3.model.WriteGetObjectResponseRequest;
-import software.amazon.awssdk.services.s3.model.WriteGetObjectResponseResponse;
 
 abstract class CrossRegionS3ClientTemplate implements S3Client {
 
-	@Override
-	public abstract ListBucketsResponse listBuckets(ListBucketsRequest request);
-
-	@Override
-	public abstract WriteGetObjectResponseResponse writeGetObjectResponse(WriteGetObjectResponseRequest request,
-			RequestBody requestBody);
-
 	abstract <R> R executeInBucketRegion(String bucket, Function<S3Client, R> fn);
+
+	abstract <R> R executeInDefaultRegion(Function<S3Client, R> fn);
 
 	@Override
 	public String serviceName() {

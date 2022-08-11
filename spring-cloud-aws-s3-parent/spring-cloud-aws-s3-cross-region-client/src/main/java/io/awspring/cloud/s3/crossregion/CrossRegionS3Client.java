@@ -18,23 +18,13 @@ package io.awspring.cloud.s3.crossregion;
 import java.util.function.Function;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
-import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
-import software.amazon.awssdk.services.s3.model.WriteGetObjectResponseRequest;
-import software.amazon.awssdk.services.s3.model.WriteGetObjectResponseResponse;
 
 abstract class CrossRegionS3Client implements S3Client {
 
-	@Override
-	public abstract ListBucketsResponse listBuckets(ListBucketsRequest request);
-
-	@Override
-	public abstract WriteGetObjectResponseResponse writeGetObjectResponse(WriteGetObjectResponseRequest request,
-			RequestBody requestBody);
-
 	abstract <R> R executeInBucketRegion(String bucket, Function<S3Client, R> fn);
+
+	abstract <R> R executeInDefaultRegion(Function<S3Client, R> fn);
 
 	@Override
 	public String serviceName() {
@@ -483,6 +473,13 @@ abstract class CrossRegionS3Client implements S3Client {
 	}
 
 	@Override
+	public software.amazon.awssdk.services.s3.model.ListBucketsResponse listBuckets(
+			software.amazon.awssdk.services.s3.model.ListBucketsRequest p0)
+			throws AwsServiceException, SdkClientException {
+		return executeInDefaultRegion(s3Client -> s3Client.listBuckets(p0));
+	}
+
+	@Override
 	public software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse listMultipartUploads(
 			software.amazon.awssdk.services.s3.model.ListMultipartUploadsRequest p0)
 			throws AwsServiceException, SdkClientException {
@@ -753,5 +750,19 @@ abstract class CrossRegionS3Client implements S3Client {
 			software.amazon.awssdk.services.s3.model.UploadPartCopyRequest p0)
 			throws AwsServiceException, SdkClientException {
 		return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.uploadPartCopy(p0));
+	}
+
+	@Override
+	public software.amazon.awssdk.services.s3.model.WriteGetObjectResponseResponse writeGetObjectResponse(
+			software.amazon.awssdk.services.s3.model.WriteGetObjectResponseRequest p0, java.nio.file.Path p1)
+			throws AwsServiceException, SdkClientException {
+		return executeInDefaultRegion(s3Client -> s3Client.writeGetObjectResponse(p0, p1));
+	}
+
+	@Override
+	public software.amazon.awssdk.services.s3.model.WriteGetObjectResponseResponse writeGetObjectResponse(
+			software.amazon.awssdk.services.s3.model.WriteGetObjectResponseRequest p0,
+			software.amazon.awssdk.core.sync.RequestBody p1) throws AwsServiceException, SdkClientException {
+		return executeInDefaultRegion(s3Client -> s3Client.writeGetObjectResponse(p0, p1));
 	}
 }
