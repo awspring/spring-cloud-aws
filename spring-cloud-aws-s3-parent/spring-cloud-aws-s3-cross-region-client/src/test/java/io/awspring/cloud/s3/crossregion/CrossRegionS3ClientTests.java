@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
  * Unit tests for {@link CrossRegionS3Client}. Integration testing with Localstack is not possible due to:
- * https://github.com/localstack/localstack/issues/5748
+ * <a href="https://github.com/localstack/localstack/issues/5748">...</a>
  *
  * @author Maciej Walkowiak
  */
@@ -124,6 +124,7 @@ class CrossRegionS3ClientTests {
 		verify(clients.get(Region.EU_WEST_2), times(2)).listObjects(any(ListObjectsRequest.class));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	void exceptionIfRegionHeaderMissingOnHeadBucket() {
 		when(defaultClient.headBucket(any(Consumer.class))).thenCallRealMethod();
@@ -158,6 +159,7 @@ class CrossRegionS3ClientTests {
 		verify(defaultClient, times(1)).createBucket(CreateBucketRequest.builder().bucket("first-bucket").build());
 	}
 
+	@SuppressWarnings("unchecked")
 	private void createBucket(String s, Region region) {
 		when(defaultClient.listObjects(any(Consumer.class))).thenCallRealMethod();
 		when(defaultClient.listObjects(ListObjectsRequest.builder().bucket(s).build())).thenThrow(S3Exception.builder()
