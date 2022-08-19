@@ -115,8 +115,7 @@ class BatchingAcknowledgementProcessorTests {
 		BatchingAcknowledgementProcessor<String> processor = new BatchingAcknowledgementProcessor<String>() {
 			@Override
 			protected CompletableFuture<Void> sendToExecutor(Collection<Message<String>> messagesToAck) {
-				ackLatch.countDown();
-				return super.sendToExecutor(messagesToAck);
+				return super.sendToExecutor(messagesToAck).thenRun(ackLatch::countDown);
 			}
 		};
 		processor.setAcknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS);

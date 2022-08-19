@@ -16,15 +16,27 @@
 package io.awspring.cloud.sqs;
 
 /**
+ * A {@link Thread} implementation for processing messages.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see MessageExecutionThreadFactory
+ * @see io.awspring.cloud.sqs.listener.AsyncComponentAdapters
  */
 public class MessageExecutionThread extends Thread {
 
+	/**
+	 * Create an instance with the provided arguments. See {@link Thread} javadoc.
+	 * @param threadGroup see {@link Thread} javadoc.
+	 * @param runnable see {@link Thread} javadoc.
+	 * @param nextThreadName see {@link Thread} javadoc.
+	 */
 	public MessageExecutionThread(ThreadGroup threadGroup, Runnable runnable, String nextThreadName) {
 		super(threadGroup, runnable, nextThreadName);
 	}
 
+	/**
+	 * Create an instance. See {@link Thread} javadoc.
+	 */
 	public MessageExecutionThread() {
 		super();
 	}

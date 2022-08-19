@@ -22,9 +22,15 @@ import java.util.function.Consumer;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 
 /**
- * Utility methods to handle {@link SmartLifecycle} hooks.
+ * Handler for lifecycle methods. The singleton instance should be retrieved by using the {@link LifecycleHandler#get()}
+ * method. This class is thread-safe.
+ *
+ * Methods accept {@link Object} instances and apply lifecycle methods then the {@link SmartLifecycle} interface is
+ * implemented. Can handle lifecycle actions either sequentially or in parallel, according to the
+ * {@link #parallelLifecycle} property.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -33,19 +39,28 @@ public class LifecycleHandler {
 
 	private static final LifecycleHandler INSTANCE = new LifecycleHandler();
 
+	/**
+	 * Get the singleton instance for this class.
+	 * @return the instance.
+	 */
 	public static LifecycleHandler get() {
 		return INSTANCE;
 	}
 
-	private final SimpleAsyncTaskExecutor executor;
+	private final TaskExecutor taskExecutor;
 
 	private boolean parallelLifecycle = true;
 
 	private LifecycleHandler() {
-		executor = new SimpleAsyncTaskExecutor();
-		executor.setThreadNamePrefix("lifecycle-thread-");
+		SimpleAsyncTaskExecutor sate = new SimpleAsyncTaskExecutor();
+		sate.setThreadNamePrefix("lifecycle-thread-");
+		this.taskExecutor = sate;
 	}
 
+	/**
+	 * Set whether lifecycle management should be handled in parallel or sequentially.
+	 * @param parallelLifecycle false to disable parallel lifecycle management.
+	 */
 	public void setParallelLifecycle(boolean parallelLifecycle) {
 		this.parallelLifecycle = parallelLifecycle;
 	}
@@ -62,8 +77,8 @@ public class LifecycleHandler {
 			}
 			else if (object instanceof Collection) {
 				if (this.parallelLifecycle) {
-					CompletableFuture.allOf(((Collection<?>) object).stream()
-							.map(obj -> CompletableFuture.runAsync(() -> manageLifecycle(action, obj), this.executor))
+					CompletableFuture.allOf(((Collection<?>) object).stream().map(
+							obj -> CompletableFuture.runAsync(() -> manageLifecycle(action, obj), this.taskExecutor))
 							.toArray(CompletableFuture[]::new)).join();
 				}
 				else {
@@ -89,6 +104,11 @@ public class LifecycleHandler {
 		manageLifecycle(SmartLifecycle::stop, objects);
 	}
 
+	/**
+	 * Check whether a object is running if it's an instance of {@link SmartLifecycle}.
+	 * @param object the object to check.
+	 * @return whether the object is running, or true if it's not a {@link SmartLifecycle} instance.
+	 */
 	public boolean isRunning(Object object) {
 		if (object instanceof SmartLifecycle) {
 			return ((SmartLifecycle) object).isRunning();
@@ -96,6 +116,10 @@ public class LifecycleHandler {
 		return true;
 	}
 
+	/**
+	 * Execute the {@link DisposableBean#destroy()} method if the provided object is a {@link DisposableBean} instance.
+	 * @param destroyable the object to destroy.
+	 */
 	public void dispose(Object destroyable) {
 		if (destroyable instanceof DisposableBean) {
 			try {

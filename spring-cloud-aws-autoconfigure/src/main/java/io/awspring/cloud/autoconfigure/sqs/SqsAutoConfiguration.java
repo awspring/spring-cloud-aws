@@ -15,11 +15,13 @@
  */
 package io.awspring.cloud.autoconfigure.sqs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
+import io.awspring.cloud.sqs.config.SqsListenerCustomizer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
@@ -33,6 +35,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -64,22 +67,38 @@ public class SqsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(
-			ObjectProvider<SqsAsyncClient> sqsAsyncClient, ObjectProvider<ContainerOptions> containerOptions,
-			ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
+	public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsProperties sqsProperties,
+			ObjectProvider<SqsAsyncClient> sqsAsyncClient, ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
 			ObjectProvider<ErrorHandler<Object>> errorHandler,
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
 			ObjectProvider<MessageInterceptor<Object>> interceptors) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
-		containerOptions.ifAvailable(
-				providedOptions -> factory.configure(options -> options.fromBuilder(providedOptions.toBuilder())));
+		factory.configure(options -> configureContainerOptions(options, sqsProperties));
 		sqsAsyncClient.ifAvailable(factory::setSqsAsyncClient);
 		asyncErrorHandler.ifAvailable(factory::setErrorHandler);
 		errorHandler.ifAvailable(factory::setErrorHandler);
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
 		return factory;
+	}
+
+	private void configureContainerOptions(ContainerOptions.Builder options, SqsProperties sqsProperties) {
+		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
+		mapper.from(sqsProperties.getListener().getMaxInflightMessagesPerQueue())
+				.to(options::maxInflightMessagesPerQueue);
+		mapper.from(sqsProperties.getListener().getMaxMessagesPerPoll()).to(options::maxMessagesPerPoll);
+		mapper.from(sqsProperties.getListener().getPollTimeout()).to(options::pollTimeout);
+	}
+
+	@Bean
+	public SqsListenerCustomizer objectMapperCustomizer(ObjectProvider<ObjectMapper> objectMapperProvider) {
+		ObjectMapper objectMapper = objectMapperProvider.getIfUnique();
+		return registrar -> {
+			if (registrar.getObjectMapper() == null && objectMapper != null) {
+				registrar.setObjectMapper(objectMapper);
+			}
+		};
 	}
 
 }

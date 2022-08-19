@@ -21,25 +21,37 @@ import java.util.function.Consumer;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 
 /**
+ * {@link Endpoint} specialization that indicates that {@link org.springframework.messaging.Message} instances coming
+ * from this endpoint will be handled by a {@link org.springframework.messaging.handler.HandlerMethod}.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public interface HandlerMethodEndpoint extends Endpoint {
 
+	/**
+	 * Set the bean containing the method to be invoked with the incoming messages.
+	 * @param bean the bean.
+	 */
 	void setBean(Object bean);
 
 	/**
-	 * Set the method to be used when handling a message for this endpoint.
+	 * Set the method to be used when handling messages for this endpoint.
 	 * @param method the method.
 	 */
 	void setMethod(Method method);
 
 	/**
-	 * Set the {@link MessageHandlerMethodFactory} to be used for handling messages in this endpoint.
+	 * Set the {@link MessageHandlerMethodFactory} to be used for creating the
+	 * {@link org.springframework.messaging.handler.HandlerMethod}.
 	 * @param handlerMethodFactory the factory.
 	 */
 	void setHandlerMethodFactory(MessageHandlerMethodFactory handlerMethodFactory);
 
+	/**
+	 * Allows configuring the {@link MessageDeliveryStrategy} for this endpoint.
+	 * @param consumer a consumer for the strategy used by this endpoint.
+	 */
 	void configureMessageDeliveryStrategy(Consumer<MessageDeliveryStrategy> consumer);
 
 }

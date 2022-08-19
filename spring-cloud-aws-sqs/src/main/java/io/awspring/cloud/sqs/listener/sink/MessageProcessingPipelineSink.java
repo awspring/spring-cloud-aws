@@ -15,13 +15,12 @@
  */
 package io.awspring.cloud.sqs.listener.sink;
 
-import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.messaging.Message;
 
 /**
- * {@link MessageSink} extension that uses an {@link AsyncMessageListener} as the output.
+ * {@link MessageSink} specialization that uses a {@link MessageProcessingPipeline} as the output.
  *
  * @param <T> the {@link Message} payload type.
  *
@@ -30,6 +29,10 @@ import org.springframework.messaging.Message;
  */
 public interface MessageProcessingPipelineSink<T> extends MessageSink<T>, SmartLifecycle {
 
+	/**
+	 * Set the {@link MessageProcessingPipeline} instance that this sink will emit {@link Message} instances to.
+	 * @param messageProcessingPipeline the pipeline.
+	 */
 	void setMessagePipeline(MessageProcessingPipeline<T> messageProcessingPipeline);
 
 }

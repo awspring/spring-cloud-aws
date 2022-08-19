@@ -47,7 +47,17 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
- * {@link MessageListenerContainer} implementation for SQS queues.
+ * Base {@link MessageListenerContainer} implementation for managing {@link org.springframework.messaging.Message}
+ * instances' lifecycles.
+ *
+ * This container uses a {@link MessageSource} to create the {@link org.springframework.messaging.Message} instances,
+ * which are forwarded to a {@link MessageSink} and finally emitted to a {@link MessageProcessingPipeline}.
+ *
+ * The pipeline has several stages for processing the messages and executing logic in components such as
+ * {@link AsyncMessageListener}, {@link io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler} and
+ * {@link io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor}.
+ *
+ * Such components are created by the {@link ContainerComponentFactory} and the container manages their lifecycles.
  *
  * Components and {@link ContainerOptions} can be changed at runtime and such changes will be valid upon container
  * restart.

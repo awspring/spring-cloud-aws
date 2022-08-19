@@ -32,8 +32,11 @@ import java.util.function.Function;
 import org.springframework.messaging.Message;
 
 /**
+ * {@link ContainerComponentFactory} implementation for creating components for FIFO queues.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see StandardSqsComponentFactory
  */
 public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> {
 

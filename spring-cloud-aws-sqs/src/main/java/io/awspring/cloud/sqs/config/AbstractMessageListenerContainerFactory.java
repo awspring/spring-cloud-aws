@@ -36,10 +36,11 @@ import org.springframework.util.Assert;
 
 /**
  * Base implementation for a {@link MessageListenerContainerFactory}. Contains the components and
- * {@link ContainerOptions} that will be used by {@link MessageListenerContainer} instances created by this factory.
+ * {@link ContainerOptions} that will be used as a template for {@link MessageListenerContainer} instances created by
+ * this factory.
  *
- * @param <T> the {@link Message} type to be consumed by the {@link AbstractMessageListenerContainer}
- * @param <C> the {@link AbstractMessageListenerContainer} type.
+ * @param <T> the {@link Message}'s payload type to be consumed by the {@link AbstractMessageListenerContainer}.
+ * @param <C> the type of {@link AbstractMessageListenerContainer} instances that will be created by this container.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -65,6 +66,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	 * Set the {@link ErrorHandler} instance to be used by containers created with this factory. The component will be
 	 * adapted to an {@link AsyncErrorHandler}.
 	 * @param errorHandler the error handler instance.
+	 * @see AsyncComponentAdapters
 	 */
 	public void setErrorHandler(ErrorHandler<T> errorHandler) {
 		Assert.notNull(errorHandler, "errorHandler cannot be null");
@@ -84,6 +86,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	 * Add a {@link MessageInterceptor} to be used by containers created with this factory. Interceptors will be applied
 	 * just before method invocation. The component will be adapted to an {@link AsyncMessageInterceptor}.
 	 * @param messageInterceptor the message interceptor instance.
+	 * @see AsyncComponentAdapters
 	 */
 	public void addMessageInterceptor(MessageInterceptor<T> messageInterceptor) {
 		Assert.notNull(messageInterceptor, "messageInterceptor cannot be null");
@@ -105,6 +108,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	 * a default one will be created according to the endpoint's configuration. The component will be adapted to an
 	 * {@link AsyncMessageListener}.
 	 * @param messageListener the message listener instance.
+	 * @see AsyncComponentAdapters
 	 */
 	public void setMessageListener(MessageListener<T> messageListener) {
 		Assert.notNull(messageListener, "messageListener cannot be null");
@@ -121,15 +125,18 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 		this.messageListener = messageListener;
 	}
 
+	/**
+	 * Set the {@link ContainerComponentFactory} instance that will be used to create internal components for listener
+	 * containers created by this factory.
+	 * @param componentFactory the factory instance.
+	 */
 	public void setComponentFactory(ContainerComponentFactory<T> componentFactory) {
 		Assert.notNull(componentFactory, "componentFactory cannot be null");
 		this.componentFactory = componentFactory;
 	}
 
 	/**
-	 * Return the {@link ContainerOptions} instance that will be used for configuring the
-	 * {@link MessageListenerContainer} instances created by this factory.
-	 * @return the container options instance.
+	 * Allows configuring this factories' {@link ContainerOptions.Builder}.
 	 */
 	public void configure(Consumer<ContainerOptions.Builder> options) {
 		options.accept(this.containerOptionsBuilder);

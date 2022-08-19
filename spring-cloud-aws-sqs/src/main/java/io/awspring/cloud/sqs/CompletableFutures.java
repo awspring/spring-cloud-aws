@@ -20,8 +20,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
- *
- * Utility methods, including some adapted from other projects.
+ * Utility methods for using convenient {@link CompletableFuture} methods from later JDK versions in Java 8.
  *
  * @author Tomaz Fernandes
  * @since 3.0

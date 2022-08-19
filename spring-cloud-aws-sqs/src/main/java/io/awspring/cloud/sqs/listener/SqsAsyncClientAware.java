@@ -18,11 +18,17 @@ package io.awspring.cloud.sqs.listener;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
+ * Implementations are enabled to receive a {@link SqsAsyncClient} instance.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public interface SqsAsyncClientAware {
 
+	/**
+	 * Set the {@link SqsAsyncClient} instance.
+	 * @param sqsAsyncClient the instance.
+	 */
 	void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient);
 
 }

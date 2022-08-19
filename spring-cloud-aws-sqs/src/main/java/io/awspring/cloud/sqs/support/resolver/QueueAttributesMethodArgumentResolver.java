@@ -22,6 +22,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**
+ * {@link HandlerMethodArgumentResolver} implementation for resolving {@link QueueAttributes} arguments.
  * @author Tomaz Fernandes
  * @since 3.0
  */

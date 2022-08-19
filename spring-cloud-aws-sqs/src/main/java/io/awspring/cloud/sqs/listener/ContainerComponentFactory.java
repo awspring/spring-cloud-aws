@@ -25,6 +25,9 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 
 /**
+ * A factory for creating components for the {@link MessageListenerContainer}. Implementations can instantiate and
+ * configure each component according to its strategies, using the provided {@link ContainerOptions}.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */

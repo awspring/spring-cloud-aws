@@ -16,13 +16,24 @@
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
 /**
+ * Configures the ordering of acknowledgements.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see AcknowledgementExecutor
+ * @see AbstractOrderingAcknowledgementProcessor
  */
 public enum AcknowledgementOrdering {
 
+	/**
+	 * Acknowledgements will be executed sequentially. The next batch of messages will only be acknowledged after the
+	 * previous one is completed.
+	 */
 	ORDERED,
 
+	/**
+	 * Acknowledgements will be executed in parallel.
+	 */
 	PARALLEL
 
 }

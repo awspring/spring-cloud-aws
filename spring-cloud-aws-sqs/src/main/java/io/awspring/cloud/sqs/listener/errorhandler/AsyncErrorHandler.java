@@ -21,9 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.messaging.Message;
 
 /**
- * Functional interface for handling message processing errors in a non-blocking fashion.
- *
- * The non-blocking approach enables higher throughput for the application.
+ * Interface for handling message processing errors async.
  *
  * @param <T> the {@link Message} payload type.
  *

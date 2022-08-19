@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.support.converter;
 import org.springframework.messaging.Message;
 
 /**
+ * A converter for converting source or target objects to and from Spring Messaging {@link Message}s.
  * @author Tomaz Fernandes
  * @since 3.0
  */

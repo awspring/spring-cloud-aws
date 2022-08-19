@@ -22,8 +22,13 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
+ * {@link MessageConversionContext} implementation that contains SQS related properties for mapping additional
+ * {@link org.springframework.messaging.MessageHeaders}. Also contains a {@link AcknowledgementCallback} to be used for
+ * mapping acknowledgement related headers.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see SqsHeaderMapper
+ * @see SqsMessagingMessageConverter
  */
 public class SqsMessageConversionContext
 		implements AcknowledgementAwareMessageConversionContext, SqsAsyncClientAware, QueueAttributesAware {

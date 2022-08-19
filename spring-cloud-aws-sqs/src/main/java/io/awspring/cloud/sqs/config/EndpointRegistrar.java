@@ -37,12 +37,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Processes the registered {@link Endpoint} instances using the appropriate {@link MessageListenerContainerFactory} to
- * create {@link MessageListenerContainer} instances, which will then be registered in the
- * {@link MessageListenerContainerRegistry}.
+ * Processes the registered {@link Endpoint} instances using the appropriate {@link MessageListenerContainerFactory}.
+ * Contains configurations that will be applied to all {@link io.awspring.cloud.sqs.annotation.SqsListener @SqsListener}
+ * containers. Such configurations can be set by declaring {@link SqsListenerCustomizer} beans.
  *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see SqsListenerCustomizer
  */
 public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSingleton {
 
@@ -75,7 +76,88 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 * @param messageHandlerMethodFactory the instance.
 	 */
 	public void setMessageHandlerMethodFactory(MessageHandlerMethodFactory messageHandlerMethodFactory) {
+		Assert.notNull(messageHandlerMethodFactory, "messageHandlerMethodFactory cannot be null");
 		this.messageHandlerMethodFactory = messageHandlerMethodFactory;
+	}
+
+	/**
+	 * Set a custom {@link MessageListenerContainerRegistry}.
+	 * @param listenerContainerRegistry the instance.
+	 */
+	public void setListenerContainerRegistry(MessageListenerContainerRegistry listenerContainerRegistry) {
+		Assert.notNull(listenerContainerRegistry, "listenerContainerRegistry cannot be null");
+		this.listenerContainerRegistry = listenerContainerRegistry;
+	}
+
+	/**
+	 * Set the bean name for the default {@link MessageListenerContainerFactory}.
+	 * @param defaultListenerContainerFactoryBeanName the bean name.
+	 */
+	public void setDefaultListenerContainerFactoryBeanName(String defaultListenerContainerFactoryBeanName) {
+		Assert.isTrue(StringUtils.hasText(defaultListenerContainerFactoryBeanName),
+				"defaultListenerContainerFactoryBeanName must have text");
+		this.defaultListenerContainerFactoryBeanName = defaultListenerContainerFactoryBeanName;
+	}
+
+	/**
+	 * Set the bean name for the {@link MessageListenerContainerRegistry}.
+	 * @param messageListenerContainerRegistryBeanName the bean name.
+	 */
+	public void setMessageListenerContainerRegistryBeanName(String messageListenerContainerRegistryBeanName) {
+		Assert.isTrue(StringUtils.hasText(messageListenerContainerRegistryBeanName),
+				"messageListenerContainerRegistryBeanName must have text");
+		this.messageListenerContainerRegistryBeanName = messageListenerContainerRegistryBeanName;
+	}
+
+	/**
+	 * Set the object mapper to be used to deserialize payloads fot SqsListener endpoints.
+	 * @param objectMapper the object mapper instance.
+	 */
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		Assert.notNull(objectMapper, "objectMapper cannot be null.");
+		this.objectMapper = objectMapper;
+	}
+
+	/**
+	 * Manage the list of {@link MessageConverter} instances to be used to convert payloads.
+	 * @param convertersConsumer a consumer for the converters list.
+	 */
+	public void manageMessageConverters(Consumer<List<MessageConverter>> convertersConsumer) {
+		Assert.notNull(convertersConsumer, "convertersConsumer cannot be null");
+		this.messageConvertersConsumer = convertersConsumer;
+	}
+
+	/**
+	 * Manage the list of {@link HandlerMethodArgumentResolver} instances to be used for resolving method arguments.
+	 * @param resolversConsumer a consumer for the resolvers list.
+	 */
+	public void manageMethodArgumentResolvers(Consumer<List<HandlerMethodArgumentResolver>> resolversConsumer) {
+		Assert.notNull(resolversConsumer, "resolversConsumer cannot be null");
+		this.methodArgumentResolversConsumer = resolversConsumer;
+	}
+
+	/**
+	 * Get the message converters list consumer.
+	 * @return the consumer.
+	 */
+	public Consumer<List<MessageConverter>> getMessageConverterConsumer() {
+		return this.messageConvertersConsumer;
+	}
+
+	/**
+	 * Get the method argument resolvers list consumer.
+	 * @return the consumer.
+	 */
+	public Consumer<List<HandlerMethodArgumentResolver>> getMethodArgumentResolversConsumer() {
+		return this.methodArgumentResolversConsumer;
+	}
+
+	/**
+	 * Get the object mapper used to deserialize payloads.
+	 * @return the object mapper instance.
+	 */
+	public ObjectMapper getObjectMapper() {
+		return this.objectMapper;
 	}
 
 	/**
@@ -87,59 +169,15 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 		return this.messageHandlerMethodFactory;
 	}
 
-	/**
-	 * Set a custom {@link MessageListenerContainerRegistry}.
-	 * @param listenerContainerRegistry the instance.
-	 */
-	public void setListenerContainerRegistry(MessageListenerContainerRegistry listenerContainerRegistry) {
-		this.listenerContainerRegistry = listenerContainerRegistry;
-	}
-
-	/**
-	 * Set the bean name for the default {@link MessageListenerContainerFactory}.
-	 * @param defaultListenerContainerFactoryBeanName the bean name.
-	 */
-	public void setDefaultListenerContainerFactoryBeanName(String defaultListenerContainerFactoryBeanName) {
-		this.defaultListenerContainerFactoryBeanName = defaultListenerContainerFactoryBeanName;
-	}
-
-	/**
-	 * Set the bean name for the {@link MessageListenerContainerRegistry}.
-	 * @param messageListenerContainerRegistryBeanName the bean name.
-	 */
-	public void setMessageListenerContainerRegistryBeanName(String messageListenerContainerRegistryBeanName) {
-		this.messageListenerContainerRegistryBeanName = messageListenerContainerRegistryBeanName;
-	}
-
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
-	}
-
-	public void manageMessageConverters(Consumer<List<MessageConverter>> convertersManager) {
-		this.messageConvertersConsumer = convertersManager;
-	}
-
-	public void manageMethodArgumentResolvers(Consumer<List<HandlerMethodArgumentResolver>> resolversManager) {
-		this.methodArgumentResolversConsumer = resolversManager;
-	}
-
-	public Consumer<List<MessageConverter>> getMessageConverterConsumer() {
-		return this.messageConvertersConsumer;
-	}
-
-	public Consumer<List<HandlerMethodArgumentResolver>> getMethodArgumentResolversConsumer() {
-		return this.methodArgumentResolversConsumer;
-	}
-
-	public ObjectMapper getObjectMapper() {
-		return this.objectMapper;
-	}
-
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * Register an {@link Endpoint} within this registrar for later processing.
+	 * @param endpoint the endpoint.
+	 */
 	public void registerEndpoint(Endpoint endpoint) {
 		this.endpoints.add(endpoint);
 	}
@@ -160,8 +198,9 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	private MessageListenerContainer<?> createContainerFor(Endpoint endpoint) {
 		String factoryBeanName = getListenerContainerFactoryName(endpoint);
-		Assert.isTrue(this.beanFactory.containsBean(factoryBeanName), () -> "No factory bean with name "
-				+ factoryBeanName + " found for endpoint names " + endpoint.getLogicalNames());
+		Assert.isTrue(this.beanFactory.containsBean(factoryBeanName),
+				() -> "No MessageListenerContainerFactory bean with name " + factoryBeanName
+						+ " found for endpoint names " + endpoint.getLogicalNames());
 		return this.beanFactory.getBean(factoryBeanName, MessageListenerContainerFactory.class)
 				.createContainer(endpoint);
 	}

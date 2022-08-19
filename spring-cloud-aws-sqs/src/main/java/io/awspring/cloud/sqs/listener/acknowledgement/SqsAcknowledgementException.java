@@ -21,27 +21,46 @@ import java.util.stream.Collectors;
 import org.springframework.messaging.Message;
 
 /**
+ * {@link RuntimeException} that wraps an error thrown during acknowledgement execution.
+ *
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public class SqsAcknowledgementException extends SqsException {
 
-	private final Collection<Message<?>> failedAcknowledgements;
+	private final Collection<Message<?>> failedAcknowledgementMessages;
 
 	private final String queueUrl;
 
-	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> failedAcknowledgements,
+	/**
+	 * Contruct an instance with the given parameters.
+	 * @param errorMessage the error message.
+	 * @param failedAcknowledgementMessages the messages that failed to be acknowledged.
+	 * @param queueUrl the url for the queue from which the messages were polled from.
+	 * @param e the exception cause.
+	 * @param <T> the messages payload type.
+	 */
+	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> failedAcknowledgementMessages,
 			String queueUrl, Throwable e) {
 		super(errorMessage, e);
 		this.queueUrl = queueUrl;
-		this.failedAcknowledgements = failedAcknowledgements.stream().map(msg -> (Message<?>) msg)
+		this.failedAcknowledgementMessages = failedAcknowledgementMessages.stream().map(msg -> (Message<?>) msg)
 				.collect(Collectors.toList());
 	}
 
-	public Collection<Message<?>> getFailedAcknowledgements() {
-		return this.failedAcknowledgements;
+	/**
+	 * Return the messages that failed to be acknowledged.
+	 * @return the messages.
+	 */
+	public Collection<Message<?>> getFailedAcknowledgementMessages() {
+		return this.failedAcknowledgementMessages;
 	}
 
+	/**
+	 * Return the url for the queue from which the messages were polled from.
+	 * @return the queue url.
+	 */
 	public String getQueueUrl() {
 		return this.queueUrl;
 	}

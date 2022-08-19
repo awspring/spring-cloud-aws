@@ -19,6 +19,8 @@ import java.util.Collection;
 import org.springframework.messaging.Message;
 
 /**
+ * Interface for handling errors.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */

@@ -18,9 +18,9 @@ package io.awspring.cloud.sqs.listener;
 import java.time.Duration;
 
 /**
- * Abstraction to handle backpressure within a {@link io.awspring.cloud.sqs.listener.source.MessageSource}.
+ * Abstraction to handle backpressure within a {@link io.awspring.cloud.sqs.listener.source.PollingMessageSource}.
  *
- * Implementations must be thread-safe if being shared among sources within a container. Strategies can be
+ * Release methods must be thread-safe so that many messages can be processed asynchronously. Example strategies are
  * semaphore-based, rate limiter-based, a mix of both, or any other.
  *
  * @author Tomaz Fernandes
@@ -28,10 +28,28 @@ import java.time.Duration;
  */
 public interface BackPressureHandler {
 
+	/**
+	 * Request a number of permits. Each obtained permit allows the
+	 * {@link io.awspring.cloud.sqs.listener.source.MessageSource} to retrieve one message.
+	 * @param amount the amount of permits to request.
+	 * @return the amount of permits obtained.
+	 * @throws InterruptedException if the Thread is interrupted while waiting for permits.
+	 */
 	int request(int amount) throws InterruptedException;
 
+	/**
+	 * Release the specified amount of permits. Each message that has been processed should release one permit, whether
+	 * processing was successful or not.
+	 * @param amount the amount of permits to release.
+	 */
 	void release(int amount);
 
+	/**
+	 * Attempts to acquire all permits up to the specified timeout. If successful, means all permits were returned and
+	 * thus no activity is left in the {@link io.awspring.cloud.sqs.listener.source.MessageSource}.
+	 * @param timeout the maximum amount of time to wait for all permits to be released.
+	 * @return whether all permits were acquired.
+	 */
 	boolean drain(Duration timeout);
 
 }

@@ -16,13 +16,24 @@
 package io.awspring.cloud.sqs.listener;
 
 /**
+ * Configure the delivery strategy to be used by a {@link MessageListenerContainer}.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see io.awspring.cloud.sqs.listener.sink.FanOutMessageSink
+ * @see io.awspring.cloud.sqs.listener.sink.OrderedMessageSink
+ * @see io.awspring.cloud.sqs.listener.sink.BatchMessageSink
  */
 public enum MessageDeliveryStrategy {
 
+	/**
+	 * Configure the container to receive one message at a time in its components.
+	 */
 	SINGLE_MESSAGE,
 
+	/**
+	 * Configure the container to receive the whole batch of messages in its components.
+	 */
 	BATCH
 
 }

@@ -22,7 +22,7 @@ import org.springframework.messaging.Message;
 
 /**
  * {@link MessageSink} implementation that emits the whole received batch of messages to the configured
- * {@link io.awspring.cloud.sqs.listener.AsyncMessageListener}.
+ * {@link io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline}.
  *
  * @author Tomaz Fernandes
  * @since 3.0

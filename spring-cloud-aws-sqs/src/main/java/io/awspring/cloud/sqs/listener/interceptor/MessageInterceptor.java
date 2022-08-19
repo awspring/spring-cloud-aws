@@ -19,7 +19,9 @@ import java.util.Collection;
 import org.springframework.messaging.Message;
 
 /**
- * Interface for intercepting messages before being processed.
+ * Interface for intercepting messages before and after execution.
+ *
+ * @param <T> the {@link Message} payload type.
  *
  * @author Tomaz Fernandes
  * @since 3.0

@@ -24,7 +24,7 @@ import org.springframework.messaging.Message;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class ImmediateAcknowledgementProcessor<T> extends AbstractAcknowledgementProcessor<T> {
+public class ImmediateAcknowledgementProcessor<T> extends AbstractOrderingAcknowledgementProcessor<T> {
 
 	@Override
 	protected CompletableFuture<Void> doOnAcknowledge(Message<T> message) {

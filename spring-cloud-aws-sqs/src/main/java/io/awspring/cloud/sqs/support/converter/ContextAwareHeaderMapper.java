@@ -19,8 +19,11 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.HeaderMapper;
 
 /**
+ * A {@link HeaderMapper} specialization that supports receiving a {@link MessageConversionContext} for mapping context
+ * dependent headers.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see ContextAwareMessagingMessageConverter
  */
 public interface ContextAwareHeaderMapper<S> extends HeaderMapper<S> {
 

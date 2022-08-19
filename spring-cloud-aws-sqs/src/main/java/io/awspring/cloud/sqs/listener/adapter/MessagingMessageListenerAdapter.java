@@ -21,6 +21,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 
 /**
+ * {@link io.awspring.cloud.sqs.listener.MessageListener} implementation to handle a message by invoking a method
+ * handler.
+ *
+ * @param <T> the {@link Message} payload type.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */

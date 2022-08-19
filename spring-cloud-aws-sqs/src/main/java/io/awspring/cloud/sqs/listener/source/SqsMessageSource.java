@@ -91,8 +91,7 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T, Message
 	}
 
 	@Override
-	public void configure(ContainerOptions containerOptions) {
-		super.configure(containerOptions);
+	protected void doConfigure(ContainerOptions containerOptions) {
 		this.pollTimeout = (int) containerOptions.getPollTimeout().getSeconds();
 		this.queueAttributeNames = containerOptions.getQueueAttributeNames();
 		this.messageAttributeNames = containerOptions.getMessageAttributeNames();
@@ -105,8 +104,8 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T, Message
 
 	@Override
 	protected void doStart() {
-		Assert.notNull(this.sqsAsyncClient, "sqsAsyncClient not set.");
-		Assert.notNull(this.queueAttributeNames, "queueAttributeNames not set.");
+		Assert.notNull(this.sqsAsyncClient, "sqsAsyncClient not set");
+		Assert.notNull(this.queueAttributeNames, "queueAttributeNames not set");
 		this.queueAttributes = resolveQueueAttributes();
 		this.queueUrl = this.queueAttributes.getQueueUrl();
 		configureConversionContextAndAcknowledgement();

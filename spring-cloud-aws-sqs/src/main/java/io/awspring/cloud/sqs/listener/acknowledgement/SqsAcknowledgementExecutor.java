@@ -34,6 +34,14 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 
+/**
+ * {@link AcknowledgementExecutor} implementation for SQS queues. Handle the messages deletion, usually requested by an
+ * {@link ExecutingAcknowledgementProcessor}.
+ *
+ * @author Tomaz Fernandes
+ * @since 3.0
+ * @see ExecutingAcknowledgementProcessor
+ */
 public class SqsAcknowledgementExecutor<T>
 		implements AcknowledgementExecutor<T>, SqsAsyncClientAware, QueueAttributesAware {
 

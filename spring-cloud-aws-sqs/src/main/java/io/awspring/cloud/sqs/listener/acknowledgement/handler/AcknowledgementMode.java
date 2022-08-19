@@ -16,15 +16,32 @@
 package io.awspring.cloud.sqs.listener.acknowledgement.handler;
 
 /**
+ * Configures the acknowledgement behavior for this container.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see OnSuccessAcknowledgementHandler
+ * @see AlwaysAcknowledgementHandler
+ * @see NeverAcknowledgementHandler
+ * @see io.awspring.cloud.sqs.listener.ContainerOptions
  */
 public enum AcknowledgementMode {
 
+	/**
+	 * Messages will be acknowledged when message processing is successful.
+	 */
 	ON_SUCCESS,
 
+	/**
+	 * Messages will be acknowledged whether processing was completed successfully or with an error.
+	 */
 	ALWAYS,
 
+	/**
+	 * Messages will not be acknowledged automatically by the container.
+	 * @see io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement
+	 * @see io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgement
+	 */
 	MANUAL
 
 }

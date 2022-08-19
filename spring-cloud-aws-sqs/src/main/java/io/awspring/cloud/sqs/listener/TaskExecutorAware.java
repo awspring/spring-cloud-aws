@@ -15,12 +15,10 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import java.util.concurrent.Executor;
 import org.springframework.core.task.TaskExecutor;
 
 /**
- * Enables a class to receive a container managed {@link Executor}. Note that this is not automatic - changes to the
- * container should be necessary to actually receive the instance.
+ * Enables a class to receive a container managed {@link TaskExecutor}.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -29,7 +27,7 @@ public interface TaskExecutorAware {
 
 	/**
 	 * Set the task executor.
-	 * @param taskExecutor the task e.xecutor
+	 * @param taskExecutor the task executor.
 	 */
 	void setTaskExecutor(TaskExecutor taskExecutor);
 

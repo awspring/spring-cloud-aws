@@ -28,8 +28,10 @@ import io.awspring.cloud.sqs.listener.source.SqsMessageSource;
 import java.time.Duration;
 
 /**
+ * A {@link ContainerComponentFactory} implementation for Standard SQS queues.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see FifoSqsComponentFactory
  */
 public class StandardSqsComponentFactory<T> implements ContainerComponentFactory<T> {
 

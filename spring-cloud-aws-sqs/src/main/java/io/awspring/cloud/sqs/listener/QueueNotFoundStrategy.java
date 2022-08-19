@@ -16,13 +16,21 @@
 package io.awspring.cloud.sqs.listener;
 
 /**
+ * Configure the strategy to be used when a specified queue is not found at container startup.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see ContainerOptions#getQueueNotFoundStrategy()
  */
 public enum QueueNotFoundStrategy {
 
+	/**
+	 * Throw an exception and stop application startup if a queue is not found.
+	 */
 	FAIL,
 
+	/**
+	 * Create queues that are not found at startup.
+	 */
 	CREATE
 
 }

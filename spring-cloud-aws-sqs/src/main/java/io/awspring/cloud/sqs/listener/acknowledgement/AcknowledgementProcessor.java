@@ -15,14 +15,32 @@
  */
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
+import io.awspring.cloud.sqs.listener.ContainerOptions;
 import org.springframework.context.SmartLifecycle;
 
 /**
+ * Top-level interface for a component capable of processing acknowledgements. Provides the
+ * {@link #getAcknowledgementCallback()} method that allows offering messages to the processor.
+ *
+ * The timing of the execution of the acknowledgements depends on many factors sucha as
+ * {@link ContainerOptions#getAcknowledgementInterval()}, {@link ContainerOptions#getAcknowledgementThreshold()},
+ * {@link ContainerOptions#getAcknowledgementOrdering()}.
+ *
+ * The actual execution is usually handled by an {@link AcknowledgementExecutor}.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see ImmediateAcknowledgementProcessor
+ * @see BatchingAcknowledgementProcessor
+ * @see ExecutingAcknowledgementProcessor
+ * @see SqsAcknowledgementExecutor
  */
 public interface AcknowledgementProcessor<T> extends SmartLifecycle {
 
+	/**
+	 * Retrieve an acknowledgement callback that can be used to offer messages to be acknowledged by this processor.
+	 * @return the callback.
+	 */
 	AcknowledgementCallback<T> getAcknowledgementCallback();
 
 }

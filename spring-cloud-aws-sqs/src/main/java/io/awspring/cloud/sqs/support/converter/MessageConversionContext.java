@@ -16,8 +16,11 @@
 package io.awspring.cloud.sqs.support.converter;
 
 /**
+ * Marker interface for a message conversion context.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see ContextAwareMessagingMessageConverter
+ * @see ContextAwareHeaderMapper
  */
 public interface MessageConversionContext {
 

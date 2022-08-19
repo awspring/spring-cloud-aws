@@ -18,17 +18,26 @@ package io.awspring.cloud.sqs;
 import org.springframework.core.NestedRuntimeException;
 
 /**
- * Top-level exception for Sqs exceptions
+ * Top-level exception for Sqs {@link RuntimeException} instances.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public class SqsException extends NestedRuntimeException {
 
+	/**
+	 * Construct an instance with the supplied message.
+	 * @param msg the message.
+	 */
 	public SqsException(String msg) {
 		super(msg);
 	}
 
+	/**
+	 * Construct an instance with the supplied message and cause.
+	 * @param msg the message.
+	 * @param cause the cause.
+	 */
 	public SqsException(String msg, Throwable cause) {
 		super(msg, cause);
 	}

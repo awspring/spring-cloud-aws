@@ -19,8 +19,11 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
+ * A {@link MessagingMessageConverter} specialization that enables receving a {@link MessageConversionContext} that can
+ * be used to add context specific properties to the converted message.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see ContextAwareHeaderMapper
  */
 public interface ContextAwareMessagingMessageConverter<S> extends MessagingMessageConverter<S> {
 

@@ -18,17 +18,21 @@ package io.awspring.cloud.sqs.listener;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
 
 /**
- * Exception thrown when the {@link AsyncMessageListener} completes with an exception.
+ * Exception thrown when the {@link AsyncMessageListener} completes with an exception. Contains the {@link Message}
+ * instance or instances which execution failed, as well as some convenience methods for handling such messages.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public class ListenerExecutionFailedException extends RuntimeException {
+
+	private static final Logger logger = LoggerFactory.getLogger(ListenerExecutionFailedException.class);
 
 	private final Collection<Message<?>> failedMessages;
 
@@ -41,7 +45,6 @@ public class ListenerExecutionFailedException extends RuntimeException {
 			Collection<Message<T>> failedMessages) {
 		super(message, cause);
 		this.failedMessages = failedMessages.stream().map(msg -> (Message<?>) msg).collect(Collectors.toList());
-		;
 	}
 
 	public Message<?> getFailedMessage() {
@@ -61,7 +64,7 @@ public class ListenerExecutionFailedException extends RuntimeException {
 				? null
 				: exception != null
 					? (Message<T>) ((ListenerExecutionFailedException) exception).getFailedMessage()
-					: (Message<T>) createDefaultErrorMessage(t);
+				: (Message<T>) wrapAndRethrowError(t);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -72,7 +75,7 @@ public class ListenerExecutionFailedException extends RuntimeException {
 			? null
 			: exception != null
 				? ((ListenerExecutionFailedException) exception).getFailedMessages().stream().map(msg -> (Message<T>) msg).collect(Collectors.toList())
-				: Collections.singletonList((Message<T>) createDefaultErrorMessage(t));
+				: (Collection<Message<T>>) wrapAndRethrowError(t);
 	}
 
 	@Nullable
@@ -81,12 +84,12 @@ public class ListenerExecutionFailedException extends RuntimeException {
 			? null
 			: t instanceof ListenerExecutionFailedException
 				? t
-				: t.getCause();
+				: findListenerException(t.getCause());
 	}
 	// @formatter:on
 
-	private static Message<Throwable> createDefaultErrorMessage(Throwable t) {
-		return MessageBuilder.withPayload(t).build();
+	private static Object wrapAndRethrowError(Throwable t) {
+		throw new IllegalArgumentException("No ListenerExecutionFailedException found to unwrap messages.", t);
 	}
 
 	public static boolean hasListenerException(Throwable t) {

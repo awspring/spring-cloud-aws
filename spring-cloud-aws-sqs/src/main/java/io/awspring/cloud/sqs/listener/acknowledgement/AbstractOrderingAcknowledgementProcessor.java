@@ -31,13 +31,16 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
+ * Base implementation for a {@link AcknowledgementProcessor} with {@link org.springframework.context.SmartLifecycle}
+ * capabilities. Also provides acknowledgement ordering capabilities for {@link AcknowledgementOrdering#ORDERED}.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractAcknowledgementProcessor<T>
+public abstract class AbstractOrderingAcknowledgementProcessor<T>
 		implements ExecutingAcknowledgementProcessor<T>, AcknowledgementCallback<T>, IdentifiableContainerComponent {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractAcknowledgementProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractOrderingAcknowledgementProcessor.class);
 
 	private final Object lifecycleMonitor = new Object();
 

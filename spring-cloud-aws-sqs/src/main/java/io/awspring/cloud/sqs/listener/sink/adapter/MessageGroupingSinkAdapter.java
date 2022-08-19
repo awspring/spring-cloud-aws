@@ -28,8 +28,12 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
+ * {@link AbstractDelegatingMessageListeningSinkAdapter} implementation that groups the received batch according to the
+ * provided grouping function and emits each sub batch to the delegate separately.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see io.awspring.cloud.sqs.listener.FifoSqsComponentFactory
  */
 public class MessageGroupingSinkAdapter<T> extends AbstractDelegatingMessageListeningSinkAdapter<T> {
 

@@ -24,10 +24,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 
 /**
- * {@link AcknowledgementHandler} implementation that never acknowledges.
- *
+ * {@link AcknowledgementHandler} implementation that never acknowledges regardless of the result.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see AcknowledgementMode#MANUAL
  */
 public class NeverAcknowledgementHandler<T> implements AcknowledgementHandler<T> {
 

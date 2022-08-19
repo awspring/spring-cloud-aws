@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.config;
 
 /***
- * Utility class containing the bean names used for the framework's configuration.
+ * Utility class containing the bean names used for the framework's bean registration.
  *
  * @author Tomaz Fernandes
  * @since 3.0

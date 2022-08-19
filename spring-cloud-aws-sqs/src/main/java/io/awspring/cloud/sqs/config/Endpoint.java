@@ -37,6 +37,7 @@ public interface Endpoint {
 	 * The name of the factory bean that will process this endpoint.
 	 * @return the factory bean name.
 	 */
+	@Nullable
 	String getListenerContainerFactoryName();
 
 	/**

@@ -94,6 +94,10 @@ A summary of these artifacts are provided below.
 | Provides integrations with SNS
 | io.awspring.cloud:spring-cloud-aws-starter-sns
 
+| SQS
+| Provides integrations with SQS
+| io.awspring.cloud:spring-cloud-aws-starter-sqs
+
 | Parameter Store
 | Provides integrations with AWS Parameter Store
 | io.awspring.cloud:spring-cloud-aws-starter-parameter-store
@@ -134,6 +138,8 @@ include::s3.adoc[]
 include::ses.adoc[]
 
 include::sns.adoc[]
+
+include::sqs.adoc[]
 
 include::secrets-manager.adoc[]
 

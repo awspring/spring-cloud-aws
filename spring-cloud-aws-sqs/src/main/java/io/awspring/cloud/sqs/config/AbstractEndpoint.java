@@ -36,7 +36,7 @@ import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.Assert;
 
 /**
- * Base class for implementing an {@link Endpoint}.
+ * Base class for implementing a {@link HandlerMethodEndpoint}.
  *
  * @author Tomaz Fernandes
  * @since 3.0

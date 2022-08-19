@@ -27,7 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 
 /**
- * Stage responsible for executing the {@link AsyncMessageInterceptor}s.
+ * Stage responsible for executing the {@link AsyncMessageInterceptor} instances from the
+ * {@link MessageProcessingContext} after message processing.
  *
  * @author Tomaz Fernandes
  * @since 3.0

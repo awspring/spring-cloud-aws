@@ -112,7 +112,8 @@ class SqsAcknowledgementExecutorTests {
 		executor.setQueueAttributes(queueAttributes);
 		assertThatThrownBy(() -> executor.execute(messages).join()).isInstanceOf(CompletionException.class).getCause()
 				.isInstanceOf(SqsAcknowledgementException.class).asInstanceOf(type(SqsAcknowledgementException.class))
-				.extracting(SqsAcknowledgementException::getFailedAcknowledgements).asList().containsExactly(message);
+				.extracting(SqsAcknowledgementException::getFailedAcknowledgementMessages).asList()
+				.containsExactly(message);
 	}
 
 	@Test

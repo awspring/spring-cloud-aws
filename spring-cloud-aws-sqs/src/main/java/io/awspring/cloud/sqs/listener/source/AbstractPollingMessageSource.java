@@ -39,11 +39,17 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Base {@link PollingMessageSource} implementation with {@link org.springframework.context.SmartLifecycle} and
- * backpressure handling capabilities.
- *
- * The connected {@link MessageSink} should use the provided completion callback to signal each completed message
- * processing.
+ * Base {@link PollingMessageSource} implementation with {@link org.springframework.context.SmartLifecycle}
+ * capabilities.
+ * <p>
+ * Polling backpressure is handled the provided {@link BackPressureHandler}. The connected {@link MessageSink} should
+ * use the provided {@link MessageProcessingContext#getAcknowledgmentCallback()} to signal each message processing
+ * completion and enable further polling.
+ * <p>
+ * Message conversion capabilities are inherited by the {@link AbstractMessageConvertingMessageSource} superclass.
+ * <p>
+ * The {@link AcknowledgementProcessor} instance provides the {@link AcknowledgementCallback} to be set in the
+ * {@link MessageProcessingContext} and executed downstream when applicable.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -75,10 +81,12 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 	private String id;
 
 	@Override
-	public void configure(ContainerOptions containerOptions) {
-		super.configure(containerOptions);
+	protected void doConfigureAfterConversion(ContainerOptions containerOptions) {
 		this.shutdownTimeout = containerOptions.getShutdownTimeout();
+		doConfigure(containerOptions);
 	}
+
+	protected abstract void doConfigure(ContainerOptions containerOptions);
 
 	@Override
 	public void setId(String id) {

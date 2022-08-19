@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.config;
 
 /**
- * Beans impplementing this interface can configure the {@link EndpointRegistrar} instance used to process
+ * Beans implementing this interface can configure the {@link EndpointRegistrar} instance used to process
  * {@link Endpoint} instances and change general settings for processing all
  * {@link io.awspring.cloud.sqs.annotation.SqsListener} annotations.
  *

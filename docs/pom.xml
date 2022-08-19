@@ -62,6 +62,11 @@
 					<plugin>
 						<groupId>org.asciidoctor</groupId>
 						<artifactId>asciidoctor-maven-plugin</artifactId>
+						<configuration>
+							<attributes>
+								<source-highlighter>highlight.js</source-highlighter>
+							</attributes>
+						</configuration>
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>

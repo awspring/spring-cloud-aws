@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
@@ -36,12 +37,91 @@ import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
- * {@link MessageListenerContainerFactory} implementation for creating {@link SqsMessageListenerContainer} instances.
+ * {@link MessageListenerContainerFactory} implementation for creating {@link SqsMessageListenerContainer} instances. A
+ * factory can be assigned to a {@link io.awspring.cloud.sqs.annotation.SqsListener @SqsListener} by using the
+ * {@link SqsListener#factory()} property. The factory can also be used to create container instances manually.
+ * <p>
+ * To create an instance, both the default constructor or the {@link #builder()} method can be used, and further
+ * configuration can be achieved by using the {@link #configure(Consumer)} method.
+ * <p>
+ * The {@link SqsAsyncClient} instance to be used by the containers created by this factory can be set using either the
+ * {@link #setSqsAsyncClient} or {@link #setSqsAsyncClientSupplier} methods, or their builder counterparts. The former
+ * will result in the containers sharing the supplied instance, where the later will result in a different instance
+ * being used by each container.
+ * <p>
+ * The factory also accepts the following components:
+ * <ul>
+ * <li>{@link MessageInterceptor}</li>
+ * <li>{@link MessageListener}</li>
+ * <li>{@link ErrorHandler}</li>
+ * <li>{@link AsyncMessageInterceptor}</li>
+ * <li>{@link AsyncMessageListener}</li>
+ * <li>{@link AsyncErrorHandler}</li>
+ * </ul>
+ * The non-async components will be adapted to their async counterparts. When using Spring Boot and auto-configuration,
+ * beans implementing these interfaces will be set to the default factory.
+ * <p>
+ * Example using the builder:
+ * 
+ * <pre>
+ * <code>
+ * &#064;Bean
+ * SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+ *     return SqsMessageListenerContainerFactory
+ *             .builder()
+ *             .configure(options -> options
+ *                     .messagesPerPoll(5)
+ *                     .pollTimeout(Duration.ofSeconds(10)))
+ *             .sqsAsyncClient(sqsAsyncClient)
+ *             .build();
+ * }
+ * </code>
+ * </pre>
  *
- * @param <T> the {@link Message} payload type.
+ * <p>
+ * Example using the default constructor:
+ * 
+ * <pre>
+ * <code>
+ * &#064;Bean
+ * SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+ *     SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
+ *     factory.setSqsAsyncClient(sqsAsyncClient);
+ *     factory.configure(options -> options
+ *             .messagesPerPoll(5)
+ *             .pollTimeout(Duration.ofSeconds(10)));
+ *     return factory;
+ * }
+ * </code>
+ * </pre>
+ * <p>
+ * Example creating a container manually:
+ * 
+ * <pre>
+ * <code>
+ * &#064;Bean
+ * SqsMessageListenerContainer<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+ *     return SqsMessageListenerContainerFactory
+ *             .builder()
+ *             .configure(options -> options
+ *                     .messagesPerPoll(5)
+ *                     .pollTimeout(Duration.ofSeconds(10)))
+ *             .sqsAsyncClient(sqsAsyncClient)
+ *             .build()
+ *             .create("myQueue");
+ * }
+ * </code>
+ * </pre>
+ *
+ * @param <T> the {@link Message} payload type. This type is used to ensure at compile time that all components in this
+ *     factory expect the same payload type. If the factory will be used with many payload types, {@link Object} can be
+ *     used.
  *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see SqsMessageListenerContainer
+ * @see ContainerOptions
+ * @see io.awspring.cloud.sqs.listener.AsyncComponentAdapters
  */
 public class SqsMessageListenerContainerFactory<T>
 		extends AbstractMessageListenerContainerFactory<T, SqsMessageListenerContainer<T>> {
@@ -78,8 +158,8 @@ public class SqsMessageListenerContainerFactory<T>
 
 	/**
 	 * Set a supplier for {@link SqsAsyncClient} instances. A new instance will be used for each container created by
-	 * this factory. Useful for high throughput containers where sharing an {@link SqsAsyncClient} would be harmful to
-	 * performance.
+	 * this factory. Useful for high throughput containers where sharing an {@link SqsAsyncClient} would be detrimental
+	 * to performance.
 	 *
 	 * @param sqsAsyncClientSupplier the supplier.
 	 */
@@ -89,8 +169,8 @@ public class SqsMessageListenerContainerFactory<T>
 	}
 
 	/**
-	 * Set the {@link SqsAsyncClient} instance to be shared by the containers. Useful for not-so-high throughput
-	 * scenarios or when the client is tuned for more than the default maximum connections.
+	 * Set the {@link SqsAsyncClient} instance to be shared by the containers. For high throughput scenarios the client
+	 * should be tuned for allowing higher maximum connections.
 	 * @param sqsAsyncClient the client instance.
 	 */
 	public void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
@@ -125,11 +205,23 @@ public class SqsMessageListenerContainerFactory<T>
 		private Consumer<ContainerOptions.Builder> options = options -> {
 		};
 
+		/**
+		 * Set the {@link SqsAsyncClient} instance to be shared by the containers. For high throughput scenarios the
+		 * client should be tuned for allowing higher maximum connections.
+		 * @param sqsAsyncClient the client instance.
+		 */
 		public Builder<T> sqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 			this.sqsAsyncClient = sqsAsyncClient;
 			return this;
 		}
 
+		/**
+		 * Set a supplier for {@link SqsAsyncClient} instances. A new instance will be used for each container created
+		 * by this factory. Useful for high throughput containers where sharing an {@link SqsAsyncClient} would be
+		 * detrimental to performance.
+		 *
+		 * @param sqsAsyncClientSupplier the supplier.
+		 */
 		public Builder<T> sqsAsyncClientSupplier(Supplier<SqsAsyncClient> sqsAsyncClientSupplier) {
 			this.sqsAsyncClientSupplier = sqsAsyncClientSupplier;
 			return this;
