@@ -21,10 +21,11 @@ import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
- * Queue attributes extracted from SQS.
+ * Queue attributes extracted from SQS, as well as the queue name and url.
  *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see ContainerOptions#getQueueAttributeNames().
  */
 public class QueueAttributes {
 
@@ -36,8 +37,9 @@ public class QueueAttributes {
 
 	/**
 	 * Create an instance with the provided arguments.
-	 * @param queueUrl the url for this queue.
-	 * @param attributes
+	 * @param queueName the queue name.
+	 * @param queueUrl the queue url.
+	 * @param attributes the queue attributes retrieved from SQS.
 	 */
 	public QueueAttributes(String queueName, String queueUrl, Map<QueueAttributeName, String> attributes) {
 		this.queueName = queueName;
@@ -46,21 +48,34 @@ public class QueueAttributes {
 	}
 
 	/**
-	 * Return the url for this queue.
+	 * Return the queue url.
 	 * @return the url.
 	 */
 	public String getQueueUrl() {
 		return this.queueUrl;
 	}
 
+	/**
+	 * Return the queue name.
+	 * @return the queue name.
+	 */
 	public String getQueueName() {
 		return this.queueName;
 	}
 
+	/**
+	 * Return the attributes for this queue.
+	 * @return the queue attributes.
+	 */
 	public Map<QueueAttributeName, String> getQueueAttributes() {
 		return new HashMap<>(this.attributes);
 	}
 
+	/**
+	 * Return a specific attribute for this queue, if present.
+	 * @param queueAttributeName the attribute name.
+	 * @return the queue attribute, or null if no such attribute is present.
+	 */
 	@Nullable
 	public String getQueueAttribute(QueueAttributeName queueAttributeName) {
 		return this.attributes.get(queueAttributeName);

@@ -16,7 +16,8 @@
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
 /**
- * Interface representing a message acknowledgement.
+ * Interface representing a message acknowledgement. For this interface to be used as a listener method parameter,
+ * {@link io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode#MANUAL} has to be set.
  *
  * @author Tomaz Fernandes
  * @since 3.0

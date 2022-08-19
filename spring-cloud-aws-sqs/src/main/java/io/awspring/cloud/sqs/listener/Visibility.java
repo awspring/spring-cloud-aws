@@ -32,6 +32,14 @@ public interface Visibility {
 	 * @param seconds number of seconds to set the visibility of the message to.
 	 * @return a completable future.
 	 */
-	CompletableFuture<Void> changeTo(int seconds);
+	CompletableFuture<Void> changeToAsync(int seconds);
+
+	/**
+	 * Changes the message visibility to the provided value.
+	 * @param seconds number of seconds to set the visibility of the message to.
+	 */
+	default void changeTo(int seconds) {
+		changeToAsync(seconds).join();
+	}
 
 }

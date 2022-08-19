@@ -27,15 +27,15 @@ import org.springframework.util.Assert;
 
 /**
  * {@link MessageListenerContainerRegistry} implementation that registers the {@link MessageListenerContainer} instances
- * and automatically manage their lifecycle.
+ * and manage their lifecycle.
  *
- * This bean can be autowired and used to lookup container instances at runtime as well as manually manage their
- * lifecycle.
+ * This bean can be autowired and used to lookup container instances at runtime, which can be useful to e.g. manually
+ * manage their lifecycle.
  *
- * Supports starting and stopping the container instances sequentially or in parallel.
+ * A {@link LifecycleHandler} is used to manage the containers' lifecycle.
  *
- * Note that only containers created via {@link io.awspring.cloud.sqs.annotation.SqsListener} annotations are registered
- * automatically.
+ * Only containers created via {@link io.awspring.cloud.sqs.annotation.SqsListener} annotations are registered by the
+ * framework.
  *
  * @author Tomaz Fernandes
  * @since 3.0

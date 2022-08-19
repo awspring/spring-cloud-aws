@@ -44,6 +44,7 @@ public class OrderedMessageSink<T> extends AbstractMessageProcessingPipelineSink
 					if (t == null) {
 						return execute(msg, context);
 					}
+					// Release backpressure from subsequent interrupted executions in case of errors.
 					context.runBackPressureReleaseCallback();
 					return CompletableFutures.failedFuture(t);
 				}), (a, b) -> a);

@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
@@ -28,14 +29,70 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
- * {@link MessageListenerContainer} implementation for SQS queues.
+ * {@link MessageListenerContainer} implementation for SQS queues. To create an instance, both constructors or the
+ * {@link #builder()} method can be used, and further configuration can be achieved by using the
+ * {@link #configure(Consumer)} method.
+ * <p>
+ * The {@link SqsAsyncClient} instance to be used by this container must be set through the constructor or the
+ * {@link Builder#sqsAsyncClient} method.
+ * <p>
+ * The container also accepts the following components:
+ * <ul>
+ * <li>{@link MessageInterceptor}</li>
+ * <li>{@link MessageListener}</li>
+ * <li>{@link ErrorHandler}</li>
+ * <li>{@link AsyncMessageInterceptor}</li>
+ * <li>{@link AsyncMessageListener}</li>
+ * <li>{@link AsyncErrorHandler}</li>
+ * </ul>
+ * The non-async components will be adapted to their async counterparts. Components and {@link ContainerOptions} can be
+ * changed when the container is stopped. Such changes will be effective upon container restart.
+ * <p>
+ * Containers created through the {@link SqsListener} annotation will be registered in a
+ * {@link MessageListenerContainerRegistry} which will be responsible for managing their lifecycle. Containers created
+ * manually and declared as beans will have their lifecycle managed by Spring Context.
+ * <p>
+ * Example using the builder:
+ * 
+ * <pre>
+ * <code>
+ * &#064;Bean
+ * public SqsMessageListenerContainer<Object> mySqsListenerContainer(SqsAsyncClient sqsAsyncClient) {
+ *     return SqsMessageListenerContainer
+ *             .builder()
+ *             .configure(options -> options
+ *                     .messagesPerPoll(5)
+ *                     .pollTimeout(Duration.ofSeconds(10)))
+ *             .sqsAsyncClient(sqsAsyncClient)
+ *             .build();
+ * }
+ * </code>
+ * </pre>
  *
- * Components and {@link ContainerOptions} can be changed at runtime and such changes will be valid upon container
- * restart.
+ * <p>
+ * Example using the constructor:
+ * 
+ * <pre>
+ * <code>
+ * &#064;Bean
+ * public SqsMessageListenerContainer<Object> myListenerContainer(SqsAsyncClient sqsAsyncClient) {
+ *     SqsMessageListenerContainer<Object> container = new SqsMessageListenerContainer<>(sqsAsyncClient);
+ *     container.configure(options -> options
+ *             .messagesPerPoll(5)
+ *             .pollTimeout(Duration.ofSeconds(10)));
+ *     return container;
+ * }
+ * </code>
+ * </pre>
+ *
+ * @param <T> the {@link Message} payload type. This type is used to ensure at compile time that all components in this
+ *     container expect the same payload type. If the factory will be used with many payload types, {@link Object} can
+ *     be used.
  *
  * @author Tomaz Fernandes
  * @since 3.0

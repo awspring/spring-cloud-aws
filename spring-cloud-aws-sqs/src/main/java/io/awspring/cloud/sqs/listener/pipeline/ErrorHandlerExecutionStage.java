@@ -27,7 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 
 /**
- * Stage responsible for executing the {@link AsyncErrorHandler}.
+ * Stage responsible for executing the {@link AsyncErrorHandler} after a failed
+ * {@link io.awspring.cloud.sqs.listener.MessageListener} execution.
  *
  * @author Tomaz Fernandes
  * @since 3.0

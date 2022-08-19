@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 
 /**
- * {@link MessageProcessingPipelineSink} implementation that processes all messages from the provided batch in parallel.
+ * {@link MessageProcessingPipelineSink} implementation that executes messages from the provided batch in parallel.
  *
  * @param <T> the {@link Message} payload type.
  *

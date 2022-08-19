@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Utilities class for conditional configurations.
+ * Utility class for conditional configurations.
  *
  * @author Tomaz Fernandes
  * @since 3.0

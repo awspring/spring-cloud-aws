@@ -23,9 +23,11 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.messaging.Message;
 
 /**
- * {@link io.awspring.cloud.sqs.listener.MessageListenerContainer} component that handles the flow of {@link Message}s.
+ * Component that handles the flow of {@link Message}s.
  *
  * This interface is non-opinionated regarding strategies or the output to which messages will be emitted to.
+ *
+ * A {@link MessageProcessingContext} can be used to pass additional state to the implementation.
  *
  * @author Tomaz Fernandes
  * @since 3.0

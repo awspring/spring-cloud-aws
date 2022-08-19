@@ -31,30 +31,39 @@ import org.springframework.messaging.Message;
 public interface AcknowledgementHandler<T> {
 
 	/**
-	 * Called by the {@link io.awspring.cloud.sqs.listener.MessageListenerContainer} when the {@link Message} is
-	 * processed successfully by the {@link io.awspring.cloud.sqs.listener.AsyncMessageListener}.
+	 * Invoked when message processing completes successfully for a single message.
 	 * @param message the message.
-	 * @return a completable future.
+	 * @return a completable future signaling acknowledgement completion.
 	 */
 	default CompletableFuture<Void> onSuccess(Message<T> message, AcknowledgementCallback<T> callback) {
 		return CompletableFuture.completedFuture(null);
 	}
 
+	/**
+	 * Invoked when message processing completes successfully for a batch of messages.
+	 * @param messages the messages.
+	 * @return a completable future signaling acknowledgement completion.
+	 */
 	default CompletableFuture<Void> onSuccess(Collection<Message<T>> messages, AcknowledgementCallback<T> callback) {
 		return CompletableFuture.completedFuture(null);
 	}
 
 	/**
-	 * Called by the {@link io.awspring.cloud.sqs.listener.MessageListenerContainer} when the {@link Message} is
-	 * processed with an error. by the {@link io.awspring.cloud.sqs.listener.AsyncMessageListener}.
+	 * Invoked when message processing completes with an error for a single message.
 	 * @param message the message.
 	 * @param t the error thrown by the listener.
-	 * @return a completable future.
+	 * @return a completable future signaling acknowledgement completion.
 	 */
 	default CompletableFuture<Void> onError(Message<T> message, Throwable t, AcknowledgementCallback<T> callback) {
 		return CompletableFuture.completedFuture(null);
 	}
 
+	/**
+	 * Invoked when message processing completes with an error for a batch of messages.
+	 * @param messages the messages.
+	 * @param t the error thrown by the listener.
+	 * @return a completable future signaling acknowledgement completion.
+	 */
 	default CompletableFuture<Void> onError(Collection<Message<T>> messages, Throwable t,
 			AcknowledgementCallback<T> callback) {
 		return CompletableFuture.completedFuture(null);

@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 /**
- *
+ * {@link HandlerMethodArgumentResolver} implementation for resolving {@link AsyncAcknowledgement} arguments.
  * @author Tomaz Fernandes
  * @since 3.0
  */
@@ -40,8 +40,10 @@ public class AsyncAcknowledgmentHandlerMethodArgumentResolver implements Handler
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
-		AcknowledgementCallback<Object> callback = message.getHeaders().get(SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class);
-		Assert.notNull(callback, "No acknowledgement found for message " + MessageHeaderUtils.getId(message) + ". AcknowledgeMode should be MANUAL.");
+		AcknowledgementCallback<Object> callback = message.getHeaders()
+				.get(SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class);
+		Assert.notNull(callback, "No acknowledgement found for message " + MessageHeaderUtils.getId(message)
+				+ ". AcknowledgeMode should be MANUAL.");
 		return (AsyncAcknowledgement) () -> callback.onAcknowledge((Message<Object>) message);
 	}
 

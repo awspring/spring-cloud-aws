@@ -106,7 +106,7 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LoadSimulator loadSimulator;
 
-		final int totalMessages = 20;
+		final int totalMessages = 200;
 		final boolean sendMessages = true;
 		final boolean receiveMessages = true;
 		final boolean receivesManyTestEnabled = true;

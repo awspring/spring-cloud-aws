@@ -25,9 +25,9 @@ import org.springframework.messaging.Message;
 
 /**
  * {@link AcknowledgementHandler} implementation that only acknowledges on success.
- *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see AcknowledgementMode#ON_SUCCESS
  */
 public class OnSuccessAcknowledgementHandler<T> implements AcknowledgementHandler<T> {
 

@@ -16,11 +16,17 @@
 package io.awspring.cloud.sqs.listener;
 
 /**
+ * Implementations are enabled to receive a {@link QueueAttributes} instance.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public interface QueueAttributesAware {
 
+	/**
+	 * Set the {@link QueueAttributes} instance.
+	 * @param queueAttributes the instance.
+	 */
 	void setQueueAttributes(QueueAttributes queueAttributes);
 
 }

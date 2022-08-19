@@ -25,9 +25,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 /**
- * {@link BackPressureHandler} implementation that uses a {@link Semaphore} for handling
+ * {@link BackPressureHandler} implementation that uses a {@link Semaphore} for handling backpressure.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see io.awspring.cloud.sqs.listener.source.PollingMessageSource
  */
 public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 
@@ -237,8 +239,9 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 		}
 
 		public SemaphoreBackPressureHandler build() {
-			Assert.noNullElements(Arrays.asList(this.batchSize, this.totalPermits, this.acquireTimeout,
-					this.backPressureMode), "Missing configuration");
+			Assert.noNullElements(
+					Arrays.asList(this.batchSize, this.totalPermits, this.acquireTimeout, this.backPressureMode),
+					"Missing configuration");
 			return new SemaphoreBackPressureHandler(this);
 		}
 

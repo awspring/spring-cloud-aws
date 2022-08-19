@@ -19,6 +19,7 @@ import io.awspring.cloud.sqs.annotation.SqsListener;
 import java.time.Duration;
 import java.util.Collection;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * {@link Endpoint} implementation for SQS endpoints.
@@ -50,6 +51,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 	 * @return the builder instance.
 	 */
 	public static SqsEndpointBuilder from(Collection<String> logicalEndpointNames) {
+		Assert.notEmpty(logicalEndpointNames, "queueNames cannot be empty");
 		return new SqsEndpointBuilder(logicalEndpointNames);
 	}
 

@@ -28,6 +28,8 @@ import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
+ * {@link MessageProcessingPipelineSink} implementation that delegates method invocations to the provided delegate.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
@@ -36,6 +38,10 @@ public abstract class AbstractDelegatingMessageListeningSinkAdapter<T>
 
 	private final MessageSink<T> delegate;
 
+	/**
+	 * Create an instance with the provided delegate.
+	 * @param delegate the delegate.
+	 */
 	protected AbstractDelegatingMessageListeningSinkAdapter(MessageSink<T> delegate) {
 		Assert.notNull(delegate, "delegate cannot be null");
 		this.delegate = delegate;

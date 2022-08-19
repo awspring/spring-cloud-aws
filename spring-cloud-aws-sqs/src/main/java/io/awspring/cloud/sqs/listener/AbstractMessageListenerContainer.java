@@ -63,6 +63,10 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private ContainerOptions containerOptions;
 
+	/**
+	 * Create an instance with the provided {@link ContainerOptions}
+	 * @param containerOptions the options instance.
+	 */
 	protected AbstractMessageListenerContainer(ContainerOptions containerOptions) {
 		Assert.notNull(containerOptions, "containerOptions cannot be null");
 		this.containerOptions = containerOptions;
@@ -202,8 +206,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	}
 
 	/**
-	 * Return the queue names assigned to this container. May be empty if custom {@link MessageSource} instances are
-	 * provided.
+	 * Return the queue names assigned to this container.
 	 * @return the queue names.
 	 */
 	public Collection<String> getQueueNames() {
@@ -227,7 +230,6 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 			if (this.id == null) {
 				this.id = resolveContainerId();
 			}
-			this.containerOptions.validate();
 			logger.debug("Starting container {}", getId());
 			doStart();
 		}

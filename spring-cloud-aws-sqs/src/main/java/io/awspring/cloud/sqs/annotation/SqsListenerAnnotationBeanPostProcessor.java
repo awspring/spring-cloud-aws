@@ -70,8 +70,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * {@link BeanPostProcessor} implementation that scans the bean for a {@link SqsListener @SqsListener} annotation,
- * extracts information to a {@link SqsEndpoint}, and registers it in the {@link EndpointRegistrar}.
+ * {@link BeanPostProcessor} implementation that scans beans for a {@link SqsListener @SqsListener} annotation, extracts
+ * information to a {@link SqsEndpoint}, and registers it in the {@link EndpointRegistrar}.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -85,9 +85,9 @@ public class SqsListenerAnnotationBeanPostProcessor
 
 	private final Collection<Class<?>> nonAnnotatedClasses = Collections.synchronizedSet(new HashSet<>());
 
-	private final ExpressionResolvingHelper expressionResolvingHelper = new ExpressionResolvingHelper();
+	private final ExpressionResolvingHelper expressionResolvingHelper = createExpressionResolvingHelper();
 
-	private final EndpointRegistrar endpointRegistrar = new EndpointRegistrar();
+	private final EndpointRegistrar endpointRegistrar = createEndpointRegistrar();
 
 	private final DelegatingMessageHandlerMethodFactory delegatingHandlerMethodFactory = new DelegatingMessageHandlerMethodFactory();
 
@@ -168,9 +168,10 @@ public class SqsListenerAnnotationBeanPostProcessor
 
 	@Override
 	public void afterSingletonsInstantiated() {
-		ConfigUtils.INSTANCE.acceptIfInstance(getBeanFactory(), ListableBeanFactory.class,
-				lbf -> lbf.getBeansOfType(SqsListenerCustomizer.class).values()
-						.forEach(customizer -> customizer.configure(this.endpointRegistrar)));
+		if (this.beanFactory instanceof ListableBeanFactory) {
+			((ListableBeanFactory) this.beanFactory).getBeansOfType(SqsListenerCustomizer.class).values()
+					.forEach(customizer -> customizer.configure(this.endpointRegistrar));
+		}
 		this.endpointRegistrar.setBeanFactory(getBeanFactory());
 		initializeHandlerMethodFactory();
 		this.endpointRegistrar.afterSingletonsInstantiated();
@@ -191,8 +192,8 @@ public class SqsListenerAnnotationBeanPostProcessor
 
 	protected void configureDefaultHandlerMethodFactory(DefaultMessageHandlerMethodFactory handlerMethodFactory) {
 		CompositeMessageConverter compositeMessageConverter = createCompositeMessageConverter();
-		List<HandlerMethodArgumentResolver> methodArgumentResolvers = createArgumentResolvers(
-				compositeMessageConverter);
+		List<HandlerMethodArgumentResolver> methodArgumentResolvers = new ArrayList<>(
+				createArgumentResolvers(compositeMessageConverter));
 		this.endpointRegistrar.getMethodArgumentResolversConsumer().accept(methodArgumentResolvers);
 		handlerMethodFactory.setArgumentResolvers(methodArgumentResolvers);
 		handlerMethodFactory.afterPropertiesSet();
@@ -231,6 +232,14 @@ public class SqsListenerAnnotationBeanPostProcessor
 			jacksonMessageConverter.setObjectMapper(objectMapper);
 		}
 		return jacksonMessageConverter;
+	}
+
+	protected ExpressionResolvingHelper createExpressionResolvingHelper() {
+		return new ExpressionResolvingHelper();
+	}
+
+	protected EndpointRegistrar createEndpointRegistrar() {
+		return new EndpointRegistrar();
 	}
 
 	private static class DelegatingMessageHandlerMethodFactory implements MessageHandlerMethodFactory {

@@ -16,12 +16,16 @@
 package io.awspring.cloud.autoconfigure.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
+import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
@@ -37,6 +41,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -52,6 +57,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
  */
 class SqsAutoConfigurationTest {
 
+	private static final String CUSTOM_OBJECT_MAPPER_BEAN_NAME = "customObjectMapper";
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
@@ -107,16 +113,39 @@ class SqsAutoConfigurationTest {
 	}
 
 	@Test
-	void configuresFactoryComponents() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true")
+	void configuresFactoryComponentsAndOptions() {
+		this.contextRunner
+				.withPropertyValues("spring.cloud.aws.sqs.enabled:true",
+						"spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue:19",
+						"spring.cloud.aws.sqs.listener.max-messages-per-poll:8",
+						"spring.cloud.aws.sqs.listener.poll-timeout:6s")
 				.withUserConfiguration(CustomComponentsConfiguration.class).run(context -> {
 					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
 					SqsMessageListenerContainerFactory<?> factory = context
 							.getBean(SqsMessageListenerContainerFactory.class);
-					assertThat(ReflectionTestUtils.getField(factory, "containerOptionsBuilder")).isNotNull()
-							.extracting("maxInflightMessagesPerQueue").isEqualTo(19);
+					String builderFieldName = "containerOptionsBuilder";
+					ContainerOptions.Builder builder = (ContainerOptions.Builder) ReflectionTestUtils.getField(factory,
+							builderFieldName);
+					Assert.notNull(builder, "Field " + builderFieldName + " not found in class "
+							+ SqsMessageListenerContainerFactory.class);
+					ContainerOptions containerOptions = builder.build();
+					assertThat(containerOptions.getMaxInFlightMessagesPerQueue()).isEqualTo(19);
+					assertThat(containerOptions.getMaxMessagesPerPoll()).isEqualTo(8);
+					assertThat(containerOptions.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
 					assertThat(ReflectionTestUtils.getField(factory, "errorHandler")).isNotNull();
 					assertThat(ReflectionTestUtils.getField(factory, "messageInterceptors")).asList().isNotEmpty();
+				});
+	}
+
+	@Test
+	void configuresObjectMapper() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true")
+				.withUserConfiguration(ObjectMapperConfiguration.class).run(context -> {
+					SqsListenerAnnotationBeanPostProcessor bpp = context
+							.getBean(SqsListenerAnnotationBeanPostProcessor.class);
+					ObjectMapper objectMapper = context.getBean(CUSTOM_OBJECT_MAPPER_BEAN_NAME, ObjectMapper.class);
+					assertThat(bpp).extracting("endpointRegistrar").asInstanceOf(type(EndpointRegistrar.class))
+							.extracting(EndpointRegistrar::getObjectMapper).isEqualTo(objectMapper);
 				});
 	}
 
@@ -135,9 +164,14 @@ class SqsAutoConfigurationTest {
 			};
 		}
 
-		@Bean
-		ContainerOptions containerOptions() {
-			return ContainerOptions.builder().maxInflightMessagesPerQueue(19).build();
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ObjectMapperConfiguration {
+
+		@Bean(name = CUSTOM_OBJECT_MAPPER_BEAN_NAME)
+		ObjectMapper objectMapper() {
+			return new ObjectMapper();
 		}
 
 	}

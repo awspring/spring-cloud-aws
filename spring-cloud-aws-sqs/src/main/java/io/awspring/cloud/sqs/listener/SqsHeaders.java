@@ -16,8 +16,13 @@
 package io.awspring.cloud.sqs.listener;
 
 /**
+ * The {@link org.springframework.messaging.MessageHeaders} names used for {@link org.springframework.messaging.Message}
+ * instances created from SQS messages. Can be used to retrieve headers from messages either through
+ * {@link org.springframework.messaging.MessageHeaders#get} or
+ * {@link org.springframework.messaging.handler.annotation.Header} parameter annotations.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see io.awspring.cloud.sqs.support.converter.SqsHeaderMapper
  */
 public class SqsHeaders {
 
@@ -25,33 +30,63 @@ public class SqsHeaders {
 	}
 
 	/**
-	 * SQS Headers prefix
+	 * SQS Headers prefix to be used by all headers added by the framework.
 	 */
 	public static final String SQS_HEADER_PREFIX = "Sqs_";
 
 	/**
-	 * MessageAttributes prefix
+	 * MessageAttributes prefix to be used by all headers mapped from SQS Message Attributes.
 	 */
 	public static final String SQS_MA_HEADER_PREFIX = SQS_HEADER_PREFIX + "MA_";
 
+	/**
+	 * Header for the queue name.
+	 */
 	public static final String SQS_QUEUE_NAME_HEADER = SQS_HEADER_PREFIX + "QueueName";
 
+	/**
+	 * Header for the queue url.
+	 */
 	public static final String SQS_QUEUE_URL_HEADER = SQS_HEADER_PREFIX + "QueueUrl";
 
+	/**
+	 * Header for the SQS Message's receipt handle.
+	 */
 	public static final String SQS_RECEIPT_HANDLE_HEADER = SQS_HEADER_PREFIX + "ReceiptHandle";
 
+	/**
+	 * Header for the SQS Message's id.
+	 */
 	public static final String SQS_MESSAGE_ID_HEADER = SQS_HEADER_PREFIX + "MessageId";
 
+	/**
+	 * Header for the original SQS {@link software.amazon.awssdk.services.sqs.model.Message}.
+	 */
 	public static final String SQS_SOURCE_DATA_HEADER = SQS_HEADER_PREFIX + "SourceData";
 
+	/**
+	 * Header for the {@link Visibility} object for this message.
+	 */
 	public static final String SQS_VISIBILITY_HEADER = SQS_HEADER_PREFIX + "Visibility";
 
+	/**
+	 * Header for the received at attribute.
+	 */
 	public static final String SQS_RECEIVED_AT_HEADER = SQS_HEADER_PREFIX + "ReceivedAt";
 
+	/**
+	 * Header for a {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback} for this message.
+	 */
 	public static final String SQS_ACKNOWLEDGMENT_CALLBACK_HEADER = SQS_HEADER_PREFIX + "Acknowledgement";
 
+	/**
+	 * Header for the {@link QueueAttributes} for this message.
+	 */
 	public static final String SQS_QUEUE_ATTRIBUTES_HEADER = SQS_HEADER_PREFIX + "QueueAttributes";
 
+	/**
+	 * Header containing the FQCN of the {@link Class} that the message's payload should be deserialized to.
+	 */
 	public static final String SQS_DEFAULT_TYPE_HEADER = "JavaType";
 
 	public static class MessageSystemAttribute {

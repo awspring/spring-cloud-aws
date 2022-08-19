@@ -15,11 +15,18 @@
  */
 package io.awspring.cloud.sqs;
 
+import io.awspring.cloud.sqs.listener.ContainerOptions;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 
 /**
+ * {@link CustomizableThreadFactory} implementation for creating {@link MessageExecutionThread} instances. This should
+ * be set to {@link org.springframework.core.task.TaskExecutor} instances provided by
+ * {@link ContainerOptions#getContainerComponentsTaskExecutor()} to avoid excessive thread hopping for blocking
+ * components.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see MessageExecutionThread
+ * @see io.awspring.cloud.sqs.listener.AsyncComponentAdapters
  */
 public class MessageExecutionThreadFactory extends CustomizableThreadFactory {
 

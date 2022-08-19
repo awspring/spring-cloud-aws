@@ -43,20 +43,48 @@ public class MessageHeaderUtils {
 		return getHeader(message, SqsHeaders.SQS_MESSAGE_ID_HEADER, UUID.class).toString();
 	}
 
+	/**
+	 * Return the messages' ID as a concatenated {@link String].
+	 * @param messages the messages.
+	 * @return the IDs.
+	 */
 	public static <T> String getId(Collection<Message<T>> messages) {
 		return messages.stream().map(MessageHeaderUtils::getId).collect(Collectors.joining("; "));
 	}
 
-	public static <T, U> Collection<T> getHeader(Collection<Message<U>> messages, String headerName,
-			Class<T> classToCast) {
-		return messages.stream().map(msg -> getHeader(msg, headerName, classToCast)).collect(Collectors.toList());
-	}
-
+	/**
+	 * Get the specified header or throw an exception if such header is not present.
+	 * @param message the message.
+	 * @param headerName the header name.
+	 * @param classToCast the class to which the header should be cast to.
+	 * @param <T> the class type.
+	 * @return the header value.
+	 */
 	public static <T> T getHeader(Message<?> message, String headerName, Class<T> classToCast) {
 		return Objects.requireNonNull(message.getHeaders().get(headerName, classToCast),
 				() -> String.format("Header %s not found in message %s", headerName, message));
 	}
 
+	/**
+	 * Get the specified header or throw an exception if such header is not present.
+	 * @param messages the messages.
+	 * @param headerName the header name.
+	 * @param classToCast the class to which the header should be cast to.
+	 * @param <T> the header class type.
+	 * @param <U> the messages payload class type.
+	 * @return the header value.
+	 */
+	public static <T, U> Collection<T> getHeader(Collection<Message<U>> messages, String headerName,
+			Class<T> classToCast) {
+		return messages.stream().map(msg -> getHeader(msg, headerName, classToCast)).collect(Collectors.toList());
+	}
+
+	/**
+	 * Get the provided header as {@link String} or throw if not present.
+	 * @param message the message.
+	 * @param headerName the header name.
+	 * @return the header value.
+	 */
 	public static String getHeaderAsString(Message<?> message, String headerName) {
 		return getHeader(message, headerName, String.class);
 	}

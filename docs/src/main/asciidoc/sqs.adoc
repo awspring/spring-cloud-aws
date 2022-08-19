@@ -1,342 +1,1225 @@
-=== SQS support
-Amazon SQS is a hosted messaging service on the Amazon Web Service platform that provides point-to-point communication
-with queues. Compared to JMS or other message services Amazon SQS has several features and limitations that should be
-taken into consideration.
+== SQS Support
+:source-highlighter: highlight.js
+:highlightjs-theme: googlecode
+
+Amazon `Simple Queue Service` is a messaging service that provides point-to-point communication with queues.
+Spring Cloud AWS SQS integration offers support to receive and send messages using common `Spring` abstractions such as `@SqsListener`, `MessageListenerContainer` and `MessageListenerContainerFactory`.
+
+Compared to JMS or other message services Amazon SQS has limitations that should be taken into consideration.
 
 * Amazon SQS allows only `String` payloads, so any `Object` must be transformed into a String representation.
-Spring Cloud AWS  has dedicated support to transfer Java objects with Amazon SQS messages by converting them to JSON.
-* Amazon SQS has no transaction support, so messages might therefore be retrieved twice. Application have to be written in
-an idempotent way so that they can receive a message twice.
+Spring Cloud AWS has dedicated support to transfer Java objects with Amazon SQS messages by converting them to JSON.
 * Amazon SQS has a maximum message size of 256kb per message, so bigger messages will fail to be sent.
 
-==== Sending a message
-The `QueueMessagingTemplate` contains many convenience methods to send a message. There are send methods that specify the
-destination using a `QueueMessageChannel` object and those that specify the destination using a string which is going to
-be resolved against the SQS API. The send method that takes no destination argument uses the default destination.
+A Spring Boot starter is provided to auto-configure SQS integration beans.
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
-[source,java,index=0]
+[source,xml]
 ----
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import org.springframework.beans.factory.annotation.Autowired;
-import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
-import org.springframework.messaging.support.MessageBuilder;
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter-sqs</artifactId>
+</dependency>
+----
 
-class SqsQueueSender {
+=== Sample Listener Application
 
-	private final QueueMessagingTemplate queueMessagingTemplate;
+Below is a minimal sample application leveraging auto-configuration from `Spring Boot`.
 
-	@Autowired
-	public SqsQueueSender(AmazonSQSAsync amazonSQSAsync) {
-		this.queueMessagingTemplate = new QueueMessagingTemplate(amazonSQSAsync);
-	}
+[source,java]
+----
+@SpringBootApplication
+public class SqsApplication {
 
-	public void send(String message) {
-		this.queueMessagingTemplate.send("physicalQueueName", MessageBuilder.withPayload(message).build());
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(SqsApplication.class, args);
+    }
+
+    @SqsListener("myQueue")
+    public void listen(String message) {
+        System.out.println(message);
+    }
 }
 ----
 
-This example uses the `MessageBuilder` class to create a message with a string payload. The `QueueMessagingTemplate` is
-constructed by passing a reference to the `AmazonSQSAsync` client. The destination in the send method is a string value that
-must match the queue name defined on AWS. This value will be resolved at runtime by the Amazon SQS client. Optionally
-a `ResourceIdResolver` implementation can be passed to the `QueueMessagingTemplate` constructor to resolve resources by
-logical name when running inside a CloudFormation stack (see <<Managing cloud environments>> for more information about
-resource name resolution).
+Without Spring Boot, it's necessary to import the `SqsBootstrapConfiguration` class in a `@Configuration`, as well as declare a `SqsMessageListenerContainerFactory` bean.
 
-With the messaging namespace a `QueueMessagingTemplate` can be defined in an XML configuration file.
-
-[source,xml,indent=0]
+[source, java]
 ----
-<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:aws-context="http://www.springframework.org/schema/cloud/aws/context"
-	xmlns:aws-messaging="http://www.springframework.org/schema/cloud/aws/messaging"
-	xmlns="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-		https://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/cloud/aws/context
-		http://www.springframework.org/schema/cloud/aws/context/spring-cloud-aws-context.xsd
-		http://www.springframework.org/schema/cloud/aws/messaging
-	   	http://www.springframework.org/schema/cloud/aws/messaging/spring-cloud-aws-messaging">
+public class Listener {
 
-	<aws-context:context-credentials>
-		<aws-context:instance-profile-credentials />
-	</aws-context:context-credentials>
+    @SqsListener("myQueue")
+    public void listen(String message) {
+        System.out.println(message);
+    }
 
-	<aws-messaging:queue-messaging-template id="queueMessagingTemplate" />
+}
 
-</beans>
-----
+@Import(SqsBootstrapConfiguration.class)
+@Configuration
+public class SQSConfiguration {
 
-In this example the messaging namespace handler constructs a new `QueueMessagingTemplate`. The `AmazonSQSAsync` client
-is automatically created and passed to the template's constructor based on the provided credentials. If the
-application runs inside a configured CloudFormation stack a `ResourceIdResolver` is passed to the constructor (see
-<<Managing cloud environments>> for more information about resource name resolution).
+    @Bean
+    public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+        return SqsMessageListenerContainerFactory
+            .builder()
+            .sqsAsyncClient(sqsAsyncClient())
+            .build();
+    }
 
-===== Using message converters
-In order to facilitate the sending of domain model objects, the `QueueMessagingTemplate` has various send methods that
-take a Java object as an argument for a message’s data content. The overloaded methods `convertAndSend()` and
-`receiveAndConvert()` in `QueueMessagingTemplate` delegate the conversion process to an instance of the `MessageConverter`
-interface. This interface defines a simple contract to convert between Java objects and SQS messages. The default
-implementation `SimpleMessageConverter` simply unwraps the message payload as long as it matches the target type. By
-using the converter, you and your application code can focus on the business object that is being sent or received via
-SQS and not be concerned with the details of how it is represented as an SQS message.
+    @Bean
+    public SqsAsyncClient sqsAsyncClient() {
+        return SqsAsyncClient.builder().build();
+    }
 
-[NOTE]
-====
-As SQS is only able to send `String` payloads the default converter `SimpleMessageConverter` should only be used
-to send `String` payloads. For more complex objects a custom converter should be used like the one created by the
-messaging namespace handler.
-====
+    @Bean
+    public Listener listener() {
+        return new Listener();
+    }
 
-It is recommended to use the XML messaging namespace to create `QueueMessagingTemplate` as it will set a more
-sophisticated `MessageConverter` that converts objects into JSON when Jackson is on the classpath.
-
-[source,xml,indent=0]
-----
-<aws-messaging:queue-messaging-template id="queueMessagingTemplate" />
-----
-
-[source,java,indent=0]
-----
-this.queueMessagingTemplate.convertAndSend("queueName", new Person("John, "Doe"));
-----
-
-In this example a `QueueMessagingTemplate` is created using the messaging namespace. The `convertAndSend` method
-converts the payload `Person` using the configured `MessageConverter` and sends the message.
-
-==== Receiving a message
-There are two ways for receiving SQS messages, either use the `receive` methods of the `QueueMessagingTemplate` or with
-annotation-driven listener endpoints. The latter is by far the more convenient way to receive messages.
-
-[source,java,indent=0]
-----
-Person person = this.queueMessagingTemplate.receiveAndConvert("queueName", Person.class);
-----
-
-In this example the `QueueMessagingTemplate` will get one message from the SQS queue and convert it to the target class
-passed as argument.
-
-==== Annotation-driven listener endpoints
-Annotation-driven listener endpoints are the easiest way for listening on SQS messages. Simply annotate methods with
-`MessageMapping` and the `QueueMessageHandler` will route the messages to the annotated methods.
-
-[source,xml,indent=0]
-----
-<aws-messaging:annotation-driven-queue-listener />
-----
-
-[source,java,indent=0]
-----
-@SqsListener("queueName")
-public void queueListener(Person person) {
-	// ...
 }
 ----
 
-In this example a queue listener container is started that polls the SQS `queueName` passed to the `MessageMapping`
-annotation. The incoming messages are converted to the target type and then the annotated method `queueListener` is invoked.
+=== Sending Messages
+Spring Cloud AWS SQS autoconfigures a `SqsAsyncClient` bean that can be used for sending messages.
+Note that the payload has to be converted to a JSON String to be sent.
+A `SqsTemplate` should be included in a future milestone simplifying this process.
 
-In addition to the payload, headers can be injected in the listener methods with the `@Header` or `@Headers`
-annotations. `@Header` is used to inject a specific header value while `@Headers` injects a `Map<String, String>`
-containing all headers.
+Currently, a lightweight producer abstraction can be created to facilitate sending messages, such as:
 
-Only the link:https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_Message.html[standard
-message attributes] sent with an SQS message are fully supported.
-Custom message attributes are handled as if custom type label (everything after '.' in type name) wasn't present in attribute key.
-It is silently omitted during conversion, but still can be accessed as long as original message is present in 'sourceData' header.
-
-In addition to the provided argument resolvers, custom ones can be registered on the
-`aws-messaging:annotation-driven-queue-listener` element using the `aws-messaging:argument-resolvers` attribute (see example below).
-
-[source,xml,indent=0]
+[source,java]
 ----
-<aws-messaging:annotation-driven-queue-listener>
-	<aws-messaging:argument-resolvers>
-		<bean class="org.custom.CustomArgumentResolver" />
-	</aws-messaging:argument-resolvers>
-</aws-messaging:annotation-driven-queue-listener>
+@Component
+public class SqsSampleProducer {
+
+    private final SqsAsyncClient sqsAsyncClient;
+
+    private final ObjectMapper objectMapper;
+
+    public SqsSampleProducer(SqsAsyncClient sqsAsyncClient, ObjectMapper objectMapper) {
+        this.sqsAsyncClient = sqsAsyncClient;
+        this.objectMapper = objectMapper;
+    }
+
+    public CompletableFuture<Void> sendToUrl(String queueUrl, Object payload) {
+        return this.sqsAsyncClient.sendMessage(request -> request.messageBody(getMessageBodyAsJson(payload)).queueUrl(queueUrl))
+                .thenRun(() -> {});
+    }
+
+    public CompletableFuture<Void> send(String queueName, Object payload) {
+        return this.sqsAsyncClient.getQueueUrl(request -> request.queueName(queueName))
+                .thenApply(GetQueueUrlResponse::queueUrl)
+                .thenCompose(queueUrl -> sendToUrl(queueUrl, payload));
+    }
+
+    private String getMessageBodyAsJson(Object payload) {
+        try {
+            return objectMapper.writeValueAsString(payload);
+        }
+        catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Error converting payload: " + payload, e);
+        }
+    }
+
+}
 ----
 
-By default the `SimpleMessageListenerContainer` creates a `ThreadPoolTaskExecutor` with computed values for the core and
-max pool sizes. The core pool size is set to twice the number of queues and the max pool size is obtained by multiplying
-the number of queues by the value of the `maxNumberOfMessages` field. If these default values do not meet the need of
-the application, a custom task executor can be set with the `task-executor` attribute (see example below).
+Modifications can be made to enable adding other attributes such as `MessageGroupId`, `MessageAttributes` and `MessageDeduplicationId`.
 
-[source,xml,indent=0]
+It can then be autowired and used such as:
+
+`sampleProducer.send(queueName, new MyPojo("My value", "My Other Value")).join();`
+
+IMPORTANT: The `join()` method blocks the thread and throws any error from the operation. If a `CompletableFuture` chain is being used, simply return the value instead.
+
+
+=== Receiving Messages
+
+The framework offers the following options to receive messages from a queue.
+
+==== Message Listeners
+
+To receive messages in a manually created container, a `MessageListener` or `AsyncMessageListener` must be provided.
+Both interfaces come with `single message` and a `batch` methods.
+These are functional interfaces and a lambda or method reference can be provided for the single message methods.
+
+Single message / batch modes and message payload conversion can be configured via `ContainerOptions`.
+See <<Message Conversion and Payload Deserialization>> for more information.
+
+[source, java]
 ----
-<aws-messaging:annotation-driven-queue-listener task-executor="simpleTaskExecutor" />
+@FunctionalInterface
+public interface MessageListener<T> {
+
+	void onMessage(Message<T> message);
+
+	default void onMessage(Collection<Message<T>> messages) {
+		throw new UnsupportedOperationException("Batch not implemented by this MessageListener");
+	}
+
+}
 ----
 
-==== FIFO queue support
+[source, java]
+----
+@FunctionalInterface
+public interface AsyncMessageListener<T> {
 
-`AmazonSQSBufferedAsyncClient` that Spring Cloud AWS uses by default to communicate with SQS is not compatible with FIFO queues.
-To use FIFO queues with Spring Cloud SQS it is recommended to overwrite default SQS client bean with a custom one that is not based on `AmazonSQSBufferedAsyncClient`.
+	CompletableFuture<Void> onMessage(Message<T> message);
+
+	default CompletableFuture<Void> onMessage(Collection<Message<T>> messages) {
+		return CompletableFutures
+				.failedFuture(new UnsupportedOperationException("Batch not implemented by this AsyncMessageListener"));
+	}
+
+}
+----
+
+
+==== SqsMessageListenerContainer
+
+The `MessageListenerContainer` manages the entire messages` lifecycle, from polling, to processing, to acknowledging.
+
+It can be instantiated directly, using a `SqsMessageListenerContainerFactory`, or using `@SqsListener` annotations.
+If declared as a `@Bean`, the `Spring` context will manage its lifecycle, starting the container on application startup and stopping it on application shutdown.
+See <<Container Lifecycle>> for more information.
+
+It implements the `MessageListenerContainer` interface:
+
+[source,java]
+----
+public interface MessageListenerContainer<T> extends SmartLifecycle {
+
+	String getId();
+
+	void setId(String id);
+
+	void setMessageListener(MessageListener<T> messageListener);
+
+	void setAsyncMessageListener(AsyncMessageListener<T> asyncMessageListener);
+
+}
+----
+
+NOTE: The generic parameter `<T>` stands for the `payload type` of messages to be consumed by this container.
+This allows ensuring at compile-time that all components used with the container are for the same type.
+If more than one payload type is to be used by the same container or factory, simply type it as `Object`.
+This type is not considered for payload conversion.
+
+A container can be instantiated in a familiar Spring way in a `@Configuration` annotated class.
 For example:
 
-[source,java,index=0]
-----
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
-import io.awspring.cloud.core.region.RegionProvider;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-@Configuration
-public class AppConfig {
-
-	@Bean
-	AmazonSQSAsync amazonSQS(AWSCredentialsProvider awsCredentialsProvider, RegionProvider regionProvider,
-			ClientConfiguration clientConfiguration) {
-		return AmazonSQSAsyncClientBuilder.standard().withCredentials(awsCredentialsProvider)
-				.withClientConfiguration(clientConfiguration).withRegion(regionProvider.getRegion().getName()).build();
-	}
-}
-----
-
-===== Deletion policies
-SQS integration supports deletion policies that are used when processing messages.
-Note that SQS messages that were not deleted successfully are logged as an error.
-
-[cols="2"]
-|===
-|	`ALWAYS`
-|   Always deletes a message in case of success (no exception thrown) or failure (exception thrown)
-
-|	`NEVER`
-|   When using this policy method listening must take care of deleting messages.
-
-|	`NO_REDRIVE`
-| 	Deletes a message if no redrive policy is defined
-
-|	`ON_SUCCESS`
-|   Deletes a message only when successfully executed by listener method (no exception thrown)
-
-|	`DEFAULT`
-|   Default if not changed is set to `NO_REDRIVE`.
-|===
-
-Deletion policy can be specified inside of `@SqsListener`. When policy is explicitly used in `@SqsListener` it takes priority over the global deletion policy.
-
-[source,java,indent=0]
-----
-@SqsListener(value = "queueName", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
-----
-
-Global deletion policy which will be used by all `@SqsListener` can be set by using a property:
-
-[source,properties,indent=0]
-----
-cloud.aws.sqs.handler.default-deletion-policy=ON_SUCCESS
-----
-
-
-===== Message reply
-Message listener methods can be annotated with `@SendTo` to send their return value to another channel. The
-`SendToHandlerMethodReturnValueHandler` uses the defined messaging template set on the
-`aws-messaging:annotation-driven-queue-listener` element to send the return value. The messaging template must implement
-the `DestinationResolvingMessageSendingOperations` interface.
-
-[source,xml,indent=0]
-----
-<aws-messaging:annotation-driven-queue-listener send-to-message-template="queueMessagingTemplate"/>
-----
-
-[source,java,indent=0]
-----
-@SqsListener("treeQueue")
-@SendTo("leafsQueue")
-public List<Leaf> extractLeafs(Tree tree) {
-	// ...
-}
-----
-
-In this example the `extractLeafs` method will receive messages coming from the `treeQueue` and then return a
-`List` of ``Leaf``s which is going to be sent to the `leafsQueue`. Note that on the
-`aws-messaging:annotation-driven-queue-listener` XML element there is an attribute `send-to-message-template`
-that specifies `QueueMessagingTemplate` as the messaging template to be used to send the return value of the message
-listener method.
-
-===== Handling Exceptions
-
-Exception thrown inside `@SqsListener` annotated methods can be handled by methods annotated with `@MessageExceptionHandler`.
-
-[source,java,indent=0]
-----
-import io.awspring.cloud.messaging.listener.annotation.SqsListener;
-import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
-import org.springframework.stereotype.Component;
-
-@Component
-public class MyMessageHandler {
-
-	@SqsListener("queueName")
-	void handle(String message) {
-		...
-		throw new MyException("something went wrong");
-	}
-
-	@MessageExceptionHandler(MyException.class)
-	void handleException(MyException e) {
-		...
-	}
-}
-----
-
-==== The SimpleMessageListenerContainerFactory
-The `SimpleMessageListenerContainer` can also be configured with Java by creating a bean of type `SimpleMessageListenerContainerFactory`.
-
-[source,java,indent=0]
+[source,java]
 ----
 @Bean
-public SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory(AmazonSQSAsync amazonSqs) {
-	SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
-	factory.setAmazonSqs(amazonSqs);
-	factory.setAutoStartup(false);
-	factory.setMaxNumberOfMessages(5);
-	// ...
-
-	return factory;
+MessageListenerContainer<Object> listenerContainer(SqsAsyncClient sqsAsyncClient) {
+    SqsMessageListenerContainer<Object> container = new SqsMessageListenerContainer<>(sqsAsyncClient);
+    container.setMessageListener(System.out::println);
+    container.setQueueNames("myTestQueue");
+    return container;
 }
 ----
 
-==== Consuming AWS Event messages with Amazon SQS
-It is also possible to receive AWS generated event messages with the SQS message listeners. Because
-AWS messages does not contain the mime-type header, the Jackson message converter has to be configured
-with the `strictContentTypeMatch` property false to also parse message without the proper mime type.
+This framework also provides a convenient `Builder` that allows a different approach, such as:
 
-The next code shows the configuration of the message converter using the `QueueMessageHandlerFactory`
-and re-configuring the `MappingJackson2MessageConverter`
-
-[source,java,indent=0]
+[source,java]
 ----
 @Bean
-public QueueMessageHandlerFactory queueMessageHandlerFactory() {
-	QueueMessageHandlerFactory factory = new QueueMessageHandlerFactory();
-	MappingJackson2MessageConverter messageConverter = new MappingJackson2MessageConverter();
-
-	//set strict content type match to false
-	messageConverter.setStrictContentTypeMatch(false);
-	factory.setArgumentResolvers(Collections.<HandlerMethodArgumentResolver>singletonList(new PayloadArgumentResolver(messageConverter)));
-	return factory;
+MessageListenerContainer<Object> listenerContainer(SqsAsyncClient sqsAsyncClient) {
+    return SqsMessageListenerContainer
+            .builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .messageListener(System.out::println)
+            .queueNames("myTestQueue")
+            .build();
 }
 ----
 
-With the configuration above, it is possible to receive event notification for S3 buckets (and also other
-event notifications like elastic transcoder messages) inside `@SqsListener` annotated methods s shown below.
+The container's lifecycle can also be managed manually:
 
-[source,java,indent=0]
+[source,java]
 ----
-@SqsListener("testQueue")
-public void receive(S3EventNotification s3EventNotificationRecord) {
-	S3EventNotification.S3Entity s3Entity = s3EventNotificationRecord.getRecords().get(0).getS3();
+void myMethod(SqsAsyncClient sqsAsyncClient) {
+    SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer
+            .builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .messageListener(System.out::println)
+            .queueNames("myTestQueue")
+            .build();
+    container.start();
+    container.stop();
 }
 ----
 
-==== IAM Permissions
-Following IAM permissions are required by Spring Cloud AWS:
+==== SqsMessageListenerContainerFactory
+
+A `MessageListenerContainerFactory` can be used to create `MessageListenerContainer` instances, both directly or through `@SqsListener` annotations.
+
+It can be created in a familiar `Spring` way, such as:
+
+[source, java,indent=0]
+----
+@Bean
+SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+    SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
+    factory.setSqsAsyncClient(sqsAsyncClient);
+    return factory;
+}
+----
+
+Or through the `Builder`:
+
+[source,java]
+----
+@Bean
+SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+    return SqsMessageListenerContainerFactory
+            .builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .build();
+}
+----
+
+IMPORTANT: Using this method for setting the `SqsAsyncClient` instance in the factory, all containers created by this factory will share the same `SqsAsyncClient` instance.
+For high-throughput applications, a `Supplier<SqsAsyncClient>` can be provided instead through the factory's `setSqsAsyncClientSupplier` or the builder's `sqsAsyncSupplier` methods.
+In this case each container will receive a `SqsAsyncClient` instance.
+Alternatively, a single `SqsAsyncClient` instance can be configured for higher throughput. See the AWS documentation for more information on tradeoffs of each approach.
+
+The factory can also be used to create a container directly, such as:
+
+[source,java]
+----
+@Bean
+MessageListenerContainer<Object> myListenerContainer(SqsAsyncClient sqsAsyncClient) {
+    return SqsMessageListenerContainerFactory
+            .builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .messageListener(System.out::println)
+            .build()
+            .createContainer("myQueue");
+}
+----
+
+==== @SqsListener Annotation
+
+The simplest way to consume `SQS` messages is by annotating a method in a `@Component` class with the `@SqsListener` annotation.
+The framework will then create the `MessageListenerContainer` and set a `MessagingMessageListenerAdapter` to invoke the method when a message is received.
+
+When using `Spring Boot` with `auto-configuration`, no configuration is necessary.
+
+Most attributes on the annotation can be resolved from SpEL `(#{...})` or property placeholders `(${...})`.
+
+===== Queue Names
+
+One or more queues can be specified in the annotation through the `queueNames` or `value` properties - there's no distinction between the two properties.
+
+Instead of queue names, queue urls can also be provided.
+Using urls instead of queue names can result in slightly faster startup times since it prevents the framework from looking up the queue url when the containers start.
+
+[source, java]
+----
+@SqsListener({"${my.queue.url}", "myOtherQueue"})
+public void listenTwoQueues(String message) {
+    System.out.println(message);
+}
+----
+
+Any number of `@SqsListener` annotations can be used in a bean class, and each annotated method will be handled by a separate `MessageListenerContainer`.
+
+NOTE: Queues declared in the same annotation will share the container, though each will have separate throughput and acknowledgement controls.
+
+===== Specifying a MessageListenerContainerFactory
+A `MessageListenerContainerFactory` can be specified through the `factory` property.
+Such factory will then be used to create the container for the annotated method.
+
+If not specified, a factory with the `defaultSqsListenerContainerFactory` name will be looked up.
+For changing this default name, see <<Global Configuration for @SqsListeners>>.
+
+[source,java]
+----
+@SqsListener(queueNames = "myQueue", factory = "myFactory")
+public void listen(String message) {
+    System.out.println(message);
+}
+----
+
+When using a `Spring Boot` application with `auto-configuration`, a default factory is provided if there are no other factory beans declared in the context.
+
+
+===== Other Annotation Properties
+
+The following properties can be specified in the `@SqsListener` annotation.
+Such properties override the equivalent `ContainerOptions` for the resulting `MessageListenerContainer`.
+
+- `id` - Specify the resulting container's id.
+This can be used for fetching the container from the `MessageListenerContainerRegistry`, and is used by the container and its components for general logging and thread naming.
+- `maxInflightMessagesPerQueue` - Set the maximum number of messages that can be `inflight` at any given moment.
+See <<Message Processing Throughput>> for more information.
+- `pollTimeoutSeconds` - Set the maximum time to wait before a poll returns from SQS.
+Note that if there are messages available the call may return earlier than this setting.
+- `messageVisibilitySeconds` - Set the minimum visibility for the messages retrieved in a poll.
+Note that for `FIFO` single message listener methods, this visibility is applied to the whole batch before each message is sent to the listener.
+See <<FIFO Support>> for more information.
+
+
+===== Listener Method Arguments
+
+A number of possible argument types are allowed in the listener method's signature.
+
+- `MyPojo` - POJO types are automatically deserialized from JSON.
+- `Message<MyPojo>` - Provides a `Message<MyPojo>` instance with the deserialized payload and `MessageHeaders`.
+- `List<MyPojo>` - Enables batch mode and receives the batch that was polled from SQS.
+- `List<Message<MyPojo>>` - Enables batch mode and receives the batch that was polled from SQS along with headers.
+- `@Header(String headerName)` - provides the specified header.
+- `@Headers` - provides the `MessageHeaders` or a `Map<String, Object>`
+- `Acknowledgement` - provides the `.acknowledge()` method that can be used to manually acknowledge the message.
+AcknowledgementMode must be set to `MANUAL` (see <<Acknowledging Messages>>)
+- `AsyncAcknowledgement` - provides the `.acknowledgeAsync()` method that can be used to manually acknowledge the message.
+AcknowledgementMode must be set to `MANUAL` (see <<Acknowledging Messages>>)
+- `Visibility` - provides the `changeTo()` method that enables changing the message's visibility to the provided value.
+- `QueueAttributes` - provides queue attributes for the queue that received the message.
+See <<Retrieving Attributes from SQS>> for how to specify the queue attributes that will be fetched from `SQS`
+- `software.amazon.awssdk.services.sqs.model.Message` - provides the original `Message` from `SQS`
+
+Here's a sample with many arguments:
+
+[source, java]
+----
+@SqsListener("${my-queue-name}")
+public void listen(Message<MyPojo> message, MyPojo pojo, MessageHeaders headers, Acknowledgement ack, Visibility visibility, QueueAttributes queueAttributes, AsyncAcknowledgement asyncAck, software.amazon.awssdk.services.sqs.model.Message originalMessage) {
+    Assert.notNull(message);
+    Assert.notNull(pojo);
+    Assert.notNull(headers);
+    Assert.notNull(ack);
+    Assert.notNull(asyncAck);
+    Assert.notNull(visibility);
+    Assert.notNull(queueAttributes);
+    Assert.notNull(originalMessage);
+}
+----
+
+IMPORTANT: Currently, batch listeners only support `List<MyPojo>` and `List<Message<MyPojo>>` method arguments.
+Other arguments can be found as headers in the `Message<MyPojo>` instances and can be extracted through the `getHeader` method.
+
+==== Batch Processing
+
+All message processing interfaces have both `single message` and `batch` methods.
+This means the same set of components can be used to process both single and batch methods, and can share logic where applicable.
+
+When batch mode is enabled, the framework will serve the entire result of a poll to the listener.
+
+To enable batch processing using `@SqsListener`, declare a `List<MyPojo>` or `List<Message<MyPojo>>` method argument in the listener method.
+
+IMPORTANT: Currently, when declaring batch mode this way, no other arguments can be added to the method signature.
+If any metadata is required, the `List<Message<MyPojo>>` variant should be used, then the headers can be checked to retrieve such information.
+The `SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER` will contain the `AcknowldgementCallback` you can use to manually acknowledge the messages in `AcknowledgementMode.MANUAL`.
+If acknowledgement batching is being used, acknowledgements will be batched instead of executing immediately.
+See <<Acknowledging Messages>> for more information on `Acknowledging messages`
+
+To configure a batch processing at factory or container level, set `MessageDeliveryStrategy.BATCH` in the `ContainerOptions`, in the factory or container.
+This will affect manually created containers.
+Containers created from `@SqsListener` annotations will override this setting with whether they contain a `List<Pojoj>` or `List<Message<Pojo>>` argument.
+
+NOTE: The same factory can be used to create both `single message` and `batch` containers for `@SqsListener` methods.
+
+IMPORTANT: In case the same factory is shared by both delivery methods, any supplied `ErrorHandler`, `MessageInterceptor` or `MessageListener` should implement the proper methods.
+
+IMPORTANT: If batch mode is enabled, make sure all components being used have the necessary `batch` methods implemented, otherwise an error may occur.
+
+==== Container Options
+
+Each `MessageListenerContainer` can have a different set of options.
+`MessageListenerContainerFactory` instances have a `ContainerOptions.Builder` instance property that is used as a template for the containers it creates.
+
+Both factory and container offer a `configure` method that can be used to change the options:
+
+[source, java]
+----
+@Bean
+SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+    return SqsMessageListenerContainerFactory
+            .builder()
+            .configure(options -> options
+                    .messagesPerPoll(5)
+                    .pollTimeout(Duration.ofSeconds(10)))
+            .sqsAsyncClient(sqsAsyncClient)
+            .build();
+}
+----
+
+[source, java]
+----
+@Bean
+MessageListenerContainer<Object> listenerContainer(SqsAsyncClient sqsAsyncClient) {
+    return SqsMessageListenerContainer
+            .builder()
+            .configure(options -> options
+                    .messagesPerPoll(5)
+                    .pollTimeout(Duration.ofSeconds(10)))
+            .sqsAsyncClient(sqsAsyncClient)
+            .messageListener(System.out::println)
+            .queueNames("myTestQueue")
+            .build();
+}
+----
+
+The `ContainerOptions` instance is immutable and can be retrieved via the `container.getContainerOptions()` method.
+If more complex configurations are necessary, the `toBuilder` and `fromBuilder` methods provide ways to create a new copy of the options, and then set it back to the factory or container:
+
+[source, java]
+----
+void myMethod(MessageListenerContainer<Object> container) {
+    ContainerOptions.Builder modifiedOptions = container.getContainerOptions()
+            .toBuilder()
+            .pollTimeout(Duration.ofSeconds(5))
+            .shutdownTimeout(Duration.ofSeconds(20));
+    container.configure(options -> options.fromBuilder(modifiedOptions));
+}
+----
+
+A copy of the options can also be created with `containerOptions.createCopy()` or `containerOptionsBuilder.createCopy()`.
+
+===== Using Auto-Configuration
+
+The Spring Boot Starter for SQS provides the following auto-configuration properties:
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.sqs.enabled` | Enables the SQS integration. | No | `true`
+| `spring.cloud.aws.sqs.endpoint` | Configures endpoint used by `SqsAsyncClient`. | No | `http://localhost:4566`
+| `spring.cloud.aws.sqs.region` | Configures region used by `SqsAsyncClient`. | No | `eu-west-1`
+| <<maxInflightMessagesPerQueue, `spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue`>> | Maximum number of inflight messages per queue. | No | 10
+| <<maxMessagesPerPoll, `spring.cloud.aws.sqs.listener.max-messages-per-poll`>> | Maximum number of messages to be received per poll. | No | 10
+| <<pollTimeout, `spring.cloud.aws.sqs.listener.poll-timeout`>> | Maximum amount of time to wait for messages in a poll. | No | 10 seconds
+|===
+
+
+===== ContainerOptions Descriptions
+[cols="13,9,9,16", options="header"]
+|===
+| Property
+| Range
+| Default
+| Description
+
+|<<maxInflightMessagesPerQueue>>
+|1 - `Integer.MAX_VALUE`
+|10
+|The maximum number of messages from each queue that can be processed simultaneously in this container.
+This number will be used for defining the thread pool size for the container following (maxInflightMessagesPerQueue * number of queues).
+For batching acknowledgements a message is considered as no longer inflight when it's handed to the acknowledgement queue.
+See <<Acknowledging Messages>>.
+
+|<<maxMessagesPerPoll>>
+|1 - 10
+|10
+|The maximum number of messages that will be received by a poll to a SQS queue in this container.
+See AWS documentation for more information.
+
+|<<pollTimeout>>
+|1 - 10 seconds
+|10 seconds
+|The maximum duration for a poll to a SQS queue before returning empty.
+Longer polls decrease the chance of empty polls when messages are available.
+See AWS documentation for more information.
+
+|<<permitAcquireTimeout>>
+|1 - 10 seconds
+|10 seconds
+|The maximum time the framework will wait for permits to be available for a queue before attempting the next poll.
+After that period, the framework will try to perform a partial acquire with the available permits, resulting in a poll for less than `maxMessagesPerPoll` messages, unless otherwise configured.
+See <<Message Processing Throughput>>.
+
+|`shutdownTimeout`
+|0 - undefined
+|10 seconds
+|The amount of time the container will wait for a queue to complete its operations before attempting to forcefully shutdown.
+See <<Container Lifecycle>>.
+
+|`backPressureMode`
+|`AUTO`, `ALWAYS_POLL_MAX_MESSAGES`, `FIXED_HIGH_THROUGHPUT`
+|`AUTO`
+|Configures the backpressure strategy to be used by the container.
+See <<Configuring BackPressureMode>>.
+
+|`messageDeliveryStrategy`
+|`SINGLE_MESSAGE`, `BATCH`
+|`SINGLE_MESSAGE`
+|Configures whether this container will use `single message` or `batch` listeners.
+This value is overriden by `@SqsListener` depending on whether the listener method contains a `List` argument.
+See <<Batch Processing>>.
+
+|`queueAttributeNames`
+|`Collection<QueueAttributeName>`
+|Empty list
+|Configures the `QueueAttributes` that will be retrieved from SQS when a container starts.
+See <<Retrieving Attributes from SQS>>.
+
+|`messageAttributeNames`
+|`Collection<String>`
+|`ALL`
+|Configures the `MessageAttributes` that will be retrieved from SQS for each message.
+See <<Retrieving Attributes from SQS>>.
+
+|`messageSystemAttributeNames`
+|`Collection<String>`
+|`ALL`
+|Configures the `MessageSystemAttribute` that will be retrieved from SQS for each message.
+See <<Retrieving Attributes from SQS>>.
+
+|`messageConverter`
+|`MessagingMessageConverter`
+|`SqsMessagingMessageConverter`
+|Configures the `MessagingMessageConverter` that will be used to convert SQS messages into Spring Messaging Messages.
+See <<Message Conversion and Payload Deserialization>>.
+
+|`acknowledgementMode`
+|`ON_SUCCESS`, `ALWAYS`, `MANUAL`
+|`ON_SUCCESS`
+|Configures the processing outcomes that will trigger automatic acknowledging of messages.
+See <<Acknowledging Messages>>.
+
+|`acknowledgementInterval`
+|0 - undefined
+|`1 second` for `Standard SQS`, `Duration.ZERO` for `FIFO SQS`
+|Configures the interval between acknowledges for batching.
+Set to `Duration.ZERO` along with `acknowledgementThreshold` to zero to enable `immediate acknowledgement`
+See <<Acknowledging Messages>>.
+
+|`acknowledgementThreshold`
+|0 - undefined
+|`10` for `Standard SQS`, `0` for `FIFO SQS`
+|Configures the minimal amount of messages in the acknowledgement queue to trigger acknowledgement of a batch.
+Set to zero along with `acknowledgementInterval` to `Duration.ZERO` to enable `immediate acknowledgement`.
+See <<Acknowledging Messages>>.
+
+|`acknowledgementOrdering`
+|`PARALLEL`, `ORDERED`
+|`PARALLEL` for `Standard SQS` and `FIFO` queues with immediate acknowledgement, `ORDERED` for `FIFO` queues with acknowledgement batching enabled.
+|Configures the order acknowledgements should be made.
+Fifo queues can be acknowledged in parallel for immediate acknowledgement since the next message for a message group will only start being processed after the previous one has been acknowledged.
+See <<Acknowledging Messages>>.
+
+|`containerComponentsTaskExecutor`
+|`TaskExecutor`
+|`null`
+|Provides a `TaskExecutor` instance to be used by the `MessageListenerContainer` internal components.
+See <<Providing a TaskExecutor>>.
+
+|`messageVisibility`
+|`Duration`
+|`null`
+|Specify the message visibility duration for messages polled in this container.
+For `FIFO` queues, visibility is extended for all messages in a message group before each message is processed.
+See <<FIFO Support>>.
+Otherwise, visibility is specified once when polling SQS.
+
+|`queueNotFoundStrategy`
+|`FAIL`, `CREATE`
+|`CREATE`
+|Configures the behavior when a queue is not found at container startup.
+See <<Container Lifecycle>>.
+|===
+
+==== Retrieving Attributes from SQS
+
+`QueueAttributes`, `MessageAttributes` and `MessageSystemAttributes` can be retrieved from SQS.
+These can be configured using the `ContainerOptions` `queueAttributeNames`, `messageAttributeNames` and `messageSystemAttributeNames` methods.
+
+`QueueAttributes` for a queue are retrieved when containers start, and can be looked up by adding the `QueueAttributes` method parameter in a `@SqsListener` method, or by getting the `SqsHeaders.SQS_QUEUE_ATTRIBUTES_HEADER` header.
+
+`MessageAttributes` and `MessageSystemAttributes` are retrieved with each message, and are mapped to message headers.
+Those can be retrieved with `@Header` parameters, or directly in the `Message`.
+The message headers are prefixed with `SqsHeaders.SQS_MA_HEADER_PREFIX` ("Sqs_MA_") for message attributes and
+`SqsHeaders.SQS_MSA_HEADER_PREFIX` ("Sqs_MSA_") for message system attributes.
+
+NOTE: By default, no `QueueAttributes` and `ALL` `MessageAttributes` and `MessageSystemAttributes` are retrieved.
+
+==== Container Lifecycle
+
+The `MessageListenerContainer` interface extends `SmartLifecycle`, which provides methods to control the container's lifecycle.
+
+Containers created from `@SqsListener` annotations are registered in a `MessageListenerContainerRegistry` bean that is registered by the framework.
+The containers themselves are not Spring-managed beans, and the registry is responsible for managing these containers` lifecycle in application startup and shutdown.
+
+At startup, the containers will make requests to `SQS` to retrieve the queues` urls for the provided queue names, and for retrieving `QueueAttributes` if so configured.
+Providing queue urls instead of names and not requesting queue attributes can result in slightly better startup times since there's no need for such requests.
+
+NOTE: If retrieving the queue url fails due to the queue not existing, the framework can be configured to either create the queue or fail.
+If a URL is provided instead of a queue name the framework will not make this request at startup, and thus if the queue does not exist it will fail at runtime.
+This configuration is available in `ContainerOptions` `queueNotFoundStrategy.`
+
+At shutdown, by default containers will wait for all polling, processing and acknowledging operations to finish, up to `ContainerOptions.getShutdownTimeout()`.
+After this period, operations will be canceled and the container will attempt to forcefully shutdown.
+
+===== Containers as Spring Beans
+
+Manually created containers can be registered as beans, e.g. by declaring a `@Bean` in a `@Configuration` annotated class.
+In these cases the containers lifecycle will be managed by the `Spring` context at application startup and shutdown.
+
+[source, java]
+----
+@Bean
+MessageListenerContainer<Object> listenerContainer(SqsAsyncClient sqsAsyncClient) {
+    return SqsMessageListenerContainer
+            .builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .messageListener(System.out::println)
+            .queueNames("myTestQueue")
+            .build();
+}
+----
+
+===== Retrieving Containers from the Registry
+
+Containers can be retrieved by fetching the `MessageListenerContainer` bean from the container and using the `getListenerContainers` and `getContainerById` methods.
+Then lifecycle methods can be used to start and stop instances.
+
+[source,java]
+----
+@Autowired
+MessageListenerContainerRegistry registry;
+
+public void myLifecycleMethod() {
+    MessageListenerContainer container = registry.getContainerById("myId");
+    container.stop();
+    container.start();
+}
+----
+
+===== Lifecycle Execution
+
+By default, all lifecycle actions performed by the `MessageListenerContainerRegistry` and internally by the `MessageListenerContainer` instances are executed in parallel.
+
+This behavior can be disabled by setting `LifecycleHandler.get().setParallelLifecycle(false)`.
+
+NOTE: Spring-managed `MessageListenerContainer` beans' lifecycle actions are always performed sequentially.
+
+
+==== FIFO Support
+
+`FIFO` SQS queues are fully supported for receiving messages - queues with names that ends in `.fifo` will automatically be setup as such.
+
+* Messages are polled with a `receiveRequestAttemptId`, and the received batch of messages is split according to the message`s `MessageGroupId`.
+* Each message from a given group will then be processed in order, while each group is processed in parallel.
+* If processing fails for a message, the following messages from the same message group are discarded so they will be served again after their `message visibility`
+expires.
+* Messages which were already successfully processed and acknowledged will not be served again.
+* If a `batch` listener is used, each message group from a poll will be served as a batch to the listener method.
+* `FIFO` queues also have different defaults for acknowledging messages, see <<Acknowledgement Defaults>> for more information.
+* If a `message visibility` is set through `@SqsListener` or `ContainerOptions`, visibility will be extended for all messages in the message group before each message is processed.
+
+IMPORTANT: A `MessageListenerContainer` can either have only `Standard` queues or `FIFO` queues - not both.
+This is valid both for manually created containers and `@SqsListener` annotated methods.
+
+=== Message Interceptor
+
+The framework offers the `MessageInterceptor` and the `AsyncMessageInterceptor` interfaces:
+
+[source, java]
+----
+public interface MessageInterceptor<T> {
+
+	default Message<T> intercept(Message<T> message) {
+		return message;
+	}
+
+	default Collection<Message<T>> intercept(Collection<Message<T>> messages) {
+		return messages;
+	}
+
+	default void afterProcessing(Message<T> message, Throwable t) {
+	}
+
+	default void afterProcessing(Collection<Message<T>> messages, Throwable t) {
+	}
+
+}
+----
+
+[source, java]
+----
+public interface AsyncMessageInterceptor<T> {
+
+	default CompletableFuture<Message<T>> intercept(Message<T> message) {
+		return CompletableFuture.completedFuture(message);
+	}
+
+	default CompletableFuture<Collection<Message<T>>> intercept(Collection<Message<T>> messages) {
+		return CompletableFuture.completedFuture(messages);
+	}
+
+	default CompletableFuture<Void> afterProcessing(Message<T> message, Throwable t) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	default CompletableFuture<Void> afterProcessing(Collection<Message<T>> messages, Throwable t) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+}
+----
+
+When using the auto-configured factory, simply declare a `@Bean` and the interceptor will be set:
+
+[source, java]
+----
+@Bean
+public MessageInterceptor<Object> messageInterceptor() {
+    return new MessageInterceptor<Object>() {
+            @Override
+            public Message<Object> intercept(Message<Object> message) {
+                return MessageBuilder
+                    .fromMessage(message)
+                    .setHeader("newHeader", "newValue")
+                    .build();
+            }
+        };
+}
+----
+
+Alternatively, implementations can be set in the `MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+    return SqsMessageListenerContainerFactory
+        .builder()
+        .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+        .messageInterceptor(new MessageInterceptor<Object>() {
+            @Override
+            public Message<Object> intercept(Message<Object> message) {
+                return MessageBuilder
+                    .fromMessage(message)
+                    .setHeader("newHeader", "newValue")
+                    .build();
+            }
+        })
+        .build();
+}
+----
+
+NOTE: Multiple interceptors can be added to the same factory or container.
+
+The `intercept` methods are executed `before` a message is processed, and a different message can be returned.
+
+IMPORTANT: In case a different message is returned, it's important to add the `SqsHeaders.SQS_RECEIPT_HANDLE_HEADER` with the value of the original handler so the original message is acknowledged after processing.
+Also, a `SqsHeaders.SQS_MESSAGE_ID_HEADER` must always be present.
+
+IMPORTANT: The `intercept` methods must not return null.
+
+The `afterProcessing` methods are executed after message is processed and the `ErrorHandler` is invoked, but before the message is acknowledged.
+
+=== Error Handling
+
+By default, messages that have an error thrown by the listener will not be acknowledged, and the message can be polled again after `visibility timeout` expires.
+
+Alternatively, the framework offers the `ErrorHandler` and `AsyncErrorHandler` interfaces, which are invoked after a listener execution fails.
+
+[source, java]
+----
+public interface ErrorHandler<T> {
+
+	default void handle(Message<T> message, Throwable t) {
+	}
+
+	default void handle(Collection<Message<T>> messages, Throwable t) {
+	}
+
+}
+----
+
+[source, java]
+----
+public interface AsyncErrorHandler<T> {
+
+	default CompletableFuture<Void> handle(Message<T> message, Throwable t) {
+		return CompletableFutures.failedFuture(t);
+	}
+
+	default CompletableFuture<Void> handle(Collection<Message<T>> messages, Throwable t) {
+		return CompletableFutures.failedFuture(t);
+	}
+
+}
+----
+
+When using the auto-configured factory, simply declare a `@Bean` and the error handler will be set:
+
+[source, java]
+----
+@Bean
+public ErrorHandler<Object> errorHandler() {
+    return new ErrorHandler<Object>() {
+        @Override
+        public void handle(Message<Object> message, Throwable t) {
+            // error handling logic
+            // throw if the message should not be acknowledged
+        }
+    }}
+----
+
+Alternatively, implementations can be set in the `MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+    return SqsMessageListenerContainerFactory
+        .builder()
+        .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+        .errorHandler(new ErrorHandler<Object>() {
+            @Override
+            public void handle(Message<Object> message, Throwable t) {
+                // error handling logic
+            }
+        })
+        .build();
+}
+----
+
+If the error handler execution succeeds, i.e. no error is thrown from the error handler, the message is considered to be recovered and is acknowledged according to the acknowledgement configuration.
+
+IMPORTANT: If the message should not be acknowledged and the `ON_SUCCESS` acknowledgement mode is set, it's important to propagate the error.
+For simply executing an action in case of errors, an `interceptor` should be used instead, checking the presence of the `throwable` argument for detecting a failed execution.
+
+
+=== Message Conversion and Payload Deserialization
+
+Payloads are automatically deserialized from `JSON` for `@SqsListener` annotated methods using a `MappingJackson2MessageConverter`.
+
+NOTE: When using Spring Boot's auto-configuration, if there's a single `ObjectMapper` in Spring Context, such object mapper will be used for converting messages.
+This includes the one provided by Spring Boot's auto-configuration itself.
+For configuring a different `ObjectMapper`, see <<Global Configuration for @SqsListeners>>.
+
+For manually created `MessageListeners`, `MessageInterceptor` and `ErrorHandler` components, or more fine-grained conversion such as using `interfaces` or `inheritance` in listener methods, type mapping is required for payload deserialization.
+
+By default, the framework looks for a `MessageHeader` named `Sqs_MA_JavaType` containing the fully qualified class name (`FQCN`) for which the payload should be deserialized to.
+If such header is found, the message is automatically deserialized to the provided class.
+
+Further configuration can be achieved by providing a configured `MessagingMessageConverter` instance in the `ContainerOptions`.
+
+NOTE: If type mapping is setup or type information is added to the headers, payloads are deserialized right after the message is polled.
+Otherwise, for `@SqsListener` annotated methods, payloads are deserialized right before the message is sent to the listener.
+For providing custom `MessageConverter` instances to be used by `@SqsListener` methods, see <<Global Configuration for @SqsListeners>>
+
+==== Configuring a MessagingMessageConverter
+
+The framework provides the `SqsMessagingMessageConverter`, which implements the `MessagingMessageConverter` interface.
+
+[source, java]
+----
+public interface MessagingMessageConverter<S> {
+
+	Message<?> toMessagingMessage(S source);
+
+	S fromMessagingMessage(Message<?> message);
+
+}
+----
+
+The default header-based type mapping can be configured to use a different header name by using the `setPayloadTypeHeader` method.
+
+More complex mapping can be achieved by using the `setPayloadTypeMapper` method, which overrides the default header-based mapping.
+This method receives a `Function<Message<?>, Class<?>> payloadTypeMapper` that will be applied to incoming messages.
+
+The default `MappingJackson2MessageConverter` can be replaced by using the `setPayloadMessageConverter` method.
+
+The framework also provides the `SqsHeaderMapper`, which implements the `HeaderMapper` interface and is invoked by the `SqsMessagingMessageConverter`.
+To provide a different `HeaderMapper` implementation, use the `setHeaderMapper` method.
+
+An example of such configuration follows:
+
+[source, java]
+----
+// Create converter instance
+SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter();
+
+// Configure Type Header
+messageConverter.setPayloadTypeHeader("myTypeHeader");
+
+// Configure Header Mapper
+SqsHeaderMapper headerMapper = new SqsHeaderMapper();
+headerMapper.setAdditionalHeadersFunction(((sqsMessage, accessor) -> {
+    accessor.setHeader("myCustomHeader", "myValue");
+    return accessor.toMessageHeaders();
+}));
+messageConverter.setHeaderMapper(headerMapper);
+
+// Configure Payload Converter
+MappingJackson2MessageConverter payloadConverter = new MappingJackson2MessageConverter();
+payloadConverter.setPrettyPrint(true);
+messageConverter.setPayloadMessageConverter(payloadConverter);
+
+// Set MessageConverter to the factory or container
+factory.configure(options -> options.messageConverter(messageConverter));
+----
+
+==== Interfaces and Subclasses in Listener Methods
+
+Interfaces and subclasses can be used in `@SqsListener` annotated methods by configuring a `type mapper`:
+
+[source, java]
+----
+messageConverter.setPayloadTypeMapper(message -> {
+    String eventTypeHeader = message.getHeaders().get("myEventTypeHeader", String.class);
+    return "eventTypeA".equals(eventTypeHeader)
+        ? MyTypeA.class
+        : MyTypeB.class;
+});
+----
+
+And then, in the listener method:
+
+[source, java]
+----
+@SpringBootApplication
+public class SqsApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(SqsApplication.class, args);
+    }
+
+    // Retrieve the converted payload
+    @SqsListener("myQueue")
+    public void listen(MyInterface message) {
+        System.out.println(message);
+    }
+
+    // Or retrieve a Message with the converted payload
+    @SqsListener("myOtherQueue")
+    public void listen(Message<MyInterface> message) {
+        System.out.println(message);
+    }
+}
+----
+
+
+=== Acknowledging Messages
+
+In `SQS` acknowledging a message is the same as deleting the message from the queue.
+A number of `Acknowledgement` strategies are available and can be configured via `ContainerOptions`.
+
+Here's an example of a possible configuration:
+
+[source, java]
+----
+@Bean
+SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+    return SqsMessageListenerContainerFactory
+            .builder()
+            .configure(options -> options
+                    .acknowledgementMode(AcknowledgementMode.ALWAYS)
+                    .acknowledgementInterval(Duration.ofSeconds(3))
+                    .acknowledgementThreshold(5)
+                    .acknowledgementOrdering(AcknowledgementOrdering.ORDERED)
+            )
+            .sqsAsyncClient(sqsAsyncClient)
+            .build();
+}
+----
+
+Each option is explained in the following sections.
+
+NOTE: All options are available for both `single message` and `batch` message listeners.
+
+==== Acknowledgement Mode
+
+- `ON_SUCCESS` - Acknowledges a message or batch of messages after successful processing.
+- `ALWAYS` - Acknowledges a message or batch of messages after processing returns success or error.
+- `MANUAL` - The framework won't acknowledge messages automatically and `Acknowledgement` objects can be received in the listener method.
+
+==== Acknowledgement Batching
+
+The `acknowledgementInterval` and `acknowledgementThreshold` options enable acknowledgement batching.
+Acknowledgements will be executed after either the amount of time specified in the `interval` or the number of messages to acknowledge reaches the `threshold`.
+
+Setting `acknowledgementInterval` to `Duration.ZERO` will disable the periodic acknowledgement, which will be executed only when the number of messages to acknowledge reaches the specified `acknowledgementThreshold`.
+
+Setting `acknowledgementThreshold` to `0` will disable acknowledging per number of messages, and messages will be acknowledged only on the specified `acknowldgementInterval`
+
+IMPORTANT: When using acknowledgement batching messages stay inflight for SQS purposes until their respective batch is acknowledged. `MessageVisibility` should be taken into consideration when configuring this strategy.
+
+===== Immediate Acknowledging
+
+Setting both `acknowledgementInterval` and `acknowledgementThreshold` to `Duration.ZERO` and `0` respectively enables `Immediate Acknowledging`.
+
+With this configuration, messages are acknowledged sequentially after being processed, and the message is only considered processed after the message is successfully acknowledged.
+
+IMPORTANT: If an immediate acknowledging triggers an error, message processing is considered failed and will be retried after the specified `visibilityTimeout`.
+
+==== Manual Acknowledgement
+
+Manual acknowledgement can be used in conjunction with acknowledgement batching - the message will be queued for acknowledgement but won't be executed until one of the above criteria is met.
+
+It can also be used in conjunction with immediate acknowledgement.
+
+==== Acknowledgement Ordering
+
+- `PARALLEL` - Acknowledges the messages as soon as one of the above criterias is met - many acknowledgement calls can be made in parallel.
+- `ORDERED` - One batch of acknowledgements will only be executed after the previous one is completed, ensuring `FIFO` ordering of acknowledgements.
+
+
+==== Acknowledgement Defaults
+
+The defaults for acknowledging differ for `Standard` and `FIFO` SQS queues.
+
+===== Standard SQS
+- Acknowledgement Interval: One second
+- Acknowledgement Threshold: Ten messages
+- Acknowledgement Ordering: `PARALLEL`
+
+===== FIFO SQS
+- Acknowledgement Interval: Zero (Immediate)
+- Acknowledgement Threshold: Zero (Immediate)
+- Acknowledgement Ordering: `PARALLEL` if immediate acknowledgement, `ORDERED` if batching is enabled (one or both above defaults are overridden).
+
+NOTE: PARALLEL is the default for FIFO because ordering is guaranteed for processing.
+This assures no messages from a given `MessageGroup` will be polled until the previous batch is acknowledged.
+
+=== Global Configuration for @SqsListeners
+
+A set of configurations can be set for all containers from `@SqsListener` by providing `SqsListenerCustomizer` beans.
+
+[source, java]
+----
+@FunctionalInterface
+public interface SqsListenerCustomizer {
+
+	void configure(EndpointRegistrar registrar);
+
+}
+----
+
+The following attributes can be configured in the registrar:
+
+- `setMessageHandlerMethodFactory` - provide a different factory to be used to create the `invocableHandlerMethod` instances that wrap the listener methods.
+- `setListenerContainerRegistry` - provide a different `MessageListenerContainerRegistry` implementation to be used to register the `MessageListenerContainers`
+- `setMessageListenerContainerRegistryBeanName` - provide a different bean name to be used to retrieve the `MessageListenerContainerRegistry`
+- `setObjectMapper` - set the `ObjectMapper` instance that will be used to deserialize payloads in listener methods.
+See <<Message Conversion and Payload Deserialization>> for more information on where this is used.
+- `manageMessageConverters` - gives access to the list of message converters that will be used to convert messages.
+By default, `StringMessageConverter`, `SimpleMessageConverter` and `MappingJackson2MessageConverter` are used.
+
+- `manageArgumentResolvers` - gives access to the list of argument resolvers that will be used to resolve the listener method arguments.
+The order of resolvers is important - `PayloadMethodArgumentResolver` should generally be last since it's used as default.
+
+A simple example would be:
+
+[source, java]
+----
+@Bean
+SqsListenerCustomizer customizer(ObjectMapper objectMapper) {
+    return registrar -> registrar.setObjectMapper(objectMapper);
+}
+----
+
+NOTE: Many `SqsListenerCustomizer` beans can be registered in the context.
+All instances will be looked up at application startup and iterated through.
+
+=== Message Processing Throughput
+
+The following options are available for tuning the application's throughput.
+When a configuration is available both in the `ContainerOptions` and `@SqsListener` annotation, the annotation value takes precedence, if any.
+
+==== ContainerOptions and `@SqsListener` properties
+
+===== maxInflightMessagesPerQueue
+Can be set in either the `ContainerOptions` or the `@SqsListener` annotation.
+Represents the maximum number of messages being processed by the container at a given time.
+Defaults to 10.
+
+This value is enforced per queue, meaning the number of inflight messages in a container can be up to (number of queues in container * maxInflightMessagesPerQueue).
+
+NOTE: When using acknowledgement batching, a message is considered as no longer inflight when it's delivered to the acknowledgement queue. In this case, the actual number of inflight messages on AWS SQS console can be higher than the configured value.
+When using immediate acknowledgement, a message is considered as no longer inflight after it's been acknowledged or throws an error.
+
+
+===== maxMessagesPerPoll
+Set in `ContainerOptions`.
+Represents the maximum number of messages returned by a single poll to a SQS queue, to a maximum of 10.
+This value has to be less than or equal to `maxInflightMessagesPerQueue`.
+Defaults to 10.
+
+Note that even if the queue has more messages, a poll can return less messages than specified. See the AWS documentation for more information.
+
+===== pollTimeout
+Can be set in either the `ContainerOptions` or the `@SqsListener` annotation.
+Represents the maximum duration of a poll.
+Higher values represent `long polls` and increase the probability of receiving full batches of messages.
+Defaults to 10 seconds.
+
+===== permitAcquireTimeout
+Set in `ContainerOptions`.
+Represents the maximum amount of time the container will wait for `maxMessagesPerPoll` permits to be available before trying to acquire a partial batch.
+This wait is applied per queue and one queue has no interference in another in this regard.
+Defaults to 10 seconds.
+
+==== Default Polling Behavior
+By default, the framework starts all queues in `low throughput mode`, where it will perform one poll for messages at a time.
+When a poll returns at least one message, the queue enters a `high throughput mode` where it will try to fulfill `maxInflightMessagesPerQueue` messages by making (maxInflightMessagesPerQueue / maxMessagesPerPoll) parallel polls to the queue.
+Any poll that returns no messages will trigger a `low throughput mode` again, until at least one message is returned, triggering `high throughput mode` again, and so forth.
+
+After `permitAcquireTimeout`, if `maxMessagesPerPoll` permits are not available, it'll poll for the difference, i.e. as many messages as have been processed so far, if any.
+
+E.g. Let's consider a scenario where the container is configured for: `maxInflightMessagesPerQueue` = 20, `maxMessagesPerPoll` = 10, `permitAcquireTimeout` = 5 seconds, and a `pollTimeout` = 10 seconds.
+
+The container starts in `low throughput mode`, meaning it'll attempt a single poll for 10 messages.
+If any messages are returned, it'll switch to `high throughput mode`, and will make up to 2 simultaneous polls for 10 messages each.
+If all 20 messages are retrieved, it'll not attempt any more polls until messages are processed.
+If after the 5 seconds for `permitAcquireTimeout` 6 messages have been processed, the framework will poll for the 6 messages.
+If the queue is depleted and a poll returns no messages, it'll enter `low throughput` mode again and perform only one poll at a time.
+
+==== Configuring BackPressureMode
+The following `BackPressureMode` values can be set in `ContainerOptions` to configure polling behavior:
+
+* `AUTO` - The default mode, as described in the previous section.
+* `ALWAYS_POLL_MAX_MESSAGES` - Disables partial batch polling, i.e. if the container is configured for 10 messages per poll, it'll wait for 10 messages to be processed before attempting to poll for the next 10 messages.
+Useful for optimizing for fewer polls at the expense of throughput.
+* `FIXED_HIGH_THROUGHPUT` - Disables `low throughput mode`, while still attempting partial batch polling as described in the previous section.
+Useful for really high throughput scenarios where the risk of making parallel polls to an idle queue is preferable to an eventual switch to `low throughput mode` .
+
+NOTE: The `AUTO` setting should be balanced for most use cases, including high throughput ones.
+
+=== Blocking and Non-Blocking (Async) Components
+
+The SQS integration leverages the `CompletableFuture`-based async capabilities of `AWS SDK 2.0` to deliver a fully non-blocking infrastructure.
+All processing involved in polling for messages, changing message visibilities and acknowledging messages is done in an async, non-blocking fashion. This allows a higher overall throughput for the application.
+
+When a `MessageListener`, `MessageInterceptor`, and `ErrorHandler` implementation is set to a `MesssageListenerContainer` or `MesssageListenerContainerFactory` these are adapted by the framework. This way, blocking and non-blocking components can be used in conjunction with each other.
+
+Listener methods annotated with `@SqsListener` can either return a simple value, e.g. `void`, or a `CompletableFuture<Void>`.
+The listener method will then be wrapped in either a `MessagingMessageListenerAdapter` or a `AsyncMessagingMessageListenerAdapter` respectively.
+
+NOTE: In order to achieve higher throughput, it's encouraged that, at least for simpler logic in message listeners, `interceptors` and `error handlers`, the async variants are used.
+
+==== Threading and Blocking Components
+
+Message processing always starts in a framework thread from the default or provided `TaskExecutor`.
+
+If an async component is invoked and the execution returns to the framework on a different thread, such thread will be used until a `blocking` component is found, when the execution switches back to a `TaskExecutor` thread to avoid blocking i.e. `SqsAsyncClient` or `HttpClient` threads.
+
+If by the time the execution reaches a `blocking` component it's already on a framework thread, it remains in the same thread to avoid excessive thread allocation and hopping.
+
+IMPORTANT: When using `async` methods it's critical not to block the incoming thread, which might be very detrimental to overall performance.
+If thread-blocking logic has to be used, the blocking logic should be executed on another thread, e.g. using `CompletableFuture.supplyAsync(() -> myLogic(), myExecutor)`.
+Otherwise, a `sync` interface should be used.
+
+==== Providing a TaskExecutor
+
+The default `TaskExecutor` is a `ThreadPoolTaskExecutor`, and a different `componentTaskExecutor` can be set in the `ContainerOptions`.
+
+When providing a custom executor, it's important that it's configured to support all threads that will be created, which should be (maxInflightMessagesPerQueue * total number of queues).
+When set as a `MessageListenerContainerFactory` options, it's important to consider all the containers it will be applied to.
+Also, to avoid excessive thread hopping, a `MessageExecutionThreadFactory` should be set to the executor.
+
+If setting the `ThreadFactory` is not possible, it's advisable to allow for extra threads in the thread pool to account for the time between a new thread is requested and the previous thread is released.
+
+
+=== IAM Permissions
+Following IAM permissions are required by Spring Cloud AWS SQS:
 
 [cols="2"]
 |===

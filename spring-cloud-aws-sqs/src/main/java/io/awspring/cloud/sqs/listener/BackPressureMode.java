@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.listener;
 
 /**
- * Configuration for the application throughput.
+ * Configuration for application throughput.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -33,7 +33,7 @@ public enum BackPressureMode {
 	 * If the current number of inflight messages is close to {@link ContainerOptions#getMaxInFlightMessagesPerQueue()},
 	 * the framework will try to acquire a partial batch with the remaining value.
 	 * <p>
-	 * This is the default setting and should be ideal for most applications.
+	 * This is the default setting and should be balanced for most applications.
 	 */
 	AUTO,
 
@@ -49,7 +49,7 @@ public enum BackPressureMode {
 	ALWAYS_POLL_MAX_MESSAGES,
 
 	/**
-	 * Enable fixed high throughput mode. In this mode up to (maxInflightMessages / messagesPerPoll) simultaneous polls
+	 * Set fixed high throughput mode. In this mode up to (maxInflightMessages / messagesPerPoll) simultaneous polls
 	 * will be made until maxInflightMessages is achieved.
 	 * <p>
 	 * Useful for really high-throughput scenarios where the occasional automatic switch to a lower throughput would be

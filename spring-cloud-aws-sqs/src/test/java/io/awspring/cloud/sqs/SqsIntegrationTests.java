@@ -75,8 +75,6 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final String TEST_SQS_ASYNC_CLIENT_BEAN_NAME = "testSqsAsyncClient";
 
-	private static final String LOW_RESOURCE_FACTORY_NAME = "lowResourceFactory";
-
 	static final String RECEIVES_MESSAGE_QUEUE_NAME = "receives_message_test_queue";
 
 	static final String RECEIVES_MESSAGE_ASYNC_QUEUE_NAME = "receives_message_async_test_queue";
@@ -101,8 +99,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, RESOLVES_PARAMETER_TYPES_QUEUE_NAME,
 						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "20")),
 				createQueue(client, MANUALLY_CREATE_CONTAINER_QUEUE_NAME),
-				createQueue(client, MANUALLY_START_CONTAINER), createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME))
-				.join();
+				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME)).join();
 	}
 
 	@Autowired
@@ -231,7 +228,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = DOES_NOT_ACK_ON_ERROR_QUEUE_NAME, factory = LOW_RESOURCE_FACTORY_NAME, id = "does-not-ack")
+		@SqsListener(queueNames = DOES_NOT_ACK_ON_ERROR_QUEUE_NAME, factory = "manualAcknowledgementFactory", id = "does-not-ack")
 		void listen(String message, @Header(SqsHeaders.SQS_QUEUE_NAME_HEADER) String queueName) {
 			logger.debug("Received message {} from queue {}", message, queueName);
 			latchContainer.doesNotAckLatch.countDown();
@@ -244,7 +241,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = RESOLVES_PARAMETER_TYPES_QUEUE_NAME, factory = "manualAcknowledgingFactory", messageVisibilitySeconds = "1", id = "resolves-parameter")
+		@SqsListener(queueNames = RESOLVES_PARAMETER_TYPES_QUEUE_NAME, factory = "manualAcknowledgingFactory", id = "resolves-parameter")
 		void listen(Message<String> message, MessageHeaders headers, Acknowledgement ack, Visibility visibility,
 				QueueAttributes queueAttributes, AsyncAcknowledgement asyncAck,
 				software.amazon.awssdk.services.sqs.model.Message originalMessage) throws Exception {
@@ -259,12 +256,13 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 			Assert.notNull(queueAttributes.getQueueAttribute(QueueAttributeName.QUEUE_ARN),
 					"QueueArn attribute not found");
 
-			ack.acknowledge();
-
 			// Verify VisibilityTimeout extension
 			Thread.sleep(1000);
 			latchContainer.manyParameterTypesLatch.countDown();
 			latchContainer.manyParameterTypesSecondLatch.countDown();
+
+			ack.acknowledge();
+
 		}
 	}
 
@@ -326,9 +324,23 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 					.pollTimeout(Duration.ofSeconds(3))
 					.maxMessagesPerPoll(1)
 					.permitAcquireTimeout(Duration.ofSeconds(1)))
+				.messageInterceptor(testInterceptor())
+				.messageInterceptor(testInterceptor())
+				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+				.build();
+		}
+
+		@Bean
+		public SqsMessageListenerContainerFactory<Object> manualAcknowledgementFactory() {
+			return SqsMessageListenerContainerFactory
+				.builder()
+				.configure(options -> options
+					.acknowledgementMode(AcknowledgementMode.MANUAL)
+					.maxInflightMessagesPerQueue(1)
+					.pollTimeout(Duration.ofSeconds(3))
+					.maxMessagesPerPoll(1)
+					.permitAcquireTimeout(Duration.ofSeconds(1)))
 				.errorHandler(testErrorHandler())
-				.messageInterceptor(testInterceptor())
-				.messageInterceptor(testInterceptor())
 				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
 				.build();
 		}
@@ -399,13 +411,15 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 		@Bean
 		SqsListenerCustomizer customizer() {
-			return registrar -> registrar.setMessageHandlerMethodFactory(new DefaultMessageHandlerMethodFactory() {
-				@Override
-				public InvocableHandlerMethod createInvocableHandlerMethod(Object bean, Method method) {
-					latchContainer.invocableHandlerMethodLatch.countDown();
-					return super.createInvocableHandlerMethod(bean, method);
-				}
-			});
+			return registrar -> {
+				registrar.setMessageHandlerMethodFactory(new DefaultMessageHandlerMethodFactory() {
+					@Override
+					public InvocableHandlerMethod createInvocableHandlerMethod(Object bean, Method method) {
+						latchContainer.invocableHandlerMethodLatch.countDown();
+						return super.createInvocableHandlerMethod(bean, method);
+					}
+				});
+			};
 		}
 
 		@Bean
@@ -434,14 +448,15 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@SuppressWarnings("unchecked")
-		private AsyncErrorHandler<String> testErrorHandler() {
-			return new AsyncErrorHandler<String>() {
+		private AsyncErrorHandler<Object> testErrorHandler() {
+			return new AsyncErrorHandler<Object>() {
 				@Override
-				public CompletableFuture<Void> handle(Message<String> message, Throwable t) {
+				public CompletableFuture<Void> handle(Message<Object> message, Throwable t) {
 					latchContainer.errorHandlerLatch.countDown();
 					// Eventually ack to not interfere with other tests.
 					if (latchContainer.errorHandlerLatch.getCount() == 0) {
-						return MessageHeaderUtils.getHeader(message, SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class).onAcknowledge(message);
+						return MessageHeaderUtils.getHeader(message, SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER,
+								AcknowledgementCallback.class).onAcknowledge(message);
 					}
 					return CompletableFutures.failedFuture(t);
 				}

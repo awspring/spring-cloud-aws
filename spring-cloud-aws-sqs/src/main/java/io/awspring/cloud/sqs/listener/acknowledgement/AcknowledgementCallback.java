@@ -20,15 +20,29 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.messaging.Message;
 
 /**
+ * Interface representing a callback to be executed, usually by a
+ * {@link io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler} implementation.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see AcknowledgementProcessor
  */
 public interface AcknowledgementCallback<T> {
 
+	/**
+	 * Triggers acknowledgement for the given message.
+	 * @param message the message.
+	 * @return a completable future.
+	 */
 	default CompletableFuture<Void> onAcknowledge(Message<T> message) {
 		return CompletableFuture.completedFuture(null);
 	}
 
+	/**
+	 * Triggers acknowledgement for the given messages.
+	 * @param messages the messages.
+	 * @return a completable future.
+	 */
 	default CompletableFuture<Void> onAcknowledge(Collection<Message<T>> messages) {
 		return CompletableFuture.completedFuture(null);
 	}

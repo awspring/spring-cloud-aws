@@ -24,10 +24,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 
 /**
- * {@link AcknowledgementHandler} implementation that acknowledges both on success and errors.
- *
- * @author Tomaz Fernandes
+ * {@link AcknowledgementHandler} implementation that acknowledges on both success and error. * @author Tomaz Fernandes
  * @since 3.0
+ * @see AcknowledgementMode#ALWAYS
  */
 public class AlwaysAcknowledgementHandler<T> implements AcknowledgementHandler<T> {
 

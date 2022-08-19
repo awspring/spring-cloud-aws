@@ -21,9 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.messaging.Message;
 
 /**
- * Interface to process incoming {@link Message}s in a non-blocking fashion.
- *
- * The non-blocking approach enables higher throughput for the application.
+ * Async listener to process individual {@link Message} instances.
  *
  * @param <T> the {@link Message} payload type.
  *
@@ -40,6 +38,11 @@ public interface AsyncMessageListener<T> {
 	 */
 	CompletableFuture<Void> onMessage(Message<T> message);
 
+	/**
+	 * Process the provided messages.
+	 * @param messages the messages.
+	 * @return a completable future.
+	 */
 	default CompletableFuture<Void> onMessage(Collection<Message<T>> messages) {
 		return CompletableFutures
 				.failedFuture(new UnsupportedOperationException("Batch not implemented by this AsyncMessageListener"));

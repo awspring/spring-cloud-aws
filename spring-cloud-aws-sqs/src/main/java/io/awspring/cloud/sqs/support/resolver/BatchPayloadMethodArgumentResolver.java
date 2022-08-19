@@ -38,6 +38,7 @@ import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
 
 /**
+ * {@link HandlerMethodArgumentResolver} implementation for resolving {@link java.util.List} arguments.
  * @author Tomaz Fernandes
  * @since 3.0
  */

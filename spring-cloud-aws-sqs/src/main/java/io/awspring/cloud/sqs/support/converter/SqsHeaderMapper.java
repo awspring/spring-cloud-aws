@@ -19,7 +19,6 @@ import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
-
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
@@ -34,16 +33,21 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
+ * A {@link org.springframework.messaging.support.HeaderMapper} implementation for SQS {@link Message}s. Enables
+ * creating additional SQS related headers from a {@link SqsMessageConversionContext}.
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see SqsMessagingMessageConverter
  */
 public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsHeaderMapper.class);
 
-	private BiFunction<Message, MessageHeaderAccessor, MessageHeaders> headerFunction = ((message, accessor) -> accessor.toMessageHeaders());
+	private BiFunction<Message, MessageHeaderAccessor, MessageHeaders> headerFunction = ((message, accessor) -> accessor
+			.toMessageHeaders());
 
-	public void setAdditionalHeadersFunction(BiFunction<Message, MessageHeaderAccessor, MessageHeaders> headerFunction) {
+	public void setAdditionalHeadersFunction(
+			BiFunction<Message, MessageHeaderAccessor, MessageHeaders> headerFunction) {
 		Assert.notNull(headerFunction, "headerFunction cannot be null");
 		this.headerFunction = headerFunction;
 	}
@@ -122,7 +126,7 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 
 	private void maybeAddAcknowledgementHeader(SqsMessageConversionContext sqsContext, MessageHeaderAccessor accessor) {
 		ConfigUtils.INSTANCE.acceptIfNotNull(sqsContext.getAcknowledgementCallback(),
-			callback -> accessor.setHeader(SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, callback));
+				callback -> accessor.setHeader(SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, callback));
 	}
 
 }

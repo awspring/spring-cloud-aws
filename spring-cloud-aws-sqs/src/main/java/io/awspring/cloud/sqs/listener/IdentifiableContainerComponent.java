@@ -16,13 +16,23 @@
 package io.awspring.cloud.sqs.listener;
 
 /**
+ * Representation of a component that can be assigned an id.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public interface IdentifiableContainerComponent {
 
+	/**
+	 * Set the component id.
+	 * @param id the id.
+	 */
 	void setId(String id);
 
+	/**
+	 * Get the component id.
+	 * @return the id.
+	 */
 	String getId();
 
 }

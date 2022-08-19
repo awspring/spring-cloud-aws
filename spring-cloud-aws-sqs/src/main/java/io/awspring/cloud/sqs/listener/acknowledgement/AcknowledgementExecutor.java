@@ -20,11 +20,19 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.messaging.Message;
 
 /**
+ * Allows executing acknowledgements for a batch of messages.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see ExecutingAcknowledgementProcessor
  */
 public interface AcknowledgementExecutor<T> {
 
-	CompletableFuture<Void> execute(Collection<Message<T>> messagesToAck);
+	/**
+	 * Executes acknowledgements for the provided batch of messages.
+	 * @param messages the messages.
+	 * @return a completable future.
+	 */
+	CompletableFuture<Void> execute(Collection<Message<T>> messages);
 
 }

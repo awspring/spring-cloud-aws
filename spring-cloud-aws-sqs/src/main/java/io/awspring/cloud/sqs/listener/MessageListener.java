@@ -32,7 +32,7 @@ public interface MessageListener<T> {
 	void onMessage(Message<T> message);
 
 	default void onMessage(Collection<Message<T>> messages) {
-		throw new UnsupportedOperationException("Batch not implemented by this message listener");
+		throw new UnsupportedOperationException("Batch not implemented by this MessageListener");
 	}
 
 }

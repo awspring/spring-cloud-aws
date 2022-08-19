@@ -36,8 +36,14 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 
 /**
+ * An {@link AbstractDelegatingMessageListeningSinkAdapter} that adds an
+ * {@link OriginalBatchMessageVisibilityExtendingInterceptor} to the {@link MessageProcessingContext}. The interceptor
+ * refreshes the visibility for remaining messages in the batch before each message is processed, except for the first.
+ * After each message is processed, it is removed from the copy of the original batch that the interceptor holds.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see io.awspring.cloud.sqs.listener.FifoSqsComponentFactory
  */
 public class MessageVisibilityExtendingSinkAdapter<T> extends AbstractDelegatingMessageListeningSinkAdapter<T>
 		implements SqsAsyncClientAware {

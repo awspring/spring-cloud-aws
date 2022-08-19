@@ -46,7 +46,7 @@ public class ContainerOptions {
 
 	private final Duration permitAcquireTimeout;
 
-	private final Duration sourceShutdownTimeout;
+	private final Duration shutdownTimeout;
 
 	private final BackPressureMode backPressureMode;
 
@@ -79,7 +79,7 @@ public class ContainerOptions {
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
 		this.pollTimeout = builder.pollTimeout;
 		this.permitAcquireTimeout = builder.permitAcquireTimeout;
-		this.sourceShutdownTimeout = builder.shutdownTimeout;
+		this.shutdownTimeout = builder.shutdownTimeout;
 		this.backPressureMode = builder.backPressureMode;
 		this.messageDeliveryStrategy = builder.messageDeliveryStrategy;
 		this.queueAttributeNames = builder.queueAttributeNames;
@@ -136,7 +136,7 @@ public class ContainerOptions {
 	}
 
 	public Duration getShutdownTimeout() {
-		return this.sourceShutdownTimeout;
+		return this.shutdownTimeout;
 	}
 
 	public BackPressureMode getBackPressureMode() {
@@ -201,16 +201,6 @@ public class ContainerOptions {
 		ContainerOptions newCopy = ContainerOptions.builder().build();
 		ReflectionUtils.shallowCopyFieldState(this, newCopy);
 		return newCopy;
-	}
-
-	/**
-	 * Validate these options.
-	 */
-	public void validate() {
-		Assert.isTrue(this.maxMessagesPerPoll <= maxInflightMessagesPerQueue, String.format(
-				"messagesPerPoll should be less than or equal to maxInflightMessagesPerQueue. Values provided: %s and %s respectively",
-				this.maxMessagesPerPoll, this.maxInflightMessagesPerQueue));
-		Assert.isTrue(this.maxMessagesPerPoll <= 10, "messagesPerPoll must be less than or equal to 10.");
 	}
 
 	public Builder toBuilder() {
@@ -291,7 +281,7 @@ public class ContainerOptions {
 			this.maxMessagesPerPoll = options.maxMessagesPerPoll;
 			this.pollTimeout = options.pollTimeout;
 			this.permitAcquireTimeout = options.permitAcquireTimeout;
-			this.shutdownTimeout = options.sourceShutdownTimeout;
+			this.shutdownTimeout = options.shutdownTimeout;
 			this.backPressureMode = options.backPressureMode;
 			this.messageDeliveryStrategy = options.messageDeliveryStrategy;
 			this.queueAttributeNames = options.queueAttributeNames;
@@ -323,7 +313,8 @@ public class ContainerOptions {
 		 * @return this instance.
 		 */
 		public Builder maxMessagesPerPoll(int maxMessagesPerPoll) {
-			Assert.isTrue(maxMessagesPerPoll > 0 && maxMessagesPerPoll <= 10, "maxMessagesPerPoll must be between 1 and 10");
+			Assert.isTrue(maxMessagesPerPoll > 0 && maxMessagesPerPoll <= 10,
+					"maxMessagesPerPoll must be between 1 and 10");
 			this.maxMessagesPerPoll = maxMessagesPerPoll;
 			return this;
 		}
@@ -437,6 +428,10 @@ public class ContainerOptions {
 		}
 
 		public ContainerOptions build() {
+			Assert.isTrue(this.maxMessagesPerPoll <= maxInflightMessagesPerQueue, String.format(
+					"messagesPerPoll should be less than or equal to maxInflightMessagesPerQueue. Values provided: %s and %s respectively",
+					this.maxMessagesPerPoll, this.maxInflightMessagesPerQueue));
+			Assert.isTrue(this.maxMessagesPerPoll <= 10, "messagesPerPoll must be less than or equal to 10.");
 			return new ContainerOptions(this);
 		}
 

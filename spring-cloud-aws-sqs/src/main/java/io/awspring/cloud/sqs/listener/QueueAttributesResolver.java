@@ -33,8 +33,15 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 
 /**
+ * Resolves {@link QueueAttributes} for the specified queue. Fetchs the queue url for a queue name, unless a url is
+ * specified as name. If such queue is not found, either creates the queue or fails according to the specified
+ * {@link QueueNotFoundStrategy}. After the url is resolved, retrieves the queue attributes specified in the
+ * {@link QueueAttributeName} collection.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see ContainerOptions#getQueueAttributeNames()
+ * @see ContainerOptions#getQueueNotFoundStrategy()
  */
 public class QueueAttributesResolver {
 
@@ -125,6 +132,9 @@ public class QueueAttributesResolver {
 		}
 	}
 
+	/**
+	 * A builder for creating {@link QueueAttributesResolver} instances.
+	 */
 	public static class Builder {
 
 		private String queueName;
@@ -135,30 +145,54 @@ public class QueueAttributesResolver {
 
 		private QueueNotFoundStrategy queueNotFoundStrategy;
 
+		/**
+		 * The queue name. The queue url can also be specified.
+		 * @param queueName the queue name.
+		 * @return the builder instance.
+		 */
 		public Builder queueName(String queueName) {
 			Assert.notNull(queueName, "queueName cannot be null");
 			this.queueName = queueName;
 			return this;
 		}
 
+		/**
+		 * The {@link SqsAsyncClient} to be used to resolve the queue attributes.
+		 * @param sqsAsyncClient the client instance.
+		 * @return the builder instance.
+		 */
 		public Builder sqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 			Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null");
 			this.sqsAsyncClient = sqsAsyncClient;
 			return this;
 		}
 
+		/**
+		 * The {@link QueueAttributeName}s to be retrieved.
+		 * @param queueAttributeNames the attributes names.
+		 * @return the builder instance.
+		 */
 		public Builder queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notNull(queueAttributeNames, "queueAttributeNames cannot be null");
 			this.queueAttributeNames = queueAttributeNames;
 			return this;
 		}
 
+		/**
+		 * The strategy to be used in case a queue does not exist.
+		 * @param queueNotFoundStrategy the strategy.
+		 * @return the builder instance.
+		 */
 		public Builder queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
 			Assert.notNull(queueNotFoundStrategy, "queueNotFoundStrategy cannot be null");
 			this.queueNotFoundStrategy = queueNotFoundStrategy;
 			return this;
 		}
 
+		/**
+		 * Build the {@link QueueAttributesResolver} instance with the provided settings.
+		 * @return the created instance.
+		 */
 		public QueueAttributesResolver build() {
 			return new QueueAttributesResolver(this);
 		}

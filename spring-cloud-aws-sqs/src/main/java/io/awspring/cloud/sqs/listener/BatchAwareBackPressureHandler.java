@@ -16,13 +16,26 @@
 package io.awspring.cloud.sqs.listener;
 
 /**
+ * {@link BackPressureHandler} specialization that allows requesting and releasing batches. Batch size should be
+ * configured by the implementations.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public interface BatchAwareBackPressureHandler extends BackPressureHandler {
 
+	/**
+	 * Request a batch of permits.
+	 * @return the number of permits acquired.
+	 * @throws InterruptedException if the Thread is interrupted while waiting for permits.
+	 */
 	int requestBatch() throws InterruptedException;
 
+	/**
+	 * Release a batch of permits. This has the semantics of letting the {@link BackPressureHandler} know that all
+	 * permits from a batch are being released, in opposition to {@link #release(int)} in which any number of permits
+	 * can be specified.
+	 */
 	void releaseBatch();
 
 }

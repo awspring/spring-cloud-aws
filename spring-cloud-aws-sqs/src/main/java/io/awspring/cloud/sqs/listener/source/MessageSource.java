@@ -20,7 +20,7 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import org.springframework.messaging.Message;
 
 /**
- * A source for messages that will be sent to a {@link MessageSink}.
+ * A source of {@link Message} instances. Such messages will be sent for emission to a connected {@link MessageSink}.
  *
  * @param <T> the {@link Message} payload type.
  *

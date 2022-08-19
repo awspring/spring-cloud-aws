@@ -19,16 +19,28 @@ import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
-import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.AcknowledgementAwareMessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.ContextAwareMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
+ * A {@link MessageSource} implementation capable of converting messages from a Source type to a Target type. Subclasses
+ * can use the {@link #convertMessage} or {@link #convertMessages} methods to perform the conversion.
+ * <p>
+ * The {@link MessagingMessageConverter} can be retrieved from the {@link ContainerOptions} or from a subclass.
+ * <p>
+ * For converters that implement {@link ContextAwareMessagingMessageConverter}, a {@link MessageConversionContext} will
+ * be created, which can contain more useful information for message conversion.
+ * <p>
+ * If such context implements the {@link AcknowledgementAwareMessageConversionContext}, an
+ * {@link AcknowledgementCallback} can be added to the context by using the {@link #setupAcknowledgementConversion}
+ * method/.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
@@ -45,12 +57,16 @@ public abstract class AbstractMessageConvertingMessageSource<T, S> implements Me
 		this.messagingMessageConverter = getOrCreateMessageConverter(containerOptions);
 		this.messageConversionContext = maybeCreateConversionContext();
 		this.acknowledgementMode = containerOptions.getAcknowledgementMode();
+		doConfigureAfterConversion(containerOptions);
 	}
+
+	protected abstract void doConfigureAfterConversion(ContainerOptions containerOptions);
 
 	protected void setupAcknowledgementConversion(AcknowledgementCallback<T> callback) {
 		if (this.acknowledgementMode.equals(AcknowledgementMode.MANUAL)) {
-			ConfigUtils.INSTANCE.acceptIfInstance(this.messageConversionContext, AcknowledgementAwareMessageConversionContext.class,
-				aamcc -> aamcc.setAcknowledgementCallback(callback));
+			ConfigUtils.INSTANCE.acceptIfInstance(this.messageConversionContext,
+					AcknowledgementAwareMessageConversionContext.class,
+					aamcc -> aamcc.setAcknowledgementCallback(callback));
 		}
 	}
 
@@ -63,11 +79,11 @@ public abstract class AbstractMessageConvertingMessageSource<T, S> implements Me
 	}
 
 	protected Collection<Message<T>> convertMessages(Collection<S> messages) {
-		return messages.stream().map(this::convertMessages).collect(Collectors.toList());
+		return messages.stream().map(this::convertMessage).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("unchecked")
-	private Message<T> convertMessages(S msg) {
+	protected Message<T> convertMessage(S msg) {
 		return this.messagingMessageConverter instanceof ContextAwareMessagingMessageConverter
 				? (Message<T>) getContextAwareConverter().toMessagingMessage(msg, this.messageConversionContext)
 				: (Message<T>) this.messagingMessageConverter.toMessagingMessage(msg);

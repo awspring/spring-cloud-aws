@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.listener.acknowledgement;
 
 import io.awspring.cloud.sqs.LifecycleHandler;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.TaskExecutorAware;
 import java.time.Duration;
 import java.time.Instant;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.TaskScheduler;
@@ -41,10 +43,26 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
+ * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor} implementation that adds the messages
+ * to a {@link BlockingQueue} to be acknowledged according to {@link ContainerOptions#getAcknowledgementInterval()} and
+ * {@link ContainerOptions#getAcknowledgementThreshold()}.
+ *
+ * The messages are constantly polled from the queue and added to a buffer. When a message is polled, the processor
+ * checks the queue size against the configured threshold and sends batches for execution if the threshold is breached.
+ *
+ * A separate scheduled thread is activated when the configured amount of time has passed between the last
+ * acknowledgement execution. This thread then empties the buffer and sends all messages to execution.
+ *
+ * All buffer access must be synchronized by the {@link Lock}.
+ *
+ * When this processor is signaled to {@link SmartLifecycle#stop()}, it waits for up to 20 seconds for ongoing
+ * acknowledgement executions to complete. After that time, it will cancel all executions and return the flow to the
+ * caller.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class BatchingAcknowledgementProcessor<T> extends AbstractAcknowledgementProcessor<T>
+public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowledgementProcessor<T>
 		implements TaskExecutorAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(BatchingAcknowledgementProcessor.class);
@@ -127,6 +145,8 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractAcknowledgement
 
 	private static class BufferingAcknowledgementProcessor<T> implements Runnable {
 
+		private static final Duration SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
+
 		private final BlockingQueue<Message<T>> acks;
 
 		private final Duration ackInterval;
@@ -142,6 +162,8 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractAcknowledgement
 		private final TaskScheduler taskScheduler;
 
 		private final BlockingQueue<Message<T>> acksBuffer;
+
+		private final Duration ackShutdownTimeout = SHUTDOWN_TIMEOUT;
 
 		// Should always be updated under ackLock
 		private volatile Instant lastAcknowledgement;
@@ -244,7 +266,6 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractAcknowledgement
 		}
 
 		public void waitAcknowledgementsToFinish() {
-			Duration ackShutdownTimeout = Duration.ofSeconds(20);
 			Instant start = Instant.now();
 			while (!this.runningAcks.isEmpty() && Instant.now().isBefore(start.plus(ackShutdownTimeout))) {
 				logger.debug("Waiting up to {} seconds for {} acks to finish", ackShutdownTimeout.getSeconds(),

@@ -18,11 +18,20 @@ package io.awspring.cloud.sqs.listener.source;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 
 /**
+ * {@link MessageSource} specialization that enables processing acknowledgements for the
+ * {@link org.springframework.messaging.Message} instances through an
+ * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementExecutor}
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public interface AcknowledgementProcessingMessageSource<T> extends MessageSource<T> {
 
+	/**
+	 * Set the {@link AcknowledgementProcessor} instance that will process the message instances and provide the
+	 * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback}.
+	 * @param acknowledgementProcessor the processor instance.
+	 */
 	void setAcknowledgementProcessor(AcknowledgementProcessor<T> acknowledgementProcessor);
 
 }

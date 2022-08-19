@@ -16,7 +16,6 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import io.awspring.cloud.sqs.listener.SqsHeaders;
-
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +30,13 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
 
 /**
+ * {@link MessagingMessageConverter} implementation for converting SQS
+ * {@link software.amazon.awssdk.services.sqs.model.Message} instances to Spring Messaging {@link Message} instances.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see SqsHeaderMapper
+ * @see SqsMessageConversionContext
  */
 public class SqsMessagingMessageConverter
 		implements ContextAwareMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
@@ -41,7 +45,9 @@ public class SqsMessagingMessageConverter
 
 	private static final MessageConverter DEFAULT_MESSAGE_CONVERTER = new MappingJackson2MessageConverter();
 
-	private static final SqsHeaderMapper DEFAULT_HEADER_MAPPER = new SqsHeaderMapper();
+	private static final HeaderMapper<software.amazon.awssdk.services.sqs.model.Message> DEFAULT_HEADER_MAPPER = new SqsHeaderMapper();
+
+	private final Function<Message<String>, Class<?>> DEFAULT_TYPE_MAPPER_FUNCTION = this::defaultHeaderTypeMapping;
 
 	private String typeHeader = SqsHeaders.SQS_MA_HEADER_PREFIX + SqsHeaders.SQS_DEFAULT_TYPE_HEADER;
 
@@ -49,23 +55,46 @@ public class SqsMessagingMessageConverter
 
 	private HeaderMapper<software.amazon.awssdk.services.sqs.model.Message> headerMapper = DEFAULT_HEADER_MAPPER;
 
-	private Function<Message<String>, Class<?>> payloadTypeMapper = this::defaultHeaderTypeMapping;
+	private Function<Message<String>, Class<?>> payloadTypeMapper = DEFAULT_TYPE_MAPPER_FUNCTION;
 
+	/**
+	 * Set the payload type mapper to be used by this converter. {@link Message} payloads will be converted to the
+	 * {@link Class} returned by this function. The {@link #DEFAULT_TYPE_MAPPER_FUNCTION} uses the {@link #typeHeader}
+	 * property to retrieve the payload class' FQCN. This method replaces the default type mapping for this converter
+	 * instance.
+	 * @param payloadTypeMapper the type mapping function.
+	 */
 	public void setPayloadTypeMapper(Function<Message<String>, Class<?>> payloadTypeMapper) {
 		Assert.notNull(payloadTypeMapper, "payloadTypeMapper cannot be null");
 		this.payloadTypeMapper = payloadTypeMapper;
 	}
 
+	/**
+	 * Set the {@link MessageConverter} to be used for converting the {@link Message} instances payloads. The default is
+	 * {@link #DEFAULT_MESSAGE_CONVERTER}.
+	 * @param messageConverter the converter instances.
+	 */
 	public void setPayloadMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "messageConverter cannot be null");
 		this.payloadMessageConverter = messageConverter;
 	}
 
+	/**
+	 * Set the name of the header to be looked up in a {@link Message} instance by the
+	 * {@link #DEFAULT_TYPE_MAPPER_FUNCTION}.
+	 * @param typeHeader the header name.
+	 */
 	public void setPayloadTypeHeader(String typeHeader) {
 		Assert.notNull(typeHeader, "typeHeader cannot be null");
 		this.typeHeader = typeHeader;
 	}
 
+	/**
+	 * Set the {@link HeaderMapper} to used to convert headers for
+	 * {@link software.amazon.awssdk.services.sqs.model.Message} instances. The default header mapper is
+	 * {@link #DEFAULT_HEADER_MAPPER}.
+	 * @param headerMapper the header mapper instance.
+	 */
 	public void setHeaderMapper(HeaderMapper<software.amazon.awssdk.services.sqs.model.Message> headerMapper) {
 		Assert.notNull(headerMapper, "headerMapper cannot be null");
 		this.headerMapper = headerMapper;

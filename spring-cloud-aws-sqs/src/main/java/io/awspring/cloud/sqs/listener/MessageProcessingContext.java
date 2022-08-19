@@ -22,8 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Representation of a processing context that can be used for communication between components. This class is immutable
- * and thread-safe.
+ * A message processing context that can be used for communication between components. This class must be immutable and
+ * thread-safe.
  *
  * @author Tomaz Fernandes
  * @since 3.0

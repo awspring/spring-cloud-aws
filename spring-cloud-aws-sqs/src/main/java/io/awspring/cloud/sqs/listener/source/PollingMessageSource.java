@@ -28,7 +28,7 @@ public interface PollingMessageSource<T>
 		extends AcknowledgementProcessingMessageSource<T>, SmartLifecycle, TaskExecutorAware {
 
 	/**
-	 * Set the endpoint logical name that will be polled by this source.
+	 * Set the endpoint name that will be polled by this source.
 	 * @param endpointName the name.
 	 */
 	void setPollingEndpointName(String endpointName);

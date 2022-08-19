@@ -16,8 +16,16 @@
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
 /**
+ * {@link AcknowledgementProcessor} specialization that allows for delegating acknowledgement execution to a
+ * {@link AcknowledgementExecutor}.
+ *
+ * Such execution can be ordered according to an {@link AcknowledgementOrdering}.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see BatchingAcknowledgementProcessor
+ * @see ImmediateAcknowledgementProcessor
+ * @see SqsAcknowledgementExecutor
  */
 public interface ExecutingAcknowledgementProcessor<T> extends AcknowledgementProcessor<T> {
 
