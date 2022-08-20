@@ -233,9 +233,9 @@ include::parameter-store.adoc[]
 //include::sns.adoc[]
 //
 //include::ses.adoc[]
-//
-//include::cloudwatch.adoc[]
-//
+
+include::cloudwatch.adoc[]
+
 
 == Configuration properties
 
