@@ -237,6 +237,8 @@ include::parameter-store.adoc[]
 include::cloudwatch.adoc[]
 
 
+include::migration.adoc[]
+
 == Configuration properties
 
 To see the list of all Spring Cloud AWS related configuration properties please check link:appendix.html[the Appendix page].

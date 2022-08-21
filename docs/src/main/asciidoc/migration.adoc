@@ -1,0 +1,50 @@
+== Migration from 2.x to 3.x
+
+Properties that have changed from 2.x to 3.x are listed below:
+
+[cols="3*", options="header"]
+|===
+|Version 2.x
+|Version 3.x
+
+|`cloud.aws.credentials.access-key`
+|`spring.cloud.aws.credentials.access-key`
+
+|`cloud.aws.credentials.secret-key`
+|`spring.cloud.aws.credentials.secret-key`
+
+|`cloud.aws.region.static`
+|`spring.cloud.aws.region.static`
+
+|`aws.paramstore.enabled`
+|`spring.cloud.aws.parameterstore.enabled`
+
+|`aws.paramstore.region`
+|`spring.cloud.aws.parameterstore.region`
+
+|`aws.secretsmanager.enabled`
+|`spring.cloud.aws.secretsmanager.enabled`
+
+|`aws.secretsmanager.region`
+|`spring.cloud.aws.secretsmanager.region`
+|===
+
+Properties that have been removed in 3.x are listed below:
+
+* Cognito Properties
+
+** `spring.cloud.aws.security.cognito.app-client-id`
+** `spring.cloud.aws.security.cognito.user-pool-id`
+** `spring.cloud.aws.security.algorithm`
+** `spring.cloud.aws.security.region`
+** `spring.cloud.aws.security.enabled`
+
+The same behaviour can be enabled using Spring Boot integration with Spring Security OAuth2 support:
+
+[source,properties]
+----
+spring.security.oauth2.resourceserver.jwt.issuer-uri=http://127.0.0.1:4566/us-east-1_f865f8979c4d4361b6af703db533dbb4
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://127.0.0.1:4566/us-east-1_f865f8979c4d4361b6af703db533dbb4/.well-known/jwks.json
+----
+
+The example above set the URIs to LocalStack's Cognito Server.
