@@ -51,7 +51,7 @@
 					<includePluginDependencies>true</includePluginDependencies>
 					<mainClass>io.awspring.cloud.s3.codegen.AbstractCrossRegionS3ClientGenerator</mainClass>
 					<arguments>
-						<argument>${project.basedir}</argument>
+						<argument>${project.build.sourceDirectory}</argument>
 					</arguments>
 				</configuration>
 			</plugin>
