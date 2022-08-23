@@ -60,7 +60,7 @@ public final class AbstractCrossRegionS3ClientGenerator {
 
 		// load template class
 		CompilationUnit compilationUnit = StaticJavaParser
-				.parseResource("io/awspring/cloud/s3/codegen/AbstractCrossRegionS3ClientTemplate.java");
+				.parseResource(AbstractCrossRegionS3ClientTemplate.class.getName().replace(".", "/") + ".java");
 		compilationUnit.setPackageDeclaration("io.awspring.cloud.s3.crossregion");
 		ClassOrInterfaceDeclaration classOrInterfaceDeclaration = compilationUnit
 				.getClassByName("AbstractCrossRegionS3ClientTemplate")
