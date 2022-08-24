@@ -55,13 +55,12 @@ public final class AbstractCrossRegionS3ClientGenerator {
 
 	public static void main(String[] args) throws IOException {
 		if (args.length != 1) {
-			throw new IllegalArgumentException("Need 1 parameter: the JavaParser source checkout root directory.");
+			throw new IllegalArgumentException("Needs 1 parameter: the output directory");
 		}
 
 		// load template class
-		final Path source = Paths.get(args[0], "..", "spring-cloud-aws-s3-codegen", "src", "main", "java", "io",
-				"awspring", "cloud", "s3", "codegen", "AbstractCrossRegionS3ClientTemplate.java");
-		CompilationUnit compilationUnit = StaticJavaParser.parse(source);
+		CompilationUnit compilationUnit = StaticJavaParser
+				.parseResource(AbstractCrossRegionS3ClientTemplate.class.getName().replace(".", "/") + ".java");
 		compilationUnit.setPackageDeclaration("io.awspring.cloud.s3.crossregion");
 		ClassOrInterfaceDeclaration classOrInterfaceDeclaration = compilationUnit
 				.getClassByName("AbstractCrossRegionS3ClientTemplate")
@@ -76,8 +75,12 @@ public final class AbstractCrossRegionS3ClientGenerator {
 		addOverriddenMethods(classOrInterfaceDeclaration);
 
 		// generate target file
-		final Path generatedJavaCcRoot = Paths.get(args[0], "..", "spring-cloud-aws-s3-cross-region-client", "src",
-				"main", "java", "io", "awspring", "cloud", "s3", "crossregion", "AbstractCrossRegionS3Client.java");
+		String[] classPackage = classOrInterfaceDeclaration.getFullyQualifiedName()
+				.orElseThrow(() -> new IllegalStateException("Couldn't get FQN from " + classOrInterfaceDeclaration))
+				.split("\\.");
+		classPackage[classPackage.length - 1] += ".java";
+		final Path generatedJavaCcRoot = Paths.get(args[0], classPackage);
+		Files.createDirectories(generatedJavaCcRoot.getParent());
 		Files.write(generatedJavaCcRoot, Collections.singletonList(compilationUnit.toString()));
 	}
 
