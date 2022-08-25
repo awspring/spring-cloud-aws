@@ -17,7 +17,6 @@ package io.awspring.cloud.sqs.listener.acknowledgement.handler;
 
 import static org.mockito.BDDMockito.given;
 
-import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,8 +43,7 @@ public class AbstractAcknowledgementHandlerTests {
 	@Mock
 	protected AcknowledgementCallback<String> callback;
 
-	@Mock
-	protected MessageHeaders headers;
+	protected MessageHeaders headers = new MessageHeaders(null);
 
 	protected UUID id = UUID.randomUUID();
 
@@ -55,7 +53,6 @@ public class AbstractAcknowledgementHandlerTests {
 	@BeforeEach
 	void beforeEach() {
 		given(message.getHeaders()).willReturn(headers);
-		given(headers.get(SqsHeaders.SQS_MESSAGE_ID_HEADER, UUID.class)).willReturn(id);
 		messages = Collections.singletonList(message);
 	}
 

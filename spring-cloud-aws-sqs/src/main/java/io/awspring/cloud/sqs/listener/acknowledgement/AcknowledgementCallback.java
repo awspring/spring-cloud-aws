@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.messaging.Message;
 
 /**
- * Interface representing a callback to be executed, usually by a
+ * Interface representing an acknowledgement callback to be executed, usually by a
  * {@link io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler} implementation.
  *
  * @author Tomaz Fernandes

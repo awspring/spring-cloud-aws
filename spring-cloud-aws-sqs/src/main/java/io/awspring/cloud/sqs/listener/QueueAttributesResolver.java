@@ -16,12 +16,15 @@
 package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.CompletableFutures;
+import io.awspring.cloud.sqs.QueueAttributesResolvingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -69,9 +72,16 @@ public class QueueAttributesResolver {
 	// @formatter:off
 	public CompletableFuture<QueueAttributes> resolveQueueAttributes() {
 		logger.debug("Resolving attributes for queue {}", this.queueName);
-		return resolveQueueUrl()
+		return CompletableFutures.exceptionallyCompose(resolveQueueUrl()
 			.thenCompose(queueUrl -> getQueueAttributes(queueUrl)
-				.thenApply(queueAttributes -> new QueueAttributes(this.queueName, queueUrl, queueAttributes)));
+				.thenApply(queueAttributes -> new QueueAttributes(this.queueName, queueUrl, queueAttributes)))
+			, this::wrapException);
+	}
+
+	private CompletableFuture<QueueAttributes> wrapException(Throwable t) {
+		return CompletableFutures.failedFuture(new QueueAttributesResolvingException("Error resolving attributes for queue "
+			+ this.queueName + " with strategy " + this.queueNotFoundStrategy + " and queueAttributesNames " + this.queueAttributeNames,
+			t instanceof CompletionException ? t.getCause() : t));
 	}
 
 	private CompletableFuture<String> resolveQueueUrl() {
@@ -194,6 +204,10 @@ public class QueueAttributesResolver {
 		 * @return the created instance.
 		 */
 		public QueueAttributesResolver build() {
+			Assert.noNullElements(
+					Arrays.asList(this.queueAttributeNames, this.queueNotFoundStrategy, this.queueName,
+							this.sqsAsyncClient),
+					"Incomplete configuration for QueueAttributesResolver - null attributes found");
 			return new QueueAttributesResolver(this);
 		}
 	}

@@ -38,12 +38,12 @@
 	<logger name="io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor" level="INFO"/>
 
-	<logger name="io.awspring.cloud.sqs.BaseSqsIntegrationTest" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.SqsIntegrationTests" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.SqsFifoIntegrationTests" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.SqsLoadIntegrationTests" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.SqsInterceptorIntegrationTests" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.SqsMessageConversionIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.integration.BaseSqsIntegrationTest" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.integration.SqsIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.integration.SqsFifoIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.integration.SqsLoadIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.integration.SqsInterceptorIntegrationTests" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.integration.SqsMessageConversionIntegrationTests" level="INFO"/>
 
 	<root level="warn">
 		<appender-ref ref="STDOUT"/>

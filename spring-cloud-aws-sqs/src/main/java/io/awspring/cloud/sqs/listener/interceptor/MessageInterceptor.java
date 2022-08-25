@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener.interceptor;
 
 import java.util.Collection;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -29,25 +30,37 @@ import org.springframework.messaging.Message;
 public interface MessageInterceptor<T> {
 
 	/**
-	 * Intercept the message before processing.
+	 * Perform an action on the message or return a different one before processing. Executed before processing. This
+	 * method must not return null.
 	 * @param message the message to be intercepted.
+	 * @return a completable future containing the resulting message.
 	 */
 	default Message<T> intercept(Message<T> message) {
 		return message;
 	}
 
 	/**
-	 * Intercept the messages before processing.
-	 * @param messages the messages to be intercepted.
+	 * Perform an action on the messages or return a different ones before processing. Executed before processing. This
+	 * method must not return null or an empty collection.
+	 * @param messages the message to be intercepted.
+	 * @return a completable future containing the resulting message.
 	 */
 	default Collection<Message<T>> intercept(Collection<Message<T>> messages) {
 		return messages;
 	}
 
-	default void afterProcessing(Message<T> message, Throwable t) {
+	/**
+	 * Perform an action after the listener completes either with success or error.
+	 * @param message the message to be intercepted.
+	 */
+	default void afterProcessing(Message<T> message, @Nullable Throwable t) {
 	}
 
-	default void afterProcessing(Collection<Message<T>> messages, Throwable t) {
+	/**
+	 * Perform an action after the listener completes either with success or error.
+	 * @param messages the messages to be intercepted.
+	 */
+	default void afterProcessing(Collection<Message<T>> messages, @Nullable Throwable t) {
 	}
 
 }

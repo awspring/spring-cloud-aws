@@ -114,6 +114,16 @@ public abstract class AbstractMessageProcessingPipelineSink<T>
 				.whenComplete((v, t) -> measureExecution(watch, messages));
 	}
 
+	protected Void logError(Throwable t, Message<T> msg) {
+		logger.error("Error processing message {}.", MessageHeaderUtils.getId(msg), t);
+		return null;
+	}
+
+	protected Void logError(Throwable t, Collection<Message<T>> msgs) {
+		logger.error("Error processing message {}.", MessageHeaderUtils.getId(msgs), t);
+		return null;
+	}
+
 	private StopWatch getStartedWatch() {
 		StopWatch watch = new StopWatch();
 		watch.start();

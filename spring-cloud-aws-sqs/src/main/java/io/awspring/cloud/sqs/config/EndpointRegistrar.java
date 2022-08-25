@@ -39,11 +39,11 @@ import org.springframework.util.StringUtils;
 /**
  * Processes the registered {@link Endpoint} instances using the appropriate {@link MessageListenerContainerFactory}.
  * Contains configurations that will be applied to all {@link io.awspring.cloud.sqs.annotation.SqsListener @SqsListener}
- * containers. Such configurations can be set by declaring {@link SqsListenerCustomizer} beans.
+ * containers. Such configurations can be set by declaring {@link SqsListenerConfigurer} beans.
  *
  * @author Tomaz Fernandes
  * @since 3.0
- * @see SqsListenerCustomizer
+ * @see SqsListenerConfigurer
  */
 public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSingleton {
 

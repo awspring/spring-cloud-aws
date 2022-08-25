@@ -62,6 +62,7 @@ public class SqsMessageConversionContext
 		return this.queueAttributes;
 	}
 
+	@Override
 	public AcknowledgementCallback<?> getAcknowledgementCallback() {
 		return this.acknowledgementCallback;
 	}

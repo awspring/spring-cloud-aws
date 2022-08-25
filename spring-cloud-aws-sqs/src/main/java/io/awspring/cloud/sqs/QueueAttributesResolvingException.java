@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.config;
+package io.awspring.cloud.sqs;
 
 /**
- * Beans implementing this interface can configure the {@link EndpointRegistrar} instance used to process
- * {@link Endpoint} instances and change general settings for processing all
- * {@link io.awspring.cloud.sqs.annotation.SqsListener} annotations.
+ * Exception thrown when a {@link io.awspring.cloud.sqs.listener.QueueAttributesResolver} fails.
  *
  * @author Tomaz Fernandes
  * @since 3.0
- * @see io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor
+ * @see io.awspring.cloud.sqs.listener.QueueNotFoundStrategy
  */
-@FunctionalInterface
-public interface SqsListenerCustomizer {
+public class QueueAttributesResolvingException extends RuntimeException {
 
 	/**
-	 * Configures the {@link EndpointRegistrar} instance that will handle the {@link Endpoint} instances.
-	 * @param registrar the registrar instance.
+	 * Create an instance with the message and throwable cause.
+	 * @param message the error message.
+	 * @param cause the cause.
 	 */
-	void configure(EndpointRegistrar registrar);
-
+	public QueueAttributesResolvingException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

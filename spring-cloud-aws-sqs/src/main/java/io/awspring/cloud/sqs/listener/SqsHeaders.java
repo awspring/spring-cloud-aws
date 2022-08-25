@@ -37,7 +37,7 @@ public class SqsHeaders {
 	/**
 	 * MessageAttributes prefix to be used by all headers mapped from SQS Message Attributes.
 	 */
-	public static final String SQS_MA_HEADER_PREFIX = SQS_HEADER_PREFIX + "MA_";
+	public static final String SQS_MA_HEADER_PREFIX = SQS_HEADER_PREFIX + "Ma_";
 
 	/**
 	 * Header for the queue name.
@@ -53,11 +53,6 @@ public class SqsHeaders {
 	 * Header for the SQS Message's receipt handle.
 	 */
 	public static final String SQS_RECEIPT_HANDLE_HEADER = SQS_HEADER_PREFIX + "ReceiptHandle";
-
-	/**
-	 * Header for the SQS Message's id.
-	 */
-	public static final String SQS_MESSAGE_ID_HEADER = SQS_HEADER_PREFIX + "MessageId";
 
 	/**
 	 * Header for the original SQS {@link software.amazon.awssdk.services.sqs.model.Message}.
@@ -97,7 +92,7 @@ public class SqsHeaders {
 		/**
 		 * MessageSystemAttributes prefix
 		 */
-		public static final String SQS_MSA_HEADER_PREFIX = SQS_HEADER_PREFIX + "MSA_";
+		public static final String SQS_MSA_HEADER_PREFIX = SQS_HEADER_PREFIX + "Msa_";
 
 		/**
 		 * Group id header in a SQS message.

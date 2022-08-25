@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs;
 
-import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
@@ -40,7 +39,7 @@ public class MessageHeaderUtils {
 	 * @return the ID.
 	 */
 	public static String getId(Message<?> message) {
-		return getHeader(message, SqsHeaders.SQS_MESSAGE_ID_HEADER, UUID.class).toString();
+		return getHeader(message, MessageHeaders.ID, UUID.class).toString();
 	}
 
 	/**

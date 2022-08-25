@@ -114,11 +114,6 @@ public class BatchPayloadMethodArgumentResolver implements HandlerMethodArgument
 		return this.converter.fromMessage(message, targetClass);
 	}
 
-	private String getParameterName(MethodParameter param) {
-		String paramName = param.getParameterName();
-		return (paramName != null ? paramName : "Arg " + param.getParameterIndex());
-	}
-
 	private final Map<MethodParameter, Class<?>> targetClassCache = new ConcurrentHashMap<>();
 
 	private Class<?> resolveTargetClass(MethodParameter parameter) {
@@ -175,6 +170,11 @@ public class BatchPayloadMethodArgumentResolver implements HandlerMethodArgument
 				break;
 			}
 		}
+	}
+
+	private String getParameterName(MethodParameter param) {
+		String paramName = param.getParameterName();
+		return (paramName != null ? paramName : "Arg " + param.getParameterIndex());
 	}
 
 }

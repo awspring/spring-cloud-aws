@@ -51,6 +51,6 @@ public interface Endpoint {
 	 * Set up the necessary attributes for the container to process this endpoint.
 	 * @param container the container to be configured.
 	 */
-	void setupContainer(MessageListenerContainer<?> container);
+	<T> void setupContainer(MessageListenerContainer<T> container);
 
 }

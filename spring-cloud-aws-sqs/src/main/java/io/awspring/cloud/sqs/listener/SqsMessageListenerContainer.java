@@ -17,6 +17,8 @@ package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
+import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
@@ -26,7 +28,9 @@ import io.awspring.cloud.sqs.listener.source.MessageSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -101,6 +105,9 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsMessageListenerContainer.class);
 
+	private static final List<ContainerComponentFactory<?>> DEFAULT_CONTAINER_COMPONENT_FACTORIES = Arrays
+			.asList(new FifoSqsComponentFactory<>(), new StandardSqsComponentFactory<>());
+
 	private final SqsAsyncClient sqsAsyncClient;
 
 	public SqsMessageListenerContainer(SqsAsyncClient sqsAsyncClient, ContainerOptions options) {
@@ -113,16 +120,19 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 		this(sqsAsyncClient, ContainerOptions.builder().build());
 	}
 
-	// @formatter:off
+	@SuppressWarnings("unchecked")
 	@Override
-	protected ContainerComponentFactory<T> createComponentFactory() {
-		Assert.isTrue(getQueueNames().stream().map(this::isFifoQueue).distinct().count() == 1,
-			"The container must contain either all FIFO or all Standard queues.");
-		return isFifoQueue(getQueueNames().iterator().next())
-			? new FifoSqsComponentFactory<>()
-			: new StandardSqsComponentFactory<>();
+	protected Collection<ContainerComponentFactory<T>> getDefaultComponentFactories() {
+		Assert.isTrue(allQueuesSameType(),
+				"SqsMessageListenerContainer must contain either all FIFO or all Standard queues.");
+		return DEFAULT_CONTAINER_COMPONENT_FACTORIES.stream()
+				.map(componentFactory -> (ContainerComponentFactory<T>) componentFactory).collect(Collectors.toList());
 	}
-	// @formatter:on
+
+	private boolean allQueuesSameType() {
+		return getQueueNames().stream().allMatch(this::isFifoQueue)
+				|| getQueueNames().stream().noneMatch(this::isFifoQueue);
+	}
 
 	private boolean isFifoQueue(String name) {
 		return name.endsWith(".fifo");
@@ -154,7 +164,7 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 
 		private SqsAsyncClient sqsAsyncClient;
 
-		private ContainerComponentFactory<T> componentFactory;
+		private Collection<ContainerComponentFactory<T>> containerComponentFactories;
 
 		private AsyncMessageListener<T> asyncMessageListener;
 
@@ -166,8 +176,12 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 
 		private ErrorHandler<T> errorHandler;
 
-		private Consumer<ContainerOptions.Builder> options = options -> {
+		private Consumer<ContainerOptions.Builder> optionsConsumer = options -> {
 		};
+
+		private AsyncAcknowledgementResultCallback<T> asyncAcknowledgementResultCallback;
+
+		private AcknowledgementResultCallback<T> acknowledgementResultCallback;
 
 		public Builder<T> id(String id) {
 			this.id = id;
@@ -189,8 +203,8 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 			return this;
 		}
 
-		public Builder<T> componentFactory(ContainerComponentFactory<T> componentFactory) {
-			this.componentFactory = componentFactory;
+		public Builder<T> componentFactories(Collection<ContainerComponentFactory<T>> containerComponentFactories) {
+			this.containerComponentFactories = containerComponentFactories;
 			return this;
 		}
 
@@ -219,13 +233,25 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 			return this;
 		}
 
-		public Builder<T> messageInterceptors(MessageInterceptor<T> messageInterceptor) {
+		public Builder<T> messageInterceptor(MessageInterceptor<T> messageInterceptor) {
 			this.messageInterceptors.add(messageInterceptor);
 			return this;
 		}
 
+		public Builder<T> acknowledgementResultCallback(
+				AsyncAcknowledgementResultCallback<T> asyncAcknowledgementResultCallback) {
+			this.asyncAcknowledgementResultCallback = asyncAcknowledgementResultCallback;
+			return this;
+		}
+
+		public Builder<T> acknowledgementResultCallback(
+				AcknowledgementResultCallback<T> acknowledgementResultCallback) {
+			this.acknowledgementResultCallback = acknowledgementResultCallback;
+			return this;
+		}
+
 		public Builder<T> configure(Consumer<ContainerOptions.Builder> options) {
-			this.options = options;
+			this.optionsConsumer = options;
 			return this;
 		}
 
@@ -238,11 +264,13 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 					.acceptIfNotNull(this.asyncMessageListener, container::setAsyncMessageListener)
 					.acceptIfNotNull(this.errorHandler, container::setErrorHandler)
 					.acceptIfNotNull(this.asyncErrorHandler, container::setErrorHandler)
-					.acceptIfNotNull(this.componentFactory, container::setComponentFactory)
+					.acceptIfNotNull(this.acknowledgementResultCallback, container::setAcknowledgementResultCallback)
+					.acceptIfNotNull(this.asyncAcknowledgementResultCallback, container::setAcknowledgementResultCallback)
+					.acceptIfNotNull(this.containerComponentFactories, container::setComponentFactories)
 					.acceptIfNotEmpty(this.queueNames, container::setQueueNames);
 			this.messageInterceptors.forEach(container::addMessageInterceptor);
 			this.asyncMessageInterceptors.forEach(container::addMessageInterceptor);
-			container.configure(this.options);
+			container.configure(this.optionsConsumer);
 			return container;
 		}
 		// @formatter:on

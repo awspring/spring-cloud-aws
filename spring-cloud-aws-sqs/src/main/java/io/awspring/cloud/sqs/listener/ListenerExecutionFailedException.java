@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
 
 /**
  * Exception thrown when the {@link AsyncMessageListener} completes with an exception. Contains the {@link Message}
@@ -47,14 +48,30 @@ public class ListenerExecutionFailedException extends RuntimeException {
 		this.failedMessages = failedMessages.stream().map(msg -> (Message<?>) msg).collect(Collectors.toList());
 	}
 
+	/**
+	 * Return the message which listener execution failed.
+	 * @return the message.
+	 */
 	public Message<?> getFailedMessage() {
+		Assert.isTrue(this.failedMessages.size() == 1, () -> "Not a unique failed message: " + this.failedMessages);
 		return this.failedMessages.iterator().next();
 	}
 
+	/**
+	 * Return the messages which listener execution failed.
+	 * @return the messages.
+	 */
 	public Collection<Message<?>> getFailedMessages() {
 		return this.failedMessages;
 	}
 
+	/**
+	 * Look for a potentially nested {@link ListenerExecutionFailedException} and if found return the wrapped
+	 * {@link Message} instance.
+	 * @param t the throwable
+	 * @param <T> the message type.
+	 * @return the message.
+	 */
 	// @formatter:off
 	@SuppressWarnings("unchecked")
 	@Nullable
@@ -67,6 +84,12 @@ public class ListenerExecutionFailedException extends RuntimeException {
 				: (Message<T>) wrapAndRethrowError(t);
 	}
 
+	/**
+	 * Look for a potentially nested {@link ListenerExecutionFailedException} and if found return the wrapped {@link Message} instances.
+	 * @param t the throwable
+	 * @param <T> the message type.
+	 * @return the messages.
+	 */
 	@SuppressWarnings("unchecked")
 	@Nullable
 	public static <T> Collection<Message<T>> unwrapMessages(Throwable t) {

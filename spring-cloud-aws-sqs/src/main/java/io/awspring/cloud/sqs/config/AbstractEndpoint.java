@@ -16,9 +16,10 @@
 package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
-import io.awspring.cloud.sqs.listener.MessageDeliveryStrategy;
+import io.awspring.cloud.sqs.listener.ListenerMode;
 import io.awspring.cloud.sqs.listener.MessageListener;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
+import io.awspring.cloud.sqs.listener.acknowledgement.BatchAcknowledgement;
 import io.awspring.cloud.sqs.listener.adapter.AsyncMessagingMessageListenerAdapter;
 import io.awspring.cloud.sqs.listener.adapter.MessagingMessageListenerAdapter;
 import java.lang.reflect.Method;
@@ -55,11 +56,11 @@ public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 
 	private MessageHandlerMethodFactory handlerMethodFactory;
 
-	protected AbstractEndpoint(Collection<String> logicalNames, @Nullable String listenerContainerFactoryName,
+	protected AbstractEndpoint(Collection<String> queueNames, @Nullable String listenerContainerFactoryName,
 			String id) {
-		Assert.notEmpty(logicalNames, "logicalNames cannot be empty.");
+		Assert.notEmpty(queueNames, "queueNames cannot be empty.");
 		this.id = id;
-		this.logicalNames = logicalNames;
+		this.logicalNames = queueNames;
 		this.listenerContainerFactoryName = listenerContainerFactoryName;
 	}
 
@@ -107,16 +108,33 @@ public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 	}
 
 	@Override
-	public void configureMessageDeliveryStrategy(Consumer<MessageDeliveryStrategy> consumer) {
+	public void configureListenerMode(Consumer<ListenerMode> consumer) {
 		List<MethodParameter> parameters = getMethodParameters();
 		boolean batch = hasParameterOfType(parameters, List.class);
-		if ((batch && parameters.size() > 1)) {
-			throw new IllegalArgumentException(String.format(
-					"Method %s from class %s in endpoint %s has invalid parameters for batch processing. "
-							+ "Batch methods can have a single List parameter, either of Message<T> or T types.",
-					this.method.getName(), this.method.getDeclaringClass(), this.id));
-		}
-		consumer.accept(batch ? MessageDeliveryStrategy.BATCH : MessageDeliveryStrategy.SINGLE_MESSAGE);
+		boolean batchAckParameter = hasParameterOfType(parameters, BatchAcknowledgement.class);
+		Assert.isTrue(hasValidParameters(batch, batchAckParameter, parameters.size()), getInvalidParametersMessage());
+		consumer.accept(batch ? ListenerMode.BATCH : ListenerMode.SINGLE_MESSAGE);
+	}
+
+	private boolean hasValidParameters(boolean batch, boolean batchAckParameter, int size) {
+		return hasValidSingleMessageParameters(batch, batchAckParameter)
+				|| hasValidBatchParameters(batchAckParameter, size);
+	}
+
+	private boolean hasValidSingleMessageParameters(boolean batch, boolean batchAckParameter) {
+		return !batch && !batchAckParameter;
+	}
+
+	private boolean hasValidBatchParameters(boolean batchAckParameter, int size) {
+		return size == 1 || (size == 2 && batchAckParameter);
+	}
+
+	private String getInvalidParametersMessage() {
+		return String.format(
+				"Method %s from class %s in endpoint %s has invalid parameters for batch processing. "
+						+ "Batch methods must have a single List parameter, either of Message<T> or T types,"
+						+ "and optionally a BatchAcknowledgement or AsyncAcknowledgement parameter.",
+				this.method.getName(), this.method.getDeclaringClass(), this.id);
 	}
 
 	private boolean hasParameterOfType(List<MethodParameter> parameters, Class<?> clazz) {
@@ -132,8 +150,7 @@ public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 	 * Configure the provided container for this endpoint.
 	 * @param container the container to be configured.
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void setupContainer(MessageListenerContainer container) {
+	public <T> void setupContainer(MessageListenerContainer<T> container) {
 		Assert.notNull(this.handlerMethodFactory, "No handlerMethodFactory has been set");
 		InvocableHandlerMethod handlerMethod = this.handlerMethodFactory.createInvocableHandlerMethod(this.bean,
 				this.method);
@@ -145,11 +162,11 @@ public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 		}
 	}
 
-	protected MessageListener<?> createMessageListenerInstance(InvocableHandlerMethod handlerMethod) {
+	protected <T> MessageListener<T> createMessageListenerInstance(InvocableHandlerMethod handlerMethod) {
 		return new MessagingMessageListenerAdapter<>(handlerMethod);
 	}
 
-	protected AsyncMessageListener<?> createAsyncMessageListenerInstance(InvocableHandlerMethod handlerMethod) {
+	protected <T> AsyncMessageListener<T> createAsyncMessageListenerInstance(InvocableHandlerMethod handlerMethod) {
 		return new AsyncMessagingMessageListenerAdapter<>(handlerMethod);
 	}
 

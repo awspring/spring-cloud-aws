@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Interface representing a message acknowledgement. For this interface to be used as a listener method parameter,
  * {@link io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode#MANUAL} has to be set.
@@ -28,5 +30,10 @@ public interface Acknowledgement {
 	 * Acknowledge the message.
 	 */
 	void acknowledge();
+
+	/**
+	 * Asynchronously acknowledge the message.
+	 */
+	CompletableFuture<Void> acknowledgeAsync();
 
 }

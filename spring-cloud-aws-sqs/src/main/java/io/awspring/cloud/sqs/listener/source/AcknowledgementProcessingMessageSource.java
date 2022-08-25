@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener.source;
 
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
+import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 
 /**
  * {@link MessageSource} specialization that enables processing acknowledgements for the
@@ -33,5 +34,12 @@ public interface AcknowledgementProcessingMessageSource<T> extends MessageSource
 	 * @param acknowledgementProcessor the processor instance.
 	 */
 	void setAcknowledgementProcessor(AcknowledgementProcessor<T> acknowledgementProcessor);
+
+	/**
+	 * Set the {@link AsyncAcknowledgementResultCallback} that will be executed after messages are acknowledged, usually
+	 * by a {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementExecutor}.
+	 * @param acknowledgementResultCallback the callback instance.
+	 */
+	void setAcknowledgementResultCallback(AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback);
 
 }

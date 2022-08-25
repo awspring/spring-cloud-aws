@@ -24,6 +24,8 @@ import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.TaskExecutorAware;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
+import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
+import io.awspring.cloud.sqs.listener.acknowledgement.ExecutingAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -80,8 +82,10 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 
 	private String id;
 
+	private AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback;
+
 	@Override
-	protected void doConfigureAfterConversion(ContainerOptions containerOptions) {
+	protected void configureMessageSource(ContainerOptions containerOptions) {
 		this.shutdownTimeout = containerOptions.getShutdownTimeout();
 		doConfigure(containerOptions);
 	}
@@ -115,6 +119,12 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 	}
 
 	@Override
+	public void setAcknowledgementResultCallback(AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback) {
+		Assert.notNull(acknowledgementResultCallback, "acknowledgementResultCallback must not be null");
+		this.acknowledgementResultCallback = acknowledgementResultCallback;
+	}
+
+	@Override
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		Assert.notNull(taskExecutor, "taskExecutor cannot be null");
 		this.taskExecutor = taskExecutor;
@@ -136,6 +146,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 		return this.running;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void start() {
 		if (isRunning()) {
@@ -154,10 +165,12 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 							icc -> icc.setId(this.id))
 					.acceptIfInstance(this.acknowledgmentProcessor, IdentifiableContainerComponent.class,
 							icc -> icc.setId(this.id))
+					.acceptIfInstance(this.acknowledgmentProcessor, ExecutingAcknowledgementProcessor.class,
+							eap -> eap.setAcknowledgementResultCallback(this.acknowledgementResultCallback))
 					.acceptIfInstance(this.acknowledgmentProcessor, TaskExecutorAware.class,
 							ea -> ea.setTaskExecutor(this.taskExecutor));
 			doStart();
-			setupAcknowledgementConversion(this.acknowledgmentProcessor.getAcknowledgementCallback());
+			setupAcknowledgementForConversion(this.acknowledgmentProcessor.getAcknowledgementCallback());
 			this.acknowledgmentProcessor.start();
 			startPollingThread();
 		}
@@ -281,9 +294,12 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 		synchronized (this.lifecycleMonitor) {
 			logger.debug("Stopping {} for queue {}", getClass().getSimpleName(), this.pollingEndpointName);
 			this.running = false;
-			waitExistingTasksToFinish();
+			if (!waitExistingTasksToFinish()) {
+				logger.warn("Tasks did not finish in {} seconds for queue {}, proceeding with shutdown",
+						this.shutdownTimeout.getSeconds(), this.pollingEndpointName);
+				this.pollingFutures.forEach(pollingFuture -> pollingFuture.cancel(true));
+			}
 			doStop();
-			this.pollingFutures.forEach(pollingFuture -> pollingFuture.cancel(true));
 			this.acknowledgmentProcessor.stop();
 			logger.debug("{} for queue {} stopped", getClass().getSimpleName(), this.pollingEndpointName);
 		}
@@ -292,17 +308,13 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 	protected void doStop() {
 	}
 
-	private void waitExistingTasksToFinish() {
+	private boolean waitExistingTasksToFinish() {
 		if (this.shutdownTimeout.isZero()) {
 			logger.debug("Shutdown timeout set to zero for queue {} - not waiting for tasks to finish",
 					this.pollingEndpointName);
-			return;
+			return false;
 		}
-		boolean tasksFinished = this.backPressureHandler.drain(this.shutdownTimeout);
-		if (!tasksFinished) {
-			logger.warn("Tasks did not finish in {} seconds for queue {}, proceeding with shutdown",
-					this.shutdownTimeout.getSeconds(), this.pollingEndpointName);
-		}
+		return this.backPressureHandler.drain(this.shutdownTimeout);
 	}
 
 }

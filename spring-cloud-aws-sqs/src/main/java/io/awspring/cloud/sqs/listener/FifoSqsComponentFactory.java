@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor;
@@ -28,8 +29,12 @@ import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityExtendingSin
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.SqsMessageSource;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.function.Function;
 import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
  * {@link ContainerComponentFactory} implementation for creating components for FIFO queues.
@@ -51,21 +56,26 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> 
 	private static final AcknowledgementOrdering DEFAULT_FIFO_SQS_ACK_ORDERING_BATCHING = AcknowledgementOrdering.ORDERED;
 
 	@Override
+	public boolean supports(Collection<String> queueNames, ContainerOptions options) {
+		return queueNames.stream().allMatch(name -> name.endsWith(".fifo"));
+	}
+
+	@Override
 	public MessageSource<T> createMessageSource(ContainerOptions options) {
 		return new SqsMessageSource<>();
 	}
 
 	@Override
 	public MessageSink<T> createMessageSink(ContainerOptions options) {
-		MessageSink<T> deliverySink = createDeliverySink(options.getMessageDeliveryStrategy());
+		MessageSink<T> deliverySink = createDeliverySink(options.getListenerMode());
 		return new MessageGroupingSinkAdapter<>(
 				maybeWrapWithVisibilityAdapter(deliverySink, options.getMessageVisibility()),
-				getMessageGroupingHeader());
+				getMessageGroupingFunction());
 	}
 
 	// @formatter:off
-	private MessageSink<T> createDeliverySink(MessageDeliveryStrategy messageDeliveryStrategy) {
-		return MessageDeliveryStrategy.SINGLE_MESSAGE.equals(messageDeliveryStrategy)
+	private MessageSink<T> createDeliverySink(ListenerMode listenerMode) {
+		return ListenerMode.SINGLE_MESSAGE.equals(listenerMode)
 			? new OrderedMessageSink<>()
 			: new BatchMessageSink<>();
 	}
@@ -84,38 +94,77 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> 
 		return visibilityAdapter;
 	}
 
-	private Function<Message<T>, String> getMessageGroupingHeader() {
-		return message -> message.getHeaders().get(SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER,
-				String.class);
+	private Function<Message<T>, String> getMessageGroupingFunction() {
+		return message -> MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER);
 	}
 
 	@Override
 	public AcknowledgementProcessor<T> createAcknowledgementProcessor(ContainerOptions options) {
-		return (options.getAcknowledgementInterval() == null || DEFAULT_FIFO_SQS_ACK_INTERVAL.equals(options.getAcknowledgementInterval()))
-			&& (options.getAcknowledgementThreshold() == null || DEFAULT_FIFO_SQS_ACK_THRESHOLD.equals(options.getAcknowledgementThreshold()))
+		validateFifoOptions(options);
+		return hasNoAcknowledgementIntervalSet(options) && hasNoAcknowledgementThresholdSet(options)
 				? createAndConfigureImmediateProcessor(options)
 				: createAndConfigureBatchingAckProcessor(options);
 	}
+
+	private void validateFifoOptions(ContainerOptions options) {
+		Assert.isTrue(options.getMessageSystemAttributeNames().contains(QueueAttributeName.ALL.toString())
+				|| options.getMessageSystemAttributeNames().contains(MessageSystemAttributeName.MESSAGE_GROUP_ID.toString())
+		, "MessageSystemAttributeName.MESSAGE_GROUP_ID is required for FIFO queues.");
+	}
+
+	private boolean hasNoAcknowledgementThresholdSet(ContainerOptions options) {
+		return options.getAcknowledgementThreshold() == null || DEFAULT_FIFO_SQS_ACK_THRESHOLD.equals(options.getAcknowledgementThreshold());
+	}
+
+	private boolean hasNoAcknowledgementIntervalSet(ContainerOptions options) {
+		return options.getAcknowledgementInterval() == null || DEFAULT_FIFO_SQS_ACK_INTERVAL.equals(options.getAcknowledgementInterval());
+	}
 	// @formatter:on
 
-	protected ImmediateAcknowledgementProcessor<T> createAndConfigureImmediateProcessor(ContainerOptions options) {
-		ImmediateAcknowledgementProcessor<T> processor = new ImmediateAcknowledgementProcessor<>();
+	private ImmediateAcknowledgementProcessor<T> createAndConfigureImmediateProcessor(ContainerOptions options) {
+		return configureImmediateProcessor(createImmediateProcessorInstance(), options);
+	}
+
+	private BatchingAcknowledgementProcessor<T> createAndConfigureBatchingAckProcessor(ContainerOptions options) {
+		return configureBatchingAckProcessor(options, createBatchingProcessorInstance());
+	}
+
+	protected ImmediateAcknowledgementProcessor<T> createImmediateProcessorInstance() {
+		return new ImmediateAcknowledgementProcessor<>();
+	}
+
+	protected BatchingAcknowledgementProcessor<T> createBatchingProcessorInstance() {
+		return new BatchingAcknowledgementProcessor<>();
+	}
+
+	protected ImmediateAcknowledgementProcessor<T> configureImmediateProcessor(
+			ImmediateAcknowledgementProcessor<T> processor, ContainerOptions options) {
 		processor.setMaxAcknowledgementsPerBatch(10);
-		ConfigUtils.INSTANCE.acceptIfNotNullOrElse(processor::setAcknowledgementOrdering,
+		if (AcknowledgementOrdering.ORDERED_BY_GROUP.equals(options.getAcknowledgementOrdering())) {
+			processor.setMessageGroupingFunction(getMessageGroupingFunction());
+		}
+		ContainerOptions.Builder builder = options.toBuilder();
+		ConfigUtils.INSTANCE.acceptIfNotNullOrElse(builder::acknowledgementOrdering,
 				options.getAcknowledgementOrdering(), DEFAULT_FIFO_SQS_ACK_ORDERING_IMMEDIATE);
+		processor.configure(builder.build());
 		return processor;
 	}
 
-	protected BatchingAcknowledgementProcessor<T> createAndConfigureBatchingAckProcessor(ContainerOptions options) {
-		BatchingAcknowledgementProcessor<T> processor = new BatchingAcknowledgementProcessor<>();
-		processor.setMaxAcknowledgementsPerBatch(10);
+	protected BatchingAcknowledgementProcessor<T> configureBatchingAckProcessor(ContainerOptions options,
+			BatchingAcknowledgementProcessor<T> processor) {
+		ContainerOptions.Builder builder = options.toBuilder();
 		ConfigUtils.INSTANCE
-				.acceptIfNotNullOrElse(processor::setAcknowledgementInterval, options.getAcknowledgementInterval(),
+				.acceptIfNotNullOrElse(builder::acknowledgementInterval, options.getAcknowledgementInterval(),
 						DEFAULT_FIFO_SQS_ACK_INTERVAL)
-				.acceptIfNotNullOrElse(processor::setAcknowledgementThreshold, options.getAcknowledgementThreshold(),
+				.acceptIfNotNullOrElse(builder::acknowledgementThreshold, options.getAcknowledgementThreshold(),
 						DEFAULT_FIFO_SQS_ACK_THRESHOLD)
-				.acceptIfNotNullOrElse(processor::setAcknowledgementOrdering, options.getAcknowledgementOrdering(),
+				.acceptIfNotNullOrElse(builder::acknowledgementOrdering, options.getAcknowledgementOrdering(),
 						DEFAULT_FIFO_SQS_ACK_ORDERING_BATCHING);
+		processor.setMaxAcknowledgementsPerBatch(10);
+		if (AcknowledgementOrdering.ORDERED_BY_GROUP.equals(options.getAcknowledgementOrdering())) {
+			processor.setMessageGroupingFunction(getMessageGroupingFunction());
+		}
+		processor.configure(builder.build());
 		return processor;
 	}
 

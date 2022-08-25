@@ -31,7 +31,7 @@ public class BatchMessageSink<T> extends AbstractMessageProcessingPipelineSink<T
 
 	@Override
 	protected CompletableFuture<Void> doEmit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
-		return execute(messages, context);
+		return execute(messages, context).exceptionally(t -> logError(t, messages));
 	}
 
 }

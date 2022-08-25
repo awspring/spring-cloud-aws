@@ -38,7 +38,7 @@ import org.springframework.messaging.Message;
  * be created, which can contain more useful information for message conversion.
  * <p>
  * If such context implements the {@link AcknowledgementAwareMessageConversionContext}, an
- * {@link AcknowledgementCallback} can be added to the context by using the {@link #setupAcknowledgementConversion}
+ * {@link AcknowledgementCallback} can be added to the context by using the {@link #setupAcknowledgementForConversion}
  * method/.
  *
  * @author Tomaz Fernandes
@@ -52,17 +52,19 @@ public abstract class AbstractMessageConvertingMessageSource<T, S> implements Me
 
 	private AcknowledgementMode acknowledgementMode;
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void configure(ContainerOptions containerOptions) {
-		this.messagingMessageConverter = getOrCreateMessageConverter(containerOptions);
+		this.messagingMessageConverter = (MessagingMessageConverter<S>) containerOptions.getMessageConverter();
 		this.messageConversionContext = maybeCreateConversionContext();
 		this.acknowledgementMode = containerOptions.getAcknowledgementMode();
-		doConfigureAfterConversion(containerOptions);
+		configureMessageSource(containerOptions);
 	}
 
-	protected abstract void doConfigureAfterConversion(ContainerOptions containerOptions);
+	protected void configureMessageSource(ContainerOptions containerOptions) {
+	}
 
-	protected void setupAcknowledgementConversion(AcknowledgementCallback<T> callback) {
+	protected void setupAcknowledgementForConversion(AcknowledgementCallback<T> callback) {
 		if (this.acknowledgementMode.equals(AcknowledgementMode.MANUAL)) {
 			ConfigUtils.INSTANCE.acceptIfInstance(this.messageConversionContext,
 					AcknowledgementAwareMessageConversionContext.class,
@@ -92,15 +94,6 @@ public abstract class AbstractMessageConvertingMessageSource<T, S> implements Me
 	private ContextAwareMessagingMessageConverter<S> getContextAwareConverter() {
 		return (ContextAwareMessagingMessageConverter<S>) this.messagingMessageConverter;
 	}
-
-	@SuppressWarnings("unchecked")
-	private MessagingMessageConverter<S> getOrCreateMessageConverter(ContainerOptions containerOptions) {
-		return containerOptions.getMessageConverter() != null
-				? (MessagingMessageConverter<S>) containerOptions.getMessageConverter()
-				: createMessageConverter();
-	}
-
-	protected abstract MessagingMessageConverter<S> createMessageConverter();
 
 	protected MessageConversionContext getMessageConversionContext() {
 		return this.messageConversionContext;

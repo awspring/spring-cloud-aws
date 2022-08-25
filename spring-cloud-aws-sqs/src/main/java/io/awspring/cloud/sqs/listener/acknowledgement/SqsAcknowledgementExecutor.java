@@ -24,6 +24,7 @@ import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,13 +119,14 @@ public class SqsAcknowledgementExecutor<T>
 	private void logAckResult(Collection<Message<T>> messagesToAck, Throwable t, StopWatch watch) {
 		watch.stop();
 		long totalTimeMillis = watch.getTotalTimeMillis();
-		if (totalTimeMillis > 1000) {
+		if (totalTimeMillis > 10000) {
 			logger.warn("Acknowledgement operation took {} seconds to finish in queue {} for messages {}",
 					totalTimeMillis, this.queueName, MessageHeaderUtils.getId(messagesToAck));
 		}
 		if (t != null) {
 			logger.error("Error acknowledging in queue {} messages {} in {}ms", this.queueName,
-					MessageHeaderUtils.getId(messagesToAck), totalTimeMillis, t);
+					MessageHeaderUtils.getId(messagesToAck), totalTimeMillis,
+					t instanceof CompletionException ? t.getCause() : t);
 		}
 		else {
 			logger.trace("Done acknowledging in queue {} messages: {} in {}ms", this.queueName,

@@ -26,10 +26,16 @@ package io.awspring.cloud.sqs.listener.acknowledgement;
 public enum AcknowledgementOrdering {
 
 	/**
-	 * Acknowledgements will be executed sequentially. The next batch of messages will only be acknowledged after the
+	 * Acknowledgements will be executed sequentially. The next batch of messages will be acknowledged after the
 	 * previous one is completed.
 	 */
 	ORDERED,
+
+	/**
+	 * Acknowledgements will be executed sequentially within its group, and in parallel between groups. The next batch
+	 * of messages will be acknowledged after the previous one from the same group is completed.
+	 */
+	ORDERED_BY_GROUP,
 
 	/**
 	 * Acknowledgements will be executed in parallel.

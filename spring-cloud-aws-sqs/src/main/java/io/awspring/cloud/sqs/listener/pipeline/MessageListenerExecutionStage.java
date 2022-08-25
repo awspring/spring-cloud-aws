@@ -15,8 +15,10 @@
  */
 package io.awspring.cloud.sqs.listener.pipeline;
 
+import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
+import io.awspring.cloud.sqs.listener.ListenerExecutionFailedException;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -36,21 +38,27 @@ public class MessageListenerExecutionStage<T> implements MessageProcessingPipeli
 
 	private final AsyncMessageListener<T> messageListener;
 
-	public MessageListenerExecutionStage(MessageProcessingConfiguration<T> context) {
-		this.messageListener = context.getMessageListener();
+	public MessageListenerExecutionStage(MessageProcessingConfiguration<T> configuration) {
+		this.messageListener = configuration.getMessageListener();
 	}
 
 	@Override
 	public CompletableFuture<Message<T>> process(Message<T> message, MessageProcessingContext<T> context) {
 		logger.trace("Processing message {}", MessageHeaderUtils.getId(message));
-		return this.messageListener.onMessage(message).thenApply(theVoid -> message);
+		return CompletableFutures.exceptionallyCompose(
+				this.messageListener.onMessage(message).thenApply(theVoid -> message),
+				t -> CompletableFutures.failedFuture(ListenerExecutionFailedException.hasListenerException(t) ? t
+						: new ListenerExecutionFailedException("Listener failed to process message", t, message)));
 	}
 
 	@Override
 	public CompletableFuture<Collection<Message<T>>> process(Collection<Message<T>> messages,
 			MessageProcessingContext<T> context) {
 		logger.trace("Processing messages {}", MessageHeaderUtils.getId(messages));
-		return this.messageListener.onMessage(messages).thenApply(theVoid -> messages);
+		return CompletableFutures.exceptionallyCompose(
+				this.messageListener.onMessage(messages).thenApply(theVoid -> messages),
+				t -> CompletableFutures.failedFuture(ListenerExecutionFailedException.hasListenerException(t) ? t
+						: new ListenerExecutionFailedException("Listener failed to process messages", t, messages)));
 	}
 
 }

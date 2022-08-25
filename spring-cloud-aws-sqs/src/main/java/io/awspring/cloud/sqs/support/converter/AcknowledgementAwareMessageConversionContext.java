@@ -27,4 +27,6 @@ public interface AcknowledgementAwareMessageConversionContext extends MessageCon
 
 	void setAcknowledgementCallback(AcknowledgementCallback<?> acknowledgementCallback);
 
+	AcknowledgementCallback<?> getAcknowledgementCallback();
+
 }

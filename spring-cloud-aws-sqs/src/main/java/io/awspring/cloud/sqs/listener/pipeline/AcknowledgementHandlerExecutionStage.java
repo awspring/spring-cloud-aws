@@ -61,7 +61,7 @@ public class AcknowledgementHandlerExecutionStage<T> implements MessageProcessin
 					? this.acknowledgementHandler.onSuccess(v, context.getAcknowledgmentCallback())
 							.thenApply(theVoid -> v)
 					: this.acknowledgementHandler.onError(originalMessages, t, context.getAcknowledgmentCallback())
-							.thenApply(theVoid -> originalMessages);
+							.thenCompose(theVoid -> CompletableFutures.failedFuture(t));
 		});
 	}
 

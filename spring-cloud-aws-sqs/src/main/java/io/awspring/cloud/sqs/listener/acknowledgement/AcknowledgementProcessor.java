@@ -15,7 +15,9 @@
  */
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
+import io.awspring.cloud.sqs.listener.ConfigurableContainerComponent;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
 import org.springframework.context.SmartLifecycle;
 
 /**
@@ -35,7 +37,8 @@ import org.springframework.context.SmartLifecycle;
  * @see ExecutingAcknowledgementProcessor
  * @see SqsAcknowledgementExecutor
  */
-public interface AcknowledgementProcessor<T> extends SmartLifecycle {
+public interface AcknowledgementProcessor<T>
+		extends SmartLifecycle, IdentifiableContainerComponent, ConfigurableContainerComponent {
 
 	/**
 	 * Retrieve an acknowledgement callback that can be used to offer messages to be acknowledged by this processor.

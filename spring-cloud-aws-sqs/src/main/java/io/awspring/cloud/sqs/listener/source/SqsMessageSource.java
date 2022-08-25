@@ -25,12 +25,14 @@ import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementExecutor;
 import io.awspring.cloud.sqs.listener.acknowledgement.ExecutingAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
-import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
-import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -135,19 +137,16 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T, Message
 	// @formatter:on
 
 	protected AcknowledgementExecutor<T> createAndConfigureAcknowledgementExecutor(QueueAttributes queueAttributes) {
-		SqsAcknowledgementExecutor<T> executor = createAcknowledgementExecutorInstance();
-		executor.setQueueAttributes(queueAttributes);
-		executor.setSqsAsyncClient(this.sqsAsyncClient);
+		AcknowledgementExecutor<T> executor = createAcknowledgementExecutorInstance();
+		ConfigUtils.INSTANCE
+				.acceptIfInstance(executor, QueueAttributesAware.class, qaa -> qaa.setQueueAttributes(queueAttributes))
+				.acceptIfInstance(executor, SqsAsyncClientAware.class,
+						saca -> saca.setSqsAsyncClient(this.sqsAsyncClient));
 		return executor;
 	}
 
-	protected SqsAcknowledgementExecutor<T> createAcknowledgementExecutorInstance() {
+	protected AcknowledgementExecutor<T> createAcknowledgementExecutorInstance() {
 		return new SqsAcknowledgementExecutor<>();
-	}
-
-	@Override
-	protected MessagingMessageConverter<Message> createMessageConverter() {
-		return new SqsMessagingMessageConverter();
 	}
 
 	// @formatter:off
@@ -155,6 +154,12 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T, Message
 	protected CompletableFuture<Collection<Message>> doPollForMessages(
 			int maxNumberOfMessages) {
 		logger.debug("Polling queue {} for {} messages.", this.queueUrl, maxNumberOfMessages);
+		return maxNumberOfMessages <= 10
+			? executePoll(maxNumberOfMessages)
+			: executeMultiplePolls(maxNumberOfMessages);
+	}
+
+	private CompletableFuture<Collection<Message>> executePoll(int maxNumberOfMessages) {
 		return sqsAsyncClient
 			.receiveMessage(createRequest(maxNumberOfMessages))
 			.thenApply(ReceiveMessageResponse::messages)
@@ -179,10 +184,28 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T, Message
 	}
 	// @formatter:on
 
+	private CompletableFuture<Collection<Message>> executeMultiplePolls(int maxNumberOfMessages) {
+		int remainder = maxNumberOfMessages % 10;
+		return remainder == 0 ? combinePolls(maxNumberOfMessages)
+				: combinePolls(maxNumberOfMessages).thenCombine(executePoll(remainder), this::combineBatches);
+	}
+
+	private CompletableFuture<Collection<Message>> combinePolls(int maxNumberOfMessages) {
+		return IntStream.range(0, maxNumberOfMessages / 10).mapToObj(index -> executePoll(10)).reduce(
+				CompletableFuture.completedFuture(Collections.emptyList()),
+				(first, second) -> first.thenCombine(second, this::combineBatches));
+	}
+
+	private Collection<Message> combineBatches(Collection<Message> firstBatch, Collection<Message> secondBatch) {
+		List<Message> combinedBatch = new ArrayList<>(firstBatch);
+		combinedBatch.addAll(secondBatch);
+		return combinedBatch;
+	}
+
 	private void logMessagesReceived(Collection<Message> v, Throwable t) {
 		if (v != null) {
 			if (logger.isTraceEnabled()) {
-				logger.trace("Received messages {} from queue {}",
+				logger.trace("Received {} messages {} from queue {}", v.size(),
 						v.stream().map(Message::messageId).collect(Collectors.toList()), this.queueUrl);
 			}
 			else {

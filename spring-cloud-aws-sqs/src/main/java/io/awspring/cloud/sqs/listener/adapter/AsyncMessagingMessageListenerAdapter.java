@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener.adapter;
 
 import io.awspring.cloud.sqs.CompletableFutures;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -30,6 +31,7 @@ import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
  * @author Tomaz Fernandes
  * @since 3.0
  */
+@SuppressWarnings("unchecked")
 public class AsyncMessagingMessageListenerAdapter<T> extends AbstractMethodInvokingListenerAdapter<T>
 		implements AsyncMessageListener<T> {
 
@@ -39,23 +41,40 @@ public class AsyncMessagingMessageListenerAdapter<T> extends AbstractMethodInvok
 
 	@Override
 	public CompletableFuture<Void> onMessage(Message<T> message) {
-		return CompletableFutures.exceptionallyCompose(invokeAsyncHandler(message),
-				t -> CompletableFutures.failedFuture(createListenerException(message, t)));
+		try {
+			return CompletableFutures.exceptionallyCompose(invokeAsync(message),
+					t -> CompletableFutures.failedFuture(createListenerException(message, t)));
+		}
+		catch (ClassCastException e) {
+			return CompletableFutures.failedFuture(new IllegalArgumentException(
+					"Invalid return type for message " + MessageHeaderUtils.getId(message), e));
+		}
+		catch (Exception e) {
+			return CompletableFutures.failedFuture(e);
+		}
+	}
+
+	private CompletableFuture<Void> invokeAsync(Message<T> message) {
+		return (CompletableFuture<Void>) super.invokeHandler(message);
 	}
 
 	@Override
 	public CompletableFuture<Void> onMessage(Collection<Message<T>> messages) {
-		return CompletableFutures.exceptionallyCompose(invokeAsyncHandler(messages),
-				t -> CompletableFutures.failedFuture(createListenerException(messages, t)));
+		try {
+			return CompletableFutures.exceptionallyCompose(invokeAsync(messages),
+					t -> CompletableFutures.failedFuture(createListenerException(messages, t)));
+		}
+		catch (ClassCastException e) {
+			return CompletableFutures.failedFuture(new IllegalArgumentException(
+					"Invalid return type for messages " + MessageHeaderUtils.getId(messages), e));
+		}
+		catch (Exception e) {
+			return CompletableFutures.failedFuture(e);
+		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private CompletableFuture<Void> invokeAsyncHandler(Collection<Message<T>> messages) {
+	private CompletableFuture<Void> invokeAsync(Collection<Message<T>> messages) {
 		return (CompletableFuture<Void>) super.invokeHandler(messages);
 	}
 
-	@SuppressWarnings("unchecked")
-	private CompletableFuture<Void> invokeAsyncHandler(Message<T> message) {
-		return (CompletableFuture<Void>) super.invokeHandler(message);
-	}
 }

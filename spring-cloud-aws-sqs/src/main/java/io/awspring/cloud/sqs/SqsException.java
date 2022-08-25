@@ -26,14 +26,6 @@ import org.springframework.core.NestedRuntimeException;
 public class SqsException extends NestedRuntimeException {
 
 	/**
-	 * Construct an instance with the supplied message.
-	 * @param msg the message.
-	 */
-	public SqsException(String msg) {
-		super(msg);
-	}
-
-	/**
 	 * Construct an instance with the supplied message and cause.
 	 * @param msg the message.
 	 * @param cause the cause.
@@ -41,4 +33,5 @@ public class SqsException extends NestedRuntimeException {
 	public SqsException(String msg, Throwable cause) {
 		super(msg, cause);
 	}
+
 }

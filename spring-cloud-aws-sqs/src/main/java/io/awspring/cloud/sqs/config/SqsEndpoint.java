@@ -19,7 +19,6 @@ import io.awspring.cloud.sqs.annotation.SqsListener;
 import java.time.Duration;
 import java.util.Collection;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 
 /**
  * {@link Endpoint} implementation for SQS endpoints.
@@ -37,22 +36,22 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 	private final Integer messageVisibility;
 
-	private SqsEndpoint(Collection<String> logicalEndpointNames, String listenerContainerFactoryName,
-			Integer maxInflightMessagesPerQueue, Integer pollTimeoutSeconds, Integer messageVisibility, String id) {
-		super(logicalEndpointNames, listenerContainerFactoryName, id);
-		this.maxInflightMessagesPerQueue = maxInflightMessagesPerQueue;
-		this.pollTimeoutSeconds = pollTimeoutSeconds;
-		this.messageVisibility = messageVisibility;
+	private final Integer maxMessagesPerPoll;
+
+	protected SqsEndpoint(SqsEndpointBuilder builder) {
+		super(builder.queueNames, builder.factoryName, builder.id);
+		this.maxInflightMessagesPerQueue = builder.maxInflightMessagesPerQueue;
+		this.pollTimeoutSeconds = builder.pollTimeoutSeconds;
+		this.messageVisibility = builder.messageVisibility;
+		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
 	}
 
 	/**
-	 * Return a {@link SqsEndpointBuilder} instance with the provided logical endpoint names.
-	 * @param logicalEndpointNames the logical endpoint names for this endpoint.
+	 * Return a {@link SqsEndpointBuilder} instance with the provided queue names.
 	 * @return the builder instance.
 	 */
-	public static SqsEndpointBuilder from(Collection<String> logicalEndpointNames) {
-		Assert.notEmpty(logicalEndpointNames, "queueNames cannot be empty");
-		return new SqsEndpointBuilder(logicalEndpointNames);
+	public static SqsEndpointBuilder builder() {
+		return new SqsEndpointBuilder();
 	}
 
 	/**
@@ -74,16 +73,26 @@ public class SqsEndpoint extends AbstractEndpoint {
 	}
 
 	/**
-	 *
+	 * Return the maximum amount of messages that should be returned in a poll.
+	 * @return the maximum amount of messages.
 	 */
 	@Nullable
-	public Duration getMessageVisibilityDuration() {
+	public Integer getMaxMessagesPerPoll() {
+		return this.maxMessagesPerPoll;
+	}
+
+	/**
+	 * Return the message visibility for this endpoint.
+	 * @return the message visibility.
+	 */
+	@Nullable
+	public Duration getMessageVisibility() {
 		return this.messageVisibility != null ? Duration.ofSeconds(this.messageVisibility) : null;
 	}
 
 	public static class SqsEndpointBuilder {
 
-		private final Collection<String> logicalEndpointNames;
+		private Collection<String> queueNames;
 
 		private Integer maxInflightMessagesPerQueue;
 
@@ -93,12 +102,13 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 		private Integer messageVisibility;
 
-		private Boolean async;
-
 		private String id;
 
-		public SqsEndpointBuilder(Collection<String> logicalEndpointNames) {
-			this.logicalEndpointNames = logicalEndpointNames;
+		private Integer maxMessagesPerPoll;
+
+		public SqsEndpointBuilder queueNames(Collection<String> queueNames) {
+			this.queueNames = queueNames;
+			return this;
 		}
 
 		public SqsEndpointBuilder factoryBeanName(String factoryName) {
@@ -116,6 +126,11 @@ public class SqsEndpoint extends AbstractEndpoint {
 			return this;
 		}
 
+		public SqsEndpointBuilder maxMessagesPerPoll(Integer maxMessagesPerPoll) {
+			this.maxMessagesPerPoll = maxMessagesPerPoll;
+			return this;
+		}
+
 		public SqsEndpointBuilder messageVisibility(Integer messageVisibility) {
 			this.messageVisibility = messageVisibility;
 			return this;
@@ -127,8 +142,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 		}
 
 		public SqsEndpoint build() {
-			return new SqsEndpoint(this.logicalEndpointNames, this.factoryName, this.maxInflightMessagesPerQueue,
-					this.pollTimeoutSeconds, this.messageVisibility, this.id);
+			return new SqsEndpoint(this);
 		}
 	}
 

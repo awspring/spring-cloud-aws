@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.map;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,15 +34,12 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.util.Assert;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -75,7 +73,7 @@ class SqsAutoConfigurationTest {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true").run(context -> {
 			assertThat(context).hasSingleBean(SqsAsyncClient.class);
 			assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
-			assertThat(context).hasBean("defaultSqsListenerContainerFactory");
+			assertThat(context).hasBean(EndpointRegistrar.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME);
 			assertThat(context).hasBean("sqsAsyncClient");
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SqsAsyncClient.class));
 			assertThat(client.getEndpoint()).isEqualTo(URI.create("https://sqs.eu-west-1.amazonaws.com"));
@@ -92,24 +90,23 @@ class SqsAutoConfigurationTest {
 		});
 	}
 
+	// @formatter:off
 	@Test
 	void customSqsClientConfigurer() {
 		this.contextRunner.withUserConfiguration(CustomAwsAsyncClientConfig.class).run(context -> {
 			SqsAsyncClient sqsAsyncClient = context.getBean(SqsAsyncClient.class);
-			Map<?, ?> attributeMap = getProperties(sqsAsyncClient);
-			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(1999));
-			assertThat(attributeMap.get(SdkClientOption.ASYNC_HTTP_CLIENT)).isNotNull();
+			assertThat(sqsAsyncClient)
+				.extracting("clientConfiguration")
+				.extracting("attributes")
+				.extracting("attributes")
+				.asInstanceOf(map(Object.class, Object.class))
+				.isInstanceOfSatisfying(Map.class, attributes -> {
+					assertThat(attributes.get(SdkClientOption.API_CALL_TIMEOUT))
+						.isEqualTo(Duration.ofMillis(1999));
+					assertThat(attributes.get(SdkClientOption.ASYNC_HTTP_CLIENT))
+						.isNotNull();
+				});
 		});
-	}
-
-	private Map<?, ?> getProperties(SqsAsyncClient sqsAsyncClient) {
-		Object clientConfiguration = Objects.requireNonNull(
-				ReflectionTestUtils.getField(sqsAsyncClient, "clientConfiguration"),
-				() -> "clientConfiguration field not found in " + sqsAsyncClient.getClass().getSimpleName());
-		Object attributes = Objects.requireNonNull(ReflectionTestUtils.getField(clientConfiguration, "attributes"),
-				() -> "attributes field not found in " + clientConfiguration.getClass().getSimpleName());
-		return (Map<?, ?>) Objects.requireNonNull(ReflectionTestUtils.getField(attributes, "attributes"),
-				() -> "attributes field not found in " + clientConfiguration.getClass().getSimpleName());
 	}
 
 	@Test
@@ -123,19 +120,21 @@ class SqsAutoConfigurationTest {
 					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
 					SqsMessageListenerContainerFactory<?> factory = context
 							.getBean(SqsMessageListenerContainerFactory.class);
-					String builderFieldName = "containerOptionsBuilder";
-					ContainerOptions.Builder builder = (ContainerOptions.Builder) ReflectionTestUtils.getField(factory,
-							builderFieldName);
-					Assert.notNull(builder, "Field " + builderFieldName + " not found in class "
-							+ SqsMessageListenerContainerFactory.class);
-					ContainerOptions containerOptions = builder.build();
-					assertThat(containerOptions.getMaxInFlightMessagesPerQueue()).isEqualTo(19);
-					assertThat(containerOptions.getMaxMessagesPerPoll()).isEqualTo(8);
-					assertThat(containerOptions.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
-					assertThat(ReflectionTestUtils.getField(factory, "errorHandler")).isNotNull();
-					assertThat(ReflectionTestUtils.getField(factory, "messageInterceptors")).asList().isNotEmpty();
+				assertThat(factory)
+					.hasFieldOrProperty("errorHandler")
+					.extracting("asyncMessageInterceptors").asList().isNotEmpty();
+				assertThat(factory)
+					.extracting("containerOptionsBuilder")
+					.asInstanceOf(type(ContainerOptions.Builder.class))
+					.extracting(ContainerOptions.Builder::build)
+					.isInstanceOfSatisfying(ContainerOptions.class, options -> {
+						assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(19);
+						assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);
+						assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
+					});
 				});
 	}
+	// @formatter:on
 
 	@Test
 	void configuresObjectMapper() {

@@ -26,6 +26,8 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.SqsMessageSource;
 import java.time.Duration;
+import java.util.Collection;
+import org.springframework.util.Assert;
 
 /**
  * A {@link ContainerComponentFactory} implementation for Standard SQS queues.
@@ -42,51 +44,76 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 	private static final AcknowledgementOrdering DEFAULT_STANDARD_SQS_ACK_ORDERING = AcknowledgementOrdering.PARALLEL;
 
 	@Override
+	public boolean supports(Collection<String> queueNames, ContainerOptions options) {
+		return queueNames.stream().noneMatch(name -> name.endsWith(".fifo"));
+	}
+
+	@Override
 	public MessageSource<T> createMessageSource(ContainerOptions options) {
 		return new SqsMessageSource<>();
 	}
 
+	// @formatter:off
 	@Override
 	public MessageSink<T> createMessageSink(ContainerOptions options) {
-		return MessageDeliveryStrategy.SINGLE_MESSAGE.equals(options.getMessageDeliveryStrategy())
-				? new FanOutMessageSink<>()
-				: new BatchMessageSink<>();
+		return ListenerMode.SINGLE_MESSAGE.equals(options.getListenerMode())
+			? new FanOutMessageSink<>()
+			: new BatchMessageSink<>();
 	}
+	// @formatter:on
 
 	@Override
 	public AcknowledgementProcessor<T> createAcknowledgementProcessor(ContainerOptions options) {
+		validateAcknowledgementOrdering(options);
 		return options.getAcknowledgementInterval() == Duration.ZERO && options.getAcknowledgementThreshold() == 0
 				? createAndConfigureImmediateProcessor(options)
 				: createAndConfigureBatchingProcessor(options);
 	}
 
+	private void validateAcknowledgementOrdering(ContainerOptions options) {
+		Assert.isTrue(!AcknowledgementOrdering.ORDERED_BY_GROUP.equals(options.getAcknowledgementOrdering()),
+				"Standard SQS queues are not compatible with " + AcknowledgementOrdering.ORDERED_BY_GROUP);
+	}
+
+	private AcknowledgementProcessor<T> createAndConfigureBatchingProcessor(ContainerOptions options) {
+		return configureBatchingAcknowledgementProcessor(options, createBatchingProcessorInstance());
+	}
+
 	protected ImmediateAcknowledgementProcessor<T> createAndConfigureImmediateProcessor(ContainerOptions options) {
-		ImmediateAcknowledgementProcessor<T> processor = createImmediateProcessorInstance();
-		processor.setMaxAcknowledgementsPerBatch(10);
-		ConfigUtils.INSTANCE.acceptIfNotNullOrElse(processor::setAcknowledgementOrdering,
-				options.getAcknowledgementOrdering(), DEFAULT_STANDARD_SQS_ACK_ORDERING);
-		return processor;
+		return configureImmediateAcknowledgementProcessor(createImmediateProcessorInstance(), options);
 	}
 
 	protected ImmediateAcknowledgementProcessor<T> createImmediateProcessorInstance() {
 		return new ImmediateAcknowledgementProcessor<>();
 	}
 
-	protected AcknowledgementProcessor<T> createAndConfigureBatchingProcessor(ContainerOptions options) {
-		BatchingAcknowledgementProcessor<T> processor = createBatchingProcessorInstance();
+	protected BatchingAcknowledgementProcessor<T> createBatchingProcessorInstance() {
+		return new BatchingAcknowledgementProcessor<>();
+	}
+
+	protected ImmediateAcknowledgementProcessor<T> configureImmediateAcknowledgementProcessor(
+			ImmediateAcknowledgementProcessor<T> processor, ContainerOptions options) {
 		processor.setMaxAcknowledgementsPerBatch(10);
-		ConfigUtils.INSTANCE
-				.acceptIfNotNullOrElse(processor::setAcknowledgementInterval, options.getAcknowledgementInterval(),
-						DEFAULT_STANDARD_SQS_ACK_INTERVAL)
-				.acceptIfNotNullOrElse(processor::setAcknowledgementThreshold, options.getAcknowledgementThreshold(),
-						DEFAULT_STANDARD_SQS_ACK_THRESHOLD)
-				.acceptIfNotNullOrElse(processor::setAcknowledgementOrdering, options.getAcknowledgementOrdering(),
-						DEFAULT_STANDARD_SQS_ACK_ORDERING);
+		ContainerOptions.Builder builder = options.toBuilder();
+		ConfigUtils.INSTANCE.acceptIfNotNullOrElse(builder::acknowledgementOrdering,
+				options.getAcknowledgementOrdering(), DEFAULT_STANDARD_SQS_ACK_ORDERING);
+		processor.configure(builder.build());
 		return processor;
 	}
 
-	protected BatchingAcknowledgementProcessor<T> createBatchingProcessorInstance() {
-		return new BatchingAcknowledgementProcessor<>();
+	protected BatchingAcknowledgementProcessor<T> configureBatchingAcknowledgementProcessor(ContainerOptions options,
+			BatchingAcknowledgementProcessor<T> processor) {
+		processor.setMaxAcknowledgementsPerBatch(10);
+		ContainerOptions.Builder builder = options.toBuilder();
+		ConfigUtils.INSTANCE
+				.acceptIfNotNullOrElse(builder::acknowledgementInterval, options.getAcknowledgementInterval(),
+						DEFAULT_STANDARD_SQS_ACK_INTERVAL)
+				.acceptIfNotNullOrElse(builder::acknowledgementThreshold, options.getAcknowledgementThreshold(),
+						DEFAULT_STANDARD_SQS_ACK_THRESHOLD)
+				.acceptIfNotNullOrElse(builder::acknowledgementOrdering, options.getAcknowledgementOrdering(),
+						DEFAULT_STANDARD_SQS_ACK_ORDERING);
+		processor.configure(builder.build());
+		return processor;
 	}
 
 }

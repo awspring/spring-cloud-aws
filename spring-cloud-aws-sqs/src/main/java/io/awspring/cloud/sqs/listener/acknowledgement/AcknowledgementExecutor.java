@@ -26,6 +26,7 @@ import org.springframework.messaging.Message;
  * @since 3.0
  * @see ExecutingAcknowledgementProcessor
  */
+@FunctionalInterface
 public interface AcknowledgementExecutor<T> {
 
 	/**

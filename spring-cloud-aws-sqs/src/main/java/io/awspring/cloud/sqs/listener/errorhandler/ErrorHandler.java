@@ -19,7 +19,9 @@ import java.util.Collection;
 import org.springframework.messaging.Message;
 
 /**
- * Interface for handling errors.
+ * Interface for handling errors. If the error handler completes normally, the message or messages will be considered
+ * recovered for further processing purposes. If the message should not be considered recovered, an exception must be
+ * thrown from the error handler.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -32,6 +34,7 @@ public interface ErrorHandler<T> {
 	 * @param t the thrown exception.
 	 */
 	default void handle(Message<T> message, Throwable t) {
+		throw new UnsupportedOperationException("Single message error handling not implemented");
 	}
 
 	/**
@@ -40,6 +43,7 @@ public interface ErrorHandler<T> {
 	 * @param t the thrown exception.
 	 */
 	default void handle(Collection<Message<T>> messages, Throwable t) {
+		throw new UnsupportedOperationException("Batch error handling not implemented");
 	}
 
 }

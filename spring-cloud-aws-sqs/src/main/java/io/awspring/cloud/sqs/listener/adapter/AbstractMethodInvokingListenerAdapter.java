@@ -53,7 +53,7 @@ public abstract class AbstractMethodInvokingListenerAdapter<T> {
 	 */
 	protected final Object invokeHandler(Message<T> message) {
 		try {
-			return handlerMethod.invoke(message);
+			return this.handlerMethod.invoke(message);
 		}
 		catch (Exception e) {
 			throw createListenerException(message, e);
@@ -67,16 +67,16 @@ public abstract class AbstractMethodInvokingListenerAdapter<T> {
 	 */
 	protected final Object invokeHandler(Collection<Message<T>> messages) {
 		try {
-			return handlerMethod.invoke(MessageBuilder.withPayload(messages).build());
+			return this.handlerMethod.invoke(MessageBuilder.withPayload(messages).build());
 		}
 		catch (Exception e) {
 			throw createListenerException(messages, e);
 		}
 	}
 
-	protected ListenerExecutionFailedException createListenerException(Collection<Message<T>> message, Throwable t) {
+	protected ListenerExecutionFailedException createListenerException(Collection<Message<T>> messages, Throwable t) {
 		return new ListenerExecutionFailedException(
-				"Listener failed to process message " + MessageHeaderUtils.getId(message), t, message);
+				"Listener failed to process messages " + MessageHeaderUtils.getId(messages), t, messages);
 	}
 
 	protected ListenerExecutionFailedException createListenerException(Message<T> message, Throwable t) {
