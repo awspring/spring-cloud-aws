@@ -27,7 +27,6 @@ import org.springframework.messaging.Message;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-@FunctionalInterface
 public interface MessageSource<T> extends ConfigurableContainerComponent {
 
 	/**

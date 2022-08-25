@@ -46,8 +46,9 @@ public class ErrorHandlerExecutionStage<T> implements MessageProcessingPipeline<
 	@Override
 	public CompletableFuture<Message<T>> process(CompletableFuture<Message<T>> messageFuture,
 			MessageProcessingContext<T> context) {
-		return CompletableFutures.exceptionallyCompose(messageFuture,
-				t -> handleError(ListenerExecutionFailedException.unwrapMessage(t), t));
+		return this.errorHandler == null ? messageFuture
+				: CompletableFutures.exceptionallyCompose(messageFuture,
+						t -> handleError(ListenerExecutionFailedException.unwrapMessage(t), t));
 	}
 
 	private CompletableFuture<Message<T>> handleError(Message<T> failedMessage, Throwable t) {
@@ -65,16 +66,21 @@ public class ErrorHandlerExecutionStage<T> implements MessageProcessingPipeline<
 	@Override
 	public CompletableFuture<Collection<Message<T>>> processMany(
 			CompletableFuture<Collection<Message<T>>> messagesFuture, MessageProcessingContext<T> context) {
-		return CompletableFutures.exceptionallyCompose(messagesFuture,
-				t -> handleErrors(ListenerExecutionFailedException.unwrapMessages(t), t));
+		return this.errorHandler == null ? messagesFuture
+				: CompletableFutures.exceptionallyCompose(messagesFuture,
+						t -> handleErrors(ListenerExecutionFailedException.unwrapMessages(t), t));
 	}
 
 	private CompletableFuture<Collection<Message<T>>> handleErrors(Collection<Message<T>> failedMessages, Throwable t) {
 		logger.debug("Handling error {} for message {}", t, MessageHeaderUtils.getId(failedMessages));
 		return CompletableFutures.exceptionallyCompose(
 				this.errorHandler.handle(failedMessages, t).thenApply(theVoid -> failedMessages),
-				eht -> CompletableFutures.failedFuture(new ListenerExecutionFailedException(
-						"Error handler returned an exception", eht, failedMessages)));
+				eht -> CompletableFutures.failedFuture(maybeWrap(failedMessages, eht)));
+	}
+
+	private Throwable maybeWrap(Collection<Message<T>> failedMessages, Throwable eht) {
+		return ListenerExecutionFailedException.hasListenerException(eht) ? eht
+				: new ListenerExecutionFailedException("Error handler returned an exception", eht, failedMessages);
 	}
 
 }

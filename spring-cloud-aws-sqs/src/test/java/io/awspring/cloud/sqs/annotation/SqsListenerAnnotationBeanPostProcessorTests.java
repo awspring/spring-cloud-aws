@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.MessageListenerContainerFactory;
-import io.awspring.cloud.sqs.config.SqsListenerCustomizer;
+import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
@@ -42,6 +43,7 @@ import org.springframework.messaging.handler.annotation.support.DefaultMessageHa
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.PayloadMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.util.StringValueResolver;
 
 /**
  * @author Tomaz Fernandes
@@ -63,7 +65,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		MessageConverter converter = mock(MessageConverter.class);
 		HandlerMethodArgumentResolver resolver = mock(HandlerMethodArgumentResolver.class);
 
-		SqsListenerCustomizer customizer = registrar -> {
+		SqsListenerConfigurer customizer = registrar -> {
 			registrar.setDefaultListenerContainerFactoryBeanName(factoryName);
 			registrar.setListenerContainerRegistry(registry);
 			registrar.setMessageHandlerMethodFactory(methodFactory);
@@ -72,7 +74,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 			registrar.manageMethodArgumentResolvers(resolvers -> resolvers.add(resolver));
 		};
 
-		when(beanFactory.getBeansOfType(SqsListenerCustomizer.class))
+		when(beanFactory.getBeansOfType(SqsListenerConfigurer.class))
 				.thenReturn(Collections.singletonMap("customizer", customizer));
 		when(beanFactory.getBean(factoryName, MessageListenerContainerFactory.class))
 				.thenReturn(mock(MessageListenerContainerFactory.class));
@@ -96,6 +98,9 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		};
 
 		processor.setBeanFactory(beanFactory);
+		StringValueResolver valueResolver = mock(StringValueResolver.class);
+		given(valueResolver.resolveStringValue("queueNames")).willReturn("queueNames");
+		processor.setEmbeddedValueResolver(valueResolver);
 		Listener bean = new Listener();
 		processor.postProcessAfterInitialization(bean, "listener");
 		processor.afterSingletonsInstantiated();
@@ -120,10 +125,10 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		MessageListenerContainerFactory<?> factory = mock(MessageListenerContainerFactory.class);
 
 		String registryBeanName = "customRegistry";
-		SqsListenerCustomizer customizer = registrar -> registrar
+		SqsListenerConfigurer customizer = registrar -> registrar
 				.setMessageListenerContainerRegistryBeanName(registryBeanName);
 
-		when(beanFactory.getBeansOfType(SqsListenerCustomizer.class))
+		when(beanFactory.getBeansOfType(SqsListenerConfigurer.class))
 				.thenReturn(Collections.singletonMap("customizer", customizer));
 		when(beanFactory.getBean(registryBeanName, MessageListenerContainerRegistry.class)).thenReturn(registry);
 		when(beanFactory.containsBean(EndpointRegistrar.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME)).thenReturn(true);
@@ -141,6 +146,9 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 
 		Listener bean = new Listener();
 		processor.setBeanFactory(beanFactory);
+		StringValueResolver valueResolver = mock(StringValueResolver.class);
+		given(valueResolver.resolveStringValue("queueNames")).willReturn("queueNames");
+		processor.setEmbeddedValueResolver(valueResolver);
 		processor.postProcessAfterInitialization(bean, "listener");
 		processor.afterSingletonsInstantiated();
 
@@ -154,10 +162,10 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		MessageListenerContainerRegistry registry = mock(MessageListenerContainerRegistry.class);
 
 		String registryBeanName = "customRegistry";
-		SqsListenerCustomizer customizer = registrar -> registrar
+		SqsListenerConfigurer customizer = registrar -> registrar
 				.setMessageListenerContainerRegistryBeanName(registryBeanName);
 
-		when(beanFactory.getBeansOfType(SqsListenerCustomizer.class))
+		when(beanFactory.getBeansOfType(SqsListenerConfigurer.class))
 				.thenReturn(Collections.singletonMap("customizer", customizer));
 		when(beanFactory.getBean(registryBeanName, MessageListenerContainerRegistry.class)).thenReturn(registry);
 		when(beanFactory.containsBean(EndpointRegistrar.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME))
@@ -166,6 +174,9 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor();
 
 		Listener bean = new Listener();
+		StringValueResolver valueResolver = mock(StringValueResolver.class);
+		given(valueResolver.resolveStringValue("queueNames")).willReturn("queueNames");
+		processor.setEmbeddedValueResolver(valueResolver);
 		processor.setBeanFactory(beanFactory);
 		processor.postProcessAfterInitialization(bean, "listener");
 		assertThatThrownBy(processor::afterSingletonsInstantiated).isInstanceOf(IllegalArgumentException.class);

@@ -23,6 +23,8 @@ import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.MessageListener;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
+import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
@@ -50,13 +52,23 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 
 	private final ContainerOptions.Builder containerOptionsBuilder;
 
-	private AsyncErrorHandler<T> errorHandler;
+	private final Collection<AsyncMessageInterceptor<T>> asyncMessageInterceptors = new ArrayList<>();
 
-	private AsyncMessageListener<T> messageListener;
+	private final Collection<MessageInterceptor<T>> messageInterceptors = new ArrayList<>();
 
-	private final Collection<AsyncMessageInterceptor<T>> messageInterceptors = new ArrayList<>();
+	private AsyncErrorHandler<T> asyncErrorHandler;
 
-	private ContainerComponentFactory<T> componentFactory;
+	private ErrorHandler<T> errorHandler;
+
+	private AsyncMessageListener<T> asyncMessageListener;
+
+	private MessageListener<T> messageListener;
+
+	private AsyncAcknowledgementResultCallback<T> asyncAcknowledgementResultCallback;
+
+	private AcknowledgementResultCallback<T> acknowledgementResultCallback;
+
+	private Collection<ContainerComponentFactory<T>> containerComponentFactories;
 
 	protected AbstractMessageListenerContainerFactory() {
 		this.containerOptionsBuilder = ContainerOptions.builder();
@@ -70,7 +82,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	 */
 	public void setErrorHandler(ErrorHandler<T> errorHandler) {
 		Assert.notNull(errorHandler, "errorHandler cannot be null");
-		this.errorHandler = AsyncComponentAdapters.adapt(errorHandler);
+		this.errorHandler = errorHandler;
 	}
 
 	/**
@@ -79,7 +91,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	 */
 	public void setErrorHandler(AsyncErrorHandler<T> errorHandler) {
 		Assert.notNull(errorHandler, "errorHandler cannot be null");
-		this.errorHandler = errorHandler;
+		this.asyncErrorHandler = errorHandler;
 	}
 
 	/**
@@ -90,7 +102,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	 */
 	public void addMessageInterceptor(MessageInterceptor<T> messageInterceptor) {
 		Assert.notNull(messageInterceptor, "messageInterceptor cannot be null");
-		this.messageInterceptors.add(AsyncComponentAdapters.adapt(messageInterceptor));
+		this.messageInterceptors.add(messageInterceptor);
 	}
 
 	/**
@@ -100,7 +112,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	 */
 	public void addMessageInterceptor(AsyncMessageInterceptor<T> messageInterceptor) {
 		Assert.notNull(messageInterceptor, "messageInterceptor cannot be null");
-		this.messageInterceptors.add(messageInterceptor);
+		this.asyncMessageInterceptors.add(messageInterceptor);
 	}
 
 	/**
@@ -112,7 +124,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	 */
 	public void setMessageListener(MessageListener<T> messageListener) {
 		Assert.notNull(messageListener, "messageListener cannot be null");
-		this.messageListener = AsyncComponentAdapters.adapt(messageListener);
+		this.messageListener = messageListener;
 	}
 
 	/**
@@ -122,17 +134,35 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	 */
 	public void setAsyncMessageListener(AsyncMessageListener<T> messageListener) {
 		Assert.notNull(messageListener, "messageListener cannot be null");
-		this.messageListener = messageListener;
+		this.asyncMessageListener = messageListener;
 	}
 
 	/**
-	 * Set the {@link ContainerComponentFactory} instance that will be used to create internal components for listener
-	 * containers created by this factory.
-	 * @param componentFactory the factory instance.
+	 * Set the {@link AsyncAcknowledgementResultCallback} instance to be used by containers created by this factory.
+	 * @param acknowledgementResultCallback the instance.
 	 */
-	public void setComponentFactory(ContainerComponentFactory<T> componentFactory) {
-		Assert.notNull(componentFactory, "componentFactory cannot be null");
-		this.componentFactory = componentFactory;
+	public void setAcknowledgementResultCallback(AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback) {
+		Assert.notNull(acknowledgementResultCallback, "acknowledgementResultCallback cannot be null");
+		this.asyncAcknowledgementResultCallback = acknowledgementResultCallback;
+	}
+
+	/**
+	 * Set the {@link AcknowledgementResultCallback} instance to be used by containers created by this factory.
+	 * @param acknowledgementResultCallback the instance.
+	 */
+	public void setAcknowledgementResultCallback(AcknowledgementResultCallback<T> acknowledgementResultCallback) {
+		Assert.notNull(acknowledgementResultCallback, "acknowledgementResultCallback cannot be null");
+		this.acknowledgementResultCallback = acknowledgementResultCallback;
+	}
+
+	/**
+	 * Set the {@link ContainerComponentFactory} instances that will be used to create components for listener
+	 * containers created by this factory.
+	 * @param containerComponentFactories the factory instances.
+	 */
+	public void setContainerComponentFactories(Collection<ContainerComponentFactory<T>> containerComponentFactories) {
+		Assert.notEmpty(containerComponentFactories, "containerComponentFactories cannot be null or empty");
+		this.containerComponentFactories = containerComponentFactories;
 	}
 
 	/**
@@ -155,12 +185,12 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 
 	private void configure(Endpoint endpoint, ContainerOptions.Builder options) {
 		ConfigUtils.INSTANCE.acceptIfInstance(endpoint, HandlerMethodEndpoint.class,
-				abstractEndpoint -> abstractEndpoint
-						.configureMessageDeliveryStrategy(options::messageDeliveryStrategy));
-		doConfigureContainerOptions(endpoint, options);
+				abstractEndpoint -> abstractEndpoint.configureListenerMode(options::listenerMode));
+		configureContainerOptions(endpoint, options);
 	}
 
-	protected abstract void doConfigureContainerOptions(Endpoint endpoint, ContainerOptions.Builder containerOptions);
+	protected void configureContainerOptions(Endpoint endpoint, ContainerOptions.Builder containerOptions) {
+	}
 
 	@Override
 	public C createContainer(String... logicalEndpointNames) {
@@ -177,10 +207,16 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	protected void configureAbstractContainer(AbstractMessageListenerContainer<T> container, Endpoint endpoint) {
 		container.setQueueNames(endpoint.getLogicalNames());
 		ConfigUtils.INSTANCE.acceptIfNotNull(endpoint.getId(), container::setId)
-				.acceptIfNotNull(this.componentFactory, container::setComponentFactory)
-				.acceptIfNotNull(this.messageListener, container::setAsyncMessageListener)
+				.acceptIfNotNull(this.containerComponentFactories, container::setComponentFactories)
+				.acceptIfNotNull(this.messageListener, container::setMessageListener)
+				.acceptIfNotNull(this.asyncMessageListener, container::setAsyncMessageListener)
 				.acceptIfNotNull(this.errorHandler, container::setErrorHandler)
-				.acceptIfNotNull(this.messageInterceptors,
+				.acceptIfNotNull(this.asyncErrorHandler, container::setErrorHandler)
+				.acceptIfNotNull(this.asyncAcknowledgementResultCallback, container::setAcknowledgementResultCallback)
+				.acceptIfNotNull(this.acknowledgementResultCallback, container::setAcknowledgementResultCallback)
+				.acceptIfNotEmpty(this.messageInterceptors,
+						interceptors -> interceptors.forEach(container::addMessageInterceptor))
+				.acceptIfNotEmpty(this.asyncMessageInterceptors,
 						interceptors -> interceptors.forEach(container::addMessageInterceptor));
 	}
 

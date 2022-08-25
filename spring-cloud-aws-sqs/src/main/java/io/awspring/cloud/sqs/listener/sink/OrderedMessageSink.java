@@ -20,6 +20,7 @@ import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -39,15 +40,24 @@ public class OrderedMessageSink<T> extends AbstractMessageProcessingPipelineSink
 	@Override
 	protected CompletableFuture<Void> doEmit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
 		logger.trace("Emitting messages {}", MessageHeaderUtils.getId(messages));
-		return messages.stream().reduce(CompletableFuture.completedFuture(null),
+		CompletableFuture<Void> execution = messages.stream().reduce(CompletableFuture.completedFuture(null),
 				(resultFuture, msg) -> CompletableFutures.handleCompose(resultFuture, (v, t) -> {
 					if (t == null) {
-						return execute(msg, context);
+						return execute(msg, context).whenComplete(logIfError(msg));
 					}
 					// Release backpressure from subsequent interrupted executions in case of errors.
 					context.runBackPressureReleaseCallback();
 					return CompletableFutures.failedFuture(t);
 				}), (a, b) -> a);
+		return execution.exceptionally(t -> null);
+	}
+
+	private BiConsumer<Void, Throwable> logIfError(Message<T> msg) {
+		return (v, t) -> {
+			if (t != null) {
+				logError(t, msg);
+			}
+		};
 	}
 
 }

@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.annotation;
 
+import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -41,7 +42,7 @@ import org.springframework.core.annotation.AliasFor;
  * creating and configuring a factory.
  * <p>
  * Further configuration for containers created using this annotation can be achieved by declaring
- * {@link io.awspring.cloud.sqs.config.SqsListenerCustomizer} beans.
+ * {@link SqsListenerConfigurer} beans.
  * <p>
  * Methods with this annotation can have flexible signatures, including arguments of the following types:
  * <ul>
@@ -68,7 +69,7 @@ import org.springframework.core.annotation.AliasFor;
  *
  * @see SqsMessageListenerContainerFactory
  * @see io.awspring.cloud.sqs.listener.SqsMessageListenerContainer
- * @see io.awspring.cloud.sqs.config.SqsListenerCustomizer
+ * @see SqsListenerConfigurer
  *
  * @author Alain Sahli
  * @author Matej Nedic
@@ -120,6 +121,14 @@ public @interface SqsListener {
 	 * @return the poll timeout.
 	 */
 	String pollTimeoutSeconds() default "";
+
+	/**
+	 * The maximum amount of time to wait for a poll to SQS. If a value greater than 10 is provided, the result of
+	 * multiple polls will be combined, which can be useful for
+	 * {@link io.awspring.cloud.sqs.listener.ListenerMode#BATCH}
+	 * @return the maximum messages per poll.
+	 */
+	String maxMessagesPerPoll() default "";
 
 	/**
 	 * The message visibility to be applied to messages received from the provided queues. For Standard SQS queues and

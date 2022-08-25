@@ -13,29 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs;
+package io.awspring.cloud.sqs.integration;
 
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.CompletableFutures;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.FifoSqsComponentFactory;
-import io.awspring.cloud.sqs.listener.MessageDeliveryStrategy;
+import io.awspring.cloud.sqs.listener.ListenerMode;
 import io.awspring.cloud.sqs.listener.MessageListener;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.OnSuccessAcknowledgementHandler;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -45,6 +51,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -60,9 +67,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.util.Assert;
+import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 
 /**
  * @author Tomaz Fernandes
@@ -151,7 +160,15 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LoadSimulator loadSimulator;
 
+		public boolean receiveMessages = true;
+
+		public boolean sendMessages = true;
+
 		private final int messagesPerTest = 5;
+
+		private final int messagesPerMessageGroup = 10;
+
+		private final int latchTimeoutSeconds = messagesPerTest * 10;
 
 		@Override
 		public void afterSingletonsInstantiated() {
@@ -169,29 +186,44 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				.collect(toList());
 		String queueUrl = fetchQueueUrl(FIFO_RECEIVES_MESSAGES_IN_ORDER_QUEUE_NAME);
 		sendMessageTo(queueUrl, values, messageGroupId);
-		assertThat(latchContainer.receivesMessageLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesMessageLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS)).isTrue();
 		assertThat(receivesMessageInOrderListener.receivedMessages).containsExactlyElementsOf(values);
 	}
 
 	@Test
 	void receivesMessagesInOrderFromManyMessageGroups() throws Exception {
-		latchContainer.receivesMessageManyGroupsLatch = new CountDownLatch(this.settings.messagesPerTest * 3);
-		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
-				.collect(toList());
-		String messageGroupId1 = UUID.randomUUID().toString();
-		String messageGroupId2 = UUID.randomUUID().toString();
-		String messageGroupId3 = UUID.randomUUID().toString();
 		String queueUrl = fetchQueueUrl(FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME);
-		sendMessageTo(queueUrl, values, messageGroupId1);
-		sendMessageTo(queueUrl, values, messageGroupId2);
-		sendMessageTo(queueUrl, values, messageGroupId3);
-		assertThat(latchContainer.receivesMessageManyGroupsLatch.await(20, TimeUnit.SECONDS)).isTrue();
-		assertThat(receivesMessageInOrderManyGroupsListener.receivedMessages.get(messageGroupId1))
-				.containsExactlyElementsOf(values);
-		assertThat(receivesMessageInOrderManyGroupsListener.receivedMessages.get(messageGroupId2))
-				.containsExactlyElementsOf(values);
-		assertThat(receivesMessageInOrderManyGroupsListener.receivedMessages.get(messageGroupId3))
-				.containsExactlyElementsOf(values);
+		int messagesPerTest = Math.max(this.settings.messagesPerTest, 30);
+		int numberOfMessageGroups = messagesPerTest / Math.max(this.settings.messagesPerMessageGroup, 10);
+		int messagesPerMessageGroup = Math.max(messagesPerTest / numberOfMessageGroups, 1);
+		latchContainer.receivesMessageManyGroupsLatch = new CountDownLatch(messagesPerTest);
+		latchContainer.manyGroupsAcks = new CountDownLatch(messagesPerTest);
+		List<String> values = IntStream.range(0, messagesPerMessageGroup).mapToObj(String::valueOf).collect(toList());
+		List<String> messageGroups = IntStream.range(0, numberOfMessageGroups)
+				.mapToObj(index -> UUID.randomUUID().toString()).collect(toList());
+		StopWatch watch = new StopWatch();
+		watch.start();
+		LoadSimulator loadSimulator = new LoadSimulator().setLoadEnabled(true).setRandom(true).setBound(20);
+		IntStream.range(0, messageGroups.size()).forEach(index -> {
+			if (this.settings.sendMessages) {
+				sendMessageTo(queueUrl, values, messageGroups.get(index));
+			}
+			if (index % 10 == 0) {
+				loadSimulator.runLoad();
+			}
+		});
+		assertThat(latchContainer.receivesMessageManyGroupsLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+				.isTrue();
+		assertThat(latchContainer.manyGroupsAcks.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS)).isTrue();
+		watch.stop();
+		messageGroups.forEach(group -> {
+			assertThat(receivesMessageInOrderManyGroupsListener.receivedMessages.get(group))
+					.containsExactlyElementsOf(values);
+			assertThat(messagesContainer.acknowledgesFromManyGroups.get(group)).containsExactlyElementsOf(values);
+		});
+		double totalTimeSeconds = watch.getTotalTimeSeconds();
+		logger.debug("{}s for processing {} messages in {} message groups. Messages / seconds: {}", totalTimeSeconds,
+				messagesPerTest, numberOfMessageGroups, messagesPerTest / totalTimeSeconds);
 	}
 
 	@Test
@@ -203,10 +235,15 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		String messageGroupId = UUID.randomUUID().toString();
 		String queueUrl = fetchQueueUrl(FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME);
 		sendMessageTo(queueUrl, values, messageGroupId);
-		assertThat(latchContainer.stopsProcessingOnErrorLatch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.stopsProcessingOnErrorLatch1.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+				.isTrue();
+		logger.debug("receivedMessagesBeforeException: {}", stopsOnErrorListener.receivedMessagesBeforeException);
 		assertThat(stopsOnErrorListener.receivedMessagesBeforeException)
 				.containsExactlyElementsOf(values.stream().limit(4).collect(toList()));
-		assertThat(latchContainer.stopsProcessingOnErrorLatch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.stopsProcessingOnErrorLatch2.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+				.isTrue();
+		logger.debug("receivedMessagesBeforeException: {}", stopsOnErrorListener.receivedMessagesBeforeException);
+		logger.debug("receivedMessagesAfterException: {}", stopsOnErrorListener.receivedMessagesAfterException);
 		assertThat(stopsOnErrorListener.receivedMessagesBeforeException)
 				.containsExactlyElementsOf(values.stream().limit(4).collect(toList()));
 		assertThat(stopsOnErrorListener.receivedMessagesAfterException)
@@ -216,18 +253,24 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void stopsProcessingAfterAckException() throws Exception {
 		latchContainer.stopsProcessingOnAckErrorLatch1 = new CountDownLatch(4);
-		latchContainer.stopsProcessingOnAckErrorLatch2 = new CountDownLatch(this.settings.messagesPerTest + 1);
+		latchContainer.stopsProcessingOnAckErrorLatch2 = new CountDownLatch(this.settings.messagesPerTest - 3);
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
 		String messageGroupId = UUID.randomUUID().toString();
 		String queueUrl = fetchQueueUrl(FIFO_STOPS_PROCESSING_ON_ACK_ERROR_ERROR_QUEUE_NAME);
 		sendMessageTo(queueUrl, values, messageGroupId);
-		assertThat(latchContainer.stopsProcessingOnAckErrorLatch1.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.stopsProcessingOnAckErrorLatch1.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+				.isTrue();
+		logger.debug("Messages consumed before error: {}", messagesContainer.stopsProcessingOnAckErrorBeforeThrown);
 		assertThat(messagesContainer.stopsProcessingOnAckErrorBeforeThrown)
 				.containsExactlyElementsOf(values.stream().limit(4).collect(toList()));
-		assertThat(latchContainer.stopsProcessingOnAckErrorLatch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.stopsProcessingOnAckErrorLatch2.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+				.isTrue();
+		logger.debug("Messages consumed before error second latch: {}",
+				messagesContainer.stopsProcessingOnAckErrorBeforeThrown);
 		assertThat(messagesContainer.stopsProcessingOnAckErrorBeforeThrown)
 				.containsExactlyElementsOf(values.stream().limit(4).collect(toList()));
+		logger.debug("Messages consumed after error: {}", messagesContainer.stopsProcessingOnAckErrorAfterThrown);
 		assertThat(messagesContainer.stopsProcessingOnAckErrorAfterThrown)
 				.containsExactlyElementsOf(values.subList(3, this.settings.messagesPerTest));
 	}
@@ -244,7 +287,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		sendMessageTo(queueUrl, values, messageGroupId1);
 		sendMessageTo(queueUrl, values, messageGroupId2);
 		sendMessageTo(queueUrl, values, messageGroupId3);
-		assertThat(latchContainer.receivesBatchManyGroupsLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesBatchManyGroupsLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+				.isTrue();
 		assertThat(receivesBatchesFromManyGroupsListener.receivedMessages.get(messageGroupId1))
 				.containsExactlyElementsOf(values);
 		assertThat(receivesBatchesFromManyGroupsListener.receivedMessages.get(messageGroupId2))
@@ -259,7 +303,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
 		sendMessageTo(queueUrl, values, UUID.randomUUID().toString());
-		assertThat(latchContainer.manuallyCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manuallyCreatedContainerLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+				.isTrue();
 		assertThat(messagesContainer.manuallyCreatedContainerMessages).containsExactlyElementsOf(values);
 	}
 
@@ -269,7 +314,9 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
 		sendMessageTo(queueUrl, values, UUID.randomUUID().toString());
-		assertThat(latchContainer.manuallyCreatedBatchContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(
+				latchContainer.manuallyCreatedBatchContainerLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+						.isTrue();
 		assertThat(messagesContainer.manuallyCreatedBatchContainerMessages).containsExactlyElementsOf(values);
 	}
 
@@ -279,7 +326,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
 		sendMessageTo(queueUrl, values, UUID.randomUUID().toString());
-		assertThat(latchContainer.manuallyCreatedFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manuallyCreatedFactoryLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+				.isTrue();
 		assertThat(messagesContainer.manuallyCreatedFactoryMessages).containsExactlyElementsOf(values);
 	}
 
@@ -289,7 +337,9 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
 		sendMessageTo(queueUrl, values, UUID.randomUUID().toString());
-		assertThat(latchContainer.manuallyCreatedBatchFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(
+				latchContainer.manuallyCreatedBatchFactoryLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+						.isTrue();
 		assertThat(messagesContainer.manuallyCreatedBatchFactoryMessages).containsExactlyElementsOf(values);
 	}
 
@@ -315,7 +365,9 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	static class ReceivesMessageInOrderManyGroupsListener {
 
-		Map<String, List<String>> receivedMessages = new ConcurrentHashMap<>();
+		private final AtomicInteger totalMessagesReceived = new AtomicInteger();
+
+		private final Map<String, List<String>> receivedMessages = new ConcurrentHashMap<>();
 
 		@Autowired
 		LatchContainer latchContainer;
@@ -323,15 +375,23 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LoadSimulator loadSimulator;
 
-		@SqsListener(queueNames = FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME)
-		void listen(String message,
+		@SqsListener(queueNames = FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME, id = "receives-in-order-many-groups")
+		void listen(Message<String> message,
 				@Header(SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER) String groupId) {
-			logger.debug("Received message in listener method: " + message);
+			logger.trace("Received message {} in listener method from groupId {}", message.getPayload(), groupId);
 			loadSimulator.runLoad();
-			receivedMessages.computeIfAbsent(groupId, newGroupId -> Collections.synchronizedList(new ArrayList<>()))
-					.add(message);
+			List<String> messageList = receivedMessages.computeIfAbsent(groupId, newGroupId -> new ArrayList<>());
+			if (messageList.contains(message.getPayload())) {
+				logger.warn("Message {} with id {} already present for group id {}", message.getPayload(),
+						MessageHeaderUtils.getId(message), groupId);
+			}
+			messageList.add(message.getPayload());
 			latchContainer.receivesMessageManyGroupsLatch.countDown();
-			logger.debug("Message {} processed.", message);
+			int received = totalMessagesReceived.incrementAndGet();
+			if (received % 1000 == 0) {
+				logger.debug("{} messages received from {} message groups", received, receivedMessages.size());
+			}
+			// logger.debug("Message {} processed.", message);
 		}
 	}
 
@@ -349,8 +409,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LoadSimulator loadSimulator;
 
-		@SqsListener(queueNames = FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME, messageVisibilitySeconds = "2")
-		void listen(String message) throws Exception {
+		@SqsListener(queueNames = FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME, messageVisibilitySeconds = "3", id = "stops-processing-on-error")
+		void listen(String message) {
 			logger.debug("Received message in listener method: " + message);
 			loadSimulator.runLoad(500);
 			if (!hasThrown.get()) {
@@ -361,9 +421,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			}
 			latchContainer.stopsProcessingOnErrorLatch1.countDown();
 			latchContainer.stopsProcessingOnErrorLatch2.countDown();
-			if (!hasThrown.get() && "3".equals(message)) {
-				this.hasThrown.compareAndSet(false, true);
-				throw new RuntimeException("Expected exception");
+			if ("3".equals(message) && this.hasThrown.compareAndSet(false, true)) {
+				throw new RuntimeException("Expected exception from stops-processing-on-error");
 			}
 		}
 	}
@@ -373,11 +432,9 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = FIFO_STOPS_PROCESSING_ON_ACK_ERROR_ERROR_QUEUE_NAME, factory = ERROR_ON_ACK_FACTORY, messageVisibilitySeconds = "2")
+		@SqsListener(queueNames = FIFO_STOPS_PROCESSING_ON_ACK_ERROR_ERROR_QUEUE_NAME, factory = ERROR_ON_ACK_FACTORY, messageVisibilitySeconds = "2", id = "stops-on-ack-error")
 		void listen(String message) {
 			logger.debug("Received message in listener method: " + message);
-			latchContainer.stopsProcessingOnAckErrorLatch1.countDown();
-			latchContainer.stopsProcessingOnAckErrorLatch2.countDown();
 		}
 	}
 
@@ -407,12 +464,11 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	private void sendMessageTo(String queueUrl, List<String> messageBodies, String messageGroupId) {
 		try {
-			int batchSize = messageBodies.size() - 1;
 			if (useLocalStackClient) {
-				sendManyTo(batchSize, queueUrl, messageBodies, messageGroupId);
+				sendManyTo(queueUrl, messageBodies, messageGroupId).join();
 			}
 			else {
-				CompletableFuture.runAsync(() -> sendManyTo(batchSize, queueUrl, messageBodies, messageGroupId));
+				sendManyTo(queueUrl, messageBodies, messageGroupId);
 			}
 		}
 		catch (Exception e) {
@@ -421,16 +477,31 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
-	private void sendManyTo(int batchSize, String queueUrl, List<String> messageBodies, String messageGroupId) {
-		IntStream.range(0, (batchSize / 10) + 1).forEach(index -> doSendMessageTo(queueUrl,
-				messageBodies.subList(index * 10, Math.min((index + 1) * 10, messageBodies.size())), messageGroupId));
+	private CompletableFuture<Void> sendManyTo(String queueUrl, List<String> messageBodies, String messageGroupId) {
+		return IntStream.range(0, (int) Math.ceil(messageBodies.size() / 10.))
+				.mapToObj(index -> messageBodies.subList(index * 10, Math.min((index + 1) * 10, messageBodies.size())))
+				.reduce(CompletableFuture.completedFuture(null), (previousFuture, messages) -> previousFuture
+						.thenCompose(theVoid -> doSendMessageTo(queueUrl, messages, messageGroupId).thenRun(() -> {
+						})), (a, b) -> a);
 	}
 
-	private void doSendMessageTo(String queueUrl, List<String> messageBodies, String messageGroupId) {
-		sqsAsyncClient.sendMessageBatch(req -> req
+	AtomicInteger messagesSent = new AtomicInteger();
+
+	private CompletableFuture<SendMessageBatchResponse> doSendMessageTo(String queueUrl, List<String> messageBodies,
+			String messageGroupId) {
+		return sqsAsyncClient.sendMessageBatch(req -> req
 				.entries(messageBodies.stream().map(body -> createEntry(body, messageGroupId)).collect(toList()))
-				.queueUrl(queueUrl).build()).join();
-		logger.debug("Sent messages to queue {} with messageBody {}", queueUrl, messageBodies);
+				.queueUrl(queueUrl).build()).whenComplete((v, t) -> {
+					if (t != null) {
+						logger.error("Error sending messages", t);
+					}
+					else {
+						int sent = messagesSent.addAndGet(messageBodies.size());
+						if (sent % 1000 == 0) {
+							logger.debug("Sent {} messages to queue {}", sent, queueUrl);
+						}
+					}
+				});
 	}
 
 	private SendMessageBatchRequestEntry createEntry(String body, String messageGroupId) {
@@ -444,14 +515,18 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	static class LatchContainer {
 
-		final CountDownLatch manuallyCreatedContainerLatch = new CountDownLatch(5);
-		final CountDownLatch manuallyCreatedFactoryLatch = new CountDownLatch(5);
-		final CountDownLatch manuallyCreatedBatchContainerLatch = new CountDownLatch(5);
-		final CountDownLatch manuallyCreatedBatchFactoryLatch = new CountDownLatch(5);
+		@Autowired
+		Settings settings;
+
+		final CountDownLatch manuallyCreatedContainerLatch = new CountDownLatch(this.settings.messagesPerTest);
+		final CountDownLatch manuallyCreatedFactoryLatch = new CountDownLatch(this.settings.messagesPerTest);
+		final CountDownLatch manuallyCreatedBatchContainerLatch = new CountDownLatch(this.settings.messagesPerTest);
+		final CountDownLatch manuallyCreatedBatchFactoryLatch = new CountDownLatch(this.settings.messagesPerTest);
 
 		// Lazily initialized
 		CountDownLatch receivesMessageLatch = new CountDownLatch(1);
 		CountDownLatch receivesMessageManyGroupsLatch = new CountDownLatch(1);
+		CountDownLatch manyGroupsAcks = new CountDownLatch(1);
 		CountDownLatch stopsProcessingOnErrorLatch1 = new CountDownLatch(3);
 		CountDownLatch stopsProcessingOnErrorLatch2 = new CountDownLatch(1);
 		CountDownLatch stopsProcessingOnAckErrorLatch1 = new CountDownLatch(1);
@@ -462,6 +537,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	static class MessagesContainer {
 
+		Map<String, List<String>> acknowledgesFromManyGroups = Collections.synchronizedMap(new HashMap<>());
 		List<String> manuallyCreatedContainerMessages = Collections.synchronizedList(new ArrayList<>());
 		List<String> manuallyCreatedBatchContainerMessages = Collections.synchronizedList(new ArrayList<>());
 		List<String> manuallyCreatedFactoryMessages = Collections.synchronizedList(new ArrayList<>());
@@ -487,9 +563,32 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<String> defaultSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
 			factory.configure(options -> options
-				.permitAcquireTimeout(Duration.ofSeconds(1))
-				.pollTimeout(Duration.ofSeconds(3)));
-			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
+				.maxInflightMessagesPerQueue(10)
+				.acknowledgementThreshold(10)
+				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
+				.acknowledgementInterval(Duration.ofSeconds(1)));
+			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createHighThroughputAsyncClient);
+			factory.setAcknowledgementResultCallback(new AcknowledgementResultCallback<String>() {
+
+				final AtomicInteger ackedMessages = new AtomicInteger();
+
+				@Override
+				public void onSuccess(Collection<Message<String>> messages) {
+					if (FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME.equals(MessageHeaderUtils.getHeaderAsString(messages.iterator().next(), SqsHeaders.SQS_QUEUE_NAME_HEADER))) {
+						messages.stream()
+							.collect(groupingBy(msg -> MessageHeaderUtils.getHeaderAsString(msg, SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER)))
+							.forEach((key, value) -> messagesContainer.acknowledgesFromManyGroups.computeIfAbsent(key,
+								newGroup -> Collections.synchronizedList(new ArrayList<>())).addAll(value.stream().map(Message::getPayload).collect(toList())));
+						messages.forEach(msg -> {
+							int acked = ackedMessages.incrementAndGet();
+							if (acked % 1000 == 0) {
+								logger.debug("Acknowledged {} messages", acked);
+							}
+							latchContainer.manyGroupsAcks.countDown();
+						});
+					}
+				}
+			});
 			return factory;
 		}
 
@@ -497,10 +596,13 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<String> errorOnAckSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
 			factory.configure(options -> options
+				.maxInflightMessagesPerQueue(10)
+				.acknowledgementThreshold(10)
+				.acknowledgementInterval(Duration.ofMillis(200))
 				.permitAcquireTimeout(Duration.ofSeconds(1))
 				.pollTimeout(Duration.ofSeconds(3)));
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
-			factory.setComponentFactory(new FifoSqsComponentFactory<String>() {
+			factory.setContainerComponentFactories(Collections.singletonList(new FifoSqsComponentFactory<String>() {
 				@Override
 				public AcknowledgementHandler<String> createAcknowledgementHandler(ContainerOptions options) {
 					return new OnSuccessAcknowledgementHandler<String>() {
@@ -509,21 +611,28 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 						@Override
 						public CompletableFuture<Void> onSuccess(Message<String> message,
-								AcknowledgementCallback<String> callback) {
+																 AcknowledgementCallback<String> callback) {
+							if (message.getPayload().equals("3") && hasThrown.compareAndSet(false, true)) {
+								messagesContainer.stopsProcessingOnAckErrorBeforeThrown.add(message.getPayload());
+								latchContainer.stopsProcessingOnAckErrorLatch1.countDown();
+								return CompletableFutures.failedFuture(new RuntimeException("Expected acking error"));
+							}
+							return super.onSuccess(message, callback).whenComplete((v, t) -> handleResult(message));
+						}
+
+						private void handleResult(Message<String> message) {
 							if (!hasThrown.get()) {
 								messagesContainer.stopsProcessingOnAckErrorBeforeThrown.add(message.getPayload());
+								latchContainer.stopsProcessingOnAckErrorLatch1.countDown();
 							}
 							else {
 								messagesContainer.stopsProcessingOnAckErrorAfterThrown.add(message.getPayload());
+								latchContainer.stopsProcessingOnAckErrorLatch2.countDown();
 							}
-							if (message.getPayload().equals("3") && hasThrown.compareAndSet(false, true)) {
-								return CompletableFutures.failedFuture(new RuntimeException("Expected acking error"));
-							}
-							return super.onSuccess(message, callback);
 						}
 					};
 				}
-			});
+			}));
 			return factory;
 		}
 
@@ -531,9 +640,10 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		public MessageListenerContainer<String> manuallyCreatedContainer() {
 			SqsMessageListenerContainer<String> container = new SqsMessageListenerContainer<>(createAsyncClient());
 			container.configure(options -> options
-						.permitAcquireTimeout(Duration.ofSeconds(1))
-						.pollTimeout(Duration.ofSeconds(1)));
+				.permitAcquireTimeout(Duration.ofSeconds(1))
+				.pollTimeout(Duration.ofSeconds(1)));
 			container.setQueueNames(FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME);
+			container.setId("fifo-manually-created-container");
 			container.setMessageListener(msg -> {
 				messagesContainer.manuallyCreatedContainerMessages.add(msg.getPayload());
 				latchContainer.manuallyCreatedContainerLatch.countDown();
@@ -545,9 +655,9 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		public MessageListenerContainer<String> manuallyCreatedBatchContainer() {
 			SqsMessageListenerContainer<String> container = new SqsMessageListenerContainer<>(createAsyncClient());
 			container.configure(options -> options
-						.permitAcquireTimeout(Duration.ofSeconds(1))
-						.pollTimeout(Duration.ofSeconds(1))
-						.messageDeliveryStrategy(MessageDeliveryStrategy.BATCH));
+				.permitAcquireTimeout(Duration.ofSeconds(1))
+				.pollTimeout(Duration.ofSeconds(1))
+				.listenerMode(ListenerMode.BATCH));
 			container.setQueueNames(FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME);
 			container.setMessageListener(new MessageListener<String>() {
 				@Override
@@ -558,7 +668,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				@Override
 				public void onMessage(Collection<Message<String>> messages) {
 					messagesContainer.manuallyCreatedBatchContainerMessages
-							.addAll(messages.stream().map(Message::getPayload).collect(toList()));
+						.addAll(messages.stream().map(Message::getPayload).collect(toList()));
 					messages.forEach(msg -> latchContainer.manuallyCreatedBatchContainerLatch.countDown());
 				}
 			});
@@ -590,7 +700,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				.pollTimeout(Duration.ofSeconds(1))
 				.maxMessagesPerPoll(10)
 				.permitAcquireTimeout(Duration.ofSeconds(1))
-				.messageDeliveryStrategy(MessageDeliveryStrategy.BATCH));
+				.listenerMode(ListenerMode.BATCH));
 			factory.setSqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient());
 			factory.setMessageListener(new MessageListener<String>() {
 				@Override
@@ -601,7 +711,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				@Override
 				public void onMessage(Collection<Message<String>> messages) {
 					messagesContainer.manuallyCreatedBatchFactoryMessages
-							.addAll(messages.stream().map(Message::getPayload).collect(toList()));
+						.addAll(messages.stream().map(Message::getPayload).collect(toList()));
 					messages.forEach(msg -> latchContainer.manuallyCreatedBatchFactoryLatch.countDown());
 				}
 			});
@@ -616,7 +726,10 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 		@Bean
 		ReceivesMessageInOrderManyGroupsListener receivesMessageInOrderManyGroupsListener() {
-			return new ReceivesMessageInOrderManyGroupsListener();
+			if (settings.receiveMessages) {
+				return new ReceivesMessageInOrderManyGroupsListener();
+			}
+			return null;
 		}
 
 		@Bean
@@ -646,9 +759,11 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			return new LoadSimulator();
 		}
 
+		Settings settings = new Settings();
+
 		@Bean
 		Settings settings() {
-			return new Settings();
+			return settings;
 		}
 
 		@Bean
@@ -658,7 +773,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 		@Bean(name = TEST_SQS_ASYNC_CLIENT_BEAN_NAME)
 		SqsAsyncClient sqsAsyncClientProducer() {
-			return BaseSqsIntegrationTest.createAsyncClient();
+			return BaseSqsIntegrationTest.createHighThroughputAsyncClient();
 		}
 
 	}

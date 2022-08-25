@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs;
+package io.awspring.cloud.sqs.integration;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import com.amazonaws.auth.AWSCredentials;
+import io.awspring.cloud.sqs.CompletableFutures;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +52,7 @@ abstract class BaseSqsIntegrationTest {
 	private static final String LOCAL_STACK_VERSION = "localstack/localstack:1.0.3";
 
 	static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse(LOCAL_STACK_VERSION))
-			.withServices(SQS).withReuse(true);
+			.withServices(SQS);
 
 	static StaticCredentialsProvider credentialsProvider;
 
@@ -124,16 +125,16 @@ abstract class BaseSqsIntegrationTest {
 		return useLocalStackClient ? createLocalStackClient() : SqsAsyncClient.builder().build();
 	}
 
-	protected static SqsAsyncClient createLocalStackClient() {
-		return SqsAsyncClient.builder().credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
-				.build();
-	}
-
 	protected static SqsAsyncClient createHighThroughputAsyncClient() {
 		return useLocalStackClient ? createLocalStackClient()
 				: SqsAsyncClient.builder().httpClientBuilder(NettyNioAsyncHttpClient.builder().maxConcurrency(6000))
 						.build();
+	}
+
+	private static SqsAsyncClient createLocalStackClient() {
+		return SqsAsyncClient.builder().credentialsProvider(credentialsProvider)
+				.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
+				.build();
 	}
 
 	protected static class LoadSimulator {

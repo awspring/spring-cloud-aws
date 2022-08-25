@@ -43,13 +43,13 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsHeaderMapper.class);
 
-	private BiFunction<Message, MessageHeaderAccessor, MessageHeaders> headerFunction = ((message, accessor) -> accessor
-			.toMessageHeaders());
+	private BiFunction<Message, MessageHeaderAccessor, MessageHeaders> additionalHeadersFunction = ((message,
+			accessor) -> accessor.toMessageHeaders());
 
 	public void setAdditionalHeadersFunction(
 			BiFunction<Message, MessageHeaderAccessor, MessageHeaders> headerFunction) {
 		Assert.notNull(headerFunction, "headerFunction cannot be null");
-		this.headerFunction = headerFunction;
+		this.additionalHeadersFunction = headerFunction;
 	}
 
 	@Override
@@ -67,16 +67,15 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		accessor.copyHeadersIfAbsent(createAdditionalHeaders(source, new MessageHeaderAccessor()));
 		MessageHeaders messageHeaders = accessor.toMessageHeaders();
 		logger.trace("Mapped headers {} for message {}", messageHeaders, source.messageId());
-		return messageHeaders;
+		return new MessagingMessageHeaders(messageHeaders, UUID.fromString(source.messageId()));
 	}
 
-	protected MessageHeaders createAdditionalHeaders(Message source, MessageHeaderAccessor accessor) {
-		return accessor.toMessageHeaders();
+	private MessageHeaders createAdditionalHeaders(Message source, MessageHeaderAccessor accessor) {
+		return this.additionalHeadersFunction.apply(source, accessor);
 	}
 
 	private MessageHeaders createDefaultHeaders(Message source) {
 		MessageHeaderAccessor accessor = new MessageHeaderAccessor();
-		accessor.setHeader(SqsHeaders.SQS_MESSAGE_ID_HEADER, UUID.fromString(source.messageId()));
 		accessor.setHeader(SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, source.receiptHandle());
 		accessor.setHeader(SqsHeaders.SQS_SOURCE_DATA_HEADER, source);
 		accessor.setHeader(SqsHeaders.SQS_RECEIVED_AT_HEADER, Instant.now());
@@ -106,7 +105,8 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		logger.trace("Creating context headers for message {}", source.messageId());
 		MessageHeaderAccessor accessor = new MessageHeaderAccessor();
 		ConfigUtils.INSTANCE.acceptIfInstance(context, SqsMessageConversionContext.class,
-				sqsContext -> addSqsContextHeaders(source, sqsContext, accessor));
+				sqsContext -> addSqsContextHeaders(source, sqsContext, accessor)).acceptIfInstance(context,
+						SqsMessageConversionContext.class, smcc -> maybeAddAcknowledgementHeader(smcc, accessor));
 		MessageHeaders messageHeaders = accessor.toMessageHeaders();
 		logger.trace("Context headers {} created for message {}", messageHeaders, source.messageId());
 		return messageHeaders;
@@ -121,10 +121,10 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		accessor.setHeader(SqsHeaders.SQS_QUEUE_ATTRIBUTES_HEADER, queueAttributes);
 		accessor.setHeader(SqsHeaders.SQS_VISIBILITY_HEADER,
 				new QueueMessageVisibility(sqsAsyncClient, queueAttributes.getQueueUrl(), source.receiptHandle()));
-		maybeAddAcknowledgementHeader(sqsContext, accessor);
 	}
 
-	private void maybeAddAcknowledgementHeader(SqsMessageConversionContext sqsContext, MessageHeaderAccessor accessor) {
+	private void maybeAddAcknowledgementHeader(AcknowledgementAwareMessageConversionContext sqsContext,
+			MessageHeaderAccessor accessor) {
 		ConfigUtils.INSTANCE.acceptIfNotNull(sqsContext.getAcknowledgementCallback(),
 				callback -> accessor.setHeader(SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, callback));
 	}

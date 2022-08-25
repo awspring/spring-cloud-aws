@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs;
+package io.awspring.cloud.sqs.integration;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.BackPressureMode;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
+import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.StandardSqsComponentFactory;
 import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
@@ -40,6 +41,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -106,7 +108,7 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LoadSimulator loadSimulator;
 
-		final int totalMessages = 200;
+		final int totalMessages = 20;
 		final boolean sendMessages = true;
 		final boolean receiveMessages = true;
 		final boolean receivesManyTestEnabled = true;
@@ -115,7 +117,7 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		final int maxInflight = 10;
 		final int messagesPerPoll = 10;
 
-		final int latchAwaitSeconds = 10;
+		final int latchAwaitSeconds = 100;
 
 		@Override
 		public void afterSingletonsInstantiated() {
@@ -139,19 +141,26 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void receivesManyFromTwoQueuesWithLoad() throws Exception {
+		latchContainer.singleMessageListenerLatch = new CountDownLatch(this.settings.totalMessages);
+		latchContainer.acknowledgementLatch = new CountDownLatch(this.settings.totalMessages);
 		testWithLoad(RECEIVE_FROM_MANY_1_QUEUE_NAME, RECEIVE_FROM_MANY_2_QUEUE_NAME,
-				messageContainer.receivedByListener);
+				messageContainer.receivedByListener, latchContainer.singleMessageListenerLatch,
+				latchContainer.acknowledgementLatch);
 	}
 
 	@Test
 	void receivesBatchesFromTwoQueuesWithLoad() throws Exception {
-		testWithLoad(RECEIVE_BATCH_1_QUEUE_NAME, RECEIVE_BATCH_2_QUEUE_NAME, messageContainer.receivedByBatchListener);
+		latchContainer.batchListenerLatch = new CountDownLatch(this.settings.totalMessages);
+		latchContainer.batchAcknowledgementLatch = new CountDownLatch(this.settings.totalMessages);
+		testWithLoad(RECEIVE_BATCH_1_QUEUE_NAME, RECEIVE_BATCH_2_QUEUE_NAME, messageContainer.receivedByBatchListener,
+				latchContainer.batchListenerLatch, latchContainer.batchAcknowledgementLatch);
 	}
 
 	@Autowired
 	MessageListenerContainerRegistry registry;
 
-	private void testWithLoad(String queue1, String queue2, Collection<String> receivedCollection)
+	private void testWithLoad(String queue1, String queue2, Collection<String> receivedCollection,
+			CountDownLatch listenerLatch, CountDownLatch acknowledgementLatch)
 			throws InterruptedException, ExecutionException {
 		Assert.isTrue(settings.totalMessages >= 20, "Minimum of 20 messages");
 		String queueUrl1 = fetchQueueUrl(queue1);
@@ -161,7 +170,6 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Starting watch");
 		StopWatch watch = new StopWatch();
 		watch.start();
-		latchContainer.testStartLatch.countDown();
 		IntStream.range(0, Math.max(settings.totalMessages / 20, 1)).forEach(index -> {
 			sendMessageBatchAsync(queueUrl1);
 			sendMessageBatchAsync(queueUrl2);
@@ -169,18 +177,11 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 				sendLoadSimulator.runLoad(50);
 			}
 		});
-		doTry(() -> await().atMost(Duration.ofSeconds(settings.latchAwaitSeconds))
-				.pollDelay(Duration.ofMillis(getPollDelay()))
-				.until(() -> receivedCollection.size() >= settings.totalMessages));
+		assertThat(listenerLatch.await(settings.latchAwaitSeconds, TimeUnit.SECONDS)).isTrue();
 		logger.debug("Received all {} messages", settings.totalMessages);
-		int acksToWait = settings.receivesManyTestEnabled && settings.receivesBatchesTestEnabled
-				? settings.totalMessages * 2
-				: settings.totalMessages;
-		logger.debug("Waiting for {} acks.", acksToWait);
-		doTry(() -> await().atMost(Duration.ofSeconds(settings.latchAwaitSeconds))
-				.pollDelay(Duration.ofMillis(getPollDelay()))
-				.until(() -> messageContainer.successfullyAcked.size() >= acksToWait));
-		logger.debug("Acked all {} messages", acksToWait);
+		logger.debug("Waiting for {} acks.", settings.totalMessages);
+		assertThat(acknowledgementLatch.await(settings.latchAwaitSeconds, TimeUnit.SECONDS)).isTrue();
+		logger.debug("Acked all {} messages", settings.totalMessages);
 		logger.debug("Messages received by listener: {}", receivedCollection.size());
 		logger.debug("messageContainer.successfullyAcked: {}", messageContainer.successfullyAcked.size());
 		logger.debug("messageContainer.errorAcking: {}", messageContainer.errorAcking.size());
@@ -195,19 +196,6 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		logger.info("{} seconds for {}consuming {} messages with {}. Messages / second: {}", totalTimeSeconds,
 				this.settings.sendMessages ? "sending and " : "", settings.totalMessages, loadSimulator,
 				settings.totalMessages / totalTimeSeconds);
-	}
-
-	private int getPollDelay() {
-		return settings.totalMessages > 10000 ? 1000 : 100;
-	}
-
-	private void doTry(Runnable action) {
-		try {
-			action.run();
-		}
-		catch (Exception e) {
-			logger.error("Error running action", e);
-		}
 	}
 
 	AtomicInteger sentMessages = new AtomicInteger();
@@ -288,7 +276,6 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		@SqsListener(queueNames = { RECEIVE_FROM_MANY_1_QUEUE_NAME,
 				RECEIVE_FROM_MANY_2_QUEUE_NAME }, factory = HIGH_THROUGHPUT_FACTORY_NAME, id = "many-from-two-queues")
 		void listen(Message<String> message) throws Exception {
-			latchContainer.testStartLatch.await();
 			logger.trace("Started processing {}", MessageHeaderUtils.getId(message));
 			if (this.messageContainer.receivedByListener.contains(MessageHeaderUtils.getId(message))) {
 				logger.warn("Received duplicated message: {}", message);
@@ -300,6 +287,7 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 				logger.debug("Listener processed {} messages", count);
 			}
 			logger.trace("Finished processing {}", MessageHeaderUtils.getId(message));
+			latchContainer.singleMessageListenerLatch.countDown();
 		}
 	}
 
@@ -319,9 +307,9 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		MessageContainer messageContainer;
 
 		@SqsListener(queueNames = { RECEIVE_BATCH_1_QUEUE_NAME,
-				RECEIVE_BATCH_2_QUEUE_NAME }, factory = HIGH_THROUGHPUT_FACTORY_NAME, id = "batch-from-two-queues")
+				RECEIVE_BATCH_2_QUEUE_NAME }, maxMessagesPerPoll = "20", maxInflightMessagesPerQueue = "20", factory = HIGH_THROUGHPUT_FACTORY_NAME, id = "batch-from-two-queues")
 		void listen(List<Message<MyPojo>> messages) {
-			logger.trace("Started processing messages {}", MessageHeaderUtils.getId(messages));
+			logger.trace("Started processing {} messages {}", messages.size(), MessageHeaderUtils.getId(messages));
 			String firstField = messages.get(0).getPayload().firstField;// Make sure we got the right type
 			loadSimulator.runLoad();
 			int messagesCount = this.messagesReceived.addAndGet(messages.size());
@@ -332,12 +320,19 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 				logger.debug("Listener processed {} batches and {} messages", batches, messagesCount);
 			}
 			logger.trace("Finished processing {} messages", messages.size());
+			messages.forEach(msg -> latchContainer.batchListenerLatch.countDown());
 		}
 	}
 
 	static class LatchContainer {
 
-		CountDownLatch testStartLatch = new CountDownLatch(1);
+		public CountDownLatch singleMessageListenerLatch;
+
+		public CountDownLatch acknowledgementLatch;
+
+		public CountDownLatch batchListenerLatch;
+
+		public CountDownLatch batchAcknowledgementLatch;
 
 	}
 
@@ -359,7 +354,7 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 					.backPressureMode(BackPressureMode.FIXED_HIGH_THROUGHPUT)
 					.shutdownTimeout(Duration.ofSeconds(40)));
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createHighThroughputAsyncClient);
-			factory.setComponentFactory(getTestAckHandlerComponentFactory());
+			factory.setContainerComponentFactories(Collections.singletonList(getTestAckHandlerComponentFactory()));
 			return factory;
 		}
 		// @formatter:on
@@ -438,6 +433,15 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 											int acked = acks.incrementAndGet();
 											if (acked % 1000 == 0) {
 												logger.debug("Acked {} messages", acked);
+											}
+											String queueName = MessageHeaderUtils.getHeaderAsString(
+													messagesToAck.iterator().next(), SqsHeaders.SQS_QUEUE_NAME_HEADER);
+											if (RECEIVE_FROM_MANY_1_QUEUE_NAME.equals(queueName)
+													|| RECEIVE_FROM_MANY_2_QUEUE_NAME.equals(queueName)) {
+												latchContainer.acknowledgementLatch.countDown();
+											}
+											else {
+												latchContainer.batchAcknowledgementLatch.countDown();
 											}
 										});
 									});

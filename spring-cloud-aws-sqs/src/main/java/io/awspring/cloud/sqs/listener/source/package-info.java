@@ -13,22 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener.acknowledgement;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
- * Interface representing an async message acknowledgement. For this interface to be used as a listener method
- * parameter, {@link io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode#MANUAL} has to be set.
- * @author Tomaz Fernandes
- * @since 3.0
+ * Auto-configuration for Amazon SQS (Simple Queue Service) integrations.
  */
-public interface AsyncAcknowledgement {
-
-	/**
-	 * Acknowledge the message asynchronously.
-	 * @return a completable future.
-	 */
-	CompletableFuture<Void> acknowledgeAsync();
-
-}
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
+package io.awspring.cloud.sqs.listener.source;

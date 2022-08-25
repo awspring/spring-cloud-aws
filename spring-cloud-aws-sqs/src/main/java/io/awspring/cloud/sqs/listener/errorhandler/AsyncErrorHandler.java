@@ -21,7 +21,9 @@ import java.util.concurrent.CompletableFuture;
 import org.springframework.messaging.Message;
 
 /**
- * Interface for handling message processing errors async.
+ * Interface for handling message processing errors async. If the error handler completes normally, the message or
+ * messages will be considered recovered for further processing purposes. If the message should not be considered
+ * recovered, an exception must be returned from the error handler.
  *
  * @param <T> the {@link Message} payload type.
  *
@@ -37,11 +39,19 @@ public interface AsyncErrorHandler<T> {
 	 * @return a completable future.
 	 */
 	default CompletableFuture<Void> handle(Message<T> message, Throwable t) {
-		return CompletableFutures.failedFuture(t);
+		return CompletableFutures
+				.failedFuture(new UnsupportedOperationException("Single message error handling not implemented"));
 	}
 
+	/**
+	 * Asynchronously handle the errors thrown processing the given {@link Message} instances.
+	 * @param messages the messages.
+	 * @param t the thrown exception.
+	 * @return a completable future.
+	 */
 	default CompletableFuture<Void> handle(Collection<Message<T>> messages, Throwable t) {
-		return CompletableFutures.failedFuture(t);
+		return CompletableFutures
+				.failedFuture(new UnsupportedOperationException("Batch error handling not implemented"));
 	}
 
 }

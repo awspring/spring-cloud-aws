@@ -15,14 +15,9 @@
  */
 package io.awspring.cloud.sqs.listener.pipeline;
 
-import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.messaging.Message;
 
 /**
  * Stage responsible for executing the {@link AsyncMessageInterceptor}s before message processing.
@@ -30,9 +25,7 @@ import org.springframework.messaging.Message;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class BeforeProcessingInterceptorExecutionStage<T> implements MessageProcessingPipeline<T> {
-
-	private static final Logger logger = LoggerFactory.getLogger(BeforeProcessingInterceptorExecutionStage.class);
+public class BeforeProcessingInterceptorExecutionStage<T> extends AbstractBeforeProcessingInterceptorExecutionStage<T> {
 
 	private final Collection<AsyncMessageInterceptor<T>> messageInterceptors;
 
@@ -41,18 +34,8 @@ public class BeforeProcessingInterceptorExecutionStage<T> implements MessageProc
 	}
 
 	@Override
-	public CompletableFuture<Message<T>> process(Message<T> message, MessageProcessingContext<T> context) {
-		logger.trace("Processing message {}", MessageHeaderUtils.getId(message));
-		return this.messageInterceptors.stream().reduce(CompletableFuture.completedFuture(message),
-				(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept), (a, b) -> a);
-	}
-
-	@Override
-	public CompletableFuture<Collection<Message<T>>> process(Collection<Message<T>> messages,
-			MessageProcessingContext<T> context) {
-		logger.trace("Processing messages {}", MessageHeaderUtils.getId(messages));
-		return this.messageInterceptors.stream().reduce(CompletableFuture.completedFuture(messages),
-				(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept), (a, b) -> a);
+	protected Collection<AsyncMessageInterceptor<T>> getInterceptors(MessageProcessingContext<T> context) {
+		return this.messageInterceptors;
 	}
 
 }

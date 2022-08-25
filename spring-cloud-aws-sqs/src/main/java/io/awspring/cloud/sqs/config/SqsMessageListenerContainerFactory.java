@@ -22,6 +22,8 @@ import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.MessageListener;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
+import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
@@ -144,7 +146,7 @@ public class SqsMessageListenerContainerFactory<T>
 		return this.sqsAsyncClientSupplier.get();
 	}
 
-	protected void doConfigureContainerOptions(Endpoint endpoint, ContainerOptions.Builder options) {
+	protected void configureContainerOptions(Endpoint endpoint, ContainerOptions.Builder options) {
 		ConfigUtils.INSTANCE.acceptIfInstance(endpoint, SqsEndpoint.class,
 				sqsEndpoint -> configureFromSqsEndpoint(sqsEndpoint, options));
 	}
@@ -152,8 +154,9 @@ public class SqsMessageListenerContainerFactory<T>
 	private void configureFromSqsEndpoint(SqsEndpoint sqsEndpoint, ContainerOptions.Builder options) {
 		ConfigUtils.INSTANCE
 				.acceptIfNotNull(sqsEndpoint.getMaxInflightMessagesPerQueue(), options::maxInflightMessagesPerQueue)
+				.acceptIfNotNull(sqsEndpoint.getMaxMessagesPerPoll(), options::maxMessagesPerPoll)
 				.acceptIfNotNull(sqsEndpoint.getPollTimeout(), options::pollTimeout)
-				.acceptIfNotNull(sqsEndpoint.getMessageVisibilityDuration(), options::messageVisibility);
+				.acceptIfNotNull(sqsEndpoint.getMessageVisibility(), options::messageVisibility);
 	}
 
 	/**
@@ -192,7 +195,7 @@ public class SqsMessageListenerContainerFactory<T>
 
 		private SqsAsyncClient sqsAsyncClient;
 
-		private ContainerComponentFactory<T> componentFactory;
+		private Collection<ContainerComponentFactory<T>> containerComponentFactories;
 
 		private AsyncMessageListener<T> asyncMessageListener;
 
@@ -202,8 +205,12 @@ public class SqsMessageListenerContainerFactory<T>
 
 		private ErrorHandler<T> errorHandler;
 
-		private Consumer<ContainerOptions.Builder> options = options -> {
+		private Consumer<ContainerOptions.Builder> optionsConsumer = options -> {
 		};
+
+		private AcknowledgementResultCallback<T> acknowledgementResultCallback;
+
+		private AsyncAcknowledgementResultCallback<T> asyncAcknowledgementResultCallback;
 
 		/**
 		 * Set the {@link SqsAsyncClient} instance to be shared by the containers. For high throughput scenarios the
@@ -227,8 +234,9 @@ public class SqsMessageListenerContainerFactory<T>
 			return this;
 		}
 
-		public Builder<T> componentFactory(ContainerComponentFactory<T> componentFactory) {
-			this.componentFactory = componentFactory;
+		public Builder<T> containerComponentFactories(
+				Collection<ContainerComponentFactory<T>> containerComponentFactories) {
+			this.containerComponentFactories = containerComponentFactories;
 			return this;
 		}
 
@@ -262,8 +270,20 @@ public class SqsMessageListenerContainerFactory<T>
 			return this;
 		}
 
+		public Builder<T> acknowledgementResultCallback(
+				AsyncAcknowledgementResultCallback<T> asyncAcknowledgementResultCallback) {
+			this.asyncAcknowledgementResultCallback = asyncAcknowledgementResultCallback;
+			return this;
+		}
+
+		public Builder<T> acknowledgementResultCallback(
+				AcknowledgementResultCallback<T> acknowledgementResultCallback) {
+			this.acknowledgementResultCallback = acknowledgementResultCallback;
+			return this;
+		}
+
 		public Builder<T> configure(Consumer<ContainerOptions.Builder> options) {
-			this.options = options;
+			this.optionsConsumer = options;
 			return this;
 		}
 
@@ -275,12 +295,14 @@ public class SqsMessageListenerContainerFactory<T>
 				.acceptIfNotNull(this.asyncMessageListener, factory::setAsyncMessageListener)
 				.acceptIfNotNull(this.errorHandler, factory::setErrorHandler)
 				.acceptIfNotNull(this.asyncErrorHandler, factory::setErrorHandler)
-				.acceptIfNotNull(this.componentFactory, factory::setComponentFactory)
+				.acceptIfNotNull(this.acknowledgementResultCallback, factory::setAcknowledgementResultCallback)
+				.acceptIfNotNull(this.asyncAcknowledgementResultCallback, factory::setAcknowledgementResultCallback)
+				.acceptIfNotNull(this.containerComponentFactories, factory::setContainerComponentFactories)
 				.acceptIfNotNull(this.sqsAsyncClient, factory::setSqsAsyncClient)
 				.acceptIfNotNull(this.sqsAsyncClientSupplier, factory::setSqsAsyncClientSupplier);
 			this.messageInterceptors.forEach(factory::addMessageInterceptor);
 			this.asyncMessageInterceptors.forEach(factory::addMessageInterceptor);
-			factory.configure(this.options);
+			factory.configure(this.optionsConsumer);
 			return factory;
 		}
 		// @formatter:on

@@ -25,12 +25,11 @@ import io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -49,57 +48,32 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 @Testcontainers
 class SqsAutoConfigurationIntegrationTest {
 
-	private static final String REGION = "eu-west-1";
-
 	private static final String QUEUE_NAME = "my_queue_name";
 
 	private static final String PAYLOAD = "Test";
 
-	private AnnotationConfigApplicationContext context;
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withPropertyValues("spring.cloud.aws.sqs.region=eu-west-1",
+					"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpointOverride(SQS).toString(),
+					"spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
+					"spring.cloud.aws.region.static=eu-west-1")
+			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+					CredentialsProviderAutoConfiguration.class, SqsAutoConfiguration.class, AwsAutoConfiguration.class,
+					ListenerConfiguration.class));
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.2")).withServices(SQS).withReuse(true);
-
-	@BeforeAll
-	static void beforeAll() throws Exception {
-		AnnotationConfigApplicationContext context = doLoad(null, "spring.cloud.aws.sqs.region=" + REGION,
-				"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpointOverride(SQS).toString(),
-				"spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
-				"spring.cloud.aws.region.static=eu-west-1");
-		SqsAsyncClient sqsAsyncClient = context.getBean(SqsAsyncClient.class);
-		sqsAsyncClient.createQueue(req -> req.queueName(QUEUE_NAME)).get();
-	}
+			DockerImageName.parse("localstack/localstack:1.0.3")).withServices(SQS);
 
 	@Test
-	void sendsAndReceivesMessage() throws Exception {
-		load(ListenerConfiguration.class, "spring.cloud.aws.sqs.region=" + REGION,
-				"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpointOverride(SQS).toString(),
-				"spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
-				"spring.cloud.aws.region.static=eu-west-1");
-		SqsAsyncClient sqsAsyncClient = context.getBean(SqsAsyncClient.class);
-		String queueUrl = sqsAsyncClient.getQueueUrl(req -> req.queueName(QUEUE_NAME)).get().queueUrl();
-		sqsAsyncClient.sendMessage(req -> req.queueUrl(queueUrl).messageBody(PAYLOAD));
-		CountDownLatch latch = context.getBean(CountDownLatch.class);
-		assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
-	}
-
-	private void load(Class<?> config, String... environment) {
-		this.context = doLoad(new Class<?>[] { config }, environment);
-	}
-
-	private static AnnotationConfigApplicationContext doLoad(Class<?>[] configs, String... environment) {
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
-		if (configs != null) {
-			applicationContext.register(configs);
-		}
-		applicationContext.register(AwsAutoConfiguration.class);
-		applicationContext.register(CredentialsProviderAutoConfiguration.class);
-		applicationContext.register(RegionProviderAutoConfiguration.class);
-		applicationContext.register(SqsAutoConfiguration.class);
-		TestPropertyValues.of(environment).applyTo(applicationContext);
-		applicationContext.refresh();
-		return applicationContext;
+	void sendsAndReceivesMessage() {
+		this.contextRunner.run(context -> {
+			SqsAsyncClient sqsAsyncClient = context.getBean(SqsAsyncClient.class);
+			String queueUrl = sqsAsyncClient.getQueueUrl(req -> req.queueName(QUEUE_NAME)).get().queueUrl();
+			sqsAsyncClient.sendMessage(req -> req.queueUrl(queueUrl).messageBody(PAYLOAD));
+			CountDownLatch latch = context.getBean(CountDownLatch.class);
+			assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
+		});
 	}
 
 	static class Listener {

@@ -91,8 +91,7 @@ class MessageGroupingSinkTests {
 
 	@NotNull
 	private Message<Integer> createMessage(int index, String header, String thirdMessageGroupId) {
-		return MessageBuilder.withPayload(index).setHeader(SqsHeaders.SQS_MESSAGE_ID_HEADER, UUID.randomUUID())
-				.setHeader(header, thirdMessageGroupId).build();
+		return MessageBuilder.withPayload(index).setHeader(header, thirdMessageGroupId).build();
 	}
 
 }

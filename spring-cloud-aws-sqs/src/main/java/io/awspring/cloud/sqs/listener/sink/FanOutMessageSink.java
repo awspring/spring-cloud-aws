@@ -38,7 +38,9 @@ public class FanOutMessageSink<T> extends AbstractMessageProcessingPipelineSink<
 	@Override
 	protected CompletableFuture<Void> doEmit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
 		logger.trace("Emitting messages {}", MessageHeaderUtils.getId(messages));
-		return CompletableFuture
-				.allOf(messages.stream().map(msg -> execute(msg, context)).toArray(CompletableFuture[]::new));
+		return CompletableFuture.allOf(messages.stream().map(msg -> execute(msg, context)
+				// Should log errors individually - no need to propagate upstream
+				.exceptionally(t -> logError(t, msg))).toArray(CompletableFuture[]::new));
 	}
+
 }

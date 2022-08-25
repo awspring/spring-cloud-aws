@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.listener.interceptor;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -50,20 +51,20 @@ public interface AsyncMessageInterceptor<T> {
 	}
 
 	/**
-	 * Perform the message after the listener completes either with success or error.
+	 * Perform an action after the listener completes either with success or error.
 	 * @param message the message to be intercepted.
 	 * @return a completable future.
 	 */
-	default CompletableFuture<Void> afterProcessing(Message<T> message, Throwable t) {
+	default CompletableFuture<Void> afterProcessing(Message<T> message, @Nullable Throwable t) {
 		return CompletableFuture.completedFuture(null);
 	}
 
 	/**
-	 * Perform the messages after the listener completes either with success or error.
+	 * Perform an action after the listener completes either with success or error.
 	 * @param messages the messages to be intercepted.
 	 * @return a completable future.
 	 */
-	default CompletableFuture<Void> afterProcessing(Collection<Message<T>> messages, Throwable t) {
+	default CompletableFuture<Void> afterProcessing(Collection<Message<T>> messages, @Nullable Throwable t) {
 		return CompletableFuture.completedFuture(null);
 	}
 

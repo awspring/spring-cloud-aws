@@ -24,6 +24,9 @@ import org.springframework.messaging.Message;
 /**
  * Represents a stage in the processing pipeline that will be used to process {@link Message} instances.
  *
+ * Errors should be propagated to the next stage unless the stage recovers from it, such as in
+ * {@link ErrorHandlerExecutionStage}.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */

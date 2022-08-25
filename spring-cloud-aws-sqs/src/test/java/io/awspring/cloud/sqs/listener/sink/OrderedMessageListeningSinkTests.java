@@ -19,11 +19,9 @@ import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
-import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
@@ -40,9 +38,7 @@ class OrderedMessageListeningSinkTests {
 	void shouldEmitInOrder() {
 		int numberOfMessagesToEmit = 1000;
 		List<Message<Integer>> messagesToEmit = IntStream.range(0, numberOfMessagesToEmit)
-				.mapToObj(index -> MessageBuilder.withPayload(index)
-						.setHeader(SqsHeaders.SQS_MESSAGE_ID_HEADER, UUID.randomUUID()).build())
-				.collect(toList());
+				.mapToObj(index -> MessageBuilder.withPayload(index).build()).collect(toList());
 		List<Message<Integer>> received = new ArrayList<>(numberOfMessagesToEmit);
 		AbstractMessageProcessingPipelineSink<Integer> sink = new OrderedMessageSink<>();
 		sink.setTaskExecutor(Runnable::run);

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs;
+package io.awspring.cloud.sqs.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.sqs.CompletableFutures;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
@@ -26,6 +28,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementPro
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +51,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.messaging.support.MessageHeaderAccessor;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
@@ -125,9 +127,9 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 			logger.debug("Received message {} with id {} from queue {}", message.getPayload(),
 					MessageHeaderUtils.getId(message), queueName);
 			if (isChangedPayload(message)) {
+				receivedMessages.add(message.getPayload());
 				latchContainer.receivesChangedMessageLatch.countDown();
 			}
-			receivedMessages.add(message.getPayload());
 		}
 	}
 
@@ -143,10 +145,10 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 			logger.debug("Received message {} with id {} from queue {}", message.getPayload(),
 					MessageHeaderUtils.getId(message), queueName);
 			if (isChangedPayload(message)) {
+				receivedMessages.add(message.getPayload());
 				latchContainer.receivesChangedMessageOnErrorLatch.countDown();
 			}
-			receivedMessages.add(message.getPayload());
-			throw new RuntimeException("Expected exception");
+			throw new RuntimeException("Expected exception from receives-changed-payload-on-error");
 		}
 	}
 
@@ -174,7 +176,7 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
 			factory.addMessageInterceptor(getMessageInterceptor());
 			factory.setErrorHandler(getErrorHandler());
-			factory.setComponentFactory(getContainerComponentFactory());
+			factory.setContainerComponentFactories(Collections.singletonList(getContainerComponentFactory()));
 			return factory;
 		}
 		// @formatter:on
@@ -207,12 +209,9 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 				public CompletableFuture<Message<String>> intercept(Message<String> message) {
 					logger.debug("Received message in interceptor: {}", MessageHeaderUtils.getId(message));
 					if (message.getPayload().equals(SHOULD_CHANGE_PAYLOAD)) {
-						MessageHeaderAccessor accessor = new MessageHeaderAccessor();
-						accessor.copyHeaders(message.getHeaders());
-						accessor.removeHeader(SqsHeaders.SQS_MESSAGE_ID_HEADER);
-						accessor.setHeader(SqsHeaders.SQS_MESSAGE_ID_HEADER, CHANGED_ID);
-						return CompletableFuture.completedFuture(
-								MessageBuilder.createMessage(CHANGED_PAYLOAD, accessor.toMessageHeaders()));
+						MessagingMessageHeaders headers = new MessagingMessageHeaders(message.getHeaders(), CHANGED_ID);
+						return CompletableFuture
+								.completedFuture(MessageBuilder.createMessage(CHANGED_PAYLOAD, headers));
 					}
 					return CompletableFuture.completedFuture(message);
 				}
@@ -249,11 +248,12 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 					return new BatchingAcknowledgementProcessor<String>() {
 						@Override
 						protected CompletableFuture<Void> sendToExecutor(Collection<Message<String>> messagesToAck) {
-							if (messagesToAck.stream().allMatch(SqsInterceptorIntegrationTests::isChangedPayload)) {
-								latchContainer.receivesChangedMessageLatch.countDown();
-								latchContainer.receivesChangedMessageOnErrorLatch.countDown();
-							}
-							return super.sendToExecutor(messagesToAck);
+							return super.sendToExecutor(messagesToAck).whenComplete((v, t) -> {
+								if (messagesToAck.stream().allMatch(SqsInterceptorIntegrationTests::isChangedPayload)) {
+									latchContainer.receivesChangedMessageLatch.countDown();
+									latchContainer.receivesChangedMessageOnErrorLatch.countDown();
+								}
+							});
 						}
 					};
 				}

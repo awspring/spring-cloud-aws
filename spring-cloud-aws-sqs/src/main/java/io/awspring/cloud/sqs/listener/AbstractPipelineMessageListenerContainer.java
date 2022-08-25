@@ -36,7 +36,6 @@ import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -90,21 +89,29 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 
 	// @formatter:off
 	private ContainerComponentFactory<T> determineComponentFactory() {
-		return getContainerComponentFactory() != null
-			? getContainerComponentFactory()
-			: createComponentFactory();
+		return getComponentFactories()
+			.stream()
+			.filter(factory -> factory.supports(getQueueNames(), getContainerOptions()))
+			.findFirst()
+			.orElseThrow(() -> new IllegalArgumentException("No ContainerComponentFactory found for queues " + getQueueNames()));
 	}
 
-	protected abstract ContainerComponentFactory<T> createComponentFactory();
+	private Collection<ContainerComponentFactory<T>> getComponentFactories() {
+		return getContainerComponentFactories() != null
+			? getContainerComponentFactories()
+			: getDefaultComponentFactories();
+	}
 
-	private Collection<MessageSource<T>> createMessageSources(ContainerComponentFactory<T> componentFactory) {
+	protected abstract Collection<ContainerComponentFactory<T>> getDefaultComponentFactories();
+
+	protected Collection<MessageSource<T>> createMessageSources(ContainerComponentFactory<T> componentFactory) {
 		List<String> queueNames = new ArrayList<>(getQueueNames());
 		return IntStream.range(0, queueNames.size())
 				.mapToObj(index -> createMessageSource(queueNames.get(index), index, componentFactory))
 				.collect(Collectors.toList());
 	}
 
-	private MessageSource<T> createMessageSource(String queueName, int index,
+	protected MessageSource<T> createMessageSource(String queueName, int index,
 			ContainerComponentFactory<T> componentFactory) {
 		MessageSource<T> messageSource = componentFactory.createMessageSource(getContainerOptions());
 		ConfigUtils.INSTANCE
@@ -122,7 +129,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 		this.componentsTaskExecutor = resolveComponentsTaskExecutor();
 		configureMessageSources(componentFactory);
 		configureMessageSink(createMessageProcessingPipeline(componentFactory));
-		configurePipelineComponents();
+		configureContainerComponents();
 	}
 	// @formatter:on
 
@@ -135,12 +142,15 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 				.acceptManyIfInstance(this.messageSources, AcknowledgementProcessingMessageSource.class,
 						ams -> ams.setAcknowledgementProcessor(
 								componentFactory.createAcknowledgementProcessor(getContainerOptions())))
+				.acceptManyIfInstance(this.messageSources, AcknowledgementProcessingMessageSource.class,
+						ams -> ams.setAcknowledgementResultCallback(getAcknowledgementResultCallback()))
 				.acceptManyIfInstance(this.messageSources, TaskExecutorAware.class,
 						teac -> teac.setTaskExecutor(taskExecutor));
 		doConfigureMessageSources(this.messageSources);
 	}
 
-	protected abstract void doConfigureMessageSources(Collection<MessageSource<T>> messageSources);
+	protected void doConfigureMessageSources(Collection<MessageSource<T>> messageSources) {
+	};
 
 	@SuppressWarnings("unchecked")
 	protected void configureMessageSink(MessageProcessingPipeline<T> messageProcessingPipeline) {
@@ -153,15 +163,18 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 		doConfigureMessageSink(this.messageSink);
 	}
 
-	protected abstract void doConfigureMessageSink(MessageSink<T> messageSink);
+	protected void doConfigureMessageSink(MessageSink<T> messageSink) {
+	}
 
-	protected void configurePipelineComponents() {
+	protected void configureContainerComponents() {
 		ConfigUtils.INSTANCE
 				.acceptManyIfInstance(getMessageInterceptors(), TaskExecutorAware.class,
 						teac -> teac.setTaskExecutor(getComponentsTaskExecutor()))
 				.acceptIfInstance(getMessageListener(), TaskExecutorAware.class,
 						teac -> teac.setTaskExecutor(getComponentsTaskExecutor()))
 				.acceptIfInstance(getErrorHandler(), TaskExecutorAware.class,
+						teac -> teac.setTaskExecutor(getComponentsTaskExecutor()))
+				.acceptIfInstance(getAcknowledgementResultCallback(), TaskExecutorAware.class,
 						teac -> teac.setTaskExecutor(getComponentsTaskExecutor()));
 	}
 
@@ -186,8 +199,8 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	// @formatter:on
 
 	private TaskExecutor resolveComponentsTaskExecutor() {
-		return getContainerOptions().getContainerComponentsTaskExecutor() != null
-				? getContainerOptions().getContainerComponentsTaskExecutor()
+		return getContainerOptions().getComponentsTaskExecutor() != null
+				? getContainerOptions().getComponentsTaskExecutor()
 				: createComponentsTaskExecutor();
 	}
 
@@ -234,9 +247,9 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	}
 
 	private void shutdownComponentsTaskExecutor() {
-		LifecycleHandler.get().dispose(getComponentsTaskExecutor());
-		ConfigUtils.INSTANCE.acceptIfInstance(getComponentsTaskExecutor(), ExecutorService.class,
-				ExecutorService::shutdownNow);
+		if (!this.componentsTaskExecutor.equals(getContainerOptions().getComponentsTaskExecutor())) {
+			LifecycleHandler.get().dispose(getComponentsTaskExecutor());
+		}
 	}
 
 }

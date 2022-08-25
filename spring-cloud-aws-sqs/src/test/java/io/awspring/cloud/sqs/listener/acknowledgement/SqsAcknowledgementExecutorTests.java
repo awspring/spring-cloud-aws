@@ -27,7 +27,6 @@ import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
@@ -57,28 +56,21 @@ class SqsAcknowledgementExecutorTests {
 	@Mock
 	Message<String> message;
 
-	@Mock
-	MessageHeaders messageHeaders;
+	String queueName = "sqsAcknowledgementExecutorTestsQueueName";
 
-	@Mock
-	IllegalArgumentException throwable;
+	String queueUrl = "sqsAcknowledgementExecutorTestsQueueUrl";
 
-	UUID id = UUID.randomUUID();
+	String receiptHandle = "sqsAcknowledgementExecutorTestsQueueReceiptHandle";
 
-	String queueName = "queueName";
-
-	String queueUrl = "queueUrl";
-
-	String receiptHandle = "receiptHandle";
+	MessageHeaders messageHeaders = new MessageHeaders(
+			Collections.singletonMap(SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, receiptHandle));
 
 	@Test
 	void shouldDeleteMessages() throws Exception {
 		Collection<Message<String>> messages = Collections.singletonList(message);
 		given(message.getHeaders()).willReturn(messageHeaders);
-		given(messageHeaders.get(SqsHeaders.SQS_MESSAGE_ID_HEADER, UUID.class)).willReturn(id);
 		given(queueAttributes.getQueueName()).willReturn(queueName);
 		given(queueAttributes.getQueueUrl()).willReturn(queueUrl);
-		given(messageHeaders.get(SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, String.class)).willReturn(receiptHandle);
 		given(sqsAsyncClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(null));
 
@@ -98,15 +90,14 @@ class SqsAcknowledgementExecutorTests {
 
 	@Test
 	void shouldWrapDeletionErrors() {
+		IllegalArgumentException exception = new IllegalArgumentException(
+				"Expected exception from shouldWrapDeletionErrors");
 		Collection<Message<String>> messages = Collections.singletonList(message);
 		given(message.getHeaders()).willReturn(messageHeaders);
-		given(messageHeaders.get(SqsHeaders.SQS_MESSAGE_ID_HEADER, UUID.class)).willReturn(id);
 		given(queueAttributes.getQueueName()).willReturn(queueName);
 		given(queueAttributes.getQueueUrl()).willReturn(queueUrl);
-		given(messageHeaders.get(SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, String.class)).willReturn(receiptHandle);
 		given(sqsAsyncClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
-				.willReturn(CompletableFutures.failedFuture(throwable));
-
+				.willReturn(CompletableFutures.failedFuture(exception));
 		SqsAcknowledgementExecutor<String> executor = new SqsAcknowledgementExecutor<>();
 		executor.setSqsAsyncClient(sqsAsyncClient);
 		executor.setQueueAttributes(queueAttributes);
@@ -118,13 +109,13 @@ class SqsAcknowledgementExecutorTests {
 
 	@Test
 	void shouldWrapIfErrorIsThrown() {
+		IllegalArgumentException exception = new IllegalArgumentException(
+				"Expected exception from shouldWrapIfErrorIsThrown");
 		Collection<Message<String>> messages = Collections.singletonList(message);
 		given(message.getHeaders()).willReturn(messageHeaders);
-		given(messageHeaders.get(SqsHeaders.SQS_MESSAGE_ID_HEADER, UUID.class)).willReturn(id);
 		given(queueAttributes.getQueueName()).willReturn(queueName);
 		given(queueAttributes.getQueueUrl()).willReturn(queueUrl);
-		given(messageHeaders.get(SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, String.class)).willReturn(receiptHandle);
-		given(sqsAsyncClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class))).willThrow(throwable);
+		given(sqsAsyncClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class))).willThrow(exception);
 
 		SqsAcknowledgementExecutor<String> executor = new SqsAcknowledgementExecutor<>();
 		executor.setSqsAsyncClient(sqsAsyncClient);

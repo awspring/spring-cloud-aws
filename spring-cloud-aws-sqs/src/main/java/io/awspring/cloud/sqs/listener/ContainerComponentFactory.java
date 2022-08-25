@@ -23,6 +23,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.NeverAcknowledgeme
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.OnSuccessAcknowledgementHandler;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
+import java.util.Collection;
 
 /**
  * A factory for creating components for the {@link MessageListenerContainer}. Implementations can instantiate and
@@ -33,13 +34,47 @@ import io.awspring.cloud.sqs.listener.source.MessageSource;
  */
 public interface ContainerComponentFactory<T> {
 
+	/**
+	 * Whether this factory supports the given queues based on the queue names.
+	 * @param queueNames the queueNames.
+	 * @param options {@link ContainerOptions} instance for evaluating support.
+	 * @return true if the queues are supported.
+	 */
+	default boolean supports(Collection<String> queueNames, ContainerOptions options) {
+		return true;
+	}
+
+	/**
+	 * Create a {@link MessageSource} instance.
+	 * @param options {@link ContainerOptions} instance for determining instance type and configuring.
+	 * @return the instance.
+	 */
 	MessageSource<T> createMessageSource(ContainerOptions options);
 
+	/**
+	 * Create a {@link MessageSink} instance.
+	 * @param options {@link ContainerOptions} instance for determining instance type and configuring.
+	 * @return the instance.
+	 */
 	MessageSink<T> createMessageSink(ContainerOptions options);
 
-	AcknowledgementProcessor<T> createAcknowledgementProcessor(ContainerOptions options);
+	/**
+	 * Create an {@link AcknowledgementProcessor} instance.
+	 * @param options {@link ContainerOptions} instance for determining instance type and configuring.
+	 * @return the instance.
+	 */
+	default AcknowledgementProcessor<T> createAcknowledgementProcessor(ContainerOptions options) {
+		throw new UnsupportedOperationException("AcknowledgementProcessor support not implemented by this "
+				+ ContainerComponentFactory.class.getSimpleName());
+	}
 
 	// @formatter:off
+
+	/**
+	 * Create a {@link AcknowledgementHandler} instance based on the given {@link ContainerOptions}
+	 * @param options the {@link ContainerOptions} instance
+	 * @return the instance.
+	 */
 	default AcknowledgementHandler<T> createAcknowledgementHandler(ContainerOptions options) {
 		AcknowledgementMode mode = options.getAcknowledgementMode();
 		return AcknowledgementMode.ON_SUCCESS.equals(mode)

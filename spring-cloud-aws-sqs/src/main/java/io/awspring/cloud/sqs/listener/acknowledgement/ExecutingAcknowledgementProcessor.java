@@ -23,6 +23,7 @@ package io.awspring.cloud.sqs.listener.acknowledgement;
  *
  * @author Tomaz Fernandes
  * @since 3.0
+ * @see AbstractOrderingAcknowledgementProcessor
  * @see BatchingAcknowledgementProcessor
  * @see ImmediateAcknowledgementProcessor
  * @see SqsAcknowledgementExecutor
@@ -31,6 +32,6 @@ public interface ExecutingAcknowledgementProcessor<T> extends AcknowledgementPro
 
 	void setAcknowledgementExecutor(AcknowledgementExecutor<T> acknowledgementExecutor);
 
-	void setAcknowledgementOrdering(AcknowledgementOrdering acknowledgementOrdering);
+	void setAcknowledgementResultCallback(AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback);
 
 }

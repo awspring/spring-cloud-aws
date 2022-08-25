@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.listener;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
@@ -42,6 +43,9 @@ public class QueueAttributes {
 	 * @param attributes the queue attributes retrieved from SQS.
 	 */
 	public QueueAttributes(String queueName, String queueUrl, Map<QueueAttributeName, String> attributes) {
+		Assert.notNull(queueName, "queueName cannot be null");
+		Assert.notNull(queueUrl, "queueUrl cannot be null");
+		Assert.notNull(attributes, "attributes cannot be null");
 		this.queueName = queueName;
 		this.queueUrl = queueUrl;
 		this.attributes = attributes;

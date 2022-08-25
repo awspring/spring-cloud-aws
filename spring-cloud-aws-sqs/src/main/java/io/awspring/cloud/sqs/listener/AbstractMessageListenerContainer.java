@@ -15,11 +15,12 @@
  */
 package io.awspring.cloud.sqs.listener;
 
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
+import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
-import io.awspring.cloud.sqs.listener.source.MessageSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,16 +53,18 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private Collection<String> queueNames = new ArrayList<>();
 
-	private ContainerComponentFactory<T> containerComponentFactory;
+	private Collection<ContainerComponentFactory<T>> containerComponentFactories;
 
 	private AsyncMessageListener<T> messageListener;
 
-	private AsyncErrorHandler<T> errorHandler = new AsyncErrorHandler<T>() {
-	};
+	private AsyncErrorHandler<T> errorHandler;
 
 	private final Collection<AsyncMessageInterceptor<T>> messageInterceptors = new ArrayList<>();
 
 	private ContainerOptions containerOptions;
+
+	private AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback = new AsyncAcknowledgementResultCallback<T>() {
+	};
 
 	/**
 	 * Create an instance with the provided {@link ContainerOptions}
@@ -123,22 +126,42 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	@Override
 	public void setMessageListener(MessageListener<T> messageListener) {
+		Assert.notNull(messageListener, "messageListener cannot be null");
 		this.messageListener = AsyncComponentAdapters.adapt(messageListener);
 	}
 
 	@Override
 	public void setAsyncMessageListener(AsyncMessageListener<T> asyncMessageListener) {
+		Assert.notNull(asyncMessageListener, "asyncMessageListener cannot be null");
 		this.messageListener = asyncMessageListener;
 	}
 
-	public void setComponentFactory(ContainerComponentFactory<T> containerComponentFactory) {
-		this.containerComponentFactory = containerComponentFactory;
+	/**
+	 * Set the {@link AsyncAcknowledgementResultCallback} instance to be used by this container.
+	 * @param acknowledgementResultCallback the instance.
+	 */
+	public void setAcknowledgementResultCallback(AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback) {
+		Assert.notNull(acknowledgementResultCallback, "acknowledgementResultCallback cannot be null");
+		this.acknowledgementResultCallback = acknowledgementResultCallback;
+	}
+
+	/**
+	 * Set the {@link AcknowledgementResultCallback} instance to be used by this container.
+	 * @param acknowledgementResultCallback the instance.
+	 */
+	public void setAcknowledgementResultCallback(AcknowledgementResultCallback<T> acknowledgementResultCallback) {
+		Assert.notNull(acknowledgementResultCallback, "acknowledgementResultCallback cannot be null");
+		this.acknowledgementResultCallback = AsyncComponentAdapters.adapt(acknowledgementResultCallback);
+	}
+
+	public void setComponentFactories(Collection<ContainerComponentFactory<T>> containerComponentFactories) {
+		Assert.notEmpty(containerComponentFactories, "containerComponentFactories cannot be null or empty");
+		this.containerComponentFactories = containerComponentFactories;
 	}
 
 	/**
 	 * Returns the {@link ContainerOptions} instance for this container. Changed options will take effect on container
 	 * restart.
-	 * @return the container options.
 	 */
 	public void configure(Consumer<ContainerOptions.Builder> options) {
 		Assert.state(!isRunning(), "Stop the container before making changes to the options");
@@ -152,11 +175,11 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	}
 
 	/**
-	 * Return the {@link MessageSource} instances used by this container.
+	 * Return the {@link ContainerComponentFactory} instances to be used for creating this container's components.
 	 * @return the instances.
 	 */
-	public ContainerComponentFactory<T> getContainerComponentFactory() {
-		return this.containerComponentFactory;
+	public Collection<ContainerComponentFactory<T>> getContainerComponentFactories() {
+		return this.containerComponentFactories;
 	}
 
 	/**
@@ -181,6 +204,14 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	 */
 	public Collection<AsyncMessageInterceptor<T>> getMessageInterceptors() {
 		return Collections.unmodifiableCollection(this.messageInterceptors);
+	}
+
+	/**
+	 * Return the {@link AcknowledgementResultCallback} instance used by this container.
+	 * @return the instance.
+	 */
+	public AsyncAcknowledgementResultCallback<T> getAcknowledgementResultCallback() {
+		return this.acknowledgementResultCallback;
 	}
 
 	@Override

@@ -372,9 +372,9 @@ A number of possible argument types are allowed in the listener method's signatu
 - `List<Message<MyPojo>>` - Enables batch mode and receives the batch that was polled from SQS along with headers.
 - `@Header(String headerName)` - provides the specified header.
 - `@Headers` - provides the `MessageHeaders` or a `Map<String, Object>`
-- `Acknowledgement` - provides the `.acknowledge()` method that can be used to manually acknowledge the message.
+- `Acknowledgement` - provides methods for manually acknowledging messages for single message listeners.
 AcknowledgementMode must be set to `MANUAL` (see <<Acknowledging Messages>>)
-- `AsyncAcknowledgement` - provides the `.acknowledgeAsync()` method that can be used to manually acknowledge the message.
+- `BatchAcknowledgement` - provides methods for manually acknowledging partial or whole message batches for batch listeners.
 AcknowledgementMode must be set to `MANUAL` (see <<Acknowledging Messages>>)
 - `Visibility` - provides the `changeTo()` method that enables changing the message's visibility to the provided value.
 - `QueueAttributes` - provides queue attributes for the queue that received the message.
@@ -386,45 +386,37 @@ Here's a sample with many arguments:
 [source, java]
 ----
 @SqsListener("${my-queue-name}")
-public void listen(Message<MyPojo> message, MyPojo pojo, MessageHeaders headers, Acknowledgement ack, Visibility visibility, QueueAttributes queueAttributes, AsyncAcknowledgement asyncAck, software.amazon.awssdk.services.sqs.model.Message originalMessage) {
+public void listen(Message<MyPojo> message, MyPojo pojo, MessageHeaders headers, Acknowledgement ack, Visibility visibility, QueueAttributes queueAttributes, software.amazon.awssdk.services.sqs.model.Message originalMessage) {
     Assert.notNull(message);
     Assert.notNull(pojo);
     Assert.notNull(headers);
     Assert.notNull(ack);
-    Assert.notNull(asyncAck);
     Assert.notNull(visibility);
     Assert.notNull(queueAttributes);
     Assert.notNull(originalMessage);
 }
 ----
 
-IMPORTANT: Currently, batch listeners only support `List<MyPojo>` and `List<Message<MyPojo>>` method arguments.
-Other arguments can be found as headers in the `Message<MyPojo>` instances and can be extracted through the `getHeader` method.
+IMPORTANT: Batch listeners support a single `List<MyPojo>` and `List<Message<MyPojo>>` method arguments, and an optional `BatchAcknowledgement` or `AsyncBatchAcknowledgement` arguments.
+`MessageHeaders` should be extracted from the `Message` instances through the `getHeaders()` method.
 
 ==== Batch Processing
 
 All message processing interfaces have both `single message` and `batch` methods.
-This means the same set of components can be used to process both single and batch methods, and can share logic where applicable.
+This means the same set of components can be used to process both single and batch methods, and share logic where applicable.
 
 When batch mode is enabled, the framework will serve the entire result of a poll to the listener.
+If a value greater than 10 is provided for `maxMessagesPerPoll`, the result of multiple polls will be combined and up to the respective amount of messages will be served to the listener.
 
-To enable batch processing using `@SqsListener`, declare a `List<MyPojo>` or `List<Message<MyPojo>>` method argument in the listener method.
+To enable batch processing using `@SqsListener`, a single `List<MyPojo>` or `List<Message<MyPojo>>` method argument should be provided in the listener method.
+The listener method can also have an optional `BatchAcknowledgement` argument for `AcknowledgementMode.MANUAL`.
 
-IMPORTANT: Currently, when declaring batch mode this way, no other arguments can be added to the method signature.
-If any metadata is required, the `List<Message<MyPojo>>` variant should be used, then the headers can be checked to retrieve such information.
-The `SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER` will contain the `AcknowldgementCallback` you can use to manually acknowledge the messages in `AcknowledgementMode.MANUAL`.
-If acknowledgement batching is being used, acknowledgements will be batched instead of executing immediately.
-See <<Acknowledging Messages>> for more information on `Acknowledging messages`
-
-To configure a batch processing at factory or container level, set `MessageDeliveryStrategy.BATCH` in the `ContainerOptions`, in the factory or container.
-This will affect manually created containers.
-Containers created from `@SqsListener` annotations will override this setting with whether they contain a `List<Pojoj>` or `List<Message<Pojo>>` argument.
+Alternatively, `ContainerOptions` can be set to `ListenerMode.BATCH` in the `ContainerOptions` in the factory or container.
 
 NOTE: The same factory can be used to create both `single message` and `batch` containers for `@SqsListener` methods.
 
 IMPORTANT: In case the same factory is shared by both delivery methods, any supplied `ErrorHandler`, `MessageInterceptor` or `MessageListener` should implement the proper methods.
 
-IMPORTANT: If batch mode is enabled, make sure all components being used have the necessary `batch` methods implemented, otherwise an error may occur.
 
 ==== Container Options
 
@@ -512,9 +504,12 @@ For batching acknowledgements a message is considered as no longer inflight when
 See <<Acknowledging Messages>>.
 
 |<<maxMessagesPerPoll>>
-|1 - 10
+|1 - `Integer.MAX_VALUE`
 |10
 |The maximum number of messages that will be received by a poll to a SQS queue in this container.
+If a value greater than 10 is provided, the result of multiple polls
+will be combined, which can be useful for batch listeners.
+
 See AWS documentation for more information.
 
 |<<pollTimeout>>
@@ -543,7 +538,7 @@ See <<Container Lifecycle>>.
 |Configures the backpressure strategy to be used by the container.
 See <<Configuring BackPressureMode>>.
 
-|`messageDeliveryStrategy`
+|`listenerMode`
 |`SINGLE_MESSAGE`, `BATCH`
 |`SINGLE_MESSAGE`
 |Configures whether this container will use `single message` or `batch` listeners.
@@ -996,11 +991,11 @@ public class SqsApplication {
 }
 ----
 
-
 === Acknowledging Messages
 
 In `SQS` acknowledging a message is the same as deleting the message from the queue.
 A number of `Acknowledgement` strategies are available and can be configured via `ContainerOptions`.
+Optionally, a callback action can be added to be executed after either a successful or failed acknowledgement.
 
 Here's an example of a possible configuration:
 
@@ -1052,14 +1047,72 @@ IMPORTANT: If an immediate acknowledging triggers an error, message processing i
 
 ==== Manual Acknowledgement
 
+Acknowledgements can be handled manually by setting `AcknowledgementMode.MANUAL` in the `ContainerOptions`.
+
 Manual acknowledgement can be used in conjunction with acknowledgement batching - the message will be queued for acknowledgement but won't be executed until one of the above criteria is met.
 
 It can also be used in conjunction with immediate acknowledgement.
 
+The following arguments can be used in listener methods to manually acknowledge:
+
+===== `Acknowledgement`
+
+The `Acknowledgement` interface can be used to acknowledge messages in `ListenerMode.SINGLE_MESSAGE`.
+
+```java
+public interface Acknowledgement {
+
+	/**
+	 * Acknowledge the message.
+	 */
+	void acknowledge();
+
+	/**
+	 * Asynchronously acknowledge the message.
+	 */
+	CompletableFuture<Void> acknowledgeAsync();
+
+}
+```
+
+===== `BatchAcknowledgement`
+
+The `BatchAcknowledgement` interface can be used to acknowledge messages in `ListenerMode.BATCH`.
+
+The `acknowledge(Collection<Message<T>)` method enables acknowledging partial batches.
+
+```java
+public interface BatchAcknowledgement<T> {
+
+	/**
+	 * Acknowledge all messages from the batch.
+	 */
+	void acknowledge();
+
+	/**
+	 * Asynchronously acknowledge all messages from the batch.
+	 */
+	CompletableFuture<Void> acknowledgeAsync();
+
+	/**
+	 * Acknowledge the provided messages.
+	 */
+	void acknowledge(Collection<Message<T>> messagesToAcknowledge);
+
+	/**
+	 * Asynchronously acknowledge the provided messages.
+	 */
+	CompletableFuture<Void> acknowledgeAsync(Collection<Message<T>> messagesToAcknowledge);
+
+}
+```
+
 ==== Acknowledgement Ordering
 
-- `PARALLEL` - Acknowledges the messages as soon as one of the above criterias is met - many acknowledgement calls can be made in parallel.
-- `ORDERED` - One batch of acknowledgements will only be executed after the previous one is completed, ensuring `FIFO` ordering of acknowledgements.
+- `PARALLEL` - Acknowledges the messages as soon as one of the above criteria is met - many acknowledgement calls can be made in parallel.
+- `ORDERED` - One batch of acknowledgements will be executed after the previous one is completed, ensuring `FIFO` ordering for `batching` acknowledgements.
+- `ORDERED_BY_GROUP` - One batch of acknowledgements will be executed after the previous one for the same group is completed, ensuring `FIFO` ordering of acknowledgements with parallelism between message groups.
+Only available for `FIFO` queues.
 
 
 ==== Acknowledgement Defaults
@@ -1078,15 +1131,62 @@ The defaults for acknowledging differ for `Standard` and `FIFO` SQS queues.
 
 NOTE: PARALLEL is the default for FIFO because ordering is guaranteed for processing.
 This assures no messages from a given `MessageGroup` will be polled until the previous batch is acknowledged.
+Implementations of this interface will be executed after an acknowledgement execution completes with either success or failure.
+
+==== Acknowledgement Result Callback
+
+The framework offers the `AcknowledgementResultCallback` and `AsyncAcknowledgementCallback` interfaces that can be added to a `SqsMessageListenerContainer` or `SqsMessageListenerContainerFactory`.
+
+```java
+public interface AcknowledgementResultCallback<T> {
+
+	default void onSuccess(Collection<Message<T>> messages) {
+	}
+
+	default void onFailure(Collection<Message<T>> messages, Throwable t) {
+	}
+
+}
+```
+
+```java
+public interface AsyncAcknowledgementResultCallback<T> {
+
+	default CompletableFuture<Void> onSuccess(Collection<Message<T>> messages) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+	default CompletableFuture<Void> onFailure(Collection<Message<T>> messages, Throwable t) {
+		return CompletableFuture.completedFuture(null);
+	}
+
+}
+```
+
+```java
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+	return SqsMessageListenerContainerFactory
+		.builder()
+		.sqsAsyncClient(sqsAsyncClient)
+		.acknowledgementResultCallback(getAcknowledgementResultCallback())
+		.build();
+}
+```
+
+NOTE: When `immediate acknowledgement` is set, as is the default for `FIFO` queues, the callback will be executed **before** the next message in the batch is processed, and next message processing will wait for the callback completion.
+This can be useful for taking action such as retrying to delete the messages, or stopping the container to prevent duplicate processing in case an acknowledgement fails in a FIFO queue.
+For `batch parallel processing`, as is the default for `Standard` queues the callback execution happens asynchronously.
+
 
 === Global Configuration for @SqsListeners
 
-A set of configurations can be set for all containers from `@SqsListener` by providing `SqsListenerCustomizer` beans.
+A set of configurations can be set for all containers from `@SqsListener` by providing `SqsListenerConfigurer` beans.
 
 [source, java]
 ----
 @FunctionalInterface
-public interface SqsListenerCustomizer {
+public interface SqsListenerConfigurer {
 
 	void configure(EndpointRegistrar registrar);
 
@@ -1111,12 +1211,12 @@ A simple example would be:
 [source, java]
 ----
 @Bean
-SqsListenerCustomizer customizer(ObjectMapper objectMapper) {
+SqsListenerConfigurer configurer(ObjectMapper objectMapper) {
     return registrar -> registrar.setObjectMapper(objectMapper);
 }
 ----
 
-NOTE: Many `SqsListenerCustomizer` beans can be registered in the context.
+NOTE: Any number of `SqsListenerConfigurer` beans can be registered in the context.
 All instances will be looked up at application startup and iterated through.
 
 === Message Processing Throughput
@@ -1138,7 +1238,7 @@ When using immediate acknowledgement, a message is considered as no longer infli
 
 
 ===== maxMessagesPerPoll
-Set in `ContainerOptions`.
+Set in `ContainerOptions` or the `@SqsListener` annotation.
 Represents the maximum number of messages returned by a single poll to a SQS queue, to a maximum of 10.
 This value has to be less than or equal to `maxInflightMessagesPerQueue`.
 Defaults to 10.
@@ -1209,11 +1309,10 @@ Otherwise, a `sync` interface should be used.
 
 ==== Providing a TaskExecutor
 
-The default `TaskExecutor` is a `ThreadPoolTaskExecutor`, and a different `componentTaskExecutor` can be set in the `ContainerOptions`.
+The default `TaskExecutor` is a `ThreadPoolTaskExecutor`, and a different `componentTaskExecutor` supplier can be set in the `ContainerOptions`.
 
 When providing a custom executor, it's important that it's configured to support all threads that will be created, which should be (maxInflightMessagesPerQueue * total number of queues).
-When set as a `MessageListenerContainerFactory` options, it's important to consider all the containers it will be applied to.
-Also, to avoid excessive thread hopping, a `MessageExecutionThreadFactory` should be set to the executor.
+Also, to avoid unnecessary thread hopping between blocking components, a `MessageExecutionThreadFactory` should be set to the executor.
 
 If setting the `ThreadFactory` is not possible, it's advisable to allow for extra threads in the thread pool to account for the time between a new thread is requested and the previous thread is released.
 

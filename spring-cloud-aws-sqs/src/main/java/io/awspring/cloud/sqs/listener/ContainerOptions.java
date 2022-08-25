@@ -20,6 +20,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMod
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -50,7 +51,7 @@ public class ContainerOptions {
 
 	private final BackPressureMode backPressureMode;
 
-	private final MessageDeliveryStrategy messageDeliveryStrategy;
+	private final ListenerMode listenerMode;
 
 	private final Collection<QueueAttributeName> queueAttributeNames;
 
@@ -70,18 +71,18 @@ public class ContainerOptions {
 
 	private final Integer acknowledgementThreshold;
 
-	private final TaskExecutor containerComponentsTaskExecutor;
+	private final TaskExecutor componentsTaskExecutor;
 
 	private final Duration messageVisibility;
 
-	private ContainerOptions(Builder builder) {
+	protected ContainerOptions(Builder builder) {
 		this.maxInflightMessagesPerQueue = builder.maxInflightMessagesPerQueue;
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
 		this.pollTimeout = builder.pollTimeout;
 		this.permitAcquireTimeout = builder.permitAcquireTimeout;
 		this.shutdownTimeout = builder.shutdownTimeout;
 		this.backPressureMode = builder.backPressureMode;
-		this.messageDeliveryStrategy = builder.messageDeliveryStrategy;
+		this.listenerMode = builder.listenerMode;
 		this.queueAttributeNames = builder.queueAttributeNames;
 		this.messageAttributeNames = builder.messageAttributeNames;
 		this.messageSystemAttributeNames = builder.messageSystemAttributeNames;
@@ -91,7 +92,7 @@ public class ContainerOptions {
 		this.acknowledgementOrdering = builder.acknowledgementOrdering;
 		this.acknowledgementInterval = builder.acknowledgementInterval;
 		this.acknowledgementThreshold = builder.acknowledgementThreshold;
-		this.containerComponentsTaskExecutor = builder.componentsTaskExecutor;
+		this.componentsTaskExecutor = builder.componentsTaskExecutor;
 		this.messageVisibility = builder.messageVisibility;
 	}
 
@@ -131,8 +132,8 @@ public class ContainerOptions {
 		return this.permitAcquireTimeout;
 	}
 
-	public TaskExecutor getContainerComponentsTaskExecutor() {
-		return this.containerComponentsTaskExecutor;
+	public TaskExecutor getComponentsTaskExecutor() {
+		return this.componentsTaskExecutor;
 	}
 
 	public Duration getShutdownTimeout() {
@@ -143,8 +144,8 @@ public class ContainerOptions {
 		return this.backPressureMode;
 	}
 
-	public MessageDeliveryStrategy getMessageDeliveryStrategy() {
-		return this.messageDeliveryStrategy;
+	public ListenerMode getListenerMode() {
+		return this.listenerMode;
 	}
 
 	public Collection<QueueAttributeName> getQueueAttributeNames() {
@@ -221,7 +222,7 @@ public class ContainerOptions {
 
 		private static final BackPressureMode DEFAULT_THROUGHPUT_CONFIGURATION = BackPressureMode.AUTO;
 
-		private static final MessageDeliveryStrategy DEFAULT_MESSAGE_DELIVERY_STRATEGY = MessageDeliveryStrategy.SINGLE_MESSAGE;
+		private static final ListenerMode DEFAULT_MESSAGE_DELIVERY_STRATEGY = ListenerMode.SINGLE_MESSAGE;
 
 		private static final List<QueueAttributeName> DEFAULT_QUEUE_ATTRIBUTES_NAMES = Collections.emptyList();
 
@@ -249,7 +250,7 @@ public class ContainerOptions {
 
 		private Duration shutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT;
 
-		private MessageDeliveryStrategy messageDeliveryStrategy = DEFAULT_MESSAGE_DELIVERY_STRATEGY;
+		private ListenerMode listenerMode = DEFAULT_MESSAGE_DELIVERY_STRATEGY;
 
 		private Collection<QueueAttributeName> queueAttributeNames = DEFAULT_QUEUE_ATTRIBUTES_NAMES;
 
@@ -273,17 +274,17 @@ public class ContainerOptions {
 
 		private Duration messageVisibility;
 
-		private Builder() {
+		protected Builder() {
 		}
 
-		private Builder(ContainerOptions options) {
+		protected Builder(ContainerOptions options) {
 			this.maxInflightMessagesPerQueue = options.maxInflightMessagesPerQueue;
 			this.maxMessagesPerPoll = options.maxMessagesPerPoll;
 			this.pollTimeout = options.pollTimeout;
 			this.permitAcquireTimeout = options.permitAcquireTimeout;
 			this.shutdownTimeout = options.shutdownTimeout;
 			this.backPressureMode = options.backPressureMode;
-			this.messageDeliveryStrategy = options.messageDeliveryStrategy;
+			this.listenerMode = options.listenerMode;
 			this.queueAttributeNames = options.queueAttributeNames;
 			this.messageAttributeNames = options.messageAttributeNames;
 			this.messageSystemAttributeNames = options.messageSystemAttributeNames;
@@ -293,7 +294,7 @@ public class ContainerOptions {
 			this.acknowledgementOrdering = options.acknowledgementOrdering;
 			this.acknowledgementInterval = options.acknowledgementInterval;
 			this.acknowledgementThreshold = options.acknowledgementThreshold;
-			this.componentsTaskExecutor = options.containerComponentsTaskExecutor;
+			this.componentsTaskExecutor = options.componentsTaskExecutor;
 			this.messageVisibility = options.messageVisibility;
 		}
 
@@ -308,13 +309,13 @@ public class ContainerOptions {
 		}
 
 		/**
-		 * Set the number of messages that should be returned per poll.
+		 * Set the number of messages that should be returned per poll. If a value greater than 10 is provided, the
+		 * result of multiple polls will be combined, which can be useful for
+		 * {@link io.awspring.cloud.sqs.listener.ListenerMode#BATCH}
 		 * @param maxMessagesPerPoll the number of messages.
 		 * @return this instance.
 		 */
 		public Builder maxMessagesPerPoll(int maxMessagesPerPoll) {
-			Assert.isTrue(maxMessagesPerPoll > 0 && maxMessagesPerPoll <= 10,
-					"maxMessagesPerPoll must be between 1 and 10");
 			this.maxMessagesPerPoll = maxMessagesPerPoll;
 			return this;
 		}
@@ -341,14 +342,14 @@ public class ContainerOptions {
 			return this;
 		}
 
-		public Builder messageDeliveryStrategy(MessageDeliveryStrategy messageDeliveryStrategy) {
-			Assert.notNull(messageDeliveryStrategy, "messageDeliveryStrategy cannot be null");
-			this.messageDeliveryStrategy = messageDeliveryStrategy;
+		public Builder listenerMode(ListenerMode listenerMode) {
+			Assert.notNull(listenerMode, "listenerMode cannot be null");
+			this.listenerMode = listenerMode;
 			return this;
 		}
 
 		public Builder componentsTaskExecutor(TaskExecutor taskExecutor) {
-			Assert.notNull(taskExecutor, "executor cannot be null");
+			Assert.notNull(taskExecutor, "taskExecutor cannot be null");
 			this.componentsTaskExecutor = taskExecutor;
 			return this;
 		}
@@ -367,13 +368,13 @@ public class ContainerOptions {
 
 		public Builder queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notEmpty(queueAttributeNames, "queueAttributeNames cannot be empty");
-			this.queueAttributeNames = queueAttributeNames;
+			this.queueAttributeNames = Collections.unmodifiableCollection(new ArrayList<>(queueAttributeNames));
 			return this;
 		}
 
 		public Builder messageAttributeNames(Collection<String> messageAttributeNames) {
 			Assert.notEmpty(messageAttributeNames, "messageAttributeNames cannot be empty");
-			this.messageAttributeNames = messageAttributeNames;
+			this.messageAttributeNames = Collections.unmodifiableCollection(new ArrayList<>(messageAttributeNames));
 			return this;
 		}
 
@@ -431,7 +432,6 @@ public class ContainerOptions {
 			Assert.isTrue(this.maxMessagesPerPoll <= maxInflightMessagesPerQueue, String.format(
 					"messagesPerPoll should be less than or equal to maxInflightMessagesPerQueue. Values provided: %s and %s respectively",
 					this.maxMessagesPerPoll, this.maxInflightMessagesPerQueue));
-			Assert.isTrue(this.maxMessagesPerPoll <= 10, "messagesPerPoll must be less than or equal to 10.");
 			return new ContainerOptions(this);
 		}
 

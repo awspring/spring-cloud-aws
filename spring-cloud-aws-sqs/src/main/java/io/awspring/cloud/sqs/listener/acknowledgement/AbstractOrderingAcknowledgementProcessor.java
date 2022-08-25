@@ -15,20 +15,26 @@
  */
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
+import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
-import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
+import io.awspring.cloud.sqs.listener.ContainerOptions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.StopWatch;
 
 /**
  * Base implementation for a {@link AcknowledgementProcessor} with {@link org.springframework.context.SmartLifecycle}
@@ -38,11 +44,13 @@ import org.springframework.util.Assert;
  * @since 3.0
  */
 public abstract class AbstractOrderingAcknowledgementProcessor<T>
-		implements ExecutingAcknowledgementProcessor<T>, AcknowledgementCallback<T>, IdentifiableContainerComponent {
+		implements ExecutingAcknowledgementProcessor<T>, AcknowledgementCallback<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOrderingAcknowledgementProcessor.class);
 
 	private final Object lifecycleMonitor = new Object();
+
+	private static final String DEFAULT_MESSAGE_GROUP = "default";
 
 	private final Lock orderedExecutionLock = new ReentrantLock(true);
 
@@ -52,15 +60,29 @@ public abstract class AbstractOrderingAcknowledgementProcessor<T>
 
 	private AcknowledgementOrdering acknowledgementOrdering;
 
-	private CompletableFuture<Void> lastAcknowledgementFuture = CompletableFuture.completedFuture(null);
+	private final Map<String, CompletableFuture<Void>> lastAcknowledgementFutureMap = new ConcurrentHashMap<>();
+
+	private AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback = new AsyncAcknowledgementResultCallback<T>() {
+	};
 
 	private boolean running;
 
 	private String id;
 
+	private Function<Message<T>, String> messageGroupingFunction;
+
 	@Override
 	public AcknowledgementCallback<T> getAcknowledgementCallback() {
 		return this;
+	}
+
+	@Override
+	public void configure(ContainerOptions containerOptions) {
+		this.acknowledgementOrdering = containerOptions.getAcknowledgementOrdering();
+		doConfigure(containerOptions);
+	}
+
+	protected void doConfigure(ContainerOptions containerOptions) {
 	}
 
 	@Override
@@ -70,14 +92,19 @@ public abstract class AbstractOrderingAcknowledgementProcessor<T>
 	}
 
 	@Override
-	public void setAcknowledgementOrdering(AcknowledgementOrdering acknowledgementOrdering) {
-		Assert.notNull(acknowledgementOrdering, "acknowledgementOrdering cannot be null");
-		this.acknowledgementOrdering = acknowledgementOrdering;
+	public void setAcknowledgementResultCallback(AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback) {
+		Assert.notNull(acknowledgementResultCallback, "acknowledgementResultCallback cannot be null");
+		this.acknowledgementResultCallback = acknowledgementResultCallback;
 	}
 
 	public void setMaxAcknowledgementsPerBatch(int maxAcknowledgementsPerBatch) {
 		Assert.isTrue(maxAcknowledgementsPerBatch > 0, "maxAcknowledgementsPerBatch must be greater than zero");
 		this.maxAcknowledgementsPerBatch = maxAcknowledgementsPerBatch;
+	}
+
+	public void setMessageGroupingFunction(Function<Message<T>, String> messageGroupingFunction) {
+		Assert.notNull(messageGroupingFunction, "messageGroupingFunction cannot be null");
+		this.messageGroupingFunction = messageGroupingFunction;
 	}
 
 	@Override
@@ -100,8 +127,27 @@ public abstract class AbstractOrderingAcknowledgementProcessor<T>
 			logger.debug("Starting {} with ordering {} and batch size {}", this.id, this.acknowledgementOrdering,
 					this.maxAcknowledgementsPerBatch);
 			this.running = true;
+			validateAndInitializeMessageGrouping();
 			doStart();
 		}
+	}
+
+	private void validateAndInitializeMessageGrouping() {
+		Assert.isTrue(isValidOrderedByGroup() || isValidNotOrderedByGroup(),
+				"Invalid configuration for acknowledgement ordering.");
+		if (this.messageGroupingFunction == null) {
+			this.messageGroupingFunction = msg -> DEFAULT_MESSAGE_GROUP;
+		}
+	}
+
+	private boolean isValidOrderedByGroup() {
+		return AcknowledgementOrdering.ORDERED_BY_GROUP.equals(this.acknowledgementOrdering)
+				&& this.messageGroupingFunction != null;
+	}
+
+	private boolean isValidNotOrderedByGroup() {
+		return !AcknowledgementOrdering.ORDERED_BY_GROUP.equals(this.acknowledgementOrdering)
+				&& this.messageGroupingFunction == null;
 	}
 
 	protected void doStart() {
@@ -113,11 +159,13 @@ public abstract class AbstractOrderingAcknowledgementProcessor<T>
 			logger.debug("{} not running, returning for message {}", this.id, MessageHeaderUtils.getId(message));
 			return CompletableFuture.completedFuture(null);
 		}
+		logger.trace("Received message {} to acknowledge.", MessageHeaderUtils.getId(message));
 		return doOnAcknowledge(message);
 	}
 
 	@Override
 	public CompletableFuture<Void> onAcknowledge(Collection<Message<T>> messages) {
+		logger.trace("Received messages {} to acknowledge.", MessageHeaderUtils.getId(messages));
 		if (!isRunning()) {
 			logger.debug("{} not running, returning for messages {}", this.id, MessageHeaderUtils.getId(messages));
 			return CompletableFuture.completedFuture(null);
@@ -146,31 +194,94 @@ public abstract class AbstractOrderingAcknowledgementProcessor<T>
 		return this.running;
 	}
 
+	protected Function<Message<T>, String> getMessageGroupingFunction() {
+		return this.messageGroupingFunction;
+	}
+
 	protected CompletableFuture<Void> sendToExecutor(Collection<Message<T>> messagesToAck) {
+		StopWatch watch = new StopWatch();
+		watch.start();
+		return CompletableFutures
+				.exceptionallyCompose(sendToExecutorParallelOrOrdered(messagesToAck),
+						t -> logAcknowledgementError(messagesToAck, t))
+				.whenComplete(logExecutionTime(messagesToAck, watch));
+	}
+
+	private BiConsumer<Void, Throwable> logExecutionTime(Collection<Message<T>> messagesToAck, StopWatch watch) {
+		return (v, t) -> {
+			watch.stop();
+			logger.trace("Took {}ms to acknowledge messages {}", watch.getTotalTimeMillis(),
+					MessageHeaderUtils.getId(messagesToAck));
+		};
+	}
+
+	private CompletableFuture<Void> sendToExecutorParallelOrOrdered(Collection<Message<T>> messagesToAck) {
 		return AcknowledgementOrdering.PARALLEL.equals(this.acknowledgementOrdering)
 				? sendToExecutorParallel(messagesToAck)
 				: sendToExecutorOrdered(messagesToAck);
 	}
 
 	private CompletableFuture<Void> sendToExecutorParallel(Collection<Message<T>> messagesToAck) {
-		return CompletableFuture.allOf(partitionMessages(messagesToAck).stream()
-				.map(this.acknowledgementExecutor::execute).toArray(CompletableFuture[]::new));
+		return CompletableFuture.allOf(partitionMessages(messagesToAck).stream().map(this::doSendToExecutor)
+				.toArray(CompletableFuture[]::new));
 	}
 
 	private CompletableFuture<Void> sendToExecutorOrdered(Collection<Message<T>> messagesToAck) {
 		this.orderedExecutionLock.lock();
 		try {
-			partitionMessages(messagesToAck).forEach(batch -> doSendToExecutorOrdered(messagesToAck));
+			return CompletableFuture.allOf(partitionMessages(messagesToAck).stream().map(this::doSendToExecutorOrdered)
+					.flatMap(Collection::stream).toArray(CompletableFuture[]::new));
 		}
 		finally {
 			this.orderedExecutionLock.unlock();
 		}
-		return this.lastAcknowledgementFuture;
 	}
 
-	private void doSendToExecutorOrdered(Collection<Message<T>> messagesToAck) {
-		this.lastAcknowledgementFuture = this.lastAcknowledgementFuture
-				.thenCompose(theVoid -> this.acknowledgementExecutor.execute(messagesToAck));
+	private Collection<CompletableFuture<Void>> doSendToExecutorOrdered(Collection<Message<T>> messagesToAck) {
+		return messagesToAck.stream().collect(Collectors.groupingBy(this.messageGroupingFunction)).entrySet().stream()
+				.filter(entry -> entry.getValue().size() > 0)
+				.map(entry -> sendGroupToExecutor(entry.getKey(), entry.getValue())).collect(Collectors.toList());
+	}
+
+	private CompletableFuture<Void> sendGroupToExecutor(String group, List<Message<T>> messages) {
+		CompletableFuture<Void> nextFuture = this.lastAcknowledgementFutureMap
+				.computeIfAbsent(group, newGroup -> CompletableFuture.completedFuture(null)).exceptionally(t -> null)
+				.thenCompose(theVoid -> doSendToExecutor(messages));
+		this.lastAcknowledgementFutureMap.put(group, nextFuture);
+		removeCompletedFutures();
+		return nextFuture;
+	}
+
+	private void removeCompletedFutures() {
+		List<String> completedFutures = this.lastAcknowledgementFutureMap.entrySet().stream()
+				.filter(entry -> entry.getValue().isDone()).map(Map.Entry::getKey).collect(Collectors.toList());
+		logger.trace("Removing completed futures from groups {}", completedFutures);
+		completedFutures.forEach(this.lastAcknowledgementFutureMap::remove);
+	}
+
+	private CompletableFuture<Void> doSendToExecutor(Collection<Message<T>> messagesToAck) {
+		return CompletableFutures.handleCompose(this.acknowledgementExecutor.execute(messagesToAck), (v, t) -> t == null
+				? executeResultCallback(messagesToAck, null)
+				: executeResultCallback(messagesToAck, t).thenCompose(theVoid -> CompletableFutures.failedFuture(t)));
+	}
+
+	private CompletableFuture<Void> executeResultCallback(Collection<Message<T>> messagesToAck,
+			Throwable ackThrowable) {
+		return CompletableFutures.exceptionallyCompose(doExecuteResultCallback(messagesToAck, ackThrowable),
+				t -> CompletableFutures.failedFuture(new AcknowledgementResultCallbackException(
+						"Error executing acknowledgement result callback", t)));
+	}
+
+	private CompletableFuture<Void> doExecuteResultCallback(Collection<Message<T>> messagesToAck, Throwable t) {
+		logger.trace("Executing result callback for {} in {}", MessageHeaderUtils.getId(messagesToAck), this.id);
+		return t == null ? this.acknowledgementResultCallback.onSuccess(messagesToAck)
+				: this.acknowledgementResultCallback.onFailure(messagesToAck, t);
+	}
+
+	private CompletableFuture<Void> logAcknowledgementError(Collection<Message<T>> messagesToAck, Throwable t) {
+		logger.error("Acknowledgement processing has thrown an error for messages {} in {}",
+				MessageHeaderUtils.getId(messagesToAck), this.id, t);
+		return CompletableFutures.failedFuture(t);
 	}
 
 	private Collection<Collection<Message<T>>> partitionMessages(Collection<Message<T>> messagesToAck) {
