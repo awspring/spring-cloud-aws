@@ -43,7 +43,6 @@ public class SnsSmsTemplate implements SnsSmsOperations {
 		if (attributes != null) {
 			publishRequest.messageAttributes(attributes.convert());
 		}
-		populatePublishRequest(publishRequest, attributes);
 		this.snsClient.publish(publishRequest.build());
 	}
 
@@ -63,31 +62,11 @@ public class SnsSmsTemplate implements SnsSmsOperations {
 
 	}
 
-	@Override
-	public void sendToTargetArn(String targetArn, String message) {
-		sendToTargetArn(targetArn, message, null);
-	}
-
-	@Override
-	public void sendToTargetArn(String targetArn, String message, @Nullable SmsMessageAttributes attributes) {
-		PublishRequest.Builder publishRequest = PublishRequest.builder().targetArn(targetArn).message(message);
-		if (attributes != null) {
-			publishRequest.messageAttributes(attributes.convert());
-		}
-		populatePublishRequest(publishRequest, attributes);
-		this.snsClient.publish(publishRequest.build());
-	}
 
 	private void populatePublishRequest(PublishRequest.Builder builder, SmsMessageAttributes attributes) {
 		if (attributes != null) {
-			if (attributes.getDeduplicationId() != null) {
-				builder.messageDeduplicationId(attributes.getDeduplicationId());
-			}
 			if (attributes.getMessageStructure() != null) {
 				builder.messageStructure(attributes.getMessageStructure());
-			}
-			if (attributes.getMessageGroupId() != null) {
-				builder.messageGroupId(attributes.getMessageGroupId());
 			}
 		}
 	}

@@ -18,6 +18,7 @@ package io.awspring.cloud.sns.sms.core;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
 import io.awspring.cloud.sns.sms.attributes.SmsMessageAttributes;
+import io.awspring.cloud.sns.sms.attributes.SmsType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,7 @@ class SnsSmsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.0")).withServices(SNS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:0.14.3")).withServices(SNS).withReuse(true);
 
 	@BeforeAll
 	public static void createSnsTemplate() {
@@ -61,7 +62,7 @@ class SnsSmsTemplateIntegrationTest {
 	@Test
 	void sendValidMessage_ToPhoneNumber_WithAttributes() {
 		Assertions.assertDoesNotThrow(() -> snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!",
-				SmsMessageAttributes.builder().senderID("AWSPRING").maxPrice("1.00").build()));
+				SmsMessageAttributes.builder().smsType(SmsType.PROMOTIONAL).senderID("AWSPRING").maxPrice("1.00").build()));
 	}
 
 }

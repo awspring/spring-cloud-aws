@@ -29,8 +29,4 @@ public interface SnsSmsOperations {
 	void sendToTopicArn(String topicArn, String message);
 
 	void sendToTopicArn(String topicArn, String message, SmsMessageAttributes attributes);
-
-	void sendToTargetArn(String targetArn, String message);
-
-	void sendToTargetArn(String targetArn, String message, SmsMessageAttributes attributes);
 }

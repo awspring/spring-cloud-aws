@@ -33,16 +33,7 @@ public class SmsMessageAttributes {
 	private SmsType smsType;
 	private String entityId;
 	private String templateId;
-	private String messageGroupId;
-	private String deduplicationId;
 	private String messageStructure;
-	private ADM adm;
-	private APN apn;
-	private Baidu baidu;
-	private FCM fcm;
-	private MacOS macOS;
-	private MPNS mpns;
-	private WNS wns;
 
 	public Map<String, MessageAttributeValue> convert() {
 		Map<String, MessageAttributeValue> map = new HashMap<>();
@@ -53,27 +44,6 @@ public class SmsMessageAttributes {
 				map);
 		populateMapWithStringValue(AttributeCodes.ENTITY_ID, this.getEntityId(), map);
 		populateMapWithStringValue(AttributeCodes.TEMPLATE_ID, this.getTemplateId(), map);
-		if (this.getAdm() != null) {
-			this.getAdm().convertAndPopulate(map);
-		}
-		if (this.getApn() != null) {
-			this.getApn().convertAndPopulate(map);
-		}
-		if (this.getBaidu() != null) {
-			this.getBaidu().convertAndPopulate(map);
-		}
-		if (this.getFcm() != null) {
-			this.getFcm().convertAndPopulate(map);
-		}
-		if (this.getMacOS() != null) {
-			this.getMacOS().convertAndPopulate(map);
-		}
-		if (this.getMpns() != null) {
-			this.getMpns().convertAndPopulate(map);
-		}
-		if (this.getWns() != null) {
-			this.getWns().convertAndPopulate(map);
-		}
 		return map;
 	}
 
@@ -125,84 +95,12 @@ public class SmsMessageAttributes {
 		this.templateId = templateId;
 	}
 
-	public void setMessageGroupId(String messageGroupId) {
-		this.messageGroupId = messageGroupId;
-	}
-
-	public void setDeduplicationId(String deduplicationId) {
-		this.deduplicationId = deduplicationId;
-	}
-
-	public void setMessageStructure(String messageStructure) {
-		this.messageStructure = messageStructure;
-	}
-
-	public void setAdm(ADM adm) {
-		this.adm = adm;
-	}
-
-	public void setApn(APN apn) {
-		this.apn = apn;
-	}
-
-	public void setBaidu(Baidu baidu) {
-		this.baidu = baidu;
-	}
-
-	public void setFcm(FCM fcm) {
-		this.fcm = fcm;
-	}
-
-	public void setMacOS(MacOS macOS) {
-		this.macOS = macOS;
-	}
-
-	public void setMpns(MPNS mpns) {
-		this.mpns = mpns;
-	}
-
-	public void setWns(WNS wns) {
-		this.wns = wns;
-	}
-
-	public String getMessageGroupId() {
-		return messageGroupId;
-	}
-
-	public String getDeduplicationId() {
-		return deduplicationId;
-	}
-
 	public String getMessageStructure() {
 		return messageStructure;
 	}
 
-	public ADM getAdm() {
-		return adm;
-	}
-
-	public APN getApn() {
-		return apn;
-	}
-
-	public Baidu getBaidu() {
-		return baidu;
-	}
-
-	public FCM getFcm() {
-		return fcm;
-	}
-
-	public MacOS getMacOS() {
-		return macOS;
-	}
-
-	public MPNS getMpns() {
-		return mpns;
-	}
-
-	public WNS getWns() {
-		return wns;
+	public void setMessageStructure(String messageStructure) {
+		this.messageStructure = messageStructure;
 	}
 
 	public static Builder builder() {
@@ -216,17 +114,7 @@ public class SmsMessageAttributes {
 		private SmsType smsType;
 		private String entityId;
 		private String templateId;
-		private String messageGroupId;
-		private String deduplicationId;
 		private String messageStructure;
-		private ADM adm;
-		private APN apn;
-		private Baidu baidu;
-		private FCM fcm;
-		private MacOS macOS;
-		private MPNS mpns;
-		private WNS wns;
-
 		private Builder() {
 		}
 
@@ -264,53 +152,8 @@ public class SmsMessageAttributes {
 			return this;
 		}
 
-		public Builder messageGroupId(String messageGroupId) {
-			this.messageGroupId = messageGroupId;
-			return this;
-		}
-
-		public Builder deduplicationId(String deduplicationId) {
-			this.deduplicationId = deduplicationId;
-			return this;
-		}
-
 		public Builder messageStructure(String messageStructure) {
 			this.messageStructure = messageStructure;
-			return this;
-		}
-
-		public Builder adm(ADM adm) {
-			this.adm = adm;
-			return this;
-		}
-
-		public Builder apn(APN apn) {
-			this.apn = apn;
-			return this;
-		}
-
-		public Builder baidu(Baidu baidu) {
-			this.baidu = baidu;
-			return this;
-		}
-
-		public Builder fcm(FCM fcm) {
-			this.fcm = fcm;
-			return this;
-		}
-
-		public Builder macOS(MacOS macOS) {
-			this.macOS = macOS;
-			return this;
-		}
-
-		public Builder mpns(MPNS mpns) {
-			this.mpns = mpns;
-			return this;
-		}
-
-		public Builder wns(WNS wns) {
-			this.wns = wns;
 			return this;
 		}
 
@@ -322,16 +165,7 @@ public class SmsMessageAttributes {
 			smsMessageAttributes.setSmsType(smsType);
 			smsMessageAttributes.setEntityId(entityId);
 			smsMessageAttributes.setTemplateId(templateId);
-			smsMessageAttributes.setMessageGroupId(messageGroupId);
-			smsMessageAttributes.setDeduplicationId(deduplicationId);
 			smsMessageAttributes.setMessageStructure(messageStructure);
-			smsMessageAttributes.setAdm(adm);
-			smsMessageAttributes.setApn(apn);
-			smsMessageAttributes.setBaidu(baidu);
-			smsMessageAttributes.setFcm(fcm);
-			smsMessageAttributes.setMacOS(macOS);
-			smsMessageAttributes.setMpns(mpns);
-			smsMessageAttributes.setWns(wns);
 			return smsMessageAttributes;
 		}
 	}
