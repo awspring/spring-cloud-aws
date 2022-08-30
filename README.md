@@ -110,5 +110,4 @@ It generates:
 Or reach out directly to individual team members:
 
 - Maciej Walkowiak [Twitter](https://twitter.com/maciejwalkowiak)
-- Eddú Meléndez [Twitter](https://twitter.com/EdduMelendez)
 - Matej Nedic [Twitter](https://twitter.com/MatejNedic1)
