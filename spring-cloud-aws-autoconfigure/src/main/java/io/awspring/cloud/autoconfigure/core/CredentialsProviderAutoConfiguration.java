@@ -76,6 +76,9 @@ public class CredentialsProviderAutoConfiguration {
 		if (providers.isEmpty()) {
 			return DefaultCredentialsProvider.create();
 		}
+		else if (providers.size() == 1) {
+			return providers.get(0);
+		}
 		else {
 			return AwsCredentialsProviderChain.builder().credentialsProviders(providers).build();
 		}
