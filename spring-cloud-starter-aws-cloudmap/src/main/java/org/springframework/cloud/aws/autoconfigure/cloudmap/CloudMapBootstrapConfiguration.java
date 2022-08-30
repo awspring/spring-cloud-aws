@@ -17,9 +17,11 @@
 package org.springframework.cloud.aws.autoconfigure.cloudmap;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscovery;
 import com.amazonaws.services.servicediscovery.AWSServiceDiscoveryClientBuilder;
 import com.amazonaws.util.StringUtils;
+import io.awspring.cloud.core.SpringCloudClientConfiguration;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -53,10 +55,17 @@ public class CloudMapBootstrapConfiguration {
 
 	public CloudMapBootstrapConfiguration(CloudMapProperties properties, ApplicationContext context) {
 		AWSServiceDiscoveryClientBuilder builder = AWSServiceDiscoveryClientBuilder.standard()
+				.withClientConfiguration(SpringCloudClientConfiguration.getClientConfiguration())
 				.withCredentials(new DefaultAWSCredentialsProviderChain());
 
 		if (!StringUtils.isNullOrEmpty(properties.getRegion())) {
 			builder.withRegion(properties.getRegion());
+		}
+
+		if (properties.getEndpoint() != null) {
+			AwsClientBuilder.EndpointConfiguration endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(
+				properties.getEndpoint().toString(), null);
+			builder.withEndpointConfiguration(endpointConfiguration);
 		}
 
 		this.serviceDiscovery = builder.build();
