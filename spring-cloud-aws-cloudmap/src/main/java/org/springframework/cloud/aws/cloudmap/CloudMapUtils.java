@@ -79,14 +79,14 @@ import org.springframework.web.reactive.function.client.WebClient;
  * @author Hari Ohm Prasath
  * @since 2.3.2
  */
-public enum CloudMapUtils {
+public class CloudMapUtils {
 
 	/*
 	 * Singleton instance
 	 */
-	INSTANCE;
+	private static CloudMapUtils cloudMapUtils = null;
 
-	public static final String META_DATA_URL = "http://169.254.169.254/latest/meta-data";
+	public static final String EC2_METADATA_URL = "http://169.254.169.254/latest/meta-data";
 	/*
 	 * AWS VPC ID
 	 */
@@ -158,12 +158,13 @@ public enum CloudMapUtils {
 
 	/**
 	 * Uses metadata URL to fetch all the required details around IP address and VpcID to
-	 * register instances to cloudmap service.
+	 * register instances to cloudmap service. If Deployment platform is not passed in then we consider it
+	 * as classic EC2 or ECS based deployment platform
 	 * @return map containing ip address and vpcid
 	 */
 	public Map<String, String> getRegistrationAttributes() {
 		String deploymentPlatform = System.getenv(DEPLOYMENT_PLATFORM);
-		LOGGER.info("Deployment platform passed in {}", deploymentPlatform);
+		LOGGER.info("Deployment platform passed in {} ", deploymentPlatform);
 		if (StringUtils.hasText(deploymentPlatform) && EKS.equalsIgnoreCase(deploymentPlatform.trim()))
 			return getEksRegistrationAttributes();
 		return getEcsRegistrationAttributes();
@@ -460,8 +461,11 @@ public enum CloudMapUtils {
 		}
 	}
 
-	public CloudMapUtils getInstance() {
-		return INSTANCE;
+	public static CloudMapUtils getInstance() {
+		if (cloudMapUtils == null){
+			cloudMapUtils = new CloudMapUtils();
+		}
+		return cloudMapUtils;
 	}
 
 	/**
@@ -513,11 +517,11 @@ public enum CloudMapUtils {
 	 */
 	private Map<String, String> getEksRegistrationAttributes() {
 		try {
-			String ipAddress = getUrlResponse(String.format("%s/local-ipv4", META_DATA_URL));
-			final String macId = getUrlResponse(String.format("%s/network/interfaces/macs", META_DATA_URL));
+			String ipAddress = getUrlResponse(String.format("%s/local-ipv4", EC2_METADATA_URL));
+			final String macId = getUrlResponse(String.format("%s/network/interfaces/macs", EC2_METADATA_URL));
 			if (StringUtils.hasText(macId) && macId.contains("/")) {
 				final String macAddress = macId.split("/")[0];
-				final String vpcUrl = String.format("%s/network/interfaces/macs/%s/vpc-id", META_DATA_URL, macAddress);
+				final String vpcUrl = String.format("%s/network/interfaces/macs/%s/vpc-id", EC2_METADATA_URL, macAddress);
 				final String vpcId = getUrlResponse(vpcUrl);
 				LOGGER.info("Meta data details IP Address {}, macAddress {} - VPCId {}", ipAddress, macAddress, vpcId);
 				return getCloudMapAttributes(ipAddress, vpcId);
@@ -537,7 +541,7 @@ public enum CloudMapUtils {
 		try {
 			String metaDataUrl = System.getenv(ECS_CONTAINER_METADATA_URI_V_4);
 			if (!StringUtils.hasText(metaDataUrl))
-				metaDataUrl = META_DATA_URL;
+				metaDataUrl = EC2_METADATA_URL;
 			final String responseBody = getUrlResponse(metaDataUrl + "/task");
 			JsonNode root = JSON_MAPPER.readTree(responseBody);
 			JsonNode jsonNode = root.get("Containers").get(0).get("Networks").get(0);
@@ -549,6 +553,8 @@ public enum CloudMapUtils {
 				.getSubnets().get(0).getVpcId();
 			LOGGER.info("IPv4Address {} - CIDR Block {} - VPC ID {}", ipv4Address, cidrBlock, vpcId);
 
+//			String ipv4Address = "10.20.10.111";
+//			String vpcId = "vpc-0294915e2f02ac742";
 			return getCloudMapAttributes(ipv4Address, vpcId);
 		}
 		catch (Exception e) {

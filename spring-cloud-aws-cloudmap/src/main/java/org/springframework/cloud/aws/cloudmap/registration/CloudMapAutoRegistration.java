@@ -45,7 +45,7 @@ public class CloudMapAutoRegistration
 
 	private final AtomicBoolean running = new AtomicBoolean(false);
 
-	private final CloudMapUtils UTILS = CloudMapUtils.INSTANCE.getInstance();
+	private final CloudMapUtils UTILS = CloudMapUtils.getInstance();
 
 	private Environment environment;
 

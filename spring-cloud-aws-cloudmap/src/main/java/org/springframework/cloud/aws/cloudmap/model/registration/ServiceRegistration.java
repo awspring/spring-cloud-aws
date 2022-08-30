@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.aws.cloudmap.registration;
+package org.springframework.cloud.aws.cloudmap.model.registration;
 
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.cloud.aws.cloudmap.CloudMapUtils;
-import org.springframework.cloud.aws.cloudmap.model.registration.CloudMapRegistryProperties;
 import org.springframework.cloud.client.serviceregistry.Registration;
 
 public class ServiceRegistration implements Registration {
@@ -30,7 +29,7 @@ public class ServiceRegistration implements Registration {
 
 	private final Map<String, String> registrationDetails;
 
-	private final CloudMapUtils UTILS = CloudMapUtils.INSTANCE.getInstance();
+	private final CloudMapUtils UTILS = CloudMapUtils.getInstance();
 
 	public ServiceRegistration(CloudMapRegistryProperties properties) {
 		registrationDetails = UTILS.getRegistrationAttributes();

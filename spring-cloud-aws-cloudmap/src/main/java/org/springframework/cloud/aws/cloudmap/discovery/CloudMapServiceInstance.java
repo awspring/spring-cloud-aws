@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class CloudMapServiceInstance implements ServiceInstance {
 
-	private final CloudMapUtils UTILS = CloudMapUtils.INSTANCE.getInstance();
+	private final CloudMapUtils UTILS = CloudMapUtils.getInstance();
 
 	HttpInstanceSummary instanceSummary;
 

@@ -1,2 +1,2 @@
 org.springframework.cloud.bootstrap.BootstrapConfiguration=\
-org.springframework.cloud.aws.autoconfigure.cloudmap.AwsCloudMapBootstrapConfiguration
+org.springframework.cloud.aws.autoconfigure.cloudmap.CloudMapBootstrapConfiguration

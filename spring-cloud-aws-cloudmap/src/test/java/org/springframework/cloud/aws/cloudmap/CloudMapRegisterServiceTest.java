@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.cloud.aws.cloudmap.model.registration.CloudMapRegistryProperties;
-import org.springframework.cloud.aws.cloudmap.registration.ServiceRegistration;
+import org.springframework.cloud.aws.cloudmap.model.registration.ServiceRegistration;
 import org.springframework.core.env.Environment;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,11 +57,11 @@ import static org.mockito.Mockito.when;
  * @author Hari Ohm Prasath
  * @since 2.3.2
  */
-public class AwsCloudMapRegisterServiceTest {
+public class CloudMapRegisterServiceTest {
 
 	private final AWSServiceDiscovery serviceDiscovery = mock(AWSServiceDiscovery.class);
 
-	private final CloudMapUtils cloudMapUtils = CloudMapUtils.INSTANCE.getInstance();
+	private final CloudMapUtils cloudMapUtils = CloudMapUtils.getInstance();
 
 	private final Environment environment = mock(Environment.class);
 

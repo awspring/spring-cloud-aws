@@ -27,10 +27,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.aws.cloudmap.discovery.CloudMapDiscoveryClient;
 import org.springframework.cloud.aws.cloudmap.model.CloudMapProperties;
+import org.springframework.cloud.aws.cloudmap.model.registration.ServiceRegistration;
 import org.springframework.cloud.aws.cloudmap.registration.CloudMapAutoRegistration;
-import org.springframework.cloud.aws.cloudmap.registration.ServiceRegistration;
-import org.springframework.cloud.client.ConditionalOnBlockingDiscoveryEnabled;
-import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,9 +43,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(CloudMapProperties.class)
 @ConditionalOnClass({ AWSServiceDiscovery.class, ServiceRegistration.class, CloudMapAutoRegistration.class })
 @ConditionalOnProperty(prefix = CloudMapProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
-@ConditionalOnDiscoveryEnabled
-@ConditionalOnBlockingDiscoveryEnabled
-public class AwsCloudMapBootstrapConfiguration {
+public class CloudMapBootstrapConfiguration {
 
 	private final ApplicationContext context;
 
@@ -55,7 +51,7 @@ public class AwsCloudMapBootstrapConfiguration {
 
 	private final CloudMapProperties properties;
 
-	public AwsCloudMapBootstrapConfiguration(CloudMapProperties properties, ApplicationContext context) {
+	public CloudMapBootstrapConfiguration(CloudMapProperties properties, ApplicationContext context) {
 		AWSServiceDiscoveryClientBuilder builder = AWSServiceDiscoveryClientBuilder.standard()
 				.withCredentials(new DefaultAWSCredentialsProviderChain());
 

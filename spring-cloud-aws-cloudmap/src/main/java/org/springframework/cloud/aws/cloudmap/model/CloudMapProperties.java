@@ -16,6 +16,8 @@
 
 package org.springframework.cloud.aws.cloudmap.model;
 
+import java.net.URI;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.aws.cloudmap.model.discovery.CloudMapDiscovery;
 import org.springframework.cloud.aws.cloudmap.model.registration.CloudMapRegistryProperties;
@@ -41,6 +43,11 @@ public class CloudMapProperties implements EnvironmentAware {
 	private CloudMapDiscovery discovery;
 
 	private String region;
+
+	/**
+	 * Overrides the default endpoint.
+	 */
+	private URI endpoint;
 
 	private boolean enabled;
 
@@ -95,6 +102,14 @@ public class CloudMapProperties implements EnvironmentAware {
 	@Override
 	public void setEnvironment(Environment environment) {
 		this.environment = environment;
+	}
+
+	public URI getEndpoint() {
+		return endpoint;
+	}
+
+	public void setEndpoint(URI endpoint) {
+		this.endpoint = endpoint;
 	}
 
 	@Override

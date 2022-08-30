@@ -36,7 +36,7 @@ public class CloudMapDiscoveryClient implements DiscoveryClient {
 	 */
 	public static final String DESCRIPTION = "AWS CloudMap Discovery Client";
 
-	private static final CloudMapUtils UTILS = CloudMapUtils.INSTANCE.getInstance();
+	private static final CloudMapUtils UTILS = CloudMapUtils.getInstance();
 
 	private final AWSServiceDiscovery serviceDiscovery;
 

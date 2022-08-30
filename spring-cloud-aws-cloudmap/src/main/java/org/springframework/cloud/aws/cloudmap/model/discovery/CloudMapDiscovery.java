@@ -32,7 +32,7 @@ public class CloudMapDiscovery {
 	private List<CloudMapDiscoveryProperties> discoveryList;
 
 	public boolean isFailFast() {
-		return failFast;
+		return this.failFast;
 	}
 
 	public void setFailFast(boolean failFast) {
@@ -40,7 +40,7 @@ public class CloudMapDiscovery {
 	}
 
 	public List<CloudMapDiscoveryProperties> getDiscoveryList() {
-		return discoveryList;
+		return this.discoveryList;
 	}
 
 	public void setDiscoveryList(List<CloudMapDiscoveryProperties> discoveryList) {
