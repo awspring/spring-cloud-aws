@@ -111,3 +111,4 @@ Or reach out directly to individual team members:
 
 - Maciej Walkowiak [Twitter](https://twitter.com/maciejwalkowiak)
 - Matej Nedic [Twitter](https://twitter.com/MatejNedic1)
+- Tomaz Fernandes [Twitter](https://twitter.com/tomazfernandes_)
