@@ -19,6 +19,7 @@ import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
 import io.awspring.cloud.sns.core.SnsTemplate;
+import io.awspring.cloud.sns.sms.core.SnsSmsTemplate;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -38,11 +39,14 @@ public class SpringSNSSample {
 
 	private final SnsClient snsClient;
 
+	private final SnsSmsTemplate snsSmsTemplate;
+
 	private static LocalStackContainer localStack;
 
-	public SpringSNSSample(SnsTemplate snsTemplate, SnsClient snsClient) {
+	public SpringSNSSample(SnsTemplate snsTemplate, SnsClient snsClient, SnsSmsTemplate snsSmsTemplate) {
 		this.snsTemplate = snsTemplate;
 		this.snsClient = snsClient;
+		this.snsSmsTemplate = snsSmsTemplate;
 	}
 
 	public static void main(String[] args) {
@@ -63,6 +67,8 @@ public class SpringSNSSample {
 				.endpoint("http://host.testcontainers.internal:8080/testTopic").topicArn(arn).build());
 		this.snsTemplate.send(arn, MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!")
 				.setHeader(NOTIFICATION_SUBJECT_HEADER, "Some value!").build());
+
+		this.snsSmsTemplate.send("your phone number",  "Message to be delivered");
 	}
 
 }

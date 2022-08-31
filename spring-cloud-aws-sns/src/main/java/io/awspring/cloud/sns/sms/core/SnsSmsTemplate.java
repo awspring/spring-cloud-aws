@@ -57,17 +57,7 @@ public class SnsSmsTemplate implements SnsSmsOperations {
 		if (attributes != null) {
 			publishRequest.messageAttributes(attributes.convert());
 		}
-		populatePublishRequest(publishRequest, attributes);
 		this.snsClient.publish(publishRequest.build());
-
 	}
 
-
-	private void populatePublishRequest(PublishRequest.Builder builder, SmsMessageAttributes attributes) {
-		if (attributes != null) {
-			if (attributes.getMessageStructure() != null) {
-				builder.messageStructure(attributes.getMessageStructure());
-			}
-		}
-	}
 }

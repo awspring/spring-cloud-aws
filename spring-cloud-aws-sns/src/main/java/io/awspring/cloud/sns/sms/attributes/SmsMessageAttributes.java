@@ -33,7 +33,6 @@ public class SmsMessageAttributes {
 	private SmsType smsType;
 	private String entityId;
 	private String templateId;
-	private String messageStructure;
 
 	public Map<String, MessageAttributeValue> convert() {
 		Map<String, MessageAttributeValue> map = new HashMap<>();
@@ -95,13 +94,6 @@ public class SmsMessageAttributes {
 		this.templateId = templateId;
 	}
 
-	public String getMessageStructure() {
-		return messageStructure;
-	}
-
-	public void setMessageStructure(String messageStructure) {
-		this.messageStructure = messageStructure;
-	}
 
 	public static Builder builder() {
 		return new Builder();
@@ -114,7 +106,6 @@ public class SmsMessageAttributes {
 		private SmsType smsType;
 		private String entityId;
 		private String templateId;
-		private String messageStructure;
 		private Builder() {
 		}
 
@@ -152,10 +143,6 @@ public class SmsMessageAttributes {
 			return this;
 		}
 
-		public Builder messageStructure(String messageStructure) {
-			this.messageStructure = messageStructure;
-			return this;
-		}
 
 		public SmsMessageAttributes build() {
 			SmsMessageAttributes smsMessageAttributes = new SmsMessageAttributes();
@@ -165,7 +152,6 @@ public class SmsMessageAttributes {
 			smsMessageAttributes.setSmsType(smsType);
 			smsMessageAttributes.setEntityId(entityId);
 			smsMessageAttributes.setTemplateId(templateId);
-			smsMessageAttributes.setMessageStructure(messageStructure);
 			return smsMessageAttributes;
 		}
 	}

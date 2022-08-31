@@ -54,15 +54,13 @@ class SnsSmsTemplateTest {
 	@Test
 	void sendsTextMessageWithAttributes() {
 		snsSmsTemplate.send("000 000 000", "this is message", SmsMessageAttributes.builder()
-			.messageStructure("JSON").senderID("agent007").originationNumber("202").build());
+			.senderID("agent007").originationNumber("202").build());
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.phoneNumber()).isEqualTo("000 000 000");
 			assertThat(r.message()).isEqualTo("this is message");
 			assertThat(r.messageAttributes().get(AttributeCodes.SENDER_ID).stringValue()).isEqualTo("agent007");
 			assertThat(r.messageAttributes().get(AttributeCodes.ORIGINATION_NUMBER).stringValue()).isEqualTo("202");
-			// when sending to phone number messageStructure is not used.
-			assertThat(r.messageStructure()).isEqualTo(null);
 		}));
 	}
 
@@ -71,7 +69,7 @@ class SnsSmsTemplateTest {
 	@Test
 	void sendsTextMessageWithAttributes_topicArn() {
 		snsSmsTemplate.sendToTopicArn("arn:something:something", "this is message",
-				SmsMessageAttributes.builder().messageStructure("JSON")
+				SmsMessageAttributes.builder()
 						.senderID("agent007").originationNumber("202").build());
 
 		verify(snsClient).publish(requestMatches(r -> {
@@ -79,7 +77,6 @@ class SnsSmsTemplateTest {
 			assertThat(r.message()).isEqualTo("this is message");
 			assertThat(r.messageAttributes().get(AttributeCodes.SENDER_ID).stringValue()).isEqualTo("agent007");
 			assertThat(r.messageAttributes().get(AttributeCodes.ORIGINATION_NUMBER).stringValue()).isEqualTo("202");
-			assertThat(r.messageStructure()).isEqualTo("JSON");
 		}));
 	}
 
