@@ -68,7 +68,7 @@ public class SpringSNSSample {
 		this.snsTemplate.send(arn, MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!")
 				.setHeader(NOTIFICATION_SUBJECT_HEADER, "Some value!").build());
 
-		this.snsSmsTemplate.send("your phone number",  "Message to be delivered");
+		this.snsSmsTemplate.send("your phone number", "Message to be delivered");
 	}
 
 }

@@ -94,7 +94,6 @@ public class SmsMessageAttributes {
 		this.templateId = templateId;
 	}
 
-
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -106,6 +105,7 @@ public class SmsMessageAttributes {
 		private SmsType smsType;
 		private String entityId;
 		private String templateId;
+
 		private Builder() {
 		}
 
@@ -142,7 +142,6 @@ public class SmsMessageAttributes {
 			this.templateId = templateId;
 			return this;
 		}
-
 
 		public SmsMessageAttributes build() {
 			SmsMessageAttributes smsMessageAttributes = new SmsMessageAttributes();

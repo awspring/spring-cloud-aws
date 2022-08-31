@@ -53,8 +53,8 @@ class SnsSmsTemplateTest {
 
 	@Test
 	void sendsTextMessageWithAttributes() {
-		snsSmsTemplate.send("000 000 000", "this is message", SmsMessageAttributes.builder()
-			.senderID("agent007").originationNumber("202").build());
+		snsSmsTemplate.send("000 000 000", "this is message",
+				SmsMessageAttributes.builder().senderID("agent007").originationNumber("202").build());
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.phoneNumber()).isEqualTo("000 000 000");
@@ -64,13 +64,10 @@ class SnsSmsTemplateTest {
 		}));
 	}
 
-
-
 	@Test
 	void sendsTextMessageWithAttributes_topicArn() {
 		snsSmsTemplate.sendToTopicArn("arn:something:something", "this is message",
-				SmsMessageAttributes.builder()
-						.senderID("agent007").originationNumber("202").build());
+				SmsMessageAttributes.builder().senderID("agent007").originationNumber("202").build());
 
 		verify(snsClient).publish(requestMatches(r -> {
 			assertThat(r.topicArn()).isEqualTo("arn:something:something");

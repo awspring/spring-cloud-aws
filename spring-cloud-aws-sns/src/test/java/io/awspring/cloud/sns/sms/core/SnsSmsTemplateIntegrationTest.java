@@ -61,8 +61,9 @@ class SnsSmsTemplateIntegrationTest {
 
 	@Test
 	void sendValidMessage_ToPhoneNumber_WithAttributes() {
-		Assertions.assertDoesNotThrow(() -> snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!",
-				SmsMessageAttributes.builder().smsType(SmsType.PROMOTIONAL).senderID("AWSPRING").maxPrice("1.00").build()));
+		Assertions.assertDoesNotThrow(
+				() -> snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!", SmsMessageAttributes
+						.builder().smsType(SmsType.PROMOTIONAL).senderID("AWSPRING").maxPrice("1.00").build()));
 	}
 
 }
