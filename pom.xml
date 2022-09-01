@@ -50,13 +50,12 @@
 		<module>spring-cloud-aws-s3-parent</module>
 		<module>spring-cloud-aws-starters</module>
 		<module>spring-cloud-aws-samples</module>
+		<module>spring-cloud-aws-test</module>
 		<module>docs</module>
 
 		<!--
 		these modules need to be rewritten
 		<module>spring-cloud-aws-jdbc</module>
-		<module>spring-cloud-aws-messaging</module>
-		<module>spring-cloud-aws-test</module>
 		-->
 		</modules>
 

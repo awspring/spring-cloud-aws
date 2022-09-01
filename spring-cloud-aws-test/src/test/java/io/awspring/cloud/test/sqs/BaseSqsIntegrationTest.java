@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.test.sqs;
 
-import java.io.IOException;
+import static io.awspring.cloud.test.sqs.SqsSampleListener.QUEUE_NAME;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeAll;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-
-import static io.awspring.cloud.test.sqs.SqsSampleListener.QUEUE_NAME;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 @Testcontainers
 abstract class BaseSqsIntegrationTest {

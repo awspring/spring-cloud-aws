@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.test.sqs;
-
-import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
-import org.junit.jupiter.api.Test;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationContext;
 
 import static io.awspring.cloud.test.sqs.SqsSampleListener.QUEUE_NAME;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.verify;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationContext;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 @SqsTest(listeners = SqsSampleListener.class, properties = { "cloud.aws.credentials.access-key=noop",
 		"cloud.aws.credentials.secret-key=noop", "cloud.aws.region.static=eu-west-1" })
@@ -36,14 +34,14 @@ class SqsTestListenersDefinedTest extends BaseSqsIntegrationTest {
 	private ApplicationContext ctx;
 
 	@Autowired
-	private QueueMessagingTemplate queueMessagingTemplate;
+	private SqsAsyncClient sqsAsyncClient;
 
 	@MockBean
 	private SampleComponent sampleComponent;
 
 	@Test
 	void createsQueueMessagingTemplate() {
-		assertThatNoException().isThrownBy(() -> this.ctx.getBean(QueueMessagingTemplate.class));
+		assertThatNoException().isThrownBy(() -> this.ctx.getBean(SqsAsyncClient.class));
 	}
 
 	@Test
@@ -53,7 +51,8 @@ class SqsTestListenersDefinedTest extends BaseSqsIntegrationTest {
 
 	@Test
 	void listenerHandlesMessage() {
-		queueMessagingTemplate.convertAndSend(QUEUE_NAME, "message");
+		String queueUrl = sqsAsyncClient.getQueueUrl(r -> r.queueName(QUEUE_NAME)).join().queueUrl();
+		sqsAsyncClient.sendMessage(r -> r.queueUrl(queueUrl).messageBody("message")).join();
 
 		await().untilAsserted(() -> verify(sampleComponent).save("message"));
 	}
