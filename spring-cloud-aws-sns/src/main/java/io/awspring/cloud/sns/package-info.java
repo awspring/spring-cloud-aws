@@ -13,22 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.sms.core;
-
-import io.awspring.cloud.sns.sms.attributes.SmsMessageAttributes;
-import org.springframework.lang.Nullable;
 
 /**
- * High level SNS operations for sending SMS.
- * @author Matej Nedic
- * @since 3.0.0
+ * Integration with AWS SNS (Simple Notification Service).
  */
-public interface SnsSmsOperations {
-	void send(String phoneNumber, String message);
-
-	void send(String phoneNumber, String message, @Nullable SmsMessageAttributes attributes);
-
-	void sendToTopicArn(String topicArn, String message);
-
-	void sendToTopicArn(String topicArn, String message, @Nullable SmsMessageAttributes attributes);
-}
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
+package io.awspring.cloud.sns;

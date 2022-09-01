@@ -21,6 +21,8 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 
 /**
+ *  Helper class that simplifies synchronous sending of SMS to SNS topic or Phone Number. The only mandatory field is
+ *  {@link SnsClient}.
  * @author Matej Nedic
  * @since 3.0.0
  */
@@ -41,7 +43,7 @@ public class SnsSmsTemplate implements SnsSmsOperations {
 	public void send(String phoneNumber, String message, @Nullable SmsMessageAttributes attributes) {
 		PublishRequest.Builder publishRequest = PublishRequest.builder().phoneNumber(phoneNumber).message(message);
 		if (attributes != null) {
-			publishRequest.messageAttributes(attributes.convert());
+			publishRequest.messageAttributes(attributes.convertAndPopulate());
 		}
 		this.snsClient.publish(publishRequest.build());
 	}
@@ -55,7 +57,7 @@ public class SnsSmsTemplate implements SnsSmsOperations {
 	public void sendToTopicArn(String topicArn, String message, @Nullable SmsMessageAttributes attributes) {
 		PublishRequest.Builder publishRequest = PublishRequest.builder().topicArn(topicArn).message(message);
 		if (attributes != null) {
-			publishRequest.messageAttributes(attributes.convert());
+			publishRequest.messageAttributes(attributes.convertAndPopulate());
 		}
 		this.snsClient.publish(publishRequest.build());
 	}

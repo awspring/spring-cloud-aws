@@ -19,13 +19,13 @@ import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.NUMBER;
 import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.STRING;
 
 import java.util.Map;
+
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 interface ConvertToMessageAttributes {
 
-	void convertAndPopulate(Map<String, MessageAttributeValue> attributeValueMap);
-
-	static void populateMapWithStringValue(String attributeCode, String value,
+	static void populateMapWithStringValue(String attributeCode, @Nullable String value,
 			Map<String, MessageAttributeValue> messageAttributeValueMap) {
 		if (value != null) {
 			messageAttributeValueMap.put(attributeCode,
@@ -33,7 +33,7 @@ interface ConvertToMessageAttributes {
 		}
 	}
 
-	static void populateMapWithNumberValue(String attributeCode, Number value,
+	static void populateMapWithNumberValue(String attributeCode, @Nullable Number value,
 			Map<String, MessageAttributeValue> messageAttributeValueMap) {
 		if (value != null) {
 			messageAttributeValueMap.put(attributeCode,
@@ -41,7 +41,7 @@ interface ConvertToMessageAttributes {
 		}
 	}
 
-	static void populateMapWithNumberValue(String attributeCode, String value,
+	static void populateMapWithNumberValue(String attributeCode, @Nullable String value,
 			Map<String, MessageAttributeValue> messageAttributeValueMap) {
 		if (value != null) {
 			messageAttributeValueMap.put(attributeCode,

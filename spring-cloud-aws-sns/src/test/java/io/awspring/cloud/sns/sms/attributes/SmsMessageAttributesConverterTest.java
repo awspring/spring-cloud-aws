@@ -33,7 +33,7 @@ class SmsMessageAttributesConverterTest {
 		SmsMessageAttributes smsMessageAttributes = SmsMessageAttributes.builder().smsType(SmsType.PROMOTIONAL)
 				.senderID("Sender_007").originationNumber("09091s").maxPrice("100").entityId("SPRING_CLOUD_AWS")
 				.templateId("Template192").build();
-		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes.convert();
+		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes.convertAndPopulate();
 		MessageAttributeValue smsType = messageAttributeValueMap.get(AttributeCodes.SMS_TYPE);
 		assertThat(smsType.dataType()).isEqualTo(MessageAttributeDataTypes.STRING);
 		assertThat(smsType.stringValue()).isEqualTo(SmsType.PROMOTIONAL.type);

@@ -16,11 +16,20 @@
 package io.awspring.cloud.sns.sms.attributes;
 
 /**
+ * The type of message that you're sending.
+ *
  * @author Matej Nedic
  * @since 3.0.0
  */
 public enum SmsType {
-	PROMOTIONAL("Promotional"), TRANSACTIONAL("Transactional");
+	/**
+	 * Non-critical messages, such as marketing messages.
+	 */
+	PROMOTIONAL("Promotional"),
+	/**
+	 * Critical messages that support customer transactions.
+	 */
+	TRANSACTIONAL("Transactional");
 
 	public final String type;
 
