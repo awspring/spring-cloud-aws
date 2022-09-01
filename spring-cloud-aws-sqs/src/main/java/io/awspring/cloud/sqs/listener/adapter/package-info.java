@@ -15,7 +15,7 @@
  */
 
 /**
- * Auto-configuration for Amazon SQS (Simple Queue Service) integrations.
+ * Adapters for invoking a message listener registered by a listener annotation.
  */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields
