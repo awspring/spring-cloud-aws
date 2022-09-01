@@ -66,6 +66,17 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>sqs</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<!-- AWS SDK v1 is required by testcontainers-localstack -->
 		<dependency>
 			<groupId>com.amazonaws</groupId>

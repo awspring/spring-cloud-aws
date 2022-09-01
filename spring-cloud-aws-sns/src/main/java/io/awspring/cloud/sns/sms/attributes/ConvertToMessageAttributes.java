@@ -19,7 +19,6 @@ import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.NUMBER;
 import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.STRING;
 
 import java.util.Map;
-
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 

@@ -21,8 +21,8 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 
 /**
- *  Helper class that simplifies synchronous sending of SMS to SNS topic or Phone Number. The only mandatory field is
- *  {@link SnsClient}.
+ * Helper class that simplifies synchronous sending of SMS to SNS topic or Phone Number. The only mandatory field is
+ * {@link SnsClient}.
  * @author Matej Nedic
  * @since 3.0.0
  */

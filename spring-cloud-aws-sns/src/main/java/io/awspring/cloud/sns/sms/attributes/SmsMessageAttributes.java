@@ -33,8 +33,8 @@ public class SmsMessageAttributes {
 	 */
 	private String senderID;
 	/**
-	 * This OriginationNumber appears as the sender's phone number on the receiving device.
-	 * The string must match an origination number that's configured in your AWS account for the destination country.
+	 * This OriginationNumber appears as the sender's phone number on the receiving device. The string must match an
+	 * origination number that's configured in your AWS account for the destination country.
 	 */
 	private String originationNumber;
 	/**
@@ -42,15 +42,18 @@ public class SmsMessageAttributes {
 	 */
 	private String maxPrice;
 	/**
-	 * The type of message that you're sending. This is your entity ID or principal entity (PE) ID for sending SMS messages to recipients in India.
+	 * The type of message that you're sending. This is your entity ID or principal entity (PE) ID for sending SMS
+	 * messages to recipients in India.
 	 */
 	private SmsType smsType;
 	/**
-	 * This attribute is required only for sending SMS messages to recipients in India. This is your entity ID or principal entity (PE) ID for sending SMS messages to recipients in India.
+	 * This attribute is required only for sending SMS messages to recipients in India. This is your entity ID or
+	 * principal entity (PE) ID for sending SMS messages to recipients in India.
 	 */
 	private String entityId;
 	/**
-	 * This attribute is required only for sending SMS messages to recipients in India. This is your template for sending SMS messages to recipients in India.
+	 * This attribute is required only for sending SMS messages to recipients in India. This is your template for
+	 * sending SMS messages to recipients in India.
 	 */
 	private String templateId;
 
