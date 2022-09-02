@@ -42,9 +42,6 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
       - name: Build with Maven
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./mvnw -V -B verify
   build-java-17:
     name: "Test with ${{ matrix.version }}"
@@ -72,4 +69,7 @@ jobs:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Build with Maven
-        run: ./mvnw verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./mvnw -V -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage
