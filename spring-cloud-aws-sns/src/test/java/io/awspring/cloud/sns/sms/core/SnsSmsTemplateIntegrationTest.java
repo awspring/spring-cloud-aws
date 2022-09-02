@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.sns.sms.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
 import io.awspring.cloud.sns.sms.attributes.SmsMessageAttributes;
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -42,7 +45,7 @@ class SnsSmsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.3")).withServices(SNS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:0.14.3")).withServices(SNS).withEnv("DEBUG", "1");
 
 	@BeforeAll
 	public static void createSnsTemplate() {
@@ -57,6 +60,11 @@ class SnsSmsTemplateIntegrationTest {
 	void sendValidMessage_ToPhoneNumber() {
 		Assertions
 				.assertDoesNotThrow(() -> snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!"));
+
+		await().untilAsserted(() -> {
+			String logs = localstack.getLogs(OutputFrame.OutputType.STDOUT, OutputFrame.OutputType.STDERR);
+			assertThat(logs).contains("Publishing message to TopicArn: None | Message: Spring Cloud AWS got you covered!");
+		});
 	}
 
 	@Test
@@ -64,6 +72,11 @@ class SnsSmsTemplateIntegrationTest {
 		Assertions.assertDoesNotThrow(
 				() -> snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!", SmsMessageAttributes
 						.builder().smsType(SmsType.PROMOTIONAL).senderID("AWSPRING").maxPrice("1.00").build()));
+
+		await().untilAsserted(() -> {
+			String logs = localstack.getLogs(OutputFrame.OutputType.STDOUT, OutputFrame.OutputType.STDERR);
+			assertThat(logs).contains("Publishing message to TopicArn: None | Message: Spring Cloud AWS got you covered!");
+		});
 	}
 
 }

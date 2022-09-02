@@ -20,6 +20,8 @@ import static io.awspring.cloud.sns.sms.attributes.ConvertToMessageAttributes.po
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 /**
@@ -31,30 +33,36 @@ public class SmsMessageAttributes {
 	/**
 	 * The sender ID appears as the message sender on the receiving device. For example your business brand.
 	 */
+	@Nullable
 	private String senderID;
 	/**
 	 * This OriginationNumber appears as the sender's phone number on the receiving device. The string must match an
 	 * origination number that's configured in your AWS account for the destination country.
 	 */
+	@Nullable
 	private String originationNumber;
 	/**
 	 * The maximum price in USD that you're willing to spend to send the SMS message.
 	 */
+	@Nullable
 	private String maxPrice;
 	/**
 	 * The type of message that you're sending. This is your entity ID or principal entity (PE) ID for sending SMS
 	 * messages to recipients in India.
 	 */
+	@Nullable
 	private SmsType smsType;
 	/**
 	 * This attribute is required only for sending SMS messages to recipients in India. This is your entity ID or
 	 * principal entity (PE) ID for sending SMS messages to recipients in India.
 	 */
+	@Nullable
 	private String entityId;
 	/**
 	 * This attribute is required only for sending SMS messages to recipients in India. This is your template for
 	 * sending SMS messages to recipients in India.
 	 */
+	@Nullable
 	private String templateId;
 
 	public Map<String, MessageAttributeValue> convertAndPopulate() {
@@ -69,6 +77,7 @@ public class SmsMessageAttributes {
 		return map;
 	}
 
+	@Nullable
 	public String getSenderID() {
 		return senderID;
 	}
@@ -77,6 +86,7 @@ public class SmsMessageAttributes {
 		this.senderID = senderID;
 	}
 
+	@Nullable
 	public String getOriginationNumber() {
 		return originationNumber;
 	}
@@ -85,6 +95,7 @@ public class SmsMessageAttributes {
 		this.originationNumber = originationNumber;
 	}
 
+	@Nullable
 	public String getMaxPrice() {
 		return maxPrice;
 	}
@@ -93,6 +104,7 @@ public class SmsMessageAttributes {
 		this.maxPrice = maxPrice;
 	}
 
+	@Nullable
 	public SmsType getSmsType() {
 		return smsType;
 	}
@@ -101,6 +113,7 @@ public class SmsMessageAttributes {
 		this.smsType = smsType;
 	}
 
+	@Nullable
 	public String getEntityId() {
 		return entityId;
 	}
@@ -109,6 +122,7 @@ public class SmsMessageAttributes {
 		this.entityId = entityId;
 	}
 
+	@Nullable
 	public String getTemplateId() {
 		return templateId;
 	}

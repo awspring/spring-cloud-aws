@@ -22,6 +22,10 @@ import java.util.Map;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
+/**
+ * Helper interface used for converting Java types to {@link MessageAttributeValue}.
+ * @author Matej Nedić
+ */
 interface ConvertToMessageAttributes {
 
 	static void populateMapWithStringValue(String attributeCode, @Nullable String value,
