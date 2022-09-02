@@ -36,7 +36,7 @@
 		<spotless.version>2.25.0</spotless.version>
 		<awssdk.version>2.17.172</awssdk.version>
 		<sonar.organization>awspring</sonar.organization>
-		<sonar.projectKey>spring-cloud-aws</sonar.projectKey>
+		<sonar.projectKey>awspring_spring-cloud-aws</sonar.projectKey>
 
 		<!-- https://community.sonarsource.com/t/project-quarkusio-quarkus-cant-have-2-modules-with-the-following-key-quarkusio-quarkus/33824/6 -->
 		<sonar.moduleKey>${artifactId}</sonar.moduleKey>
