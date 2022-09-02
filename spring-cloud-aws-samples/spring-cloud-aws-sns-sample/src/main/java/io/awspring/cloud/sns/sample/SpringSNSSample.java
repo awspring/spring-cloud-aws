@@ -16,17 +16,13 @@
 package io.awspring.cloud.sns.sample;
 
 import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
 import io.awspring.cloud.sns.core.SnsTemplate;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.support.MessageBuilder;
-import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.SubscribeRequest;
@@ -34,35 +30,19 @@ import software.amazon.awssdk.services.sns.model.SubscribeRequest;
 @SpringBootApplication
 public class SpringSNSSample {
 
-	private final SnsTemplate snsTemplate;
-
-	private final SnsClient snsClient;
-
-	private static LocalStackContainer localStack;
-
-	public SpringSNSSample(SnsTemplate snsTemplate, SnsClient snsClient) {
-		this.snsTemplate = snsTemplate;
-		this.snsClient = snsClient;
-	}
-
 	public static void main(String[] args) {
-		Testcontainers.exposeHostPorts(8080);
-		localStack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:1.0.4")).withServices(SNS);
-		localStack.start();
-		System.setProperty("spring.cloud.aws.sns.region", localStack.getRegion());
-		System.setProperty("spring.cloud.aws.sns.endpoint", localStack.getEndpointOverride(SNS).toString());
-		System.setProperty("spring.cloud.aws.credentials.access-key", "test");
-		System.setProperty("spring.cloud.aws.credentials.secret-key", "test");
 		SpringApplication.run(SpringSNSSample.class, args);
 	}
 
-	@EventListener(ApplicationReadyEvent.class)
-	public void sendMessage() {
-		String arn = snsClient.createTopic(CreateTopicRequest.builder().name("testTopic").build()).topicArn();
-		snsClient.subscribe(SubscribeRequest.builder().protocol("http")
-				.endpoint("http://host.testcontainers.internal:8080/testTopic").topicArn(arn).build());
-		this.snsTemplate.send(arn, MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!")
-				.setHeader(NOTIFICATION_SUBJECT_HEADER, "Some value!").build());
+	@Bean
+	public ApplicationRunner applicationRunner(SnsTemplate snsTemplate, SnsClient snsClient) {
+		return args -> {
+			String arn = snsClient.createTopic(CreateTopicRequest.builder().name("testTopic").build()).topicArn();
+			snsClient.subscribe(SubscribeRequest.builder().protocol("http")
+					.endpoint("http://host.docker.internal:8080/testTopic").topicArn(arn).build());
+			snsTemplate.send(arn, MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!")
+					.setHeader(NOTIFICATION_SUBJECT_HEADER, "Some value!").build());
+		};
 	}
 
 }

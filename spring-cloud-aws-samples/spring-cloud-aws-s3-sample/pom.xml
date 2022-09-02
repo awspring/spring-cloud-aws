@@ -9,12 +9,26 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-aws-samples-s3</artifactId>
-	<name>Spring Cloud AWS S3 Sample Parent</name>
-	<packaging>pom</packaging>
+	<artifactId>spring-cloud-aws-s3-sample</artifactId>
+	<name>Spring Cloud AWS S3 Sample</name>
 
-	<modules>
-		<module>infrastructure</module>
-		<module>app</module>
-	</modules>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-starter-s3</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 </project>

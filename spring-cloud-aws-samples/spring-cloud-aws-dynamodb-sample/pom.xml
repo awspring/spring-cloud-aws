@@ -9,8 +9,8 @@
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-aws-samples-dynamodb-app</artifactId>
-	<name>Spring Cloud AWS DynamoDb Sample App</name>
+	<artifactId>spring-cloud-aws-dynamodb-sample</artifactId>
+	<name>Spring Cloud AWS DynamoDb Sample</name>
 
 	<dependencies>
 		<dependency>
