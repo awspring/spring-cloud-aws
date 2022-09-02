@@ -10,9 +10,13 @@ $ docker-compose up
 
 ## Infrastructure
 
-Samples use AWS CDK to create the infrastructure components to run the sample.
+Samples use AWS CDK to create the infrastructure components to run the sample. To deploy infrastructure, you need to install CDK and [CDK local](https://github.com/localstack/aws-cdk-local):
 
-In `infrastructure` directory:
+```
+$ npm install -g aws-cdk-local aws-cdk
+```
+
+Then, in `infrastructure` directory:
 
 ```
 $ mvn package
