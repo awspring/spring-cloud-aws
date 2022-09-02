@@ -195,7 +195,8 @@ class S3AutoConfigurationTests {
 		void usesCustomObjectMapperBean() {
 			contextRunner.withUserConfiguration(CustomJacksonConfiguration.class).run(context -> {
 				S3ObjectConverter s3ObjectConverter = context.getBean(S3ObjectConverter.class);
-				assertThat(s3ObjectConverter).extracting("objectMapper").isEqualTo(context.getBean("customObjectMapper"));
+				assertThat(s3ObjectConverter).extracting("objectMapper")
+						.isEqualTo(context.getBean("customObjectMapper"));
 			});
 		}
 
