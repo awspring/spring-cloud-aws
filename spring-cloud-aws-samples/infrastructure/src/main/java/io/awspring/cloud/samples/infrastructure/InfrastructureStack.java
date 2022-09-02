@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.samples.s3.infrastructure;
+package io.awspring.cloud.samples.infrastructure;
 
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.s3.Bucket;
+import software.amazon.awscdk.services.secretsmanager.Secret;
+import software.amazon.awscdk.services.secretsmanager.SecretStringGenerator;
+import software.amazon.awscdk.services.ssm.StringParameter;
 import software.constructs.Construct;
 
 public class InfrastructureStack extends Stack {
@@ -29,7 +32,19 @@ public class InfrastructureStack extends Stack {
 	public InfrastructureStack(final Construct scope, final String id, final StackProps props) {
 		super(scope, id, props);
 
+		// S3
 		Bucket.Builder.create(this, "bucket1").bucketName("spring-cloud-aws-sample-bucket1").build();
+
+		// Parameter Store
+		StringParameter.Builder.create(this, "Parameter").parameterName("/config/spring/message")
+				.stringValue("Spring-cloud-aws value!").build();
+
+		// Secrets Manager
+		SecretStringGenerator secretStringGenerator = SecretStringGenerator.builder().generateStringKey("password")
+				.secretStringTemplate("{}").build();
+
+		Secret.Builder.create(this, "Secret").secretName("/secrets/spring-cloud-aws-sample-app")
+				.generateSecretString(secretStringGenerator).build();
 	}
 
 }
