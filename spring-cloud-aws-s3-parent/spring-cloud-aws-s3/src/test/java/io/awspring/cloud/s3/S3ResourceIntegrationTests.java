@@ -70,7 +70,7 @@ class S3ResourceIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.0.3")).withServices(Service.S3).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.0.4")).withServices(Service.S3).withReuse(true);
 
 	private static S3Client client;
 	private static S3TransferManager s3TransferManager;
