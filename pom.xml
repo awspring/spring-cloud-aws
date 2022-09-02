@@ -33,7 +33,7 @@
 		<javax.activation.version>1.2.0</javax.activation.version>
 		<spring-cloud-commons.version>3.1.0</spring-cloud-commons.version>
 		<testcontainers.version>1.17.2</testcontainers.version>
-		<spotless.version>2.22.0</spotless.version>
+		<spotless.version>2.25.0</spotless.version>
 		<awssdk.version>2.17.172</awssdk.version>
 		<sonar.organization>awspring</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
