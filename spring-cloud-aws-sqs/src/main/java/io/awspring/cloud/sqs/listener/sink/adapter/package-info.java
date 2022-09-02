@@ -15,7 +15,7 @@
  */
 
 /**
- * Auto-configuration for Amazon SQS (Simple Queue Service) integrations.
+ * Composable message sink adapters to add behavior to sinks via a decorator pattern.
  */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields

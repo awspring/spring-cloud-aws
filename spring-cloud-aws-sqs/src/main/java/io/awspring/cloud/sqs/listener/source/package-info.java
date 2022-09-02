@@ -15,7 +15,7 @@
  */
 
 /**
- * Auto-configuration for Amazon SQS (Simple Queue Service) integrations.
+ * Components that provide message instances to be processed.
  */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields

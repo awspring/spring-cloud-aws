@@ -15,7 +15,7 @@
  */
 
 /**
- * Auto-configuration for Amazon SQS (Simple Queue Service) integrations.
+ * SQS integration for Spring Cloud AWS.
  */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields
