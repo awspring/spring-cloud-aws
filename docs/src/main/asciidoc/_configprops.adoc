@@ -1,28 +1,62 @@
 |===
 |Name | Default | Description
 
+|spring.cloud.aws.cloudwatch.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.cloudwatch.region |  | Overrides the default region.
 |spring.cloud.aws.credentials.access-key |  | The access key to be used with a static provider.
 |spring.cloud.aws.credentials.instance-profile | `false` | Configures an instance profile credentials provider with no further configuration.
 |spring.cloud.aws.credentials.profile |  | The AWS profile.
 |spring.cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
+|spring.cloud.aws.defaults-mode |  | Sets the {@link DefaultsMode} that will be used to determine how certain default configuration options are resolved in the SDK.
+|spring.cloud.aws.dualstack-enabled |  | Configure whether the SDK should use the AWS dualstack endpoint.
+|spring.cloud.aws.dynamodb.dax.cluster-update-interval-millis |  | Interval between polling of cluster members for membership changes.
+|spring.cloud.aws.dynamodb.dax.connect-timeout-millis |  | Connection timeout.
+|spring.cloud.aws.dynamodb.dax.connection-ttl-millis |  | Connection time to live.
+|spring.cloud.aws.dynamodb.dax.endpoint-refresh-timeout-millis |  | Timeout for endpoint refresh.
+|spring.cloud.aws.dynamodb.dax.idle-timeout-millis |  | Timeout for idle connections with the DAX cluster.
+|spring.cloud.aws.dynamodb.dax.max-concurrency |  | Maximum number of concurrent requests.
+|spring.cloud.aws.dynamodb.dax.max-pending-connection-acquires |  | Maximum number of pending Connections to acquire.
+|spring.cloud.aws.dynamodb.dax.read-retries |  | Number of times to retry reads, initial try is not counted.
+|spring.cloud.aws.dynamodb.dax.request-timeout-millis |  | Request timeout for connections with the DAX cluster.
+|spring.cloud.aws.dynamodb.dax.skip-host-name-verification |  | Skips hostname verification in url.
+|spring.cloud.aws.dynamodb.dax.url |  | DAX cluster endpoint.
+|spring.cloud.aws.dynamodb.dax.write-retries |  | Number of times to retry writes, initial try is not counted.
+|spring.cloud.aws.dynamodb.enabled | `true` | Enables DynamoDb integration.
+|spring.cloud.aws.dynamodb.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.dynamodb.region |  | Overrides the default region.
+|spring.cloud.aws.endpoint |  | Overrides the default endpoint for all auto-configured AWS clients.
+|spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
 |spring.cloud.aws.parameterstore.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.parameterstore.region |  | Overrides the default region.
 |spring.cloud.aws.region.instance-profile | `false` | Configures an instance profile region provider with no further configuration.
 |spring.cloud.aws.region.profile |  | The AWS profile.
 |spring.cloud.aws.region.static |  | 
-|spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate enedpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
+|spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
 |spring.cloud.aws.s3.checksum-validation-enabled |  | Option to disable doing a validation of the checksum of an object stored in S3.
 |spring.cloud.aws.s3.chunked-encoding-enabled |  | Option to enable using chunked encoding when signing the request payload for {@link software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link software.amazon.awssdk.services.s3.model.UploadPartRequest}.
-|spring.cloud.aws.s3.dualstack-enabled |  | Option to enable using the dualstack endpoints when accessing S3. Dualstack should be enabled if you want to use IPv6.
 |spring.cloud.aws.s3.enabled | `true` | Enables S3 integration.
 |spring.cloud.aws.s3.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.s3.path-style-access-enabled |  | Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access is preferred as it will result in better load balancing when accessing S3.
 |spring.cloud.aws.s3.region |  | Overrides the default region.
+|spring.cloud.aws.s3.transfer-manager.max-concurrency |  | 
+|spring.cloud.aws.s3.transfer-manager.minimum-part-size-in-bytes |  | 
+|spring.cloud.aws.s3.transfer-manager.target-throughput-in-gbps |  | 
+|spring.cloud.aws.s3.transfer-manager.upload-directory.follow-symbolic-links |  | 
+|spring.cloud.aws.s3.transfer-manager.upload-directory.max-depth |  | 
+|spring.cloud.aws.s3.transfer-manager.upload-directory.recursive |  | 
 |spring.cloud.aws.s3.use-arn-region-enabled |  | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown.
 |spring.cloud.aws.secretsmanager.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.secretsmanager.region |  | Overrides the default region.
 |spring.cloud.aws.ses.enabled | `true` | Enables Simple Email Service integration.
 |spring.cloud.aws.ses.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.ses.region |  | Overrides the default region.
+|spring.cloud.aws.sns.enabled | `true` | Enables SNS integration.
+|spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.sns.region |  | Overrides the default region.
+|spring.cloud.aws.sqs.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue |  | The maximum number of simultaneous inflight messages in a queue.
+|spring.cloud.aws.sqs.listener.max-messages-per-poll |  | The maximum number of messages to be retrieved in a single poll to SQS.
+|spring.cloud.aws.sqs.listener.poll-timeout |  | The maximum amount of time for a poll to SQS.
+|spring.cloud.aws.sqs.region |  | Overrides the default region.
 
 |===

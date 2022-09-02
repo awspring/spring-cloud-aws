@@ -35,7 +35,7 @@ import io.awspring.cloud.sns.core.SnsTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
-public class NotificationService {
+class NotificationService {
 	private final SnsTemplate snsTemplate;
 
 	NotificationService(SnsTemplate snsTemplate) {
@@ -74,7 +74,7 @@ import io.awspring.cloud.sns.core.SnsNotification;
 import io.awspring.cloud.sns.core.SnsOperations;
 import io.awspring.cloud.sns.core.SnsTemplate;
 
-public class NotificationService {
+class NotificationService {
 	private final SnsOperations snsOperations;
 
 	NotificationService(SnsOperations snsOperations) {
@@ -101,7 +101,7 @@ If autoconfigured `SnsClient` bean configuration does not meet your needs, it ca
 ----
 import software.amazon.awssdk.services.sns.SnsClient;
 
-public class NotificationService {
+class NotificationService {
 	private final SnsClient snsClient;
 
 	public NotificationService(SnsClient snsClient) {

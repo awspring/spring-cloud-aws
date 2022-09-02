@@ -19,6 +19,7 @@ import io.awspring.cloud.parameterstore.ParameterStorePropertySource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
 /**
@@ -38,6 +39,9 @@ public class ParameterStorePropertySources {
 	 */
 	@Nullable
 	public ParameterStorePropertySource createPropertySource(String context, boolean optional, SsmClient client) {
+		Assert.notNull(context, "context is required");
+		Assert.notNull(client, "SsmClient is required");
+
 		LOG.info("Loading property from AWS Parameter Store with name: " + context + ", optional: " + optional);
 		try {
 			ParameterStorePropertySource propertySource = new ParameterStorePropertySource(context, client);

@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
 @Component
-public class S3ClientSample {
+class S3ClientSample {
 	private final S3Client s3Client;
 
 	S3ClientSample(S3Client s3Client) {
@@ -47,6 +47,22 @@ public class S3ClientSample {
 		System.out.println(fileContent);
 	}
 }
+----
+=== Using S3TransferManager
+
+[CAUTION]
+====
+S3 Transfer Manager provided by AWS is in developer preview phase and should not be used in production.
+====
+
+AWS launched https://aws.amazon.com/blogs/developer/introducing-amazon-s3-transfer-manager-in-the-aws-sdk-for-java-2-x/[a high level file transfer utility], called Transfer Manager. The starter automatically configures and registers an `software.amazon.awssdk.transfer.s3.S3TransferManager` bean if it finds the following is added to the project:
+
+[source,xml]
+----
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>s3-transfer-manager</artifactId>
+</dependency>
 ----
 
 === Using Cross-Region S3 client
@@ -132,7 +148,11 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
 }
 ----
 
-Under the hood by default `S3Resource` uses a `io.awspring.cloud.s3.DiskBufferingS3OutputStream`. When data is written to the resource, first it is stored on the disk in a `tmp` directory in the OS. Once the stream gets closed, the file gets uploaded with https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html#putObject-java.util.function.Consumer-java.nio.file.Path-[S3Client#putObject] method.
+Under the hood by default `S3Resource` uses a `io.awspring.cloud.s3.InMemoryBufferingS3OutputStream`. When data is written to the resource, is gets sent to S3 using multipart upload.
+If a network error occurs during upload, `S3Client` has a built-in retry mechanism that will retry each failed part. If the upload fails after retries, multipart upload gets aborted and `S3Resource` throws `io.awspring.cloud.s3.S3Exception`.
+
+If `InMemoryBufferingS3OutputStream` behavior does not fit your needs, you can use `io.awspring.cloud.s3.DiskBufferingS3OutputStream` by defining a bean of type `DiskBufferingS3OutputStreamProvider` which will override the default output stream provider.
+With `DiskBufferingS3OutputStream` when data is written to the resource, first it is stored on the disk in a `tmp` directory in the OS. Once the stream gets closed, the file gets uploaded with https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html#putObject-java.util.function.Consumer-java.nio.file.Path-[S3Client#putObject] method.
 If a network error occurs during upload, `S3Client` has a built-in retry mechanism. If the upload fails after retries, `S3Resource` throws `io.awspring.cloud.s3.UploadFailed` exception containing a file location in a temporary directory in a file system.
 
 [source,java]
@@ -144,9 +164,7 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
 }
 ----
 
-If `DiskBufferingS3OutputStream` behavior does not fit your needs, you can implement custom `S3OutputStream` and provide a bean of type `io.awspring.cloud.s3.S3OutputStreamProvider` that is responsible for creating stream from `S3Resource`.
-
-Possible alternative implementations can use multi-part upload (for example with https://github.com/CI-CMG/aws-s3-outputstream[aws-s3-outputstream library)] or https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/transfer/s3/S3TransferManager.html[S3TransferManager].
+If you are using the `S3TransferManager`, the default implementation will switch to `io.awspring.cloud.s3.TransferManagerS3OutputStream`. This OutputStream also uses a temporary file to write it on disk before uploading it to S3, but it may be faster as it uses a multi-part upload under the hood.
 
 === Using S3Template
 
@@ -200,7 +218,6 @@ The Spring Boot Starter for S3 provides the following configuration options:
 | `spring.cloud.aws.s3.accelerate-mode-enabled` | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.checksum-validation-enabled` | Option to disable doing a validation of the checksum of an object stored in S3. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.chunked-encoding-enabled` | Option to enable using chunked encoding when signing the request payload for `PutObjectRequest` and `UploadPartRequest`. | No | `null` (falls back to SDK default)
-| `spring.cloud.aws.s3.dualstack-enabled` | Option to enable using the dualstack endpoints when accessing S3. Dualstack should be enabled if you want to use IPv6. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.path-style-access-enabled` | Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access is preferred as it will result in better load balancing when accessing S3. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.use-arn-region-enabled` | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown. | No | `null` (falls back to SDK default)
 |===

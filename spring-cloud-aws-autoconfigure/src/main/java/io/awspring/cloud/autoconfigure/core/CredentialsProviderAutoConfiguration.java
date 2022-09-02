@@ -76,6 +76,9 @@ public class CredentialsProviderAutoConfiguration {
 		if (providers.isEmpty()) {
 			return DefaultCredentialsProvider.create();
 		}
+		else if (providers.size() == 1) {
+			return providers.get(0);
+		}
 		else {
 			return AwsCredentialsProviderChain.builder().credentialsProviders(providers).build();
 		}
@@ -87,10 +90,14 @@ public class CredentialsProviderAutoConfiguration {
 	}
 
 	private static ProfileCredentialsProvider createProfileCredentialProvider(Profile profile) {
-		ProfileFile credentialProfileFile = ProfileFile.builder().type(ProfileFile.Type.CREDENTIALS)
-				.content(Paths.get(profile.getPath())).build();
-		ProfileFile defaultProfileFile = ProfileFile.defaultProfileFile();
-		ProfileFile profileFile = profile.getPath() != null ? credentialProfileFile : defaultProfileFile;
+		ProfileFile profileFile;
+		if (profile.getPath() != null) {
+			profileFile = ProfileFile.builder().type(ProfileFile.Type.CREDENTIALS).content(Paths.get(profile.getPath()))
+					.build();
+		}
+		else {
+			profileFile = ProfileFile.defaultProfileFile();
+		}
 		return ProfileCredentialsProvider.builder().profileName(profile.getName()).profileFile(profileFile).build();
 	}
 

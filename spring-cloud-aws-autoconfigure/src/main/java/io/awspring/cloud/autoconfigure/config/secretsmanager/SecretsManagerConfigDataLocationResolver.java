@@ -16,12 +16,13 @@
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
-import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
-import io.awspring.cloud.core.SpringCloudClientConfiguration;
+import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.logging.Log;
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
@@ -29,9 +30,6 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.util.StringUtils;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 
@@ -51,6 +49,12 @@ public class SecretsManagerConfigDataLocationResolver
 	 */
 	public static final String PREFIX = "aws-secretsmanager:";
 
+	private final Log log;
+
+	public SecretsManagerConfigDataLocationResolver(Log log) {
+		this.log = log;
+	}
+
 	@Override
 	protected String getPrefix() {
 		return PREFIX;
@@ -64,6 +68,7 @@ public class SecretsManagerConfigDataLocationResolver
 		registerBean(resolverContext, SecretsManagerProperties.class, loadProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, CredentialsProperties.class,
 				loadCredentialsProperties(resolverContext.getBinder()));
+		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
 
 		registerAndPromoteBean(resolverContext, SecretsManagerClient.class, this::createAwsSecretsManagerClient);
 
@@ -84,34 +89,17 @@ public class SecretsManagerConfigDataLocationResolver
 	}
 
 	protected SecretsManagerClient createAwsSecretsManagerClient(BootstrapContext context) {
-		SecretsManagerProperties properties = context.get(SecretsManagerProperties.class);
-
-		AwsCredentialsProvider credentialsProvider;
-
+		SecretsManagerClientBuilder builder = configure(SecretsManagerClient.builder(),
+				context.get(SecretsManagerProperties.class), context);
 		try {
-			credentialsProvider = context.get(AwsCredentialsProvider.class);
+			AwsSecretsManagerClientCustomizer configurer = context.get(AwsSecretsManagerClientCustomizer.class);
+			if (configurer != null) {
+				AwsClientCustomizer.apply(configurer, builder);
+			}
 		}
 		catch (IllegalStateException e) {
-			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
-			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties);
+			log.debug("Bean of type AwsClientConfigurerSecretsManager is not registered: " + e.getMessage());
 		}
-
-		AwsProperties awsProperties = context.get(AwsProperties.class);
-
-		SecretsManagerClientBuilder builder = SecretsManagerClient.builder()
-				.overrideConfiguration(SpringCloudClientConfiguration.clientOverrideConfiguration());
-
-		if (StringUtils.hasLength(properties.getRegion())) {
-			builder.region(Region.of(properties.getRegion()));
-		}
-		if (properties.getEndpoint() != null) {
-			builder.endpointOverride(properties.getEndpoint());
-		}
-		else if (awsProperties.getEndpoint() != null) {
-			builder.endpointOverride(awsProperties.getEndpoint());
-		}
-		builder.credentialsProvider(credentialsProvider);
-
 		return builder.build();
 	}
 

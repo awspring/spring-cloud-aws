@@ -44,7 +44,8 @@ import software.amazon.awssdk.services.ses.model.VerifyEmailAddressRequest;
 @SpringBootApplication
 public class MailSendingApplication {
 
-	private static final String EMAIL = "someMail@foo.bar";
+	private static final String SENDER = "something@foo.bar";
+	private static final String RECIPIENT = "someMail@foo.bar";
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailSendingApplication.class);
 
 	/*
@@ -52,7 +53,7 @@ public class MailSendingApplication {
 	 * logs in debug mode.
 	 */
 	private static final LocalStackContainer localStack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.2")).withEnv(Collections.singletonMap("DEBUG", "1"))
+			DockerImageName.parse("localstack/localstack:1.0.3")).withEnv(Collections.singletonMap("DEBUG", "1"))
 					.withServices(SES);
 
 	public static void main(String[] args) {
@@ -82,13 +83,15 @@ public class MailSendingApplication {
 	}
 
 	public static void sendAnEmail(MailSender mailSender, SesClient sesClient) {
-		// Email has to verified before we send an email to it. If it is not verified SES will return error.
-		sesClient.verifyEmailAddress(VerifyEmailAddressRequest.builder().emailAddress(EMAIL).build());
+		// e-mail address has to verified before we email it. If it is not verified SES will return error.
+		sesClient.verifyEmailAddress(VerifyEmailAddressRequest.builder().emailAddress(RECIPIENT).build());
+		sesClient.verifyEmailAddress(VerifyEmailAddressRequest.builder().emailAddress(SENDER).build());
 
-		// SimpleMailMessage is created and we use MailSender bean which is autoconfigured to send an email to SES.
+		// SimpleMailMessage is created, and we use MailSender bean which is autoconfigured to send an email through
+		// SES.
 		SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-		simpleMailMessage.setFrom("something@foo.bar");
-		simpleMailMessage.setTo(EMAIL);
+		simpleMailMessage.setFrom(SENDER);
+		simpleMailMessage.setTo(RECIPIENT);
 		simpleMailMessage.setSubject("test subject");
 		simpleMailMessage.setText("test content");
 		mailSender.send(simpleMailMessage);

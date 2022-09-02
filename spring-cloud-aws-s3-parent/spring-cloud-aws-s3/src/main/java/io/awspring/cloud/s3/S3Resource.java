@@ -25,10 +25,11 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Map;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
  * @author Agim Emruli
  * @author Alain Sahli
  * @author Maciej Walkowiak
+ * @author Yuki Yoshida
  * @since 3.0
  */
 public class S3Resource extends AbstractResource implements WritableResource {
@@ -72,6 +74,10 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	public S3Resource(Location location, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
+		Assert.notNull(location, "location is required");
+		Assert.notNull(s3Client, "s3Client is required");
+		Assert.notNull(s3OutputStreamProvider, "s3OutputStreamProvider is required");
+
 		this.location = location;
 		this.s3Client = s3Client;
 		this.s3OutputStreamProvider = s3OutputStreamProvider;
@@ -142,6 +148,13 @@ public class S3Resource extends AbstractResource implements WritableResource {
 				+ "getInputStream() to retrieve the contents of the object!");
 	}
 
+	public Map<String, String> metadata() {
+		if (headMetadata == null) {
+			fetchMetadata();
+		}
+		return headMetadata.metadata;
+	}
+
 	private void fetchMetadata() {
 		HeadObjectResponse response = s3Client.headObject(request -> request.bucket(location.getBucket())
 				.key(location.getObject()).versionId(location.getVersion()));
@@ -161,10 +174,13 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 		private final String contentType;
 
+		private final Map<String, String> metadata;
+
 		HeadMetadata(HeadObjectResponse headObjectResponse) {
 			this.contentLength = headObjectResponse.contentLength();
 			this.lastModified = headObjectResponse.lastModified();
 			this.contentType = headObjectResponse.contentType();
+			this.metadata = headObjectResponse.metadata();
 		}
 
 	}

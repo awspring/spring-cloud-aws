@@ -38,6 +38,8 @@
 
 To avoid setting up your local development environment, you can use [Gitpod](https://www.gitpod.io/) and develop directly in browser based Visual Studio Code, or [JetBrains Client via JetBrains Gateway](https://www.gitpod.io/docs/ides-and-editors/jetbrains-gateway).
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/awspring/spring-cloud-aws)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/from-referrer/)
+
+**Note**: The above button does not work on Privacy oriented browsers, please [click here](https://gitpod.io/#https://github.com/awspring/spring-cloud-aws/)  to open the project on gitpod.
 
 Thanks!

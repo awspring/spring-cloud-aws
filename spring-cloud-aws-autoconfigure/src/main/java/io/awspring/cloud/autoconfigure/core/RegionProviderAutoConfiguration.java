@@ -53,17 +53,21 @@ public class RegionProviderAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public AwsRegionProvider regionProvider() {
+		return createRegionProvider(this.properties);
+	}
+
+	public static AwsRegionProvider createRegionProvider(RegionProperties properties) {
 		final List<AwsRegionProvider> providers = new ArrayList<>();
 
-		if (this.properties.getStatic() != null && this.properties.isStatic()) {
-			providers.add(new StaticRegionProvider(this.properties.getStatic()));
+		if (properties.getStatic() != null && properties.isStatic()) {
+			providers.add(new StaticRegionProvider(properties.getStatic()));
 		}
 
-		if (this.properties.isInstanceProfile()) {
+		if (properties.isInstanceProfile()) {
 			providers.add(new InstanceProfileRegionProvider());
 		}
 
-		Profile profile = this.properties.getProfile();
+		Profile profile = properties.getProfile();
 		if (profile != null && profile.getName() != null) {
 			providers.add(createProfileRegionProvider(profile));
 		}
@@ -71,12 +75,15 @@ public class RegionProviderAutoConfiguration {
 		if (providers.isEmpty()) {
 			return DefaultAwsRegionProviderChain.builder().build();
 		}
+		else if (providers.size() == 1) {
+			return providers.get(0);
+		}
 		else {
 			return new AwsRegionProviderChain(providers.toArray(new AwsRegionProvider[0]));
 		}
 	}
 
-	private AwsProfileRegionProvider createProfileRegionProvider(Profile profile) {
+	private static AwsProfileRegionProvider createProfileRegionProvider(Profile profile) {
 		Supplier<ProfileFile> profileFileFn = () -> {
 			if (profile.getPath() != null) {
 				return ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION).content(Paths.get(profile.getPath()))

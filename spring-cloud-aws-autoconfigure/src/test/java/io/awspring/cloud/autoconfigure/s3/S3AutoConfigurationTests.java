@@ -21,9 +21,11 @@ import static org.mockito.Mockito.mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.s3.DiskBufferingS3OutputStreamProvider;
+import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
+import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3ObjectConverter;
 import io.awspring.cloud.s3.S3OutputStream;
@@ -32,6 +34,9 @@ import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
+import java.util.Map;
+import java.util.Objects;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -41,6 +46,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
@@ -114,9 +124,11 @@ class S3AutoConfigurationTests {
 
 	@Nested
 	class OutputStreamProviderTests {
+
 		@Test
-		void byDefaultCreatesDiskBufferingS3OutputStreamProvider() {
-			contextRunner.run(context -> assertThat(context).hasSingleBean(DiskBufferingS3OutputStreamProvider.class));
+		void createsInMemoryBufferingS3OutputStreamProviderWhenBeanDoesNotExistYet() {
+			contextRunner
+					.run(context -> assertThat(context).hasSingleBean(InMemoryBufferingS3OutputStreamProvider.class));
 		}
 
 		@Test
@@ -182,9 +194,18 @@ class S3AutoConfigurationTests {
 		@Test
 		void usesCustomObjectMapperBean() {
 			contextRunner.withUserConfiguration(CustomJacksonConfiguration.class).run(context -> {
-				S3ObjectConverter bean = context.getBean(S3ObjectConverter.class);
-				ObjectMapper objectMapper = (ObjectMapper) ReflectionTestUtils.getField(bean, "objectMapper");
-				assertThat(objectMapper).isEqualTo(context.getBean("customObjectMapper"));
+				S3ObjectConverter s3ObjectConverter = context.getBean(S3ObjectConverter.class);
+				assertThat(s3ObjectConverter).extracting("objectMapper").isEqualTo(context.getBean("customObjectMapper"));
+			});
+		}
+
+		@Test
+		void useAwsConfigurerClient() {
+			contextRunner.withUserConfiguration(CustomAwsConfigurerClient.class).run(context -> {
+				S3ClientBuilder s3ClientBuilder = context.getBean(S3ClientBuilder.class);
+				assertThat(s3ClientBuilder.overrideConfiguration().apiCallTimeout()).contains(Duration.ofMillis(1542));
+				Map attributeMap = resolveAttributeMap(s3ClientBuilder);
+				assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
 			});
 		}
 
@@ -199,12 +220,21 @@ class S3AutoConfigurationTests {
 						assertThat(s3ObjectConverter).isEqualTo(customS3ObjectConverter);
 
 						S3Template s3Template = context.getBean(S3Template.class);
-
-						S3ObjectConverter converter = (S3ObjectConverter) ReflectionTestUtils.getField(s3Template,
-								"s3ObjectConverter");
-						assertThat(converter).isEqualTo(customS3ObjectConverter);
+						assertThat(s3Template).extracting("s3ObjectConverter").isEqualTo(customS3ObjectConverter);
 					});
 		}
+	}
+
+	@Test
+	void setsCommonAwsProperties() {
+		contextRunner.withPropertyValues("spring.cloud.aws.dualstack-enabled:true",
+				"spring.cloud.aws.fips-enabled:true", "spring.cloud.aws.defaults-mode:MOBILE").run(context -> {
+					S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+					ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+					assertThat(client.getDualstackEnabled()).isTrue();
+					assertThat(client.getFipsEnabled()).isTrue();
+					assertThat(client.getDefaultsMode()).isEqualTo(DefaultsMode.MOBILE);
+				});
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -235,11 +265,25 @@ class S3AutoConfigurationTests {
 	}
 
 	@Configuration(proxyBeanMethods = false)
-	static class CustomS3OutputStreamProviderConfiguration {
+	static class CustomAwsConfigurerClient {
 
 		@Bean
-		S3OutputStreamProvider customS3OutputStreamProvider() {
-			return new CustomS3OutputStreamProvider();
+		AwsClientCustomizer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
+			return new S3AwsClientClientConfigurer();
+		}
+
+		static class S3AwsClientClientConfigurer implements AwsClientCustomizer<S3ClientBuilder> {
+			@Override
+			@Nullable
+			public ClientOverrideConfiguration overrideConfiguration() {
+				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
+			}
+
+			@Override
+			@Nullable
+			public SdkHttpClient httpClient() {
+				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+			}
 		}
 
 	}
@@ -252,4 +296,19 @@ class S3AutoConfigurationTests {
 		}
 	}
 
+	@Configuration(proxyBeanMethods = false)
+	static class CustomS3OutputStreamProviderConfiguration {
+
+		@Bean
+		S3OutputStreamProvider customS3OutputStreamProvider() {
+			return new CustomS3OutputStreamProvider();
+		}
+
+	}
+
+	private static Map resolveAttributeMap(S3ClientBuilder s3ClientBuilder) {
+		Map attributes = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
+				ReflectionTestUtils.getField(s3ClientBuilder, "clientConfiguration"), "attributes"), "configuration");
+		return Objects.requireNonNull(attributes);
+	}
 }

@@ -17,6 +17,12 @@
 			"name": "spring.cloud.aws.s3.enabled",
 			"description": "Enables S3 integration.",
 			"type": "java.lang.Boolean"
+		},
+		{
+			"defaultValue": true,
+			"name": "spring.cloud.aws.dynamodb.enabled",
+			"description": "Enables DynamoDb integration.",
+			"type": "java.lang.Boolean"
 		}
 	]
 }

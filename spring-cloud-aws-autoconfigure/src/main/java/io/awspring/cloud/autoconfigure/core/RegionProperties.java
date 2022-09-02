@@ -55,7 +55,7 @@ public class RegionProperties {
 
 	@Nullable
 	public Profile getProfile() {
-		return profile;
+		return this.profile;
 	}
 
 	public void setProfile(Profile profile) {
@@ -76,7 +76,7 @@ public class RegionProperties {
 	}
 
 	public boolean isInstanceProfile() {
-		return instanceProfile;
+		return this.instanceProfile;
 	}
 
 	public void setInstanceProfile(boolean instanceProfile) {
