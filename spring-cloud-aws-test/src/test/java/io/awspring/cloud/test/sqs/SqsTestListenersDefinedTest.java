@@ -26,8 +26,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
-@SqsTest(listeners = SqsSampleListener.class, properties = { "cloud.aws.credentials.access-key=noop",
-		"cloud.aws.credentials.secret-key=noop", "cloud.aws.region.static=eu-west-1" })
+@SqsTest(listeners = SqsSampleListener.class, properties = { "spring.cloud.aws.credentials.access-key=noop",
+		"spring.cloud.aws.credentials.secret-key=noop", "spring.cloud.aws.region.static=eu-west-1" })
 class SqsTestListenersDefinedTest extends BaseSqsIntegrationTest {
 
 	@Autowired

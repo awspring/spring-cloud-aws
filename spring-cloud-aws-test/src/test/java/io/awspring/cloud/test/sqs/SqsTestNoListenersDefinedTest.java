@@ -28,7 +28,8 @@ import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
-@SqsTest
+@SqsTest(properties = { "spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
+		"spring.cloud.aws.region.static=eu-west-1" })
 class SqsTestNoListenersDefinedTest extends BaseSqsIntegrationTest {
 
 	private static final Class<?>[] EXPECTED_AUTOCONFIGURATION_CLASSES = { SqsAutoConfiguration.class,
