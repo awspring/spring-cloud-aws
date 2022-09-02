@@ -47,7 +47,7 @@ public class SpringSNSSample {
 
 	public static void main(String[] args) {
 		Testcontainers.exposeHostPorts(8080);
-		localStack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.14.2")).withServices(SNS);
+		localStack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:1.0.3")).withServices(SNS);
 		localStack.start();
 		System.setProperty("spring.cloud.aws.sns.region", localStack.getRegion());
 		System.setProperty("spring.cloud.aws.sns.endpoint", localStack.getEndpointOverride(SNS).toString());

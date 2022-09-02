@@ -16,11 +16,13 @@
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.logging.Log;
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
@@ -29,6 +31,7 @@ import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 
 /**
  * Resolves config data locations in AWS Secrets Manager.
@@ -45,6 +48,12 @@ public class SecretsManagerConfigDataLocationResolver
 	 * AWS Secrets Manager Config Data prefix.
 	 */
 	public static final String PREFIX = "aws-secretsmanager:";
+
+	private final Log log;
+
+	public SecretsManagerConfigDataLocationResolver(Log log) {
+		this.log = log;
+	}
 
 	@Override
 	protected String getPrefix() {
@@ -80,7 +89,18 @@ public class SecretsManagerConfigDataLocationResolver
 	}
 
 	protected SecretsManagerClient createAwsSecretsManagerClient(BootstrapContext context) {
-		return configure(SecretsManagerClient.builder(), context.get(SecretsManagerProperties.class), context).build();
+		SecretsManagerClientBuilder builder = configure(SecretsManagerClient.builder(),
+				context.get(SecretsManagerProperties.class), context);
+		try {
+			AwsSecretsManagerClientCustomizer configurer = context.get(AwsSecretsManagerClientCustomizer.class);
+			if (configurer != null) {
+				AwsClientCustomizer.apply(configurer, builder);
+			}
+		}
+		catch (IllegalStateException e) {
+			log.debug("Bean of type AwsClientConfigurerSecretsManager is not registered: " + e.getMessage());
+		}
+		return builder.build();
 	}
 
 	protected SecretsManagerProperties loadProperties(Binder binder) {

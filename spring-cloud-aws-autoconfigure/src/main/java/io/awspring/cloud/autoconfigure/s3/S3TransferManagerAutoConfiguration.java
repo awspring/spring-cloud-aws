@@ -82,8 +82,8 @@ public class S3TransferManagerAutoConfiguration {
 
 	private S3ClientConfiguration s3ClientConfiguration() {
 		S3ClientConfiguration.Builder builder = configure(S3ClientConfiguration.builder());
-		if (properties.getTransferManager() != null) {
-			S3TransferManagerProperties transferManagerProperties = properties.getTransferManager();
+		if (this.properties.getTransferManager() != null) {
+			S3TransferManagerProperties transferManagerProperties = this.properties.getTransferManager();
 			PropertyMapper propertyMapper = PropertyMapper.get();
 			propertyMapper.from(transferManagerProperties::getMaxConcurrency).whenNonNull().to(builder::maxConcurrency);
 			propertyMapper.from(transferManagerProperties::getTargetThroughputInGbps).whenNonNull()
@@ -96,17 +96,19 @@ public class S3TransferManagerAutoConfiguration {
 
 	private S3ClientConfiguration.Builder configure(S3ClientConfiguration.Builder builder) {
 		// this must follow the same logic as in AwsClientBuilderConfigurer
-		builder.credentialsProvider(credentialsProvider).region(awsClientBuilderConfigurer.resolveRegion(properties));
+		builder.credentialsProvider(this.credentialsProvider)
+				.region(this.awsClientBuilderConfigurer.resolveRegion(this.properties));
 		// TODO: how to set client override configuration?
-		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
-		Optional.ofNullable(properties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
 		return builder;
 	}
 
 	private S3TransferManagerOverrideConfiguration extractUploadDirectoryOverrideConfiguration() {
 		UploadDirectoryOverrideConfiguration.Builder config = UploadDirectoryOverrideConfiguration.builder();
-		if (properties.getTransferManager() != null && properties.getTransferManager().getUploadDirectory() != null) {
-			S3TransferManagerProperties.S3UploadDirectoryProperties s3UploadDirectoryProperties = properties
+		if (this.properties.getTransferManager() != null
+				&& this.properties.getTransferManager().getUploadDirectory() != null) {
+			S3TransferManagerProperties.S3UploadDirectoryProperties s3UploadDirectoryProperties = this.properties
 					.getTransferManager().getUploadDirectory();
 			PropertyMapper propertyMapper = PropertyMapper.get();
 			propertyMapper.from(s3UploadDirectoryProperties::getMaxDepth).whenNonNull().to(config::maxDepth);

@@ -17,6 +17,7 @@ package io.awspring.cloud.s3;
 
 import java.io.IOException;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.UploadFileRequest;
@@ -43,11 +44,13 @@ class TransferManagerS3OutputStream extends AbstractTempFileS3OutputStream {
 			@Nullable ObjectMetadata objectMetadata, @Nullable S3ObjectContentTypeResolver contentTypeResolver)
 			throws IOException {
 		super(location, objectMetadata, contentTypeResolver);
+		Assert.notNull(s3TransferManager, "s3TransferManager is required");
 		this.s3TransferManager = s3TransferManager;
 	}
 
 	@Override
 	protected void upload(PutObjectRequest putObjectRequest) {
+		Assert.notNull(putObjectRequest, "putObjectRequest is required");
 		s3TransferManager
 				.uploadFile(UploadFileRequest.builder().putObjectRequest(putObjectRequest).source(file).build())
 				.completionFuture().join();

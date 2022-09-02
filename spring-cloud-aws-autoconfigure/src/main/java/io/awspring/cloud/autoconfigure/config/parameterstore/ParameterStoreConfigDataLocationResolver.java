@@ -16,11 +16,13 @@
 package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.logging.Log;
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
@@ -29,6 +31,7 @@ import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 /**
  * @author Eddú Meléndez
@@ -41,6 +44,12 @@ public class ParameterStoreConfigDataLocationResolver
 	 * AWS ParameterStore Config Data prefix.
 	 */
 	public static final String PREFIX = "aws-parameterstore:";
+
+	private final Log log;
+
+	public ParameterStoreConfigDataLocationResolver(Log log) {
+		this.log = log;
+	}
 
 	@Override
 	protected String getPrefix() {
@@ -75,7 +84,17 @@ public class ParameterStoreConfigDataLocationResolver
 	}
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
-		return configure(SsmClient.builder(), context.get(ParameterStoreProperties.class), context).build();
+		SsmClientBuilder builder = configure(SsmClient.builder(), context.get(ParameterStoreProperties.class), context);
+		try {
+			AwsParameterStoreClientCustomizer configurer = context.get(AwsParameterStoreClientCustomizer.class);
+			if (configurer != null) {
+				AwsClientCustomizer.apply(configurer, builder);
+			}
+		}
+		catch (IllegalStateException e) {
+			log.debug("Bean of type AwsClientConfigurerParameterStore is not registered: " + e.getMessage());
+		}
+		return builder.build();
 	}
 
 	protected ParameterStoreProperties loadProperties(Binder binder) {

@@ -19,7 +19,8 @@
 		<module>spring-cloud-aws-s3-sample</module>
 		<module>spring-cloud-aws-sns-sample</module>
 		<module>spring-cloud-aws-ses-sample</module>
-	</modules>
+        <module>spring-cloud-aws-dynamodb-sample</module>
+    </modules>
 
 	<properties>
 		<cdk.version>2.17.0</cdk.version>

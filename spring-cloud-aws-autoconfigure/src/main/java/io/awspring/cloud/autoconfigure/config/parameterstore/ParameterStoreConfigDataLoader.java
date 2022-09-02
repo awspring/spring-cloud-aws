@@ -38,7 +38,7 @@ public class ParameterStoreConfigDataLoader implements ConfigDataLoader<Paramete
 	public ParameterStoreConfigDataLoader(DeferredLogFactory logFactory) {
 		BootstrapLoggingHelper.reconfigureLoggers(logFactory,
 				"io.awspring.cloud.parameterstore.ParameterStorePropertySource",
-				"io.awspring.cloud.v3.autoconfigure.config.parameterstore.ParameterStorePropertySources");
+				"io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStorePropertySources");
 	}
 
 	@Override

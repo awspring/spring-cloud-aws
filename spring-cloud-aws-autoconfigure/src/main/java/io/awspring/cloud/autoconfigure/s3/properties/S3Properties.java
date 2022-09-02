@@ -56,13 +56,6 @@ public class S3Properties extends AwsClientProperties {
 	private Boolean chunkedEncodingEnabled;
 
 	/**
-	 * Option to enable using the dualstack endpoints when accessing S3. Dualstack should be enabled if you want to use
-	 * IPv6.
-	 */
-	@Nullable
-	private Boolean dualstackEnabled;
-
-	/**
 	 * Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access
 	 * is preferred as it will result in better load balancing when accessing S3.
 	 */
@@ -86,7 +79,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
-		return accelerateModeEnabled;
+		return this.accelerateModeEnabled;
 	}
 
 	public void setAccelerateModeEnabled(@Nullable Boolean accelerateModeEnabled) {
@@ -95,7 +88,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public Boolean getChecksumValidationEnabled() {
-		return checksumValidationEnabled;
+		return this.checksumValidationEnabled;
 	}
 
 	public void setChecksumValidationEnabled(@Nullable Boolean checksumValidationEnabled) {
@@ -104,7 +97,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public Boolean getChunkedEncodingEnabled() {
-		return chunkedEncodingEnabled;
+		return this.chunkedEncodingEnabled;
 	}
 
 	public void setChunkedEncodingEnabled(@Nullable Boolean chunkedEncodingEnabled) {
@@ -112,17 +105,8 @@ public class S3Properties extends AwsClientProperties {
 	}
 
 	@Nullable
-	public Boolean getDualstackEnabled() {
-		return dualstackEnabled;
-	}
-
-	public void setDualstackEnabled(@Nullable Boolean dualstackEnabled) {
-		this.dualstackEnabled = dualstackEnabled;
-	}
-
-	@Nullable
 	public Boolean getPathStyleAccessEnabled() {
-		return pathStyleAccessEnabled;
+		return this.pathStyleAccessEnabled;
 	}
 
 	public void setPathStyleAccessEnabled(@Nullable Boolean pathStyleAccessEnabled) {
@@ -131,7 +115,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public Boolean getUseArnRegionEnabled() {
-		return useArnRegionEnabled;
+		return this.useArnRegionEnabled;
 	}
 
 	public void setUseArnRegionEnabled(@Nullable Boolean useArnRegionEnabled) {
@@ -140,7 +124,7 @@ public class S3Properties extends AwsClientProperties {
 
 	@Nullable
 	public S3TransferManagerProperties getTransferManager() {
-		return transferManager;
+		return this.transferManager;
 	}
 
 	public void setTransferManager(@Nullable S3TransferManagerProperties transferManager) {

@@ -23,10 +23,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SECRETSMANAGER;
 
+import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
+import java.time.Duration;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -39,6 +43,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -56,17 +63,20 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.2")).withServices(SECRETSMANAGER).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.0.3")).withServices(SECRETSMANAGER).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() {
 		createSecret(localstack, "/config/spring",
 				"{\"message\":\"value from tests\", \"another-parameter\": \"another parameter value\"}", REGION);
+		createSecret(localstack, "/certs/prod/fn_certificate", "=== my prod cert should be here", REGION);
+		createSecret(localstack, "/certs/dev/fn_certificate/", "=== my dev cert should be here", REGION);
+		createSecret(localstack, "fn_certificate", "=== my cert should be here", REGION);
 		createSecret(localstack, "/config/second", "{\"secondMessage\":\"second value from tests\"}", REGION);
 	}
 
 	@Test
-	void resolvesPropertyFromParameterStore() {
+	void resolvesPropertyFromSecretsManager() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
@@ -76,6 +86,55 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("another parameter value");
 			assertThat(context.getEnvironment().getProperty("secondMessage")).isEqualTo("second value from tests");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
+		}
+	}
+
+	@Test
+	void resolvesPropertyFromSecretsManager_PlainTextSecret() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/certs/prod/fn_certificate")) {
+			assertThat(context.getEnvironment().getProperty("fn_certificate"))
+					.isEqualTo("=== my prod cert should be here");
+		}
+	}
+
+	@Test
+	void resolvesPropertyFromSecretsManager_PlainTextSecret_endingWithSlash() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/certs/dev/fn_certificate/")) {
+			assertThat(context.getEnvironment().getProperty("fn_certificate"))
+					.isEqualTo("=== my dev cert should be here");
+		}
+	}
+
+	@Test
+	void resolvesPropertyFromSecretsManager_PlainTextSecret_WithoutSlashes() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:fn_certificate")) {
+			assertThat(context.getEnvironment().getProperty("fn_certificate")).isEqualTo("=== my cert should be here");
+		}
+	}
+
+	@Test
+	void clientIsConfiguredWithConfigurerProvidedToBootstrapRegistry() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/config/spring;/config/second")) {
+			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SecretsManagerClient.class));
+			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
+			assertThat(ssmClient.getSyncHttpClient()).isNotNull();
 		}
 	}
 
@@ -215,6 +274,27 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	@SpringBootApplication
 	static class App {
 
+	}
+
+	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
+
+		@Override
+		public void initialize(BootstrapRegistry registry) {
+			registry.register(AwsSecretsManagerClientCustomizer.class,
+					context -> new AwsSecretsManagerClientCustomizer() {
+
+						@Override
+						public ClientOverrideConfiguration overrideConfiguration() {
+							return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828))
+									.build();
+						}
+
+						@Override
+						public SdkHttpClient httpClient() {
+							return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+						}
+					});
+		}
 	}
 
 }

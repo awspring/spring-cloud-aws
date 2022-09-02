@@ -20,6 +20,7 @@ import java.util.Properties;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Resolves content type for S3 object from a properties file.
@@ -51,11 +52,14 @@ public class PropertiesS3ObjectContentTypeResolver implements S3ObjectContentTyp
 	}
 
 	public PropertiesS3ObjectContentTypeResolver(Properties properties) {
+		Assert.notNull(properties, "properties are required");
 		this.properties = properties;
 	}
 
 	@Override
 	public String resolveContentType(String fileName) {
+		Assert.notNull(fileName, "fileName is required");
+
 		String extension = resolveExtension(fileName);
 		if (extension != null) {
 			return properties.getProperty(extension);
@@ -66,9 +70,11 @@ public class PropertiesS3ObjectContentTypeResolver implements S3ObjectContentTyp
 	}
 
 	@Nullable
-	public String resolveExtension(String filename) {
-		if (filename.contains(".")) {
-			return filename.substring(filename.lastIndexOf(".") + 1);
+	public String resolveExtension(String fileName) {
+		Assert.notNull(fileName, "fileName is required");
+
+		if (fileName.contains(".")) {
+			return fileName.substring(fileName.lastIndexOf(".") + 1);
 		}
 		else {
 			return null;

@@ -8,22 +8,31 @@ on:
       - 2.4.x
       - 2.3.x
       - 2.2.x
-      - docs-update
 
 env:
   # https://github.com/actions/checkout/issues/440#issuecomment-854240996
   AWS_EC2_METADATA_DISABLED: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 1.8
+        uses: sdkman/sdkman-action@master
+        id: sdkman
+        with:
+          candidate: java
+          version: '8.0.332-tem'
+      - name: Set up 8.0.332-tem
         uses: actions/setup-java@v1
         with:
-          java-version: 1.8
+          java-version: 8
+          jdkFile: ${{ steps.sdkman.outputs.file }}
       - uses: actions/cache@v1
         with:
           path: ~/.m2/repository

@@ -42,4 +42,8 @@ public class CachingTopicArnResolver implements TopicArnResolver {
 
 		return cache.computeIfAbsent(topicName, delegate::resolveTopicArn);
 	}
+
+	int cacheSize() {
+		return cache.size();
+	}
 }

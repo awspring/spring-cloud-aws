@@ -48,6 +48,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
  * Integration tests for {@link S3Template}.
  *
  * @author Maciej Walkowiak
+ * @author Yuki Yoshida
  */
 @Testcontainers
 class S3TemplateIntegrationTests {
@@ -56,7 +57,7 @@ class S3TemplateIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:0.14.2")).withServices(LocalStackContainer.Service.S3)
+			DockerImageName.parse("localstack/localstack:1.0.3")).withServices(LocalStackContainer.Service.S3)
 					.withReuse(true);
 
 	private static S3Client client;
@@ -135,12 +136,13 @@ class S3TemplateIntegrationTests {
 
 	@Test
 	void storesObject() throws IOException {
-		s3Template.store("test-bucket", "person.json", new Person("John", "Doe"));
+		S3Resource storedObject = s3Template.store("test-bucket", "person.json", new Person("John", "Doe"));
 
 		ResponseInputStream<GetObjectResponse> response = client
 				.getObject(r -> r.bucket("test-bucket").key("person.json"));
 		String result = StreamUtils.copyToString(response, StandardCharsets.UTF_8);
 
+		assertThat(storedObject).isNotNull();
 		assertThat(result).isEqualTo("{\"firstName\":\"John\",\"lastName\":\"Doe\"}");
 		assertThat(response.response().contentType()).isEqualTo("application/json");
 	}
@@ -159,8 +161,9 @@ class S3TemplateIntegrationTests {
 	@Test
 	void uploadsFile() throws IOException {
 		try (InputStream is = new ByteArrayInputStream("hello".getBytes(StandardCharsets.UTF_8))) {
-			s3Template.upload("test-bucket", "file.txt", is,
+			S3Resource uploadedResource = s3Template.upload("test-bucket", "file.txt", is,
 					ObjectMetadata.builder().contentType("text/plain").build());
+			assertThat(uploadedResource).isNotNull();
 		}
 
 		ResponseInputStream<GetObjectResponse> response = client

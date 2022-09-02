@@ -18,6 +18,8 @@ package io.awspring.cloud.autoconfigure.core;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.util.Optional;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
@@ -45,16 +47,38 @@ public class AwsClientBuilderConfigurer {
 		this.clientOverrideConfiguration = new SpringCloudClientConfiguration().clientOverrideConfiguration();
 	}
 
-	public AwsClientBuilder<?, ?> configure(AwsClientBuilder<?, ?> builder, AwsClientProperties clientProperties) {
-		builder.credentialsProvider(credentialsProvider).region(resolveRegion(clientProperties))
-				.overrideConfiguration(clientOverrideConfiguration);
-		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
-		Optional.ofNullable(clientProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+	public <T extends AwsClientBuilder<?, ?>> T configure(T builder) {
+		return configure(builder, null, null);
+	}
+
+	public <T extends AwsClientBuilder<?, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
+			@Nullable AwsClientCustomizer<T> customizer) {
+		Assert.notNull(builder, "builder is required");
+		Assert.notNull(clientProperties, "clientProperties are required");
+
+		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties))
+				.overrideConfiguration(this.clientOverrideConfiguration);
+		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(clientProperties).map(AwsClientProperties::getEndpoint)
+				.ifPresent(builder::endpointOverride);
+
+		Optional.ofNullable(this.awsProperties.getDefaultsMode()).ifPresent(builder::defaultsMode);
+		Optional.ofNullable(this.awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
+		Optional.ofNullable(this.awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
+		if (customizer != null) {
+			AwsClientCustomizer.apply(customizer, builder);
+		}
 		return builder;
 	}
 
-	public Region resolveRegion(AwsClientProperties clientProperties) {
-		return StringUtils.hasLength(clientProperties.getRegion()) ? Region.of(clientProperties.getRegion())
+	public Region resolveRegion(@Nullable AwsClientProperties clientProperties) {
+		return resolveRegion(clientProperties, this.regionProvider);
+	}
+
+	public static Region resolveRegion(@Nullable AwsClientProperties clientProperties,
+			AwsRegionProvider regionProvider) {
+		return clientProperties != null && StringUtils.hasLength(clientProperties.getRegion())
+				? Region.of(clientProperties.getRegion())
 				: regionProvider.getRegion();
 	}
 }

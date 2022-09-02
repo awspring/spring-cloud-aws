@@ -11,5 +11,6 @@
 
 	<logger name="org.testcontainers" level="INFO"/>
 	<logger name="com.github.dockerjava" level="WARN"/>
+	<logger name="software.amazon.dax.ClusterDaxAsyncClient" level="ERROR"/>
 	<logger name="io.awspring" level="INFO"/>
 </configuration>

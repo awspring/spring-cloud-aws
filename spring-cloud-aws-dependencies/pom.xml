@@ -25,7 +25,10 @@
 	<properties>
 		<javaparser.version>3.24.0</javaparser.version>
 		<spotless.version>2.22.0</spotless.version>
-		<awssdk.version>2.17.172</awssdk.version>
+		<awssdk-v2.version>2.17.209</awssdk-v2.version>
+		<awssdk-v1.version>1.12.238</awssdk-v1.version>
+		<amazon.dax.version>2.0.1</amazon.dax.version>
+		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -33,7 +36,7 @@
 			<dependency>
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>bom</artifactId>
-				<version>${awssdk.version}</version>
+				<version>${awssdk-v2.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -41,15 +44,22 @@
 			<dependency>
 				<groupId>com.amazonaws</groupId>
 				<artifactId>aws-java-sdk-bom</artifactId>
-				<version>1.12.201</version>
+				<version>${awssdk-v1.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 
 			<dependency>
+				<groupId>software.amazon.dax</groupId>
+				<artifactId>amazon-dax-client</artifactId>
+				<version>${amazon.dax.version}</version>
+				<optional>true</optional>
+			</dependency>
+
+			<dependency>
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>s3-transfer-manager</artifactId>
-				<version>${awssdk.version}-PREVIEW</version>
+				<version>${awssdk-v2.version}-PREVIEW</version>
 				<optional>true</optional>
 			</dependency>
 
@@ -79,7 +89,19 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-dynamodb</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-sns</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-sqs</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -115,6 +137,12 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-dynamodb</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter-secrets-manager</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -134,6 +162,12 @@
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter-sns</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-sqs</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -162,4 +196,42 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>${maven-gpg-plugin.version}</version>
+						<configuration>
+							<!-- Prevent gpg from using pinentry programs -->
+							<gpgArguments>
+								<arg>--pinentry-mode</arg>
+								<arg>loopback</arg>
+							</gpgArguments>
+						</configuration>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<distributionManagement>
+		<repository>
+			<id>ossrh-awspring</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
 </project>

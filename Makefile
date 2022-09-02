@@ -4,7 +4,7 @@ format:
 	mvnd spotless:apply
 
 build:
-	mvnd spotless:apply verify
+	mvnd verify spotless:apply
 
 clean:
 	mvnd clean
