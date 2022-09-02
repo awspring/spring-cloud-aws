@@ -37,6 +37,9 @@
 		<awssdk.version>2.17.172</awssdk.version>
 		<sonar.organization>awspring</sonar.organization>
 		<sonar.projectKey>spring-cloud-aws</sonar.projectKey>
+
+		<!-- https://community.sonarsource.com/t/project-quarkusio-quarkus-cant-have-2-modules-with-the-following-key-quarkusio-quarkus/33824/6 -->
+		<sonar.moduleKey>${artifactId}</sonar.moduleKey>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
@@ -111,6 +114,13 @@
 	</dependencies>
 
 	<build>
+		<extensions>
+			<extension>
+				<groupId>co.leantechniques</groupId>
+				<artifactId>maven-buildtime-extension</artifactId>
+				<version>3.0.3</version>
+			</extension>
+		</extensions>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -125,13 +135,6 @@
 							<compilerArg>-Xlint:-serial</compilerArg>
 							<!--compilerArg>-Werror</compilerArg-->
 						</compilerArgs>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<configuration>
-						<argLine>@{argLine} -Xms512m -Xmx512m</argLine>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -341,6 +344,13 @@
 								</configuration>
 							</execution>
 						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<argLine>@{argLine} -Xms512m -Xmx512m</argLine>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>
