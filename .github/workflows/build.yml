@@ -72,4 +72,4 @@ jobs:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Build with Maven
-        run: ./mvnw -V -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=awspring_spring-cloud-aws -Pcoverage
+        run: ./mvnw verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage
