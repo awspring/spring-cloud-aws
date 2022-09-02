@@ -10,18 +10,28 @@ $ docker-compose up
 
 ## Infrastructure
 
-Samples that have `infrastructure` directory inside use AWS CDK to create the infrastructure components to run the sample.
+Samples use AWS CDK to create the infrastructure components to run the sample.
 
 In `infrastructure` directory:
 
 ```
-mvn package
-cdklocal bootstrap 
-cdklocal deploy
+$ mvn package
+$ cdklocal bootstrap 
+$ cdklocal deploy
 ```
-
-**Note** - `cdklocal bootstrap` has to be executed only once.
 
 ## How to run?
 
 Samples are regular Spring Boot applications. The best way to run them is to run the main `@SpringBootApplication` annotated class directly from an IDE.
+
+## How to destroy infrastructure?
+
+Infrastructure is destroyed once Localstack container shuts down. If you want to destroy infrastructure manually, run:
+
+```
+$ cdklocal destroy
+```
+
+## How to run against real AWS?
+
+To run samples against real AWS, update `spring.cloud.aws` properties in sample's `application.properties` to reflect your AWS configuration or delete these properties completely to use defaults.
