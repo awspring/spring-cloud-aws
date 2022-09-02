@@ -28,21 +28,21 @@ This project has dependency and transitive dependencies on Spring Projects. The 
 
 ## Supported AWS integrations
 
-| AWS Service     | Spring Cloud AWS 2.x | Spring Cloud AWS 3.x                                                      |
-|-----------------|----------------------|---------------------------------------------------------------------------|
-| S3              | ✅                    | ✅                                                                         |
-| SNS             | ✅                    | ✅                                                                         |
-| SES             | ✅                    | ✅                                                                         |
-| Parameter Store | ✅                    | ✅                                                                         |
-| Secrets Manager | ✅                    | ✅                                                                         |
-| SQS             | ✅                    | In Progress [#344](https://github.com/awspring/spring-cloud-aws/pull/374) |
-| RDS             | ✅                    | TODO [#322](https://github.com/awspring/spring-cloud-aws/issues/322)      |
-| EC2             | ✅                    | ❌                                                                         |
-| ElastiCache     | ✅                    | ❌                                                                         |
-| CloudFormation  | ✅                    | ❌                                                                         |
-| CloudWatch      | ✅                    | ✅                                                                         |
-| Cognito         | ✅                    | In Progesss [#340](https://github.com/awspring/spring-cloud-aws/pull/340) |
-| DynamoDB        | ❌                    | ✅                                                                         |
+| AWS Service     | Spring Cloud AWS 2.x | Spring Cloud AWS 3.x                                                                                                                        |
+|-----------------|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| S3              | ✅                    | ✅                                                                                                                                           |
+| SNS             | ✅                    | ✅                                                                                                                                           |
+| SES             | ✅                    | ✅                                                                                                                                           |
+| Parameter Store | ✅                    | ✅                                                                                                                                           |
+| Secrets Manager | ✅                    | ✅                                                                                                                                           |
+| SQS             | ✅                    | ✅                                                                                                                                           |
+| RDS             | ✅                    | TODO [#322](https://github.com/awspring/spring-cloud-aws/issues/322)                                                                        |
+| EC2             | ✅                    | ❌                                                                                                                                           |
+| ElastiCache     | ✅                    | ❌                                                                                                                                           |
+| CloudFormation  | ✅                    | ❌                                                                                                                                           |
+| CloudWatch      | ✅                    | ✅                                                                                                                                           |
+| Cognito         | ✅                    | [Covered by Spring Boot](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-SNAPSHOT/reference/html/index.html#migration-from-2-x-to-3-x) |
+| DynamoDB        | ❌                    | ✅                                                                                                                                           |
 
 Note, that Spring provides support for other AWS services in following projects:
 
