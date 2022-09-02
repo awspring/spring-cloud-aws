@@ -114,13 +114,6 @@
 	</dependencies>
 
 	<build>
-		<extensions>
-			<extension>
-				<groupId>co.leantechniques</groupId>
-				<artifactId>maven-buildtime-extension</artifactId>
-				<version>3.0.3</version>
-			</extension>
-		</extensions>
 		<pluginManagement>
 			<plugins>
 				<plugin>
