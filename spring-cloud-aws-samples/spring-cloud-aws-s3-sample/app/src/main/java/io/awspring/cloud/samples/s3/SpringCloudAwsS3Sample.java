@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.samples.s3;
 
+import io.awspring.cloud.s3.S3Template;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -45,8 +46,11 @@ public class SpringCloudAwsS3Sample {
 	private Resource file;
 
 	@Bean
-	ApplicationRunner applicationRunner(S3Client s3Client, ResourceLoader resourceLoader) {
+	ApplicationRunner applicationRunner(S3Client s3Client, ResourceLoader resourceLoader, S3Template s3Template) {
 		return args -> {
+			s3Template.store("spring-cloud-aws-sample-bucket1", "test-file.txt", "test file content");
+			s3Template.store("spring-cloud-aws-sample-bucket1", "my-file.txt", "my file content");
+
 			// use auto-configured cross-region client
 			s3Client.listObjects(request -> request.bucket("spring-cloud-aws-sample-bucket1")).contents()
 					.forEach(s3Object -> LOGGER.info("Object in bucket: {}", s3Object.key()));
@@ -64,6 +68,9 @@ public class SpringCloudAwsS3Sample {
 				outputStream.write("overwritten".getBytes(StandardCharsets.UTF_8));
 			}
 			LOGGER.info("Overwritten content: {}", readContent(resource));
+
+			s3Template.deleteObject("spring-cloud-aws-sample-bucket1", "test-file.txt");
+			s3Template.deleteObject("spring-cloud-aws-sample-bucket1", "my-file.txt");
 		};
 	}
 

@@ -15,12 +15,9 @@
  */
 package io.awspring.cloud.samples.s3.infrastructure;
 
-import java.util.Arrays;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.services.s3.Bucket;
-import software.amazon.awscdk.services.s3.deployment.BucketDeployment;
-import software.amazon.awscdk.services.s3.deployment.Source;
 import software.constructs.Construct;
 
 public class InfrastructureStack extends Stack {
@@ -32,12 +29,7 @@ public class InfrastructureStack extends Stack {
 	public InfrastructureStack(final Construct scope, final String id, final StackProps props) {
 		super(scope, id, props);
 
-		Bucket bucket1 = Bucket.Builder.create(this, "bucket1").bucketName("spring-cloud-aws-sample-bucket1").build();
-
-		BucketDeployment.Builder.create(this, "bucketDeployment").destinationBucket(bucket1)
-				.sources(Arrays.asList(Source.data("my-file.txt", "my file content"),
-						Source.data("test-file.txt", "test file content")))
-				.build();
+		Bucket.Builder.create(this, "bucket1").bucketName("spring-cloud-aws-sample-bucket1").build();
 	}
 
 }
