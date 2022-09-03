@@ -314,7 +314,6 @@
 				<!-- https://community.sonarsource.com/t/project-quarkusio-quarkus-cant-have-2-modules-with-the-following-key-quarkusio-quarkus/33824/6 -->
 				<sonar.moduleKey>${artifactId}</sonar.moduleKey>
 				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
-				<!-- trigger -->
 			</properties>
 			<build>
 				<plugins>
