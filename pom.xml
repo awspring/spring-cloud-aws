@@ -51,11 +51,6 @@
 		<module>spring-cloud-aws-samples</module>
 		<module>spring-cloud-aws-test</module>
 		<module>docs</module>
-
-		<!--
-		these modules need to be rewritten
-		<module>spring-cloud-aws-jdbc</module>
-		-->
 		</modules>
 
 	<dependencyManagement>
