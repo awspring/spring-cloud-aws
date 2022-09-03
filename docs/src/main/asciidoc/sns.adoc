@@ -58,6 +58,44 @@ configure the SNS client to setup the default converter.
 <aws-messaging:notification-messaging-template id="notificationMessagingTemplate" />
 ----
 
+FIFO SNS Topics have additional required and optional request parameters. For example MessageGroupId is a required
+parameter for a FIFO topic. These parameters can be set by specifying them in the headers map.
+Spring Cloud AWS extracts the keys and sets the parameters on the underlying SNS SendMessage request.
+
+To specify message attributes on the SNS SendMessage request, additional headers can be added to the header map.
+
+This example shows how to add the MessageGroupId parameter (required for FIFO topics) and MessageDeduplicationId parameter
+(optional) to the request. The additional header is added as a MessageAttribute. The attribute Type is based on the java
+type of the value by Spring Cloud AWS.
+
+[source,java,indent=0]
+----
+import com.amazonaws.services.sns.AmazonSNS;
+import io.awspring.cloud.messaging.core.NotificationMessagingTemplate;
+import io.awspring.cloud.messaging.core.TopicMessageChannel;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashMap;
+
+public class SnsNotificationSender {
+
+	private final NotificationMessagingTemplate notificationMessagingTemplate;
+
+	@Autowired
+	public SnsNotificationSender(AmazonSNS amazonSns) {
+		this.notificationMessagingTemplate = new NotificationMessagingTemplate(amazonSns);
+	}
+
+	public void send(String message, String messageGroupId, String messageDeduplicationId) {
+		HashMap<String, Object> headers = new HashMap<>();
+		headers.put(TopicMessageChannel.MESSAGE_GROUP_ID_HEADER, messageGroupId);
+		headers.put(TopicMessageChannel.MESSAGE_DEDUPLICATION_ID_HEADER, messageDeduplicationId);
+		headers.put("attributeName", "attributeValue");
+		this.notificationMessagingTemplate.convertAndSend("physicalTopicName", message, headers);
+	}
+}
+----
+
 ==== Annotation-driven HTTP notification endpoint
 SNS supports multiple endpoint types (SQS, Email, HTTP, HTTPS), Spring Cloud AWS provides support for HTTP(S) endpoints.
 SNS sends three type of requests to an HTTP topic listener endpoint, for each of them annotations are provided:
@@ -119,6 +157,47 @@ The `aws-messaging:notification-argument-resolver` element registers three argum
 `NotificationStatusHandlerMethodArgumentResolver`, `NotificationMessageHandlerMethodArgumentResolver`,
 and `NotificationSubjectHandlerMethodArgumentResolver`.
 
+==== IAM Permissions
+Following IAM permissions are required by Spring Cloud AWS:
+
+[cols="2"]
+|===
+| To publish notification to topic
+| `sns:Publish`
+
+| To publish notification you will also need
+| `sns:ListTopics`
+
+| To use Annotation-driven HTTP notification endpoint
+| `sns:ConfirmSubscription`
+
+
+|===
+
+Sample IAM policy granting access to SNS:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sns:Publish",
+                "sns:ConfirmSubscription"
+            ],
+            "Resource": "yourArn"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "sns:ListTopics",
+            "Resource": "*"
+        }
+    ]
+}
+----
+
 === Using CloudFormation
 Amazon SQS queues and SNS topics can be configured within a stack and then be used by applications. Spring Cloud AWS
 also supports the lookup of stack-configured queues and topics by their logical name with the resolution to the physical
@@ -159,45 +238,3 @@ public void receiveQueueMessages(Person person) {
 
 When using the logical names like in the example above, the stack can be created on different environments without any
 configuration or code changes inside the application.
-
-
-=== IAM Permissions
-Following IAM permissions are required by Spring Cloud AWS:
-
-[cols="2"]
-|===
-| To publish notification to topic
-| `sns:Publish`
-
-| To publish notification you will also need
-| `sns:ListTopics`
-
-| To use Annotation-driven HTTP notification endpoint
-| `sns:ConfirmSubscription`
-
-
-|===
-
-Sample IAM policy granting access to SNS:
-
-[source,json,indent=0]
-----
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "sns:Publish",
-                "sns:ConfirmSubscription"
-            ],
-            "Resource": "yourArn"
-        },
-        {
-            "Effect": "Allow",
-            "Action": "sns:ListTopics",
-            "Resource": "*"
-        }
-    ]
-}
-----

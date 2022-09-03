@@ -16,15 +16,28 @@
 
 package io.awspring.cloud.sqs.sample;
 
+import java.time.LocalDate;
+
 public class Person {
 
 	private String firstName;
 
 	private String lastName;
 
-	public Person(String firstName, String lastName) {
+	private LocalDate birthDate;
+
+	public Person(String firstName, String lastName, LocalDate birthDate) {
 		this.firstName = firstName;
 		this.lastName = lastName;
+		this.birthDate = birthDate;
+	}
+
+	public LocalDate getBirthDate() {
+		return birthDate;
+	}
+
+	public void setBirthDate(LocalDate birthDate) {
+		this.birthDate = birthDate;
 	}
 
 	public String getFirstName() {
@@ -45,7 +58,8 @@ public class Person {
 
 	@Override
 	public String toString() {
-		return "Person{" + "firstName='" + firstName + '\'' + ", lastName='" + lastName + '\'' + '}';
+		return "Person{" + "firstName='" + firstName + '\'' + ", lastName='" + lastName + '\'' + ", birthDate="
+				+ birthDate + '}';
 	}
 
 }

@@ -18,13 +18,12 @@ package io.awspring.cloud.secretsmanager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.cloud.bootstrap.config.PropertySourceLocator;
 import org.springframework.core.env.CompositePropertySource;
@@ -56,8 +55,6 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 
 	private final Set<String> contexts = new LinkedHashSet<>();
 
-	private Log logger = LogFactory.getLog(getClass());
-
 	public AwsSecretsManagerPropertySourceLocator(String propertySourceName, AWSSecretsManager smClient,
 			AwsSecretsManagerProperties properties) {
 		this.propertySourceName = propertySourceName;
@@ -81,10 +78,15 @@ public class AwsSecretsManagerPropertySourceLocator implements PropertySourceLoc
 
 		ConfigurableEnvironment env = (ConfigurableEnvironment) environment;
 
-		AwsSecretsManagerPropertySources sources = new AwsSecretsManagerPropertySources(properties, logger);
+		AwsSecretsManagerPropertySources sources = new AwsSecretsManagerPropertySources(properties);
 
 		List<String> profiles = Arrays.asList(env.getActiveProfiles());
-		this.contexts.addAll(sources.getAutomaticContexts(profiles));
+		List<String> contexts = sources.getAutomaticContexts(profiles);
+		// contexts are initially loaded in ascending priority order (for the
+		// compatibility with spring-config-import=)
+		// here it must be reversed to load from the most specific property source first
+		Collections.reverse(contexts);
+		this.contexts.addAll(contexts);
 
 		CompositePropertySource composite = new CompositePropertySource(this.propertySourceName);
 

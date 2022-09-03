@@ -24,7 +24,6 @@ import java.util.List;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import io.awspring.cloud.secretsmanager.AwsSecretsManagerProperties;
 import io.awspring.cloud.secretsmanager.AwsSecretsManagerPropertySources;
-import org.apache.commons.logging.Log;
 
 import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.BootstrapRegistry;
@@ -36,6 +35,7 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 
 /**
@@ -43,21 +43,16 @@ import org.springframework.util.StringUtils;
  *
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  * @since 2.3.0
  */
 public class AwsSecretsManagerConfigDataLocationResolver
 		implements ConfigDataLocationResolver<AwsSecretsManagerConfigDataResource> {
 
-	private final Log log;
-
 	/**
 	 * AWS Secrets Manager Config Data prefix.
 	 */
 	public static final String PREFIX = "aws-secretsmanager:";
-
-	public AwsSecretsManagerConfigDataLocationResolver(Log log) {
-		this.log = log;
-	}
 
 	@Override
 	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
@@ -84,7 +79,7 @@ public class AwsSecretsManagerConfigDataLocationResolver
 
 		AwsSecretsManagerProperties properties = loadConfigProperties(resolverContext.getBinder());
 
-		AwsSecretsManagerPropertySources propertySources = new AwsSecretsManagerPropertySources(properties, log);
+		AwsSecretsManagerPropertySources propertySources = new AwsSecretsManagerPropertySources(properties);
 
 		List<String> contexts = location.getValue().equals(PREFIX)
 				? propertySources.getAutomaticContexts(profiles.getAccepted())
@@ -105,13 +100,21 @@ public class AwsSecretsManagerConfigDataLocationResolver
 		return Collections.emptyList();
 	}
 
+	/**
+	 * Since hook can be activated more then one time, ApplicationContext needs to be
+	 * checked if bean is already registered to prevent Exception. See issue #108 for more
+	 * information.
+	 */
 	protected <T> void registerAndPromoteBean(ConfigDataLocationResolverContext context, Class<T> type,
 			BootstrapRegistry.InstanceSupplier<T> supplier) {
 		registerBean(context, type, supplier);
 		context.getBootstrapContext().addCloseListener(event -> {
 			T instance = event.getBootstrapContext().get(type);
-			event.getApplicationContext().getBeanFactory().registerSingleton("configData" + type.getSimpleName(),
-					instance);
+			String name = "configData" + type.getSimpleName();
+			ConfigurableApplicationContext appContext = event.getApplicationContext();
+			if (!appContext.getBeanFactory().containsBean(name)) {
+				appContext.getBeanFactory().registerSingleton(name, instance);
+			}
 		});
 	}
 

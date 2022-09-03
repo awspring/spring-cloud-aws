@@ -34,6 +34,7 @@ import io.awspring.cloud.core.region.RegionProvider;
 import io.awspring.cloud.core.region.StaticRegionProvider;
 import io.awspring.cloud.messaging.config.QueueMessageHandlerFactory;
 import io.awspring.cloud.messaging.config.SimpleMessageListenerContainerFactory;
+import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
 import io.awspring.cloud.messaging.listener.QueueMessageHandler;
 import io.awspring.cloud.messaging.listener.SimpleMessageListenerContainer;
 import io.awspring.cloud.messaging.listener.SqsMessageDeletionPolicy;
@@ -46,6 +47,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.core.DestinationResolver;
@@ -251,6 +253,22 @@ class SqsAutoConfigurationTest {
 	}
 
 	@Test
+	void configuration_withObjectMapper_shouldSetObjectMapperOnQueueMessagingTemplate() throws Exception {
+		// Arrange & Act
+		this.contextRunner.withUserConfiguration(ConfigurationWithObjectMapper.class).run((context) -> {
+			QueueMessagingTemplate queueMessageHandler = context.getBean(QueueMessagingTemplate.class);
+			ObjectMapper objectMapper = context.getBean(ObjectMapper.class);
+			CompositeMessageConverter converter = (CompositeMessageConverter) ReflectionTestUtils
+					.getField(queueMessageHandler, "converter");
+			MappingJackson2MessageConverter mappingJackson2MessageConverter = (MappingJackson2MessageConverter) converter
+					.getConverters().get(1);
+
+			// Assert
+			assertThat(mappingJackson2MessageConverter.getObjectMapper()).isEqualTo(objectMapper);
+		});
+	}
+
+	@Test
 	void configuration_withoutAwsCredentials_shouldCreateAClientWithDefaultCredentialsProvider() throws Exception {
 		// Arrange & Act
 		new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(SqsAutoConfiguration.class))
@@ -356,6 +374,24 @@ class SqsAutoConfigurationTest {
 
 			Boolean isEndpointOverridden = (Boolean) ReflectionTestUtils.getField(client, "isEndpointOverridden");
 			assertThat(isEndpointOverridden).isTrue();
+		});
+	}
+
+	@Test
+	void createsQueueMessagingTemplate() {
+		this.contextRunner.run(context -> {
+			assertThat(context).hasSingleBean(QueueMessagingTemplate.class);
+		});
+	}
+
+	@Test
+	void doesNotCreateQueueMessagingTemplateWhenOneIsAlreadyDefined() {
+		this.contextRunner.withUserConfiguration(ConfigurationWithCustomQueueMessagingTemplate.class).run(context -> {
+			assertThat(context).hasSingleBean(QueueMessagingTemplate.class);
+			// has bean defined in custom config
+			assertThat(context).hasBean("customQueueMessagingTemplate");
+			// does not have been defined in autoconfiguration
+			assertThat(context).doesNotHaveBean("queueMessagingTemplate");
 		});
 	}
 
@@ -490,6 +526,16 @@ class SqsAutoConfigurationTest {
 			factory.setSendToMessagingTemplate(SEND_TO_MESSAGE_TEMPLATE);
 
 			return factory;
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class ConfigurationWithCustomQueueMessagingTemplate {
+
+		@Bean
+		QueueMessagingTemplate customQueueMessagingTemplate() {
+			return mock(QueueMessagingTemplate.class);
 		}
 
 	}

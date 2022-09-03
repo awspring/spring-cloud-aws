@@ -26,6 +26,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.core.env.ResourceIdResolver;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -186,8 +187,8 @@ class QueueMessagingTemplateTest {
 	@Test
 	void instantiation_withoutConverter_shouldAddDefaultJacksonConverterToTheCompositeConverter() {
 		// Act
-		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(createAmazonSqs(),
-				(ResourceIdResolver) null, null);
+		QueueMessagingTemplate queueMessagingTemplate = new QueueMessagingTemplate(createAmazonSqs(), null,
+				(ObjectMapper) null);
 
 		// Assert
 		assertThat(((CompositeMessageConverter) queueMessagingTemplate.getMessageConverter()).getConverters())

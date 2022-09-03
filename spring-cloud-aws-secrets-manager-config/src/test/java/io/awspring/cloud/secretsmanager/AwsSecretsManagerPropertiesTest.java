@@ -18,12 +18,15 @@ package io.awspring.cloud.secretsmanager;
 
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Tests for {@link AwsSecretsManagerProperties}.
@@ -35,8 +38,14 @@ class AwsSecretsManagerPropertiesTest {
 
 	@ParameterizedTest
 	@MethodSource("invalidProperties")
-	public void validationFails(AwsSecretsManagerProperties properties, String field, String errorCode) {
-		assertThatThrownBy(properties::afterPropertiesSet).isInstanceOf(ValidationException.class);
+	public void validationFails(AwsSecretsManagerProperties properties, String field) throws Exception {
+		try {
+			properties.afterPropertiesSet();
+			fail("validation should fail");
+		}
+		catch (ValidationException e) {
+			assertThat(e.getField()).endsWith(field);
+		}
 	}
 
 	@ParameterizedTest
@@ -45,10 +54,23 @@ class AwsSecretsManagerPropertiesTest {
 		assertThatNoException().isThrownBy(properties::afterPropertiesSet);
 	}
 
+	@Test
+	void checkExceptionLoggingForPrefix() {
+		AwsSecretsManagerProperties properties = new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build();
+		assertThatThrownBy(properties::afterPropertiesSet)
+				.hasMessage("The prefix value: !. must have pattern of: [a-zA-Z0-9.\\-/]+");
+	}
+
 	private static Stream<Arguments> validProperties() {
 		return Stream.of(
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("").withDefaultContext("app")
+						.withProfileSeparator("_").build()),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/secret/someRandomValue-dev01")
+						.withDefaultContext("app").withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec").withDefaultContext("app")
 						.withProfileSeparator("_").build()),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("/sec/test/var")
+						.withDefaultContext("app").withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("secret").withDefaultContext("app")
 						.withProfileSeparator("_").build()),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("secret").withDefaultContext("app")
@@ -58,15 +80,12 @@ class AwsSecretsManagerPropertiesTest {
 	}
 
 	private static Stream<Arguments> invalidProperties() {
-		return Stream.of(
-				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("").build(), "prefix", "NotEmpty"),
-				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build(), "prefix", "Pattern"),
-				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withDefaultContext("").build(), "defaultContext",
-						"NotEmpty"),
+		return Stream.of(Arguments.of(new AwsSecretsManagerPropertiesBuilder().withPrefix("!.").build(), "prefix"),
+				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withDefaultContext("").build(), "defaultContext"),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withProfileSeparator("").build(),
-						"profileSeparator", "NotEmpty"),
+						"profileSeparator"),
 				Arguments.of(new AwsSecretsManagerPropertiesBuilder().withProfileSeparator("!_").build(),
-						"profileSeparator", "Pattern"));
+						"profileSeparator"));
 	}
 
 	private static class AwsSecretsManagerPropertiesBuilder {

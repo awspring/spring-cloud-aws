@@ -42,7 +42,7 @@ public class AwsParamStoreProperties implements InitializingBean {
 	/**
 	 * Pattern used for prefix validation.
 	 */
-	private static final Pattern PREFIX_PATTERN = Pattern.compile("(/[a-zA-Z0-9.\\-_]+)*");
+	private static final Pattern PREFIX_PATTERN = Pattern.compile("[a-zA-Z0-9.\\-/]+");
 
 	/**
 	 * Pattern used for profileSeparator validation.
@@ -84,10 +84,6 @@ public class AwsParamStoreProperties implements InitializingBean {
 
 	public void afterPropertiesSet() throws Exception {
 
-		if (!StringUtils.hasLength(prefix)) {
-			throw new ValidationException(CONFIG_PREFIX + ".prefix", "prefix should not be empty or null.");
-		}
-
 		if (!StringUtils.hasLength(defaultContext)) {
 			throw new ValidationException(CONFIG_PREFIX + ".defaultContext",
 					"defaultContext should not be empty or null.");
@@ -98,13 +94,13 @@ public class AwsParamStoreProperties implements InitializingBean {
 					"profileSeparator should not be empty or null.");
 		}
 
-		if (!PREFIX_PATTERN.matcher(prefix).matches()) {
+		if (StringUtils.hasLength(prefix) && !PREFIX_PATTERN.matcher(prefix).matches()) {
 			throw new ValidationException(CONFIG_PREFIX + ".prefix",
-					"The prefix must have pattern of:  " + PREFIX_PATTERN.toString());
+					"The prefix value: " + prefix + " must have pattern of: " + PREFIX_PATTERN.toString());
 		}
 		if (!PROFILE_SEPARATOR_PATTERN.matcher(profileSeparator).matches()) {
 			throw new ValidationException(CONFIG_PREFIX + ".profileSeparator",
-					"The profileSeparator must have pattern of:  " + PROFILE_SEPARATOR_PATTERN.toString());
+					"The profileSeparator must have pattern of: " + PROFILE_SEPARATOR_PATTERN.toString());
 		}
 	}
 

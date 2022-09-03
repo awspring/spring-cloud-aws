@@ -27,6 +27,8 @@ import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.env.EnumerablePropertySource;
 
@@ -39,6 +41,8 @@ import org.springframework.core.env.EnumerablePropertySource;
  * @since 2.0.0
  */
 public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<AWSSecretsManager> {
+
+	private static Log LOG = LogFactory.getLog(AwsSecretsManagerPropertySource.class);
 
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
@@ -79,6 +83,7 @@ public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<AW
 					});
 
 			for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
+				LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
 				properties.put(secretEntry.getKey(), secretEntry.getValue());
 			}
 		}

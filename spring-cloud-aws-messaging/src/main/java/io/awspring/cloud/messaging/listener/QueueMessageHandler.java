@@ -82,7 +82,8 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 	public QueueMessageHandler(List<MessageConverter> messageConverters,
 			SqsMessageDeletionPolicy sqsMessageDeletionPolicy) {
 		this.messageConverters = messageConverters;
-		this.sqsMessageDeletionPolicy = sqsMessageDeletionPolicy;
+		this.sqsMessageDeletionPolicy = sqsMessageDeletionPolicy != null ? sqsMessageDeletionPolicy
+				: SqsMessageDeletionPolicy.NO_REDRIVE;
 	}
 
 	public QueueMessageHandler(List<MessageConverter> messageConverters) {
@@ -245,6 +246,10 @@ public class QueueMessageHandler extends AbstractMethodMessageHandler<QueueMessa
 			this.logger.error("An exception occurred while invoking the handler method", ex);
 		}
 		throw new MessagingException("An exception occurred while invoking the handler method", ex);
+	}
+
+	SqsMessageDeletionPolicy getSqsMessageDeletionPolicy() {
+		return sqsMessageDeletionPolicy;
 	}
 
 	private CompositeMessageConverter createPayloadArgumentCompositeConverter() {

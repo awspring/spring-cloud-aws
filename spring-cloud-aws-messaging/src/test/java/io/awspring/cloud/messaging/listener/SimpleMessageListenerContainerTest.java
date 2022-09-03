@@ -335,6 +335,77 @@ class SimpleMessageListenerContainerTest {
 	}
 
 	@Test
+	void testReceiveMessagesFromFifoQueueWithError() throws Exception {
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
+		container.setAmazonSqs(sqs);
+
+		CountDownLatch countDownLatch = new CountDownLatch(3);
+		List<String> actualHandledMessages = Collections.synchronizedList(new ArrayList<>());
+		QueueMessageHandler messageHandler = new QueueMessageHandler(Collections.emptyList(),
+				SqsMessageDeletionPolicy.ON_SUCCESS) {
+
+			@Override
+			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
+				actualHandledMessages.add((String) message.getPayload());
+				countDownLatch.countDown();
+				throw new MessagingException(message);
+			}
+
+		};
+		container.setMessageHandler(messageHandler);
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("fifoTestMessageListener", FifoTestMessageListener.class);
+		messageHandler.setApplicationContext(applicationContext);
+		container.setBeanName("testContainerName");
+		messageHandler.afterPropertiesSet();
+
+		mockGetQueueUrl(sqs, "testQueue.fifo", "http://testSimpleReceiveMessage.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "http://testSimpleReceiveMessage.amazonaws.com");
+
+		container.afterPropertiesSet();
+
+		final Message group1Msg1 = fifoMessage("1", "group1Msg1");
+		final Message group1Msg2 = fifoMessage("1", "group1Msg2");
+		final Message group1Msg3 = fifoMessage("1", "group1Msg3");
+		final Message group1Msg4 = fifoMessage("1", "group1Msg4");
+		final Message group1Msg5 = fifoMessage("1", "group1Msg5");
+		final Message group1Msg6 = fifoMessage("1", "group1Msg6");
+		final Message group1Msg7 = fifoMessage("1", "group1Msg7");
+		final Message group2Msg1 = fifoMessage("2", "group2Msg1");
+		final Message group2Msg2 = fifoMessage("2", "group2Msg2");
+		final Message group3Msg1 = fifoMessage("3", "group3Msg1");
+
+		when(sqs.receiveMessage(
+				new ReceiveMessageRequest("http://testSimpleReceiveMessage.amazonaws.com").withAttributeNames("All")
+						.withMessageAttributeNames("All").withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
+								.thenReturn(new ReceiveMessageResult().withMessages(group1Msg1, group1Msg2, group1Msg3,
+										group1Msg4, group1Msg5, group1Msg6, group1Msg7, group2Msg1, group2Msg2,
+										group3Msg1))
+								.thenReturn(new ReceiveMessageResult());
+
+		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
+
+		container.start();
+
+		assertThat(countDownLatch.await(3, TimeUnit.SECONDS)).isTrue();
+
+		final List<String> actualGroup1Messages = actualHandledMessages.stream().filter(msg -> msg.startsWith("group1"))
+				.collect(Collectors.toList());
+		final List<String> actualGroup2Messages = actualHandledMessages.stream().filter(msg -> msg.startsWith("group2"))
+				.collect(Collectors.toList());
+		final List<String> actualGroup3Messages = actualHandledMessages.stream().filter(msg -> msg.startsWith("group3"))
+				.collect(Collectors.toList());
+
+		assertThat(actualGroup1Messages).containsExactly("group1Msg1");
+		assertThat(actualGroup2Messages).containsExactly("group2Msg1");
+		assertThat(actualGroup3Messages).containsExactly("group3Msg1");
+
+		container.stop();
+	}
+
+	@Test
 	void testContainerDoesNotProcessMessageAfterBeingStopped() throws Exception {
 		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 		SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
@@ -365,6 +436,46 @@ class SimpleMessageListenerContainerTest {
 						});
 
 		container.start();
+	}
+
+	@Test
+	void testAllMessageReceivedAreConsumed() throws Exception {
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+
+		AmazonSQSAsync sqs = mock(AmazonSQSAsync.class, withSettings().stubOnly());
+		container.setAmazonSqs(sqs);
+
+		CountDownLatch countDownLatch = new CountDownLatch(1);
+		QueueMessageHandler messageHandler = new QueueMessageHandler() {
+			@Override
+			public void handleMessage(org.springframework.messaging.Message<?> message) throws MessagingException {
+				countDownLatch.countDown();
+			}
+		};
+		container.setMessageHandler(messageHandler);
+		StaticApplicationContext applicationContext = new StaticApplicationContext();
+		applicationContext.registerSingleton("testMessageListener", TestMessageListener.class);
+		messageHandler.setApplicationContext(applicationContext);
+		container.setBeanName("testContainerName");
+		messageHandler.afterPropertiesSet();
+
+		mockGetQueueUrl(sqs, "testQueue", "http://testSimpleReceiveMessage.amazonaws.com");
+		mockGetQueueAttributesWithEmptyResult(sqs, "http://testSimpleReceiveMessage.amazonaws.com");
+
+		container.afterPropertiesSet();
+
+		when(sqs.receiveMessage(
+				new ReceiveMessageRequest("http://testSimpleReceiveMessage.amazonaws.com").withAttributeNames("All")
+						.withMessageAttributeNames("All").withMaxNumberOfMessages(10).withWaitTimeSeconds(20)))
+								.thenReturn(new ReceiveMessageResult()
+										.withMessages(new Message().withBody("messageContent")));
+		when(sqs.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(new GetQueueAttributesResult());
+
+		container.start();
+
+		assertThat(countDownLatch.await(1, TimeUnit.SECONDS)).isTrue();
+
+		container.stop();
 	}
 
 	@Test
