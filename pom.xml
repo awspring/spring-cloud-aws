@@ -32,7 +32,7 @@
 		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
 		<javax.activation.version>1.2.0</javax.activation.version>
 		<spring-cloud-commons.version>3.1.0</spring-cloud-commons.version>
-		<testcontainers.version>1.17.2</testcontainers.version>
+		<testcontainers.version>1.17.3</testcontainers.version>
 		<spotless.version>2.25.0</spotless.version>
 		<awssdk.version>2.17.172</awssdk.version>
 	</properties>
