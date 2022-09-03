@@ -27,6 +27,7 @@ import io.awspring.cloud.sns.core.TopicArnResolver;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -51,7 +52,7 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
  * @author Manuel Wessner
  * @author Matej Nedic
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @ConditionalOnClass({ SnsClient.class, SnsTemplate.class })
 @EnableConfigurationProperties({ SnsProperties.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
