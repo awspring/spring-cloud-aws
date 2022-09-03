@@ -77,9 +77,9 @@ jobs:
   sonar:
     name: "Run Sonar Analysis"
     runs-on: ubuntu-latest
+    # Disable Sonar for foreign PRs
+    if: (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
     steps:
-      # Disable Sonar for foreign PRs
-#      - if: (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
       - uses: actions/checkout@v2
       - name: Cache local Maven repository
         uses: actions/cache@v2
