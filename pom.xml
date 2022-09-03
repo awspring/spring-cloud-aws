@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>3.1.0</version>
+		<version>4.0.0-M4</version>
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
@@ -33,7 +33,7 @@
 		<javax.activation.version>1.2.0</javax.activation.version>
 		<spring-cloud-commons.version>3.1.0</spring-cloud-commons.version>
 		<testcontainers.version>1.17.3</testcontainers.version>
-		<spotless.version>2.22.0</spotless.version>
+		<spotless.version>2.25.0</spotless.version>
 	</properties>
 
 	<modules>
@@ -252,12 +252,6 @@
 			<activation>
 				<jdk>[11,)</jdk>
 			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>javax.activation</groupId>
-					<artifactId>javax.activation-api</artifactId>
-				</dependency>
-			</dependencies>
 		</profile>
 
 		<profile>
