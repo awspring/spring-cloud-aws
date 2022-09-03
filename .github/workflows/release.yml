@@ -19,7 +19,7 @@ jobs:
     name: "Release"
     strategy:
       matrix:
-        version: [ 8.0.332-tem ]
+        version: [ 17.0.1-tem ]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
