@@ -38,6 +38,7 @@ jobs:
       - name: Build with Maven
         run: ./mvnw -V -B verify
   print_context:
+    name: "Print context"
     runs-on: ubuntu-latest
     steps:
       - name: Dump GitHub context
