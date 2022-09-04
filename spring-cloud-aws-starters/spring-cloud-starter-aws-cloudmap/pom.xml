@@ -2,29 +2,28 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<artifactId>spring-cloud-aws-starters</artifactId>
 		<groupId>io.awspring.cloud</groupId>
 		<version>3.0.0-SNAPSHOT</version>
 	</parent>
-	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-aws-starter</artifactId>
-	<name>Spring Cloud AWS Starter</name>
+	<artifactId>spring-cloud-starter-aws-cloudmap</artifactId>
+	<name>Spring Cloud AWS Cloud Map Starter</name>
+	<description>Spring Cloud AWS Cloud Map Starter</description>
 
 	<dependencies>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
+			<artifactId>spring-cloud-aws-cloudmap</artifactId>
 			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter</artifactId>
+			<artifactId>spring-cloud-aws-starter</artifactId>
+			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
+
 </project>

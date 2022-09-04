@@ -22,6 +22,7 @@
 		<module>spring-cloud-aws-starter-sns</module>
 		<module>spring-cloud-aws-starter-sqs</module>
 		<module>spring-cloud-aws-starter-dynamodb</module>
+		<module>spring-cloud-starter-aws-cloudmap</module>
 	</modules>
 
 </project>
