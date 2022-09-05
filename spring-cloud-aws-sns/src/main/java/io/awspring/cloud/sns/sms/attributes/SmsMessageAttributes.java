@@ -20,7 +20,6 @@ import static io.awspring.cloud.sns.sms.attributes.ConvertToMessageAttributes.po
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
@@ -82,7 +81,7 @@ public class SmsMessageAttributes {
 		return senderID;
 	}
 
-	public void setSenderID(String senderID) {
+	public void setSenderID(@Nullable String senderID) {
 		this.senderID = senderID;
 	}
 
@@ -91,7 +90,7 @@ public class SmsMessageAttributes {
 		return originationNumber;
 	}
 
-	public void setOriginationNumber(String originationNumber) {
+	public void setOriginationNumber(@Nullable String originationNumber) {
 		this.originationNumber = originationNumber;
 	}
 
@@ -100,7 +99,7 @@ public class SmsMessageAttributes {
 		return maxPrice;
 	}
 
-	public void setMaxPrice(String maxPrice) {
+	public void setMaxPrice(@Nullable String maxPrice) {
 		this.maxPrice = maxPrice;
 	}
 
@@ -109,7 +108,7 @@ public class SmsMessageAttributes {
 		return smsType;
 	}
 
-	public void setSmsType(SmsType smsType) {
+	public void setSmsType(@Nullable SmsType smsType) {
 		this.smsType = smsType;
 	}
 
@@ -118,7 +117,7 @@ public class SmsMessageAttributes {
 		return entityId;
 	}
 
-	public void setEntityId(String entityId) {
+	public void setEntityId(@Nullable String entityId) {
 		this.entityId = entityId;
 	}
 
@@ -127,7 +126,7 @@ public class SmsMessageAttributes {
 		return templateId;
 	}
 
-	public void setTemplateId(String templateId) {
+	public void setTemplateId(@Nullable String templateId) {
 		this.templateId = templateId;
 	}
 
@@ -136,36 +135,38 @@ public class SmsMessageAttributes {
 	}
 
 	public static final class Builder {
+		@Nullable
 		private String senderID;
+		@Nullable
 		private String originationNumber;
+		@Nullable
 		private String maxPrice;
+		@Nullable
 		private SmsType smsType;
+		@Nullable
 		private String entityId;
+		@Nullable
 		private String templateId;
 
 		private Builder() {
 		}
 
-		public static Builder aSmsMessageAttributes() {
-			return new Builder();
-		}
-
-		public Builder senderID(String senderID) {
+		public Builder senderID(@Nullable String senderID) {
 			this.senderID = senderID;
 			return this;
 		}
 
-		public Builder originationNumber(String originationNumber) {
+		public Builder originationNumber(@Nullable String originationNumber) {
 			this.originationNumber = originationNumber;
 			return this;
 		}
 
-		public Builder maxPrice(String maxPrice) {
+		public Builder maxPrice(@Nullable String maxPrice) {
 			this.maxPrice = maxPrice;
 			return this;
 		}
 
-		public Builder smsType(SmsType smsType) {
+		public Builder smsType(@Nullable SmsType smsType) {
 			this.smsType = smsType;
 			return this;
 		}

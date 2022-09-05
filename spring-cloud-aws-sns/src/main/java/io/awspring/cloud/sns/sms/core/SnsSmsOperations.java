@@ -24,11 +24,15 @@ import org.springframework.lang.Nullable;
  * @since 3.0.0
  */
 public interface SnsSmsOperations {
-	void send(String phoneNumber, String message);
-
 	void send(String phoneNumber, String message, @Nullable SmsMessageAttributes attributes);
 
-	void sendToTopicArn(String topicArn, String message);
+	default void send(String phoneNumber, String message) {
+		send(phoneNumber, message, null);
+	}
 
 	void sendToTopicArn(String topicArn, String message, @Nullable SmsMessageAttributes attributes);
+
+	default void sendToTopicArn(String topicArn, String message) {
+		sendToTopicArn(topicArn, message, null);
+	}
 }

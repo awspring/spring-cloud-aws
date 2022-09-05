@@ -63,7 +63,8 @@ class SnsSmsTemplateIntegrationTest {
 
 		await().untilAsserted(() -> {
 			String logs = localstack.getLogs(OutputFrame.OutputType.STDOUT, OutputFrame.OutputType.STDERR);
-			assertThat(logs).contains("Publishing message to TopicArn: None | Message: Spring Cloud AWS got you covered!");
+			assertThat(logs)
+					.contains("Publishing message to TopicArn: None | Message: Spring Cloud AWS got you covered!");
 		});
 	}
 
@@ -75,7 +76,8 @@ class SnsSmsTemplateIntegrationTest {
 
 		await().untilAsserted(() -> {
 			String logs = localstack.getLogs(OutputFrame.OutputType.STDOUT, OutputFrame.OutputType.STDERR);
-			assertThat(logs).contains("Publishing message to TopicArn: None | Message: Spring Cloud AWS got you covered!");
+			assertThat(logs)
+					.contains("Publishing message to TopicArn: None | Message: Spring Cloud AWS got you covered!");
 		});
 	}
 

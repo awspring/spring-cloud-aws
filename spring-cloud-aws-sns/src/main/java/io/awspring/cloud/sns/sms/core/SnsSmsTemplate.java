@@ -35,22 +35,12 @@ public class SnsSmsTemplate implements SnsSmsOperations {
 	}
 
 	@Override
-	public void send(String phoneNumber, String message) {
-		send(phoneNumber, message, null);
-	}
-
-	@Override
 	public void send(String phoneNumber, String message, @Nullable SmsMessageAttributes attributes) {
 		PublishRequest.Builder publishRequest = PublishRequest.builder().phoneNumber(phoneNumber).message(message);
 		if (attributes != null) {
 			publishRequest.messageAttributes(attributes.convertAndPopulate());
 		}
 		this.snsClient.publish(publishRequest.build());
-	}
-
-	@Override
-	public void sendToTopicArn(String topicArn, String message) {
-		sendToTopicArn(topicArn, message, null);
 	}
 
 	@Override
