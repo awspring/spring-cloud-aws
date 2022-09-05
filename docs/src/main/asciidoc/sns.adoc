@@ -105,7 +105,7 @@ To set MessageAttributes for SMS create `SnsMessageAttributes` and set values yo
 
 [source,java]
 ----
-import io.awspring.cloud.sns.sms.core.SnsSmsTemplate;
+import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 
 class NotificationService {
 	private SnsSmsTemplate snsSmsTemplate;

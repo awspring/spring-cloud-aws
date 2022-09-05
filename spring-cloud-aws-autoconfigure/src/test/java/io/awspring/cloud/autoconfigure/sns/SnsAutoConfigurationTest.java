@@ -24,7 +24,7 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
-import io.awspring.cloud.sns.sms.core.SnsSmsTemplate;
+import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;

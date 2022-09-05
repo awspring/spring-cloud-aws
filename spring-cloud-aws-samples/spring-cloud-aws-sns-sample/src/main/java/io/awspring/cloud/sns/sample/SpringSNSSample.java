@@ -18,7 +18,7 @@ package io.awspring.cloud.sns.sample;
 import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
 
 import io.awspring.cloud.sns.core.SnsTemplate;
-import io.awspring.cloud.sns.sms.core.SnsSmsTemplate;
+import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

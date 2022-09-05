@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.sms.core;
+package io.awspring.cloud.sns.sms;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
-import io.awspring.cloud.sns.sms.attributes.SmsMessageAttributes;
-import io.awspring.cloud.sns.sms.attributes.SmsType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

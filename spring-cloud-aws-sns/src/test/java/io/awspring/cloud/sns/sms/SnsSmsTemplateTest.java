@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.sms.core;
+package io.awspring.cloud.sns.sms;
 
 import static io.awspring.cloud.sns.Matchers.requestMatches;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import io.awspring.cloud.sns.sms.attributes.AttributeCodes;
-import io.awspring.cloud.sns.sms.attributes.SmsMessageAttributes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sns.SnsClient;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.sms.attributes;
+package io.awspring.cloud.sns.sms;
 
 /**
  * The type of message that you're sending.

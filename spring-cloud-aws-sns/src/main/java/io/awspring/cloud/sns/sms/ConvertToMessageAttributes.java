@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.sms.attributes;
+package io.awspring.cloud.sns.sms;
 
 import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.NUMBER;
 import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.STRING;

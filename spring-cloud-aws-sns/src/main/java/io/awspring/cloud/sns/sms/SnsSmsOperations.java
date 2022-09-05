@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.sms.core;
+package io.awspring.cloud.sns.sms;
 
-import io.awspring.cloud.sns.sms.attributes.SmsMessageAttributes;
 import org.springframework.lang.Nullable;
 
 /**

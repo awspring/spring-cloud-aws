@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.sms.attributes;
+package io.awspring.cloud.sns.sms;
 
-import static io.awspring.cloud.sns.sms.attributes.ConvertToMessageAttributes.populateMapWithNumberValue;
-import static io.awspring.cloud.sns.sms.attributes.ConvertToMessageAttributes.populateMapWithStringValue;
+import static io.awspring.cloud.sns.sms.ConvertToMessageAttributes.populateMapWithNumberValue;
+import static io.awspring.cloud.sns.sms.ConvertToMessageAttributes.populateMapWithStringValue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -64,7 +64,7 @@ public class SmsMessageAttributes {
 	@Nullable
 	private String templateId;
 
-	public Map<String, MessageAttributeValue> convertAndPopulate() {
+	Map<String, MessageAttributeValue> convertAndPopulate() {
 		Map<String, MessageAttributeValue> map = new HashMap<>();
 		populateMapWithStringValue(AttributeCodes.SENDER_ID, this.getSenderID(), map);
 		populateMapWithStringValue(AttributeCodes.ORIGINATION_NUMBER, this.getOriginationNumber(), map);
