@@ -24,7 +24,6 @@
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-starter-sns</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 

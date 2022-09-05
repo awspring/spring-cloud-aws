@@ -29,6 +29,8 @@
 		<awssdk-v1.version>1.12.295</awssdk-v1.version>
 		<amazon.dax.version>2.0.1</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<spring-cloud-commons.version>3.1.0</spring-cloud-commons.version>
+		<testcontainers.version>1.17.3</testcontainers.version>
 	</properties>
 
 	<dependencyManagement>
@@ -45,6 +47,22 @@
 				<groupId>com.amazonaws</groupId>
 				<artifactId>aws-java-sdk-bom</artifactId>
 				<version>${awssdk-v1.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-commons-dependencies</artifactId>
+				<version>${spring-cloud-commons.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>${testcontainers.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
