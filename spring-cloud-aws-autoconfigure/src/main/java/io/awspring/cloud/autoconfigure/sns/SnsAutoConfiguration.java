@@ -22,8 +22,10 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.sns.core.SnsOperations;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
+import io.awspring.cloud.sns.sms.SnsSmsOperations;
 import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import java.util.List;
 import java.util.Optional;
@@ -69,7 +71,7 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SnsTemplate snsTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper,
+	public SnsOperations snsTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper,
 			Optional<TopicArnResolver> topicArnResolver) {
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		converter.setSerializedPayloadClass(String.class);
@@ -80,7 +82,7 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SnsSmsTemplate snsSmsTemplate(SnsClient snsClient) {
+	public SnsSmsOperations snsSmsTemplate(SnsClient snsClient) {
 		return new SnsSmsTemplate(snsClient);
 	}
 

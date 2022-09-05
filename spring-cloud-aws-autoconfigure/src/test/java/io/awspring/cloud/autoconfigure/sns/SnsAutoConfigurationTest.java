@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.sns;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
@@ -24,6 +25,7 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
+import io.awspring.cloud.sns.sms.SnsSmsOperations;
 import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import java.net.URI;
 import java.time.Duration;
@@ -118,6 +120,14 @@ class SnsAutoConfigurationTest {
 		});
 	}
 
+	@Test
+	void smsSnsOperationsBeanCanBeOverwritten() {
+		this.contextRunner.withUserConfiguration(CustomSmsOperations.class).run(context -> {
+			assertThat(context.getBean("customSmsOperations", SnsSmsOperations.class)).isNotNull();
+			assertThat(context).doesNotHaveBean(SnsSmsTemplate.class);
+		});
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class CustomTopicArnResolverConfiguration {
 
@@ -156,6 +166,15 @@ class SnsAutoConfigurationTest {
 			public SdkHttpClient httpClient() {
 				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 			}
+		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomSmsOperations {
+
+		@Bean
+		SnsSmsOperations customSmsOperations() {
+			return mock(SnsSmsOperations.class);
 		}
 
 	}
