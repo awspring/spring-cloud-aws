@@ -17,7 +17,6 @@ package io.awspring.cloud.sqs.integration;
 
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
-import com.amazonaws.auth.AWSCredentials;
 import io.awspring.cloud.sqs.CompletableFutures;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,9 +59,8 @@ abstract class BaseSqsIntegrationTest {
 	static synchronized void beforeAll() {
 		if (!localstack.isRunning()) {
 			localstack.start();
-			AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
-			credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
-					.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
+			credentialsProvider = StaticCredentialsProvider
+					.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		}
 	}
 
