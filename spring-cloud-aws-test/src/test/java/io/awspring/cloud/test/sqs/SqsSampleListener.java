@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.test.sqs;
 
-import io.awspring.cloud.messaging.listener.annotation.SqsListener;
-
+import io.awspring.cloud.sqs.annotation.SqsListener;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -62,12 +62,22 @@
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-sqs</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-dynamodb</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-s3</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.dax</groupId>
+			<artifactId>amazon-dax-client</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>

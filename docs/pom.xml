@@ -14,7 +14,7 @@
 	<properties>
 		<docs.main>spring-cloud-aws</docs.main>
 		<main.basedir>${basedir}/..</main.basedir>
-		<configprops.inclusionPattern>cloud.aws.*|aws.*|spring.cloud.aws.*</configprops.inclusionPattern>
+		<configprops.inclusionPattern>spring.cloud.aws.*</configprops.inclusionPattern>
 		<upload-docs-zip.phase>deploy</upload-docs-zip.phase>
 		<generated-docs-multipage-output.dir>${project.build.directory}/generated-docs/${project.version}/reference/html</generated-docs-multipage-output.dir>
 		<generated-docs-singlepage-output.dir>${project.build.directory}/generated-docs/${project.version}/reference/htmlsingle</generated-docs-singlepage-output.dir>
@@ -23,7 +23,9 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
+				<version>${maven-deploy-plugin.version}</version>
 				<configuration>
 					<skip>true</skip>
 				</configuration>
@@ -62,6 +64,11 @@
 					<plugin>
 						<groupId>org.asciidoctor</groupId>
 						<artifactId>asciidoctor-maven-plugin</artifactId>
+						<configuration>
+							<attributes>
+								<source-highlighter>highlight.js</source-highlighter>
+							</attributes>
+						</configuration>
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>

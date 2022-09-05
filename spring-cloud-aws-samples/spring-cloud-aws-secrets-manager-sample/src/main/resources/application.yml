@@ -1,0 +1,20 @@
+# importing single secret
+spring.config.import: aws-secretsmanager:/secrets/spring-cloud-aws-sample-app
+logging.level.io.awspring.cloud.secretsmanager: debug
+
+# Localstack configuration
+spring.cloud.aws.endpoint: http://localhost:4566
+spring.cloud.aws.region.static: us-east-1
+spring.cloud.aws.credentials.access-key: noop
+spring.cloud.aws.credentials.secret-key: noop
+
+# importing multiple secrets
+# spring.config.import: aws-secretsmanager:/secrets/spring-cloud-aws-sample-app;/secret/common
+
+# importing secrets based on spring.application.name property value for each active profile
+# NOTE: if any of the secrets is missing, application won't start unless the "optional" prefix is set
+#spring.config.import: "aws-secretsmanager:"
+
+# secrets can be marked as optional - if any of them does not exist application startup will continue
+# spring.config.import: optional:aws-secretsmanager:/secrets/spring-cloud-aws-sample-app;/secret/common
+

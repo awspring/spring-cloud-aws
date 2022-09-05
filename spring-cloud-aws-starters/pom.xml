@@ -20,6 +20,7 @@
 		<module>spring-cloud-aws-starter-ses</module>
 		<module>spring-cloud-aws-starter-s3</module>
 		<module>spring-cloud-aws-starter-sns</module>
+		<module>spring-cloud-aws-starter-sqs</module>
 		<module>spring-cloud-aws-starter-dynamodb</module>
 	</modules>
 

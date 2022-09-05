@@ -21,13 +21,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Map;
+import io.awspring.cloud.sns.Person;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.test.util.ReflectionTestUtils;
-import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
@@ -79,12 +77,10 @@ class SnsTemplateTest {
 			assertThat(r.messageAttributes().keySet()).contains(MessageHeaders.ID);
 			assertThat(r.messageAttributes().keySet()).contains(MessageHeaders.TIMESTAMP);
 		}));
-		assertThat(((Map<String, Arn>) ReflectionTestUtils.getField(cachingTopicArnResolver, "cache")).size())
-				.isEqualTo(1);
+		assertThat(cachingTopicArnResolver.cacheSize()).isEqualTo(1);
 
 		snsTemplateTestCache.sendNotification("topic name", "message content", "subject");
-		assertThat(((Map<String, Arn>) ReflectionTestUtils.getField(cachingTopicArnResolver, "cache")).size())
-				.isEqualTo(1);
+		assertThat(cachingTopicArnResolver.cacheSize()).isEqualTo(1);
 	}
 
 	@Test
@@ -137,18 +133,6 @@ class SnsTemplateTest {
 			assertThat(r.messageGroupId()).isNull();
 			assertThat(r.messageDeduplicationId()).isNull();
 		}));
-	}
-
-	static class Person {
-		private final String name;
-
-		public Person(String name) {
-			this.name = name;
-		}
-
-		public String getName() {
-			return name;
-		}
 	}
 
 }

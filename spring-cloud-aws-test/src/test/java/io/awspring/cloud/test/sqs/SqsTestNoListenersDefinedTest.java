@@ -13,29 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.test.sqs;
-
-import io.awspring.cloud.autoconfigure.context.ContextCredentialsAutoConfiguration;
-import io.awspring.cloud.autoconfigure.context.ContextRegionProviderAutoConfiguration;
-import io.awspring.cloud.autoconfigure.messaging.SqsAutoConfiguration;
-import io.awspring.cloud.messaging.core.QueueMessagingTemplate;
-import org.junit.jupiter.api.Test;
-
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.context.ApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SqsTest
+import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.context.ApplicationContext;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+
+@SqsTest(properties = { "spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
+		"spring.cloud.aws.region.static=eu-west-1" })
 class SqsTestNoListenersDefinedTest extends BaseSqsIntegrationTest {
 
 	private static final Class<?>[] EXPECTED_AUTOCONFIGURATION_CLASSES = { SqsAutoConfiguration.class,
-			JacksonAutoConfiguration.class, ContextRegionProviderAutoConfiguration.class,
-			ContextCredentialsAutoConfiguration.class };
+			JacksonAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+			CredentialsProviderAutoConfiguration.class };
 
 	@Autowired
 	private ApplicationContext ctx;
@@ -49,7 +48,7 @@ class SqsTestNoListenersDefinedTest extends BaseSqsIntegrationTest {
 
 	@Test
 	void createsQueueMessagingTemplate() {
-		assertThatNoException().isThrownBy(() -> this.ctx.getBean(QueueMessagingTemplate.class));
+		assertThatNoException().isThrownBy(() -> this.ctx.getBean(SqsAsyncClient.class));
 	}
 
 	@Test
