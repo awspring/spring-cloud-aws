@@ -31,9 +31,13 @@ public enum SmsType {
 	 */
 	TRANSACTIONAL("Transactional");
 
-	public final String type;
+	private final String type;
 
 	SmsType(String type) {
 		this.type = type;
+	}
+
+	String getType() {
+		return type;
 	}
 }

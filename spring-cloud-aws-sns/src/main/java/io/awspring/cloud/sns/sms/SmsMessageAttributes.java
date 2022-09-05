@@ -69,8 +69,8 @@ public class SmsMessageAttributes {
 		populateMapWithStringValue(AttributeCodes.SENDER_ID, this.getSenderID(), map);
 		populateMapWithStringValue(AttributeCodes.ORIGINATION_NUMBER, this.getOriginationNumber(), map);
 		populateMapWithNumberValue(AttributeCodes.MAX_PRICE, this.getMaxPrice(), map);
-		populateMapWithStringValue(AttributeCodes.SMS_TYPE, this.getSmsType() != null ? this.getSmsType().type : null,
-				map);
+		populateMapWithStringValue(AttributeCodes.SMS_TYPE,
+				this.getSmsType() != null ? this.getSmsType().getType() : null, map);
 		populateMapWithStringValue(AttributeCodes.ENTITY_ID, this.getEntityId(), map);
 		populateMapWithStringValue(AttributeCodes.TEMPLATE_ID, this.getTemplateId(), map);
 		return map;

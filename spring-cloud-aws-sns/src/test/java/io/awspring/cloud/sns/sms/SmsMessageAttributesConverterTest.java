@@ -36,7 +36,7 @@ class SmsMessageAttributesConverterTest {
 		Map<String, MessageAttributeValue> messageAttributeValueMap = smsMessageAttributes.convertAndPopulate();
 		MessageAttributeValue smsType = messageAttributeValueMap.get(AttributeCodes.SMS_TYPE);
 		assertThat(smsType.dataType()).isEqualTo(MessageAttributeDataTypes.STRING);
-		assertThat(smsType.stringValue()).isEqualTo(SmsType.PROMOTIONAL.type);
+		assertThat(smsType.stringValue()).isEqualTo(SmsType.PROMOTIONAL.getType());
 
 		MessageAttributeValue orgNumber = messageAttributeValueMap.get(AttributeCodes.ORIGINATION_NUMBER);
 		assertThat(orgNumber.dataType()).isEqualTo(MessageAttributeDataTypes.STRING);
