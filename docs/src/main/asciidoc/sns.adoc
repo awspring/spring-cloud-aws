@@ -91,6 +91,37 @@ class NotificationService {
 }
 ----
 
+
+=== Sending SMS Messages
+
+The starter automatically configures and registers a `SnsSmsTemplate` bean providing higher level abstractions for sending SMS messages to SNS topic or directly to a phone number.
+
+- https://docs.amazonaws.cn/en_us/sns/latest/dg/sns-mobile-phone-number-as-subscriber.html[Mobile text messaging (SMS)]
+- https://docs.amazonaws.cn/en_us/sns/latest/dg/sms_publish-to-phone.html[Publishing to a mobile phone]
+- https://docs.amazonaws.cn/en_us/sns/latest/dg/sms_publish-to-topic.html[Publishing to a topic]
+
+Both `SnsSmsTemplate#send` and `SnsSmsTemplate#sendToTopic` take an optional parameter `SnsMessageAttributes` that provide a fluent type safe interface for setting https://docs.aws.amazon.com/sns/latest/dg/sms_publish-to-phone.html[MessageAttributes]
+
+[source,java]
+----
+import io.awspring.cloud.sns.sms.SmsMessageAttributes;
+import io.awspring.cloud.sns.sms.SmsType;
+import io.awspring.cloud.sns.sms.SnsSmsTemplate;
+
+class NotificationService {
+	private SnsSmsTemplate smsTemplate;
+
+	NotificationService(SnsSmsTemplate smsTemplate) {
+		this.smsTemplate = smsTemplate;
+	}
+
+	void sendSms() {
+		smsTemplate.send("+1XXX5550100", "the message", SmsMessageAttributes.builder()
+				.smsType(SmsType.PROMOTIONAL).senderID("mySenderID").maxPrice("0.50").build());
+	}
+}
+----
+
 === Using SNS Client
 
 To have access to all lower level SNS operations, we recommend using `SnsClient` from AWS SDK. `SnsClient` bean is autoconfigured by `SnsAutoConfiguration`.
