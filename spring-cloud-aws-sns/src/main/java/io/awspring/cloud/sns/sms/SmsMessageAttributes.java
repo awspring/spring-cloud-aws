@@ -15,8 +15,8 @@
  */
 package io.awspring.cloud.sns.sms;
 
-import static io.awspring.cloud.sns.sms.ConvertToMessageAttributes.populateMapWithNumberValue;
-import static io.awspring.cloud.sns.sms.ConvertToMessageAttributes.populateMapWithStringValue;
+import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.NUMBER;
+import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.STRING;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -190,6 +190,22 @@ public class SmsMessageAttributes {
 			smsMessageAttributes.setEntityId(entityId);
 			smsMessageAttributes.setTemplateId(templateId);
 			return smsMessageAttributes;
+		}
+	}
+
+	private static void populateMapWithStringValue(String attributeCode, @Nullable String value,
+			Map<String, MessageAttributeValue> messageAttributeValueMap) {
+		if (value != null) {
+			messageAttributeValueMap.put(attributeCode,
+					MessageAttributeValue.builder().dataType(STRING).stringValue(value).build());
+		}
+	}
+
+	private static void populateMapWithNumberValue(String attributeCode, @Nullable String value,
+			Map<String, MessageAttributeValue> messageAttributeValueMap) {
+		if (value != null) {
+			messageAttributeValueMap.put(attributeCode,
+					MessageAttributeValue.builder().dataType(NUMBER).stringValue(value).build());
 		}
 	}
 }
