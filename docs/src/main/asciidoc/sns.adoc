@@ -92,32 +92,32 @@ class NotificationService {
 ----
 
 
-==== SNS SMS Template
+=== Sending SMS Messages
 
-The starter automatically configures and registers a `SnsSmsTemplate` bean providing higher level abstractions for sending SMS.
-`SnsSmsTemplate` is simple operation that will help you send SMS messages with ease.
+The starter automatically configures and registers a `SnsSmsTemplate` bean providing higher level abstractions for sending SMS messages to SNS topic or directly to a phone number.
 
-It supports sending notifications with payload of type:
+- https://docs.amazonaws.cn/en_us/sns/latest/dg/sns-mobile-phone-number-as-subscriber.html[Mobile text messaging (SMS)]
+- https://docs.amazonaws.cn/en_us/sns/latest/dg/sms_publish-to-phone.html[Publishing to a mobile phone]
+- https://docs.amazonaws.cn/en_us/sns/latest/dg/sms_publish-to-topic.html[Publishing to a topic]
 
-* `String` - what you pass we send.
-
-To set MessageAttributes for SMS create `SnsMessageAttributes` and set values you want. More about MessageAttributes can be found https://docs.aws.amazon.com/sns/latest/dg/sms_publish-to-phone.html[here].
+Both `SnsSmsTemplate#send` and `SnsSmsTemplate#sendToTopic` take an optional parameter `SnsMessageAttributes` that provide a fluent type safe interface for setting https://docs.aws.amazon.com/sns/latest/dg/sms_publish-to-phone.html[MessageAttributes]
 
 [source,java]
 ----
+import io.awspring.cloud.sns.sms.SmsMessageAttributes;
+import io.awspring.cloud.sns.sms.SmsType;
 import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 
 class NotificationService {
-	private SnsSmsTemplate snsSmsTemplate;
+	private SnsSmsTemplate smsTemplate;
 
-	NotificationService(SnsSmsTemplate snsSmsTemplate) {
-		this.snsSmsTemplate = snsSmsTemplate;
+	NotificationService(SnsSmsTemplate smsTemplate) {
+		this.smsTemplate = smsTemplate;
 	}
 
 	void sendSms() {
-        // sends String payload
-		snsTemplate.send("000 000 000", "this is message", SmsMessageAttributes.builder().messageGroupId("tst")
-				.deduplicationId("3").senderID("springCloudAWS").originationNumber("202").build());
+		smsTemplate.send("+1XXX5550100", "the message", SmsMessageAttributes.builder()
+				.smsType(SmsType.PROMOTIONAL).senderID("mySenderID").maxPrice("0.50").build());
 	}
 }
 ----
