@@ -32,7 +32,7 @@ abstract class BaseSqsIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.0.4")).withServices(SQS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.1.0")).withServices(SQS).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() throws IOException, InterruptedException {
