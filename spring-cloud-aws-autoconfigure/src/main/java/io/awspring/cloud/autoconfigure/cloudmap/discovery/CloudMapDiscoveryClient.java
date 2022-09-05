@@ -23,10 +23,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Service;
-
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 
 // @checkstyle: off
@@ -41,8 +37,7 @@ public class CloudMapDiscoveryClient implements DiscoveryClient {
 	private final ServiceDiscoveryClient serviceDiscovery;
 	private final CloudMapProperties properties;
 
-	public CloudMapDiscoveryClient(ServiceDiscoveryClient serviceDiscovery,
-		CloudMapProperties properties) {
+	public CloudMapDiscoveryClient(ServiceDiscoveryClient serviceDiscovery, CloudMapProperties properties) {
 		this.serviceDiscovery = serviceDiscovery;
 		this.properties = properties;
 	}

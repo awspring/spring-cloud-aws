@@ -15,6 +15,11 @@
  */
 package io.awspring.cloud.autoconfigure.cloudmap;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.autoconfigure.cloudmap.discovery.CloudMapServiceInstance;
+import io.awspring.cloud.autoconfigure.cloudmap.properties.discovery.CloudMapDiscoveryProperties;
+import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.CloudMapRegistryProperties;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,14 +28,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.autoconfigure.cloudmap.discovery.CloudMapServiceInstance;
-import io.awspring.cloud.autoconfigure.cloudmap.properties.discovery.CloudMapDiscoveryProperties;
-import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.CloudMapRegistryProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.aws.cloudmap.exceptions.CreateNameSpaceException;
+import org.springframework.cloud.aws.cloudmap.exceptions.CreateServiceException;
+import org.springframework.cloud.aws.cloudmap.exceptions.MaxRetryExceededException;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.client.WebClient;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -60,14 +66,6 @@ import software.amazon.awssdk.services.servicediscovery.model.ResourceLimitExcee
 import software.amazon.awssdk.services.servicediscovery.model.ServiceAlreadyExistsException;
 import software.amazon.awssdk.services.servicediscovery.model.ServiceFilter;
 import software.amazon.awssdk.services.servicediscovery.model.ServiceSummary;
-
-import org.springframework.cloud.aws.cloudmap.exceptions.CreateNameSpaceException;
-import org.springframework.cloud.aws.cloudmap.exceptions.CreateServiceException;
-import org.springframework.cloud.aws.cloudmap.exceptions.MaxRetryExceededException;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
-import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * Uses Fargate Metadata URL to retrieve IPv4 address and VPC ID to register instances to cloudmap.

@@ -21,9 +21,6 @@ import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.ServiceR
 import io.awspring.cloud.autoconfigure.cloudmap.registration.CloudMapAutoRegistration;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
-import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
-import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClientBuilder;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -32,6 +29,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
+import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClientBuilder;
 
 /**
  * Cloudmap BootstrapConfiguration configuration class to create the required beans.
@@ -69,7 +68,7 @@ public class CloudMapBootstrapConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	CloudMapDiscoveryClient createDiscoveryClient(ServiceDiscoveryClient serviceDiscovery){
+	CloudMapDiscoveryClient createDiscoveryClient(ServiceDiscoveryClient serviceDiscovery) {
 		return new CloudMapDiscoveryClient(serviceDiscovery, properties);
 	}
 
