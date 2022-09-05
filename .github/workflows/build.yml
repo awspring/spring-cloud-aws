@@ -14,7 +14,7 @@ jobs:
     name: "Test with ${{ matrix.version }}"
     strategy:
       matrix:
-        version: [ 8.0.332-tem, 11.0.13-tem ]
+        version: [ 8.0.332-tem, 11.0.13-tem, 17.0.1-tem ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -37,12 +37,11 @@ jobs:
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Build with Maven
         run: ./mvnw -V -B verify
-  build-java-17:
-    name: "Test with ${{ matrix.version }}"
-    strategy:
-      matrix:
-        version: [ 17.0.1-tem ]
+  sonar:
+    name: "Run Sonar Analysis"
     runs-on: ubuntu-latest
+    # Disable Sonar for foreign PRs
+    if: (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
     steps:
       - uses: actions/checkout@v2
       - name: Cache local Maven repository
@@ -51,16 +50,25 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
-      - name: Download ${{ matrix.version }}
+      - name: Download JDK
         uses: sdkman/sdkman-action@master
         id: sdkman
         with:
           candidate: java
-          version: ${{ matrix.version }}
-      - name: Set up ${{ matrix.version }}
+          version: 17.0.1-tem
+      - name: Set up JDK
         uses: actions/setup-java@v1
         with:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
       - name: Build with Maven
-        run: ./mvnw -V -B verify -Dspotless.check.skip=true -Dspotless.apply.skip=true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./mvnw -V -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage

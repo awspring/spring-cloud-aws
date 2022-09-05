@@ -27,7 +27,8 @@
 	</scm>
 
 	<properties>
-		<spotless.version>2.22.0</spotless.version>
+		<spotless.version>2.25.0</spotless.version>
+		<jacoco.version>0.8.7</jacoco.version>
 	</properties>
 
 	<modules>
@@ -86,13 +87,6 @@
 							<compilerArg>-Xlint:-serial</compilerArg>
 							<!--compilerArg>-Werror</compilerArg-->
 						</compilerArgs>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<configuration>
-						<argLine>-Xms512m -Xmx512m</argLine>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -195,6 +189,53 @@
 						<artifactId>maven-javadoc-plugin</artifactId>
 						<configuration>
 							<skip>false</skip>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>coverage</id>
+			<properties>
+				<sonar.organization>awspring</sonar.organization>
+				<sonar.projectKey>awspring_spring-cloud-aws</sonar.projectKey>
+
+				<!-- https://community.sonarsource.com/t/project-quarkusio-quarkus-cant-have-2-modules-with-the-following-key-quarkusio-quarkus/33824/6 -->
+				<sonar.moduleKey>${artifactId}</sonar.moduleKey>
+				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>${jacoco.version}</version>
+						<executions>
+							<execution>
+								<id>prepare-agent</id>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>report</id>
+								<goals>
+									<goal>report</goal>
+								</goals>
+								<configuration>
+									<formats>
+										<format>XML</format>
+									</formats>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<argLine>@{argLine} -Xms512m -Xmx512m</argLine>
 						</configuration>
 					</plugin>
 				</plugins>
