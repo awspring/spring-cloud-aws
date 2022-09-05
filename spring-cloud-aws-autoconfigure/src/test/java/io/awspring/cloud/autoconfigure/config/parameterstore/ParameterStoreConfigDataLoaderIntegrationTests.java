@@ -189,7 +189,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"--spring.cloud.aws.endpoint=http://non-existing-host/",
 				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-1",
+				"--spring.cloud.aws.region.static=eu-west-1", "--spring.cloud.aws.cloudmap.enabled=false",
 				"--logging.level.io.awspring.cloud.parameterstore=debug")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 		}
@@ -204,7 +204,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"--spring.config.import=aws-parameterstore:/config/spring/",
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=" + REGION,
+				"--spring.cloud.aws.region.static=" + REGION, "--spring.cloud.aws.cloudmap.enabled=false",
 				"--logging.level.io.awspring.cloud.parameterstore=debug")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 		}
@@ -216,7 +216,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--" + endpointProperty + "=" + localstack.getEndpointOverride(SSM).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.parameterstore=debug");
+				"--spring.cloud.aws.cloudmap.enabled=false", "--spring.cloud.aws.region.static=eu-west-1",
+				"--logging.level.io.awspring.cloud.parameterstore=debug");
 	}
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport) {
