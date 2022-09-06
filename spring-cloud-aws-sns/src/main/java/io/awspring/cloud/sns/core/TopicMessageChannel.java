@@ -112,8 +112,7 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 				messageAttributes.put(messageHeaderName, getBinaryMessageAttribute((ByteBuffer) messageHeaderValue));
 			}
 			else if (messageHeaderValue instanceof List) {
-				messageAttributes.put(messageHeaderName,
-						getStringArrayMessageAttribute((List<Object>) messageHeaderValue));
+				messageAttributes.put(messageHeaderName, getStringArrayMessageAttribute((List<?>) messageHeaderValue));
 			}
 			else {
 				this.logger.warn(String.format(
@@ -131,7 +130,7 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 				|| MESSAGE_DEDUPLICATION_ID_HEADER.equals(headerName);
 	}
 
-	private MessageAttributeValue getStringArrayMessageAttribute(List<Object> messageHeaderValue) {
+	private <T> MessageAttributeValue getStringArrayMessageAttribute(List<T> messageHeaderValue) {
 
 		String stringValue = "[" + messageHeaderValue.stream()
 				.map(item -> "\"" + String.valueOf(jsonStringEncoder.quoteAsString(item.toString())) + "\"")
