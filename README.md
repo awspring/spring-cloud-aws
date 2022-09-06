@@ -4,11 +4,13 @@
 
 Simplifies using AWS managed services in a Spring and Spring Boot applications.
 
-For a deep dive into the project, refer to the Spring Cloud AWS Reference documentation:
+For a deep dive into the project, refer to the Spring Cloud AWS documentation:
 
-- [Spring Cloud AWS 3.0.0-M2](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-M2/reference/html/index.html)
-- [Spring Cloud AWS 2.4.2](https://docs.awspring.io/spring-cloud-aws/docs/2.4.2/reference/html/index.html)
-- [Spring Cloud AWS 2.3.5](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/reference/html/index.html)
+| Version                   | Reference Docs                                                                                      | API Docs                                                                               |
+|---------------------------|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| Spring Cloud AWS 3.0.0-M2 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-M2/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-M2/apidocs/index.html) | 
+| Spring Cloud AWS 2.4.2    | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.4.2/reference/html/index.html)    | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.4.2/apidocs/index.html)    | 
+| Spring Cloud AWS 2.3.5    | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/reference/html/index.html)    | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/apidocs/index.html)    |
 
 ## Sponsors
 

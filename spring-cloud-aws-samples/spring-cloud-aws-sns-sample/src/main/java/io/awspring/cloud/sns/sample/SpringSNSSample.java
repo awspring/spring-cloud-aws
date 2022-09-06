@@ -18,6 +18,7 @@ package io.awspring.cloud.sns.sample;
 import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
 
 import io.awspring.cloud.sns.core.SnsTemplate;
+import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -35,13 +36,16 @@ public class SpringSNSSample {
 	}
 
 	@Bean
-	public ApplicationRunner applicationRunner(SnsTemplate snsTemplate, SnsClient snsClient) {
+	public ApplicationRunner applicationRunner(SnsTemplate snsTemplate, SnsClient snsClient,
+			SnsSmsTemplate snsSmsTemplate) {
 		return args -> {
 			String arn = snsClient.createTopic(CreateTopicRequest.builder().name("testTopic").build()).topicArn();
 			snsClient.subscribe(SubscribeRequest.builder().protocol("http")
 					.endpoint("http://host.docker.internal:8080/testTopic").topicArn(arn).build());
 			snsTemplate.send(arn, MessageBuilder.withPayload("Spring Cloud AWS SNS Sample!")
 					.setHeader(NOTIFICATION_SUBJECT_HEADER, "Some value!").build());
+
+			snsSmsTemplate.send("your phone number", "Message to be delivered");
 		};
 	}
 
