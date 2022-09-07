@@ -23,6 +23,12 @@
 			"name": "spring.cloud.aws.dynamodb.enabled",
 			"description": "Enables DynamoDb integration.",
 			"type": "java.lang.Boolean"
+		},
+		{
+			"defaultValue": true,
+			"name": "spring.cloud.aws.cloudmap.enabled",
+			"description": "Enables CloudMap integration.",
+			"type": "java.lang.Boolean"
 		}
 	]
 }

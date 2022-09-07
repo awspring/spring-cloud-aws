@@ -1,0 +1,266 @@
+[#spring-cloud-aws-cloudmap]
+== Spring Cloud AWS CloudMap
+This article talks about the new Spring Cloud AWS CloudMap module.
+
+=== What is service discovery?
+
+Service discovery is the mechanism through which a microservices can locate other microservices in the network. Service discovery is a critical part of microservices architecture as it enables the microservices to identify and communicate with each other. 
+
+There are two types of service discovery: Server-side and Client-side.
+
+    1. Server-side service discovery allows clients applications to find other services through a router (like API gateway or a load balancer).
+    2. Client-side service discovery allows clients applications to find services by looking through or querying a service registry, in which service instances and endpoints are all within the service registry.
+
+=== What is AWS Cloud Map?
+https://aws.amazon.com/cloud-map/[AWS Cloud Map] is a client-side service registry and service discovery solution provided as a ready-to-use, highly available service. Rather than build your own client service registry, you can leverage AWS Cloud Map to register your application and its running instances, and then use either the AWS Cloud Map API or DNS lookup to resolve a service's name to a current active endpoint. 
+
+With Cloud Map, you can define custom names for your application resources, and it maintains the updated location of these dynamically changing resources. This increases your application availability because your web service always discovers the most up-to-date locations of its resources.
+
+=== Spring Cloud integration with AWS Cloud Map
+
+Spring Cloud AWS adds support for registering and discovering service using AWS Cloud Map through Spring Boot https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-files-importing[config import feature].
+
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
+
+[source,xml]
+----
+<dependency>
+	<groupId>io.awspring.cloud</groupId>
+	<artifactId>spring-cloud-aws-starter-aws-cloudmap</artifactId>
+</dependency>
+----
+
+
+=== Service registration
+To register a microservice to Cloud Map we need to specify the following:
+
+    1. Namespace - A namespace is a way to group services for an application. When you create a namespace, you specify how you want to discover service instances that you register with AWS Cloud Map
+    2. Service name - A service is a template for registering service instances, which allow you to locate the resources for an application using AWS Cloud Map `DiscoverInstances` API action
+    3. Service Instance - A service instance contains information about how to locate a resource, such as a web server, for an application. After you register instances, you locate them by using AWS Cloud Map `DiscoverInstances` API action.
+
+Spring Cloud integration with AWS Cloud Map allows you to register a microservice to Cloud Map using the following configuration:
+
+    1. Automatic registration - Spring Cloud AWS Cloud Map module automatically registers the microservice to Cloud Map when the application starts. In order to do this, just include `spring-cloud-aws-starter-aws-cloudmap` dependency in your application, and Cloud Map integration module will register your microservice under `default-namespace` namespace and `spring.application.name or default-service` service name.
+    2. Manual registration - Cloud Map properties can be provided part of the application configuration, here is a sample:
+
+```properties
+spring.cloud.aws.cloudmap.registry.description=Namespace for sample cloudmap registry service
+spring.cloud.aws.cloudmap.registry.port=80
+spring.cloud.aws.cloudmap.registry.service=a-service
+spring.cloud.aws.cloudmap.registry.nameSpace=a-namespace
+```
+
+=== Service discovery
+To discover a microservice using Cloud Map we need to specify the following:
+
+Enable `DiscoveryClient` - You can use `@EnableDiscoveryClient` annotation to integrate with Spring Cloud `DiscoveryClient`, here is a sample:
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class SpringCloudAwsCloudMapSample {
+	@Autowired
+	private DiscoveryClient discoveryClient;
+
+	@Bean
+	ApplicationRunner applicationRunner() {
+		return args -> LOGGER.info("Total instances: {}", discoveryClient.getServices().size());
+	}
+}
+```
+* Using application configuration to specify the services - You can specify the services that can be discovered using `spring.cloud.aws.cloudmap.discovery.*` property, here is a sample:
+
+```properties
+spring.cloud.aws.cloudmap.discovery.discoveryList[0].service=a-service #array of services
+spring.cloud.aws.cloudmap.discovery.discoveryList[0].nameSpace=a-namespace
+```
+
+=== Using ServiceDiscoveryClient
+
+The starter automatically configures and registers a `ServiceDiscoveryClient` bean in the Spring application context. The `ServiceDiscoveryClient` bean can be used to register or discovery service instances from AWS Cloud Map.
+
+[source,java]
+----
+import org.springframework.stereotype.Component;
+import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
+...
+@Autowired
+private ServiceDiscoveryClient serviceDiscoveryClient;
+...
+Map<String, String> attributes = new HashMap<>();
+attributes.put(AWS_INSTANCE_IPV_4, registrationDetails.get(IPV_4_ADDRESS));
+attributes.put(REGION, System.getenv("AWS_REGION"));
+attributes.put(NAMESPACE_ID, nameSpaceId);
+attributes.put(SERVICE_ID, serviceId);
+attributes.put(SERVICE_INSTANCE_ID, serviceInstanceId);
+
+// Register instance
+final String operationId = serviceDiscovery.registerInstance(RegisterInstanceRequest.builder()
+        .instanceId(serviceInstanceId).serviceId(serviceId).attributes(attributes).build())
+        .operationId();
+----
+
+=== Customizing ServiceDiscoveryClient
+
+To use custom `ServiceDiscoveryClient` in `spring.config.import`, provide an implementation of `BootstrapRegistryInitializer`. For example:
+
+[source,java]
+----
+package com.app;
+
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
+
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
+
+class AWSCloudMapBootstrapConfiguration implements BootstrapRegistryInitializer {
+
+    @Override
+    public void initialize(BootstrapRegistry registry) {
+        registry.register(ServiceDiscoveryClient.class, context -> {
+			AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("yourAccessKey", "yourSecretKey"));
+			return ServiceDiscoveryClient.builder().credentialsProvider(awsCredentialsProvider).region(Region.EU_WEST_2).build();
+		});
+    }
+}
+----
+
+---
+
+Note that this class must be listed under `org.springframework.boot.BootstrapRegistryInitializer` key in `META-INF/spring.factories`:
+
+[source, properties]
+----
+org.springframework.boot.BootstrapRegistryInitializer=com.app.AWSCloudMapBootstrapConfiguration
+----
+
+Note that this class must be listed under `org.springframework.boot.BootstrapRegistryInitializer` key in `META-INF/spring.factories`:
+
+[source, properties]
+----
+org.springframework.boot.BootstrapRegistryInitializer=com.app.AWSCloudMapBootstrapConfiguration
+----
+
+If you want to use autoconfigured `ServiceDiscoveryClient` but change underlying SDKClient or ClientOverrideConfiguration you will need to register bean of type `AwsClientConfigurerCloudMap`:
+Autoconfiguration will configure `ServiceDiscoveryClient` Bean with provided values after that, for example:
+
+If you want to use autoconfigured `ServiceDiscoveryClient` but change underlying SDKClient or ClientOverrideConfiguration you will need to register bean of type `AwsClientConfigurerCloudMap`:
+Autoconfiguration will configure `ServiceDiscoveryClient` Bean with provided values after that, for example:
+
+[source,java]
+----
+package com.app;
+
+import io.awspring.cloud.autoconfigure.cloudmap.AwsCloudMapStoreClientCustomizer;
+import java.time.Duration;
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.services.ssm.SsmClientBuilder;
+
+class AWSCloudMapBootstrapConfiguration implements BootstrapRegistryInitializer {
+
+	@Override
+	public void initialize(BootstrapRegistry registry) {
+		registry.register(AwsCloudMapStoreClientCustomizer.class,
+            context -> new AwsCloudMapStoreClientCustomizer() {
+
+                @Override
+                public ClientOverrideConfiguration overrideConfiguration() {
+                    return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(500))
+                            .build();
+                }
+
+                @Override
+                public SdkHttpClient httpClient() {
+                    return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1000)).build();
+                }
+            });
+    }
+}
+----
+
+=== Configuration
+
+The Spring Boot Starter for Cloud Map integration provides the following configuration options for service registration:
+
+[cols="4,3,1,1"]
+|===
+| Name | Description | Required | Default value
+
+| `spring.cloud.aws.cloudmap.registry.description` | Namespace for sample cloudmap registry service. | No | `default-namespace`
+| `spring.cloud.aws.cloudmap.registry.port` | Port in which the microservice is exposed. | No | `null` 
+| `spring.cloud.aws.cloudmap.registry.service` | Service name for registering the cloudmap service. | No | `default-service or spring.application.name` 
+| `spring.cloud.aws.cloudmap.region` | Configures region used by `ServiceDiscoveryClient`. | No | `null`
+|===
+
+
+The Spring Boot Starter for Cloud Map integration provides the following configuration options for discovering services:
+
+[cols="4,3,1,1"]
+|===
+| Name | Description | Required | Default value
+
+| `spring.cloud.aws.cloudmap.discovery.discoveryList[*].service` | Array of Cloudmap services the module will discover part of the startup. | No | `null` 
+| `spring.cloud.aws.cloudmap.discovery.discoveryList[*].nameSpace` | Array of Cloudmap namespaces the module will discover part of the startup. | No | `null` 
+| `spring.cloud.aws.cloudmap.region` | Configures region used by `ServiceDiscoveryClient`. | No | `null`
+|===
+
+=== IAM Permissions
+Following IAM permissions are required by Spring Cloud AWS to register and discover services in AWS Cloud Map:
+
+[cols="1"]
+|===
+| **Policies**
+|    `servicediscovery:ListServices`
+|    `servicediscovery:GetOperation`
+|    `servicediscovery:DiscoverInstances`
+|    `servicediscovery:DeleteNamespace`
+|    `servicediscovery:ListNamespaces`
+|    `servicediscovery:RegisterInstance`
+|    `servicediscovery:CreateService`
+|    `servicediscovery:DeregisterInstance`
+|    `servicediscovery:DeleteService`
+|    `servicediscovery:GetNamespace`
+|    `servicediscovery:GetInstance`
+|    `servicediscovery:GetService`
+|    `servicediscovery:ListInstances`
+|===
+
+Sample IAM policy:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Sid1",
+            "Effect": "Allow",
+            "Action": [
+                "servicediscovery:ListServices",
+                "servicediscovery:GetOperation",
+                "servicediscovery:DiscoverInstances",
+                "servicediscovery:DeleteNamespace",
+                "servicediscovery:ListNamespaces",
+                "servicediscovery:RegisterInstance",
+                "servicediscovery:CreateService",
+                "servicediscovery:DeregisterInstance",
+                "servicediscovery:DeleteService",
+                "servicediscovery:GetNamespace",
+                "servicediscovery:GetInstance",
+                "servicediscovery:GetService",
+                "servicediscovery:ListInstances"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+----
+

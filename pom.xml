@@ -33,6 +33,7 @@
 
 	<modules>
 		<module>spring-cloud-aws-core</module>
+		<module>spring-cloud-aws-cloudmap</module>
 		<module>spring-cloud-aws-autoconfigure</module>
 		<module>spring-cloud-aws-dependencies</module>
 		<module>spring-cloud-aws-parameter-store</module>

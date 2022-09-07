@@ -89,6 +89,12 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-cloudmap</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-autoconfigure</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -144,6 +150,12 @@
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-cloudmap</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
