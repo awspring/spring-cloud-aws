@@ -13,31 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.cloudmap.properties.discovery;
+package io.awspring.cloud.autoconfigure.cloudmap;
 
-import java.util.List;
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
+import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 /**
- * Pojo class to capture all the discovery parameters.
- *
  * @author Hari Ohm Prasath
- * @since 3.0
+ * @since 3.0.0
  */
-public class CloudMapDiscovery {
-
-	private List<CloudMapDiscoveryProperties> discoveryList;
-
-	public List<CloudMapDiscoveryProperties> getDiscoveryList() {
-		return this.discoveryList;
-	}
-
-	public void setDiscoveryList(List<CloudMapDiscoveryProperties> discoveryList) {
-		this.discoveryList = discoveryList;
-	}
-
-	@Override
-	public String toString() {
-		return "AwsCloudMapDiscovery{" + "discoveryList=" + discoveryList.toString() + '}';
-	}
-
+public interface AwsCloudMapStoreClientCustomizer extends AwsClientCustomizer<SsmClientBuilder> {
 }

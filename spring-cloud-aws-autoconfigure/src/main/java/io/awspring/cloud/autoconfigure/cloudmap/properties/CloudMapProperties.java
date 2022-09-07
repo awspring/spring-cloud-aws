@@ -18,10 +18,8 @@ package io.awspring.cloud.autoconfigure.cloudmap.properties;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.cloudmap.properties.discovery.CloudMapDiscovery;
 import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.CloudMapRegistryProperties;
-import java.net.URI;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
  * POJO to capture all cloudmap integration parameters (both registry and discovery).
@@ -30,45 +28,18 @@ import org.springframework.core.env.Environment;
  * @since 3.0
  */
 @ConfigurationProperties(CloudMapProperties.CONFIG_PREFIX)
-public class CloudMapProperties extends AwsClientProperties implements EnvironmentAware {
+public class CloudMapProperties extends AwsClientProperties {
 
 	/**
 	 * Default cloudmap prefix.
 	 */
 	public static final String CONFIG_PREFIX = "spring.cloud.aws.cloudmap";
 
+	@NestedConfigurationProperty
 	private CloudMapRegistryProperties registry;
 
+	@NestedConfigurationProperty
 	private CloudMapDiscovery discovery;
-
-	private String region;
-
-	/**
-	 * Overrides the default endpoint.
-	 */
-	private URI endpoint;
-
-	private boolean enabled;
-
-	private String annotationBasePackage;
-
-	private Environment environment;
-
-	public String getAnnotationBasePackage() {
-		return this.annotationBasePackage;
-	}
-
-	public void setAnnotationBasePackage(String annotationBasePackage) {
-		this.annotationBasePackage = annotationBasePackage;
-	}
-
-	public String getRegion() {
-		return this.region;
-	}
-
-	public void setRegion(String region) {
-		this.region = region;
-	}
 
 	public CloudMapRegistryProperties getRegistry() {
 		return this.registry;
@@ -86,35 +57,10 @@ public class CloudMapProperties extends AwsClientProperties implements Environme
 		this.discovery = discovery;
 	}
 
-	public boolean isEnabled() {
-		return this.enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
-	public Environment getEnvironment() {
-		return environment;
-	}
-
-	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
-
-	public URI getEndpoint() {
-		return endpoint;
-	}
-
-	public void setEndpoint(URI endpoint) {
-		this.endpoint = endpoint;
-	}
-
 	@Override
 	public String toString() {
-		return "AwsCloudMapProperties{" + "registry=" + registry + ", discovery=" + discovery + ", region='" + region
-				+ '\'' + ", enabled=" + enabled + ", annotationBasePackage='" + annotationBasePackage + '\'' + '}';
+		return "AwsCloudMapProperties{" + "registry=" + registry + ", discovery=" + discovery + ", region='"
+				+ getRegion() + "'}";
 	}
 
 }

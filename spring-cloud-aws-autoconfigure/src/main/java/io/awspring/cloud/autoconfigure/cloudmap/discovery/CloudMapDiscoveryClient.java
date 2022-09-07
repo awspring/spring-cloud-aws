@@ -55,7 +55,7 @@ public class CloudMapDiscoveryClient implements DiscoveryClient {
 	@Override
 	public List<String> getServices() {
 		final List<CloudMapDiscoveryProperties> discoveryProperties = properties.getDiscovery().getDiscoveryList();
-		if (discoveryProperties != null && !discoveryProperties.isEmpty()) {
+		if (!discoveryProperties.isEmpty()) {
 			return UTILS.listServices(serviceDiscovery, discoveryProperties);
 		}
 

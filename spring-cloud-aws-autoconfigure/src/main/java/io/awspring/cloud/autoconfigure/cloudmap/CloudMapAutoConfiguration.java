@@ -22,7 +22,6 @@ import io.awspring.cloud.autoconfigure.cloudmap.registration.CloudMapAutoRegistr
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -40,14 +39,13 @@ import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClientBu
  */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(CloudMapProperties.class)
-@ConditionalOnClass({ ServiceDiscoveryClient.class, ServiceRegistration.class, CloudMapAutoRegistration.class })
 @ConditionalOnProperty(prefix = CloudMapProperties.CONFIG_PREFIX, name = "enabled", matchIfMissing = true)
-public class CloudMapBootstrapConfiguration {
+public class CloudMapAutoConfiguration {
 
 	private final ApplicationContext context;
 	private final CloudMapProperties properties;
 
-	public CloudMapBootstrapConfiguration(CloudMapProperties properties, ApplicationContext context) {
+	public CloudMapAutoConfiguration(CloudMapProperties properties, ApplicationContext context) {
 		this.properties = properties;
 		this.context = context;
 	}

@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.awspring.cloud.autoconfigure.cloudmap.properties.discovery.CloudMapDiscoveryProperties;
 import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.CloudMapRegistryProperties;
 import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.ServiceRegistration;
 import java.util.Collections;
@@ -28,6 +29,12 @@ import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
+import software.amazon.awssdk.services.ec2.model.Subnet;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 import software.amazon.awssdk.services.servicediscovery.model.CreatePrivateDnsNamespaceRequest;
 import software.amazon.awssdk.services.servicediscovery.model.CreatePrivateDnsNamespaceResponse;
@@ -57,11 +64,22 @@ import software.amazon.awssdk.services.servicediscovery.model.ServiceSummary;
  */
 public class CloudMapRegisterServiceTest {
 
+	private static final String DEPLOYMENT_PLATFORM = "DEPLOYMENT_PLATFORM";
+	private static final String ECS = "ECS";
+	private static final String EKS = "EKS";
 	private final ServiceDiscoveryClient serviceDiscovery = mock(ServiceDiscoveryClient.class);
+	private final Ec2Client ec2Client = mock(Ec2Client.class);
 
 	private final CloudMapUtils cloudMapUtils = CloudMapUtils.getInstance();
 
+	private final RestTemplate restTemplate = mock(RestTemplate.class);
+
 	private final Environment environment = mock(Environment.class);
+
+	public CloudMapRegisterServiceTest() {
+		cloudMapUtils.setEc2Client(ec2Client);
+		cloudMapUtils.setRestTemplate(restTemplate);
+	}
 
 	@Test
 	public void cloudMapRegisterInstancesNameSpaceAndServiceExists() {
@@ -77,16 +95,25 @@ public class CloudMapRegisterServiceTest {
 		when(serviceDiscovery.getOperation((any(GetOperationRequest.class)))).thenReturn(operationResponse);
 
 		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResponse);
+
+		System.setProperty(DEPLOYMENT_PLATFORM, ECS);
+		when(restTemplate.getForEntity(CloudMapUtils.EC2_METADATA_URL + "/task", String.class))
+				.thenReturn(ResponseEntity.ok(CloudMapTestConstants.ECS_REPONSE_JSON));
+		when(ec2Client.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(
+				DescribeSubnetsResponse.builder().subnets(Subnet.builder().vpcId("vpc-id").build()).build());
+
 		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, getProperties(), environment)).isNotEmpty();
 	}
 
 	@Test
-	public void cloudMapRegisterInstanceWithNoNameSpace() {
+	public void cloudMapRegisterInstanceEcsWithNoNameSpace() {
 		final ListNamespacesResponse listNamespacesResponse = getListNamespacesResponse();
 		final ListServicesResponse listServicesResponse = getListServicesResponse();
 		final RegisterInstanceResponse registerInstanceRequest = getRegisterInstanceResponse();
 		final GetOperationResponse operationResponse = getOperationResponse();
 		final CreatePrivateDnsNamespaceResponse createPrivateDnsNamespaceResponse = getCreatePrivateDnsNamespaceResponse();
+		cloudMapUtils.setRestTemplate(restTemplate);
+		cloudMapUtils.setEc2Client(ec2Client);
 
 		when(serviceDiscovery.listNamespaces(any(ListNamespacesRequest.class))).thenReturn(
 				ListNamespacesResponse.builder().namespaces(Collections.emptyList()).build(), listNamespacesResponse);
@@ -100,6 +127,50 @@ public class CloudMapRegisterServiceTest {
 		when(serviceDiscovery.getOperation((any(GetOperationRequest.class)))).thenReturn(operationResponse);
 
 		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResponse);
+
+		System.setProperty(DEPLOYMENT_PLATFORM, EKS);
+		when(restTemplate.getForEntity(String.format("%s/local-ipv4", CloudMapUtils.EC2_METADATA_URL), String.class))
+				.thenReturn(ResponseEntity.ok("10.1.1.1"));
+		when(restTemplate.getForEntity(String.format("%s/network/interfaces/macs", CloudMapUtils.EC2_METADATA_URL),
+				String.class)).thenReturn(ResponseEntity.ok("MacId/Id"));
+		when(restTemplate.getForEntity(
+				String.format("%s/network/interfaces/macs/%s/vpc-id", CloudMapUtils.EC2_METADATA_URL, "MacId"),
+				String.class)).thenReturn(ResponseEntity.ok("vpcId"));
+		when(ec2Client.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(
+				DescribeSubnetsResponse.builder().subnets(Subnet.builder().vpcId("vpc-id").build()).build());
+
+		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, getProperties(), environment)).isNotEmpty();
+	}
+
+	@Test
+	public void cloudMapRegisterInstanceEksWithNoNameSpace() {
+		final ListNamespacesResponse listNamespacesResponse = getListNamespacesResponse();
+		final ListServicesResponse listServicesResponse = getListServicesResponse();
+		final RegisterInstanceResponse registerInstanceRequest = getRegisterInstanceResponse();
+		final GetOperationResponse operationResponse = getOperationResponse();
+		final CreatePrivateDnsNamespaceResponse createPrivateDnsNamespaceResponse = getCreatePrivateDnsNamespaceResponse();
+		cloudMapUtils.setRestTemplate(restTemplate);
+		cloudMapUtils.setEc2Client(ec2Client);
+
+		when(serviceDiscovery.listNamespaces(any(ListNamespacesRequest.class))).thenReturn(
+				ListNamespacesResponse.builder().namespaces(Collections.emptyList()).build(), listNamespacesResponse);
+		when(serviceDiscovery.createPrivateDnsNamespace(any(CreatePrivateDnsNamespaceRequest.class)))
+				.thenReturn(createPrivateDnsNamespaceResponse);
+		when(serviceDiscovery.getOperation((any(GetOperationRequest.class)))).thenReturn(operationResponse);
+
+		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResponse);
+		when(serviceDiscovery.registerInstance((any(RegisterInstanceRequest.class))))
+				.thenReturn(registerInstanceRequest);
+		when(serviceDiscovery.getOperation((any(GetOperationRequest.class)))).thenReturn(operationResponse);
+
+		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResponse);
+
+		System.setProperty(DEPLOYMENT_PLATFORM, ECS);
+		when(restTemplate.getForEntity(CloudMapUtils.EC2_METADATA_URL + "/task", String.class))
+				.thenReturn(ResponseEntity.ok(CloudMapTestConstants.ECS_REPONSE_JSON));
+		when(ec2Client.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(
+				DescribeSubnetsResponse.builder().subnets(Subnet.builder().vpcId("vpc-id").build()).build());
+
 		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, getProperties(), environment)).isNotEmpty();
 	}
 
@@ -123,7 +194,27 @@ public class CloudMapRegisterServiceTest {
 				.thenReturn(registerInstanceResponse);
 		when(serviceDiscovery.getOperation((any(GetOperationRequest.class)))).thenReturn(operationResponse);
 
+		System.setProperty(DEPLOYMENT_PLATFORM, ECS);
+		when(restTemplate.getForEntity(CloudMapUtils.EC2_METADATA_URL + "/task", String.class))
+				.thenReturn(ResponseEntity.ok(CloudMapTestConstants.ECS_REPONSE_JSON));
+		when(ec2Client.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(
+				DescribeSubnetsResponse.builder().subnets(Subnet.builder().vpcId("vpc-id").build()).build());
+
 		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, getProperties(), environment)).isNotEmpty();
+	}
+
+	@Test
+	public void listService() {
+		CloudMapDiscoveryProperties cloudMapDiscoveryProperties = new CloudMapDiscoveryProperties();
+		cloudMapDiscoveryProperties.setService(CloudMapTestUtils.SERVICE);
+		cloudMapDiscoveryProperties.setNameSpace(CloudMapTestUtils.NAMESPACE);
+		final ListNamespacesResponse listNamespacesResponse = getListNamespacesResponse();
+		final ListServicesResponse listServicesResponse = getListServicesResponse();
+
+		when(serviceDiscovery.listNamespaces(any(ListNamespacesRequest.class))).thenReturn(listNamespacesResponse);
+		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResponse);
+
+		cloudMapUtils.listServices(serviceDiscovery, Collections.singletonList(cloudMapDiscoveryProperties));
 	}
 
 	@Test
@@ -171,12 +262,6 @@ public class CloudMapRegisterServiceTest {
 		NamespaceSummary summary = NamespaceSummary.builder().id(CloudMapTestUtils.NAMESPACE)
 				.name(CloudMapTestUtils.NAMESPACE).build();
 		return ListNamespacesResponse.builder().namespaces(Collections.singleton(summary)).build();
-	}
-
-	private Map<String, String> getAttributesMap() {
-		Map<String, String> attributeMap = new HashMap<>();
-		attributeMap.put(cloudMapUtils.IPV_4_ADDRESS, "10.1.1.23");
-		return attributeMap;
 	}
 
 	private CloudMapRegistryProperties getProperties() {

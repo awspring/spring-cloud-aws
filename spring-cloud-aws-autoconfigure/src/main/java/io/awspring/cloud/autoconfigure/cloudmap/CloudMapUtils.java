@@ -36,7 +36,7 @@ import org.springframework.cloud.aws.cloudmap.exceptions.MaxRetryExceededExcepti
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -146,7 +146,7 @@ public class CloudMapUtils {
 
 	final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
-	private final WebClient WEB_CLIENT = WebClient.create();
+	private RestTemplate restTemplate;
 
 	private Ec2Client ec2Client;
 
@@ -157,7 +157,8 @@ public class CloudMapUtils {
 	 * @return map containing ip address and vpcid
 	 */
 	public Map<String, String> getRegistrationAttributes() {
-		String deploymentPlatform = System.getenv(DEPLOYMENT_PLATFORM);
+		String deploymentPlatform = System.getenv(DEPLOYMENT_PLATFORM) == null ? System.getProperty(DEPLOYMENT_PLATFORM)
+				: System.getenv(DEPLOYMENT_PLATFORM);
 		LOGGER.info("Deployment platform passed in {} ", deploymentPlatform);
 		if (StringUtils.hasText(deploymentPlatform) && EKS.equalsIgnoreCase(deploymentPlatform.trim()))
 			return getEksRegistrationAttributes();
@@ -544,7 +545,7 @@ public class CloudMapUtils {
 					.describeSubnets(DescribeSubnetsRequest.builder()
 							.filters(Filter.builder().name("cidr-block").values(cidrBlock).build()).build())
 					.subnets().get(0).vpcId();
-			LOGGER.info("IPv4Address {} - CIDR Block {} - VPC ID {}", ipv4Address, cidrBlock, vpcId);
+			LOGGER.info("IPv4Address {} - VPC ID {}", ipv4Address, vpcId);
 			return getCloudMapAttributes(ipv4Address, vpcId);
 		}
 		catch (Exception e) {
@@ -559,7 +560,7 @@ public class CloudMapUtils {
 	 * @return response as string
 	 */
 	private String getUrlResponse(String url) {
-		return WEB_CLIENT.get().uri(url).retrieve().bodyToMono(String.class).block();
+		return getRestTemplate().getForEntity(url, String.class).getBody();
 	}
 
 	/**
@@ -587,4 +588,22 @@ public class CloudMapUtils {
 		return ec2Client;
 	}
 
+	/**
+	 * Get Rest Template
+	 * @return restTemplate
+	 */
+	RestTemplate getRestTemplate() {
+		if (restTemplate == null) {
+			restTemplate = new RestTemplate();
+		}
+		return restTemplate;
+	}
+
+	void setRestTemplate(RestTemplate restTemplate) {
+		this.restTemplate = restTemplate;
+	}
+
+	void setEc2Client(Ec2Client ec2Client) {
+		this.ec2Client = ec2Client;
+	}
 }

@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.cloudmap.registration;
 
 import io.awspring.cloud.autoconfigure.cloudmap.CloudMapUtils;
 import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.CloudMapRegistryProperties;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
@@ -29,6 +30,7 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 
 public class CloudMapAutoRegistration
@@ -44,9 +46,10 @@ public class CloudMapAutoRegistration
 
 	private final CloudMapUtils UTILS = CloudMapUtils.getInstance();
 
+	@Nullable
 	private Environment environment;
 
-	private Map<String, String> attributesMap;
+	private Map<String, String> attributesMap = new HashMap<>();
 
 	public CloudMapAutoRegistration(ApplicationContext context, ServiceDiscoveryClient serviceDiscovery,
 			CloudMapRegistryProperties properties) {
@@ -97,7 +100,7 @@ public class CloudMapAutoRegistration
 
 	@Override
 	public void stop() {
-		if (this.running.get() && attributesMap != null && attributesMap.containsKey(UTILS.SERVICE_INSTANCE_ID)) {
+		if (this.running.get() && !attributesMap.isEmpty() && attributesMap.containsKey(UTILS.SERVICE_INSTANCE_ID)) {
 			UTILS.deregisterInstance(serviceDiscovery, attributesMap);
 			this.running.set(false);
 		}
