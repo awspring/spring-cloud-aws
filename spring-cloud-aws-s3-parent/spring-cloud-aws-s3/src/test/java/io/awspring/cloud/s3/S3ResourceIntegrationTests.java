@@ -18,7 +18,6 @@ package io.awspring.cloud.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.amazonaws.auth.AWSCredentials;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -70,7 +69,7 @@ class S3ResourceIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.0.4")).withServices(Service.S3).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.1.0")).withServices(Service.S3).withReuse(true);
 
 	private static S3Client client;
 	private static S3TransferManager s3TransferManager;
@@ -87,9 +86,8 @@ class S3ResourceIntegrationTests {
 	static void beforeAll() {
 		// region and credentials are irrelevant for test, but must be added to make
 		// test work on environments without AWS cli configured
-		AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
-		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
-				.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
+		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
+				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
 		s3TransferManager = S3TransferManager.builder()

@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import com.amazonaws.auth.AWSCredentials;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,7 +56,7 @@ class S3TemplateIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.0.4")).withServices(LocalStackContainer.Service.S3)
+			DockerImageName.parse("localstack/localstack:1.1.0")).withServices(LocalStackContainer.Service.S3)
 					.withReuse(true);
 
 	private static S3Client client;
@@ -68,9 +67,8 @@ class S3TemplateIntegrationTests {
 	static void beforeAll() {
 		// region and credentials are irrelevant for test, but must be added to make
 		// test work on environments without AWS cli configured
-		AWSCredentials localstackCredentials = localstack.getDefaultCredentialsProvider().getCredentials();
-		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials
-				.create(localstackCredentials.getAWSAccessKeyId(), localstackCredentials.getAWSSecretKey()));
+		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
+				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
 	}
@@ -81,7 +79,7 @@ class S3TemplateIntegrationTests {
 				new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()),
 				new Jackson2JsonS3ObjectConverter(new ObjectMapper()));
 
-		client.createBucket(r -> r.bucket("test-bucket"));
+		client.createBucket(r -> r.bucket(BUCKET_NAME));
 	}
 
 	@AfterEach
@@ -95,51 +93,51 @@ class S3TemplateIntegrationTests {
 
 	@Test
 	void createsBucket() {
-		String location = s3Template.createBucket("test-bucket");
+		String location = s3Template.createBucket(BUCKET_NAME);
 
 		assertThat(location).isNotNull();
-		assertThat(client.listBuckets()).satisfies(r -> this.bucketExists(r, "test-bucket"));
+		assertThat(client.listBuckets()).satisfies(r -> this.bucketExists(r, BUCKET_NAME));
 	}
 
 	@Test
 	void deletesBucket() {
-		client.createBucket(r -> r.bucket("test-bucket"));
-		assertThat(client.listBuckets()).satisfies(r -> this.bucketExists(r, "test-bucket"));
+		client.createBucket(r -> r.bucket(BUCKET_NAME));
+		assertThat(client.listBuckets()).satisfies(r -> this.bucketExists(r, BUCKET_NAME));
 
-		s3Template.deleteBucket("test-bucket");
+		s3Template.deleteBucket(BUCKET_NAME);
 
-		assertThat(client.listBuckets()).satisfies(r -> this.bucketDoesNotExist(r, "test-bucket"));
+		assertThat(client.listBuckets()).satisfies(r -> this.bucketDoesNotExist(r, BUCKET_NAME));
 	}
 
 	@Test
 	void deletesObject() {
-		client.createBucket(r -> r.bucket("test-bucket"));
-		client.putObject(r -> r.bucket("test-bucket").key("key.txt"), RequestBody.fromString("foo"));
-		assertThatNoException().isThrownBy(() -> client.headObject(r -> r.bucket("test-bucket").key("key.txt")));
+		client.createBucket(r -> r.bucket(BUCKET_NAME));
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("key.txt"), RequestBody.fromString("foo"));
+		assertThatNoException().isThrownBy(() -> client.headObject(r -> r.bucket(BUCKET_NAME).key("key.txt")));
 
-		s3Template.deleteObject("test-bucket", "key.txt");
+		s3Template.deleteObject(BUCKET_NAME, "key.txt");
 
 		assertThatExceptionOfType(NoSuchKeyException.class)
-				.isThrownBy(() -> client.headObject(r -> r.bucket("test-bucket").key("key.txt")));
+				.isThrownBy(() -> client.headObject(r -> r.bucket(BUCKET_NAME).key("key.txt")));
 	}
 
 	@Test
 	void deletesObjectByS3Url() {
-		client.putObject(r -> r.bucket("test-bucket").key("key.txt"), RequestBody.fromString("foo"));
-		assertThatNoException().isThrownBy(() -> client.headObject(r -> r.bucket("test-bucket").key("key.txt")));
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("key.txt"), RequestBody.fromString("foo"));
+		assertThatNoException().isThrownBy(() -> client.headObject(r -> r.bucket(BUCKET_NAME).key("key.txt")));
 
 		s3Template.deleteObject("s3://test-bucket/key.txt");
 
 		assertThatExceptionOfType(NoSuchKeyException.class)
-				.isThrownBy(() -> client.headObject(r -> r.bucket("test-bucket").key("key.txt")));
+				.isThrownBy(() -> client.headObject(r -> r.bucket(BUCKET_NAME).key("key.txt")));
 	}
 
 	@Test
 	void storesObject() throws IOException {
-		S3Resource storedObject = s3Template.store("test-bucket", "person.json", new Person("John", "Doe"));
+		S3Resource storedObject = s3Template.store(BUCKET_NAME, "person.json", new Person("John", "Doe"));
 
 		ResponseInputStream<GetObjectResponse> response = client
-				.getObject(r -> r.bucket("test-bucket").key("person.json"));
+				.getObject(r -> r.bucket(BUCKET_NAME).key("person.json"));
 		String result = StreamUtils.copyToString(response, StandardCharsets.UTF_8);
 
 		assertThat(storedObject).isNotNull();
@@ -149,10 +147,10 @@ class S3TemplateIntegrationTests {
 
 	@Test
 	void readsObject() {
-		client.putObject(r -> r.bucket("test-bucket").key("person.json"),
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("person.json"),
 				RequestBody.fromString("{\"firstName\":\"John\",\"lastName\":\"Doe\"}"));
 
-		Person person = s3Template.read("test-bucket", "person.json", Person.class);
+		Person person = s3Template.read(BUCKET_NAME, "person.json", Person.class);
 
 		assertThat(person.firstName).isEqualTo("John");
 		assertThat(person.lastName).isEqualTo("Doe");
@@ -161,13 +159,12 @@ class S3TemplateIntegrationTests {
 	@Test
 	void uploadsFile() throws IOException {
 		try (InputStream is = new ByteArrayInputStream("hello".getBytes(StandardCharsets.UTF_8))) {
-			S3Resource uploadedResource = s3Template.upload("test-bucket", "file.txt", is,
+			S3Resource uploadedResource = s3Template.upload(BUCKET_NAME, "file.txt", is,
 					ObjectMetadata.builder().contentType("text/plain").build());
 			assertThat(uploadedResource).isNotNull();
 		}
 
-		ResponseInputStream<GetObjectResponse> response = client
-				.getObject(r -> r.bucket("test-bucket").key("file.txt"));
+		ResponseInputStream<GetObjectResponse> response = client.getObject(r -> r.bucket(BUCKET_NAME).key("file.txt"));
 		String result = StreamUtils.copyToString(response, StandardCharsets.UTF_8);
 		assertThat(result).isEqualTo("hello");
 		assertThat(response.response().contentType()).isEqualTo("text/plain");
@@ -175,8 +172,8 @@ class S3TemplateIntegrationTests {
 
 	@Test
 	void downloadsFile() throws IOException {
-		client.putObject(r -> r.bucket("test-bucket").key("file.txt"), RequestBody.fromString("hello"));
-		S3Resource resource = (S3Resource) s3Template.download("test-bucket", "file.txt");
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("file.txt"), RequestBody.fromString("hello"));
+		S3Resource resource = (S3Resource) s3Template.download(BUCKET_NAME, "file.txt");
 		assertThat(resource.contentLength()).isEqualTo(5);
 		assertThat(resource.getDescription()).isNotNull();
 

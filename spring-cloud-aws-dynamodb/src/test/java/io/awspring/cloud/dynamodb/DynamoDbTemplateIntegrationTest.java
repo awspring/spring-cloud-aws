@@ -44,13 +44,14 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.0.4")).withServices(DYNAMODB).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.1.0")).withServices(DYNAMODB).withReuse(true);
 
 	@BeforeAll
 	public static void createTable() {
 		DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
 				.endpointOverride(localstack.getEndpointOverride(DYNAMODB)).region(Region.of(localstack.getRegion()))
-				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
+				.credentialsProvider(StaticCredentialsProvider
+						.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())))
 				.build();
 		DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
 		dynamoDbTemplate = new DynamoDbTemplate(enhancedClient);

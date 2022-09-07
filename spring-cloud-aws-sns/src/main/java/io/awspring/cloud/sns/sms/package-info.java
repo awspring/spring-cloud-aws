@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.core;
 
-import static org.mockito.ArgumentMatchers.argThat;
-
-import java.util.function.Consumer;
-import software.amazon.awssdk.services.sns.model.PublishRequest;
-
-class Matchers {
-	static PublishRequest requestMatches(Consumer<PublishRequest> consumer) {
-		return argThat(it -> {
-			consumer.accept(it);
-			return true;
-		});
-	}
-}
+/**
+ * Sending SMS via SNS integration.
+ */
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
+package io.awspring.cloud.sns.sms;

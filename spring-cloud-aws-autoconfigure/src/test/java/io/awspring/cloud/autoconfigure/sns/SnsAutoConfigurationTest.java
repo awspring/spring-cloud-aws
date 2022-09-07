@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.sns;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
@@ -24,6 +25,8 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
+import io.awspring.cloud.sns.sms.SnsSmsOperations;
+import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
@@ -68,6 +71,7 @@ class SnsAutoConfigurationTest {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.enabled:true").run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
+			assertThat(context).hasSingleBean(SnsSmsTemplate.class);
 			assertThat(context).hasBean("snsWebMvcConfigurer");
 
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
@@ -111,7 +115,16 @@ class SnsAutoConfigurationTest {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(WebMvcConfigurer.class)).run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
+			assertThat(context).hasSingleBean(SnsSmsTemplate.class);
 			assertThat(context).doesNotHaveBean("snsWebMvcConfigurer");
+		});
+	}
+
+	@Test
+	void smsSnsOperationsBeanCanBeOverwritten() {
+		this.contextRunner.withUserConfiguration(CustomSmsOperations.class).run(context -> {
+			assertThat(context.getBean("customSmsOperations", SnsSmsOperations.class)).isNotNull();
+			assertThat(context).doesNotHaveBean(SnsSmsTemplate.class);
 		});
 	}
 
@@ -153,6 +166,15 @@ class SnsAutoConfigurationTest {
 			public SdkHttpClient httpClient() {
 				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 			}
+		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomSmsOperations {
+
+		@Bean
+		SnsSmsOperations customSmsOperations() {
+			return mock(SnsSmsOperations.class);
 		}
 
 	}
