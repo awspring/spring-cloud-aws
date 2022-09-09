@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.client.serviceregistry.AutoServiceRegistration;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.event.ContextClosedEvent;
@@ -40,7 +40,7 @@ public class CloudMapAutoRegistration
 
 	private final CloudMapRegistryProperties properties;
 
-	private final ApplicationContext context;
+	private final ApplicationEventPublisher eventPublisher;
 
 	private final AtomicBoolean running = new AtomicBoolean(false);
 
@@ -51,9 +51,9 @@ public class CloudMapAutoRegistration
 
 	private Map<String, String> attributesMap = new HashMap<>();
 
-	public CloudMapAutoRegistration(ApplicationContext context, ServiceDiscoveryClient serviceDiscovery,
+	public CloudMapAutoRegistration(ApplicationEventPublisher eventPublisher, ServiceDiscoveryClient serviceDiscovery,
 			CloudMapRegistryProperties properties) {
-		this.context = context;
+		this.eventPublisher = eventPublisher;
 		this.serviceDiscovery = serviceDiscovery;
 		this.properties = properties;
 	}
@@ -92,7 +92,7 @@ public class CloudMapAutoRegistration
 			final Map<String, String> attributesMap = UTILS.registerInstance(serviceDiscovery, properties, environment);
 			if (attributesMap != null && attributesMap.containsKey(UTILS.SERVICE_INSTANCE_ID)) {
 				this.attributesMap = attributesMap;
-				this.context.publishEvent(new InstanceRegisteredEvent<>(this, attributesMap));
+				this.eventPublisher.publishEvent(new InstanceRegisteredEvent<>(this, attributesMap));
 				this.running.set(true);
 			}
 		}
