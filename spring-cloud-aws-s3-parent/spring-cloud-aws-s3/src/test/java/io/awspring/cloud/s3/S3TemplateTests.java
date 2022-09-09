@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
+import org.mockito.ArgumentMatchers;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
@@ -62,7 +63,8 @@ class S3TemplateTests {
 
 	@Test
 	void throwsExceptionWhenReadFails() {
-		when(client.getObject((Consumer<GetObjectRequest.Builder>) any())).thenThrow(RuntimeException.class);
+		when(client.getObject(ArgumentMatchers.<Consumer<GetObjectRequest.Builder>> any()))
+				.thenThrow(RuntimeException.class);
 
 		assertThatExceptionOfType(S3Exception.class).isThrownBy(() -> {
 			s3Template.read("bucket-name", "key-name", String.class);
