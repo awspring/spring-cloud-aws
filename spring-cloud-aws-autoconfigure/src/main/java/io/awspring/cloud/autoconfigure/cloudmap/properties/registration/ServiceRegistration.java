@@ -15,10 +15,13 @@
  */
 package io.awspring.cloud.autoconfigure.cloudmap.properties.registration;
 
-import io.awspring.cloud.autoconfigure.cloudmap.CloudMapUtils;
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
+
+import io.awspring.cloud.autoconfigure.cloudmap.CloudMapUtils;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+
 import org.springframework.cloud.client.serviceregistry.Registration;
 
 public class ServiceRegistration implements Registration {
@@ -29,8 +32,9 @@ public class ServiceRegistration implements Registration {
 
 	private final CloudMapUtils UTILS = CloudMapUtils.getInstance();
 
-	public ServiceRegistration(CloudMapRegistryProperties properties) {
-		registrationDetails = UTILS.getRegistrationAttributes();
+	public ServiceRegistration(CloudMapRegistryProperties properties, Ec2Client ec2Client,
+			String deploymentPlatform) {
+		registrationDetails = UTILS.getRegistrationAttributes(ec2Client, deploymentPlatform);
 		this.properties = properties;
 	}
 

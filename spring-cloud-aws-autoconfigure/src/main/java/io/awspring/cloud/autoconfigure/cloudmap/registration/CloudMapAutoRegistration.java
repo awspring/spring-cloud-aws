@@ -17,9 +17,11 @@ package io.awspring.cloud.autoconfigure.cloudmap.registration;
 
 import io.awspring.cloud.autoconfigure.cloudmap.CloudMapUtils;
 import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.CloudMapRegistryProperties;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.springframework.cloud.client.discovery.event.InstanceRegisteredEvent;
 import org.springframework.cloud.client.serviceregistry.AutoServiceRegistration;
 import org.springframework.context.ApplicationEvent;
@@ -31,14 +33,17 @@ import org.springframework.context.event.SmartApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
+
+import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 
 public class CloudMapAutoRegistration
-		implements AutoServiceRegistration, SmartLifecycle, Ordered, SmartApplicationListener, EnvironmentAware {
+	implements AutoServiceRegistration, SmartLifecycle, Ordered, SmartApplicationListener, EnvironmentAware {
 
 	private final ServiceDiscoveryClient serviceDiscovery;
 
 	private final CloudMapRegistryProperties properties;
+	private final Ec2Client ec2Client;
 
 	private final ApplicationEventPublisher eventPublisher;
 
@@ -49,13 +54,17 @@ public class CloudMapAutoRegistration
 	@Nullable
 	private Environment environment;
 
+	private String deploymentPlatform;
+
 	private Map<String, String> attributesMap = new HashMap<>();
 
 	public CloudMapAutoRegistration(ApplicationEventPublisher eventPublisher, ServiceDiscoveryClient serviceDiscovery,
-			CloudMapRegistryProperties properties) {
+		Ec2Client ec2Client, CloudMapRegistryProperties properties, String deploymentPlatform) {
 		this.eventPublisher = eventPublisher;
 		this.serviceDiscovery = serviceDiscovery;
 		this.properties = properties;
+		this.ec2Client = ec2Client;
+		this.deploymentPlatform = deploymentPlatform;
 	}
 
 	@Override
@@ -89,7 +98,8 @@ public class CloudMapAutoRegistration
 	@Override
 	public void start() {
 		if (!this.running.get()) {
-			final Map<String, String> attributesMap = UTILS.registerInstance(serviceDiscovery, properties, environment);
+			final Map<String, String> attributesMap = UTILS.registerInstance(serviceDiscovery, ec2Client, properties,
+				environment, deploymentPlatform);
 			if (attributesMap != null && attributesMap.containsKey(UTILS.SERVICE_INSTANCE_ID)) {
 				this.attributesMap = attributesMap;
 				this.eventPublisher.publishEvent(new InstanceRegisteredEvent<>(this, attributesMap));

@@ -17,6 +17,8 @@ package io.awspring.cloud.autoconfigure.cloudmap;
 
 /**
  * Mock Responses from Ec2 meta-data endpoint
+ * @author Hari Ohm Prasath
+ * @since 3.0
  */
 public class CloudMapTestConstants {
 	/*

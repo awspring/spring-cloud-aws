@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.cloudmap.properties;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.cloudmap.properties.discovery.CloudMapDiscovery;
 import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.CloudMapRegistryProperties;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
@@ -34,6 +35,11 @@ public class CloudMapProperties extends AwsClientProperties {
 	 * Default cloudmap prefix.
 	 */
 	public static final String CONFIG_PREFIX = "spring.cloud.aws.cloudmap";
+
+	/**
+	 * Compute platform `ECS` or `EKS`.
+	 */
+	private String deploymentPlatform;
 
 	@NestedConfigurationProperty
 	private CloudMapRegistryProperties registry;
@@ -57,10 +63,18 @@ public class CloudMapProperties extends AwsClientProperties {
 		this.discovery = discovery;
 	}
 
+	public String getDeploymentPlatform() {
+		return deploymentPlatform;
+	}
+
+	public void setDeploymentPlatform(String deploymentPlatform) {
+		this.deploymentPlatform = deploymentPlatform;
+	}
+
 	@Override
 	public String toString() {
 		return "AwsCloudMapProperties{" + "registry=" + registry + ", discovery=" + discovery + ", region='"
-				+ getRegion() + "'}";
+				+ getRegion() + "', platform='" + getDeploymentPlatform() + '\'' + "}";
 	}
 
 }

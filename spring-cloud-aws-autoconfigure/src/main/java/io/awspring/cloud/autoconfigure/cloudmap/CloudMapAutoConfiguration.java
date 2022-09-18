@@ -28,6 +28,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.Ec2ClientBuilder;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClient;
 import software.amazon.awssdk.services.servicediscovery.ServiceDiscoveryClientBuilder;
 
@@ -56,11 +59,20 @@ public class CloudMapAutoConfiguration {
 				.configure(ServiceDiscoveryClient.builder(), this.properties, configurer.getIfAvailable()).build();
 	}
 
+	@ConditionalOnMissingBean
+	@Bean
+	public Ec2Client ec2Client(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+		ObjectProvider<AwsClientCustomizer<Ec2ClientBuilder>> configurer) {
+		return awsClientBuilderConfigurer
+			.configure(Ec2Client.builder(), this.properties, configurer.getIfAvailable()).build();
+	}
+
 	@Bean
 	@ConditionalOnMissingBean
 	CloudMapAutoRegistration createAutoRegistration(ApplicationEventPublisher eventPublisher,
-			ServiceDiscoveryClient serviceDiscovery) {
-		return new CloudMapAutoRegistration(eventPublisher, serviceDiscovery, properties.getRegistry());
+			ServiceDiscoveryClient serviceDiscovery, Ec2Client ec2Client) {
+		return new CloudMapAutoRegistration(eventPublisher, serviceDiscovery, ec2Client,
+			properties.getRegistry(), properties.getDeploymentPlatform());
 	}
 
 	@Bean
@@ -71,8 +83,9 @@ public class CloudMapAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	ServiceRegistration serviceRegistration() {
-		return new ServiceRegistration(properties.getRegistry());
+	ServiceRegistration serviceRegistration(Ec2Client ec2Client) {
+		return new ServiceRegistration(properties.getRegistry(), ec2Client,
+			properties.getDeploymentPlatform());
 	}
 
 }

@@ -15,22 +15,15 @@
  */
 package io.awspring.cloud.autoconfigure.cloudmap;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import io.awspring.cloud.autoconfigure.cloudmap.properties.discovery.CloudMapDiscoveryProperties;
 import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.CloudMapRegistryProperties;
 import io.awspring.cloud.autoconfigure.cloudmap.properties.registration.ServiceRegistration;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.env.Environment;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeSubnetsResponse;
@@ -56,6 +49,15 @@ import software.amazon.awssdk.services.servicediscovery.model.RegisterInstanceRe
 import software.amazon.awssdk.services.servicediscovery.model.Service;
 import software.amazon.awssdk.services.servicediscovery.model.ServiceSummary;
 
+import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * Unit testcase for {@link ServiceRegistration}
  *
@@ -64,7 +66,6 @@ import software.amazon.awssdk.services.servicediscovery.model.ServiceSummary;
  */
 public class CloudMapRegisterServiceTest {
 
-	private static final String DEPLOYMENT_PLATFORM = "DEPLOYMENT_PLATFORM";
 	private static final String ECS = "ECS";
 	private static final String EKS = "EKS";
 	private final ServiceDiscoveryClient serviceDiscovery = mock(ServiceDiscoveryClient.class);
@@ -77,7 +78,6 @@ public class CloudMapRegisterServiceTest {
 	private final Environment environment = mock(Environment.class);
 
 	public CloudMapRegisterServiceTest() {
-		cloudMapUtils.setEc2Client(ec2Client);
 		cloudMapUtils.setRestTemplate(restTemplate);
 	}
 
@@ -96,13 +96,12 @@ public class CloudMapRegisterServiceTest {
 
 		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResponse);
 
-		System.setProperty(DEPLOYMENT_PLATFORM, ECS);
 		when(restTemplate.getForEntity(CloudMapUtils.EC2_METADATA_URL + "/task", String.class))
 				.thenReturn(ResponseEntity.ok(CloudMapTestConstants.ECS_REPONSE_JSON));
 		when(ec2Client.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(
 				DescribeSubnetsResponse.builder().subnets(Subnet.builder().vpcId("vpc-id").build()).build());
 
-		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, getProperties(), environment)).isNotEmpty();
+		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, ec2Client, getProperties(), environment, ECS)).isNotEmpty();
 	}
 
 	@Test
@@ -113,7 +112,6 @@ public class CloudMapRegisterServiceTest {
 		final GetOperationResponse operationResponse = getOperationResponse();
 		final CreatePrivateDnsNamespaceResponse createPrivateDnsNamespaceResponse = getCreatePrivateDnsNamespaceResponse();
 		cloudMapUtils.setRestTemplate(restTemplate);
-		cloudMapUtils.setEc2Client(ec2Client);
 
 		when(serviceDiscovery.listNamespaces(any(ListNamespacesRequest.class))).thenReturn(
 				ListNamespacesResponse.builder().namespaces(Collections.emptyList()).build(), listNamespacesResponse);
@@ -128,7 +126,6 @@ public class CloudMapRegisterServiceTest {
 
 		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResponse);
 
-		System.setProperty(DEPLOYMENT_PLATFORM, EKS);
 		when(restTemplate.getForEntity(String.format("%s/local-ipv4", CloudMapUtils.EC2_METADATA_URL), String.class))
 				.thenReturn(ResponseEntity.ok("10.1.1.1"));
 		when(restTemplate.getForEntity(String.format("%s/network/interfaces/macs", CloudMapUtils.EC2_METADATA_URL),
@@ -139,7 +136,7 @@ public class CloudMapRegisterServiceTest {
 		when(ec2Client.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(
 				DescribeSubnetsResponse.builder().subnets(Subnet.builder().vpcId("vpc-id").build()).build());
 
-		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, getProperties(), environment)).isNotEmpty();
+		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, ec2Client, getProperties(), environment, ECS)).isNotEmpty();
 	}
 
 	@Test
@@ -150,7 +147,6 @@ public class CloudMapRegisterServiceTest {
 		final GetOperationResponse operationResponse = getOperationResponse();
 		final CreatePrivateDnsNamespaceResponse createPrivateDnsNamespaceResponse = getCreatePrivateDnsNamespaceResponse();
 		cloudMapUtils.setRestTemplate(restTemplate);
-		cloudMapUtils.setEc2Client(ec2Client);
 
 		when(serviceDiscovery.listNamespaces(any(ListNamespacesRequest.class))).thenReturn(
 				ListNamespacesResponse.builder().namespaces(Collections.emptyList()).build(), listNamespacesResponse);
@@ -165,13 +161,12 @@ public class CloudMapRegisterServiceTest {
 
 		when(serviceDiscovery.listServices(any(ListServicesRequest.class))).thenReturn(listServicesResponse);
 
-		System.setProperty(DEPLOYMENT_PLATFORM, ECS);
 		when(restTemplate.getForEntity(CloudMapUtils.EC2_METADATA_URL + "/task", String.class))
 				.thenReturn(ResponseEntity.ok(CloudMapTestConstants.ECS_REPONSE_JSON));
 		when(ec2Client.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(
 				DescribeSubnetsResponse.builder().subnets(Subnet.builder().vpcId("vpc-id").build()).build());
 
-		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, getProperties(), environment)).isNotEmpty();
+		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, ec2Client, getProperties(), environment, EKS)).isNotEmpty();
 	}
 
 	@Test
@@ -194,13 +189,12 @@ public class CloudMapRegisterServiceTest {
 				.thenReturn(registerInstanceResponse);
 		when(serviceDiscovery.getOperation((any(GetOperationRequest.class)))).thenReturn(operationResponse);
 
-		System.setProperty(DEPLOYMENT_PLATFORM, ECS);
 		when(restTemplate.getForEntity(CloudMapUtils.EC2_METADATA_URL + "/task", String.class))
 				.thenReturn(ResponseEntity.ok(CloudMapTestConstants.ECS_REPONSE_JSON));
 		when(ec2Client.describeSubnets(any(DescribeSubnetsRequest.class))).thenReturn(
 				DescribeSubnetsResponse.builder().subnets(Subnet.builder().vpcId("vpc-id").build()).build());
 
-		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, getProperties(), environment)).isNotEmpty();
+		assertThat(cloudMapUtils.registerInstance(serviceDiscovery, ec2Client, getProperties(), environment, ECS)).isNotEmpty();
 	}
 
 	@Test
