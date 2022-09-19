@@ -2,7 +2,7 @@
 
 Properties that have changed from 2.x to 3.x are listed below:
 
-[cols="2*", options="header"]
+[cols="2*", options="header", width="100%"]
 |===
 |Version 2.x
 |Version 3.x
