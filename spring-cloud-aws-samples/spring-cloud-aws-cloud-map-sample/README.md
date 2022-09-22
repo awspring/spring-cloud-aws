@@ -180,12 +180,6 @@ aws ecs register-task-definition --name cloudmap-sample-definition --cli-input-j
                 }
             },
             "cpu": 0,
-            "environment": [
-                {
-                    "name": "DEPLOYMENT_PLATFORM",
-                    "value": "ECS"
-                }
-            ],
             "image": "<ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/cloudmap-sample:latest",
             "name": "mainContainer"
         }
@@ -198,9 +192,9 @@ aws ecs register-task-definition --name cloudmap-sample-definition --cli-input-j
     ],
     "networkMode": "awsvpc",
     "runtimePlatform": {
-        "operatingSystemFamily": "LINUX",
+        "operatingSystemFamily": "LINUX"
     },
-    "cpu": "2048",
+    "cpu": "2048"
 }
 ```
 
