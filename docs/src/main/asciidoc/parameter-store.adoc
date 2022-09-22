@@ -9,7 +9,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 ----
 <dependency>
     <groupId>io.awspring.cloud</groupId>
-    <artifactId>spring-cloud-starter-aws-parameter-store</artifactId>
+    <artifactId>spring-cloud-aws-starter-parameter-store</artifactId>
 </dependency>
 ----
 

@@ -10,7 +10,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 ----
 <dependency>
     <groupId>io.awspring.cloud</groupId>
-    <artifactId>spring-cloud-starter-aws-s3</artifactId>
+    <artifactId>spring-cloud-aws-starter-s3</artifactId>
 </dependency>
 ----
 
@@ -85,7 +85,7 @@ To disable `CrossRegionS3Client` creation and use instead a regular region-speci
 ----
 <dependency>
     <groupId>io.awspring.cloud</groupId>
-    <artifactId>spring-cloud-starter-aws-s3</artifactId>
+    <artifactId>spring-cloud-aws-starter-s3</artifactId>
     <exclusions>
         <exclusion>
             <groupId>io.awspring.cloud</groupId>
