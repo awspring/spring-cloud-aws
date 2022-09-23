@@ -15,18 +15,25 @@
  */
 package io.awspring.cloud.autoconfigure.config.appconfig;
 
-import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import io.awspring.cloud.appconfig.AppConfigPropertySource;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.lang.Nullable;
 
-/**
- * @author Matej Nedic
- * @since 3.0
- */
-@ConfigurationProperties(AppConfigProperties.CONFIG_PREFIX)
-public class AppConfigProperties extends ReloadProperties {
+public class AppConfigPropertySourceReload {
 
-	/**
-	 * Configuration prefix.
-	 */
-	public static final String CONFIG_PREFIX = "spring.cloud.aws.appconfig";
+	private final Map<String, AppConfigPropertySource> toBeReload = new HashMap<>();
+
+	public void add(String key, AppConfigPropertySource toReload) {
+		this.toBeReload.put(key, toReload);
+	}
+
+	@Nullable
+	public AppConfigPropertySource getRecord(String key) {
+		return toBeReload.get(key);
+	}
+
+	public Map<String, AppConfigPropertySource> getRecords() {
+		return toBeReload;
+	}
 }

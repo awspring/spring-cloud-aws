@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.config.appconfig;
 import io.awspring.cloud.appconfig.AppConfigPropertySource;
 import io.awspring.cloud.autoconfigure.config.BootstrapLoggingHelper;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
@@ -32,6 +33,8 @@ import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
  */
 public class AppConfigDataLoader implements ConfigDataLoader<AppConfigDataResource> {
 
+	public static final AppConfigPropertySourceReload appConfigPropertySourceReload = new AppConfigPropertySourceReload();
+
 	public AppConfigDataLoader(DeferredLogFactory logFactory) {
 		BootstrapLoggingHelper.reconfigureLoggers(logFactory, "io.awspring.cloud.appconfig.AppConfigPropertySource",
 				"io.awspring.cloud.autoconfigure.config.appconfig.AppConfigPropertySources");
@@ -41,18 +44,32 @@ public class AppConfigDataLoader implements ConfigDataLoader<AppConfigDataResour
 	@Nullable
 	public ConfigData load(ConfigDataLoaderContext context, AppConfigDataResource resource) {
 		try {
-			AppConfigDataClient appConfigDataClient = context.getBootstrapContext().get(AppConfigDataClient.class);
-			AppConfigPropertySource propertySource = resource.getPropertySources()
-					.createPropertySource(resource.getContext(), resource.isOptional(), appConfigDataClient);
-			if (propertySource != null) {
-				return new ConfigData(Collections.singletonList(propertySource));
-			}
-			else {
-				return null;
+			AppConfigPropertySource propertySource = appConfigPropertySourceReload
+					.getRecord(resource.getContext().getContext());
+			if (propertySource == null) {
+				AppConfigDataClient appConfigDataClient = context.getBootstrapContext().get(AppConfigDataClient.class);
+				propertySource = resource.getPropertySources().createPropertySource(resource.getContext(),
+						resource.isOptional(), appConfigDataClient);
+				if (propertySource != null) {
+					appConfigPropertySourceReload.add(resource.getContext().getContext(), propertySource);
+					return new ConfigData(Collections.singletonList(propertySource));
+				}
 			}
 		}
 		catch (Exception e) {
 			throw new ConfigDataResourceNotFoundException(resource, e);
 		}
+		return null;
+	}
+
+	public static Boolean checkIfReloadIsToBeDone() {
+		AtomicBoolean areThereChanges = new AtomicBoolean(false);
+		appConfigPropertySourceReload.getRecords().forEach((key, value) -> {
+			if (value.areThereChanges()) {
+				areThereChanges.set(true);
+			}
+		});
+		return areThereChanges.get();
+
 	}
 }

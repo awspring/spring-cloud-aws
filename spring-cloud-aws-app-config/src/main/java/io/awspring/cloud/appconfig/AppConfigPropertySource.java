@@ -16,6 +16,7 @@
 package io.awspring.cloud.appconfig;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.logging.Log;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationRequest;
 import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationResponse;
@@ -38,7 +40,7 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 
 	// logger must stay static non-final so that it can be set with a value in
 	// AppConfigDataLoader
-	private static Log LOG = LogFactory.getLog(AppConfigPropertySource.class);
+	private static final Log LOG = LogFactory.getLog(AppConfigPropertySource.class);
 
 	private static final String YAML_TYPE = "application/x-yaml";
 	private static final String TEXT_TYPE = "text/plain";
@@ -47,7 +49,9 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 	private final String configurationProfileIdentifier;
 	private final String environmentIdentifier;
 	private final String applicationIdentifier;
+	private String sessionToken;
 	private Properties properties;
+	private GetLatestConfigurationResponse dataChanged;
 
 	public AppConfigPropertySource(RequestContext requestContext, AppConfigDataClient appConfigDataClient) {
 		super(requestContext.getContext(), appConfigDataClient);
@@ -58,13 +62,23 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 	}
 
 	public void init() throws IOException {
-		StartConfigurationSessionRequest sessionRequest = StartConfigurationSessionRequest.builder()
-				.environmentIdentifier(this.environmentIdentifier).applicationIdentifier(this.applicationIdentifier)
-				.configurationProfileIdentifier(this.configurationProfileIdentifier).build();
-		StartConfigurationSessionResponse response = this.source.startConfigurationSession(sessionRequest);
-		GetLatestConfigurationRequest request = GetLatestConfigurationRequest.builder()
-				.configurationToken(response.initialConfigurationToken()).build();
-		getParameters(request);
+		if (dataChanged != null) {
+			getParameters(dataChanged);
+			this.dataChanged = null;
+		}
+		else {
+			if (sessionToken == null) {
+				StartConfigurationSessionRequest sessionRequest = StartConfigurationSessionRequest.builder()
+					.environmentIdentifier(this.environmentIdentifier).applicationIdentifier(this.applicationIdentifier)
+					.configurationProfileIdentifier(this.configurationProfileIdentifier).build();
+				StartConfigurationSessionResponse response = this.source.startConfigurationSession(sessionRequest);
+				sessionToken = response.initialConfigurationToken();
+			}
+			GetLatestConfigurationRequest request = GetLatestConfigurationRequest.builder().configurationToken(sessionToken)
+				.build();
+			GetLatestConfigurationResponse response = this.source.getLatestConfiguration(request);
+			getParameters(response);
+		}
 	}
 
 	@Override
@@ -79,14 +93,14 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 		return this.properties.get(name);
 	}
 
-	private void getParameters(GetLatestConfigurationRequest request) throws IOException {
-		GetLatestConfigurationResponse response = this.source.getLatestConfiguration(request);
+	private void getParameters(GetLatestConfigurationResponse  response) throws IOException {
 		if (response.contentType().equals(YAML_TYPE) || response.contentType().equals(JSON_TYPE)) {
 			resolveYamlOrJson(response);
 		}
 		else if (response.contentType().equals(TEXT_TYPE)) {
 			resolveText(response);
 		}
+		sessionToken = response.nextPollConfigurationToken();
 	}
 
 	// YAML is a superset of JSON, which means you can parse JSON with a YAML parser
@@ -99,6 +113,22 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 	private void resolveText(GetLatestConfigurationResponse response) throws IOException {
 		properties = new Properties();
 		properties.load(response.configuration().asInputStream());
+	}
+
+	public Boolean areThereChanges() {
+		GetLatestConfigurationRequest request = GetLatestConfigurationRequest.builder().configurationToken(sessionToken)
+				.build();
+		GetLatestConfigurationResponse response = source.getLatestConfiguration(request);
+		if (response.contentType().isEmpty()) {
+			sessionToken = response.nextPollConfigurationToken();
+			this.dataChanged = null;
+			return Boolean.FALSE;
+		}
+		else {
+			sessionToken = response.nextPollConfigurationToken();
+			this.dataChanged = response;
+			return Boolean.TRUE;
+		}
 	}
 
 }
