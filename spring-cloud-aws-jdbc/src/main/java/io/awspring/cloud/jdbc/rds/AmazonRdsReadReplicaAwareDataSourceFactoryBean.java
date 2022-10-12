@@ -16,12 +16,15 @@
 
 package io.awspring.cloud.jdbc.rds;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import javax.sql.DataSource;
 
 import com.amazonaws.services.rds.AmazonRDS;
+import com.amazonaws.services.rds.model.DBCluster;
+import com.amazonaws.services.rds.model.DBClusterMember;
 import com.amazonaws.services.rds.model.DBInstance;
 import io.awspring.cloud.jdbc.datasource.ReadOnlyRoutingDataSource;
 
@@ -69,23 +72,41 @@ public class AmazonRdsReadReplicaAwareDataSourceFactoryBean extends AmazonRdsDat
 	 */
 	@Override
 	protected DataSource createInstance() throws Exception {
-		DBInstance dbInstance = getDbInstance(getDbInstanceIdentifier());
+		String dbIdentifier = getDbInstanceIdentifier();
+		List<String> readReplicaIdentifiers = new ArrayList<String>();
+
+		try {
+			DBInstance dbInstance = getDbInstance(dbIdentifier);
+			readReplicaIdentifiers = dbInstance.getReadReplicaDBInstanceIdentifiers();
+		}
+		catch (IllegalStateException e) {
+			DBCluster dbCluster = getDbCluster(dbIdentifier);
+
+			for (DBClusterMember clusterMember : dbCluster.getDBClusterMembers()) {
+				if (clusterMember.isClusterWriter()) {
+					dbIdentifier = clusterMember.getDBInstanceIdentifier();
+				}
+				else {
+					readReplicaIdentifiers.add(clusterMember.getDBInstanceIdentifier());
+				}
+			}
+		}
 
 		// If there is no read replica available, delegate to super class
-		if (dbInstance.getReadReplicaDBInstanceIdentifiers().isEmpty()) {
+		if (readReplicaIdentifiers.isEmpty()) {
 			return super.createInstance();
 		}
 
-		HashMap<Object, Object> replicaMap = new HashMap<>(dbInstance.getReadReplicaDBInstanceIdentifiers().size());
+		HashMap<Object, Object> replicaMap = new HashMap<>(readReplicaIdentifiers.size());
 
-		for (String replicaName : dbInstance.getReadReplicaDBInstanceIdentifiers()) {
+		for (String replicaName : readReplicaIdentifiers) {
 			replicaMap.put(replicaName, createDataSourceInstance(replicaName));
 		}
 
 		// Create the data source
 		ReadOnlyRoutingDataSource dataSource = new ReadOnlyRoutingDataSource();
 		dataSource.setTargetDataSources(replicaMap);
-		dataSource.setDefaultTargetDataSource(createDataSourceInstance(getDbInstanceIdentifier()));
+		dataSource.setDefaultTargetDataSource(createDataSourceInstance(dbIdentifier));
 
 		// Initialize the class
 		dataSource.afterPropertiesSet();

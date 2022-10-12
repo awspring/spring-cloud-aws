@@ -21,8 +21,12 @@ import java.text.MessageFormat;
 import javax.sql.DataSource;
 
 import com.amazonaws.services.rds.AmazonRDS;
+import com.amazonaws.services.rds.model.DBCluster;
+import com.amazonaws.services.rds.model.DBClusterNotFoundException;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.DBInstanceNotFoundException;
+import com.amazonaws.services.rds.model.DescribeDBClustersRequest;
+import com.amazonaws.services.rds.model.DescribeDBClustersResult;
 import com.amazonaws.services.rds.model.DescribeDBInstancesRequest;
 import com.amazonaws.services.rds.model.DescribeDBInstancesResult;
 import io.awspring.cloud.core.env.ResourceIdResolver;
@@ -170,6 +174,26 @@ public class AmazonRdsDataSourceFactoryBean extends AbstractFactoryBean<DataSour
 					"No database instance with id:''{0}'' found. Please specify a valid db instance", identifier));
 		}
 		return instance;
+	}
+
+	/**
+	 * Retrieves the {@link com.amazonaws.services.rds.model.DBCluster} information.
+	 * @param identifier - the database identifier used
+	 * @return - the db cluster
+	 * @throws IllegalStateException if the db cluster is not found
+	 */
+	protected DBCluster getDbCluster(String identifier) throws IllegalStateException {
+		DBCluster cluster;
+		try {
+			DescribeDBClustersResult describeDBClustersResult = this.amazonRds
+					.describeDBClusters(new DescribeDBClustersRequest().withDBClusterIdentifier(identifier));
+			cluster = describeDBClustersResult.getDBClusters().get(0);
+		}
+		catch (DBClusterNotFoundException e) {
+			throw new IllegalStateException(MessageFormat.format(
+					"No database instance with id:''{0}'' found. Please specify a valid db instance", identifier));
+		}
+		return cluster;
 	}
 
 	protected String getDbInstanceIdentifier() {
