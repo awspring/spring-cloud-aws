@@ -50,7 +50,6 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
-import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueResponse;
 
 /**
  * Integration tests for loading configuration properties from AWS Secrets Manager.
@@ -254,18 +253,21 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
-		try (ConfigurableApplicationContext context = application.run("--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
-			"--spring.cloud.aws.secretsmanager.region=" + REGION,
-			"--spring.cloud.aws.secretsmanager.monitored=true",
-			"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
-			"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
-			"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-			"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug")) {
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+				"--spring.cloud.aws.secretsmanager.region=" + REGION,
+				"--spring.cloud.aws.secretsmanager.monitored=true",
+				"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1",
+				"--logging.level.io.awspring.cloud.secretsmanager=debug")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 
 			// update secret value
 			SecretsManagerClient smClient = context.getBean(SecretsManagerClient.class);
-			smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
+			smClient.putSecretValue(
+					r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
 
 			await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
@@ -277,7 +279,9 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	private void resetSecretValue(SecretsManagerClient smClient) {
-		smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"value from tests\", \"another-parameter\": \"another parameter value\"}").build());
+		smClient.putSecretValue(r -> r.secretId("/config/spring")
+				.secretString("{\"message\":\"value from tests\", \"another-parameter\": \"another parameter value\"}")
+				.build());
 	}
 
 	@Test
@@ -285,18 +289,21 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
-		try (ConfigurableApplicationContext context = application.run("--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
-			"--spring.cloud.aws.secretsmanager.region=" + REGION,
-			"--spring.cloud.aws.secretsmanager.monitored=false",
-			"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
-			"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
-			"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-			"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug")) {
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+				"--spring.cloud.aws.secretsmanager.region=" + REGION,
+				"--spring.cloud.aws.secretsmanager.monitored=false",
+				"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1",
+				"--logging.level.io.awspring.cloud.secretsmanager=debug")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 
 			// update secret value
 			SecretsManagerClient smClient = context.getBean(SecretsManagerClient.class);
-			smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
+			smClient.putSecretValue(
+					r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
 
 			await().during(Duration.ofSeconds(5)).untilAsserted(() -> {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
@@ -312,22 +319,24 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
-		try (ConfigurableApplicationContext context = application.run("--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
-			"--spring.cloud.aws.secretsmanager.region=" + REGION,
-			"--spring.cloud.aws.secretsmanager.monitored=true",
-			"--spring.cloud.aws.secretsmanager.reload.strategy=RESTART_CONTEXT",
-			"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
-			"--spring.cloud.aws.secretsmanager.reload.max-wait-for-restart=PT1S",
-			"--management.endpoint.restart.enabled=true",
-			"--management.endpoints.web.exposure.include=restart",
-			"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
-			"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-			"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug")) {
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+				"--spring.cloud.aws.secretsmanager.region=" + REGION,
+				"--spring.cloud.aws.secretsmanager.monitored=true",
+				"--spring.cloud.aws.secretsmanager.reload.strategy=RESTART_CONTEXT",
+				"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
+				"--spring.cloud.aws.secretsmanager.reload.max-wait-for-restart=PT1S",
+				"--management.endpoint.restart.enabled=true", "--management.endpoints.web.exposure.include=restart",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1",
+				"--logging.level.io.awspring.cloud.secretsmanager=debug")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 
 			// update secret value
 			SecretsManagerClient smClient = context.getBean(SecretsManagerClient.class);
-			smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
+			smClient.putSecretValue(
+					r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
 
 			await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");

@@ -19,14 +19,12 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
-import io.awspring.cloud.core.config.AwsPropertySource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
@@ -42,7 +40,8 @@ import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundExce
  * @author Arun Patra
  * @since 2.0.0
  */
-public class SecretsManagerPropertySource extends AwsPropertySource<SecretsManagerPropertySource, SecretsManagerClient> {
+public class SecretsManagerPropertySource
+		extends AwsPropertySource<SecretsManagerPropertySource, SecretsManagerClient> {
 
 	private static Log LOG = LogFactory.getLog(SecretsManagerPropertySource.class);
 

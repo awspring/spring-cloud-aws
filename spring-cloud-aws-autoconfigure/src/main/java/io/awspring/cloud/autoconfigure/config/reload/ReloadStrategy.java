@@ -26,8 +26,7 @@ package io.awspring.cloud.autoconfigure.config.reload;
  */
 public enum ReloadStrategy {
 	/**
-	 * Fire a refresh of beans annotated with @ConfigurationProperties
-	 * or @RefreshScope.
+	 * Fire a refresh of beans annotated with @ConfigurationProperties or @RefreshScope.
 	 */
 	REFRESH,
 

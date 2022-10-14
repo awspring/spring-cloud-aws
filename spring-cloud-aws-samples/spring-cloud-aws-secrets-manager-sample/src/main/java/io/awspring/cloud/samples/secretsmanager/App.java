@@ -52,7 +52,6 @@ public class App {
 
 }
 
-
 // TODO: get rid of this, added just fo rthe sake of testing
 @RestController
 @RefreshScope

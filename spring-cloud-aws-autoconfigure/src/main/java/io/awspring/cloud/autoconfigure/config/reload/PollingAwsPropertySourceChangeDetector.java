@@ -15,15 +15,12 @@
  */
 package io.awspring.cloud.autoconfigure.config.reload;
 
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-
 import io.awspring.cloud.autoconfigure.config.secretsmanager.ReloadableProperties;
 import io.awspring.cloud.core.config.AwsPropertySource;
+import java.util.List;
+import javax.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -37,14 +34,14 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * @author Matej Nedic
  * @author Maciej Walkowiak
  */
-public class PollingAwsPropertySourceChangeDetector<T extends AwsPropertySource<?, ?>> extends ConfigurationChangeDetector<T> {
+public class PollingAwsPropertySourceChangeDetector<T extends AwsPropertySource<?, ?>>
+		extends ConfigurationChangeDetector<T> {
 
 	protected Log log = LogFactory.getLog(getClass());
 	private final TaskScheduler taskExecutor;
 
 	public PollingAwsPropertySourceChangeDetector(ReloadableProperties properties, Class<T> clazz,
-		ConfigurationUpdateStrategy strategy,
-		TaskScheduler taskExecutor, ConfigurableEnvironment environment) {
+			ConfigurationUpdateStrategy strategy, TaskScheduler taskExecutor, ConfigurableEnvironment environment) {
 		super(properties, strategy, environment, clazz);
 		this.taskExecutor = taskExecutor;
 
