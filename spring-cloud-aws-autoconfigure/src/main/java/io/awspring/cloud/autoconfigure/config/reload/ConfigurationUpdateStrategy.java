@@ -16,10 +16,13 @@
 package io.awspring.cloud.autoconfigure.config.reload;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
+import org.springframework.cloud.context.refresh.ContextRefresher;
+import org.springframework.cloud.context.restart.RestartEndpoint;
 
 /**
- * This is the superclass of all named strategies that can be fired when the configuration
- * changes.
+ * This is the superclass of all named strategies that can be fired when the configuration changes.
  *
  * Heavily inspired by Spring Cloud Kubernetes.
  *
@@ -27,19 +30,44 @@ import java.util.Objects;
  */
 public class ConfigurationUpdateStrategy {
 
-	private final String name;
+	private final ReloadStrategy reloadStrategy;
 	private final Runnable reloadProcedure;
 
-	public ConfigurationUpdateStrategy(String name, Runnable reloadProcedure) {
-		this.name = Objects.requireNonNull(name, "name cannot be null");
+	public static ConfigurationUpdateStrategy create(ReloadProperties reloadProperties, ContextRefresher refresher,
+			Optional<RestartEndpoint> restarter) {
+		switch (reloadProperties.getStrategy()) {
+		case RESTART_CONTEXT:
+			restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
+			return new ConfigurationUpdateStrategy(reloadProperties.getStrategy(), () -> {
+				wait(reloadProperties);
+				restarter.get().restart();
+			});
+		case REFRESH:
+			return new ConfigurationUpdateStrategy(reloadProperties.getStrategy(), refresher::refresh);
+		}
+		throw new IllegalStateException("Unsupported configuration update strategy: " + reloadProperties.getStrategy());
+	}
+
+	public ConfigurationUpdateStrategy(ReloadStrategy reloadStrategy, Runnable reloadProcedure) {
+		this.reloadStrategy = Objects.requireNonNull(reloadStrategy, "reloadStrategy cannot be null");
 		this.reloadProcedure = Objects.requireNonNull(reloadProcedure, "reloadProcedure cannot be null");
 	}
 
-	public String getName() {
-		return name;
+	public ReloadStrategy getReloadStrategy() {
+		return reloadStrategy;
 	}
 
 	public Runnable getReloadProcedure() {
 		return reloadProcedure;
+	}
+
+	private static void wait(ReloadProperties properties) {
+		long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
+		try {
+			Thread.sleep(waitMillis);
+		}
+		catch (InterruptedException ignored) {
+			Thread.currentThread().interrupt();
+		}
 	}
 }

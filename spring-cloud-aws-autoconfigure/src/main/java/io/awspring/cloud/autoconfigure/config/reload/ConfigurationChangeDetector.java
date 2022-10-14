@@ -16,20 +16,17 @@
 package io.awspring.cloud.autoconfigure.config.reload;
 
 import io.awspring.cloud.autoconfigure.config.secretsmanager.ReloadableProperties;
-
+import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import io.awspring.cloud.core.config.AwsPropertySource;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.log.LogAccessor;
 
 /**
- * This is the superclass of all beans that can listen to changes in the configuration and
- * fire a reload.
+ * This is the superclass of all beans that can listen to changes in the configuration and fire a reload.
  *
  * Heavily inspired by Spring Cloud Kubernetes.
  *
@@ -58,7 +55,7 @@ public abstract class ConfigurationChangeDetector<T extends AwsPropertySource<?,
 	}
 
 	public void reloadProperties() {
-		LOG.info(() -> "Reloading using strategy: " + this.strategy.getName());
+		LOG.info(() -> "Reloading using strategy: " + this.strategy);
 		strategy.getReloadProcedure().run();
 	}
 
@@ -88,8 +85,9 @@ public abstract class ConfigurationChangeDetector<T extends AwsPropertySource<?,
 	 */
 	protected List<T> locateMapPropertySources(ConfigurableEnvironment environment) {
 
-		return environment.getPropertySources().stream().filter(it -> (it.getClass().isAssignableFrom(propertySourceClass)))
-			.map(it -> (T) it).collect(Collectors.toList());
+		return environment.getPropertySources().stream()
+				.filter(it -> (it.getClass().isAssignableFrom(propertySourceClass))).map(it -> (T) it)
+				.collect(Collectors.toList());
 	}
 
 }

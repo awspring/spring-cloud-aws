@@ -16,7 +16,10 @@
 package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
+import io.awspring.cloud.autoconfigure.config.secretsmanager.ReloadableProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
  * Configuration properties for the AWS Parameter Store integration. Mostly based on the Spring Cloud Consul
@@ -28,11 +31,37 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @since 2.0.0
  */
 @ConfigurationProperties(ParameterStoreProperties.CONFIG_PREFIX)
-public class ParameterStoreProperties extends AwsClientProperties {
+public class ParameterStoreProperties extends AwsClientProperties implements ReloadableProperties {
 
 	/**
 	 * Configuration prefix.
 	 */
 	public static final String CONFIG_PREFIX = "spring.cloud.aws.parameterstore";
+
+	/**
+	 * Properties related to configuration reload.
+	 */
+	@NestedConfigurationProperty
+	private ReloadProperties reload = new ReloadProperties();
+
+	private boolean monitored;
+
+	@Override
+	public boolean isMonitored() {
+		return monitored;
+	}
+
+	public void setMonitored(boolean monitored) {
+		this.monitored = monitored;
+	}
+
+	@Override
+	public ReloadProperties getReload() {
+		return reload;
+	}
+
+	public void setReload(ReloadProperties reload) {
+		this.reload = reload;
+	}
 
 }

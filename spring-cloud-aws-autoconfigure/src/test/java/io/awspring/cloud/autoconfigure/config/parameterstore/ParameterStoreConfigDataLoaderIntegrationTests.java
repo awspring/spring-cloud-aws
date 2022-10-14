@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
@@ -208,6 +209,95 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"--logging.level.io.awspring.cloud.parameterstore=debug")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 		}
+	}
+
+	@Test
+	void shouldReloadProperties() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-parameterstore:/config/spring/",
+				"--spring.cloud.aws.parameterstore.monitored=true",
+				"--spring.cloud.aws.parameterstore.reload.period=PT1S",
+				"--spring.cloud.aws.parameterstore.region=" + REGION,
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+			// update parameter value
+			SsmClient ssmClient = context.getBean(SsmClient.class);
+			ssmClient.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+
+			await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
+			});
+
+			// reset parameter value
+			resetParameterValue(ssmClient);
+		}
+	}
+
+	@Test
+	void doesNotReloadPropertiesWhenMonitoringIsDisabled() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-parameterstore:/config/spring/",
+				"--spring.cloud.aws.parameterstore.monitored=false",
+				"--spring.cloud.aws.parameterstore.reload.period=PT1S",
+				"--spring.cloud.aws.parameterstore.region=" + REGION,
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+			// update parameter value
+			SsmClient ssmClient = context.getBean(SsmClient.class);
+			ssmClient.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+
+			await().during(Duration.ofSeconds(5)).untilAsserted(() -> {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+			});
+
+			// reset parameter value
+			resetParameterValue(ssmClient);
+		}
+	}
+
+	@Test
+	void shouldReloadPropertiesWithRestartContextStrategy() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-parameterstore:/config/spring/",
+				"--spring.cloud.aws.parameterstore.monitored=true",
+				"--spring.cloud.aws.parameterstore.reload.period=PT1S",
+				"--spring.cloud.aws.parameterstore.region=" + REGION,
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--management.endpoint.restart.enabled=true", "--management.endpoints.web.exposure.include=restart",
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+			// update parameter value
+			SsmClient ssmClient = context.getBean(SsmClient.class);
+			ssmClient.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+
+			await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
+			});
+
+			// reset parameter value
+			resetParameterValue(ssmClient);
+		}
+	}
+
+	private void resetParameterValue(SsmClient ssmClient) {
+		ssmClient.putParameter(r -> r.name("/config/spring/message").value("value from tests").overwrite(true).build());
 	}
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,

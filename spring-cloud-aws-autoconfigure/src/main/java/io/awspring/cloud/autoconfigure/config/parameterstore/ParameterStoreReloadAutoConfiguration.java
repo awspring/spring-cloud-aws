@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.config.secretsmanager;
+package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationChangeDetector;
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationUpdateStrategy;
 import io.awspring.cloud.autoconfigure.config.reload.PollingAwsPropertySourceChangeDetector;
-import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
+import io.awspring.cloud.parameterstore.ParameterStorePropertySource;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
@@ -41,19 +41,19 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(SecretsManagerProperties.class)
+@EnableConfigurationProperties(ParameterStoreProperties.class)
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
 		RefreshAutoConfiguration.class })
-@ConditionalOnProperty(value = SecretsManagerProperties.CONFIG_PREFIX + ".monitored", havingValue = "true")
-public class SecretsManagerReloadAutoConfiguration {
+@ConditionalOnProperty(value = ParameterStoreProperties.CONFIG_PREFIX + ".monitored", havingValue = "true")
+public class ParameterStoreReloadAutoConfiguration {
 
-	@Bean("secretsManagerTaskScheduler")
+	@Bean("parameterStoreTaskScheduler")
 	@ConditionalOnMissingBean
-	public TaskSchedulerWrapper<TaskScheduler> secretsManagerTaskScheduler() {
+	public TaskSchedulerWrapper<TaskScheduler> taskScheduler() {
 		ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
 
-		threadPoolTaskScheduler.setThreadNamePrefix("spring-cloud-aws-secretsmanager-ThreadPoolTaskScheduler-");
+		threadPoolTaskScheduler.setThreadNamePrefix("spring-cloud-aws-parameterstore-ThreadPoolTaskScheduler-");
 		threadPoolTaskScheduler.setDaemon(true);
 
 		return new TaskSchedulerWrapper<>(threadPoolTaskScheduler);
@@ -61,19 +61,19 @@ public class SecretsManagerReloadAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public ConfigurationUpdateStrategy secretsManagerConfigurationUpdateStrategy(SecretsManagerProperties properties,
+	public ConfigurationUpdateStrategy parameterStoreConfigurationUpdateStrategy(ParameterStoreProperties properties,
 			Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
 		return ConfigurationUpdateStrategy.create(properties.getReload(), refresher, restarter);
 	}
 
 	@Bean
 	@ConditionalOnBean(ConfigurationUpdateStrategy.class)
-	public ConfigurationChangeDetector<SecretsManagerPropertySource> secretsManagerDataPropertyChangePollingWatcher(
-			SecretsManagerProperties properties, ConfigurationUpdateStrategy strategy,
-			@Qualifier("secretsManagerTaskScheduler") TaskSchedulerWrapper<TaskScheduler> taskScheduler,
+	public ConfigurationChangeDetector<ParameterStorePropertySource> parameterStoreDataPropertyChangePollingWatcher(
+			ParameterStoreProperties properties, ConfigurationUpdateStrategy strategy,
+			@Qualifier("parameterStoreTaskScheduler") TaskSchedulerWrapper<TaskScheduler> taskScheduler,
 			ConfigurableEnvironment environment) {
 
-		return new PollingAwsPropertySourceChangeDetector<>(properties, SecretsManagerPropertySource.class, strategy,
+		return new PollingAwsPropertySourceChangeDetector<>(properties, ParameterStorePropertySource.class, strategy,
 				taskScheduler.getTaskScheduler(), environment);
 	}
 }
