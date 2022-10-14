@@ -22,6 +22,7 @@ public class ReloadProperties {
 	private ReloadStrategy strategy = ReloadStrategy.REFRESH;
 
 	private Duration maxWaitForRestart = Duration.ofSeconds(30);
+	private Duration period = Duration.ofMinutes(1);
 
 	public ReloadStrategy getStrategy() {
 		return strategy;
@@ -37,5 +38,13 @@ public class ReloadProperties {
 
 	public void setMaxWaitForRestart(Duration maxWaitForRestart) {
 		this.maxWaitForRestart = maxWaitForRestart;
+	}
+
+	public Duration getPeriod() {
+		return period;
+	}
+
+	public void setPeriod(Duration period) {
+		this.period = period;
 	}
 }

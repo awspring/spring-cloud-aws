@@ -44,7 +44,7 @@ public class PollingSecretsManagerChangeDetector extends ConfigurationChangeDete
 	@PostConstruct
 	private void init() {
 		log.info("Polling configurations change detector activated");
-		long period = properties.getReload().getMaxWaitForRestart().toMillis();
+		long period = properties.getReload().getPeriod().toMillis();
 		PeriodicTrigger trigger = new PeriodicTrigger(period);
 		trigger.setInitialDelay(period);
 		taskExecutor.schedule(this::executeCycle, trigger);

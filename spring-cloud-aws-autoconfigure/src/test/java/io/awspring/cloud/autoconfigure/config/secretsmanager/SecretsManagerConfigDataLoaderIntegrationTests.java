@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SECRETSMANAGER;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
@@ -49,6 +50,7 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueResponse;
 
 /**
  * Integration tests for loading configuration properties from AWS Secrets Manager.
@@ -244,6 +246,56 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=" + REGION)) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+		}
+	}
+
+	@Test
+	void shouldReloadProperties() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run("--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+			"--spring.cloud.aws.secretsmanager.region=" + REGION,
+			"--spring.cloud.aws.secretsmanager.monitored=true",
+			"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
+			"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+			"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+			"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+			// update secret value
+			SecretsManagerClient bean = context.getBean(SecretsManagerClient.class);
+			bean.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
+
+			await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
+			});
+
+		}
+	}
+
+	@Test
+	void shouldNotReloadPropertiesWhenMonitoringIsDisabled() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run("--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+			"--spring.cloud.aws.secretsmanager.region=" + REGION,
+			"--spring.cloud.aws.secretsmanager.monitored=false",
+			"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
+			"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+			"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+			"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+			// update secret value
+			SecretsManagerClient bean = context.getBean(SecretsManagerClient.class);
+			bean.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
+
+			await().during(Duration.ofSeconds(5)).untilAsserted(() -> {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+			});
+
 		}
 	}
 
