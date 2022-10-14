@@ -17,6 +17,15 @@ package io.awspring.cloud.autoconfigure.config.reload;
 
 import java.time.Duration;
 
+/**
+ * Configuration related to reloading properties.
+ *
+ * Heavily inspired by Spring Cloud Kubernetes.
+ *
+ * @author Nicola Ferraro
+ * @author Matej Nedic
+ * @author Maciej Walkowiak
+ */
 public class ReloadProperties {
 
 	private ReloadStrategy strategy = ReloadStrategy.REFRESH;

@@ -17,6 +17,14 @@ package io.awspring.cloud.autoconfigure.config.reload;
 
 import java.util.Objects;
 
+/**
+ * This is the superclass of all named strategies that can be fired when the configuration
+ * changes.
+ *
+ * Heavily inspired by Spring Cloud Kubernetes.
+ *
+ * @author Nicola Ferraro
+ */
 public class ConfigurationUpdateStrategy {
 
 	private final String name;

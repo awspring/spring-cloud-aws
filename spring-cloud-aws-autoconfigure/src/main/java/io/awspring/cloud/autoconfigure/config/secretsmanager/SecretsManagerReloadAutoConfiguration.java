@@ -17,7 +17,7 @@ package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationChangeDetector;
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationUpdateStrategy;
-import io.awspring.cloud.autoconfigure.config.reload.PollingSecretsManagerChangeDetector;
+import io.awspring.cloud.autoconfigure.config.reload.PollingAwsPropertySourceChangeDetector;
 import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
 import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
 
@@ -83,7 +83,7 @@ public class SecretsManagerReloadAutoConfiguration {
 			SecretsManagerProperties properties, ConfigurationUpdateStrategy strategy,
 			TaskSchedulerWrapper<TaskScheduler> taskScheduler, ConfigurableEnvironment environment) {
 
-		return new PollingSecretsManagerChangeDetector<>(properties, SecretsManagerPropertySource.class, strategy,
+		return new PollingAwsPropertySourceChangeDetector<>(properties, SecretsManagerPropertySource.class, strategy,
 			taskScheduler.getTaskScheduler(),
 			environment);
 	}
