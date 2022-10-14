@@ -30,7 +30,14 @@ public class ReloadProperties {
 
 	private ReloadStrategy strategy = ReloadStrategy.REFRESH;
 
-	private Duration maxWaitForRestart = Duration.ofSeconds(30);
+	/**
+	 * If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
+	 */
+	private Duration maxWaitForRestart = Duration.ofSeconds(2);
+
+	/**
+	 * Refresh periof for {@link PollingAwsPropertySourceChangeDetector}.
+	 */
 	private Duration period = Duration.ofMinutes(1);
 
 	public ReloadStrategy getStrategy() {
