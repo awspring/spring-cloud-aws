@@ -264,13 +264,15 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 
 			// update secret value
-			SecretsManagerClient bean = context.getBean(SecretsManagerClient.class);
-			bean.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
+			SecretsManagerClient smClient = context.getBean(SecretsManagerClient.class);
+			smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
 
 			await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
 			});
 
+			// reset secret value
+			smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"value from tests\"}").build());
 		}
 	}
 
@@ -296,6 +298,37 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 			});
 
+		}
+	}
+
+	@Test
+	void shouldReloadPropertiesWithRestartContextStrategy() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run("--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+			"--spring.cloud.aws.secretsmanager.region=" + REGION,
+			"--spring.cloud.aws.secretsmanager.monitored=true",
+			"--spring.cloud.aws.secretsmanager.reload.strategy=RESTART_CONTEXT",
+			"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
+			"--spring.cloud.aws.secretsmanager.reload.max-wait-for-restart=PT1S",
+			"--management.endpoint.restart.enabled=true",
+			"--management.endpoints.web.exposure.include=restart",
+			"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+			"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+			"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+			// update secret value
+			SecretsManagerClient smClient = context.getBean(SecretsManagerClient.class);
+			smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
+
+			await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
+			});
+
+			// reset secret value
+			smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"value from tests\"}").build());
 		}
 	}
 
