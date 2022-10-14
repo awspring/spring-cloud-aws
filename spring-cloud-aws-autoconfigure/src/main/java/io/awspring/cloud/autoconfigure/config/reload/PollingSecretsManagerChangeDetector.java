@@ -13,31 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.config.secretsmanager;
+package io.awspring.cloud.autoconfigure.config.reload;
 
-import io.awspring.cloud.autoconfigure.config.reload.ConfigurationChangeDetector;
-import io.awspring.cloud.autoconfigure.config.reload.ConfigurationUpdateStrategy;
-import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 import javax.annotation.PostConstruct;
+
+import io.awspring.cloud.autoconfigure.config.secretsmanager.ReloadableProperties;
+import io.awspring.cloud.core.config.AwsPropertySource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
-public class PollingSecretsManagerChangeDetector extends ConfigurationChangeDetector {
+public class PollingSecretsManagerChangeDetector<T extends AwsPropertySource<?, ?>> extends ConfigurationChangeDetector {
 
+	private final Class<T> clazz;
 	protected Log log = LogFactory.getLog(getClass());
 	private final TaskScheduler taskExecutor;
 
-	public PollingSecretsManagerChangeDetector(ReloadableProperties properties, ConfigurationUpdateStrategy strategy,
+	public PollingSecretsManagerChangeDetector(ReloadableProperties properties, Class<T> clazz, ConfigurationUpdateStrategy strategy,
 			TaskScheduler taskExecutor, ConfigurableEnvironment environment) {
 		super(properties, strategy, environment);
 		this.taskExecutor = taskExecutor;
+		this.clazz = clazz;
 
 	}
 
@@ -55,10 +59,10 @@ public class PollingSecretsManagerChangeDetector extends ConfigurationChangeDete
 			if (log.isDebugEnabled()) {
 				log.debug("Polling for changes in secrets");
 			}
-			List<SecretsManagerPropertySource> currentSecretSources = locateMapPropertySources(this.environment);
+			List<T> currentSecretSources = locateMapPropertySources(this.environment);
 			if (!currentSecretSources.isEmpty()) {
-				for (SecretsManagerPropertySource propertySource : currentSecretSources) {
-					SecretsManagerPropertySource clone = propertySource.copy();
+				for (T propertySource : currentSecretSources) {
+					AwsPropertySource<?,?> clone = propertySource.copy();
 					clone.init();
 					if (changed(propertySource, clone)) {
 						reloadProperties();
@@ -92,9 +96,9 @@ public class PollingSecretsManagerChangeDetector extends ConfigurationChangeDete
 	 * @param environment Spring environment
 	 * @return a list of MapPropertySource that correspond to the current state of the system
 	 */
-	protected List<SecretsManagerPropertySource> locateMapPropertySources(ConfigurableEnvironment environment) {
+	protected List<T> locateMapPropertySources(ConfigurableEnvironment environment) {
 
-		return environment.getPropertySources().stream().filter(it -> (it instanceof SecretsManagerPropertySource))
-				.map(it -> ((SecretsManagerPropertySource) it)).collect(Collectors.toList());
+		return environment.getPropertySources().stream().filter(it -> (it.getClass().isAssignableFrom(clazz)))
+				.map(it -> (T) it).collect(Collectors.toList());
 	}
 }

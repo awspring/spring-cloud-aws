@@ -17,7 +17,10 @@ package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationChangeDetector;
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationUpdateStrategy;
+import io.awspring.cloud.autoconfigure.config.reload.PollingSecretsManagerChangeDetector;
 import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
+import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
+
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
@@ -80,8 +83,9 @@ public class SecretsManagerReloadAutoConfiguration {
 			SecretsManagerProperties properties, ConfigurationUpdateStrategy strategy,
 			TaskSchedulerWrapper<TaskScheduler> taskScheduler, ConfigurableEnvironment environment) {
 
-		return new PollingSecretsManagerChangeDetector(properties, strategy, taskScheduler.getTaskScheduler(),
-				environment);
+		return new PollingSecretsManagerChangeDetector<>(properties, SecretsManagerPropertySource.class, strategy,
+			taskScheduler.getTaskScheduler(),
+			environment);
 	}
 
 	private static void wait(ReloadProperties properties) {

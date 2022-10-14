@@ -272,8 +272,12 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			});
 
 			// reset secret value
-			smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"value from tests\"}").build());
+			resetSecretValue(smClient);
 		}
+	}
+
+	private void resetSecretValue(SecretsManagerClient smClient) {
+		smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"value from tests\", \"another-parameter\": \"another parameter value\"}").build());
 	}
 
 	@Test
@@ -291,13 +295,15 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 
 			// update secret value
-			SecretsManagerClient bean = context.getBean(SecretsManagerClient.class);
-			bean.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
+			SecretsManagerClient smClient = context.getBean(SecretsManagerClient.class);
+			smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"new value\"}").build());
 
 			await().during(Duration.ofSeconds(5)).untilAsserted(() -> {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 			});
 
+			// reset secret value
+			resetSecretValue(smClient);
 		}
 	}
 
@@ -328,7 +334,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			});
 
 			// reset secret value
-			smClient.putSecretValue(r -> r.secretId("/config/spring").secretString("{\"message\":\"value from tests\"}").build());
+			resetSecretValue(smClient);
 		}
 	}
 

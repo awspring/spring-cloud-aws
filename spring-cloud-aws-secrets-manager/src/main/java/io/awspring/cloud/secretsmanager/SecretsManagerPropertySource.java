@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
+import io.awspring.cloud.core.config.AwsPropertySource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -40,7 +42,7 @@ import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundExce
  * @author Arun Patra
  * @since 2.0.0
  */
-public class SecretsManagerPropertySource extends EnumerablePropertySource<SecretsManagerClient> {
+public class SecretsManagerPropertySource extends AwsPropertySource<SecretsManagerPropertySource, SecretsManagerClient> {
 
 	private static Log LOG = LogFactory.getLog(SecretsManagerPropertySource.class);
 
@@ -59,6 +61,7 @@ public class SecretsManagerPropertySource extends EnumerablePropertySource<Secre
 	 * Loads properties from the Secrets Manager secret.
 	 * @throws ResourceNotFoundException if specified secret does not exist in the AWS Secret Manager service.
 	 */
+	@Override
 	public void init() {
 		readSecretValue(GetSecretValueRequest.builder().secretId(context).build());
 	}
@@ -99,6 +102,7 @@ public class SecretsManagerPropertySource extends EnumerablePropertySource<Secre
 		}
 	}
 
+	@Override
 	public SecretsManagerPropertySource copy() {
 		return new SecretsManagerPropertySource(this.context, this.source);
 	}
