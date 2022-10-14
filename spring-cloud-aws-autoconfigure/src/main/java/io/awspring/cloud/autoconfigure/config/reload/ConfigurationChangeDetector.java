@@ -78,10 +78,10 @@ public abstract class ConfigurationChangeDetector<T extends AwsPropertySource<?,
 	}
 
 	/**
-	 * Returns a list of MapPropertySource that correspond to the current state of the system. This only handles the
-	 * PropertySource objects that are returned.
+	 * Returns a list of property sources that are instance of {@link T}.
+	 *
 	 * @param environment Spring environment
-	 * @return a list of MapPropertySource that correspond to the current state of the system
+	 * @return a list of property sources
 	 */
 	protected List<T> locateMapPropertySources(ConfigurableEnvironment environment) {
 
