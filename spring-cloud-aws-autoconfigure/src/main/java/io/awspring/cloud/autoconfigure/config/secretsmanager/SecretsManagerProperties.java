@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -30,11 +31,32 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @since 2.0.0
  */
 @ConfigurationProperties(prefix = SecretsManagerProperties.CONFIG_PREFIX)
-public class SecretsManagerProperties extends AwsClientProperties {
+public class SecretsManagerProperties extends AwsClientProperties implements ReloadableProperties {
 
 	/**
 	 * Configuration prefix.
 	 */
 	public static final String CONFIG_PREFIX = "spring.cloud.aws.secretsmanager";
 
+	private ReloadProperties reload = new ReloadProperties();
+
+	private boolean monitored;
+
+	@Override
+	public boolean isMonitored() {
+		return monitored;
+	}
+
+	public void setMonitored(boolean monitored) {
+		this.monitored = monitored;
+	}
+
+	@Override
+	public ReloadProperties getReload() {
+		return reload;
+	}
+
+	public void setReload(ReloadProperties reload) {
+		this.reload = reload;
+	}
 }

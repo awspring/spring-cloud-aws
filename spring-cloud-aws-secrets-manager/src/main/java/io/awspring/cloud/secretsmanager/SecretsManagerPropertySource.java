@@ -99,4 +99,8 @@ public class SecretsManagerPropertySource extends EnumerablePropertySource<Secre
 		}
 	}
 
+	public SecretsManagerPropertySource copy() {
+		return new SecretsManagerPropertySource(this.context, this.source);
+	}
+
 }
