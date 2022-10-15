@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.reload;
 
 import java.time.Duration;
+import org.springframework.lang.Nullable;
 
 /**
  * Configuration related to reloading properties.
@@ -28,9 +29,7 @@ import java.time.Duration;
  */
 public class ReloadProperties {
 
-	private boolean enabled = false;
-
-	private ReloadStrategy strategy = ReloadStrategy.REFRESH;
+	private ReloadStrategy strategy;
 
 	/**
 	 * If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
@@ -43,18 +42,15 @@ public class ReloadProperties {
 	private Duration period = Duration.ofMinutes(1);
 
 	public boolean isEnabled() {
-		return enabled;
+		return strategy != null;
 	}
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
+	@Nullable
 	public ReloadStrategy getStrategy() {
 		return strategy;
 	}
 
-	public void setStrategy(ReloadStrategy strategy) {
+	public void setStrategy(@Nullable ReloadStrategy strategy) {
 		this.strategy = strategy;
 	}
 

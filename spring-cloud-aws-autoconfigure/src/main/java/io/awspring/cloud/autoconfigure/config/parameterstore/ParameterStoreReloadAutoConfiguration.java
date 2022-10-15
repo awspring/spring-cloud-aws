@@ -45,7 +45,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
 		RefreshAutoConfiguration.class })
-@ConditionalOnProperty(value = ParameterStoreProperties.CONFIG_PREFIX + ".reload.enabled", havingValue = "true")
+@ConditionalOnProperty(value = ParameterStoreProperties.CONFIG_PREFIX + ".reload.strategy")
 public class ParameterStoreReloadAutoConfiguration {
 
 	@Bean("parameterStoreTaskScheduler")

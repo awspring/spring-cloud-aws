@@ -218,7 +218,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-parameterstore:/config/spring/",
-				"--spring.cloud.aws.parameterstore.reload.enabled=true",
+				"--spring.cloud.aws.parameterstore.reload.strategy=refresh",
 				"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
@@ -240,13 +240,12 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-	void doesNotReloadPropertiesWhenMonitoringIsDisabled() {
+	void doesNotReloadPropertiesWhenReloadStrategyIsNotSet() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-parameterstore:/config/spring/",
-				"--spring.cloud.aws.parameterstore.reload.enabled=false",
 				"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
@@ -274,7 +273,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-parameterstore:/config/spring/",
-				"--spring.cloud.aws.parameterstore.reload.enabled=true",
+				"--spring.cloud.aws.parameterstore.reload.strategy=restart_context",
 				"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
