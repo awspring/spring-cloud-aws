@@ -16,7 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.reload;
 
 /**
- * Configuration reload strategies.
+ * Configuration for reload strategies.
  *
  * Heavily inspired by Spring Cloud Kubernetes.
  *

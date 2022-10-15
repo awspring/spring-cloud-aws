@@ -29,6 +29,9 @@ import org.springframework.lang.Nullable;
  */
 public class ReloadProperties {
 
+	/**
+	 * Reload strategy to run when properties change.
+	 */
 	private ReloadStrategy strategy;
 
 	/**
