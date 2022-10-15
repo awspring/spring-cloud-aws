@@ -55,7 +55,7 @@ public abstract class ConfigurationChangeDetector<T extends AwsPropertySource<?,
 
 	public void reloadProperties() {
 		LOG.info(() -> "Reloading using strategy: " + this.strategy);
-		strategy.getReloadProcedure().run();
+		strategy.run();
 	}
 
 	/**

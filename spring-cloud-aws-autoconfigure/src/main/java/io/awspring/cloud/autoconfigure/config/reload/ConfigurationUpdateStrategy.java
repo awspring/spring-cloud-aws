@@ -27,10 +27,10 @@ import org.springframework.cloud.context.restart.RestartEndpoint;
  * Heavily inspired by Spring Cloud Kubernetes.
  *
  * @author Nicola Ferraro
+ * @author Maciej Walkowiak
  */
-public class ConfigurationUpdateStrategy {
+public class ConfigurationUpdateStrategy implements Runnable {
 
-	private final ReloadStrategy reloadStrategy;
 	private final Runnable reloadProcedure;
 
 	public static ConfigurationUpdateStrategy create(ReloadProperties reloadProperties, ContextRefresher refresher,
@@ -39,12 +39,12 @@ public class ConfigurationUpdateStrategy {
 			switch (reloadProperties.getStrategy()) {
 			case RESTART_CONTEXT:
 				restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
-				return new ConfigurationUpdateStrategy(reloadProperties.getStrategy(), () -> {
+				return new ConfigurationUpdateStrategy(() -> {
 					wait(reloadProperties);
 					restarter.get().restart();
 				});
 			case REFRESH:
-				return new ConfigurationUpdateStrategy(reloadProperties.getStrategy(), refresher::refresh);
+				return new ConfigurationUpdateStrategy(refresher::refresh);
 			}
 			throw new IllegalStateException(
 					"Unsupported configuration update strategy: " + reloadProperties.getStrategy());
@@ -52,17 +52,12 @@ public class ConfigurationUpdateStrategy {
 		throw new IllegalStateException("Configuration update strategy not set");
 	}
 
-	public ConfigurationUpdateStrategy(ReloadStrategy reloadStrategy, Runnable reloadProcedure) {
-		this.reloadStrategy = Objects.requireNonNull(reloadStrategy, "reloadStrategy cannot be null");
+	private ConfigurationUpdateStrategy(Runnable reloadProcedure) {
 		this.reloadProcedure = Objects.requireNonNull(reloadProcedure, "reloadProcedure cannot be null");
 	}
 
-	public ReloadStrategy getReloadStrategy() {
-		return reloadStrategy;
-	}
-
-	public Runnable getReloadProcedure() {
-		return reloadProcedure;
+	public void run() {
+		this.reloadProcedure.run();
 	}
 
 	private static void wait(ReloadProperties properties) {
