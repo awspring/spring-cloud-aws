@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
-import io.awspring.cloud.autoconfigure.config.secretsmanager.ReloadableProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
@@ -31,7 +30,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
  * @since 2.0.0
  */
 @ConfigurationProperties(ParameterStoreProperties.CONFIG_PREFIX)
-public class ParameterStoreProperties extends AwsClientProperties implements ReloadableProperties {
+public class ParameterStoreProperties extends AwsClientProperties {
 
 	/**
 	 * Configuration prefix.
@@ -44,18 +43,6 @@ public class ParameterStoreProperties extends AwsClientProperties implements Rel
 	@NestedConfigurationProperty
 	private ReloadProperties reload = new ReloadProperties();
 
-	private boolean monitored;
-
-	@Override
-	public boolean isMonitored() {
-		return monitored;
-	}
-
-	public void setMonitored(boolean monitored) {
-		this.monitored = monitored;
-	}
-
-	@Override
 	public ReloadProperties getReload() {
 		return reload;
 	}

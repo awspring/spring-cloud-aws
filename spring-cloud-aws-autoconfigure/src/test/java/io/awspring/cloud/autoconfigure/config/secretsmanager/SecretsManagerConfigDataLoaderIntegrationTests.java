@@ -256,7 +256,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 				"--spring.cloud.aws.secretsmanager.region=" + REGION,
-				"--spring.cloud.aws.secretsmanager.monitored=true",
+				"--spring.cloud.aws.secretsmanager.reload.enabled=true",
 				"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
@@ -292,7 +292,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 				"--spring.cloud.aws.secretsmanager.region=" + REGION,
-				"--spring.cloud.aws.secretsmanager.monitored=false",
+				"--spring.cloud.aws.secretsmanager.reload.enabled=false",
 				"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
@@ -322,7 +322,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 				"--spring.cloud.aws.secretsmanager.region=" + REGION,
-				"--spring.cloud.aws.secretsmanager.monitored=true",
+				"--spring.cloud.aws.secretsmanager.reload.enabled=true",
 				"--spring.cloud.aws.secretsmanager.reload.strategy=RESTART_CONTEXT",
 				"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
 				"--spring.cloud.aws.secretsmanager.reload.max-wait-for-restart=PT1S",

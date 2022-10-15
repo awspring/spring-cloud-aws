@@ -28,6 +28,8 @@ import java.time.Duration;
  */
 public class ReloadProperties {
 
+	private boolean enabled = false;
+
 	private ReloadStrategy strategy = ReloadStrategy.REFRESH;
 
 	/**
@@ -39,6 +41,14 @@ public class ReloadProperties {
 	 * Refresh periof for {@link PollingAwsPropertySourceChangeDetector}.
 	 */
 	private Duration period = Duration.ofMinutes(1);
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	public ReloadStrategy getStrategy() {
 		return strategy;

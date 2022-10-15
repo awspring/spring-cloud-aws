@@ -32,7 +32,7 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
  * @since 2.0.0
  */
 @ConfigurationProperties(prefix = SecretsManagerProperties.CONFIG_PREFIX)
-public class SecretsManagerProperties extends AwsClientProperties implements ReloadableProperties {
+public class SecretsManagerProperties extends AwsClientProperties {
 
 	/**
 	 * Configuration prefix.
@@ -45,18 +45,6 @@ public class SecretsManagerProperties extends AwsClientProperties implements Rel
 	@NestedConfigurationProperty
 	private ReloadProperties reload = new ReloadProperties();
 
-	private boolean monitored;
-
-	@Override
-	public boolean isMonitored() {
-		return monitored;
-	}
-
-	public void setMonitored(boolean monitored) {
-		this.monitored = monitored;
-	}
-
-	@Override
 	public ReloadProperties getReload() {
 		return reload;
 	}

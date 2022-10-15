@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.autoconfigure.config.reload;
 
-import io.awspring.cloud.autoconfigure.config.secretsmanager.ReloadableProperties;
 import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.List;
 import java.util.Objects;
@@ -38,7 +37,7 @@ public abstract class ConfigurationChangeDetector<T extends AwsPropertySource<?,
 
 	private static final LogAccessor LOG = new LogAccessor(LogFactory.getLog(ConfigurationChangeDetector.class));
 
-	protected ReloadableProperties properties;
+	protected ReloadProperties properties;
 
 	protected ConfigurationUpdateStrategy strategy;
 
@@ -46,7 +45,7 @@ public abstract class ConfigurationChangeDetector<T extends AwsPropertySource<?,
 
 	private final Class<T> propertySourceClass;
 
-	public ConfigurationChangeDetector(ReloadableProperties properties, ConfigurationUpdateStrategy strategy,
+	public ConfigurationChangeDetector(ReloadProperties properties, ConfigurationUpdateStrategy strategy,
 			ConfigurableEnvironment environment, Class<T> propertySourceClass) {
 		this.properties = Objects.requireNonNull(properties);
 		this.strategy = Objects.requireNonNull(strategy);

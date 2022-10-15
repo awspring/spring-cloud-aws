@@ -45,7 +45,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
 		RefreshAutoConfiguration.class })
-@ConditionalOnProperty(value = ParameterStoreProperties.CONFIG_PREFIX + ".monitored", havingValue = "true")
+@ConditionalOnProperty(value = ParameterStoreProperties.CONFIG_PREFIX + ".reload.enabled", havingValue = "true")
 public class ParameterStoreReloadAutoConfiguration {
 
 	@Bean("parameterStoreTaskScheduler")
@@ -73,7 +73,7 @@ public class ParameterStoreReloadAutoConfiguration {
 			@Qualifier("parameterStoreTaskScheduler") TaskSchedulerWrapper<TaskScheduler> taskScheduler,
 			ConfigurableEnvironment environment) {
 
-		return new PollingAwsPropertySourceChangeDetector<>(properties, ParameterStorePropertySource.class, strategy,
-				taskScheduler.getTaskScheduler(), environment);
+		return new PollingAwsPropertySourceChangeDetector<>(properties.getReload(), ParameterStorePropertySource.class,
+				strategy, taskScheduler.getTaskScheduler(), environment);
 	}
 }

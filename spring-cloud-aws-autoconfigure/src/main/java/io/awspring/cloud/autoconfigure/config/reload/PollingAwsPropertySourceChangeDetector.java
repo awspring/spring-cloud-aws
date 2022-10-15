@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.autoconfigure.config.reload;
 
-import io.awspring.cloud.autoconfigure.config.secretsmanager.ReloadableProperties;
 import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.List;
 import javax.annotation.PostConstruct;
@@ -40,7 +39,7 @@ public class PollingAwsPropertySourceChangeDetector<T extends AwsPropertySource<
 	protected Log log = LogFactory.getLog(getClass());
 	private final TaskScheduler taskExecutor;
 
-	public PollingAwsPropertySourceChangeDetector(ReloadableProperties properties, Class<T> clazz,
+	public PollingAwsPropertySourceChangeDetector(ReloadProperties properties, Class<T> clazz,
 			ConfigurationUpdateStrategy strategy, TaskScheduler taskExecutor, ConfigurableEnvironment environment) {
 		super(properties, strategy, environment, clazz);
 		this.taskExecutor = taskExecutor;
@@ -50,14 +49,14 @@ public class PollingAwsPropertySourceChangeDetector<T extends AwsPropertySource<
 	@PostConstruct
 	private void init() {
 		log.info("Polling configurations change detector activated");
-		long period = properties.getReload().getPeriod().toMillis();
+		long period = properties.getPeriod().toMillis();
 		PeriodicTrigger trigger = new PeriodicTrigger(period);
 		trigger.setInitialDelay(period);
 		taskExecutor.schedule(this::executeCycle, trigger);
 	}
 
 	public void executeCycle() {
-		if (this.properties.isMonitored()) {
+		if (this.properties.isEnabled()) {
 			if (log.isDebugEnabled()) {
 				log.debug("Polling for changes in secrets");
 			}
