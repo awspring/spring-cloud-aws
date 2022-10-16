@@ -46,21 +46,20 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
 		RefreshAutoConfiguration.class })
 @ConditionalOnProperty(value = SecretsManagerProperties.CONFIG_PREFIX + ".reload.strategy")
+@ConditionalOnBean(ContextRefresher.class)
 public class SecretsManagerReloadAutoConfiguration {
 
 	@Bean("secretsManagerTaskScheduler")
-	@ConditionalOnMissingBean
+	@ConditionalOnMissingBean(name = "secretsManagerTaskScheduler")
 	public TaskSchedulerWrapper<TaskScheduler> secretsManagerTaskScheduler() {
 		ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-
 		threadPoolTaskScheduler.setThreadNamePrefix("spring-cloud-aws-secretsmanager-ThreadPoolTaskScheduler-");
 		threadPoolTaskScheduler.setDaemon(true);
-
 		return new TaskSchedulerWrapper<>(threadPoolTaskScheduler);
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
+	@ConditionalOnMissingBean(name = "secretsManagerConfigurationUpdateStrategy")
 	public ConfigurationUpdateStrategy secretsManagerConfigurationUpdateStrategy(SecretsManagerProperties properties,
 			Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
 		return ConfigurationUpdateStrategy.create(properties.getReload(), refresher, restarter);
@@ -68,8 +67,9 @@ public class SecretsManagerReloadAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(ConfigurationUpdateStrategy.class)
-	public ConfigurationChangeDetector<SecretsManagerPropertySource> secretsManagerDataPropertyChangePollingWatcher(
-			SecretsManagerProperties properties, ConfigurationUpdateStrategy strategy,
+	public ConfigurationChangeDetector<SecretsManagerPropertySource> secretsManagerPollingAwsPropertySourceChangeDetector(
+			SecretsManagerProperties properties,
+			@Qualifier("secretsManagerConfigurationUpdateStrategy") ConfigurationUpdateStrategy strategy,
 			@Qualifier("secretsManagerTaskScheduler") TaskSchedulerWrapper<TaskScheduler> taskScheduler,
 			ConfigurableEnvironment environment) {
 

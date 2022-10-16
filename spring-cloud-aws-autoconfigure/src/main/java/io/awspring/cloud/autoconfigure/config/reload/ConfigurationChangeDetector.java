@@ -89,4 +89,7 @@ public abstract class ConfigurationChangeDetector<T extends AwsPropertySource<?,
 				.collect(Collectors.toList());
 	}
 
+	public Class<T> getPropertySourceClass() {
+		return propertySourceClass;
+	}
 }
