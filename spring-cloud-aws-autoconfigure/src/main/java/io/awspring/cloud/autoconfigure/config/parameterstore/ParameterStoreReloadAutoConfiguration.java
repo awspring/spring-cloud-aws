@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -40,6 +41,12 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
+/**
+ * {@link EnableAutoConfiguration Auto-Configuration} for reloading properties from Parameter Store.
+ *
+ * @author Maciej Walkowiak
+ * @author Matej Nedic
+ */
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(ParameterStoreProperties.class)
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
@@ -59,8 +66,8 @@ public class ParameterStoreReloadAutoConfiguration {
 		return new TaskSchedulerWrapper<>(threadPoolTaskScheduler);
 	}
 
-	@Bean
-	@ConditionalOnMissingBean
+	@Bean("parameterStoreConfigurationUpdateStrategy")
+	@ConditionalOnMissingBean(name = "parameterStoreConfigurationUpdateStrategy")
 	public ConfigurationUpdateStrategy parameterStoreConfigurationUpdateStrategy(ParameterStoreProperties properties,
 			Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
 		return ConfigurationUpdateStrategy.create(properties.getReload(), refresher, restarter);
@@ -68,8 +75,9 @@ public class ParameterStoreReloadAutoConfiguration {
 
 	@Bean
 	@ConditionalOnBean(ConfigurationUpdateStrategy.class)
-	public ConfigurationChangeDetector<ParameterStorePropertySource> parameterStoreDataPropertyChangePollingWatcher(
-			ParameterStoreProperties properties, ConfigurationUpdateStrategy strategy,
+	public ConfigurationChangeDetector<ParameterStorePropertySource> parameterStorePollingAwsPropertySourceChangeDetector(
+			ParameterStoreProperties properties,
+			@Qualifier("parameterStoreConfigurationUpdateStrategy") ConfigurationUpdateStrategy strategy,
 			@Qualifier("parameterStoreTaskScheduler") TaskSchedulerWrapper<TaskScheduler> taskScheduler,
 			ConfigurableEnvironment environment) {
 
