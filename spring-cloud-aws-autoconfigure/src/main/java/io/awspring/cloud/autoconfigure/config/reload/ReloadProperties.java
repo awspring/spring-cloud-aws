@@ -40,7 +40,7 @@ public class ReloadProperties {
 	private Duration maxWaitForRestart = Duration.ofSeconds(2);
 
 	/**
-	 * Refresh periof for {@link PollingAwsPropertySourceChangeDetector}.
+	 * Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
 	 */
 	private Duration period = Duration.ofMinutes(1);
 
