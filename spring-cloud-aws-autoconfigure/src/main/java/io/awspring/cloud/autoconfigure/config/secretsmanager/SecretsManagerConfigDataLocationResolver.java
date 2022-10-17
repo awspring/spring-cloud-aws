@@ -30,6 +30,7 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.logging.DeferredLogFactory;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 
@@ -51,8 +52,8 @@ public class SecretsManagerConfigDataLocationResolver
 
 	private final Log log;
 
-	public SecretsManagerConfigDataLocationResolver(Log log) {
-		this.log = log;
+	public SecretsManagerConfigDataLocationResolver(DeferredLogFactory deferredLogFactory) {
+		this.log = deferredLogFactory.getLog(SecretsManagerConfigDataLocationResolver.class);
 	}
 
 	@Override

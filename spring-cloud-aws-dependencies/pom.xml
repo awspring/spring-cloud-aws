@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
-		<version>3.0.0</version>
+		<version>3.1.4</version>
 		<relativePath/>
 	</parent>
 	<scm>

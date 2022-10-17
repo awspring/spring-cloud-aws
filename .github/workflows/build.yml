@@ -14,7 +14,7 @@ jobs:
     name: "Test with ${{ matrix.version }}"
     strategy:
       matrix:
-        version: [ 8.0.332-tem, 11.0.13-tem, 17.0.1-tem ]
+        version: [ 17.0.1-tem ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -36,7 +36,7 @@ jobs:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Build with Maven
-        run: ./mvnw -V -B verify
+        run: ./mvnw -V -B verify -Pspring
   sonar:
     name: "Run Sonar Analysis"
     runs-on: ubuntu-latest
@@ -71,4 +71,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw -V -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage
+        run: ./mvnw -V -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage,spring

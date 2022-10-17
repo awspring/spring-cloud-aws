@@ -1,16 +1,3 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration,\
-io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration,\
-io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration,\
-io.awspring.cloud.autoconfigure.metrics.CloudWatchExportAutoConfiguration,\
-io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration,\
-io.awspring.cloud.autoconfigure.s3.S3TransferManagerAutoConfiguration,\
-io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration,\
-io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration,\
-io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration,\
-io.awspring.cloud.autoconfigure.dynamodb.DynamoDbAutoConfiguration,\
-io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerReloadAutoConfiguration
-
 # ConfigData Location Resolvers
 org.springframework.boot.context.config.ConfigDataLocationResolver=\
 io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLocationResolver,\

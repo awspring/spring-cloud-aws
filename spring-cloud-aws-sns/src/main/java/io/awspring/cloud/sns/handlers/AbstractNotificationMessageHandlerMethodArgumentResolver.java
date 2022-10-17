@@ -16,7 +16,7 @@
 package io.awspring.cloud.sns.handlers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;

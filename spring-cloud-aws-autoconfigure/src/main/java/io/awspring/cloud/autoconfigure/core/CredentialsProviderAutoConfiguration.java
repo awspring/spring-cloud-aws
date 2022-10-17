@@ -18,12 +18,12 @@ package io.awspring.cloud.autoconfigure.core;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -40,7 +40,7 @@ import software.amazon.awssdk.profiles.ProfileFile;
  * @author Maciej Walkowiak
  * @author Eddú Meléndez
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @ConditionalOnClass({ AwsCredentialsProvider.class, ProfileFile.class })
 @EnableConfigurationProperties(CredentialsProperties.class)
 public class CredentialsProviderAutoConfiguration {

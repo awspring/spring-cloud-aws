@@ -20,12 +20,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.providers.AwsProfileRegionProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
  * @author Siva Katamreddy
  * @author Eddú Meléndez
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @ConditionalOnClass({ StaticRegionProvider.class, AwsRegionProvider.class, ProfileFile.class })
 @EnableConfigurationProperties(RegionProperties.class)
 public class RegionProviderAutoConfiguration {
