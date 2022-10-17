@@ -17,9 +17,9 @@ package io.awspring.cloud.autoconfigure.config.reload;
 
 import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -34,7 +34,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * @author Maciej Walkowiak
  */
 public class PollingAwsPropertySourceChangeDetector<T extends AwsPropertySource<?, ?>>
-		extends ConfigurationChangeDetector<T> {
+		extends ConfigurationChangeDetector<T> implements InitializingBean {
 
 	protected Log log = LogFactory.getLog(getClass());
 	private final TaskScheduler taskExecutor;
@@ -46,12 +46,11 @@ public class PollingAwsPropertySourceChangeDetector<T extends AwsPropertySource<
 
 	}
 
-	@PostConstruct
-	private void init() {
+	@Override
+	public void afterPropertiesSet() {
 		log.info("Polling configurations change detector activated");
-		long period = properties.getPeriod().toMillis();
-		PeriodicTrigger trigger = new PeriodicTrigger(period);
-		trigger.setInitialDelay(period);
+		PeriodicTrigger trigger = new PeriodicTrigger(properties.getPeriod());
+		trigger.setInitialDelay(properties.getPeriod());
 		taskExecutor.schedule(this::executeCycle, trigger);
 	}
 

@@ -33,8 +33,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -323,7 +324,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		}
 	}
 
-	@SpringBootApplication
+	@SpringBootConfiguration
+	@EnableAutoConfiguration
 	static class App {
 
 	}
