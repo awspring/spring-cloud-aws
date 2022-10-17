@@ -27,7 +27,7 @@ jobs:
         id: sdkman
         with:
           candidate: java
-          version: '8.0.332-tem'
+          version: '17.0.1-tem'
       - name: Set up 8.0.332-tem
         uses: actions/setup-java@v1
         with:
