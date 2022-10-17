@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockingDetails;
 
-import io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreReloadAutoConfiguration;
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationUpdateStrategy;
 import io.awspring.cloud.autoconfigure.config.reload.PollingAwsPropertySourceChangeDetector;
 import io.awspring.cloud.parameterstore.ParameterStorePropertySource;
