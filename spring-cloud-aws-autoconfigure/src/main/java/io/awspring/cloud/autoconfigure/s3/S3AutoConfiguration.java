@@ -32,6 +32,7 @@ import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -52,9 +53,9 @@ import software.amazon.awssdk.services.s3.S3Configuration;
  *
  * @author Maciej Walkowiak
  */
+@AutoConfiguration
 @ConditionalOnClass({ S3Client.class, S3OutputStreamProvider.class })
 @EnableConfigurationProperties({ S3Properties.class, AwsProperties.class })
-@Configuration(proxyBeanMethods = false)
 @Import(S3ProtocolResolver.class)
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 public class S3AutoConfiguration {

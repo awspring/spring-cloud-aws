@@ -514,24 +514,40 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	static class LatchContainer {
-
-		@Autowired
 		Settings settings;
 
-		final CountDownLatch manuallyCreatedContainerLatch = new CountDownLatch(this.settings.messagesPerTest);
-		final CountDownLatch manuallyCreatedFactoryLatch = new CountDownLatch(this.settings.messagesPerTest);
-		final CountDownLatch manuallyCreatedBatchContainerLatch = new CountDownLatch(this.settings.messagesPerTest);
-		final CountDownLatch manuallyCreatedBatchFactoryLatch = new CountDownLatch(this.settings.messagesPerTest);
+		final CountDownLatch manuallyCreatedContainerLatch;
+		final CountDownLatch manuallyCreatedFactoryLatch;
+		final CountDownLatch manuallyCreatedBatchContainerLatch;
+		final CountDownLatch manuallyCreatedBatchFactoryLatch;
 
 		// Lazily initialized
-		CountDownLatch receivesMessageLatch = new CountDownLatch(1);
-		CountDownLatch receivesMessageManyGroupsLatch = new CountDownLatch(1);
-		CountDownLatch manyGroupsAcks = new CountDownLatch(1);
-		CountDownLatch stopsProcessingOnErrorLatch1 = new CountDownLatch(3);
-		CountDownLatch stopsProcessingOnErrorLatch2 = new CountDownLatch(1);
-		CountDownLatch stopsProcessingOnAckErrorLatch1 = new CountDownLatch(1);
-		CountDownLatch stopsProcessingOnAckErrorLatch2 = new CountDownLatch(1);
-		CountDownLatch receivesBatchManyGroupsLatch = new CountDownLatch(1);
+		CountDownLatch receivesMessageLatch;
+		CountDownLatch receivesMessageManyGroupsLatch;
+		CountDownLatch manyGroupsAcks;
+		CountDownLatch stopsProcessingOnErrorLatch1;
+		CountDownLatch stopsProcessingOnErrorLatch2;
+		CountDownLatch stopsProcessingOnAckErrorLatch1;
+		CountDownLatch stopsProcessingOnAckErrorLatch2;
+		CountDownLatch receivesBatchManyGroupsLatch;
+
+		LatchContainer(Settings settings) {
+			this.settings = settings;
+			this.manuallyCreatedContainerLatch = new CountDownLatch(this.settings.messagesPerTest);
+			this.manuallyCreatedFactoryLatch = new CountDownLatch(this.settings.messagesPerTest);
+			this.manuallyCreatedBatchContainerLatch = new CountDownLatch(this.settings.messagesPerTest);
+			this.manuallyCreatedBatchFactoryLatch = new CountDownLatch(this.settings.messagesPerTest);
+
+			// Lazily initialized
+			this.receivesMessageLatch = new CountDownLatch(1);
+			this.receivesMessageManyGroupsLatch = new CountDownLatch(1);
+			this.manyGroupsAcks = new CountDownLatch(1);
+			this.stopsProcessingOnErrorLatch1 = new CountDownLatch(3);
+			this.stopsProcessingOnErrorLatch2 = new CountDownLatch(1);
+			this.stopsProcessingOnAckErrorLatch1 = new CountDownLatch(1);
+			this.stopsProcessingOnAckErrorLatch2 = new CountDownLatch(1);
+			this.receivesBatchManyGroupsLatch = new CountDownLatch(1);
+		}
 
 	}
 
@@ -747,7 +763,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			return new ReceivesBatchesFromManyGroupsListener();
 		}
 
-		LatchContainer latchContainer = new LatchContainer();
+		Settings settings = new Settings();
+		LatchContainer latchContainer = new LatchContainer(settings);
 
 		@Bean
 		LatchContainer latchContainer() {
@@ -758,8 +775,6 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		LoadSimulator loadSimulator() {
 			return new LoadSimulator();
 		}
-
-		Settings settings = new Settings();
 
 		@Bean
 		Settings settings() {

@@ -22,6 +22,7 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.ses.SimpleEmailServiceJavaMailSender;
 import io.awspring.cloud.ses.SimpleEmailServiceMailSender;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -30,7 +31,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClas
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import software.amazon.awssdk.services.ses.SesClient;
@@ -44,7 +44,7 @@ import software.amazon.awssdk.services.ses.SesClientBuilder;
  * @author Eddú Meléndez
  * @author Arun Patra
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @EnableConfigurationProperties(SesProperties.class)
 @ConditionalOnClass({ SesClient.class, MailSender.class, SimpleEmailServiceJavaMailSender.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
@@ -60,13 +60,13 @@ public class SesAutoConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingClass("javax.mail.Session")
+	@ConditionalOnMissingClass("jakarta.mail.Session")
 	public MailSender simpleMailSender(SesClient sesClient) {
 		return new SimpleEmailServiceMailSender(sesClient);
 	}
 
 	@Bean
-	@ConditionalOnClass(name = "javax.mail.Session")
+	@ConditionalOnClass(name = "jakarta.mail.Session")
 	public JavaMailSender javaMailSender(SesClient sesClient) {
 		return new SimpleEmailServiceJavaMailSender(sesClient);
 	}
