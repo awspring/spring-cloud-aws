@@ -70,9 +70,9 @@ public class SnsAutoConfiguration {
 				.build();
 	}
 
-	@ConditionalOnMissingBean
+	@ConditionalOnMissingBean(SnsOperations.class)
 	@Bean
-	public SnsOperations snsTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper,
+	public SnsTemplate snsTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper,
 			Optional<TopicArnResolver> topicArnResolver) {
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		converter.setSerializedPayloadClass(String.class);
@@ -81,9 +81,9 @@ public class SnsAutoConfiguration {
 				.orElseGet(() -> new SnsTemplate(snsClient, converter));
 	}
 
-	@ConditionalOnMissingBean
+	@ConditionalOnMissingBean(SnsSmsOperations.class)
 	@Bean
-	public SnsSmsOperations snsSmsTemplate(SnsClient snsClient) {
+	public SnsSmsTemplate snsSmsTemplate(SnsClient snsClient) {
 		return new SnsSmsTemplate(snsClient);
 	}
 
