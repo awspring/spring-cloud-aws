@@ -30,7 +30,7 @@
 		<amazon.dax.version>2.0.1</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<spring-cloud-commons.version>4.0.0-M5</spring-cloud-commons.version>
-		<testcontainers.version>1.17.3</testcontainers.version>
+		<testcontainers.version>1.17.5</testcontainers.version>
 	</properties>
 
 	<dependencyManagement>
