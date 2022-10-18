@@ -23,6 +23,7 @@ import io.awspring.cloud.dynamodb.*;
 import java.io.IOException;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -47,7 +48,7 @@ import software.amazon.dax.ClusterDaxClient;
  * @author Matej Nedic
  * @since 3.0.0
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @EnableConfigurationProperties(DynamoDbProperties.class)
 @ConditionalOnClass({ DynamoDbClient.class, DynamoDbEnhancedClient.class, DynamoDbTemplate.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })

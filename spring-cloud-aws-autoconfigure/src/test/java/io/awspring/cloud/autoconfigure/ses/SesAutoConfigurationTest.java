@@ -72,7 +72,7 @@ class SesAutoConfigurationTest {
 
 	@Test
 	void mailSenderWithSimpleEmail() {
-		this.contextRunner.withClassLoader(new FilteredClassLoader(javax.mail.Session.class)).run(context -> {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(jakarta.mail.Session.class)).run(context -> {
 			assertThat(context).hasSingleBean(MailSender.class);
 			assertThat(context).getBean("simpleMailSender").isNotNull().isSameAs(context.getBean(MailSender.class));
 		});

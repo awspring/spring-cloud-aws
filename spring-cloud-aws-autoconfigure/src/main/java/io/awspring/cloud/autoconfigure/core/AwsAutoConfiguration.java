@@ -15,9 +15,9 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
@@ -27,7 +27,7 @@ import software.amazon.awssdk.regions.providers.AwsRegionProvider;
  * @author Maciej Walkowiak
  * @since 3.0
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @EnableConfigurationProperties(AwsProperties.class)
 public class AwsAutoConfiguration {
 
