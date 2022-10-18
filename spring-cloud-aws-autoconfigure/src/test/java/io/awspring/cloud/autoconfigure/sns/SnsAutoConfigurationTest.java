@@ -23,6 +23,7 @@ import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.sns.core.SnsOperations;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
 import io.awspring.cloud.sns.sms.SnsSmsOperations;
@@ -31,6 +32,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -128,6 +130,13 @@ class SnsAutoConfigurationTest {
 		});
 	}
 
+	@Test
+	void bothTemplatesAndOperationsAreInjectable() {
+		this.contextRunner.withUserConfiguration(InjectingTemplatesConfiguration.class).run(context -> {
+			assertThat(context.isRunning()).isTrue();
+		});
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class CustomTopicArnResolverConfiguration {
 
@@ -177,6 +186,33 @@ class SnsAutoConfigurationTest {
 			return mock(SnsSmsOperations.class);
 		}
 
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class InjectingTemplatesConfiguration {
+		@Bean
+		ApplicationRunner runner1(SnsTemplate snsTemplate) {
+			return args -> {
+			};
+		}
+
+		@Bean
+		ApplicationRunner runner2(SnsOperations snsOperations) {
+			return args -> {
+			};
+		}
+
+		@Bean
+		ApplicationRunner runner3(SnsSmsTemplate snsSmsTemplate) {
+			return args -> {
+			};
+		}
+
+		@Bean
+		ApplicationRunner runner4(SnsSmsOperations snsSmsOperations) {
+			return args -> {
+			};
+		}
 	}
 
 }
