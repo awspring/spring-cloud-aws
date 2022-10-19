@@ -22,18 +22,22 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
 import java.time.Duration;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -210,6 +214,93 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		}
 	}
 
+	@Nested
+	class ReloadConfigurationTests {
+
+		@AfterEach
+		void resetParameterValue() {
+			overwriteParameter(localstack, "/config/spring/message", "value from tests", REGION);
+		}
+
+		@Test
+		void reloadsProperties() {
+			SpringApplication application = new SpringApplication(App.class);
+			application.setWebApplicationType(WebApplicationType.NONE);
+
+			try (ConfigurableApplicationContext context = application.run(
+					"--spring.config.import=aws-parameterstore:/config/spring/",
+					"--spring.cloud.aws.parameterstore.reload.strategy=refresh",
+					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
+					"--spring.cloud.aws.parameterstore.region=" + REGION,
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+					"--spring.cloud.aws.region.static=eu-west-1")) {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+				// update parameter value
+				SsmClient ssmClient = context.getBean(SsmClient.class);
+				ssmClient
+						.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+
+				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+					assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
+				});
+			}
+		}
+
+		@Test
+		void doesNotReloadPropertiesWhenReloadStrategyIsNotSet() {
+			SpringApplication application = new SpringApplication(App.class);
+			application.setWebApplicationType(WebApplicationType.NONE);
+
+			try (ConfigurableApplicationContext context = application.run(
+					"--spring.config.import=aws-parameterstore:/config/spring/",
+					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
+					"--spring.cloud.aws.parameterstore.region=" + REGION,
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+					"--spring.cloud.aws.region.static=eu-west-1")) {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+				// update parameter value
+				SsmClient ssmClient = context.getBean(SsmClient.class);
+				ssmClient
+						.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+
+				await().during(Duration.ofSeconds(5)).untilAsserted(() -> {
+					assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+				});
+			}
+		}
+
+		@Test
+		void reloadsPropertiesWithRestartContextStrategy() {
+			SpringApplication application = new SpringApplication(App.class);
+			application.setWebApplicationType(WebApplicationType.NONE);
+
+			try (ConfigurableApplicationContext context = application.run(
+					"--spring.config.import=aws-parameterstore:/config/spring/",
+					"--spring.cloud.aws.parameterstore.reload.strategy=restart_context",
+					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
+					"--spring.cloud.aws.parameterstore.region=" + REGION,
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--management.endpoint.restart.enabled=true", "--management.endpoints.web.exposure.include=restart",
+					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+					"--spring.cloud.aws.region.static=eu-west-1")) {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+				// update parameter value
+				SsmClient ssmClient = context.getBean(SsmClient.class);
+				ssmClient
+						.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+
+				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+					assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
+				});
+			}
+		}
+	}
+
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,
 			String endpointProperty) {
 		return application.run("--spring.config.import=" + springConfigImport,
@@ -234,7 +325,19 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		}
 	}
 
-	@SpringBootApplication
+	private static void overwriteParameter(LocalStackContainer localstack, String parameterName, String parameterValue,
+			String region) {
+		try {
+			localstack.execInContainer("awslocal", "ssm", "put-parameter", "--name", parameterName, "--type", "String",
+					"--value", parameterValue, "--region", region, "--overwrite");
+		}
+		catch (IOException | InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@SpringBootConfiguration
+	@EnableAutoConfiguration
 	static class App {
 
 	}

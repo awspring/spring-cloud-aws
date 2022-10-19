@@ -46,5 +46,4 @@ public class App {
 			LOGGER.info("`password` loaded from the AWS Secret Manager: {}", password);
 		};
 	}
-
 }

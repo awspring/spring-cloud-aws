@@ -15,12 +15,12 @@
  */
 package io.awspring.cloud.parameterstore;
 
+import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.ssm.model.Parameter;
  * @author Maciej Walkowiak
  * @since 2.0.0
  */
-public class ParameterStorePropertySource extends EnumerablePropertySource<SsmClient> {
+public class ParameterStorePropertySource extends AwsPropertySource<ParameterStorePropertySource, SsmClient> {
 
 	// logger must stay static non-final so that it can be set with a value in
 	// ParameterStoreConfigDataLoader
@@ -51,10 +51,16 @@ public class ParameterStorePropertySource extends EnumerablePropertySource<SsmCl
 		this.context = context;
 	}
 
+	@Override
 	public void init() {
 		GetParametersByPathRequest paramsRequest = GetParametersByPathRequest.builder().path(context).recursive(true)
 				.withDecryption(true).build();
 		getParameters(paramsRequest);
+	}
+
+	@Override
+	public ParameterStorePropertySource copy() {
+		return new ParameterStorePropertySource(context, source);
 	}
 
 	@Override

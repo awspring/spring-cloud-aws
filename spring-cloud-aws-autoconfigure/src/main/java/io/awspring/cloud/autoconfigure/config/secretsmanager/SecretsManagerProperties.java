@@ -16,7 +16,9 @@
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
  * Configuration properties for the AWS Secrets Manager integration. Mostly based on the Spring Cloud Consul
@@ -37,4 +39,17 @@ public class SecretsManagerProperties extends AwsClientProperties {
 	 */
 	public static final String CONFIG_PREFIX = "spring.cloud.aws.secretsmanager";
 
+	/**
+	 * Properties related to configuration reload.
+	 */
+	@NestedConfigurationProperty
+	private ReloadProperties reload = new ReloadProperties();
+
+	public ReloadProperties getReload() {
+		return reload;
+	}
+
+	public void setReload(ReloadProperties reload) {
+		this.reload = reload;
+	}
 }

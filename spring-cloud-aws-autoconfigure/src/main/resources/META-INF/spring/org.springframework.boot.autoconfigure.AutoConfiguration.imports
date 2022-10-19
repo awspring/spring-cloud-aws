@@ -8,3 +8,5 @@ io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration
 io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration
 io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration
 io.awspring.cloud.autoconfigure.dynamodb.DynamoDbAutoConfiguration
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerReloadAutoConfiguration
+io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreReloadAutoConfiguration

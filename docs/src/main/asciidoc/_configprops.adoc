@@ -28,6 +28,9 @@
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
 |spring.cloud.aws.parameterstore.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.parameterstore.region |  | Overrides the default region.
+|spring.cloud.aws.parameterstore.reload.max-wait-for-restart | `2s` | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
+|spring.cloud.aws.parameterstore.reload.period | `1m` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
+|spring.cloud.aws.parameterstore.reload.strategy |  | Reload strategy to run when properties change.
 |spring.cloud.aws.region.instance-profile | `false` | Configures an instance profile region provider with no further configuration.
 |spring.cloud.aws.region.profile |  | The AWS profile.
 |spring.cloud.aws.region.static |  | 
@@ -47,6 +50,9 @@
 |spring.cloud.aws.s3.use-arn-region-enabled |  | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown.
 |spring.cloud.aws.secretsmanager.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.secretsmanager.region |  | Overrides the default region.
+|spring.cloud.aws.secretsmanager.reload.max-wait-for-restart | `2s` | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
+|spring.cloud.aws.secretsmanager.reload.period | `1m` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
+|spring.cloud.aws.secretsmanager.reload.strategy |  | Reload strategy to run when properties change.
 |spring.cloud.aws.ses.enabled | `true` | Enables Simple Email Service integration.
 |spring.cloud.aws.ses.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.ses.region |  | Overrides the default region.
