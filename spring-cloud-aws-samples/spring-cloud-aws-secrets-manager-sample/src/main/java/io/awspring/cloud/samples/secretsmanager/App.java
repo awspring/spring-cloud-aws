@@ -22,11 +22,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Secrets from the Secret Manager are added to the {@link Environment} and can be retrieved using: - {@link Value}
@@ -48,20 +45,5 @@ public class App {
 		return args -> {
 			LOGGER.info("`password` loaded from the AWS Secret Manager: {}", password);
 		};
-	}
-
-}
-
-// TODO: get rid of this, added just fo rthe sake of testing
-@RestController
-@RefreshScope
-class SecretController {
-
-	@Value("${password}")
-	String password;
-
-	@GetMapping("/secret")
-	String secret() {
-		return password;
 	}
 }
