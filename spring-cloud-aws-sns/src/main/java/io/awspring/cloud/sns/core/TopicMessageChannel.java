@@ -102,11 +102,14 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 			else if (MessageHeaders.ID.equals(messageHeaderName) && messageHeaderValue != null) {
 				messageAttributes.put(messageHeaderName, getStringMessageAttribute(messageHeaderValue.toString()));
 			}
+			else if (MessageHeaders.TIMESTAMP.equals(messageHeaderName) && messageHeaderValue != null) {
+				messageAttributes.put(messageHeaderName, getNumberMessageAttribute(messageHeaderValue));
+			}
 			else if (messageHeaderValue instanceof String) {
 				messageAttributes.put(messageHeaderName, getStringMessageAttribute((String) messageHeaderValue));
 			}
 			else if (messageHeaderValue instanceof Number) {
-				messageAttributes.put(messageHeaderName, getNumberMessageAttribute(messageHeaderValue));
+				messageAttributes.put(messageHeaderName, getDetailedNumberMessageAttribute(messageHeaderValue));
 			}
 			else if (messageHeaderValue instanceof ByteBuffer) {
 				messageAttributes.put(messageHeaderName, getBinaryMessageAttribute((ByteBuffer) messageHeaderValue));
@@ -163,13 +166,19 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 				.stringValue(messageHeaderValue).build();
 	}
 
-	private MessageAttributeValue getNumberMessageAttribute(Object messageHeaderValue) {
+	private MessageAttributeValue getDetailedNumberMessageAttribute(Object messageHeaderValue) {
 		Assert.isTrue(NumberUtils.STANDARD_NUMBER_TYPES.contains(messageHeaderValue.getClass()),
 				"Only standard number types are accepted as message header.");
 
 		return MessageAttributeValue.builder()
 				.dataType(MessageAttributeDataTypes.NUMBER + "." + messageHeaderValue.getClass().getName())
 				.stringValue(messageHeaderValue.toString()).build();
+	}
+
+	private MessageAttributeValue getNumberMessageAttribute(Object messageHeaderValue) {
+		return MessageAttributeValue.builder()
+			.dataType(MessageAttributeDataTypes.NUMBER)
+			.stringValue(messageHeaderValue.toString()).build();
 	}
 
 }
