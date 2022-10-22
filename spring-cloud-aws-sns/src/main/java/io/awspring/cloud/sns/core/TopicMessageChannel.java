@@ -176,9 +176,8 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 	}
 
 	private MessageAttributeValue getNumberMessageAttribute(Object messageHeaderValue) {
-		return MessageAttributeValue.builder()
-			.dataType(MessageAttributeDataTypes.NUMBER)
-			.stringValue(messageHeaderValue.toString()).build();
+		return MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.NUMBER)
+				.stringValue(messageHeaderValue.toString()).build();
 	}
 
 }
