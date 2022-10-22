@@ -38,6 +38,7 @@
 		<module>spring-cloud-aws-dependencies</module>
 		<module>spring-cloud-aws-parameter-store</module>
 		<module>spring-cloud-aws-secrets-manager</module>
+		<module>spring-cloud-aws-app-config</module>
 		<module>spring-cloud-aws-ses</module>
 		<module>spring-cloud-aws-sns</module>
 		<module>spring-cloud-aws-sqs</module>
