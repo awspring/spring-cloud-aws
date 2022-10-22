@@ -48,7 +48,7 @@ jobs:
       - name: Run tests
         run: ./mvnw -V verify javadoc:aggregate -Pspring,docs
       - name: Deploy to Sonatype
-        run: ./mvnw -V -Prelease,spring deploy -DskipTests
+        run: ./mvnw -V -Prelease,spring,deploy -DskipTests
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
