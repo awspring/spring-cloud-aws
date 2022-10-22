@@ -26,7 +26,7 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.autoconfigure.actuate.metrics.AutoConfigureMetrics;
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -54,7 +54,7 @@ import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
 		"spring.cloud.aws.region.static=us-east-1", "management.metrics.export.cloudwatch.step=5s",
 		"management.metrics.export.cloudwatch.namespace=awspring/spring-cloud-aws",
 		"management.metrics.enable.all=false", "management.metrics.enable.test=true" })
-@AutoConfigureMetrics
+@AutoConfigureObservability(tracing = false)
 class CloudWatchExportAutoConfigurationIntegrationTests {
 
 	@Container
