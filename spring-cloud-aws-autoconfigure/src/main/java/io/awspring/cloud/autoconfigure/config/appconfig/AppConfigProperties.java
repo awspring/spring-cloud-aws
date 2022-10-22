@@ -23,10 +23,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @since 3.0
  */
 @ConfigurationProperties(AppConfigProperties.CONFIG_PREFIX)
-public class AppConfigProperties extends ReloadProperties {
+public class AppConfigProperties {
 
 	/**
 	 * Configuration prefix.
 	 */
 	public static final String CONFIG_PREFIX = "spring.cloud.aws.appconfig";
+
+	private ReloadProperties reloadProperties;
+
+	public ReloadProperties getReloadProperties() {
+		return reloadProperties;
+	}
+
+	public void setReloadProperties(ReloadProperties reloadProperties) {
+		this.reloadProperties = reloadProperties;
+	}
 }

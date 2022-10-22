@@ -16,7 +16,6 @@
 package io.awspring.cloud.appconfig;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.logging.Log;
@@ -25,7 +24,6 @@ import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.lang.Nullable;
-import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationRequest;
 import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationResponse;
@@ -69,13 +67,14 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 		else {
 			if (sessionToken == null) {
 				StartConfigurationSessionRequest sessionRequest = StartConfigurationSessionRequest.builder()
-					.environmentIdentifier(this.environmentIdentifier).applicationIdentifier(this.applicationIdentifier)
-					.configurationProfileIdentifier(this.configurationProfileIdentifier).build();
+						.environmentIdentifier(this.environmentIdentifier)
+						.applicationIdentifier(this.applicationIdentifier)
+						.configurationProfileIdentifier(this.configurationProfileIdentifier).build();
 				StartConfigurationSessionResponse response = this.source.startConfigurationSession(sessionRequest);
 				sessionToken = response.initialConfigurationToken();
 			}
-			GetLatestConfigurationRequest request = GetLatestConfigurationRequest.builder().configurationToken(sessionToken)
-				.build();
+			GetLatestConfigurationRequest request = GetLatestConfigurationRequest.builder()
+					.configurationToken(sessionToken).build();
 			GetLatestConfigurationResponse response = this.source.getLatestConfiguration(request);
 			getParameters(response);
 		}
@@ -93,7 +92,7 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 		return this.properties.get(name);
 	}
 
-	private void getParameters(GetLatestConfigurationResponse  response) throws IOException {
+	private void getParameters(GetLatestConfigurationResponse response) throws IOException {
 		if (response.contentType().equals(YAML_TYPE) || response.contentType().equals(JSON_TYPE)) {
 			resolveYamlOrJson(response);
 		}

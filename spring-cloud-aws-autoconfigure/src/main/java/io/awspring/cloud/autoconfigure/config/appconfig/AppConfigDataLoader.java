@@ -18,7 +18,6 @@ package io.awspring.cloud.autoconfigure.config.appconfig;
 import io.awspring.cloud.appconfig.AppConfigPropertySource;
 import io.awspring.cloud.autoconfigure.config.BootstrapLoggingHelper;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
@@ -32,8 +31,6 @@ import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
  * @since 3.0
  */
 public class AppConfigDataLoader implements ConfigDataLoader<AppConfigDataResource> {
-
-	public static final AppConfigPropertySourceReload appConfigPropertySourceReload = new AppConfigPropertySourceReload();
 
 	public AppConfigDataLoader(DeferredLogFactory logFactory) {
 		BootstrapLoggingHelper.reconfigureLoggers(logFactory, "io.awspring.cloud.appconfig.AppConfigPropertySource",
@@ -62,14 +59,4 @@ public class AppConfigDataLoader implements ConfigDataLoader<AppConfigDataResour
 		return null;
 	}
 
-	public static Boolean checkIfReloadIsToBeDone() {
-		AtomicBoolean areThereChanges = new AtomicBoolean(false);
-		appConfigPropertySourceReload.getRecords().forEach((key, value) -> {
-			if (value.areThereChanges()) {
-				areThereChanges.set(true);
-			}
-		});
-		return areThereChanges.get();
-
-	}
 }
