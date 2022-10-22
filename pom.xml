@@ -29,6 +29,7 @@
 	<properties>
 		<spotless.version>2.25.0</spotless.version>
 		<jacoco.version>0.8.7</jacoco.version>
+		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 	</properties>
 
 	<modules>
