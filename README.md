@@ -8,7 +8,7 @@ For a deep dive into the project, refer to the Spring Cloud AWS documentation:
 
 | Version                   | Reference Docs                                                                                      | API Docs                                                                               |
 |---------------------------|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
-| Spring Cloud AWS 3.0.0-M2 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-M2/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-M2/apidocs/index.html) | 
+| Spring Cloud AWS 3.0.0-M3 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-M3/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0-M3/apidocs/index.html) | 
 | Spring Cloud AWS 2.4.2    | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.4.2/reference/html/index.html)    | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.4.2/apidocs/index.html)    | 
 | Spring Cloud AWS 2.3.5    | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/reference/html/index.html)    | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/apidocs/index.html)    |
 
