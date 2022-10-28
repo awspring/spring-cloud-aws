@@ -19,6 +19,10 @@ import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
 /**
+ * An {@link AbstractFailureAnalyzer} that performs analysis of a AppConfig configuration failure caused by not
+ * providing a AppConfig key to `spring.config.import` property.
+ *
+ * @author Maciej Walkowiak
  * @author Matej Nedic
  * @since 3.0
  */

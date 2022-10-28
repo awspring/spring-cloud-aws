@@ -15,37 +15,48 @@
  */
 package io.awspring.cloud.autoconfigure.config.appconfig;
 
+import io.awspring.cloud.appconfig.AppConfigPropertySource;
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationChangeDetector;
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationUpdateStrategy;
+import io.awspring.cloud.autoconfigure.config.reload.PollingAwsPropertySourceChangeDetector;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.autoconfigure.RefreshAutoConfiguration;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.cloud.commons.util.TaskSchedulerWrapper;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-@Configuration(proxyBeanMethods = false)
+/**
+ * {@link EnableAutoConfiguration Auto-Configuration} for reloading properties from App Data.
+ *
+ * @author Maciej Walkowiak
+ * @author Matej Nedic
+ */
+@AutoConfiguration
 @EnableConfigurationProperties(AppConfigProperties.class)
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class })
+	RefreshAutoConfiguration.class })
+@ConditionalOnProperty(value = AppConfigProperties.CONFIG_PREFIX + ".reload.strategy")
 @ConditionalOnBean(ContextRefresher.class)
 public class AppConfigReloadAutoConfiguration {
 
-	@Bean("springCloudKubernetesTaskScheduler")
+	@Bean("appDataTaskScheduler")
 	@ConditionalOnMissingBean
 	public TaskSchedulerWrapper<TaskScheduler> taskScheduler() {
 		ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
@@ -56,41 +67,23 @@ public class AppConfigReloadAutoConfiguration {
 		return new TaskSchedulerWrapper<>(threadPoolTaskScheduler);
 	}
 
-	@Bean
-	@ConditionalOnMissingBean
-	public ConfigurationUpdateStrategy configurationUpdateStrategy(AppConfigProperties properties,
-			ConfigurableApplicationContext ctx, Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
-		String strategyName = properties.getStrategy().name();
-		switch (properties.getStrategy()) {
-		case RESTART_CONTEXT:
-			restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
-			return new ConfigurationUpdateStrategy(strategyName, () -> {
-				wait(properties);
-				restarter.get().restart();
-			});
-		case REFRESH:
-			return new ConfigurationUpdateStrategy(strategyName, refresher::refresh);
-		}
-		throw new IllegalStateException("Unsupported configuration update strategy: " + strategyName);
+	@Bean("appDataConfigurationUpdateStrategy")
+	@ConditionalOnMissingBean(name = "appConfigStoreConfigurationUpdateStrategy")
+	public ConfigurationUpdateStrategy appConfigStoreConfigurationUpdateStrategy(AppConfigProperties properties,
+			Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
+		return ConfigurationUpdateStrategy.create(properties.getReload(), refresher, restarter);
 	}
 
 	@Bean
 	@ConditionalOnBean(ConfigurationUpdateStrategy.class)
-	public ConfigurationChangeDetector appConfigDataPropertyChangePollingWatcher(AppConfigProperties properties,
-			ConfigurationUpdateStrategy strategy, TaskSchedulerWrapper<TaskScheduler> taskScheduler) {
+	public ConfigurationChangeDetector<AppConfigPropertySource> appConfigPollingAwsPropertySourceChangeDetector(
+			AppConfigProperties properties,
+			@Qualifier("appDataConfigurationUpdateStrategy") ConfigurationUpdateStrategy strategy,
+			@Qualifier("appDataTaskScheduler") TaskSchedulerWrapper<TaskScheduler> taskScheduler,
+			ConfigurableEnvironment environment) {
 
-		return new PollingAppConfigChangeDetector(properties, strategy, taskScheduler.getTaskScheduler(),
-				properties.getMaxWaitForRestart().toMillis());
-	}
-
-	private static void wait(AppConfigProperties properties) {
-		long waitMillis = ThreadLocalRandom.current().nextLong(properties.getMaxWaitForRestart().toMillis());
-		try {
-			Thread.sleep(waitMillis);
-		}
-		catch (InterruptedException ignored) {
-			Thread.currentThread().interrupt();
-		}
+		return new PollingAwsPropertySourceChangeDetector<>(properties.getReload(), AppConfigPropertySource.class,
+				strategy, taskScheduler.getTaskScheduler(), environment);
 	}
 
 }

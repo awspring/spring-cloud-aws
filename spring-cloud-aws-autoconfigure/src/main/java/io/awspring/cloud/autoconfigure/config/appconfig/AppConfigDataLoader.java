@@ -27,6 +27,8 @@ import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 
 /**
+ * {@link ConfigDataLoader} for AWS AppConfig.
+ *
  * @author Matej Nedic
  * @since 3.0
  */
@@ -40,23 +42,21 @@ public class AppConfigDataLoader implements ConfigDataLoader<AppConfigDataResour
 	@Override
 	@Nullable
 	public ConfigData load(ConfigDataLoaderContext context, AppConfigDataResource resource) {
+
 		try {
-			AppConfigPropertySource propertySource = appConfigPropertySourceReload
-					.getRecord(resource.getContext().getContext());
-			if (propertySource == null) {
-				AppConfigDataClient appConfigDataClient = context.getBootstrapContext().get(AppConfigDataClient.class);
-				propertySource = resource.getPropertySources().createPropertySource(resource.getContext(),
-						resource.isOptional(), appConfigDataClient);
-				if (propertySource != null) {
-					appConfigPropertySourceReload.add(resource.getContext().getContext(), propertySource);
-					return new ConfigData(Collections.singletonList(propertySource));
-				}
+			AppConfigDataClient appConfigDataClient = context.getBootstrapContext().get(AppConfigDataClient.class);
+			AppConfigPropertySource propertySource = resource.getPropertySources()
+					.createPropertySource(resource.getContext(), resource.isOptional(), appConfigDataClient);
+			if (propertySource != null) {
+				return new ConfigData(Collections.singletonList(propertySource));
+			}
+			else {
+				return null;
 			}
 		}
 		catch (Exception e) {
 			throw new ConfigDataResourceNotFoundException(resource, e);
 		}
-		return null;
 	}
 
 }

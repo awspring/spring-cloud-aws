@@ -15,13 +15,13 @@
  */
 package io.awspring.cloud.appconfig;
 
+import io.awspring.cloud.core.config.AwsPropertySource;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
-import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
@@ -34,7 +34,7 @@ import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSes
  * @author Matej Nedic
  * @since 3.0
  */
-public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigDataClient> {
+public class AppConfigPropertySource extends AwsPropertySource<AppConfigPropertySource, AppConfigDataClient> {
 
 	// logger must stay static non-final so that it can be set with a value in
 	// AppConfigDataLoader
@@ -49,35 +49,40 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 	private final String applicationIdentifier;
 	private String sessionToken;
 	private Properties properties;
-	private GetLatestConfigurationResponse dataChanged;
+	private RequestContext requestContext;
 
 	public AppConfigPropertySource(RequestContext requestContext, AppConfigDataClient appConfigDataClient) {
 		super(requestContext.getContext(), appConfigDataClient);
+		this.requestContext = requestContext;
 		this.configurationProfileIdentifier = requestContext.getConfigurationProfileIdentifier();
 		this.environmentIdentifier = requestContext.getEnvironmentIdentifier();
 		this.applicationIdentifier = requestContext.getApplicationIdentifier();
 
 	}
 
-	public void init() throws IOException {
-		if (dataChanged != null) {
-			getParameters(dataChanged);
-			this.dataChanged = null;
+	@Override
+	public void init() {
+		if (sessionToken == null) {
+			StartConfigurationSessionRequest sessionRequest = StartConfigurationSessionRequest.builder()
+					.environmentIdentifier(this.environmentIdentifier).applicationIdentifier(this.applicationIdentifier)
+					.configurationProfileIdentifier(this.configurationProfileIdentifier).build();
+			StartConfigurationSessionResponse response = this.source.startConfigurationSession(sessionRequest);
+			sessionToken = response.initialConfigurationToken();
 		}
-		else {
-			if (sessionToken == null) {
-				StartConfigurationSessionRequest sessionRequest = StartConfigurationSessionRequest.builder()
-						.environmentIdentifier(this.environmentIdentifier)
-						.applicationIdentifier(this.applicationIdentifier)
-						.configurationProfileIdentifier(this.configurationProfileIdentifier).build();
-				StartConfigurationSessionResponse response = this.source.startConfigurationSession(sessionRequest);
-				sessionToken = response.initialConfigurationToken();
-			}
-			GetLatestConfigurationRequest request = GetLatestConfigurationRequest.builder()
-					.configurationToken(sessionToken).build();
-			GetLatestConfigurationResponse response = this.source.getLatestConfiguration(request);
+		GetLatestConfigurationRequest request = GetLatestConfigurationRequest.builder().configurationToken(sessionToken)
+				.build();
+		GetLatestConfigurationResponse response = this.source.getLatestConfiguration(request);
+		try {
 			getParameters(response);
 		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@Override
+	public AppConfigPropertySource copy() {
+		return new AppConfigPropertySource(requestContext, source);
 	}
 
 	@Override
@@ -112,22 +117,6 @@ public class AppConfigPropertySource extends EnumerablePropertySource<AppConfigD
 	private void resolveText(GetLatestConfigurationResponse response) throws IOException {
 		properties = new Properties();
 		properties.load(response.configuration().asInputStream());
-	}
-
-	public Boolean areThereChanges() {
-		GetLatestConfigurationRequest request = GetLatestConfigurationRequest.builder().configurationToken(sessionToken)
-				.build();
-		GetLatestConfigurationResponse response = source.getLatestConfiguration(request);
-		if (response.contentType().isEmpty()) {
-			sessionToken = response.nextPollConfigurationToken();
-			this.dataChanged = null;
-			return Boolean.FALSE;
-		}
-		else {
-			sessionToken = response.nextPollConfigurationToken();
-			this.dataChanged = response;
-			return Boolean.TRUE;
-		}
 	}
 
 }

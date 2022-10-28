@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.config.appconfig;
 
 import io.awspring.cloud.appconfig.RequestContext;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLocationResolver;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
@@ -33,6 +34,7 @@ import org.springframework.boot.context.config.ConfigDataLocationResolverContext
 import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.logging.DeferredLogFactory;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClientBuilder;
 
@@ -46,8 +48,8 @@ public class AppConfigDataLocationResolver extends AbstractAwsConfigDataLocation
 
 	private final Log log;
 
-	public AppConfigDataLocationResolver(Log log) {
-		this.log = log;
+	public AppConfigDataLocationResolver(DeferredLogFactory deferredLogFactory) {
+		this.log = deferredLogFactory.getLog(AppConfigDataLocationResolver.class);
 	}
 
 	@Override

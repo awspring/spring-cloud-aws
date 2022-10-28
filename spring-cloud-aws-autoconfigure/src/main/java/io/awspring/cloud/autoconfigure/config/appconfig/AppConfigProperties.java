@@ -15,28 +15,32 @@
  */
 package io.awspring.cloud.autoconfigure.config.appconfig;
 
+import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
+ * Configuration properties for the AWS AppConfig integration. Mostly based on the Spring Cloud Consul
+ * Configuration equivalent.
+ *
  * @author Matej Nedic
  * @since 3.0
  */
 @ConfigurationProperties(AppConfigProperties.CONFIG_PREFIX)
-public class AppConfigProperties {
+public class AppConfigProperties extends AwsClientProperties {
 
 	/**
 	 * Configuration prefix.
 	 */
 	public static final String CONFIG_PREFIX = "spring.cloud.aws.appconfig";
 
-	private ReloadProperties reloadProperties;
+	private ReloadProperties reload;
 
-	public ReloadProperties getReloadProperties() {
-		return reloadProperties;
+	public ReloadProperties getReload() {
+		return reload;
 	}
 
-	public void setReloadProperties(ReloadProperties reloadProperties) {
-		this.reloadProperties = reloadProperties;
+	public void setReload(ReloadProperties reload) {
+		this.reload = reload;
 	}
 }
