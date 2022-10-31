@@ -56,7 +56,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @ConditionalOnBean(ContextRefresher.class)
 public class AppConfigReloadAutoConfiguration {
 
-	@Bean("appDataTaskScheduler")
+	@Bean("appConfigTaskScheduler")
 	@ConditionalOnMissingBean
 	public TaskSchedulerWrapper<TaskScheduler> taskScheduler() {
 		ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
@@ -67,7 +67,7 @@ public class AppConfigReloadAutoConfiguration {
 		return new TaskSchedulerWrapper<>(threadPoolTaskScheduler);
 	}
 
-	@Bean("appDataConfigurationUpdateStrategy")
+	@Bean("appConfigConfigurationUpdateStrategy")
 	@ConditionalOnMissingBean(name = "appConfigStoreConfigurationUpdateStrategy")
 	public ConfigurationUpdateStrategy appConfigStoreConfigurationUpdateStrategy(AppConfigProperties properties,
 			Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
@@ -78,8 +78,8 @@ public class AppConfigReloadAutoConfiguration {
 	@ConditionalOnBean(ConfigurationUpdateStrategy.class)
 	public ConfigurationChangeDetector<AppConfigPropertySource> appConfigPollingAwsPropertySourceChangeDetector(
 			AppConfigProperties properties,
-			@Qualifier("appDataConfigurationUpdateStrategy") ConfigurationUpdateStrategy strategy,
-			@Qualifier("appDataTaskScheduler") TaskSchedulerWrapper<TaskScheduler> taskScheduler,
+			@Qualifier("appConfigConfigurationUpdateStrategy") ConfigurationUpdateStrategy strategy,
+			@Qualifier("appConfigTaskScheduler") TaskSchedulerWrapper<TaskScheduler> taskScheduler,
 			ConfigurableEnvironment environment) {
 
 		return new PollingAwsPropertySourceChangeDetector<>(properties.getReload(), AppConfigPropertySource.class,
