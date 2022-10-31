@@ -17,10 +17,6 @@
 /**
  * {@link org.springframework.boot.context.config.ConfigDataLoader} implementation for AWS AppConfig.
  */
-
-/**
- * {@link org.springframework.boot.context.config.ConfigDataLoader} implementation for AWS AppConfig.
- */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields
 package io.awspring.cloud.autoconfigure.config.appconfig;
