@@ -49,7 +49,7 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 	private final String applicationIdentifier;
 	private String sessionToken;
 	private Properties properties;
-	private RequestContext requestContext;
+	private final RequestContext requestContext;
 
 	public AppConfigPropertySource(RequestContext requestContext, AppConfigDataClient appConfigDataClient) {
 		super(requestContext.getContext(), appConfigDataClient);
@@ -57,8 +57,13 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 		this.configurationProfileIdentifier = requestContext.getConfigurationProfileIdentifier();
 		this.environmentIdentifier = requestContext.getEnvironmentIdentifier();
 		this.applicationIdentifier = requestContext.getApplicationIdentifier();
-
 	}
+
+	public AppConfigPropertySource(RequestContext requestContext, AppConfigDataClient appConfigDataClient, String sessionToken) {
+		this(requestContext, appConfigDataClient);
+		this.sessionToken = sessionToken;
+	}
+
 
 	@Override
 	public void init() {
@@ -82,7 +87,7 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 
 	@Override
 	public AppConfigPropertySource copy() {
-		return new AppConfigPropertySource(requestContext, source);
+		return new AppConfigPropertySource(requestContext, source, sessionToken);
 	}
 
 	@Override
