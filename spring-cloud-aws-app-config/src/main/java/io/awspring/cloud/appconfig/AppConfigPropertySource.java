@@ -59,11 +59,11 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 		this.applicationIdentifier = requestContext.getApplicationIdentifier();
 	}
 
-	public AppConfigPropertySource(RequestContext requestContext, AppConfigDataClient appConfigDataClient, String sessionToken) {
+	public AppConfigPropertySource(RequestContext requestContext, AppConfigDataClient appConfigDataClient,
+			String sessionToken) {
 		this(requestContext, appConfigDataClient);
 		this.sessionToken = sessionToken;
 	}
-
 
 	@Override
 	public void init() {

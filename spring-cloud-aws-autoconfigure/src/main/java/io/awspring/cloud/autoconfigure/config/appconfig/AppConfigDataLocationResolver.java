@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.config.appconfig;
 
 import io.awspring.cloud.appconfig.RequestContext;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
-import io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLocationResolver;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;

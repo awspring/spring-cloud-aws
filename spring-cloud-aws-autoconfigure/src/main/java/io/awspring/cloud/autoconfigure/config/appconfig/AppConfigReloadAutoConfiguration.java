@@ -51,7 +51,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @EnableConfigurationProperties(AppConfigProperties.class)
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-	RefreshAutoConfiguration.class })
+		RefreshAutoConfiguration.class })
 @ConditionalOnProperty(value = AppConfigProperties.CONFIG_PREFIX + ".reload.strategy")
 @ConditionalOnBean(ContextRefresher.class)
 public class AppConfigReloadAutoConfiguration {

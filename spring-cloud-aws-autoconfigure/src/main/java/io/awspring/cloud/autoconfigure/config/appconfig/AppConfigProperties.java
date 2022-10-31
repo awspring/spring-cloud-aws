@@ -20,8 +20,8 @@ import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Configuration properties for the AWS AppConfig integration. Mostly based on the Spring Cloud Consul
- * Configuration equivalent.
+ * Configuration properties for the AWS AppConfig integration. Mostly based on the Spring Cloud Consul Configuration
+ * equivalent.
  *
  * @author Matej Nedic
  * @since 3.0

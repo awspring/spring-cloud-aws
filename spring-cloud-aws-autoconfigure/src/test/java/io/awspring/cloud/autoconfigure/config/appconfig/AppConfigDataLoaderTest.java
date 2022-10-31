@@ -24,7 +24,6 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
 import java.time.Duration;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -173,7 +172,6 @@ class AppConfigDataLoaderTest {
 	@Nested
 	class ReloadConfigurationTests {
 
-
 		@BeforeEach
 		public void reset() {
 			Mockito.reset(appConfigDataClient);
@@ -185,37 +183,37 @@ class AppConfigDataLoaderTest {
 			application.setWebApplicationType(WebApplicationType.NONE);
 			application.addBootstrapRegistryInitializer(new AppConfigDataClientInitializer());
 
-			when(appConfigDataClient.startConfigurationSession(
-				StartConfigurationSessionRequest.builder().applicationIdentifier("MyApplication")
-					.configurationProfileIdentifier("text_configuration").environmentIdentifier("test").build()))
-				.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("20")
-					.build());
+			when(appConfigDataClient.startConfigurationSession(StartConfigurationSessionRequest.builder()
+					.applicationIdentifier("MyApplication").configurationProfileIdentifier("text_configuration")
+					.environmentIdentifier("test").build())).thenReturn(
+							StartConfigurationSessionResponse.builder().initialConfigurationToken("20").build());
 			byte[] textFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
-				"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
+					"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
 			when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-				.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(textFile))
-					.contentType("text/plain").build());
-
+					.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(textFile))
+							.contentType("text/plain").build());
 
 			try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-appconfig:MyApplication___text_configuration___test")) {
+					"aws-appconfig:MyApplication___text_configuration___test")) {
 				Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled")).isEqualTo("false");
 				Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.region"))
-					.isEqualTo("eu-west-2");
+						.isEqualTo("eu-west-2");
 				Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.s3.enabled")).isEqualTo("false");
 
 				// update parameter value
 				byte[] newValues = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
-					"io.awspring.cloud.autoconfigure.config.appconfig/changed-value.properties"));
+						"io.awspring.cloud.autoconfigure.config.appconfig/changed-value.properties"));
 				when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-					.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(newValues))
-						.contentType("text/plain").build());
+						.thenReturn(GetLatestConfigurationResponse.builder()
+								.configuration(SdkBytes.fromByteArray(newValues)).contentType("text/plain").build());
 
 				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled")).isEqualTo("true");
+					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled"))
+							.isEqualTo("true");
 					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.region"))
-						.isEqualTo("eu-central-1");
-					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.s3.enabled")).isEqualTo("true");
+							.isEqualTo("eu-central-1");
+					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.s3.enabled"))
+							.isEqualTo("true");
 				});
 			}
 		}
@@ -226,29 +224,29 @@ class AppConfigDataLoaderTest {
 			application.setWebApplicationType(WebApplicationType.NONE);
 			application.addBootstrapRegistryInitializer(new AppConfigDataClientInitializer());
 
-			when(appConfigDataClient.startConfigurationSession(
-				StartConfigurationSessionRequest.builder().applicationIdentifier("MyApplication")
-					.configurationProfileIdentifier("text_configuration").environmentIdentifier("test").build()))
-				.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("20")
-					.build());
+			when(appConfigDataClient.startConfigurationSession(StartConfigurationSessionRequest.builder()
+					.applicationIdentifier("MyApplication").configurationProfileIdentifier("text_configuration")
+					.environmentIdentifier("test").build())).thenReturn(
+							StartConfigurationSessionResponse.builder().initialConfigurationToken("20").build());
 			byte[] textFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
-				"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
+					"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
 			when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-				.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(textFile))
-					.contentType("text/plain").build());
-
+					.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(textFile))
+							.contentType("text/plain").build());
 
 			try (ConfigurableApplicationContext context = application.run(
-				"--spring.config.import=aws-appconfig:MyApplication___text_configuration___test",
-				"--spring.cloud.aws.appconfig.region=eu-central-1",
-				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-1")) {
+					"--spring.config.import=aws-appconfig:MyApplication___text_configuration___test",
+					"--spring.cloud.aws.appconfig.region=eu-central-1",
+					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+					"--spring.cloud.aws.region.static=eu-west-1")) {
 
 				await().during(Duration.ofSeconds(5)).untilAsserted(() -> {
-					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled")).isEqualTo("false");
+					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled"))
+							.isEqualTo("false");
 					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.region"))
-						.isEqualTo("eu-west-2");
-					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.s3.enabled")).isEqualTo("false");
+							.isEqualTo("eu-west-2");
+					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.s3.enabled"))
+							.isEqualTo("false");
 				});
 			}
 		}
@@ -259,38 +257,39 @@ class AppConfigDataLoaderTest {
 			application.setWebApplicationType(WebApplicationType.NONE);
 			application.addBootstrapRegistryInitializer(new AppConfigDataClientInitializer());
 
-			when(appConfigDataClient.startConfigurationSession(
-				StartConfigurationSessionRequest.builder().applicationIdentifier("MyApplication")
-					.configurationProfileIdentifier("text_configuration").environmentIdentifier("test").build()))
-				.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("20")
-					.build());
+			when(appConfigDataClient.startConfigurationSession(StartConfigurationSessionRequest.builder()
+					.applicationIdentifier("MyApplication").configurationProfileIdentifier("text_configuration")
+					.environmentIdentifier("test").build())).thenReturn(
+							StartConfigurationSessionResponse.builder().initialConfigurationToken("20").build());
 			byte[] textFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
-				"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
+					"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
 			when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-				.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(textFile))
-					.contentType("text/plain").build());
-
+					.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(textFile))
+							.contentType("text/plain").build());
 
 			try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-appconfig:MyApplication___text_configuration___test")) {
+					"aws-appconfig:MyApplication___text_configuration___test")) {
 				Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled")).isEqualTo("false");
 				Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.region"))
-					.isEqualTo("eu-west-2");
+						.isEqualTo("eu-west-2");
 				Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.s3.enabled")).isEqualTo("false");
 
 				// update parameter value
 				byte[] newValues = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
-					"io.awspring.cloud.autoconfigure.config.appconfig/removed_values.properties"));
+						"io.awspring.cloud.autoconfigure.config.appconfig/removed_values.properties"));
 				when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-					.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(newValues))
-						.contentType("text/plain").build());
+						.thenReturn(GetLatestConfigurationResponse.builder()
+								.configuration(SdkBytes.fromByteArray(newValues)).contentType("text/plain").build());
 
 				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled")).isEqualTo("true");
+					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled"))
+							.isEqualTo("true");
 					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.region"))
-						.isEqualTo(null);
-					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.s3.enabled")).isEqualTo("true");
-					Assertions.assertThat(context.getEnvironment().getProperty("some.property.to.be.checked")).isEqualTo("yes");
+							.isEqualTo(null);
+					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.s3.enabled"))
+							.isEqualTo("true");
+					Assertions.assertThat(context.getEnvironment().getProperty("some.property.to.be.checked"))
+							.isEqualTo("yes");
 				});
 			}
 		}
@@ -303,8 +302,7 @@ class AppConfigDataLoaderTest {
 				"--spring.cloud.aws.appconfig.reload.strategy=refresh",
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-2", "--logging.level.io.awspring.cloud.appconfig=debug",
-				"--spring.cloud.aws.appconfig.reload.period=PT1S",
-				"--spring.cloud.aws.s3.enabled=false");
+				"--spring.cloud.aws.appconfig.reload.period=PT1S", "--spring.cloud.aws.s3.enabled=false");
 	}
 
 	@SpringBootConfiguration
