@@ -54,7 +54,6 @@ public class AwsClientBuilderConfigurer {
 	public <T extends AwsClientBuilder<?, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
 			@Nullable AwsClientCustomizer<T> customizer) {
 		Assert.notNull(builder, "builder is required");
-		Assert.notNull(clientProperties, "clientProperties are required");
 
 		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties))
 				.overrideConfiguration(this.clientOverrideConfiguration);
