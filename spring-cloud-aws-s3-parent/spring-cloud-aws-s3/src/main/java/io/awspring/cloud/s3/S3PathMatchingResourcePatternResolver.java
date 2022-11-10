@@ -149,7 +149,8 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	private Resource[] findResourcesInBucketsWithPatterns(String locationPattern) {
 		String s3BucketNamePattern = getS3BucketNamePattern(locationPattern);
 		String s3KeyPattern = StringUtils.substringAfter(locationPattern, s3BucketNamePattern + "/");
-		return findMatchingBuckets(s3BucketNamePattern).stream()
+		return (pathMatcher.isPattern(s3BucketNamePattern) ? findMatchingBuckets(s3BucketNamePattern): List.of(s3BucketNamePattern))
+			.stream()
 			.flatMap(s3BucketName -> findResourcesInBucketWithKeyPattern(s3BucketName, s3KeyPattern).stream())
 			.toArray(Resource[]::new);
 	}
