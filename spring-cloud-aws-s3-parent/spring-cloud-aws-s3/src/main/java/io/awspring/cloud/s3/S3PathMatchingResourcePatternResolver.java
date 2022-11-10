@@ -1,0 +1,210 @@
+/*
+ * Copyright 2013-2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.awspring.cloud.s3;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.Assert;
+import org.springframework.util.PathMatcher;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Bucket;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+/**
+ * A {@link ResourcePatternResolver} implementation which allows an ant-style path
+ * matching when loading S3 resources. Ant wildcards (*, ** and ?) are allowed in both,
+ * bucket name and object name.
+ * <p>
+ * <b>WARNING:</b> Be aware that when you are using wildcards in the bucket name it can
+ * take a very long time to parse all files. Moreover this implementation does not return
+ * truncated results. This means that when handling huge buckets it could lead to serious
+ * performance problems. For more information look at the
+ * {@code findResourcesInBucketWithKeyPattern} method.
+ * </p>
+ *
+ * @author Tobias Soloschenko
+ * @since 2.0
+ */
+public class S3PathMatchingResourcePatternResolver implements ResourcePatternResolver {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(S3PathMatchingResourcePatternResolver.class);
+
+	private static final String S3_PROTOCOL_PREFIX = "s3://";
+
+	private final S3Client s3Client;
+
+	private final ResourcePatternResolver resourcePatternResolverDelegate;
+
+	private final PathMatcher pathMatcher;
+
+	private final S3OutputStreamProvider s3OutputStreamProvider;
+
+	/**
+	 * Creates a {@link S3PathMatchingResourcePatternResolver} with the given s3Client and resourcePatternResolverDelegate.
+	 * For the S3 Resource a {@link InMemoryBufferingS3OutputStreamProvider} is used in case the resource should be modified
+	 * and for the pattern matching a {@link AntPathMatcher} is used.
+	 *
+	 * @param s3Client                        the s3Client of the Amazon SDK
+	 * @param resourcePatternResolverDelegate the resourcePatternResolverDelegate which is used if the given scheme is not S3.
+	 *                                        In this case all processing is delegated to this implementation.
+	 */
+	public S3PathMatchingResourcePatternResolver(S3Client s3Client, ResourcePatternResolver resourcePatternResolverDelegate) {
+		this(s3Client,
+			resourcePatternResolverDelegate,
+			new InMemoryBufferingS3OutputStreamProvider(s3Client, new PropertiesS3ObjectContentTypeResolver()),
+			new AntPathMatcher()
+		);
+	}
+
+	/**
+	 * Creates a {@link S3PathMatchingResourcePatternResolver} with the given s3Client and resourcePatternResolverDelegate.
+	 * For the S3 Resource a {@link InMemoryBufferingS3OutputStreamProvider} is used in case the resource should be modified
+	 * and for the pattern matching a {@link AntPathMatcher} is used.
+	 *
+	 * @param s3Client                        the s3Client of the Amazon SDK
+	 * @param resourcePatternResolverDelegate the resourcePatternResolverDelegate which is used if the given scheme is not S3.
+	 *                                        In this case all processing is delegated to this implementation.
+	 * @param s3OutputStreamProvider          The s3OutputStreamProvider used if the resource is going to be written
+	 * @param pathMatcher                     used to resolve resources and bucket names
+	 */
+	public S3PathMatchingResourcePatternResolver(S3Client s3Client, ResourcePatternResolver resourcePatternResolverDelegate,
+												 S3OutputStreamProvider s3OutputStreamProvider, PathMatcher pathMatcher) {
+		Assert.notNull(s3Client, "S3Client must not be null");
+		Assert.notNull(resourcePatternResolverDelegate, "ResourcePatternResolver must not be null");
+		Assert.notNull(s3OutputStreamProvider, "S3OutputStreamProvider must not be null");
+		Assert.notNull(pathMatcher, "PathMatcher must not be null");
+		this.s3Client = s3Client;
+		this.resourcePatternResolverDelegate = resourcePatternResolverDelegate;
+		this.s3OutputStreamProvider = s3OutputStreamProvider;
+		this.pathMatcher = pathMatcher;
+	}
+
+	/**
+	 * Gets all resources based on the given location pattern. If the location pattern is not using the s3 scheme the
+	 * operation is delegated to resourcePatternResolverDelegate.
+	 *
+	 * @param locationPattern the location pattern to get all resources from
+	 * @return an array with all resources
+	 * @throws IOException if something went wrong during the resource resolving
+	 */
+	@Override
+	public Resource[] getResources(String locationPattern) throws IOException {
+		return locationPattern.toLowerCase().startsWith(S3_PROTOCOL_PREFIX)
+			? findResourcesInBucketsWithPatterns(locationPattern)
+			: this.resourcePatternResolverDelegate.getResources(locationPattern);
+	}
+
+	/**
+	 * Gets a single resource. Note: This method does not accept any kind of patterns.
+	 *
+	 * @param location the location which points to a resource
+	 * @return the resource
+	 */
+	@Override
+	public Resource getResource(String location) {
+		return location.toLowerCase().startsWith(S3_PROTOCOL_PREFIX)
+			? createS3Resource(location)
+			: this.resourcePatternResolverDelegate.getResource(location);
+	}
+
+	/**
+	 * Gets the classloader. Delegates to {@link this.resourcePatternResolverDelegate#getClassLoader()}.
+	 *
+	 * @return the classloader
+	 */
+	@Override
+	public ClassLoader getClassLoader() {
+		return this.resourcePatternResolverDelegate.getClassLoader();
+	}
+
+	/**
+	 * Finds all resources in all buckets with the given location pattern.
+	 *
+	 * @param locationPattern the location pattern providing a pattern for the bucket and the resource
+	 * @return an array with all resources found in all resolved s3 buckets
+	 */
+	private Resource[] findResourcesInBucketsWithPatterns(String locationPattern) {
+		String s3BucketNamePattern = getS3BucketNamePattern(locationPattern);
+		String s3KeyPattern = StringUtils.substringAfter(locationPattern, s3BucketNamePattern + "/");
+		return findMatchingBuckets(s3BucketNamePattern).stream()
+			.flatMap(s3BucketName -> findResourcesInBucketWithKeyPattern(s3BucketName, s3KeyPattern).stream())
+			.toArray(Resource[]::new);
+	}
+
+	/**
+	 * Finds all resources in the given bucket with the given key pattern.
+	 *
+	 * @param s3BucketName the bucket name to search for resources with the given key pattern
+	 * @param s3KeyPattern the key pattern to search for
+	 * @return a list of resources found in the given s3 bucket
+	 */
+	private List<Resource> findResourcesInBucketWithKeyPattern(String s3BucketName, String s3KeyPattern) {
+		ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder().bucket(s3BucketName).delimiter("/").build();
+		ListObjectsV2Iterable listObjectsV2Response = s3Client.listObjectsV2Paginator(listObjectsV2Request);
+		return listObjectsV2Response.contents().stream()
+			.filter(s3Object -> pathMatcher.match(s3KeyPattern, s3Object.key()))
+			.peek(s3Object -> LOGGER.debug("Resolved key: {} based on pattern: {}", s3Object.key(), s3KeyPattern))
+			.map(s3Object -> createS3Resource(S3_PROTOCOL_PREFIX + s3BucketName + "/" + s3Object.key()))
+			.collect(Collectors.toList());
+	}
+
+	/**
+	 * Creates a S3 resource based on the given location.
+	 *
+	 * @param location the location to create the S3 resource from
+	 * @return the created S3 resource
+	 */
+	private S3Resource createS3Resource(String location) {
+		LOGGER.debug("Creating resource based on location: {}", location);
+		return Optional.ofNullable(S3Resource.create(location, s3Client, s3OutputStreamProvider))
+			.orElseThrow(() -> new IllegalStateException("The s3 resource based on the location: " + location + " was not created correctly"));
+	}
+
+	/**
+	 * Gets the s3 bucket name pattern.
+	 *
+	 * @param locationPattern the location pattern to extract the s3 bucket name pattern from
+	 * @return the s3 bucket name pattern
+	 */
+	public String getS3BucketNamePattern(String locationPattern) {
+		String locationPatternWithoutS3Scheme = locationPattern.substring(S3_PROTOCOL_PREFIX.length());
+		return locationPatternWithoutS3Scheme.substring(0, locationPatternWithoutS3Scheme.indexOf('/'));
+	}
+
+	/**
+	 * Finds all matching buckets which matches the given pattern.
+	 *
+	 * @param bucketPattern bucket pattern to check for
+	 * @return list of bucket names
+	 */
+	private List<String> findMatchingBuckets(String bucketPattern) {
+		return this.s3Client.listBuckets().buckets().stream()
+			.map(Bucket::name)
+			.filter(name -> this.pathMatcher.match(bucketPattern, name))
+			.peek(name -> LOGGER.debug("Resolved bucket name: {} based on pattern: {}", name, bucketPattern))
+			.collect(Collectors.toList());
+	}
+}
