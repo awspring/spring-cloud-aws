@@ -116,11 +116,10 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 		Resource[] resources = locationPattern.toLowerCase().startsWith(S3_PROTOCOL_PREFIX)
 			? findResourcesInBucketsWithPatterns(locationPattern)
 			: this.resourcePatternResolverDelegate.getResources(locationPattern);
-		String collect = Arrays.stream(resources)
-			.map(Resource::getFilename)
-			.map(filename -> filename != null ? filename : "<resource_with_no_filename>")
+		String resourceUrisString = Arrays.stream(resources)
+			.map(this::getUriAsString)
 			.collect(Collectors.joining(","));
-		LOGGER.debug("Found the following resources: {}", collect.isBlank() ? "<no_resources_found>" : resources);
+		LOGGER.debug("Found the following resources: {}", resourceUrisString);
 		return resources;
 	}
 
@@ -136,8 +135,7 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 		Resource resource = location.toLowerCase().startsWith(S3_PROTOCOL_PREFIX)
 			? createS3Resource(location)
 			: this.resourcePatternResolverDelegate.getResource(location);
-		LOGGER.debug("Found the following resource: {}", Optional.ofNullable(resource.getFilename())
-			.orElse("<resource_with_no_filename>"));
+		LOGGER.debug("Found the following resource: {}", getUriAsString(resource));
 		return resource;
 	}
 
@@ -232,5 +230,20 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 			})
 			.peek(name -> LOGGER.debug("Resolved bucket name: {} based on pattern: {}", name, bucketPattern))
 			.collect(Collectors.toList());
+	}
+
+	/**
+	 * Gets the String representation of the given Resource URI.
+	 *
+	 * @param resource the Resource of which to retrieve the URI to be converted into a String
+	 * @return the String representation of the URI of the resource
+	 */
+	private String getUriAsString(Resource resource) {
+		try {
+			return resource.getURI().toASCIIString();
+		} catch (IOException e) {
+			LOGGER.warn("The URI of the resource couldn't be retrieved", e);
+			return "<resource_uri>";
+		}
 	}
 }
