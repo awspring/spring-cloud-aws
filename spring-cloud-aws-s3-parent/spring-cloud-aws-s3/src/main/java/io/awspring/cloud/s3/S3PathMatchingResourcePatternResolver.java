@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.awspring.cloud.s3;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -81,8 +83,6 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 
 	/**
 	 * Creates a {@link S3PathMatchingResourcePatternResolver} with the given s3Client and resourcePatternResolverDelegate.
-	 * For the S3 Resource a {@link InMemoryBufferingS3OutputStreamProvider} is used in case the resource should be modified
-	 * and for the pattern matching a {@link AntPathMatcher} is used.
 	 *
 	 * @param s3Client                        the s3Client of the Amazon SDK
 	 * @param resourcePatternResolverDelegate the resourcePatternResolverDelegate which is used if the given scheme is not S3.
@@ -112,9 +112,16 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 */
 	@Override
 	public Resource[] getResources(String locationPattern) throws IOException {
-		return locationPattern.toLowerCase().startsWith(S3_PROTOCOL_PREFIX)
+		LOGGER.debug("Get resources of the following location pattern {}", locationPattern);
+		Resource[] resources = locationPattern.toLowerCase().startsWith(S3_PROTOCOL_PREFIX)
 			? findResourcesInBucketsWithPatterns(locationPattern)
 			: this.resourcePatternResolverDelegate.getResources(locationPattern);
+		String collect = Arrays.stream(resources)
+			.map(Resource::getFilename)
+			.map(filename -> filename != null ? filename : "<resource_with_no_filename>")
+			.collect(Collectors.joining(","));
+		LOGGER.debug("Found the following resources: {}", collect.isBlank() ? "<no_resources_found>" : resources);
+		return resources;
 	}
 
 	/**
@@ -125,9 +132,13 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 */
 	@Override
 	public Resource getResource(String location) {
-		return location.toLowerCase().startsWith(S3_PROTOCOL_PREFIX)
+		LOGGER.debug("Get resource of the following location {}", location);
+		Resource resource = location.toLowerCase().startsWith(S3_PROTOCOL_PREFIX)
 			? createS3Resource(location)
 			: this.resourcePatternResolverDelegate.getResource(location);
+		LOGGER.debug("Found the following resource: {}", Optional.ofNullable(resource.getFilename())
+			.orElse("<resource_with_no_filename>"));
+		return resource;
 	}
 
 	/**
@@ -148,8 +159,10 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 */
 	private Resource[] findResourcesInBucketsWithPatterns(String locationPattern) {
 		String s3BucketNamePattern = getS3BucketNamePattern(locationPattern);
+		LOGGER.debug("The s3 bucket name pattern is {}", s3BucketNamePattern);
 		String s3KeyPattern = StringUtils.substringAfter(locationPattern, s3BucketNamePattern + "/");
-		return (pathMatcher.isPattern(s3BucketNamePattern) ? findMatchingBuckets(s3BucketNamePattern): List.of(s3BucketNamePattern))
+		LOGGER.debug("The s3 key pattern is {}", s3KeyPattern);
+		return (pathMatcher.isPattern(s3BucketNamePattern) ? findMatchingBuckets(s3BucketNamePattern) : List.of(s3BucketNamePattern))
 			.stream()
 			.flatMap(s3BucketName -> findResourcesInBucketWithKeyPattern(s3BucketName, s3KeyPattern).stream())
 			.toArray(Resource[]::new);
@@ -163,12 +176,20 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 * @return a list of resources found in the given s3 bucket
 	 */
 	private List<Resource> findResourcesInBucketWithKeyPattern(String s3BucketName, String s3KeyPattern) {
-		ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder().bucket(s3BucketName).delimiter("/").build();
+		ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder().bucket(s3BucketName).build();
 		ListObjectsV2Iterable listObjectsV2Response = s3Client.listObjectsV2Paginator(listObjectsV2Request);
-		return listObjectsV2Response.contents().stream()
-			.filter(s3Object -> pathMatcher.match(s3KeyPattern, s3Object.key()))
+		return listObjectsV2Response.stream()
+			.flatMap(r -> {
+				LOGGER.debug("List of s3 objects: {}", r.contents().size());
+				return r.contents().stream();
+			})
+			.filter(s3Object -> {
+				boolean s3ObjectKeyMatchesS3KeyPattern = pathMatcher.match(s3KeyPattern, s3Object.key());
+				LOGGER.debug("The s3 object key ({}) matches the s3 key pattern ({}): {}", s3Object.key(), s3KeyPattern, s3ObjectKeyMatchesS3KeyPattern);
+				return s3ObjectKeyMatchesS3KeyPattern;
+			})
 			.peek(s3Object -> LOGGER.debug("Resolved key: {} based on pattern: {}", s3Object.key(), s3KeyPattern))
-			.map(s3Object -> createS3Resource(S3_PROTOCOL_PREFIX + s3BucketName + "/" + s3Object.key()))
+			.map(s3Object -> getResource(S3_PROTOCOL_PREFIX + s3BucketName + "/" + s3Object.key()))
 			.collect(Collectors.toList());
 	}
 
@@ -204,7 +225,11 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	private List<String> findMatchingBuckets(String bucketPattern) {
 		return this.s3Client.listBuckets().buckets().stream()
 			.map(Bucket::name)
-			.filter(name -> this.pathMatcher.match(bucketPattern, name))
+			.filter(name -> {
+				boolean bucketNameMatchesBucketPattern = this.pathMatcher.match(bucketPattern, name);
+				LOGGER.debug("The s3 bucket name ({}) matches the s3 bucket pattern ({}): {}", name, bucketPattern, bucketNameMatchesBucketPattern);
+				return bucketNameMatchesBucketPattern;
+			})
 			.peek(name -> LOGGER.debug("Resolved bucket name: {} based on pattern: {}", name, bucketPattern))
 			.collect(Collectors.toList());
 	}
