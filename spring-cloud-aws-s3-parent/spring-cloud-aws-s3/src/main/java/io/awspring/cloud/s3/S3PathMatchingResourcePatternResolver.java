@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.awspring.cloud.s3.Location.S3_PROTOCOL_PREFIX;
+
 /**
  * A {@link ResourcePatternResolver} implementation which allows an ant-style path
  * matching when loading S3 resources. Ant wildcards (*, ** and ?) are allowed in both,
@@ -53,8 +55,6 @@ import java.util.stream.Collectors;
 public class S3PathMatchingResourcePatternResolver implements ResourcePatternResolver {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(S3PathMatchingResourcePatternResolver.class);
-
-	private static final String S3_PROTOCOL_PREFIX = "s3://";
 
 	private final S3Client s3Client;
 
@@ -197,7 +197,7 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 * @param location the location to create the S3 resource from
 	 * @return the created S3 resource
 	 */
-	private S3Resource createS3Resource(String location) {
+	protected S3Resource createS3Resource(String location) {
 		LOGGER.debug("Creating resource based on location: {}", location);
 		return Optional.ofNullable(S3Resource.create(location, s3Client, s3OutputStreamProvider))
 			.orElseThrow(() -> new IllegalStateException("The s3 resource based on the location: " + location + " was not created correctly"));

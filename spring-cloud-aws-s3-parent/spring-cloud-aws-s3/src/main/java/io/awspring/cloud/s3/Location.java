@@ -22,15 +22,16 @@ import org.springframework.util.Assert;
  * Represents S3 bucket or object location.
  *
  * @author Maciej Walkowiak
+ * @author Tobias Soloschenko
  * @since 3.0
  */
-class Location {
+public class Location {
 
-	private static final String S3_PROTOCOL_PREFIX = "s3://";
+	public static final String S3_PROTOCOL_PREFIX = "s3://";
 
-	private static final String PATH_DELIMITER = "/";
+	public static final String PATH_DELIMITER = "/";
 
-	private static final String VERSION_DELIMITER = "^";
+	public static final String VERSION_DELIMITER = "^";
 
 	private final String bucket;
 
@@ -44,8 +45,18 @@ class Location {
 	 * @param location - the location
 	 * @return {@link Location}
 	 */
-	static Location of(String location) {
+	public static Location of(String location) {
 		return new Location(location);
+	}
+
+	/**
+	 * Creates {@link Location} from bucket (bucket-name)/ object (object-key)
+	 * @param bucket - the bucket
+	 * @param object - the object key
+	 * @return {@link Location}
+	 */
+	public static Location of(String bucket, String object) {
+		return new Location(bucket, object);
 	}
 
 	/**
@@ -84,16 +95,16 @@ class Location {
 		this.version = resolveVersionId(location);
 	}
 
-	String getBucket() {
+	public String getBucket() {
 		return bucket;
 	}
 
-	String getObject() {
+	public String getObject() {
 		return object;
 	}
 
 	@Nullable
-	String getVersion() {
+	public String getVersion() {
 		return version;
 	}
 
