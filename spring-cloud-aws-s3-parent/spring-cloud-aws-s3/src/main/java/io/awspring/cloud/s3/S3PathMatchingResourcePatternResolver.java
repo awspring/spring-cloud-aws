@@ -31,10 +31,12 @@ import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.awspring.cloud.s3.Location.PATH_DELIMITER;
 import static io.awspring.cloud.s3.Location.S3_PROTOCOL_PREFIX;
 
 /**
@@ -62,6 +64,8 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 
 	private final PathMatcher pathMatcher;
 
+	private List<String> wildCardSeparators;
+
 	private final S3OutputStreamProvider s3OutputStreamProvider;
 
 	/**
@@ -77,7 +81,8 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 		this(s3Client,
 			resourcePatternResolverDelegate,
 			new InMemoryBufferingS3OutputStreamProvider(s3Client, new PropertiesS3ObjectContentTypeResolver()),
-			new AntPathMatcher()
+			new AntPathMatcher(),
+			List.of("**", "*", "?")
 		);
 	}
 
@@ -89,17 +94,22 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 *                                        In this case all processing is delegated to this implementation.
 	 * @param s3OutputStreamProvider          The s3OutputStreamProvider used if the resource is going to be written
 	 * @param pathMatcher                     used to resolve resources and bucket names
+	 * @param wildCardSeparators              the wildcard separators to determine the prefix. You can also use Collections.emptyList(),
+	 *                                        but this will cause performance and request impacts.
 	 */
 	public S3PathMatchingResourcePatternResolver(S3Client s3Client, ResourcePatternResolver resourcePatternResolverDelegate,
-												 S3OutputStreamProvider s3OutputStreamProvider, PathMatcher pathMatcher) {
+												 S3OutputStreamProvider s3OutputStreamProvider, PathMatcher pathMatcher,
+												 List<String> wildCardSeparators) {
 		Assert.notNull(s3Client, "S3Client must not be null");
 		Assert.notNull(resourcePatternResolverDelegate, "ResourcePatternResolver must not be null");
 		Assert.notNull(s3OutputStreamProvider, "S3OutputStreamProvider must not be null");
 		Assert.notNull(pathMatcher, "PathMatcher must not be null");
+		Assert.notNull(wildCardSeparators, "WildCardSeparators must not be null");
 		this.s3Client = s3Client;
 		this.resourcePatternResolverDelegate = resourcePatternResolverDelegate;
 		this.s3OutputStreamProvider = s3OutputStreamProvider;
 		this.pathMatcher = pathMatcher;
+		this.wildCardSeparators = wildCardSeparators;
 	}
 
 	/**
@@ -174,12 +184,12 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 * @return a list of resources found in the given s3 bucket
 	 */
 	private List<Resource> findResourcesInBucketWithKeyPattern(String s3BucketName, String s3KeyPattern) {
-		ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder().bucket(s3BucketName).build();
-		ListObjectsV2Iterable listObjectsV2Response = s3Client.listObjectsV2Paginator(listObjectsV2Request);
-		return listObjectsV2Response.stream()
-			.flatMap(r -> {
-				LOGGER.debug("List of s3 objects: {}", r.contents().size());
-				return r.contents().stream();
+		ListObjectsV2Request listObjectsV2Request = getListObjectsV2RequestBuilder(s3BucketName, s3KeyPattern).build();
+		ListObjectsV2Iterable listObjectsV2Iterable = s3Client.listObjectsV2Paginator(listObjectsV2Request);
+		return listObjectsV2Iterable.stream()
+			.flatMap(listObjectsV2Response -> {
+				LOGGER.debug("List of s3 objects: {}", listObjectsV2Response.contents().size());
+				return listObjectsV2Response.contents().stream();
 			})
 			.filter(s3Object -> {
 				boolean s3ObjectKeyMatchesS3KeyPattern = pathMatcher.match(s3KeyPattern, s3Object.key());
@@ -189,6 +199,27 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 			.peek(s3Object -> LOGGER.debug("Resolved key: {} based on pattern: {}", s3Object.key(), s3KeyPattern))
 			.map(s3Object -> getResource(S3_PROTOCOL_PREFIX + s3BucketName + "/" + s3Object.key()))
 			.collect(Collectors.toList());
+	}
+
+	/**
+	 * Gets the list objects request builder which might be initialized with a prefix depending on the wild card in the key pattern.
+	 *
+	 * @param s3BucketName the s3 bucket name
+	 * @param s3KeyPattern the s3 key pattern
+	 * @return the ListObjectsV2Request.Builder to perform the objects listing with
+	 */
+	private ListObjectsV2Request.Builder getListObjectsV2RequestBuilder(String s3BucketName, String s3KeyPattern) {
+		// To improve performance we list only files to until the optionalPrefix path delimiter before the optionalPrefix wild card
+		Optional<String> optionalPrefix = wildCardSeparators.stream()
+			.filter(s3KeyPattern::contains)
+			.map(wildcard -> StringUtils.substringBefore(s3KeyPattern, wildcard))
+			.map(s3KeyPatternSubStringBeforeWildCard -> StringUtils.substringBeforeLast(s3KeyPatternSubStringBeforeWildCard, PATH_DELIMITER) + PATH_DELIMITER)
+			.findFirst();
+		ListObjectsV2Request.Builder listObjectsV2RequestBuilder = ListObjectsV2Request.builder().bucket(s3BucketName);
+		if (optionalPrefix.isPresent()) {
+			listObjectsV2RequestBuilder = listObjectsV2RequestBuilder.prefix(optionalPrefix.get());
+		}
+		return listObjectsV2RequestBuilder;
 	}
 
 	/**
