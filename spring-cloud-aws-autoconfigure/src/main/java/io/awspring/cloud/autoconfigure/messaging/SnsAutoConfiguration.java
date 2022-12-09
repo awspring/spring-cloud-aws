@@ -23,7 +23,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.AmazonSNSAsyncClient;
 import com.amazonaws.services.sns.message.SnsMessageManager;
 import io.awspring.cloud.context.annotation.ConditionalOnMissingAmazonClient;
 import io.awspring.cloud.core.config.AmazonWebserviceClientFactoryBean;
@@ -83,9 +83,9 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingAmazonClient(AmazonSNS.class)
 	@Bean
-	public AmazonWebserviceClientFactoryBean<AmazonSNSClient> amazonSNS(SnsProperties properties) {
-		AmazonWebserviceClientFactoryBean<AmazonSNSClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
-				AmazonSNSClient.class, this.awsCredentialsProvider, this.regionProvider, this.clientConfiguration);
+	public AmazonWebserviceClientFactoryBean<AmazonSNSAsyncClient> amazonSNS(SnsProperties properties) {
+		AmazonWebserviceClientFactoryBean<AmazonSNSAsyncClient> clientFactoryBean = new AmazonWebserviceClientFactoryBean<>(
+				AmazonSNSAsyncClient.class, this.awsCredentialsProvider, this.regionProvider, this.clientConfiguration);
 		Optional.ofNullable(properties.getEndpoint()).ifPresent(clientFactoryBean::setCustomEndpoint);
 		return clientFactoryBean;
 	}
