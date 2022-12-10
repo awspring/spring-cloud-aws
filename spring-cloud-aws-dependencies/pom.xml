@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
-		<version>4.0.0-M5</version>
+		<version>3.1.5</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -29,7 +29,7 @@
 		<awssdk-v1.version>1.12.326</awssdk-v1.version>
 		<amazon.dax.version>2.0.1</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<spring-cloud-commons.version>4.0.0-M5</spring-cloud-commons.version>
+		<spring-cloud-commons.version>3.1.5</spring-cloud-commons.version>
 		<testcontainers.version>1.17.5</testcontainers.version>
 	</properties>
 
