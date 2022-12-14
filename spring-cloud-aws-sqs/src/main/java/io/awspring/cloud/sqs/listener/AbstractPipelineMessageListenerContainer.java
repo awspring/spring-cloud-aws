@@ -222,7 +222,8 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 		int poolSize = getContainerOptions().getMaxInFlightMessagesPerQueue() * this.messageSources.size();
 		executor.setMaxPoolSize(poolSize);
 		executor.setCorePoolSize(getContainerOptions().getMaxMessagesPerPoll());
-		executor.setQueueCapacity(0);
+		// Necessary due to a small racing condition between releasing the permit and releasing the thread.
+		executor.setQueueCapacity(poolSize);
 		executor.setAllowCoreThreadTimeOut(true);
 		executor.setThreadFactory(createThreadFactory());
 		executor.afterPropertiesSet();
