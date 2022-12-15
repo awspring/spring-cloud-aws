@@ -42,8 +42,8 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMod
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
+import io.awspring.cloud.sqs.listener.source.AbstractSqsMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
-import io.awspring.cloud.sqs.listener.source.SqsMessageSource;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -476,7 +476,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 			return Collections.singletonList(new StandardSqsComponentFactory<Object>() {
 				@Override
 				public MessageSource<Object> createMessageSource(ContainerOptions options) {
-					return new SqsMessageSource<Object>() {
+					return new AbstractSqsMessageSource<Object>() {
 						@Override
 						protected AcknowledgementExecutor<Object> createAcknowledgementExecutorInstance() {
 							return new SqsAcknowledgementExecutor<Object>() {

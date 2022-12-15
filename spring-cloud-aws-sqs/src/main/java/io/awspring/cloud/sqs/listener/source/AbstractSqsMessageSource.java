@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -62,9 +61,10 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class SqsMessageSource<T> extends AbstractPollingMessageSource<T, Message> implements SqsAsyncClientAware {
+public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessageSource<T, Message>
+		implements SqsAsyncClientAware {
 
-	private static final Logger logger = LoggerFactory.getLogger(SqsMessageSource.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractSqsMessageSource.class);
 
 	private static final int MESSAGE_VISIBILITY_DISABLED = -1;
 
@@ -171,18 +171,20 @@ public class SqsMessageSource<T> extends AbstractPollingMessageSource<T, Message
 		ReceiveMessageRequest.Builder builder = ReceiveMessageRequest
 			.builder()
 			.queueUrl(this.queueUrl)
-			.receiveRequestAttemptId(UUID.randomUUID().toString())
 			.maxNumberOfMessages(maxNumberOfMessages)
 			.attributeNamesWithStrings(this.messageSystemAttributeNames)
 			.messageAttributeNames(this.messageAttributeNames)
 			.waitTimeSeconds(this.pollTimeout);
-
+		customizeRequest(builder);
 		if (this.messageVisibility >= 0) {
 			builder.visibilityTimeout(this.messageVisibility);
 		}
 		return builder.build();
 	}
 	// @formatter:on
+
+	protected void customizeRequest(ReceiveMessageRequest.Builder builder) {
+	}
 
 	private CompletableFuture<Collection<Message>> executeMultiplePolls(int maxNumberOfMessages) {
 		int remainder = maxNumberOfMessages % 10;
