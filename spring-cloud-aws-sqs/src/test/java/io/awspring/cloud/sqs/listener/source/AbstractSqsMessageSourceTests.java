@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-class SqsMessageSourceTests {
+class AbstractSqsMessageSourceTests {
 
 	@Test
 	void shouldReturnBatchOfTenMessages() {
@@ -50,7 +50,7 @@ class SqsMessageSourceTests {
 		ReceiveMessageResponse response = ReceiveMessageResponse.builder().messages(batch).build();
 		given(client.receiveMessage(any(ReceiveMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(response));
-		SqsMessageSource<Object> source = new SqsMessageSource<>();
+		AbstractSqsMessageSource<Object> source = new StandardSqsMessageSource<>();
 		source.setSqsAsyncClient(client);
 		CompletableFuture<Collection<Message>> messages = source.doPollForMessages(10);
 		assertThat(messages).isCompletedWithValue(batch);
@@ -65,7 +65,7 @@ class SqsMessageSourceTests {
 		ReceiveMessageResponse response = ReceiveMessageResponse.builder().messages(batch).build();
 		given(client.receiveMessage(any(ReceiveMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(response));
-		SqsMessageSource<Object> source = new SqsMessageSource<>();
+		AbstractSqsMessageSource<Object> source = new StandardSqsMessageSource<>();
 		source.setSqsAsyncClient(client);
 		CompletableFuture<Collection<Message>> messages = source.doPollForMessages(100);
 		assertThat(messages.join()).containsExactlyElementsOf(getHundredMessages(batch));
@@ -81,7 +81,7 @@ class SqsMessageSourceTests {
 		ArgumentCaptor<ReceiveMessageRequest> captor = ArgumentCaptor.forClass(ReceiveMessageRequest.class);
 		given(client.receiveMessage(any(ReceiveMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(response));
-		SqsMessageSource<Object> source = new SqsMessageSource<>();
+		AbstractSqsMessageSource<Object> source = new StandardSqsMessageSource<>();
 		source.setSqsAsyncClient(client);
 		source.doPollForMessages(101);
 		then(client).should(times(11)).receiveMessage(captor.capture());

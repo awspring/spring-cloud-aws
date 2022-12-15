@@ -24,7 +24,7 @@ import io.awspring.cloud.sqs.listener.sink.BatchMessageSink;
 import io.awspring.cloud.sqs.listener.sink.FanOutMessageSink;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
-import io.awspring.cloud.sqs.listener.source.SqsMessageSource;
+import io.awspring.cloud.sqs.listener.source.StandardSqsMessageSource;
 import java.time.Duration;
 import java.util.Collection;
 import org.springframework.util.Assert;
@@ -50,7 +50,7 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 
 	@Override
 	public MessageSource<T> createMessageSource(ContainerOptions options) {
-		return new SqsMessageSource<>();
+		return new StandardSqsMessageSource<>();
 	}
 
 	// @formatter:off

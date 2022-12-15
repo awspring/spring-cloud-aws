@@ -26,8 +26,8 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.sink.OrderedMessageSink;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageGroupingSinkAdapter;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityExtendingSinkAdapter;
+import io.awspring.cloud.sqs.listener.source.FifoSqsMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
-import io.awspring.cloud.sqs.listener.source.SqsMessageSource;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.function.Function;
@@ -62,7 +62,7 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> 
 
 	@Override
 	public MessageSource<T> createMessageSource(ContainerOptions options) {
-		return new SqsMessageSource<>();
+		return new FifoSqsMessageSource<>();
 	}
 
 	@Override
