@@ -22,9 +22,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 @SpringBootApplication
 public class SpringSqsSample {
@@ -38,19 +35,16 @@ public class SpringSqsSample {
 	}
 
 	@SqsListener(queueNames = QUEUE_NAME)
-	void listen(String message) {
-		LOGGER.info("Received message {}", message);
+	void listen(SampleRecord message) {
+		LOGGER.info("Received message {} {}", message.propertyOne(), message.propertyTwo());
 	}
 
 	@Bean
-	public ApplicationRunner sendMessageToQueue(SqsAsyncClient client) {
-		return args -> client.sendMessage(
-				SendMessageRequest.builder().queueUrl(getQueueUrl(client)).messageBody("Hello from SQS!").build())
-				.join();
+	public ApplicationRunner sendMessageToQueue(SqsSampleProducer sampleProducer) {
+		return args -> sampleProducer.send(QUEUE_NAME, new SampleRecord("Hello!", "From SQS!")).join();
 	}
 
-	private String getQueueUrl(SqsAsyncClient client) {
-		return client.getQueueUrl(GetQueueUrlRequest.builder().queueName(QUEUE_NAME).build()).join().queueUrl();
+	private record SampleRecord(String propertyOne, String propertyTwo) {
 	}
 
 }
