@@ -47,6 +47,7 @@ class SecretsManagerPropertySourceTest {
 
 		propertySource.init();
 
+		assertThat(propertySource.getName()).isEqualTo("aws-secretsmanager:/config/myservice");
 		assertThat(propertySource.getPropertyNames()).containsExactly("key1", "key2");
 		assertThat(propertySource.getProperty("key1")).isEqualTo("value1");
 		assertThat(propertySource.getProperty("key2")).isEqualTo("value2");
@@ -61,6 +62,7 @@ class SecretsManagerPropertySourceTest {
 
 		propertySource.init();
 
+		assertThat(propertySource.getName()).isEqualTo("aws-secretsmanager:/config/myservice");
 		assertThat(propertySource.getPropertyNames()).containsExactly("secret name");
 		assertThat(propertySource.getProperty("secret name")).isEqualTo("my secret");
 	}
