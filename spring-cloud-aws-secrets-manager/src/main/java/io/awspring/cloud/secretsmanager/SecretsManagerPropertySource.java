@@ -52,7 +52,7 @@ public class SecretsManagerPropertySource
 	private final Map<String, Object> properties = new LinkedHashMap<>();
 
 	public SecretsManagerPropertySource(String context, SecretsManagerClient smClient) {
-		super(context, smClient);
+		super("aws-secretsmanager:" + context, smClient);
 		this.context = context;
 	}
 

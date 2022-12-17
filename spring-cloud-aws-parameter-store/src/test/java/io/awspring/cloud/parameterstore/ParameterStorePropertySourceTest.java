@@ -49,6 +49,7 @@ class ParameterStorePropertySourceTest {
 
 		propertySource.init();
 
+		assertThat(propertySource.getName()).isEqualTo("aws-parameterstore:/config/myservice/");
 		assertThat(propertySource.getPropertyNames()).containsExactly("key1", "key2", "key3", "key4");
 		assertThat(propertySource.getProperty("key3")).isEqualTo("value3");
 	}
