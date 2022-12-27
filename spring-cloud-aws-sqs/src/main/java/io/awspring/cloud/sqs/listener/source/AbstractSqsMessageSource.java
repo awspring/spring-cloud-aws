@@ -19,7 +19,7 @@ import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesAware;
-import io.awspring.cloud.sqs.listener.QueueAttributesResolver;
+import io.awspring.cloud.sqs.QueueAttributesResolver;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.SqsContainerOptions;

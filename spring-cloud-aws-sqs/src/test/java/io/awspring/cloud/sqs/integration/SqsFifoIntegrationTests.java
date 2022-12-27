@@ -378,7 +378,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 		@SqsListener(queueNames = FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME, id = "receives-in-order-many-groups")
 		void listen(Message<String> message,
-				@Header(SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER) String groupId) {
+				@Header(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER) String groupId) {
 			logger.trace("Received message {} in listener method from groupId {}", message.getPayload(), groupId);
 			loadSimulator.runLoad();
 			List<String> messageList = receivedMessages.computeIfAbsent(groupId, newGroupId -> new ArrayList<>());
@@ -450,10 +450,10 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		void listen(List<Message<String>> messages) {
 			String firstMessage = messages.iterator().next().getPayload();// Make sure we got the right type
 			Assert.isTrue(MessageHeaderUtils
-					.getHeader(messages, SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER, String.class)
+					.getHeader(messages, SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, String.class)
 					.stream().distinct().count() == 1, "More than one message group returned in the same batch");
 			String messageGroupId = messages.iterator().next().getHeaders()
-					.get(SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER, String.class);
+					.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, String.class);
 			List<String> values = messages.stream().map(Message::getPayload).collect(toList());
 			logger.trace("Started processing messages {} for group id {}", values, messageGroupId);
 			receivedMessages.computeIfAbsent(messageGroupId, groupId -> Collections.synchronizedList(new ArrayList<>()))
@@ -593,7 +593,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				public void onSuccess(Collection<Message<String>> messages) {
 					if (FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME.equals(MessageHeaderUtils.getHeaderAsString(messages.iterator().next(), SqsHeaders.SQS_QUEUE_NAME_HEADER))) {
 						messages.stream()
-							.collect(groupingBy(msg -> MessageHeaderUtils.getHeaderAsString(msg, SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER)))
+							.collect(groupingBy(msg -> MessageHeaderUtils.getHeaderAsString(msg, SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER)))
 							.forEach((key, value) -> messagesContainer.acknowledgesFromManyGroups.computeIfAbsent(key,
 								newGroup -> Collections.synchronizedList(new ArrayList<>())).addAll(value.stream().map(Message::getPayload).collect(toList())));
 						messages.forEach(msg -> {

@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs;
 
-import io.awspring.cloud.sqs.CompletableFutures;
-import io.awspring.cloud.sqs.QueueAttributesResolvingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -25,6 +23,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+
+import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.QueueAttributes;
+import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;

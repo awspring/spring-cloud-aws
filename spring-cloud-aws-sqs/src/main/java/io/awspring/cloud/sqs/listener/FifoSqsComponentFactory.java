@@ -96,7 +96,7 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 	}
 
 	private Function<Message<T>, String> getMessageGroupingFunction() {
-		return message -> MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER);
+		return message -> MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER);
 	}
 
 	@Override

@@ -35,6 +35,8 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
+
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -57,6 +59,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 class SqsAutoConfigurationTest {
 
 	private static final String CUSTOM_OBJECT_MAPPER_BEAN_NAME = "customObjectMapper";
+
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
@@ -85,6 +88,12 @@ class SqsAutoConfigurationTest {
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SqsAsyncClient.class));
 			assertThat(client.getEndpoint()).isEqualTo(URI.create("https://sqs.eu-west-1.amazonaws.com"));
 		});
+	}
+
+	@Test
+	void configuresSqsTemplate() {
+		this.contextRunner.run(context ->
+			assertThat(context).hasSingleBean(SqsTemplate.class));
 	}
 
 	@Test
@@ -160,13 +169,13 @@ class SqsAutoConfigurationTest {
 
 		@Bean
 		AsyncErrorHandler<Object> asyncErrorHandler() {
-			return new AsyncErrorHandler<Object>() {
+			return new AsyncErrorHandler<>() {
 			};
 		}
 
 		@Bean
 		AsyncMessageInterceptor<?> asyncMessageInterceptor() {
-			return new AsyncMessageInterceptor<Object>() {
+			return new AsyncMessageInterceptor<>() {
 			};
 		}
 
@@ -187,7 +196,7 @@ class SqsAutoConfigurationTest {
 
 		@Bean
 		AwsClientCustomizer<SqsAsyncClientBuilder> sqsClientBuilderAwsClientConfigurer() {
-			return new AwsClientCustomizer<SqsAsyncClientBuilder>() {
+			return new AwsClientCustomizer<>() {
 				@Override
 				@Nullable
 				public ClientOverrideConfiguration overrideConfiguration() {

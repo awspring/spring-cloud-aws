@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Marker interface for a message conversion context.
  * @author Tomaz Fernandes
@@ -23,5 +25,8 @@ package io.awspring.cloud.sqs.support.converter;
  * @see ContextAwareHeaderMapper
  */
 public interface MessageConversionContext {
+
+	@Nullable
+	Class<?> getPayloadClass();
 
 }

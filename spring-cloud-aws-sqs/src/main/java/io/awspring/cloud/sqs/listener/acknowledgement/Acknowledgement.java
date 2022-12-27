@@ -15,6 +15,10 @@
  */
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
+import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.listener.SqsHeaders;
+import org.springframework.messaging.Message;
+
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -35,5 +39,15 @@ public interface Acknowledgement {
 	 * Asynchronously acknowledge the message.
 	 */
 	CompletableFuture<Void> acknowledgeAsync();
+
+	static void acknowledge(Message<?> message) {
+		acknowledgeAsync(message).join();
+	}
+
+	@SuppressWarnings("unchecked")
+	static CompletableFuture<Void> acknowledgeAsync(Message<?> message) {
+		return MessageHeaderUtils.getHeader(message, SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class)
+			.onAcknowledge(message);
+	}
 
 }

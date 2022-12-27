@@ -34,6 +34,7 @@ public interface ContextAwareMessagingMessageConverter<S> extends MessagingMessa
 
 	Message<?> toMessagingMessage(S source, @Nullable MessageConversionContext context);
 
+	@Nullable
 	MessageConversionContext createMessageConversionContext();
 
 }

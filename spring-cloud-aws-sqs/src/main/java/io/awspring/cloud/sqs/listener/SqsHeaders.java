@@ -35,11 +35,6 @@ public class SqsHeaders {
 	public static final String SQS_HEADER_PREFIX = "Sqs_";
 
 	/**
-	 * MessageAttributes prefix to be used by all headers mapped from SQS Message Attributes.
-	 */
-	public static final String SQS_MA_HEADER_PREFIX = SQS_HEADER_PREFIX + "Ma_";
-
-	/**
 	 * Header for the queue name.
 	 */
 	public static final String SQS_QUEUE_NAME_HEADER = SQS_HEADER_PREFIX + "QueueName";
@@ -62,12 +57,17 @@ public class SqsHeaders {
 	/**
 	 * Header for the {@link Visibility} object for this message.
 	 */
-	public static final String SQS_VISIBILITY_HEADER = SQS_HEADER_PREFIX + "Visibility";
+	public static final String SQS_VISIBILITY_TIMEOUT_HEADER = SQS_HEADER_PREFIX + "VisibilityTimeout";
 
 	/**
 	 * Header for the received at attribute.
 	 */
 	public static final String SQS_RECEIVED_AT_HEADER = SQS_HEADER_PREFIX + "ReceivedAt";
+
+	/**
+	 * Header for the delay attribute.
+	 */
+	public static final String SQS_DELAY_HEADER = SQS_HEADER_PREFIX + "Delay";
 
 	/**
 	 * Header for a {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback} for this message.
@@ -80,13 +80,18 @@ public class SqsHeaders {
 	public static final String SQS_QUEUE_ATTRIBUTES_HEADER = SQS_HEADER_PREFIX + "QueueAttributes";
 
 	/**
+	 * Header for the ReceiveRequestAttemptId for this message.
+	 */
+	public static final String SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER = SQS_HEADER_PREFIX + "ReceiveRequestAttemptId";
+
+	/**
 	 * Header containing the FQCN of the {@link Class} that the message's payload should be deserialized to.
 	 */
 	public static final String SQS_DEFAULT_TYPE_HEADER = "JavaType";
 
-	public static class MessageSystemAttribute {
+	public static class MessageSystemAttributes {
 
-		private MessageSystemAttribute() {
+		private MessageSystemAttributes() {
 		}
 
 		/**
@@ -102,7 +107,7 @@ public class SqsHeaders {
 		/**
 		 * Deduplication header in a SQS message.
 		 */
-		public static final String SQS_DEDUPLICATION_ID_HEADER = SQS_MSA_HEADER_PREFIX + "MessageDeduplicationId";
+		public static final String SQS_MESSAGE_DEDUPLICATION_ID_HEADER = SQS_MSA_HEADER_PREFIX + "MessageDeduplicationId";
 
 		/**
 		 * ApproximateFirstReceiveTimestamp header in a SQS message.

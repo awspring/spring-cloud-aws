@@ -28,6 +28,7 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -68,6 +69,12 @@ public class SqsAutoConfiguration {
 			ObjectProvider<AwsClientCustomizer<SqsAsyncClientBuilder>> configurer) {
 		return awsClientBuilderConfigurer
 				.configure(SqsAsyncClient.builder(), this.sqsProperties, configurer.getIfAvailable()).build();
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	public SqsTemplate<Object> sqsTemplate(SqsAsyncClient sqsAsyncClient) {
+		return SqsTemplate.newTemplate(sqsAsyncClient);
 	}
 
 	@ConditionalOnMissingBean

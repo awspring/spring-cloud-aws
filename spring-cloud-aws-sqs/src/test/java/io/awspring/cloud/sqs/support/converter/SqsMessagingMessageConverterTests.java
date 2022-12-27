@@ -29,7 +29,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.support.HeaderMapper;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
