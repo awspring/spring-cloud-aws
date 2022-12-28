@@ -85,12 +85,12 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 	private AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback;
 
 	@Override
-	protected void configureMessageSource(ContainerOptions containerOptions) {
+	protected void configureMessageSource(ContainerOptions<?, ?> containerOptions) {
 		this.shutdownTimeout = containerOptions.getShutdownTimeout();
 		doConfigure(containerOptions);
 	}
 
-	protected abstract void doConfigure(ContainerOptions containerOptions);
+	protected abstract void doConfigure(ContainerOptions<?, ?> containerOptions);
 
 	@Override
 	public void setId(String id) {

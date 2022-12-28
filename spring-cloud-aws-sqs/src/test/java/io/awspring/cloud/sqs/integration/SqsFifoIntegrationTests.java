@@ -25,11 +25,11 @@ import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.FifoSqsComponentFactory;
 import io.awspring.cloud.sqs.listener.ListenerMode;
 import io.awspring.cloud.sqs.listener.MessageListener;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
@@ -620,7 +620,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
 			factory.setContainerComponentFactories(Collections.singletonList(new FifoSqsComponentFactory<String>() {
 				@Override
-				public AcknowledgementHandler<String> createAcknowledgementHandler(ContainerOptions options) {
+				public AcknowledgementHandler<String> createAcknowledgementHandler(SqsContainerOptions options) {
 					return new OnSuccessAcknowledgementHandler<String>() {
 
 						final AtomicBoolean hasThrown = new AtomicBoolean(false);

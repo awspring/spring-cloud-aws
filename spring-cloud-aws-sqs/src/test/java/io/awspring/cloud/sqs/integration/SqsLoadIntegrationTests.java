@@ -25,8 +25,8 @@ import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.BackPressureMode;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.StandardSqsComponentFactory;
 import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
@@ -413,7 +413,7 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		private StandardSqsComponentFactory<String> getTestAckHandlerComponentFactory() {
 			return new StandardSqsComponentFactory<String>() {
 				@Override
-				public MessageSource<String> createMessageSource(ContainerOptions options) {
+				public MessageSource<String> createMessageSource(SqsContainerOptions options) {
 					return new AbstractSqsMessageSource<String>() {
 						@Override
 						protected SqsAcknowledgementExecutor<String> createAcknowledgementExecutorInstance() {

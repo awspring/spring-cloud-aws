@@ -22,6 +22,7 @@ import io.awspring.cloud.sqs.listener.QueueAttributesAware;
 import io.awspring.cloud.sqs.listener.QueueAttributesResolver;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementExecutor;
 import io.awspring.cloud.sqs.listener.acknowledgement.ExecutingAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -93,14 +95,17 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 	}
 
 	@Override
-	protected void doConfigure(ContainerOptions containerOptions) {
-		this.pollTimeout = (int) containerOptions.getPollTimeout().getSeconds();
-		this.queueAttributeNames = containerOptions.getQueueAttributeNames();
-		this.messageAttributeNames = containerOptions.getMessageAttributeNames();
-		this.messageSystemAttributeNames = containerOptions.getMessageSystemAttributeNames();
-		this.queueNotFoundStrategy = containerOptions.getQueueNotFoundStrategy();
-		this.messageVisibility = containerOptions.getMessageVisibility() != null
-				? (int) containerOptions.getMessageVisibility().getSeconds()
+	protected void doConfigure(ContainerOptions<?, ?> containerOptions) {
+		Assert.isInstanceOf(SqsContainerOptions.class, containerOptions,
+				"containerOptions must be an instance of SqsContainerOptions");
+		SqsContainerOptions sqsContainerOptions = (SqsContainerOptions) containerOptions;
+		this.pollTimeout = (int) sqsContainerOptions.getPollTimeout().getSeconds();
+		this.queueAttributeNames = sqsContainerOptions.getQueueAttributeNames();
+		this.messageAttributeNames = sqsContainerOptions.getMessageAttributeNames();
+		this.messageSystemAttributeNames = sqsContainerOptions.getMessageSystemAttributeNames();
+		this.queueNotFoundStrategy = sqsContainerOptions.getQueueNotFoundStrategy();
+		this.messageVisibility = sqsContainerOptions.getMessageVisibility() != null
+				? (int) sqsContainerOptions.getMessageVisibility().getSeconds()
 				: MESSAGE_VISIBILITY_DISABLED;
 	}
 
@@ -204,7 +209,7 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 		return combinedBatch;
 	}
 
-	private void logMessagesReceived(Collection<Message> v, Throwable t) {
+	private void logMessagesReceived(@Nullable Collection<Message> v, @Nullable Throwable t) {
 		if (v != null) {
 			if (logger.isTraceEnabled()) {
 				logger.trace("Received {} messages {} from queue {}", v.size(),

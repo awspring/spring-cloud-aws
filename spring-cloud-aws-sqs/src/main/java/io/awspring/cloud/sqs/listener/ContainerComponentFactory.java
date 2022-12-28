@@ -32,7 +32,7 @@ import java.util.Collection;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface ContainerComponentFactory<T> {
+public interface ContainerComponentFactory<T, O extends ContainerOptions<O, ?>> {
 
 	/**
 	 * Whether this factory supports the given queues based on the queue names.
@@ -40,7 +40,7 @@ public interface ContainerComponentFactory<T> {
 	 * @param options {@link ContainerOptions} instance for evaluating support.
 	 * @return true if the queues are supported.
 	 */
-	default boolean supports(Collection<String> queueNames, ContainerOptions options) {
+	default boolean supports(Collection<String> queueNames, O options) {
 		return true;
 	}
 
@@ -49,21 +49,21 @@ public interface ContainerComponentFactory<T> {
 	 * @param options {@link ContainerOptions} instance for determining instance type and configuring.
 	 * @return the instance.
 	 */
-	MessageSource<T> createMessageSource(ContainerOptions options);
+	MessageSource<T> createMessageSource(O options);
 
 	/**
 	 * Create a {@link MessageSink} instance.
 	 * @param options {@link ContainerOptions} instance for determining instance type and configuring.
 	 * @return the instance.
 	 */
-	MessageSink<T> createMessageSink(ContainerOptions options);
+	MessageSink<T> createMessageSink(O options);
 
 	/**
 	 * Create an {@link AcknowledgementProcessor} instance.
 	 * @param options {@link ContainerOptions} instance for determining instance type and configuring.
 	 * @return the instance.
 	 */
-	default AcknowledgementProcessor<T> createAcknowledgementProcessor(ContainerOptions options) {
+	default AcknowledgementProcessor<T> createAcknowledgementProcessor(O options) {
 		throw new UnsupportedOperationException("AcknowledgementProcessor support not implemented by this "
 				+ ContainerComponentFactory.class.getSimpleName());
 	}
@@ -75,7 +75,7 @@ public interface ContainerComponentFactory<T> {
 	 * @param options the {@link ContainerOptions} instance
 	 * @return the instance.
 	 */
-	default AcknowledgementHandler<T> createAcknowledgementHandler(ContainerOptions options) {
+	default AcknowledgementHandler<T> createAcknowledgementHandler(O options) {
 		AcknowledgementMode mode = options.getAcknowledgementMode();
 		return AcknowledgementMode.ON_SUCCESS.equals(mode)
 			? new OnSuccessAcknowledgementHandler<>()

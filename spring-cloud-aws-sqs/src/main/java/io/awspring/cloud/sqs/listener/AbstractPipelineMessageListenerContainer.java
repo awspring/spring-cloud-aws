@@ -65,7 +65,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractPipelineMessageListenerContainer<T> extends AbstractMessageListenerContainer<T> {
+public abstract class AbstractPipelineMessageListenerContainer<T, O extends ContainerOptions<O, B>, B extends ContainerOptions.Builder<B, O>>
+		extends AbstractMessageListenerContainer<T, O, B> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractPipelineMessageListenerContainer.class);
 
@@ -78,13 +79,13 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	@Nullable
 	private TaskExecutor acknowledgementResultTaskExecutor;
 
-	protected AbstractPipelineMessageListenerContainer(ContainerOptions options) {
+	protected AbstractPipelineMessageListenerContainer(O options) {
 		super(options);
 	}
 
 	@Override
 	protected void doStart() {
-		ContainerComponentFactory<T> componentFactory = determineComponentFactory();
+		ContainerComponentFactory<T, O> componentFactory = determineComponentFactory();
 		this.messageSources = createMessageSources(componentFactory);
 		this.messageSink = componentFactory.createMessageSink(getContainerOptions());
 		configureComponents(componentFactory);
@@ -92,7 +93,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	}
 
 	// @formatter:off
-	private ContainerComponentFactory<T> determineComponentFactory() {
+	private ContainerComponentFactory<T, O> determineComponentFactory() {
 		return getComponentFactories()
 			.stream()
 			.filter(factory -> factory.supports(getQueueNames(), getContainerOptions()))
@@ -100,15 +101,15 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 			.orElseThrow(() -> new IllegalArgumentException("No ContainerComponentFactory found for queues " + getQueueNames()));
 	}
 
-	private Collection<ContainerComponentFactory<T>> getComponentFactories() {
-		return getContainerComponentFactories() != null
+	private Collection<ContainerComponentFactory<T, O>> getComponentFactories() {
+		return !getContainerComponentFactories().isEmpty()
 			? getContainerComponentFactories()
-			: getDefaultComponentFactories();
+			: createDefaultComponentFactories();
 	}
 
-	protected abstract Collection<ContainerComponentFactory<T>> getDefaultComponentFactories();
+	protected abstract Collection<ContainerComponentFactory<T, O>> createDefaultComponentFactories();
 
-	protected Collection<MessageSource<T>> createMessageSources(ContainerComponentFactory<T> componentFactory) {
+	protected Collection<MessageSource<T>> createMessageSources(ContainerComponentFactory<T, O> componentFactory) {
 		List<String> queueNames = new ArrayList<>(getQueueNames());
 		return IntStream.range(0, queueNames.size())
 				.mapToObj(index -> createMessageSource(queueNames.get(index), index, componentFactory))
@@ -116,7 +117,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	}
 
 	protected MessageSource<T> createMessageSource(String queueName, int index,
-			ContainerComponentFactory<T> componentFactory) {
+			ContainerComponentFactory<T, O> componentFactory) {
 		MessageSource<T> messageSource = componentFactory.createMessageSource(getContainerOptions());
 		ConfigUtils.INSTANCE
 			.acceptIfInstance(messageSource, PollingMessageSource.class,
@@ -126,7 +127,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 		return messageSource;
 	}
 
-	private void configureComponents(ContainerComponentFactory<T> componentFactory) {
+	private void configureComponents(ContainerComponentFactory<T, O> componentFactory) {
 		getContainerOptions()
 			.configure(this.messageSources)
 			.configure(this.messageSink);
@@ -138,7 +139,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	// @formatter:on
 
 	@SuppressWarnings("unchecked")
-	protected void configureMessageSources(ContainerComponentFactory<T> componentFactory) {
+	protected void configureMessageSources(ContainerComponentFactory<T, O> componentFactory) {
 		TaskExecutor taskExecutor = createSourcesTaskExecutor();
 		ConfigUtils.INSTANCE.acceptMany(this.messageSources, source -> source.setMessageSink(this.messageSink))
 				.acceptManyIfInstance(this.messageSources, PollingMessageSource.class,
@@ -154,7 +155,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	}
 
 	protected void doConfigureMessageSources(Collection<MessageSource<T>> messageSources) {
-	};
+	}
 
 	@SuppressWarnings("unchecked")
 	protected void configureMessageSink(MessageProcessingPipeline<T> messageProcessingPipeline) {
@@ -184,7 +185,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 
 	// @formatter:off
 	protected MessageProcessingPipeline<T> createMessageProcessingPipeline(
-			ContainerComponentFactory<T> componentFactory) {
+			ContainerComponentFactory<T, O> componentFactory) {
 		return MessageProcessingPipelineBuilder.
 			<T> first(BeforeProcessingContextInterceptorExecutionStage::new)
 				.then(BeforeProcessingInterceptorExecutionStage::new)
