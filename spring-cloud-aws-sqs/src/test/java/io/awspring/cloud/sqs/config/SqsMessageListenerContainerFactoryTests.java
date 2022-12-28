@@ -23,8 +23,8 @@ import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.MessageListener;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
@@ -63,7 +63,7 @@ class SqsMessageListenerContainerFactoryTests {
 		factory.setSqsAsyncClient(client);
 		SqsMessageListenerContainer<Object> container = factory.createContainer(endpoint);
 
-		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(ContainerOptions.class, options -> {
+		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(SqsContainerOptions.class, options -> {
 			assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(10);
 			assertThat(options.getMessageVisibility()).isNull();
 			assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(10));
@@ -96,7 +96,7 @@ class SqsMessageListenerContainerFactoryTests {
 		factory.setSqsAsyncClient(client);
 		SqsMessageListenerContainer<Object> container = factory.createContainer(endpoint);
 
-		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(ContainerOptions.class, options -> {
+		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(SqsContainerOptions.class, options -> {
 			assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(inflight);
 			assertThat(options.getMessageVisibility()).isEqualTo(visibility);
 			assertThat(options.getPollTimeout()).isEqualTo(pollTimeout);
@@ -116,8 +116,9 @@ class SqsMessageListenerContainerFactoryTests {
 		MessageInterceptor<Object> interceptor1 = mock(MessageInterceptor.class);
 		MessageInterceptor<Object> interceptor2 = mock(MessageInterceptor.class);
 		AcknowledgementResultCallback<Object> callback = mock(AcknowledgementResultCallback.class);
-		ContainerComponentFactory<Object> componentFactory = mock(ContainerComponentFactory.class);
-		List<ContainerComponentFactory<Object>> componentFactories = Collections.singletonList(componentFactory);
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
+				.singletonList(componentFactory);
 
 		SqsMessageListenerContainerFactory<Object> factory = SqsMessageListenerContainerFactory.builder()
 				.messageListener(listener).sqsAsyncClient(client).errorHandler(errorHandler)
@@ -142,8 +143,9 @@ class SqsMessageListenerContainerFactoryTests {
 		AsyncMessageInterceptor<Object> interceptor1 = mock(AsyncMessageInterceptor.class);
 		AsyncMessageInterceptor<Object> interceptor2 = mock(AsyncMessageInterceptor.class);
 		AsyncAcknowledgementResultCallback<Object> callback = mock(AsyncAcknowledgementResultCallback.class);
-		ContainerComponentFactory<Object> componentFactory = mock(ContainerComponentFactory.class);
-		List<ContainerComponentFactory<Object>> componentFactories = Collections.singletonList(componentFactory);
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
+				.singletonList(componentFactory);
 
 		SqsMessageListenerContainerFactory<Object> container = SqsMessageListenerContainerFactory.builder()
 				.asyncMessageListener(listener).sqsAsyncClient(client).errorHandler(errorHandler)

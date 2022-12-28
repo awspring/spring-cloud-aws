@@ -28,9 +28,7 @@ import io.awspring.cloud.sqs.listener.source.MessageSource;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -101,32 +99,28 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListenerContainer<T> {
+public class SqsMessageListenerContainer<T>
+		extends AbstractPipelineMessageListenerContainer<T, SqsContainerOptions, SqsContainerOptions.Builder> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsMessageListenerContainer.class);
 
-	private static final List<ContainerComponentFactory<?>> DEFAULT_CONTAINER_COMPONENT_FACTORIES = Arrays
-			.asList(new FifoSqsComponentFactory<>(), new StandardSqsComponentFactory<>());
-
 	private final SqsAsyncClient sqsAsyncClient;
 
-	public SqsMessageListenerContainer(SqsAsyncClient sqsAsyncClient, ContainerOptions options) {
+	public SqsMessageListenerContainer(SqsAsyncClient sqsAsyncClient, SqsContainerOptions options) {
 		super(options);
 		Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null");
 		this.sqsAsyncClient = sqsAsyncClient;
 	}
 
 	public SqsMessageListenerContainer(SqsAsyncClient sqsAsyncClient) {
-		this(sqsAsyncClient, ContainerOptions.builder().build());
+		this(sqsAsyncClient, SqsContainerOptions.builder().build());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	protected Collection<ContainerComponentFactory<T>> getDefaultComponentFactories() {
+	protected Collection<ContainerComponentFactory<T, SqsContainerOptions>> createDefaultComponentFactories() {
 		Assert.isTrue(allQueuesSameType(),
 				"SqsMessageListenerContainer must contain either all FIFO or all Standard queues.");
-		return DEFAULT_CONTAINER_COMPONENT_FACTORIES.stream()
-				.map(componentFactory -> (ContainerComponentFactory<T>) componentFactory).collect(Collectors.toList());
+		return Arrays.asList(new FifoSqsComponentFactory<>(), new StandardSqsComponentFactory<>());
 	}
 
 	private boolean allQueuesSameType() {
@@ -164,7 +158,7 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 
 		private SqsAsyncClient sqsAsyncClient;
 
-		private Collection<ContainerComponentFactory<T>> containerComponentFactories;
+		private Collection<ContainerComponentFactory<T, SqsContainerOptions>> containerComponentFactories;
 
 		private AsyncMessageListener<T> asyncMessageListener;
 
@@ -176,7 +170,7 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 
 		private ErrorHandler<T> errorHandler;
 
-		private Consumer<ContainerOptions.Builder> optionsConsumer = options -> {
+		private Consumer<SqsContainerOptions.Builder> optionsConsumer = options -> {
 		};
 
 		private AsyncAcknowledgementResultCallback<T> asyncAcknowledgementResultCallback;
@@ -203,7 +197,8 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 			return this;
 		}
 
-		public Builder<T> componentFactories(Collection<ContainerComponentFactory<T>> containerComponentFactories) {
+		public Builder<T> componentFactories(
+				Collection<ContainerComponentFactory<T, SqsContainerOptions>> containerComponentFactories) {
 			this.containerComponentFactories = containerComponentFactories;
 			return this;
 		}
@@ -250,7 +245,7 @@ public class SqsMessageListenerContainer<T> extends AbstractPipelineMessageListe
 			return this;
 		}
 
-		public Builder<T> configure(Consumer<ContainerOptions.Builder> options) {
+		public Builder<T> configure(Consumer<SqsContainerOptions.Builder> options) {
 			this.optionsConsumer = options;
 			return this;
 		}

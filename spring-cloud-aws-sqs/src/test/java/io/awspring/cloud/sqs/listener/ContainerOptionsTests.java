@@ -34,42 +34,43 @@ class ContainerOptionsTests {
 
 	@Test
 	void shouldDefaultToCreateQueues() {
-		ContainerOptions options = ContainerOptions.builder().build();
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
 		assertThat(options.getQueueNotFoundStrategy()).isEqualTo(QueueNotFoundStrategy.CREATE);
 	}
 
 	@Test
 	void shouldHaveSameValuesAfterBuilder() {
-		ContainerOptions options = ContainerOptions.builder().build();
-		ContainerOptions builtCopy = options.toBuilder().build();
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
+		SqsContainerOptions builtCopy = options.toBuilder().build();
 		assertThat(options).usingRecursiveComparison().isEqualTo(builtCopy);
 	}
 
 	@Test
 	void shouldCreateCopy() {
-		ContainerOptions options = ContainerOptions.builder().build();
-		ContainerOptions copy = options.createCopy();
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
+		SqsContainerOptions copy = options.createCopy();
 		assertThat(options).usingRecursiveComparison().isEqualTo(copy);
 	}
 
 	@Test
 	void shouldCreateCopyOfBuilder() {
-		ContainerOptions.Builder builder = ContainerOptions.builder();
-		ContainerOptions.Builder copy = builder.createCopy();
+		SqsContainerOptions.Builder builder = SqsContainerOptions.builder();
+		SqsContainerOptions.Builder copy = builder.createCopy();
 		assertThat(copy).usingRecursiveComparison().isEqualTo(builder);
 	}
 
 	@Test
 	void shouldHaveSameFieldsInBuilder() {
-		ContainerOptions options = ContainerOptions.builder().build();
-		ContainerOptions.Builder builtCopy = options.toBuilder();
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
+		SqsContainerOptions.Builder builtCopy = options.toBuilder();
 		assertThat(options).usingRecursiveComparison().isEqualTo(builtCopy);
 	}
 
 	@Test
 	void shouldSetMessageAttributeNames() {
 		List<String> messageAttributeNames = Arrays.asList("name-1", "name-2");
-		ContainerOptions options = ContainerOptions.builder().messageAttributeNames(messageAttributeNames).build();
+		SqsContainerOptions options = SqsContainerOptions.builder().messageAttributeNames(messageAttributeNames)
+				.build();
 		assertThat(options.getMessageAttributeNames()).containsExactlyElementsOf(messageAttributeNames);
 	}
 
@@ -77,7 +78,7 @@ class ContainerOptionsTests {
 	void shouldSetMessageSystemAttributeNames() {
 		List<MessageSystemAttributeName> attributeNames = Arrays.asList(MessageSystemAttributeName.MESSAGE_GROUP_ID,
 				MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID);
-		ContainerOptions options = ContainerOptions.builder().messageSystemAttributeNames(attributeNames).build();
+		SqsContainerOptions options = SqsContainerOptions.builder().messageSystemAttributeNames(attributeNames).build();
 		assertThat(options.getMessageSystemAttributeNames()).containsExactlyInAnyOrderElementsOf(
 				attributeNames.stream().map(MessageSystemAttributeName::toString).collect(Collectors.toList()));
 	}
@@ -85,13 +86,14 @@ class ContainerOptionsTests {
 	@Test
 	void shouldSetTaskExecutor() {
 		TaskExecutor executor = mock(TaskExecutor.class);
-		ContainerOptions options = ContainerOptions.builder().componentsTaskExecutor(executor).build();
+		SqsContainerOptions options = SqsContainerOptions.builder().componentsTaskExecutor(executor).build();
 		assertThat(options.getComponentsTaskExecutor()).isEqualTo(executor);
 	}
 
 	@Test
 	void shouldSetQueueNotFoundStrategy() {
-		ContainerOptions options = ContainerOptions.builder().queueNotFoundStrategy(QueueNotFoundStrategy.FAIL).build();
+		SqsContainerOptions options = SqsContainerOptions.builder().queueNotFoundStrategy(QueueNotFoundStrategy.FAIL)
+				.build();
 		assertThat(options.getQueueNotFoundStrategy()).isEqualTo(QueueNotFoundStrategy.FAIL);
 	}
 
@@ -99,7 +101,7 @@ class ContainerOptionsTests {
 	@Test
 	void shouldSetMessageConverter() {
 		MessagingMessageConverter<Object> converter = mock(MessagingMessageConverter.class);
-		ContainerOptions options = ContainerOptions.builder().messageConverter(converter).build();
+		SqsContainerOptions options = SqsContainerOptions.builder().messageConverter(converter).build();
 		assertThat(options.getMessageConverter()).isEqualTo(converter);
 	}
 

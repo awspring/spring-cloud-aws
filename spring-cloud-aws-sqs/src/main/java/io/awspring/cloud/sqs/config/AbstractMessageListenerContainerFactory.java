@@ -47,10 +47,10 @@ import org.springframework.util.Assert;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractMessageListenerContainerFactory<T, C extends MessageListenerContainer<T>>
+public abstract class AbstractMessageListenerContainerFactory<T, C extends MessageListenerContainer<T>, O extends ContainerOptions<O, B>, B extends ContainerOptions.Builder<B, O>>
 		implements MessageListenerContainerFactory<C> {
 
-	private final ContainerOptions.Builder containerOptionsBuilder;
+	private final B containerOptionsBuilder;
 
 	private final Collection<AsyncMessageInterceptor<T>> asyncMessageInterceptors = new ArrayList<>();
 
@@ -68,10 +68,10 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 
 	private AcknowledgementResultCallback<T> acknowledgementResultCallback;
 
-	private Collection<ContainerComponentFactory<T>> containerComponentFactories;
+	private Collection<ContainerComponentFactory<T, O>> containerComponentFactories;
 
-	protected AbstractMessageListenerContainerFactory() {
-		this.containerOptionsBuilder = ContainerOptions.builder();
+	protected AbstractMessageListenerContainerFactory(O containerOptions) {
+		this.containerOptionsBuilder = containerOptions.toBuilder();
 	}
 
 	/**
@@ -160,7 +160,8 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	 * containers created by this factory.
 	 * @param containerComponentFactories the factory instances.
 	 */
-	public void setContainerComponentFactories(Collection<ContainerComponentFactory<T>> containerComponentFactories) {
+	public void setContainerComponentFactories(
+			Collection<ContainerComponentFactory<T, O>> containerComponentFactories) {
 		Assert.notEmpty(containerComponentFactories, "containerComponentFactories cannot be null or empty");
 		this.containerComponentFactories = containerComponentFactories;
 	}
@@ -168,14 +169,14 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	/**
 	 * Allows configuring this factories' {@link ContainerOptions.Builder}.
 	 */
-	public void configure(Consumer<ContainerOptions.Builder> options) {
+	public void configure(Consumer<B> options) {
 		options.accept(this.containerOptionsBuilder);
 	}
 
 	@Override
 	public C createContainer(Endpoint endpoint) {
 		Assert.notNull(endpoint, "endpoint cannot be null");
-		ContainerOptions.Builder options = this.containerOptionsBuilder.createCopy();
+		B options = this.containerOptionsBuilder.createCopy();
 		configure(endpoint, options);
 		C container = createContainerInstance(endpoint, options.build());
 		endpoint.setupContainer(container);
@@ -183,13 +184,13 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 		return container;
 	}
 
-	private void configure(Endpoint endpoint, ContainerOptions.Builder options) {
+	private void configure(Endpoint endpoint, B options) {
 		ConfigUtils.INSTANCE.acceptIfInstance(endpoint, HandlerMethodEndpoint.class,
 				abstractEndpoint -> abstractEndpoint.configureListenerMode(options::listenerMode));
 		configureContainerOptions(endpoint, options);
 	}
 
-	protected void configureContainerOptions(Endpoint endpoint, ContainerOptions.Builder containerOptions) {
+	protected void configureContainerOptions(Endpoint endpoint, B containerOptions) {
 	}
 
 	@Override
@@ -204,7 +205,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 				abstractContainer -> configureAbstractContainer(abstractContainer, endpoint));
 	}
 
-	protected void configureAbstractContainer(AbstractMessageListenerContainer<T> container, Endpoint endpoint) {
+	protected void configureAbstractContainer(AbstractMessageListenerContainer<T, O, B> container, Endpoint endpoint) {
 		container.setQueueNames(endpoint.getLogicalNames());
 		ConfigUtils.INSTANCE.acceptIfNotNull(endpoint.getId(), container::setId)
 				.acceptIfNotNull(this.containerComponentFactories, container::setComponentFactories)
@@ -220,7 +221,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 						interceptors -> interceptors.forEach(container::addMessageInterceptor));
 	}
 
-	protected abstract C createContainerInstance(Endpoint endpoint, ContainerOptions containerOptions);
+	protected abstract C createContainerInstance(Endpoint endpoint, O containerOptions);
 
 	private static class EndpointAdapter implements Endpoint {
 

@@ -26,9 +26,9 @@ import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.StandardSqsComponentFactory;
@@ -232,7 +232,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.manuallyStartedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		container.setMessageListener(msg -> latchContainer.manuallyStartedContainerLatch2.countDown());
-		ContainerOptions.Builder builder = container.getContainerOptions().toBuilder();
+		SqsContainerOptions.Builder builder = container.getContainerOptions().toBuilder();
 		builder.acknowledgementMode(AcknowledgementMode.ALWAYS);
 		container.configure(options -> options.fromBuilder(builder));
 		container.start();
@@ -472,10 +472,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				.build();
 		}
 
-		private List<ContainerComponentFactory<Object>> getExceptionThrowingAckExecutor() {
+		private List<ContainerComponentFactory<Object, SqsContainerOptions>> getExceptionThrowingAckExecutor() {
 			return Collections.singletonList(new StandardSqsComponentFactory<Object>() {
 				@Override
-				public MessageSource<Object> createMessageSource(ContainerOptions options) {
+				public MessageSource<Object> createMessageSource(SqsContainerOptions options) {
 					return new AbstractSqsMessageSource<Object>() {
 						@Override
 						protected AcknowledgementExecutor<Object> createAcknowledgementExecutorInstance() {
@@ -548,13 +548,13 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				.permitAcquireTimeout(Duration.ofSeconds(1)));
 			factory.setContainerComponentFactories(Collections.singletonList(new StandardSqsComponentFactory<String>() {
 				@Override
-				public MessageSource<String> createMessageSource(ContainerOptions options) {
+				public MessageSource<String> createMessageSource(SqsContainerOptions options) {
 					latchContainer.manuallyCreatedFactorySourceFactoryLatch.countDown();
 					return super.createMessageSource(options);
 				}
 
 				@Override
-				public MessageSink<String> createMessageSink(ContainerOptions options) {
+				public MessageSink<String> createMessageSink(SqsContainerOptions options) {
 					latchContainer.manuallyCreatedFactorySinkLatch.countDown();
 					return super.createMessageSink(options);
 				}
@@ -689,7 +689,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		private AcknowledgementResultCallback<Object> getAcknowledgementResultCallback() {
-			return new AcknowledgementResultCallback<Object>() {
+			return new AcknowledgementResultCallback<>() {
 				@Override
 				public void onSuccess(Collection<Message<Object>> messages) {
 					logger.debug("Invoking on success acknowledgement result callback for {}",
