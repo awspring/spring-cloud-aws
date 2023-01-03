@@ -206,7 +206,7 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 						.sendRawEmail(SendRawEmailRequest.builder().rawMessage(rawMessage).build());
 
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Message with id: {} successfully send", sendRawEmailResponse.messageId());
+					LOGGER.debug("Message with id: {} successfully sent", sendRawEmailResponse.messageId());
 				}
 				mimeMessage.setHeader("Message-ID", sendRawEmailResponse.messageId());
 			}
