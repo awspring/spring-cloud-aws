@@ -25,9 +25,9 @@
 	<properties>
 		<javaparser.version>3.24.0</javaparser.version>
 		<spotless.version>2.25.0</spotless.version>
-		<awssdk-v2.version>2.18.0</awssdk-v2.version>
-		<awssdk-v1.version>1.12.326</awssdk-v1.version>
-		<amazon.dax.version>2.0.1</amazon.dax.version>
+		<awssdk-v2.version>2.19.9</awssdk-v2.version>
+		<awssdk-v1.version>1.12.377</awssdk-v1.version>
+		<amazon.dax.version>2.0.2</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<spring-cloud-commons.version>4.0.0</spring-cloud-commons.version>
 		<testcontainers.version>1.17.6</testcontainers.version>
@@ -79,7 +79,7 @@
 			<dependency>
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>s3-transfer-manager</artifactId>
-				<version>${awssdk-v2.version}-PREVIEW</version>
+				<version>${awssdk-v2.version}</version>
 				<optional>true</optional>
 			</dependency>
 
