@@ -240,6 +240,16 @@ class S3ResourceIntegrationTests {
 				.containsEntry("camelcasekey", "camelCaseKeyValue").doesNotContainKey("camelCaseKey");
 	}
 
+	@Test
+	void returnsLocationObject() {
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt",
+				new InMemoryBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()));
+		Location location = resource.getLocation();
+		assertThat(location).isNotNull();
+		assertThat(location.getBucket()).isEqualTo("first-bucket");
+		assertThat(location.getObject()).isEqualTo("new-file.txt");
+	}
+
 	@NotNull
 	private S3Resource s3Resource(String location, S3OutputStreamProvider s3OutputStreamProvider) {
 		return new S3Resource(location, client, s3OutputStreamProvider);
