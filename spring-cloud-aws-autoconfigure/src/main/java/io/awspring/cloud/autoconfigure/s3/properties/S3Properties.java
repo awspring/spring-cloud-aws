@@ -19,6 +19,7 @@ import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
@@ -77,6 +78,13 @@ public class S3Properties extends AwsClientProperties {
 	@NestedConfigurationProperty
 	private S3TransferManagerProperties transferManager;
 
+	/**
+	 * Configuration properties for {@link S3CrtAsyncClient} integration.
+	 */
+	@Nullable
+	@NestedConfigurationProperty
+	private S3CrtClientProperties crt;
+
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
 		return this.accelerateModeEnabled;
@@ -129,5 +137,14 @@ public class S3Properties extends AwsClientProperties {
 
 	public void setTransferManager(@Nullable S3TransferManagerProperties transferManager) {
 		this.transferManager = transferManager;
+	}
+
+	@Nullable
+	public S3CrtClientProperties getCrt() {
+		return crt;
+	}
+
+	public void setCrt(@Nullable S3CrtClientProperties crt) {
+		this.crt = crt;
 	}
 }

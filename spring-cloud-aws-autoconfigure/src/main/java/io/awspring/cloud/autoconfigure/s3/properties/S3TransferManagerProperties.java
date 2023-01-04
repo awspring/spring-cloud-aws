@@ -22,91 +22,32 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
  * Properties related to AWS S3 {@link S3TransferManager}.
  *
  * @author Anton Perez
+ * @author Maciej Walkowiak
  * @since 3.0
  */
 public class S3TransferManagerProperties {
-	@Nullable
-	private Double targetThroughputInGbps;
 
 	@Nullable
-	private Integer maxConcurrency;
+	private Boolean followSymbolicLinks;
+	@Nullable
+	private Integer maxDepth;
 
 	@Nullable
-	private Long minimumPartSizeInBytes;
-
-	@Nullable
-	private S3UploadDirectoryProperties uploadDirectory;
-
-	@Nullable
-	public Double getTargetThroughputInGbps() {
-		return this.targetThroughputInGbps;
+	public Boolean getFollowSymbolicLinks() {
+		return this.followSymbolicLinks;
 	}
 
-	public void setTargetThroughputInGbps(@Nullable Double targetThroughputInGbps) {
-		this.targetThroughputInGbps = targetThroughputInGbps;
+	public void setFollowSymbolicLinks(@Nullable Boolean followSymbolicLinks) {
+		this.followSymbolicLinks = followSymbolicLinks;
 	}
 
 	@Nullable
-	public S3UploadDirectoryProperties getUploadDirectory() {
-		return this.uploadDirectory;
+	public Integer getMaxDepth() {
+		return this.maxDepth;
 	}
 
-	public void setUploadDirectory(@Nullable S3UploadDirectoryProperties uploadDirectory) {
-		this.uploadDirectory = uploadDirectory;
-	}
-
-	@Nullable
-	public Integer getMaxConcurrency() {
-		return this.maxConcurrency;
-	}
-
-	public void setMaxConcurrency(@Nullable Integer maxConcurrency) {
-		this.maxConcurrency = maxConcurrency;
-	}
-
-	@Nullable
-	public Long getMinimumPartSizeInBytes() {
-		return this.minimumPartSizeInBytes;
-	}
-
-	public void setMinimumPartSizeInBytes(@Nullable Long minimumPartSizeInBytes) {
-		this.minimumPartSizeInBytes = minimumPartSizeInBytes;
-	}
-
-	public static class S3UploadDirectoryProperties {
-		@Nullable
-		private Boolean recursive;
-		@Nullable
-		private Boolean followSymbolicLinks;
-		@Nullable
-		private Integer maxDepth;
-
-		@Nullable
-		public Boolean getRecursive() {
-			return this.recursive;
-		}
-
-		public void setRecursive(@Nullable Boolean recursive) {
-			this.recursive = recursive;
-		}
-
-		@Nullable
-		public Boolean getFollowSymbolicLinks() {
-			return this.followSymbolicLinks;
-		}
-
-		public void setFollowSymbolicLinks(@Nullable Boolean followSymbolicLinks) {
-			this.followSymbolicLinks = followSymbolicLinks;
-		}
-
-		@Nullable
-		public Integer getMaxDepth() {
-			return this.maxDepth;
-		}
-
-		public void setMaxDepth(@Nullable Integer maxDepth) {
-			this.maxDepth = maxDepth;
-		}
+	public void setMaxDepth(@Nullable Integer maxDepth) {
+		this.maxDepth = maxDepth;
 	}
 
 }

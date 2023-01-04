@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.s3;
 
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
+import io.awspring.cloud.autoconfigure.s3.properties.S3CrtClientProperties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3TransferManagerProperties;
 import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
@@ -34,10 +35,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.transfer.s3.S3ClientConfiguration;
+import software.amazon.awssdk.crt.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.S3TransferManagerOverrideConfiguration;
-import software.amazon.awssdk.transfer.s3.UploadDirectoryOverrideConfiguration;
 
 /**
  * {@link EnableAutoConfiguration} for {@link S3TransferManager}
@@ -46,7 +47,7 @@ import software.amazon.awssdk.transfer.s3.UploadDirectoryOverrideConfiguration;
  * @since 3.0
  */
 @AutoConfiguration
-@ConditionalOnClass({ S3TransferManager.class, S3OutputStreamProvider.class })
+@ConditionalOnClass({ S3TransferManager.class, S3OutputStreamProvider.class, S3Client.class })
 @EnableConfigurationProperties({ S3Properties.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 @AutoConfigureBefore(S3AutoConfiguration.class)
@@ -54,22 +55,49 @@ public class S3TransferManagerAutoConfiguration {
 
 	private final S3Properties properties;
 	private final AwsProperties awsProperties;
-	private final AwsCredentialsProvider credentialsProvider;
 	private final AwsClientBuilderConfigurer awsClientBuilderConfigurer;
 
 	public S3TransferManagerAutoConfiguration(S3Properties properties, AwsProperties awsProperties,
-			AwsCredentialsProvider credentialsProvider, AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
+			AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
 		this.properties = properties;
 		this.awsProperties = awsProperties;
-		this.credentialsProvider = credentialsProvider;
 		this.awsClientBuilderConfigurer = awsClientBuilderConfigurer;
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3TransferManager s3TransferManager() {
-		return S3TransferManager.builder().s3ClientConfiguration(s3ClientConfiguration())
-				.transferConfiguration(extractUploadDirectoryOverrideConfiguration()).build();
+	S3AsyncClient s3AsyncClient(AwsCredentialsProvider credentialsProvider) {
+		S3CrtAsyncClientBuilder builder = S3AsyncClient.crtBuilder().credentialsProvider(credentialsProvider)
+				.region(this.awsClientBuilderConfigurer.resolveRegion(this.properties));
+		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
+
+		if (this.properties.getCrt() != null) {
+			S3CrtClientProperties crt = this.properties.getCrt();
+			PropertyMapper propertyMapper = PropertyMapper.get();
+			propertyMapper.from(crt::getMaxConcurrency).whenNonNull().to(builder::maxConcurrency);
+			propertyMapper.from(crt::getTargetThroughputInGbps).whenNonNull().to(builder::targetThroughputInGbps);
+			propertyMapper.from(crt::getMinimumPartSizeInBytes).whenNonNull().to(builder::minimumPartSizeInBytes);
+			propertyMapper.from(crt::getInitialReadBufferSizeInBytes).whenNonNull()
+					.to(builder::initialReadBufferSizeInBytes);
+		}
+
+		return builder.build();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	S3TransferManager s3TransferManager(S3AsyncClient s3AsyncClient) {
+		S3TransferManager.Builder builder = S3TransferManager.builder();
+		if (this.properties.getTransferManager() != null) {
+			S3TransferManagerProperties transferManagerProperties = this.properties.getTransferManager();
+			PropertyMapper propertyMapper = PropertyMapper.get();
+			propertyMapper.from(transferManagerProperties::getMaxDepth).whenNonNull()
+					.to(builder::uploadDirectoryMaxDepth);
+			propertyMapper.from(transferManagerProperties::getFollowSymbolicLinks).whenNonNull()
+					.to(builder::uploadDirectoryFollowSymbolicLinks);
+		}
+		return builder.s3Client(s3AsyncClient).build();
 	}
 
 	@Bean
@@ -79,44 +107,4 @@ public class S3TransferManagerAutoConfiguration {
 		return new TransferManagerS3OutputStreamProvider(s3TransferManager,
 				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 	}
-
-	private S3ClientConfiguration s3ClientConfiguration() {
-		S3ClientConfiguration.Builder builder = configure(S3ClientConfiguration.builder());
-		if (this.properties.getTransferManager() != null) {
-			S3TransferManagerProperties transferManagerProperties = this.properties.getTransferManager();
-			PropertyMapper propertyMapper = PropertyMapper.get();
-			propertyMapper.from(transferManagerProperties::getMaxConcurrency).whenNonNull().to(builder::maxConcurrency);
-			propertyMapper.from(transferManagerProperties::getTargetThroughputInGbps).whenNonNull()
-					.to(builder::targetThroughputInGbps);
-			propertyMapper.from(transferManagerProperties::getMinimumPartSizeInBytes).whenNonNull()
-					.to(builder::minimumPartSizeInBytes);
-		}
-		return builder.build();
-	}
-
-	private S3ClientConfiguration.Builder configure(S3ClientConfiguration.Builder builder) {
-		// this must follow the same logic as in AwsClientBuilderConfigurer
-		builder.credentialsProvider(this.credentialsProvider)
-				.region(this.awsClientBuilderConfigurer.resolveRegion(this.properties));
-		// TODO: how to set client override configuration?
-		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
-		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
-		return builder;
-	}
-
-	private S3TransferManagerOverrideConfiguration extractUploadDirectoryOverrideConfiguration() {
-		UploadDirectoryOverrideConfiguration.Builder config = UploadDirectoryOverrideConfiguration.builder();
-		if (this.properties.getTransferManager() != null
-				&& this.properties.getTransferManager().getUploadDirectory() != null) {
-			S3TransferManagerProperties.S3UploadDirectoryProperties s3UploadDirectoryProperties = this.properties
-					.getTransferManager().getUploadDirectory();
-			PropertyMapper propertyMapper = PropertyMapper.get();
-			propertyMapper.from(s3UploadDirectoryProperties::getMaxDepth).whenNonNull().to(config::maxDepth);
-			propertyMapper.from(s3UploadDirectoryProperties::getRecursive).whenNonNull().to(config::recursive);
-			propertyMapper.from(s3UploadDirectoryProperties::getFollowSymbolicLinks).whenNonNull()
-					.to(config::followSymbolicLinks);
-		}
-		return S3TransferManagerOverrideConfiguration.builder().uploadDirectoryConfiguration(config.build()).build();
-	}
-
 }
