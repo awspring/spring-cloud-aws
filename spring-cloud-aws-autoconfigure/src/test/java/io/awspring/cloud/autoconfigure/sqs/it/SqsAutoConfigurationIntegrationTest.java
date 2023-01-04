@@ -63,7 +63,7 @@ class SqsAutoConfigurationIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.2.0")).withServices(SQS);
+			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SQS);
 
 	@Test
 	void sendsAndReceivesMessage() {
