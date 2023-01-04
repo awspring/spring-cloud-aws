@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -49,13 +50,13 @@ class S3TransferManagerAutoConfigurationTests {
 	class TransferManagerTests {
 		@Test
 		void createsS3TransferManagerBeanWhenInClassPath() {
-			contextRunner.withBean(S3AsyncClient.class, () -> S3AsyncClient.builder().build())
+			contextRunner.withBean(S3AsyncClient.class, () -> mock(S3AsyncClient.class))
 					.run(context -> assertThat(context).hasSingleBean(S3TransferManager.class));
 		}
 
 		@Test
 		void usesExistingS3TransferManagerBeanWhenExists() {
-			S3TransferManager customDefinedS3TransferManager = Mockito.mock(S3TransferManager.class);
+			S3TransferManager customDefinedS3TransferManager = mock(S3TransferManager.class);
 			contextRunner.withBean("s3transferManager", S3TransferManager.class, () -> customDefinedS3TransferManager)
 					.run(context -> assertThat(context.getBean(S3TransferManager.class))
 							.isEqualTo(customDefinedS3TransferManager));
@@ -81,7 +82,7 @@ class S3TransferManagerAutoConfigurationTests {
 
 		@Test
 		void whenS3TransferManagerInClassPathCreatesTransferManagerSS3OutputStreamProvider() {
-			contextRunner.withBean(S3AsyncClient.class, () -> S3AsyncClient.builder().build())
+			contextRunner.withBean(S3AsyncClient.class, () -> mock(S3AsyncClient.class))
 					.run(context -> assertThat(context).hasSingleBean(TransferManagerS3OutputStreamProvider.class));
 		}
 
