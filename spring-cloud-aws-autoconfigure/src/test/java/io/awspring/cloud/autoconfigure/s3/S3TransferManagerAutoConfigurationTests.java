@@ -17,12 +17,10 @@ package io.awspring.cloud.autoconfigure.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.s3.TransferManagerS3OutputStreamProvider;
-import java.net.URI;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -51,7 +49,8 @@ class S3TransferManagerAutoConfigurationTests {
 	class TransferManagerTests {
 		@Test
 		void createsS3TransferManagerBeanWhenInClassPath() {
-			contextRunner.run(context -> assertThat(context).hasSingleBean(S3TransferManager.class));
+			contextRunner.withBean(S3AsyncClient.class, () -> S3AsyncClient.builder().build())
+					.run(context -> assertThat(context).hasSingleBean(S3TransferManager.class));
 		}
 
 		@Test
@@ -68,39 +67,12 @@ class S3TransferManagerAutoConfigurationTests {
 				assertThat(context).doesNotHaveBean(S3TransferManager.class);
 			});
 		}
-	}
 
-	@Nested
-	class TransferManagerEndpointConfigurationTests {
 		@Test
-		void withCustomEndpoint() {
-			contextRunner.withPropertyValues("spring.cloud.aws.s3.endpoint:http://localhost:8090").run(context -> {
-				S3TransferManager transferManager = context.getBean(S3TransferManager.class);
-				ConfiguredAwsClient client = new ConfiguredAwsClient(resolveS3Client(transferManager));
-				assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
-				assertThat(client.isEndpointOverridden()).isTrue();
+		void doesNotCreateS3TransferManagerBeanWhenS3AsyncClientNotConfigured() {
+			contextRunner.run(context -> {
+				assertThat(context).doesNotHaveBean(S3TransferManager.class);
 			});
-		}
-
-		@Test
-		void withCustomGlobalEndpoint() {
-			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090").run(context -> {
-				S3TransferManager transferManager = context.getBean(S3TransferManager.class);
-				ConfiguredAwsClient client = new ConfiguredAwsClient(resolveS3Client(transferManager));
-				assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
-				assertThat(client.isEndpointOverridden()).isTrue();
-			});
-		}
-
-		@Test
-		void withCustomGlobalEndpointAndS3Endpoint() {
-			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
-					"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
-						S3TransferManager transferManager = context.getBean(S3TransferManager.class);
-						ConfiguredAwsClient client = new ConfiguredAwsClient(resolveS3Client(transferManager));
-						assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
-						assertThat(client.isEndpointOverridden()).isTrue();
-					});
 		}
 	}
 
@@ -109,7 +81,7 @@ class S3TransferManagerAutoConfigurationTests {
 
 		@Test
 		void whenS3TransferManagerInClassPathCreatesTransferManagerSS3OutputStreamProvider() {
-			contextRunner
+			contextRunner.withBean(S3AsyncClient.class, () -> S3AsyncClient.builder().build())
 					.run(context -> assertThat(context).hasSingleBean(TransferManagerS3OutputStreamProvider.class));
 		}
 

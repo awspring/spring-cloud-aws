@@ -27,8 +27,16 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
  */
 public class S3TransferManagerProperties {
 
+	/**
+	 * Specifies whether to follow symbolic links when traversing the file tree in `S3TransferManager#uploadDirectory`
+	 * operation.
+	 */
 	@Nullable
 	private Boolean followSymbolicLinks;
+
+	/**
+	 * Specifies the maximum number of levels of directories to visit in `S3TransferManager#uploadDirectory` operation.
+	 */
 	@Nullable
 	private Integer maxDepth;
 

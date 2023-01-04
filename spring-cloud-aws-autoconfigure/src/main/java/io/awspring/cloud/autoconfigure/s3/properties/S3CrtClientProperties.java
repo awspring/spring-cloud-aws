@@ -25,13 +25,34 @@ import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
  * @since 3.0
  */
 public class S3CrtClientProperties {
+
+	/**
+	 * Sets the minimum part size for transfer parts. Decreasing the minimum part size causes multipart transfer to be
+	 * split into a larger number of smaller parts. Setting this value too low has a negative effect on transfer speeds,
+	 * causing extra latency and network communication for each part.
+	 */
 	@Nullable
 	private Long minimumPartSizeInBytes;
+
+	/**
+	 * Configure the starting buffer size the client will use to buffer the parts downloaded from S3. Maintain a larger
+	 * window to keep up a high download throughput; parts cannot download in parallel unless the window is large enough
+	 * to hold multiple parts. Maintain a smaller window to limit the amount of data buffered in memory.
+	 */
 	@Nullable
 	private Long initialReadBufferSizeInBytes;
+
+	/**
+	 * The target throughput for transfer requests. Higher value means more S3 connections will be opened. Whether the
+	 * transfer manager can achieve the configured target throughput depends on various factors such as the network
+	 * bandwidth of the environment and the configured `max-concurrency`.
+	 */
 	@Nullable
 	private Double targetThroughputInGbps;
 
+	/**
+	 * Specifies the maximum number of S3 connections that should be established during transfer.
+	 */
 	@Nullable
 	private Integer maxConcurrency;
 
