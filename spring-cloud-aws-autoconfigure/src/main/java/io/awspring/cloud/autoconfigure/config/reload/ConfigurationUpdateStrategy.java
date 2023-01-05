@@ -35,8 +35,9 @@ public class ConfigurationUpdateStrategy implements Runnable {
 
 	public static ConfigurationUpdateStrategy create(ReloadProperties reloadProperties, ContextRefresher refresher,
 			Optional<RestartEndpoint> restarter) {
-		if (reloadProperties.getStrategy() != null) {
-			switch (reloadProperties.getStrategy()) {
+		ReloadStrategy strategy = reloadProperties.getStrategy();
+		if (strategy != null) {
+			switch (strategy) {
 			case RESTART_CONTEXT:
 				restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
 				return new ConfigurationUpdateStrategy(() -> {
@@ -46,8 +47,7 @@ public class ConfigurationUpdateStrategy implements Runnable {
 			case REFRESH:
 				return new ConfigurationUpdateStrategy(refresher::refresh);
 			}
-			throw new IllegalStateException(
-					"Unsupported configuration update strategy: " + reloadProperties.getStrategy());
+			throw new IllegalStateException("Unsupported configuration update strategy: " + strategy);
 		}
 		throw new IllegalStateException("Configuration update strategy not set");
 	}
