@@ -20,6 +20,7 @@ import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.STRING;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
@@ -69,8 +70,8 @@ public class SmsMessageAttributes {
 		populateMapWithStringValue(AttributeCodes.SENDER_ID, this.getSenderID(), map);
 		populateMapWithStringValue(AttributeCodes.ORIGINATION_NUMBER, this.getOriginationNumber(), map);
 		populateMapWithNumberValue(AttributeCodes.MAX_PRICE, this.getMaxPrice(), map);
-		populateMapWithStringValue(AttributeCodes.SMS_TYPE,
-				this.getSmsType() != null ? this.getSmsType().getType() : null, map);
+		Optional.ofNullable(this.getSmsType()).map(SmsType::getType)
+				.ifPresent(type -> populateMapWithStringValue(AttributeCodes.SMS_TYPE, type, map));
 		populateMapWithStringValue(AttributeCodes.ENTITY_ID, this.getEntityId(), map);
 		populateMapWithStringValue(AttributeCodes.TEMPLATE_ID, this.getTemplateId(), map);
 		return map;
