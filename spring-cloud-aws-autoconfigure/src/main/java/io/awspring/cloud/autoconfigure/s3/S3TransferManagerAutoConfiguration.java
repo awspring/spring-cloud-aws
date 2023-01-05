@@ -22,17 +22,16 @@ import io.awspring.cloud.s3.S3ObjectContentTypeResolver;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.TransferManagerS3OutputStreamProvider;
 import java.util.Optional;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
-import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
@@ -43,8 +42,7 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
  * @since 3.0
  */
 @AutoConfiguration
-@ConditionalOnClass({ S3TransferManager.class, S3OutputStreamProvider.class, S3Client.class })
-@ConditionalOnBean(S3AsyncClient.class)
+@ConditionalOnClass({ S3TransferManager.class, S3OutputStreamProvider.class })
 @EnableConfigurationProperties({ S3Properties.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 @AutoConfigureBefore(S3AutoConfiguration.class)
@@ -56,9 +54,20 @@ public class S3TransferManagerAutoConfiguration {
 		this.properties = properties;
 	}
 
+	/**
+	 * Creates {@link S3TransferManager} bean.
+	 * <p>
+	 * If user configured custom {@link S3AsyncClient} bean, it will be used by transfer manager. Otherwise, if
+	 * `aws-crt` is on the classpath, crt based async client will be used. Otherwise, AWS SDK will create a default S3
+	 * async client. Also, even if {@link S3CrtAsyncClientAutoConfiguration} is excluded but `aws-crt` is on the
+	 * classpath, AWS SDK will create a CRT based client internally for the transfer manager
+	 *
+	 * @param s3AsyncClient - S3 async client provider
+	 * @return S3 transfer manager.
+	 */
 	@Bean
 	@ConditionalOnMissingBean
-	S3TransferManager s3TransferManager(S3AsyncClient s3AsyncClient) {
+	S3TransferManager s3TransferManager(ObjectProvider<S3AsyncClient> s3AsyncClient) {
 		S3TransferManager.Builder builder = S3TransferManager.builder();
 		if (this.properties.getTransferManager() != null) {
 			S3TransferManagerProperties transferManagerProperties = this.properties.getTransferManager();
@@ -68,7 +77,7 @@ public class S3TransferManagerAutoConfiguration {
 			propertyMapper.from(transferManagerProperties::getFollowSymbolicLinks).whenNonNull()
 					.to(builder::uploadDirectoryFollowSymbolicLinks);
 		}
-		return builder.s3Client(s3AsyncClient).build();
+		return builder.s3Client(s3AsyncClient.getIfAvailable()).build();
 	}
 
 	@Bean

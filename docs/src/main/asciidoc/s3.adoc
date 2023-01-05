@@ -52,7 +52,7 @@ class S3ClientSample {
 
 AWS https://aws.amazon.com/blogs/developer/introducing-crt-based-s3-client-and-the-s3-transfer-manager-in-the-aws-sdk-for-java-2-x/[launched] a high level file transfer utility, called Transfer Manager and a CRT based S3 client.
 
-The starter automatically configures and registers a `software.amazon.awssdk.transfer.s3.S3TransferManager` bean if it finds `S3AsyncClient` bean configured and the following dependency added to the project:
+The starter automatically configures and registers a `software.amazon.awssdk.transfer.s3.S3TransferManager` bean if the following dependency is added to the project:
 
 [source,xml]
 ----
@@ -71,6 +71,8 @@ Transfer Manager works the best with CRT S3 Client. To auto-configure CRT based 
   <artifactId>aws-crt</artifactId>
 </dependency>
 ----
+
+When no `S3AsyncClient` bean is created, the default `S3AsyncClient` created through AWS SDK is used. To benefit from maximum throughput, multipart upload/download and resumable file upload consider using CRT based `S3AsyncClient`.
 
 === Using Cross-Region S3 client
 

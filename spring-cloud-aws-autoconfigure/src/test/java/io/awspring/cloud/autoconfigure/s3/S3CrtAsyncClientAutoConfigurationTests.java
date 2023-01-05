@@ -26,7 +26,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.crt.CopyObjectHelper;
+import software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration;
 
 /**
  * Tests for {@link S3CrtAsyncClientAutoConfiguration}.
@@ -72,6 +75,27 @@ class S3CrtAsyncClientAutoConfigurationTests {
 						assertThat(configuredClient.isEndpointOverridden()).isTrue();
 					});
 		}
+	}
+
+	@Test
+	void setsPropertiesOnClient() {
+		contextRunner.withPropertyValues("spring.cloud.aws.s3.crt.minimum-part-size-in-bytes=50",
+				"spring.cloud.aws.s3.crt.initial-read-buffer-size-in-bytes=150",
+				"spring.cloud.aws.s3.crt.max-concurrency=20", "spring.cloud.aws.s3.crt.target-throughput-in-gbps=100")
+				.run(context -> {
+					S3AsyncClient bean = context.getBean(S3AsyncClient.class);
+					S3NativeClientConfiguration s3NativeClientConfiguration = s3NativeClientConfiguration(bean);
+					assertThat(s3NativeClientConfiguration.partSizeBytes()).isEqualTo(50);
+					assertThat(s3NativeClientConfiguration.readBufferSizeInBytes()).isEqualTo(150);
+					assertThat(s3NativeClientConfiguration.targetThroughputInGbps()).isEqualTo(100);
+					assertThat(s3NativeClientConfiguration.maxConcurrency()).isEqualTo(20);
+				});
+	}
+
+	private static S3NativeClientConfiguration s3NativeClientConfiguration(S3AsyncClient client) {
+		CopyObjectHelper copyObjectHelper = (CopyObjectHelper) ReflectionTestUtils.getField(client, "copyObjectHelper");
+		return (S3NativeClientConfiguration) ReflectionTestUtils.getField(copyObjectHelper,
+				"s3NativeClientConfiguration");
 	}
 
 }

@@ -28,9 +28,8 @@ import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.lang.NonNull;
-import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
@@ -49,9 +48,23 @@ class S3TransferManagerAutoConfigurationTests {
 	@Nested
 	class TransferManagerTests {
 		@Test
-		void createsS3TransferManagerBeanWhenInClassPath() {
-			contextRunner.withBean(S3AsyncClient.class, () -> mock(S3AsyncClient.class))
-					.run(context -> assertThat(context).hasSingleBean(S3TransferManager.class));
+		void createsS3TransferManagerBeanWithCrtClientWhenInClassPath() {
+			contextRunner.run(context -> {
+				assertThat(context).hasSingleBean(S3TransferManager.class);
+				ConfiguredTransferManager configuredTransferManager = new ConfiguredTransferManager(
+						context.getBean(S3TransferManager.class));
+				assertThat(configuredTransferManager.getClient()).isInstanceOf(DefaultS3CrtAsyncClient.class);
+			});
+		}
+
+		@Test
+		void createsS3TransferManagerBeanWithCustomClientWhenCrtClientNotInClassPath() {
+			contextRunner.withBean(S3AsyncClient.class, () -> mock(S3AsyncClient.class)).run(context -> {
+				assertThat(context).hasSingleBean(S3TransferManager.class);
+				ConfiguredTransferManager configuredTransferManager = new ConfiguredTransferManager(
+						context.getBean(S3TransferManager.class));
+				assertThat(Mockito.mockingDetails(configuredTransferManager.getClient()).isMock()).isTrue();
+			});
 		}
 
 		@Test
@@ -63,15 +76,21 @@ class S3TransferManagerAutoConfigurationTests {
 		}
 
 		@Test
-		void doesNotCreateS3TransferManagerBeanWhenNotInClassPath() {
-			contextRunner.withClassLoader(new FilteredClassLoader(S3TransferManager.class)).run(context -> {
-				assertThat(context).doesNotHaveBean(S3TransferManager.class);
-			});
+		void setsPropertiesOnTransferManager() {
+			contextRunner.withBean(S3AsyncClient.class, () -> mock(S3AsyncClient.class))
+					.withPropertyValues("spring.cloud.aws.s3.transfer-manager.follow-symbolic-links:true",
+							"spring.cloud.aws.s3.transfer-manager.max-depth:12")
+					.run(context -> {
+						ConfiguredTransferManager transferManager = new ConfiguredTransferManager(
+								context.getBean(S3TransferManager.class));
+						assertThat(transferManager.getUploadDirectoryFileVisitOption()).isTrue();
+						assertThat(transferManager.getMaxDepth()).isEqualTo(12);
+					});
 		}
 
 		@Test
-		void doesNotCreateS3TransferManagerBeanWhenS3AsyncClientNotConfigured() {
-			contextRunner.run(context -> {
+		void doesNotCreateS3TransferManagerBeanWhenNotInClassPath() {
+			contextRunner.withClassLoader(new FilteredClassLoader(S3TransferManager.class)).run(context -> {
 				assertThat(context).doesNotHaveBean(S3TransferManager.class);
 			});
 		}
@@ -82,7 +101,7 @@ class S3TransferManagerAutoConfigurationTests {
 
 		@Test
 		void whenS3TransferManagerInClassPathCreatesTransferManagerSS3OutputStreamProvider() {
-			contextRunner.withBean(S3AsyncClient.class, () -> mock(S3AsyncClient.class))
+			contextRunner
 					.run(context -> assertThat(context).hasSingleBean(TransferManagerS3OutputStreamProvider.class));
 		}
 
@@ -93,12 +112,6 @@ class S3TransferManagerAutoConfigurationTests {
 					.run(context -> assertThat(context)
 							.hasSingleBean(S3AutoConfigurationTests.CustomS3OutputStreamProvider.class));
 		}
-	}
-
-	@NonNull
-	private static S3AsyncClient resolveS3Client(S3TransferManager builder) {
-		return (S3AsyncClient) ReflectionTestUtils.getField(ReflectionTestUtils.getField(builder, "s3AsyncClient"),
-				"delegate");
 	}
 
 }
