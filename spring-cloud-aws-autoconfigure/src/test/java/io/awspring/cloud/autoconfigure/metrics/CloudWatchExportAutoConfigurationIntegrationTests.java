@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.CLOUDWATCH;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.micrometer.core.instrument.Counter;
@@ -24,10 +25,11 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -49,12 +51,6 @@ import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
  * @author Eddú Meléndez
  */
 @Testcontainers
-@SpringBootTest(classes = CloudWatchExportAutoConfigurationIntegrationTests.Application.class, properties = {
-		"spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
-		"spring.cloud.aws.region.static=us-east-1", "management.metrics.export.cloudwatch.step=5s",
-		"management.metrics.export.cloudwatch.namespace=awspring/spring-cloud-aws",
-		"management.metrics.enable.all=false", "management.metrics.enable.test=true" })
-@AutoConfigureObservability(tracing = false)
 class CloudWatchExportAutoConfigurationIntegrationTests {
 
 	@Container
@@ -67,36 +63,46 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 				() -> localstack.getEndpointOverride(CLOUDWATCH).toString());
 	}
 
-	@Autowired
-	private MeterRegistry meterRegistry;
-
-	@Autowired
-	private CloudWatchAsyncClient cloudWatchAsyncClient;
-
 	@Test
 	void testCounter() {
-		Instant startTime = Instant.now();
-		Instant endTime = startTime.plus(Duration.ofSeconds(30));
+		SpringApplication application = new SpringApplication(
+				CloudWatchExportAutoConfigurationIntegrationTests.Application.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
 
-		Counter testCounter = Counter.builder("test").tag("app", "sample").register(this.meterRegistry);
-		testCounter.increment();
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=us-east-1", "--management.metrics.export.cloudwatch.step=5s",
+				"--management.metrics.export.cloudwatch.namespace=awspring/spring-cloud-aws",
+				"--management.metrics.enable.all=false", "--management.metrics.enable.test=true")) {
 
-		Dimension dimension = Dimension.builder().name("app").value("sample").build();
-		Metric metric = Metric.builder().namespace("awspring/spring-cloud-aws").metricName("test.count")
-				.dimensions(dimension).build();
-		MetricStat metricStat = MetricStat.builder().stat("Maximum").metric(metric).unit(StandardUnit.COUNT).period(5)
-				.build();
-		MetricDataQuery metricDataQuery = MetricDataQuery.builder().metricStat(metricStat).id("test1").returnData(true)
-				.build();
-		await().atMost(Duration.ofSeconds(15)).pollInterval(Duration.ofSeconds(5)).untilAsserted(() -> {
-			GetMetricDataResponse response = this.cloudWatchAsyncClient.getMetricData(GetMetricDataRequest.builder()
-					.startTime(startTime).endTime(endTime).metricDataQueries(metricDataQuery).build()).get();
-			assertThat(response.metricDataResults()).hasSize(1);
-			assertThat(response.metricDataResults().get(0).values()).contains(1d);
-		});
+			MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
+			CloudWatchAsyncClient cloudWatchAsyncClient = context.getBean(CloudWatchAsyncClient.class);
+
+			Instant startTime = Instant.now();
+			Instant endTime = startTime.plus(Duration.ofSeconds(30));
+
+			Counter testCounter = Counter.builder("test").tag("app", "sample").register(meterRegistry);
+			testCounter.increment();
+
+			Dimension dimension = Dimension.builder().name("app").value("sample").build();
+			Metric metric = Metric.builder().namespace("awspring/spring-cloud-aws").metricName("test.count")
+					.dimensions(dimension).build();
+			MetricStat metricStat = MetricStat.builder().stat("Maximum").metric(metric).unit(StandardUnit.COUNT)
+					.period(5).build();
+			MetricDataQuery metricDataQuery = MetricDataQuery.builder().metricStat(metricStat).id("test1")
+					.returnData(true).build();
+			await().atMost(Duration.ofSeconds(15)).pollInterval(Duration.ofSeconds(5)).untilAsserted(() -> {
+				GetMetricDataResponse response = cloudWatchAsyncClient.getMetricData(GetMetricDataRequest.builder()
+						.startTime(startTime).endTime(endTime).metricDataQueries(metricDataQuery).build()).get();
+				assertThat(response.metricDataResults()).hasSize(1);
+				assertThat(response.metricDataResults().get(0).values()).contains(1d);
+			});
+		}
 	}
 
 	@SpringBootApplication
+	@AutoConfigureObservability(tracing = false)
 	static class Application {
 
 	}
