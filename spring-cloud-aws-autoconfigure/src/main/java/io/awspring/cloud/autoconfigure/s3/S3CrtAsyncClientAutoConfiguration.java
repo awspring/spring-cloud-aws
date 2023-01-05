@@ -37,6 +37,9 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 /**
  * {@link EnableAutoConfiguration} for {@link software.amazon.awssdk.crt.s3.S3Client} based
  * {@link software.amazon.awssdk.services.s3.S3AsyncClient}.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
  */
 @AutoConfiguration
 @ConditionalOnClass({ S3Client.class })

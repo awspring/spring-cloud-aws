@@ -43,7 +43,7 @@ class S3TransferManagerAutoConfigurationTests {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, S3TransferManagerAutoConfiguration.class));
+					CredentialsProviderAutoConfiguration.class, S3CrtAsyncClientAutoConfiguration.class, S3TransferManagerAutoConfiguration.class));
 
 	@Nested
 	class TransferManagerTests {
@@ -58,7 +58,7 @@ class S3TransferManagerAutoConfigurationTests {
 		}
 
 		@Test
-		void createsS3TransferManagerBeanWithCustomClientWhenCrtClientNotInClassPath() {
+		void createsS3TransferManagerBeanWithCustomClient() {
 			contextRunner.withBean(S3AsyncClient.class, () -> mock(S3AsyncClient.class)).run(context -> {
 				assertThat(context).hasSingleBean(S3TransferManager.class);
 				ConfiguredTransferManager configuredTransferManager = new ConfiguredTransferManager(
