@@ -48,14 +48,11 @@ class S3ClientSample {
 	}
 }
 ----
-=== Using S3TransferManager
+=== Using S3TransferManager and CRT-based S3 Client
 
-[CAUTION]
-====
-S3 Transfer Manager provided by AWS is in developer preview phase and should not be used in production.
-====
+AWS https://aws.amazon.com/blogs/developer/introducing-crt-based-s3-client-and-the-s3-transfer-manager-in-the-aws-sdk-for-java-2-x/[launched] a high level file transfer utility, called Transfer Manager and a CRT based S3 client.
 
-AWS launched https://aws.amazon.com/blogs/developer/introducing-amazon-s3-transfer-manager-in-the-aws-sdk-for-java-2-x/[a high level file transfer utility], called Transfer Manager. The starter automatically configures and registers an `software.amazon.awssdk.transfer.s3.S3TransferManager` bean if it finds the following is added to the project:
+The starter automatically configures and registers a `software.amazon.awssdk.transfer.s3.S3TransferManager` bean if the following dependency is added to the project:
 
 [source,xml]
 ----
@@ -64,6 +61,18 @@ AWS launched https://aws.amazon.com/blogs/developer/introducing-amazon-s3-transf
   <artifactId>s3-transfer-manager</artifactId>
 </dependency>
 ----
+
+Transfer Manager works the best with CRT S3 Client. To auto-configure CRT based `S3AsyncClient` add following dependency to your project:
+
+[source,xml]
+----
+<dependency>
+  <groupId>software.amazon.awssdk.crt</groupId>
+  <artifactId>aws-crt</artifactId>
+</dependency>
+----
+
+When no `S3AsyncClient` bean is created, the default `S3AsyncClient` created through AWS SDK is used. To benefit from maximum throughput, multipart upload/download and resumable file upload consider using CRT based `S3AsyncClient`.
 
 === Using Cross-Region S3 client
 
@@ -220,6 +229,12 @@ The Spring Boot Starter for S3 provides the following configuration options:
 | `spring.cloud.aws.s3.chunked-encoding-enabled` | Option to enable using chunked encoding when signing the request payload for `PutObjectRequest` and `UploadPartRequest`. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.path-style-access-enabled` | Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access is preferred as it will result in better load balancing when accessing S3. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.use-arn-region-enabled` | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.crt.minimum-part-size-in-bytes` | Sets the minimum part size for transfer parts. Decreasing the minimum part size causes multipart transfer to be split into a larger number of smaller parts. Setting this value too low has a negative effect on transfer speeds, causing extra latency and network communication for each part. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.crt.initial-read-buffer-size-in-bytes` | Configure the starting buffer size the client will use to buffer the parts downloaded from S3. Maintain a larger window to keep up a high download throughput; parts cannot download in parallel unless the window is large enough to hold multiple parts. Maintain a smaller window to limit the amount of data buffered in memory. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.crt.target-throughput-in-gbps` | The target throughput for transfer requests. Higher value means more S3 connections will be opened. Whether the transfer manager can achieve the configured target throughput depends on various factors such as the network bandwidth of the environment and the configured `max-concurrency` | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.crt.max-concurrency` | Specifies the maximum number of S3 connections that should be established during transfer | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.transfer-manager.max-depth` | Specifies the maximum number of levels of directories to visit in `S3TransferManager#uploadDirectory` operation | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.transfer-manager.follow-symbolic-links` | Specifies whether to follow symbolic links when traversing the file tree in `S3TransferManager#uploadDirectory` operation | No | `null` (falls back to SDK default)
 |===
 
 === IAM Permissions
