@@ -17,11 +17,20 @@ package io.awspring.cloud.s3;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
+import java.time.Duration;
+
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 /**
  * Higher level abstraction over {@link S3Client} providing methods for the most common use cases.
@@ -126,6 +135,36 @@ public class S3Template implements S3Operations {
 		Assert.notNull(key, "key is required");
 
 		return new S3Resource(bucketName, key, s3Client, s3OutputStreamProvider);
+	}
+
+	@Override
+	public URL createSignedGetURL(String bucketName, String key, int durationMinutes){
+		S3Presigner presigner = S3Presigner.builder().build();
+		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+			.bucket(bucketName)
+			.key(key).build();
+
+		GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+			.getObjectRequest(getObjectRequest)
+			.signatureDuration(Duration.ofMinutes(durationMinutes)).build();
+
+		PresignedGetObjectRequest signedRequest = presigner.presignGetObject(presignRequest);
+		return signedRequest.url();
+	}
+
+	@Override
+	public URL createSignedPutURL(String bucketName, String key, int durationMinutes){
+		S3Presigner presigner = S3Presigner.builder().build();
+		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+			.bucket(bucketName)
+			.key(key).build();
+
+		PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+			.putObjectRequest(putObjectRequest)
+			.signatureDuration(Duration.ofMinutes(durationMinutes)).build();
+
+		PresignedPutObjectRequest signedRequest = presigner.presignPutObject(presignRequest);
+		return signedRequest.url();
 	}
 
 }
