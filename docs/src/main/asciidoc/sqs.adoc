@@ -134,7 +134,11 @@ public void queueListener(Person person) {
 ----
 
 In this example a queue listener container is started that polls the SQS `queueName` passed to the `MessageMapping`
-annotation. The incoming messages are converted to the target type and then the annotated method `queueListener` is invoked.
+annotation. The incoming messages are converted to the target type and then the annotated method `queueListener` is invoked. There are multiple options to specify the queue that should be listened to:
+
+ * Using the queue name. Works only for queues within the same account and region your application/sqs client is using.
+ * Using the queue url. This allows access to a queue that is in a different region than your application/sqs client is using.
+ * Using the queue arn. Can be used to listen to queues that are owned by another account, but live within the same region your application/sqs client uses.
 
 In addition to the payload, headers can be injected in the listener methods with the `@Header` or `@Headers`
 annotations. `@Header` is used to inject a specific header value while `@Headers` injects a `Map<String, String>`

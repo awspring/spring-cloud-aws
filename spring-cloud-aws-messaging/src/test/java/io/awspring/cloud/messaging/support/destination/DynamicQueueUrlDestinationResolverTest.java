@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 class DynamicQueueUrlDestinationResolverTest {
 
 	@Test
-	void testAutoCreate() throws Exception {
+	void testAutoCreate() {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 		String queueUrl = "https://foo/bar";
 		when(amazonSqs.createQueue(new CreateQueueRequest("foo")))
@@ -50,7 +50,7 @@ class DynamicQueueUrlDestinationResolverTest {
 	}
 
 	@Test
-	void testAbsoluteUrl() throws Exception {
+	void testAbsoluteUrl() {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 		DynamicQueueUrlDestinationResolver dynamicQueueDestinationResolver = new DynamicQueueUrlDestinationResolver(
 				amazonSqs);
@@ -59,7 +59,37 @@ class DynamicQueueUrlDestinationResolverTest {
 	}
 
 	@Test
-	void testNoAutoCreate() throws Exception {
+	void resolveDestination_shouldResolveArnToUrl() {
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		String expectedQueueUrl = "https://sqs-amazon.aws.com/123123123/myQueue";
+		DynamicQueueUrlDestinationResolver dynamicQueueDestinationResolver = new DynamicQueueUrlDestinationResolver(
+				amazonSqs);
+		when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("myQueue").withQueueOwnerAWSAccountId("123123123")))
+				.thenReturn(new GetQueueUrlResult().withQueueUrl(expectedQueueUrl));
+		String arn = "arn:aws:sqs:eu-central-1:123123123:myQueue";
+		assertThat(dynamicQueueDestinationResolver.resolveDestination(arn)).isEqualTo(expectedQueueUrl);
+	}
+
+	@Test
+	void resolveDestination_shouldThrowError_IfQueueDoesNotExist() {
+		AmazonSQS amazonSqs = mock(AmazonSQS.class);
+		AmazonServiceException exception = new QueueDoesNotExistException("AWS.SimpleQueueService.NonExistentQueue");
+		exception.setErrorCode("AWS.SimpleQueueService.NonExistentQueue");
+		String arn = "arn:aws:sqs:eu-central-1:123123123:myQueue";
+		when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("myQueue").withQueueOwnerAWSAccountId("123123123")))
+				.thenThrow(exception);
+		DynamicQueueUrlDestinationResolver dynamicQueueDestinationResolver = new DynamicQueueUrlDestinationResolver(
+				amazonSqs);
+		try {
+			dynamicQueueDestinationResolver.resolveDestination(arn);
+		}
+		catch (DestinationResolutionException e) {
+			assertThat(e.getMessage()).startsWith("The queue does not exist.");
+		}
+	}
+
+	@Test
+	void testNoAutoCreate() {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 		String queueUrl = "https://foo/bar";
 		when(amazonSqs.getQueueUrl(new GetQueueUrlRequest("foo")))
@@ -71,7 +101,7 @@ class DynamicQueueUrlDestinationResolverTest {
 	}
 
 	@Test
-	void testInvalidDestinationName() throws Exception {
+	void testInvalidDestinationName() {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 		AmazonServiceException exception = new QueueDoesNotExistException("AWS.SimpleQueueService.NonExistentQueue");
 		exception.setErrorCode("AWS.SimpleQueueService.NonExistentQueue");
@@ -88,7 +118,7 @@ class DynamicQueueUrlDestinationResolverTest {
 	}
 
 	@Test
-	void testPotentiallyNoAccessToPerformGetQueueUrl() throws Exception {
+	void testPotentiallyNoAccessToPerformGetQueueUrl() {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 		AmazonServiceException exception = new QueueDoesNotExistException("AWS.SimpleQueueService.NonExistentQueue");
 		exception.setErrorCode("AWS.SimpleQueueService.NonExistentQueue");
@@ -107,7 +137,7 @@ class DynamicQueueUrlDestinationResolverTest {
 	}
 
 	@Test
-	void resolveDestination_withResourceIdResolver_shouldUseIt() throws Exception {
+	void resolveDestination_withResourceIdResolver_shouldUseIt() {
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
 		ResourceIdResolver resourceIdResolver = mock(ResourceIdResolver.class);
 		when(resourceIdResolver.resolveToPhysicalResourceId(anyString())).thenReturn("http://queue.com");
@@ -121,7 +151,7 @@ class DynamicQueueUrlDestinationResolverTest {
 	}
 
 	@Test
-	void resolveDestination_withResourceIdResolver_nonUrlId_shouldGetUrlByResolvedName() throws Exception {
+	void resolveDestination_withResourceIdResolver_nonUrlId_shouldGetUrlByResolvedName() {
 		String queueUrl = "http://queue.com";
 		String resolvedQueueName = "some-queue-name";
 		AmazonSQS amazonSqs = mock(AmazonSQS.class);
@@ -138,7 +168,7 @@ class DynamicQueueUrlDestinationResolverTest {
 	}
 
 	@Test
-	void instantiation_withNullAmazonClient_shouldThrowAnError() throws Exception {
+	void instantiation_withNullAmazonClient_shouldThrowAnError() {
 		assertThatThrownBy(() -> new DynamicQueueUrlDestinationResolver(null, null))
 				.isInstanceOf(IllegalArgumentException.class);
 	}
