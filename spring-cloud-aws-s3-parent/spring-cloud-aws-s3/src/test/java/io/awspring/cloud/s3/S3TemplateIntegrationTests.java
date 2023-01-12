@@ -15,15 +15,7 @@
  */
 package io.awspring.cloud.s3;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +34,20 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 /**
  * Integration tests for {@link S3Template}.
@@ -61,6 +67,8 @@ class S3TemplateIntegrationTests {
 
 	private static S3Client client;
 
+
+	private static S3Presigner presigner;
 	private S3Template s3Template;
 
 	@BeforeAll
@@ -71,13 +79,15 @@ class S3TemplateIntegrationTests {
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
+		presigner = S3Presigner.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
+			.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
 	}
 
 	@BeforeEach
 	void init() {
 		this.s3Template = new S3Template(client,
 				new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()),
-				new Jackson2JsonS3ObjectConverter(new ObjectMapper()));
+				new Jackson2JsonS3ObjectConverter(new ObjectMapper()), presigner);
 
 		client.createBucket(r -> r.bucket(BUCKET_NAME));
 	}
@@ -174,6 +184,50 @@ class S3TemplateIntegrationTests {
 	void downloadsFile() throws IOException {
 		client.putObject(r -> r.bucket(BUCKET_NAME).key("file.txt"), RequestBody.fromString("hello"));
 		S3Resource resource = (S3Resource) s3Template.download(BUCKET_NAME, "file.txt");
+		assertThat(resource.contentLength()).isEqualTo(5);
+		assertThat(resource.getDescription()).isNotNull();
+
+		try (InputStream is = resource.getInputStream()) {
+			String result = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
+			assertThat(result).isEqualTo("hello");
+		}
+	}
+
+	@Test
+	void createsSignedGetURL() throws IOException {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("file.txt"), RequestBody.fromString("hello"));
+		URL signedGetUrl = s3Template.createSignedGetURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1));
+
+		HttpURLConnection connection = (HttpURLConnection) signedGetUrl.openConnection();
+
+		try (InputStream content = connection.getInputStream()) {
+			String result = StreamUtils.copyToString(content, StandardCharsets.UTF_8);
+			assertThat(result).isEqualTo("hello");
+		}
+	}
+
+	@Test
+	void createsSignedPutURL() throws IOException {
+		ObjectMetadata metadata = ObjectMetadata.builder().metadata("testkey", "testvalue").build();
+		URL signedPutUrl = s3Template.createSignedPutURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1), metadata, "text/plain");
+
+		HttpURLConnection connection = (HttpURLConnection) signedPutUrl.openConnection();
+		connection.setRequestMethod("PUT");
+		connection.setRequestProperty("x-amz-meta-testkey", "testvalue");
+		connection.setRequestProperty("Content-Type","text/plain");
+		connection.setRequestProperty("Content-Length", "5");
+		connection.setDoOutput(true);
+
+		try(OutputStream os = connection.getOutputStream()) {
+			os.write("hello".getBytes());
+		}
+
+		try (InputStream is = connection.getInputStream()) {
+			String result = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
+			assertThat(result).isEmpty();
+		}
+
+		S3Resource resource = s3Template.download(BUCKET_NAME, "file.txt");
 		assertThat(resource.contentLength()).isEqualTo(5);
 		assertThat(resource.getDescription()).isNotNull();
 
