@@ -18,7 +18,10 @@ package io.awspring.cloud.autoconfigure.s3.properties;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
@@ -77,6 +80,13 @@ public class S3Properties extends AwsClientProperties {
 	@NestedConfigurationProperty
 	private S3TransferManagerProperties transferManager;
 
+	/**
+	 * Configuration properties for {@link S3CrtAsyncClient} integration.
+	 */
+	@Nullable
+	@NestedConfigurationProperty
+	private S3CrtClientProperties crt;
+
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
 		return this.accelerateModeEnabled;
@@ -129,5 +139,25 @@ public class S3Properties extends AwsClientProperties {
 
 	public void setTransferManager(@Nullable S3TransferManagerProperties transferManager) {
 		this.transferManager = transferManager;
+	}
+
+	@Nullable
+	public S3CrtClientProperties getCrt() {
+		return crt;
+	}
+
+	public void setCrt(@Nullable S3CrtClientProperties crt) {
+		this.crt = crt;
+	}
+
+	public S3Configuration toS3Configuration() {
+		S3Configuration.Builder config = S3Configuration.builder();
+		PropertyMapper propertyMapper = PropertyMapper.get();
+		propertyMapper.from(this::getAccelerateModeEnabled).whenNonNull().to(config::accelerateModeEnabled);
+		propertyMapper.from(this::getChecksumValidationEnabled).whenNonNull().to(config::checksumValidationEnabled);
+		propertyMapper.from(this::getChunkedEncodingEnabled).whenNonNull().to(config::chunkedEncodingEnabled);
+		propertyMapper.from(this::getPathStyleAccessEnabled).whenNonNull().to(config::pathStyleAccessEnabled);
+		propertyMapper.from(this::getUseArnRegionEnabled).whenNonNull().to(config::useArnRegionEnabled);
+		return config.build();
 	}
 }

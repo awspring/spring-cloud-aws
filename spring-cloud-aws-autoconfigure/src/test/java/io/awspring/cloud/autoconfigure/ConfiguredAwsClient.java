@@ -34,8 +34,17 @@ public class ConfiguredAwsClient {
 	private final AttributeMap clientConfigurationAttributes;
 
 	public ConfiguredAwsClient(SdkClient sdkClient) {
-		SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(sdkClient,
-				"clientConfiguration");
+		SdkClientConfiguration clientConfiguration;
+		try {
+			clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(sdkClient,
+					"clientConfiguration");
+		}
+		catch (IllegalArgumentException e) {
+			// special case for S3CrtAsyncClient
+			Object delegate = ReflectionTestUtils.getField(sdkClient, "delegate");
+			clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(delegate,
+					"clientConfiguration");
+		}
 		this.clientConfigurationAttributes = (AttributeMap) ReflectionTestUtils
 				.getField(Objects.requireNonNull(clientConfiguration), "attributes");
 	}

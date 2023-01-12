@@ -39,7 +39,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -49,6 +48,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.util.Optional;
+
 
 /**
  * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
@@ -74,7 +74,7 @@ public class S3AutoConfiguration {
 			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer) {
 		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(), this.properties,
 				configurer.getIfAvailable());
-		builder.serviceConfiguration(s3ServiceConfiguration());
+		builder.serviceConfiguration(this.properties.toS3Configuration());
 		return builder;
 	}
 
@@ -90,18 +90,6 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean
 	S3Presigner s3Presigner() {
 		return S3Presigner.builder().serviceConfiguration(s3ServiceConfiguration()).build();
-	}
-
-	private S3Configuration s3ServiceConfiguration() {
-		S3Configuration.Builder config = S3Configuration.builder();
-		PropertyMapper propertyMapper = PropertyMapper.get();
-		propertyMapper.from(properties::getAccelerateModeEnabled).whenNonNull().to(config::accelerateModeEnabled);
-		propertyMapper.from(properties::getChecksumValidationEnabled).whenNonNull()
-				.to(config::checksumValidationEnabled);
-		propertyMapper.from(properties::getChunkedEncodingEnabled).whenNonNull().to(config::chunkedEncodingEnabled);
-		propertyMapper.from(properties::getPathStyleAccessEnabled).whenNonNull().to(config::pathStyleAccessEnabled);
-		propertyMapper.from(properties::getUseArnRegionEnabled).whenNonNull().to(config::useArnRegionEnabled);
-		return config.build();
 	}
 
 	@Configuration(proxyBeanMethods = false)
