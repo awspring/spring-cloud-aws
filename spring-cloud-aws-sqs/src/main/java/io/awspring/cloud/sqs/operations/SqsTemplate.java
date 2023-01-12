@@ -548,30 +548,36 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 
 		@Override
 		public O queue(String queue) {
+			Assert.hasText(queue, "queue must have text");
 			this.queue = queue;
 			return self();
 		}
 
 		@Override
 		public O payload(T payload) {
+			Assert.notNull(payload, "payload must not be null");
 			this.payload = payload;
 			return self();
 		}
 
 		@Override
 		public O header(String headerName, Object headerValue) {
+			Assert.hasText(headerName, "headerName must have text");
+			Assert.notNull(headerValue, "headerValue must not be null");
 			this.headers.put(headerName, headerValue);
 			return self();
 		}
 
 		@Override
 		public O headers(Map<String, Object> headers) {
+			Assert.notNull(headers, "headers must not be null");
 			this.headers.putAll(headers);
 			return self();
 		}
 
 		@Override
 		public O delay(Duration delay) {
+			Assert.notNull(delay, "delay must not be null");
 			this.delay = delay;
 			return self();
 		}
@@ -595,12 +601,14 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 
 		@Override
 		public SqsSendOptions.Fifo<T> messageGroupId(UUID messageGroupId) {
+			Assert.notNull(messageGroupId, "messageGroupId must not be null");
 			this.messageGroupId = messageGroupId;
 			return this;
 		}
 
 		@Override
 		public SqsSendOptions.Fifo<T> messageDeduplicationId(UUID messageDeduplicationId) {
+			Assert.notNull(messageDeduplicationId, "messageDeduplicationId must not be null");
 			this.messageDeduplicationId = messageDeduplicationId;
 			return this;
 		}
@@ -695,6 +703,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 
 		@Override
 		public Fifo<T> receiveRequestAttemptId(UUID receiveRequestAttemptId) {
+			Assert.notNull(receiveRequestAttemptId, "receiveRequestAttemptId must not be null");
 			this.receiveRequestAttemptId = receiveRequestAttemptId;
 			return this;
 		}
