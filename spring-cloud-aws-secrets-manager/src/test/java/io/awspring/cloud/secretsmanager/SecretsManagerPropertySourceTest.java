@@ -88,7 +88,7 @@ class SecretsManagerPropertySourceTest {
 
 	@Test
 	void addsPrefixToJsonSecret() {
-		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=xxx",
+		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=xxx-",
 				client);
 		GetSecretValueResponse secretValueResult = GetSecretValueResponse.builder()
 				.secretString("{\"key1\": \"value1\", \"key2\": \"value2\"}").build();
@@ -96,14 +96,14 @@ class SecretsManagerPropertySourceTest {
 
 		propertySource.init();
 
-		assertThat(propertySource.getPropertyNames()).contains("xxx.key1", "xxx.key2");
-		assertThat(propertySource.getProperty("xxx.key1")).isEqualTo("value1");
+		assertThat(propertySource.getPropertyNames()).contains("xxx-key1", "xxx-key2");
+		assertThat(propertySource.getProperty("xxx-key1")).isEqualTo("value1");
 		assertThat(propertySource.getProperty("key1")).isNull();
 	}
 
 	@Test
 	void addsPrefixToPlainTextSecret() {
-		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=yyy",
+		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=yyy.",
 				client);
 
 		GetSecretValueResponse secretValueResult = GetSecretValueResponse.builder().secretString("my secret")

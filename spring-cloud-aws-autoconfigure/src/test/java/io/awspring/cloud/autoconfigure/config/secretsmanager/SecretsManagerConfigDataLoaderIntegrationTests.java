@@ -99,7 +99,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-secretsmanager:/config/spring?prefix=first;/config/second?prefix=second")) {
+				"aws-secretsmanager:/config/spring?prefix=first.;/config/second?prefix=second.")) {
 			assertThat(context.getEnvironment().getProperty("first.message")).isEqualTo("value from tests");
 			assertThat(context.getEnvironment().getProperty("first.another-parameter"))
 					.isEqualTo("another parameter value");
