@@ -48,12 +48,18 @@ public class SecretsManagerPropertySource
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
 	private final String context;
+	private final String secretId;
+
+	@Nullable
+	private final String prefix;
 
 	private final Map<String, Object> properties = new LinkedHashMap<>();
 
 	public SecretsManagerPropertySource(String context, SecretsManagerClient smClient) {
 		super("aws-secretsmanager:" + context, smClient);
 		this.context = context;
+		this.secretId = resolveSecretId(context);
+		this.prefix = resolvePrefix(context);
 	}
 
 	/**
@@ -62,7 +68,7 @@ public class SecretsManagerPropertySource
 	 */
 	@Override
 	public void init() {
-		readSecretValue(GetSecretValueRequest.builder().secretId(context).build());
+		readSecretValue(GetSecretValueRequest.builder().secretId(secretId).build());
 	}
 
 	@Override
@@ -86,7 +92,8 @@ public class SecretsManagerPropertySource
 
 			for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
 				LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
-				properties.put(secretEntry.getKey(), secretEntry.getValue());
+				String propertyKey = prefix != null ? prefix + "." + secretEntry.getKey() : secretEntry.getKey();
+				properties.put(propertyKey, secretEntry.getValue());
 			}
 		}
 		catch (JsonParseException e) {
@@ -94,7 +101,8 @@ public class SecretsManagerPropertySource
 			String[] parts = secretValueResponse.name().split("/");
 			String secretName = parts[parts.length - 1];
 			LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretName);
-			properties.put(secretName, secretValueResponse.secretString());
+			String propertyKey = prefix != null ? prefix + "." + secretName : secretName;
+			properties.put(propertyKey, secretValueResponse.secretString());
 		}
 		catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
@@ -106,4 +114,33 @@ public class SecretsManagerPropertySource
 		return new SecretsManagerPropertySource(this.context, this.source);
 	}
 
+	@Nullable
+	String getPrefix() {
+		return prefix;
+	}
+
+	String getContext() {
+		return context;
+	}
+
+	String getSecretId() {
+		return secretId;
+	}
+
+	@Nullable
+	private static String resolvePrefix(String context) {
+		int prefixIndex = context.indexOf("?prefix=");
+		if (prefixIndex != -1) {
+			return context.substring(prefixIndex + "?prefix=".length());
+		}
+		return null;
+	}
+
+	private static String resolveSecretId(String context) {
+		int prefixIndex = context.indexOf("?prefix=");
+		if (prefixIndex != -1) {
+			return context.substring(0, prefixIndex);
+		}
+		return context;
+	}
 }
