@@ -16,6 +16,13 @@
 package io.awspring.cloud.s3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +39,8 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -39,8 +48,6 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -194,47 +201,42 @@ class S3TemplateIntegrationTests {
 	}
 
 	@Test
-	void createsSignedGetURL() throws IOException {
+	void createsWorkingSignedGetURL() throws IOException {
 		client.putObject(r -> r.bucket(BUCKET_NAME).key("file.txt"), RequestBody.fromString("hello"));
 		URL signedGetUrl = s3Template.createSignedGetURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1));
 
-		HttpURLConnection connection = (HttpURLConnection) signedGetUrl.openConnection();
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		HttpGet httpGet = new HttpGet(signedGetUrl.toString());
+		HttpResponse response = httpClient.execute(httpGet);
 
-		try (InputStream content = connection.getInputStream()) {
+		try (InputStream content = response.getEntity().getContent()) {
 			String result = StreamUtils.copyToString(content, StandardCharsets.UTF_8);
 			assertThat(result).isEqualTo("hello");
 		}
 	}
 
 	@Test
-	void createsSignedPutURL() throws IOException {
+	void createsWorkingSignedPutURL() throws IOException {
 		ObjectMetadata metadata = ObjectMetadata.builder().metadata("testkey", "testvalue").build();
 		URL signedPutUrl = s3Template.createSignedPutURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1), metadata, "text/plain");
 
-		HttpURLConnection connection = (HttpURLConnection) signedPutUrl.openConnection();
-		connection.setRequestMethod("PUT");
-		connection.setRequestProperty("x-amz-meta-testkey", "testvalue");
-		connection.setRequestProperty("Content-Type","text/plain");
-		connection.setRequestProperty("Content-Length", "5");
-		connection.setDoOutput(true);
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		HttpPut httpPut = new HttpPut(signedPutUrl.toString());
+		httpPut.setHeader("x-amz-meta-testkey", "testvalue");
+		httpPut.setHeader("Content-Type","text/plain");
+		HttpEntity body = new StringEntity("hello");
+		httpPut.setEntity(body);
 
-		try(OutputStream os = connection.getOutputStream()) {
-			os.write("hello".getBytes());
-		}
+		HttpResponse response = httpClient.execute(httpPut);
+		httpClient.close();
 
-		try (InputStream is = connection.getInputStream()) {
-			String result = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
-			assertThat(result).isEmpty();
-		}
+		HeadObjectResponse headObjectResponse = client.headObject(HeadObjectRequest.builder()
+			.bucket(BUCKET_NAME)
+			.key("file.txt").build());
 
-		S3Resource resource = s3Template.download(BUCKET_NAME, "file.txt");
-		assertThat(resource.contentLength()).isEqualTo(5);
-		assertThat(resource.getDescription()).isNotNull();
-
-		try (InputStream is = resource.getInputStream()) {
-			String result = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
-			assertThat(result).isEqualTo("hello");
-		}
+		assertThat(headObjectResponse.contentLength()).isEqualTo(5);
+		assertThat(headObjectResponse.metadata().containsKey("testkey")).isTrue();
+		assertThat(headObjectResponse.metadata().get("testkey")).isEqualTo("testvalue");
 	}
 
 	private void bucketDoesNotExist(ListBucketsResponse r, String bucketName) {
