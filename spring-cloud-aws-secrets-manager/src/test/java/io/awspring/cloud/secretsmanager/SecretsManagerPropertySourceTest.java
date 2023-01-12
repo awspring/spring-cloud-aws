@@ -78,7 +78,8 @@ class SecretsManagerPropertySourceTest {
 
 	@Test
 	void resolvesPrefixAndSecretIdFromContext() {
-		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=xxx", client);
+		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=xxx",
+				client);
 		assertThat(propertySource.getName()).isEqualTo("aws-secretsmanager:/config/myservice?prefix=xxx");
 		assertThat(propertySource.getPrefix()).isEqualTo("xxx");
 		assertThat(propertySource.getContext()).isEqualTo("/config/myservice?prefix=xxx");
@@ -87,9 +88,10 @@ class SecretsManagerPropertySourceTest {
 
 	@Test
 	void addsPrefixToJsonSecret() {
-		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=xxx", client);
+		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=xxx",
+				client);
 		GetSecretValueResponse secretValueResult = GetSecretValueResponse.builder()
-			.secretString("{\"key1\": \"value1\", \"key2\": \"value2\"}").build();
+				.secretString("{\"key1\": \"value1\", \"key2\": \"value2\"}").build();
 		when(client.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
 
 		propertySource.init();
@@ -101,10 +103,11 @@ class SecretsManagerPropertySourceTest {
 
 	@Test
 	void addsPrefixToPlainTextSecret() {
-		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=yyy", client);
+		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=yyy",
+				client);
 
 		GetSecretValueResponse secretValueResult = GetSecretValueResponse.builder().secretString("my secret")
-			.name("key1").build();
+				.name("key1").build();
 
 		when(client.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
 
@@ -117,7 +120,8 @@ class SecretsManagerPropertySourceTest {
 
 	@Test
 	void copyPreservesPrefix() {
-		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=yyy", client);
+		SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource("/config/myservice?prefix=yyy",
+				client);
 		SecretsManagerPropertySource copy = propertySource.copy();
 		assertThat(propertySource.getContext()).isEqualTo(copy.getContext());
 		assertThat(propertySource.getPrefix()).isEqualTo(copy.getPrefix());
