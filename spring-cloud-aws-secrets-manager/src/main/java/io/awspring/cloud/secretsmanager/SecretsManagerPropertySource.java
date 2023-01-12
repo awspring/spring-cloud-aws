@@ -44,6 +44,7 @@ public class SecretsManagerPropertySource
 		extends AwsPropertySource<SecretsManagerPropertySource, SecretsManagerClient> {
 
 	private static Log LOG = LogFactory.getLog(SecretsManagerPropertySource.class);
+	private static final String PREFIX_PART = "?prefix=";
 
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
@@ -129,15 +130,15 @@ public class SecretsManagerPropertySource
 
 	@Nullable
 	private static String resolvePrefix(String context) {
-		int prefixIndex = context.indexOf("?prefix=");
+		int prefixIndex = context.indexOf(PREFIX_PART);
 		if (prefixIndex != -1) {
-			return context.substring(prefixIndex + "?prefix=".length());
+			return context.substring(prefixIndex + PREFIX_PART.length());
 		}
 		return null;
 	}
 
 	private static String resolveSecretId(String context) {
-		int prefixIndex = context.indexOf("?prefix=");
+		int prefixIndex = context.indexOf(PREFIX_PART);
 		if (prefixIndex != -1) {
 			return context.substring(0, prefixIndex);
 		}
