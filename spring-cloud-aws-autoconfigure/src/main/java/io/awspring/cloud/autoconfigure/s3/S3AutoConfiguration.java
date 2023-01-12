@@ -88,8 +88,8 @@ public class S3AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3Presigner s3Presigner() {
-		return S3Presigner.builder().serviceConfiguration(s3ServiceConfiguration()).build();
+	S3Presigner s3Presigner(S3Properties properties) {
+		return S3Presigner.builder().serviceConfiguration(properties.toS3Configuration()).build();
 	}
 
 	@Configuration(proxyBeanMethods = false)
