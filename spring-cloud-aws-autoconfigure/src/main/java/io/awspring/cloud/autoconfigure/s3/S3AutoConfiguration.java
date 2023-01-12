@@ -30,7 +30,6 @@ import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
-import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -47,6 +46,9 @@ import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+
+import java.util.Optional;
 
 /**
  * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
@@ -80,8 +82,14 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean(S3Operations.class)
 	@ConditionalOnBean(S3ObjectConverter.class)
 	S3Template s3Template(S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider,
-			S3ObjectConverter s3ObjectConverter) {
-		return new S3Template(s3Client, s3OutputStreamProvider, s3ObjectConverter);
+			S3ObjectConverter s3ObjectConverter, S3Presigner s3Presigner) {
+		return new S3Template(s3Client, s3OutputStreamProvider, s3ObjectConverter, s3Presigner);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	S3Presigner s3Presigner() {
+		return S3Presigner.builder().serviceConfiguration(s3ServiceConfiguration()).build();
 	}
 
 	private S3Configuration s3ServiceConfiguration() {

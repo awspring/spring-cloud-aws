@@ -15,11 +15,6 @@
  */
 package io.awspring.cloud.s3;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.time.Duration;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
@@ -31,6 +26,11 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.time.Duration;
 
 /**
  * Higher level abstraction over {@link S3Client} providing methods for the most common use cases.
@@ -45,14 +45,18 @@ public class S3Template implements S3Operations {
 
 	private final S3ObjectConverter s3ObjectConverter;
 
+	private final S3Presigner s3Presigner;
+
 	public S3Template(S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider,
-			S3ObjectConverter s3ObjectConverter) {
+			S3ObjectConverter s3ObjectConverter, S3Presigner s3Presigner) {
 		Assert.notNull(s3Client, "s3Client is required");
 		Assert.notNull(s3OutputStreamProvider, "s3OutputStreamProvider is required");
 		Assert.notNull(s3ObjectConverter, "s3ObjectConverter is required");
+		Assert.notNull(s3Presigner, "s3Presigner is required");
 		this.s3Client = s3Client;
 		this.s3OutputStreamProvider = s3OutputStreamProvider;
 		this.s3ObjectConverter = s3ObjectConverter;
+		this.s3Presigner = s3Presigner;
 	}
 
 	@Override
@@ -138,32 +142,37 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
-	public URL createSignedGetURL(String bucketName, String key, int durationMinutes){
-		S3Presigner presigner = S3Presigner.builder().build();
-		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-			.bucket(bucketName)
-			.key(key).build();
+	public URL createSignedGetURL(String bucketName, String key, Duration duration) {
+		Assert.notNull(bucketName, "bucketName is required");
+		Assert.notNull(key, "key is required");
+		Assert.notNull(duration, "duration is required");
 
-		GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-			.getObjectRequest(getObjectRequest)
-			.signatureDuration(Duration.ofMinutes(durationMinutes)).build();
+		GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(key).build();
 
-		PresignedGetObjectRequest signedRequest = presigner.presignGetObject(presignRequest);
+		GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder().getObjectRequest(getObjectRequest)
+				.signatureDuration(duration).build();
+
+		PresignedGetObjectRequest signedRequest = s3Presigner.presignGetObject(presignRequest);
 		return signedRequest.url();
 	}
 
 	@Override
-	public URL createSignedPutURL(String bucketName, String key, int durationMinutes){
-		S3Presigner presigner = S3Presigner.builder().build();
-		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-			.bucket(bucketName)
-			.key(key).build();
+	public URL createSignedPutURL(String bucketName, String key, Duration duration, @Nullable ObjectMetadata metadata,
+			@Nullable String contentType) {
+		Assert.notNull(bucketName, "bucketName is required");
+		Assert.notNull(key, "key is required");
+		Assert.notNull(duration, "duration is required");
 
-		PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-			.putObjectRequest(putObjectRequest)
-			.signatureDuration(Duration.ofMinutes(durationMinutes)).build();
+		PutObjectRequest.Builder putObjectRequestBuilder = PutObjectRequest.builder().bucket(bucketName).key(key);
+		if(metadata != null) putObjectRequestBuilder.metadata(metadata.getMetadata());
+		if(contentType != null) putObjectRequestBuilder.contentType(contentType);
 
-		PresignedPutObjectRequest signedRequest = presigner.presignPutObject(presignRequest);
+		PutObjectRequest putObjectRequest = putObjectRequestBuilder.build();
+
+		PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder().putObjectRequest(putObjectRequest)
+				.signatureDuration(duration).build();
+
+		PresignedPutObjectRequest signedRequest = s3Presigner.presignPutObject(presignRequest);
 		return signedRequest.url();
 	}
 

@@ -15,11 +15,12 @@
  */
 package io.awspring.cloud.s3;
 
-import java.io.InputStream;
-import java.net.URL;
-
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
+
+import java.io.InputStream;
+import java.net.URL;
+import java.time.Duration;
 
 public interface S3Operations {
 
@@ -111,18 +112,19 @@ public interface S3Operations {
 	 *
 	 * @param bucketName - the bucket name
 	 * @param key - the object key
-	 * @param durationMinutes - duration that the URL will work
+	 * @param duration - duration that the URL will work
 	 * @return a {@link URL} representing the signed URL
 	 */
-	URL createSignedGetURL(String bucketName, String key, int durationMinutes);
+	URL createSignedGetURL(String bucketName, String key, Duration duration);
 
 	/**
 	 * Creates a signed URL for putting an object into S3.
 	 *
 	 * @param bucketName - the bucket name
 	 * @param key - the object key
-	 * @param durationMinutes - duration that the URL will work
+	 * @param duration - duration that the URL will work
 	 * @return a {@link URL} representing the signed URL
 	 */
-	URL createSignedPutURL(String bucketName, String key, int durationMinutes);
+	URL createSignedPutURL(String bucketName, String key, Duration duration, @Nullable ObjectMetadata metadata,
+			@Nullable String contentType);
 }
