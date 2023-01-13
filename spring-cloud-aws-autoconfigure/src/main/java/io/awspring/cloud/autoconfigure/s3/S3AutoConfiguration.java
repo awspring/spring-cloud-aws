@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
@@ -42,6 +43,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -88,8 +91,16 @@ public class S3AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3Presigner s3Presigner(S3Properties properties) {
-		return S3Presigner.builder().serviceConfiguration(properties.toS3Configuration()).build();
+	S3Presigner s3Presigner(S3Properties properties, AwsProperties awsProperties, AwsCredentialsProvider credentialsProvider,
+							AwsRegionProvider regionProvider) {
+		S3Presigner.Builder builder = S3Presigner.builder()
+			.serviceConfiguration(properties.toS3Configuration())
+			.credentialsProvider(credentialsProvider)
+			.region(regionProvider.getRegion());
+		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
+		Optional.ofNullable(awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
+		return builder.build();
 	}
 
 	@Configuration(proxyBeanMethods = false)
