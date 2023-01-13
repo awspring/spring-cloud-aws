@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -68,32 +68,32 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 * resourcePatternResolverDelegate. For the S3 Resource a {@link InMemoryBufferingS3OutputStreamProvider} is used in
 	 * case the resource should be modified and for the pattern matching a {@link AntPathMatcher} is used.
 	 *
-	 * @param s3Client the s3Client of the Amazon SDK
+	 * @param s3Client                        the s3Client of the Amazon SDK
 	 * @param resourcePatternResolverDelegate the resourcePatternResolverDelegate which is used if the given scheme is
-	 *     not S3. In this case all processing is delegated to this implementation.
+	 *                                        not S3. In this case all processing is delegated to this implementation.
 	 */
 	public S3PathMatchingResourcePatternResolver(S3Client s3Client,
-			ResourcePatternResolver resourcePatternResolverDelegate) {
+												 ResourcePatternResolver resourcePatternResolverDelegate) {
 		this(s3Client, resourcePatternResolverDelegate,
-				new InMemoryBufferingS3OutputStreamProvider(s3Client, new PropertiesS3ObjectContentTypeResolver()),
-				new AntPathMatcher(), List.of("**", "*", "?"));
+			new InMemoryBufferingS3OutputStreamProvider(s3Client, new PropertiesS3ObjectContentTypeResolver()),
+			new AntPathMatcher(), List.of("**", "*", "?"));
 	}
 
 	/**
 	 * Creates a {@link S3PathMatchingResourcePatternResolver} with the given s3Client and
 	 * resourcePatternResolverDelegate.
 	 *
-	 * @param s3Client the s3Client of the Amazon SDK
+	 * @param s3Client                        the s3Client of the Amazon SDK
 	 * @param resourcePatternResolverDelegate the resourcePatternResolverDelegate which is used if the given scheme is
-	 *     not S3. In this case all processing is delegated to this implementation.
-	 * @param s3OutputStreamProvider The s3OutputStreamProvider used if the resource is going to be written
-	 * @param pathMatcher used to resolve resources and bucket names
-	 * @param wildCardSeparators the wildcard separators to determine the prefix. You can also use
-	 *     Collections.emptyList(), but this will cause performance and request impacts.
+	 *                                        not S3. In this case all processing is delegated to this implementation.
+	 * @param s3OutputStreamProvider          The s3OutputStreamProvider used if the resource is going to be written
+	 * @param pathMatcher                     used to resolve resources and bucket names
+	 * @param wildCardSeparators              the wildcard separators to determine the prefix. You can also use
+	 *                                        Collections.emptyList(), but this will cause performance and request impacts.
 	 */
 	public S3PathMatchingResourcePatternResolver(S3Client s3Client,
-			ResourcePatternResolver resourcePatternResolverDelegate, S3OutputStreamProvider s3OutputStreamProvider,
-			PathMatcher pathMatcher, List<String> wildCardSeparators) {
+												 ResourcePatternResolver resourcePatternResolverDelegate, S3OutputStreamProvider s3OutputStreamProvider,
+												 PathMatcher pathMatcher, List<String> wildCardSeparators) {
 		Assert.notNull(s3Client, "S3Client must not be null");
 		Assert.notNull(resourcePatternResolverDelegate, "ResourcePatternResolver must not be null");
 		Assert.notNull(s3OutputStreamProvider, "S3OutputStreamProvider must not be null");
@@ -118,8 +118,8 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	public Resource[] getResources(String locationPattern) throws IOException {
 		LOGGER.debug("Get resources of the following location pattern {}", locationPattern);
 		Resource[] resources = locationPattern.toLowerCase().startsWith(S3_PROTOCOL_PREFIX)
-				? findResourcesInBucketsWithPatterns(locationPattern)
-				: this.resourcePatternResolverDelegate.getResources(locationPattern);
+			? findResourcesInBucketsWithPatterns(locationPattern)
+			: this.resourcePatternResolverDelegate.getResources(locationPattern);
 		String resourceUrisString = Arrays.stream(resources).map(this::getUriAsString).collect(Collectors.joining(","));
 		LOGGER.debug("Found the following resources: {}", resourceUrisString);
 		return resources;
@@ -135,7 +135,7 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	public Resource getResource(String location) {
 		LOGGER.debug("Get resource of the following location {}", location);
 		Resource resource = location.toLowerCase().startsWith(S3_PROTOCOL_PREFIX) ? createS3Resource(location)
-				: this.resourcePatternResolverDelegate.getResource(location);
+			: this.resourcePatternResolverDelegate.getResource(location);
 		LOGGER.debug("Found the following resource: {}", getUriAsString(resource));
 		return resource;
 	}
@@ -159,12 +159,12 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	private Resource[] findResourcesInBucketsWithPatterns(String locationPattern) {
 		String s3BucketNamePattern = getS3BucketNamePattern(locationPattern);
 		LOGGER.debug("The s3 bucket name pattern is {}", s3BucketNamePattern);
-		String s3KeyPattern = StringUtils.substringAfter(locationPattern, s3BucketNamePattern + "/");
+		String s3KeyPattern = substringAfter(locationPattern, s3BucketNamePattern + "/");
 		LOGGER.debug("The s3 key pattern is {}", s3KeyPattern);
 		return (pathMatcher.isPattern(s3BucketNamePattern) ? findMatchingBuckets(s3BucketNamePattern)
-				: List.of(s3BucketNamePattern)).stream().flatMap(
-						s3BucketName -> findResourcesInBucketWithKeyPattern(s3BucketName, s3KeyPattern).stream())
-						.toArray(Resource[]::new);
+			: List.of(s3BucketNamePattern)).stream().flatMap(
+				s3BucketName -> findResourcesInBucketWithKeyPattern(s3BucketName, s3KeyPattern).stream())
+			.toArray(Resource[]::new);
 	}
 
 	/**
@@ -177,19 +177,19 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	private List<Resource> findResourcesInBucketWithKeyPattern(String s3BucketName, String s3KeyPattern) {
 		ListObjectsV2Request listObjectsV2Request = getListObjectsV2RequestBuilder(s3BucketName, s3KeyPattern).build();
 		LOGGER.debug("Listing objects from bucket {} with prefix: {}", listObjectsV2Request.bucket(),
-				listObjectsV2Request.prefix());
+			listObjectsV2Request.prefix());
 		ListObjectsV2Iterable listObjectsV2Iterable = s3Client.listObjectsV2Paginator(listObjectsV2Request);
 		return listObjectsV2Iterable.stream().flatMap(listObjectsV2Response -> {
-			LOGGER.debug("List of s3 objects: {}", listObjectsV2Response.contents().size());
-			return listObjectsV2Response.contents().stream();
-		}).filter(s3Object -> {
-			boolean s3ObjectKeyMatchesS3KeyPattern = pathMatcher.match(s3KeyPattern, s3Object.key());
-			LOGGER.debug("The s3 object key ({}) matches the s3 key pattern ({}): {}", s3Object.key(), s3KeyPattern,
+				LOGGER.debug("List of s3 objects: {}", listObjectsV2Response.contents().size());
+				return listObjectsV2Response.contents().stream();
+			}).filter(s3Object -> {
+				boolean s3ObjectKeyMatchesS3KeyPattern = pathMatcher.match(s3KeyPattern, s3Object.key());
+				LOGGER.debug("The s3 object key ({}) matches the s3 key pattern ({}): {}", s3Object.key(), s3KeyPattern,
 					s3ObjectKeyMatchesS3KeyPattern);
-			return s3ObjectKeyMatchesS3KeyPattern;
-		}).peek(s3Object -> LOGGER.debug("Resolved key: {} based on pattern: {}", s3Object.key(), s3KeyPattern))
-				.map(s3Object -> getResource(S3_PROTOCOL_PREFIX + s3BucketName + "/" + s3Object.key()))
-				.collect(Collectors.toList());
+				return s3ObjectKeyMatchesS3KeyPattern;
+			}).peek(s3Object -> LOGGER.debug("Resolved key: {} based on pattern: {}", s3Object.key(), s3KeyPattern))
+			.map(s3Object -> getResource(S3_PROTOCOL_PREFIX + s3BucketName + "/" + s3Object.key()))
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -204,10 +204,10 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 		// To improve performance we list only files to until the optionalPrefix path delimiter before the
 		// optionalPrefix wild card
 		Optional<String> optionalPrefix = wildCardSeparators.stream().filter(s3KeyPattern::contains)
-				.map(wildcard -> StringUtils.substringBefore(s3KeyPattern, wildcard))
-				.map(s3KeyPatternSubStringBeforeWildCard -> StringUtils
-						.substringBeforeLast(s3KeyPatternSubStringBeforeWildCard, PATH_DELIMITER))
-				.findFirst();
+			.map(wildcard -> substringBefore(s3KeyPattern, wildcard))
+			.map(s3KeyPatternSubStringBeforeWildCard -> substringBeforeLast(s3KeyPatternSubStringBeforeWildCard,
+				PATH_DELIMITER))
+			.findFirst();
 		ListObjectsV2Request.Builder listObjectsV2RequestBuilder = ListObjectsV2Request.builder().bucket(s3BucketName);
 		if (optionalPrefix.isPresent()) {
 			listObjectsV2RequestBuilder = listObjectsV2RequestBuilder.prefix(optionalPrefix.get());
@@ -224,8 +224,8 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	protected S3Resource createS3Resource(String location) {
 		LOGGER.debug("Creating resource based on location: {}", location);
 		return Optional.ofNullable(S3Resource.create(location, s3Client, s3OutputStreamProvider))
-				.orElseThrow(() -> new IllegalStateException(
-						"The s3 resource based on the location: " + location + " was not created correctly"));
+			.orElseThrow(() -> new IllegalStateException(
+				"The s3 resource based on the location: " + location + " was not created correctly"));
 	}
 
 	/**
@@ -247,12 +247,12 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 */
 	private List<String> findMatchingBuckets(String bucketPattern) {
 		return this.s3Client.listBuckets().buckets().stream().map(Bucket::name).filter(name -> {
-			boolean bucketNameMatchesBucketPattern = this.pathMatcher.match(bucketPattern, name);
-			LOGGER.debug("The s3 bucket name ({}) matches the s3 bucket pattern ({}): {}", name, bucketPattern,
+				boolean bucketNameMatchesBucketPattern = this.pathMatcher.match(bucketPattern, name);
+				LOGGER.debug("The s3 bucket name ({}) matches the s3 bucket pattern ({}): {}", name, bucketPattern,
 					bucketNameMatchesBucketPattern);
-			return bucketNameMatchesBucketPattern;
-		}).peek(name -> LOGGER.debug("Resolved bucket name: {} based on pattern: {}", name, bucketPattern))
-				.collect(Collectors.toList());
+				return bucketNameMatchesBucketPattern;
+			}).peek(name -> LOGGER.debug("Resolved bucket name: {} based on pattern: {}", name, bucketPattern))
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -264,10 +264,63 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	private String getUriAsString(Resource resource) {
 		try {
 			return resource.getURI().toASCIIString();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			LOGGER.warn("The URI of the resource couldn't be retrieved", e);
 			return "<resource_uri>";
 		}
+	}
+
+	/**
+	 * Gets the substring before the last occurrence of a separator. The separator is not returned.
+	 *
+	 * @param str       the String to get a substring from, may be null
+	 * @param separator the String to search for, may be null
+	 * @return the substring after the first occurrence of the separator, {@code null} if null String input
+	 */
+	public String substringAfter(final String str, final String separator) {
+		if (str == null || separator == null) {
+			return null;
+		}
+		if (str.isEmpty() || separator.isEmpty()) {
+			return "";
+		}
+		final int pos = str.indexOf(separator);
+		return pos == -1 ? "" : str.substring(pos + separator.length());
+	}
+
+	/**
+	 * Gets the substring before the first occurrence of a separator. The separator is not returned.
+	 *
+	 * @param str       the String to get a substring from, may be null
+	 * @param separator the String to search for, may be null
+	 * @return the substring before the first occurrence of the separator, {@code null} if null String input
+	 */
+	public String substringBefore(final String str, final String separator) {
+		if (str == null || separator == null) {
+			return null;
+		}
+		if (str.isEmpty() || separator.isEmpty()) {
+			return "";
+		}
+		final int pos = str.indexOf(separator);
+		return pos == -1 ? str : str.substring(0, pos);
+	}
+
+	/**
+	 * Gets the substring before the last occurrence of a separator. The separator is not returned.
+	 *
+	 * @param str       the String to get a substring from, may be null
+	 * @param separator the String to search for, may be null
+	 * @return the substring before the last occurrence of the separator, {@code null} if null String input
+	 */
+	public String substringBeforeLast(final String str, final String separator) {
+		if (str == null || separator == null) {
+			return null;
+		}
+		if (str.isEmpty() || separator.isEmpty()) {
+			return "";
+		}
+		final int pos = str.lastIndexOf(separator);
+		return pos == -1 ? str : str.substring(0, pos);
 	}
 }
