@@ -330,7 +330,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 	}
 
 	@Override
-	protected CompletableFuture<Void> acknowledgeMessages(String endpointName, Collection<org.springframework.messaging.Message<T>> messages) {
+	protected CompletableFuture<Void> doAcknowledgeMessages(String endpointName, Collection<org.springframework.messaging.Message<T>> messages) {
 		return deleteMessages(endpointName, messages.stream().map(message -> message.getHeaders().get(SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, String.class))
 			.collect(Collectors.toList())).thenRun(() -> {});
 	}
@@ -413,15 +413,42 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 		return new SqsMessagingMessageConverter();
 	}
 
+	/**
+	 * Sqs specific options for the {@link SqsTemplate}.
+	 * @param <T> the payload type.
+	 */
 	public interface SqsTemplateOptions<T> extends MessagingTemplateOptions<T, SqsTemplateOptions<T>> {
 
-		SqsTemplateOptions<T> queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames);
-
+		/**
+		 * The {@link QueueNotFoundStrategy} for this template.
+		 * @param queueNotFoundStrategy the strategy.
+		 * @return the options instance.
+		 */
 		SqsTemplateOptions<T> queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy);
 
+		/**
+		 * The queue attribute names that will be retrieved by this template and added
+		 * as headers to received messages. Default is none.
+		 * @param queueAttributeNames the names.
+		 * @return the options instance.
+		 */
+		SqsTemplateOptions<T> queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames);
+
+		/**
+		 * The message attributes to be retrieved with the message and added as headers
+		 * to received messages. Default is ALL.
+		 * @param messageAttributeNames the names.
+		 * @return the options instance.
+		 */
 		SqsTemplateOptions<T> messageAttributeNames(Collection<String> messageAttributeNames);
 
-		SqsTemplateOptions<T> messageSystemAttributeNames(Collection<String> messageSystemAttributeNames);
+		/**
+		 * The message system attributes to be retrieved with the message and added as headers
+		 * to received messages. Default is ALL.
+		 * @param messageSystemAttributeNames the names.
+		 * @return the options instance.
+		 */
+		SqsTemplateOptions<T> messageSystemAttributeNames(Collection<MessageSystemAttributeName> messageSystemAttributeNames);
 
 	}
 
@@ -456,23 +483,51 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 		}
 
 		@Override
-		public SqsTemplateOptions<T> messageSystemAttributeNames(Collection<String> messageSystemAttributeNames) {
-			this.messageSystemAttributeNames = messageSystemAttributeNames;
+		public SqsTemplateOptions<T> messageSystemAttributeNames(Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
+			this.messageSystemAttributeNames = messageSystemAttributeNames.stream().map(MessageSystemAttributeName::name).toList();
 			return this;
 		}
 
 	}
 
+	/**
+	 * Builder interface for creating a {@link SqsTemplate} instance.
+	 * @param <T> the payload type.
+	 */
 	public interface Builder<T> {
 
+		/**
+		 * Set the {@link SqsAsyncClient} to be used by the {@link SqsTemplate}.
+		 * @param sqsAsyncClient the instance.
+		 * @return the builder.
+		 */
 		Builder<T> sqsAsyncClient(SqsAsyncClient sqsAsyncClient);
 
+		/**
+		 * Set the {@link MessagingMessageConverter} to be used by the template.
+		 * @param messageConverter the converter.
+		 * @return the builder.
+		 */
 		Builder<T> messageConverter(MessagingMessageConverter<Message> messageConverter);
 
+		/**
+		 * Configure the default message converter.
+		 * @param messageConverterConfigurer a {@link SqsMessagingMessageConverter} consumer.
+		 * @return the builder.
+		 */
 		Builder<T> defaultMessageConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer);
 
+		/**
+		 * Configure options for the template.
+		 * @param options a {@link SqsTemplateOptions} consumer.
+		 * @return the builder.
+		 */
 		Builder<T> configure(Consumer<SqsTemplateOptions<T>> options);
 
+		/**
+		 * Create the template with the provided options.
+		 * @return the {@link SqsTemplate} instance.
+		 */
 		SqsTemplate<T> build();
 
 	}
@@ -483,7 +538,6 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 
 		private SqsAsyncClient sqsAsyncClient;
 
-		@Nullable
 		private MessagingMessageConverter<Message> messageConverter;
 
 		private BuilderImpl() {

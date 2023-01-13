@@ -2,6 +2,7 @@ package io.awspring.cloud.sqs.operations;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.ContextAwareMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
@@ -102,8 +103,10 @@ public abstract class AbstractMessagingTemplate<T, S, R> implements MessagingOpe
 	@Override
 	public CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpoint, @Nullable Class<T> payloadClass,
 																@Nullable Duration pollTimeout, @Nullable Map<String, Object> additionalHeaders) {
+		logger.trace("Receiving message from endpoint {}", endpoint);
 		return receiveManyAsync(endpoint, payloadClass, pollTimeout, 1, additionalHeaders)
-			.thenApply(msgs -> msgs.isEmpty() ? Optional.empty() : Optional.of(msgs.iterator().next()));
+			.thenApply(msgs -> msgs.isEmpty() ? Optional.<Message<T>>empty() : Optional.of(msgs.iterator().next()))
+			.whenComplete((v, t) -> logger.trace("Received {} message from endpoint {}", v.isPresent() ? 1 : 0, endpoint));
 	}
 
 	@Override
@@ -115,13 +118,16 @@ public abstract class AbstractMessagingTemplate<T, S, R> implements MessagingOpe
 	@Override
 	public CompletableFuture<Collection<Message<T>>> receiveManyAsync(@Nullable String endpoint, @Nullable Class<T> payloadClass, @Nullable Duration pollTimeout,
 																	  @Nullable Integer maxNumberOfMessages, @Nullable Map<String, Object> additionalHeaders) {
+		String endpointName = getEndpointName(endpoint);
+		logger.trace("Receiving messages from endpoint {}", endpointName);
 		Map<String, Object> headers = getAdditionalHeadersToReceive(additionalHeaders);
-		return doReceiveAsync(getEndpointName(endpoint),
+		return doReceiveAsync(endpointName,
 			getOrDefault(pollTimeout, this.defaultPollTimeout, "pollTimeout"),
 			getOrDefault(maxNumberOfMessages, this.defaultMaxNumberOfMessages, "defaultMaxNumberOfMessages"),
 			headers)
-			.thenApply(messages -> convertReceivedMessages(getEndpointName(endpoint), payloadClass, messages, headers))
-			.thenCompose(messages -> handleAcknowledgement(getEndpointName(endpoint), messages));
+			.thenApply(messages -> convertReceivedMessages(endpointName, payloadClass, messages, headers))
+			.thenCompose(messages -> handleAcknowledgement(endpointName, messages))
+			.whenComplete((v, t) -> logger.trace("Received messages {} from endpoint {}", MessageHeaderUtils.getId(v), endpoint));
 	}
 
 	private Map<String, Object> getAdditionalHeadersToReceive(@Nullable Map<String, Object> additionalHeaders) {
@@ -158,11 +164,11 @@ public abstract class AbstractMessagingTemplate<T, S, R> implements MessagingOpe
 
 	private CompletableFuture<Collection<Message<T>>> handleAcknowledgement(@Nullable String endpoint, Collection<Message<T>> messages) {
 		return TemplateAcknowledgementMode.ACKNOWLEDGE_ON_RECEIVE.equals(this.acknowledgementMode) && !messages.isEmpty()
-			? acknowledgeMessages(getEndpointName(endpoint), messages).thenApply(theVoid -> messages)
+			? doAcknowledgeMessages(getEndpointName(endpoint), messages).thenApply(theVoid -> messages)
 			: CompletableFuture.completedFuture(messages);
 	}
 
-	protected abstract CompletableFuture<Void> acknowledgeMessages(String endpointName, Collection<Message<T>> messages);
+	protected abstract CompletableFuture<Void> doAcknowledgeMessages(String endpointName, Collection<Message<T>> messages);
 
 	private String getEndpointName(@Nullable String endpoint) {
 		return getOrDefault(endpoint, this.defaultEndpointName, "endpointName");
@@ -214,14 +220,18 @@ public abstract class AbstractMessagingTemplate<T, S, R> implements MessagingOpe
 
 	@Override
 	public CompletableFuture<UUID> sendAsync(@Nullable String endpointName, Message<T> message) {
-		return doSendAsync(getOrDefault(endpointName, this.defaultEndpointName, "endpointName"),
-			convertMessageToSend(message));
+		String endpointToUse = getOrDefault(endpointName, this.defaultEndpointName, "endpointName");
+		logger.trace("Sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointName);
+		return doSendAsync(endpointToUse, convertMessageToSend(message));
 	}
 
 	@Override
 	public CompletableFuture<R> sendAsync(@Nullable String endpointName, Collection<Message<T>> messages) {
+		logger.trace("Sending messages {} to endpoint {}", MessageHeaderUtils.getId(messages), endpointName);
 		return doSendBatchAsync(getOrDefault(endpointName, this.defaultEndpointName, "endpointName"),
-			convertMessagesToSend(messages));
+			convertMessagesToSend(messages))
+			.whenComplete((v, t) -> logger.trace("Messages {} sent to endpoint {}", MessageHeaderUtils.getId(messages),
+				endpointName));
 	}
 
 	private Collection<S> convertMessagesToSend(Collection<Message<T>> messages) {
@@ -242,21 +252,63 @@ public abstract class AbstractMessagingTemplate<T, S, R> implements MessagingOpe
 		return null;
 	}
 
+	/**
+	 * Options to be used by the template.
+	 * @param <T> the payload type.
+	 * @param <O> the options subclass to be returned by the chained methods.
+	 */
 	protected interface MessagingTemplateOptions<T, O extends MessagingTemplateOptions<T, O>> {
 
-		O acknowledgementMode(TemplateAcknowledgementMode defaultAcknowledgementMode);
+		/**
+		 * Set the acknowledgement mode for this template.
+		 * @param acknowledgementMode the mode.
+		 * @return the options instance.
+		 */
+		O acknowledgementMode(TemplateAcknowledgementMode acknowledgementMode);
 
+		/**
+		 * Set the default maximum amount of time this template will wait for the maximum
+		 * number of messages before returning.
+		 * @param defaultPollTimeout the timeout.
+		 * @return the options instance.
+		 */
 		O pollTimeout(Duration defaultPollTimeout);
 
+		/**
+		 * Set the maximum number of messages to be retrieved in a single batch.
+		 * @param defaultMaxNumberOfMessages the maximum number of messages.
+		 * @return the options instance.
+		 */
 		O maxNumberOfMessages(Integer defaultMaxNumberOfMessages);
 
+		/**
+		 * Set the default endpoint name for this template.
+		 * @param defaultEndpointName the default endpoint name.
+		 * @return the options instance.
+		 */
 		O endpointName(String defaultEndpointName);
 
+		/**
+		 * The default class to which this template should convert payloads to.
+		 * @param defaultPayloadClass the default payload class.
+		 * @return the options instance.
+		 */
 		O payloadClass(Class<T> defaultPayloadClass);
 
-		O additionalHeader(String name, Object value);
+		/**
+		 * Set a default additional header to be added to received messages.
+		 * @param name the header name.
+		 * @param value the header value.
+		 * @return the options instance.
+		 */
+		O additionalHeaderForReceive(String name, Object value);
 
-		O additionalHeaders(Map<String, Object> defaultAdditionalHeaders);
+		/**
+		 * Add default additional headers to be added to received messages.
+		 * @param defaultAdditionalHeaders the headers.
+		 * @return the options instance.
+		 */
+		O additionalHeadersForReceive(Map<String, Object> defaultAdditionalHeaders);
 
 	}
 
@@ -311,7 +363,7 @@ public abstract class AbstractMessagingTemplate<T, S, R> implements MessagingOpe
 		}
 
 		@Override
-		public O additionalHeader(String name, Object value) {
+		public O additionalHeaderForReceive(String name, Object value) {
 			Assert.notNull(name, "name must not be null");
 			Assert.notNull(value, "value must not be null");
 			this.defaultAdditionalHeaders.put(name, value);
@@ -319,7 +371,7 @@ public abstract class AbstractMessagingTemplate<T, S, R> implements MessagingOpe
 		}
 
 		@Override
-		public O additionalHeaders(Map<String, Object> defaultAdditionalHeaders) {
+		public O additionalHeadersForReceive(Map<String, Object> defaultAdditionalHeaders) {
 			Assert.notNull(defaultAdditionalHeaders, "defaultAdditionalHeaders must not be null");
 			this.defaultAdditionalHeaders.putAll(defaultAdditionalHeaders);
 			return self();
