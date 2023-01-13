@@ -164,9 +164,12 @@ public class S3Template implements S3Operations {
 		Assert.notNull(duration, "duration is required");
 
 		PutObjectRequest.Builder putObjectRequestBuilder = PutObjectRequest.builder().bucket(bucketName).key(key);
-		if(metadata != null) putObjectRequestBuilder.metadata(metadata.getMetadata());
-		if(contentType != null) putObjectRequestBuilder.contentType(contentType);
-
+		if (metadata != null) {
+			putObjectRequestBuilder.metadata(metadata.getMetadata());
+		}
+		if (contentType != null) {
+			putObjectRequestBuilder.contentType(contentType);
+		}
 		PutObjectRequest putObjectRequest = putObjectRequestBuilder.build();
 
 		PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder().putObjectRequest(putObjectRequest)

@@ -16,7 +16,6 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
@@ -31,6 +30,7 @@ import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
+import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -47,11 +47,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-
-import java.util.Optional;
-
 
 /**
  * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
@@ -91,12 +87,10 @@ public class S3AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3Presigner s3Presigner(S3Properties properties, AwsProperties awsProperties, AwsCredentialsProvider credentialsProvider,
-							AwsRegionProvider regionProvider) {
-		S3Presigner.Builder builder = S3Presigner.builder()
-			.serviceConfiguration(properties.toS3Configuration())
-			.credentialsProvider(credentialsProvider)
-			.region(regionProvider.getRegion());
+	S3Presigner s3Presigner(S3Properties properties, AwsProperties awsProperties,
+			AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
+		S3Presigner.Builder builder = S3Presigner.builder().serviceConfiguration(properties.toS3Configuration())
+				.credentialsProvider(credentialsProvider).region(regionProvider.getRegion());
 		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
 		Optional.ofNullable(awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);

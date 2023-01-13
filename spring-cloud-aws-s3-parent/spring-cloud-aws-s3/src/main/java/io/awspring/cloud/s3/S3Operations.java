@@ -127,4 +127,8 @@ public interface S3Operations {
 	 */
 	URL createSignedPutURL(String bucketName, String key, Duration duration, @Nullable ObjectMetadata metadata,
 			@Nullable String contentType);
+
+	default URL createSignedPutURL(String bucketName, String key, Duration duration) {
+		return createSignedPutURL(bucketName, key, duration, null, null);
+	}
 }
