@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>spring-cloud-aws</artifactId>
 		<groupId>io.awspring.cloud</groupId>
-		<version>3.0.0-M3</version>
+		<version>3.0.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -21,6 +21,7 @@
 		<module>spring-cloud-aws-secrets-manager-sample</module>
 		<module>spring-cloud-aws-ses-sample</module>
 		<module>spring-cloud-aws-sns-sample</module>
+		<module>spring-cloud-aws-sqs-sample</module>
     </modules>
 
 	<properties>

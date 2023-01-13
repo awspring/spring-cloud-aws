@@ -5,6 +5,7 @@ io.awspring.cloud.autoconfigure.metrics.CloudWatchExportAutoConfiguration
 io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration
 io.awspring.cloud.autoconfigure.s3.S3TransferManagerAutoConfiguration
 io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration
+io.awspring.cloud.autoconfigure.s3.S3CrtAsyncClientAutoConfiguration
 io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration
 io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration
 io.awspring.cloud.autoconfigure.dynamodb.DynamoDbAutoConfiguration

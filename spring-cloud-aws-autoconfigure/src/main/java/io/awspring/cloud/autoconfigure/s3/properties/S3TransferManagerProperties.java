@@ -22,91 +22,40 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
  * Properties related to AWS S3 {@link S3TransferManager}.
  *
  * @author Anton Perez
+ * @author Maciej Walkowiak
  * @since 3.0
  */
 public class S3TransferManagerProperties {
+
+	/**
+	 * Specifies whether to follow symbolic links when traversing the file tree in `S3TransferManager#uploadDirectory`
+	 * operation.
+	 */
 	@Nullable
-	private Double targetThroughputInGbps;
+	private Boolean followSymbolicLinks;
+
+	/**
+	 * Specifies the maximum number of levels of directories to visit in `S3TransferManager#uploadDirectory` operation.
+	 */
+	@Nullable
+	private Integer maxDepth;
 
 	@Nullable
-	private Integer maxConcurrency;
-
-	@Nullable
-	private Long minimumPartSizeInBytes;
-
-	@Nullable
-	private S3UploadDirectoryProperties uploadDirectory;
-
-	@Nullable
-	public Double getTargetThroughputInGbps() {
-		return this.targetThroughputInGbps;
+	public Boolean getFollowSymbolicLinks() {
+		return this.followSymbolicLinks;
 	}
 
-	public void setTargetThroughputInGbps(@Nullable Double targetThroughputInGbps) {
-		this.targetThroughputInGbps = targetThroughputInGbps;
-	}
-
-	@Nullable
-	public S3UploadDirectoryProperties getUploadDirectory() {
-		return this.uploadDirectory;
-	}
-
-	public void setUploadDirectory(@Nullable S3UploadDirectoryProperties uploadDirectory) {
-		this.uploadDirectory = uploadDirectory;
+	public void setFollowSymbolicLinks(@Nullable Boolean followSymbolicLinks) {
+		this.followSymbolicLinks = followSymbolicLinks;
 	}
 
 	@Nullable
-	public Integer getMaxConcurrency() {
-		return this.maxConcurrency;
+	public Integer getMaxDepth() {
+		return this.maxDepth;
 	}
 
-	public void setMaxConcurrency(@Nullable Integer maxConcurrency) {
-		this.maxConcurrency = maxConcurrency;
-	}
-
-	@Nullable
-	public Long getMinimumPartSizeInBytes() {
-		return this.minimumPartSizeInBytes;
-	}
-
-	public void setMinimumPartSizeInBytes(@Nullable Long minimumPartSizeInBytes) {
-		this.minimumPartSizeInBytes = minimumPartSizeInBytes;
-	}
-
-	public static class S3UploadDirectoryProperties {
-		@Nullable
-		private Boolean recursive;
-		@Nullable
-		private Boolean followSymbolicLinks;
-		@Nullable
-		private Integer maxDepth;
-
-		@Nullable
-		public Boolean getRecursive() {
-			return this.recursive;
-		}
-
-		public void setRecursive(@Nullable Boolean recursive) {
-			this.recursive = recursive;
-		}
-
-		@Nullable
-		public Boolean getFollowSymbolicLinks() {
-			return this.followSymbolicLinks;
-		}
-
-		public void setFollowSymbolicLinks(@Nullable Boolean followSymbolicLinks) {
-			this.followSymbolicLinks = followSymbolicLinks;
-		}
-
-		@Nullable
-		public Integer getMaxDepth() {
-			return this.maxDepth;
-		}
-
-		public void setMaxDepth(@Nullable Integer maxDepth) {
-			this.maxDepth = maxDepth;
-		}
+	public void setMaxDepth(@Nullable Integer maxDepth) {
+		this.maxDepth = maxDepth;
 	}
 
 }

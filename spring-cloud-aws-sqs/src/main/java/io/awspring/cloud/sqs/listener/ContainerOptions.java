@@ -73,6 +73,8 @@ public class ContainerOptions {
 
 	private final TaskExecutor componentsTaskExecutor;
 
+	private final TaskExecutor acknowledgementResultTaskExecutor;
+
 	private final Duration messageVisibility;
 
 	protected ContainerOptions(Builder builder) {
@@ -93,6 +95,7 @@ public class ContainerOptions {
 		this.acknowledgementInterval = builder.acknowledgementInterval;
 		this.acknowledgementThreshold = builder.acknowledgementThreshold;
 		this.componentsTaskExecutor = builder.componentsTaskExecutor;
+		this.acknowledgementResultTaskExecutor = builder.acknowledgementResultTaskExecutor;
 		this.messageVisibility = builder.messageVisibility;
 	}
 
@@ -134,6 +137,10 @@ public class ContainerOptions {
 
 	public TaskExecutor getComponentsTaskExecutor() {
 		return this.componentsTaskExecutor;
+	}
+
+	public TaskExecutor getAcknowledgementResultTaskExecutor() {
+		return this.acknowledgementResultTaskExecutor;
 	}
 
 	public Duration getShutdownTimeout() {
@@ -272,6 +279,8 @@ public class ContainerOptions {
 
 		private TaskExecutor componentsTaskExecutor;
 
+		private TaskExecutor acknowledgementResultTaskExecutor;
+
 		private Duration messageVisibility;
 
 		protected Builder() {
@@ -295,6 +304,7 @@ public class ContainerOptions {
 			this.acknowledgementInterval = options.acknowledgementInterval;
 			this.acknowledgementThreshold = options.acknowledgementThreshold;
 			this.componentsTaskExecutor = options.componentsTaskExecutor;
+			this.acknowledgementResultTaskExecutor = options.acknowledgementResultTaskExecutor;
 			this.messageVisibility = options.messageVisibility;
 		}
 
@@ -351,6 +361,12 @@ public class ContainerOptions {
 		public Builder componentsTaskExecutor(TaskExecutor taskExecutor) {
 			Assert.notNull(taskExecutor, "taskExecutor cannot be null");
 			this.componentsTaskExecutor = taskExecutor;
+			return this;
+		}
+
+		public Builder acknowledgementResultTaskExecutor(TaskExecutor taskExecutor) {
+			Assert.notNull(taskExecutor, "taskExecutor cannot be null");
+			this.acknowledgementResultTaskExecutor = taskExecutor;
 			return this;
 		}
 

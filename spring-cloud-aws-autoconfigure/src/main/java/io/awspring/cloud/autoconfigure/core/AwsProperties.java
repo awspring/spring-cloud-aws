@@ -44,6 +44,10 @@ public class AwsProperties {
 	/**
 	 * Sets the {@link DefaultsMode} that will be used to determine how certain default configuration options are
 	 * resolved in the SDK.
+	 *
+	 * <a href=
+	 * "https://aws.amazon.com/blogs/developer/introducing-smart-configuration-defaults-in-the-aws-sdk-for-java-v2/">Introducing
+	 * Smart Configuration Defaults in the AWS SDK for Java v2</a>
 	 */
 	@Nullable
 	private DefaultsMode defaultsMode;

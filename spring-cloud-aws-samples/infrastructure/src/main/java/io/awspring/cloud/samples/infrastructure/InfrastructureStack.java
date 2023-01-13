@@ -17,9 +17,11 @@ package io.awspring.cloud.samples.infrastructure;
 
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
+import software.amazon.awscdk.services.events.targets.SqsQueue;
 import software.amazon.awscdk.services.s3.Bucket;
 import software.amazon.awscdk.services.secretsmanager.Secret;
 import software.amazon.awscdk.services.secretsmanager.SecretStringGenerator;
+import software.amazon.awscdk.services.sqs.Queue;
 import software.amazon.awscdk.services.ssm.StringParameter;
 import software.constructs.Construct;
 
@@ -45,6 +47,8 @@ public class InfrastructureStack extends Stack {
 
 		Secret.Builder.create(this, "Secret").secretName("/secrets/spring-cloud-aws-sample-app")
 				.generateSecretString(secretStringGenerator).build();
+
+		SqsQueue.Builder.create(Queue.Builder.create(this, "test-queue").build()).build();
 	}
 
 }

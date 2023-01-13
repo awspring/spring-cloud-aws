@@ -67,7 +67,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.2.0")).withServices(SECRETSMANAGER).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SECRETSMANAGER).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() {
@@ -89,6 +89,22 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("another parameter value");
 			assertThat(context.getEnvironment().getProperty("secondMessage")).isEqualTo("second value from tests");
+			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
+		}
+	}
+
+	@Test
+	void resolvesPropertiesWithPrefixes() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/config/spring?prefix=first.;/config/second?prefix=second.")) {
+			assertThat(context.getEnvironment().getProperty("first.message")).isEqualTo("value from tests");
+			assertThat(context.getEnvironment().getProperty("first.another-parameter"))
+					.isEqualTo("another parameter value");
+			assertThat(context.getEnvironment().getProperty("second.secondMessage"))
+					.isEqualTo("second value from tests");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
 		}
 	}

@@ -262,7 +262,7 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 					.collect(Collectors.toList());
 			if (!futures.isEmpty()) {
 				purgeEmptyBuffers();
-				return Collections.singletonList(null);
+				return futures;
 			}
 			return Collections.emptyList();
 		}

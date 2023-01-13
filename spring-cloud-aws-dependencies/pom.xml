@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
-		<version>4.0.0-M5</version>
+		<version>4.0.0</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -19,18 +19,21 @@
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws-dependencies</artifactId>
 	<name>Spring Cloud AWS Dependencies</name>
-	<version>3.0.0-M3</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
 		<javaparser.version>3.24.0</javaparser.version>
 		<spotless.version>2.25.0</spotless.version>
-		<awssdk-v2.version>2.18.0</awssdk-v2.version>
-		<awssdk-v1.version>1.12.326</awssdk-v1.version>
-		<amazon.dax.version>2.0.1</amazon.dax.version>
+		<awssdk-v2.version>2.19.9</awssdk-v2.version>
+		<awssdk-v1.version>1.12.377</awssdk-v1.version>
+		<amazon.dax.version>2.0.2</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<spring-cloud-commons.version>4.0.0-M5</spring-cloud-commons.version>
-		<testcontainers.version>1.17.5</testcontainers.version>
+		<spring-cloud-commons.version>4.0.0</spring-cloud-commons.version>
+		<testcontainers.version>1.17.6</testcontainers.version>
+		<jakarta.mail.version>2.1.0</jakarta.mail.version>
+		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
+		<aws-crt.version>0.20.5</aws-crt.version>
 	</properties>
 
 	<dependencyManagement>
@@ -77,7 +80,14 @@
 			<dependency>
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>s3-transfer-manager</artifactId>
-				<version>${awssdk-v2.version}-PREVIEW</version>
+				<version>${awssdk-v2.version}</version>
+				<optional>true</optional>
+			</dependency>
+
+			<dependency>
+				<groupId>software.amazon.awssdk.crt</groupId>
+				<artifactId>aws-crt</artifactId>
+				<version>${aws-crt.version}</version>
 				<optional>true</optional>
 			</dependency>
 
@@ -199,6 +209,18 @@
 				<groupId>com.github.javaparser</groupId>
 				<artifactId>javaparser-symbol-solver-core</artifactId>
 				<version>${javaparser.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>jakarta.mail</groupId>
+				<artifactId>jakarta.mail</artifactId>
+				<version>${jakarta.mail.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.eclipse.angus</groupId>
+				<artifactId>jakarta.mail</artifactId>
+				<version>${eclipse.jakarta.mail.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

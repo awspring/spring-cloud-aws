@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -73,6 +74,9 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	private MessageSink<T> messageSink;
 
 	private TaskExecutor componentsTaskExecutor;
+
+	@Nullable
+	private TaskExecutor acknowledgementResultTaskExecutor;
 
 	protected AbstractPipelineMessageListenerContainer(ContainerOptions options) {
 		super(options);
@@ -175,7 +179,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 				.acceptIfInstance(getErrorHandler(), TaskExecutorAware.class,
 						teac -> teac.setTaskExecutor(getComponentsTaskExecutor()))
 				.acceptIfInstance(getAcknowledgementResultCallback(), TaskExecutorAware.class,
-						teac -> teac.setTaskExecutor(getComponentsTaskExecutor()));
+						teac -> teac.setTaskExecutor(getAcknowledgementResultTaskExecutor()));
 	}
 
 	// @formatter:off
@@ -201,7 +205,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	private TaskExecutor resolveComponentsTaskExecutor() {
 		return getContainerOptions().getComponentsTaskExecutor() != null
 				? getContainerOptions().getComponentsTaskExecutor()
-				: createComponentsTaskExecutor();
+				: createTaskExecutor();
 	}
 
 	protected BackPressureHandler createBackPressureHandler() {
@@ -217,12 +221,13 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 		return executor;
 	}
 
-	protected TaskExecutor createComponentsTaskExecutor() {
+	protected TaskExecutor createTaskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		int poolSize = getContainerOptions().getMaxInFlightMessagesPerQueue() * this.messageSources.size();
 		executor.setMaxPoolSize(poolSize);
 		executor.setCorePoolSize(getContainerOptions().getMaxMessagesPerPoll());
-		executor.setQueueCapacity(0);
+		// Necessary due to a small racing condition between releasing the permit and releasing the thread.
+		executor.setQueueCapacity(poolSize);
 		executor.setAllowCoreThreadTimeOut(true);
 		executor.setThreadFactory(createThreadFactory());
 		executor.afterPropertiesSet();
@@ -246,9 +251,20 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 		return this.componentsTaskExecutor;
 	}
 
+	protected TaskExecutor getAcknowledgementResultTaskExecutor() {
+		if (this.acknowledgementResultTaskExecutor == null) {
+			this.acknowledgementResultTaskExecutor = createTaskExecutor();
+		}
+		return this.acknowledgementResultTaskExecutor;
+	}
+
 	private void shutdownComponentsTaskExecutor() {
 		if (!this.componentsTaskExecutor.equals(getContainerOptions().getComponentsTaskExecutor())) {
 			LifecycleHandler.get().dispose(getComponentsTaskExecutor());
+		}
+		if (this.acknowledgementResultTaskExecutor != null && !this.acknowledgementResultTaskExecutor
+				.equals(getContainerOptions().getAcknowledgementResultTaskExecutor())) {
+			LifecycleHandler.get().dispose(getAcknowledgementResultTaskExecutor());
 		}
 	}
 
