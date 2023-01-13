@@ -54,6 +54,11 @@ public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware
 	public S3ProtocolResolver() {
 	}
 
+	// only for testing
+	S3ProtocolResolver(@Nullable S3Client s3Client) {
+		this.s3Client = s3Client;
+	}
+
 	@Override
 	public Resource resolve(String location, ResourceLoader resourceLoader) {
 		S3Client s3Client = getS3Client();
