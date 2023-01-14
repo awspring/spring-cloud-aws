@@ -43,6 +43,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final String SENDS_AND_RECEIVES_BATCH_QUEUE_NAME = "send-receive-batch-queue";
 
+	private static final String SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME = "send-receive-batch-fifo-queue.fifo";
+
 	private static final String RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME = "record-without-type-header-queue";
 
 	private static final String EMPTY_QUEUE_NAME = "empty-message-queue";
@@ -63,7 +65,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			createQueue(client, RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME),
 			createQueue(client, SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME),
 			createQueue(client, EMPTY_QUEUE_NAME),
-			createFifoQueue(client, SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME))
+			createFifoQueue(client, SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME),
+			createFifoQueue(client, SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME))
 			.join();
 	}
 
@@ -174,6 +177,30 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			.receiveFifo(from -> from.queue(SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME));
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testBody);
 	}
+
+
+	@Test
+	void shouldSendAndReceiveBatchFifo() {
+		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
+		List<Message<SampleRecord>> messagesToSend = IntStream
+			.range(0, 5)
+			.mapToObj(index -> new SampleRecord("Hello world - " + index, "From SQS!"))
+			.map(record -> MessageBuilder.withPayload(record).build())
+			.toList();
+		template.sendFifo(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME, messagesToSend);
+		Collection<SampleRecord> receivedMessages = template
+			.receiveManyFifo(from -> from
+				.queue(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME)
+				.pollTimeout(Duration.ofSeconds(10))
+				.maxNumberOfMessages(10))
+			.stream()
+			.map(Message::getPayload)
+			.toList();
+		assertThat(receivedMessages)
+			.hasSize(5)
+			.containsExactlyElementsOf(messagesToSend.stream().map(Message::getPayload).toList());
+	}
+
 
 	@Test
 	void shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader() {

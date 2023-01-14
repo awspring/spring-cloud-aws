@@ -1,5 +1,6 @@
 package io.awspring.cloud.sqs.operations;
 
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 
@@ -40,6 +41,14 @@ public interface SqsAsyncOperations<T> extends AsyncMessagingOperations<T, SendM
 	 * @return a {@link CompletableFuture} to be completed with the {@link UUID} of the message.
 	 */
 	CompletableFuture<UUID> sendFifoAsync(Consumer<SqsSendOptions.Fifo<T>> to);
+
+	/**
+	 * Send a batch of messages to a Fifo SQS queue.
+	 * @param endpoint the endpoint to which to send the messages or null to use the default.
+	 * @param messages the messages.
+	 * @return a {@link CompletableFuture} to be completed with the {@link SendMessageBatchResponse}.
+	 */
+	CompletableFuture<SendMessageBatchResponse> sendFifoAsync(@Nullable String endpoint, Collection<Message<T>> messages);
 
 	/**
 	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions.Standard} options.

@@ -42,6 +42,14 @@ public interface SqsOperations<T> extends MessagingOperations<T, SendMessageBatc
 	UUID sendFifo(Consumer<SqsSendOptions.Fifo<T>> to);
 
 	/**
+	 * Send a batch of messages to a Fifo SQS queue.
+	 * @param endpoint the endpoint to which to send the messages.
+	 * @param messages the messages.
+	 * @return the {@link SendMessageBatchResponse}
+	 */
+	SendMessageBatchResponse sendFifo(String endpoint, Collection<Message<T>> messages);
+
+	/**
 	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions.Standard} options.
 	 * @param from a {@link SqsReceiveOptions.Standard} consumer.
 	 * @return The message, or an empty collection if none is returned.

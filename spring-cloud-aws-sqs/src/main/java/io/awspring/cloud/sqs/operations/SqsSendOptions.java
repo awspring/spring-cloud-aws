@@ -19,7 +19,7 @@ public interface SqsSendOptions<T, O extends SqsSendOptions<T, O>> {
 	O queue(String queue);
 
 	/**
-	 * The payload to send in the message. The payload will be serialized if necessary.
+	 * Set the  payload to send in the message. The payload will be serialized if necessary.
 	 * @param payload the payload.
 	 * @return the options instance.
 	 */

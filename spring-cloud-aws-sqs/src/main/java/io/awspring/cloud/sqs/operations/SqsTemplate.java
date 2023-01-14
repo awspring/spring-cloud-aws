@@ -107,12 +107,24 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 		Assert.notNull(to, "to must not be null");
 		SendFifoOptionsImpl<T> options = new SendFifoOptionsImpl<>();
 		to.accept(options);
-		MessageBuilder<T> builder = messageBuilderFromOptions(options);
-		builder.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER,
-			getUUIDOrRandom(options.messageGroupId));
-		builder.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER,
-			getUUIDOrRandom(options.messageDeduplicationId));
-		return sendAsync(options.queue, builder.build());
+		return sendAsync(options.queue, messageBuilderFromOptions(options)
+				.setHeaderIfAbsent(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, getUUIDOrRandom(options.messageGroupId))
+				.setHeaderIfAbsent(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, getUUIDOrRandom(options.messageDeduplicationId))
+			.build());
+	}
+
+	@Override
+	public SendMessageBatchResponse sendFifo(String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
+		return sendFifoAsync(endpoint, messages).join();
+	}
+
+	@Override
+	public CompletableFuture<SendMessageBatchResponse> sendFifoAsync(@Nullable String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
+		Assert.notEmpty(messages, "messages must not be empty");
+		return sendAsync(endpoint, messages.stream().map(msg -> MessageBuilder.fromMessage(msg)
+				.setHeaderIfAbsent(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID())
+				.setHeaderIfAbsent(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, UUID.randomUUID())
+			.build()).toList());
 	}
 
 	@Override
