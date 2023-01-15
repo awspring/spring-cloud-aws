@@ -45,8 +45,10 @@ import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
  * {@code findResourcesInBucketWithKeyPattern} method.
  * </p>
  *
+ * @author Alain Sahli
+ * @author Agim Emruli
  * @author Tobias Soloschenko
- * @since 2.0
+ * @since 1.0
  */
 public class S3PathMatchingResourcePatternResolver implements ResourcePatternResolver {
 
