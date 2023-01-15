@@ -26,6 +26,7 @@ import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import io.awspring.cloud.core.env.ResourceIdResolver;
+import io.awspring.cloud.core.naming.AmazonResourceName;
 
 import org.springframework.messaging.core.DestinationResolutionException;
 import org.springframework.messaging.core.DestinationResolver;
@@ -87,7 +88,15 @@ public class DynamicQueueUrlDestinationResolver implements DestinationResolver<S
 		}
 		else {
 			try {
-				GetQueueUrlResult getQueueUrlResult = this.amazonSqs.getQueueUrl(new GetQueueUrlRequest(queueName));
+				GetQueueUrlRequest request = new GetQueueUrlRequest(queueName);
+
+				if (AmazonResourceName.isValidAmazonResourceName(queueName)) {
+					AmazonResourceName resourceName = AmazonResourceName.fromString(name);
+					request.setQueueName(resourceName.getResourceType());
+					request.setQueueOwnerAWSAccountId(resourceName.getAccount());
+				}
+
+				GetQueueUrlResult getQueueUrlResult = this.amazonSqs.getQueueUrl(request);
 				return getQueueUrlResult.getQueueUrl();
 			}
 			catch (QueueDoesNotExistException e) {
