@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Synchronous messaging operations.
@@ -18,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface MessagingOperations<T, R> {
+public interface MessagingOperations<T> {
 
 	/**
 	 * Send a {@link Message} to the default endpoint with the provided payload.
@@ -27,7 +26,7 @@ public interface MessagingOperations<T, R> {
 	 * @param payload the payload to send.
 	 * @return The message's {@link UUID}.
 	 */
-	UUID send(T payload);
+	SendResult<T> send(T payload);
 
 	/**
 	 * Send a message to the provided endpoint with the provided payload.
@@ -37,7 +36,7 @@ public interface MessagingOperations<T, R> {
 	 * @param payload the payload to send.
 	 * @return The message's {@link UUID}.
 	 */
-	UUID send(@Nullable String endpointName, T payload);
+	SendResult<T> send(@Nullable String endpointName, T payload);
 
 	/**
 	 * Send the provided message along with its headers to the provided endpoint.
@@ -48,7 +47,7 @@ public interface MessagingOperations<T, R> {
 	 * @param message the message to be sent.
 	 * @return The message's {@link UUID}.
 	 */
-	UUID send(@Nullable String endpointName, Message<T> message);
+	SendResult<T> send(@Nullable String endpointName, Message<T> message);
 
 	/**
 	 * Send the provided messages along with their headers to the provided endpoint.
@@ -59,7 +58,7 @@ public interface MessagingOperations<T, R> {
 	 * @param messages the messages to be sent.
 	 * @return The message's {@link UUID}.
 	 */
-	R send(@Nullable String endpointName, Collection<Message<T>> messages);
+	SendResult.Batch<T> sendMany(@Nullable String endpointName, Collection<Message<T>> messages);
 
 	/**
 	 * Receive a message from the default endpoint with default settings.

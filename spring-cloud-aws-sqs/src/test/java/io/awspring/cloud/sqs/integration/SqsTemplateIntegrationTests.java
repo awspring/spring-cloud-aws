@@ -1,6 +1,7 @@
 package io.awspring.cloud.sqs.integration;
 
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
+import io.awspring.cloud.sqs.operations.SendResult;
 import io.awspring.cloud.sqs.operations.SqsOperations;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.TemplateAcknowledgementMode;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -75,10 +77,10 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SqsTemplate<Object> template = SqsTemplate
 			.newTemplate(this.asyncClient);
 		String testBody = "Hello world!";
-		UUID messageId = template.send(to -> to
+		SendResult<Object> result = template.send(to -> to
 			.queue(SENDS_AND_RECEIVES_MESSAGE_QUEUE_NAME)
 			.payload(testBody));
-		assertThat(messageId).isNotNull();
+		assertThat(result).isNotNull();
 		Optional<Message<Object>> receivedMessage = template.receive(from -> from
 			.queue(SENDS_AND_RECEIVES_MESSAGE_QUEUE_NAME));
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testBody);
@@ -88,8 +90,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	void shouldSendAndReceiveRecordMessageAndAcknowledge() {
 		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
-		UUID messageId = template.send(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME, testRecord);
-		assertThat(messageId).isNotNull();
+		SendResult<SampleRecord> result = template.send(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME, testRecord);
+		assertThat(result).isNotNull();
 		Optional<Message<SampleRecord>> receivedMessage = template.receive(from -> from
 			.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME));
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testRecord);
@@ -152,7 +154,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			.mapToObj(index -> new SampleRecord("Hello world - " + index, "From SQS!"))
 			.map(record -> MessageBuilder.withPayload(record).build())
 			.toList();
-		template.send(SENDS_AND_RECEIVES_BATCH_QUEUE_NAME, messagesToSend);
+		SendResult.Batch<SampleRecord> response = template.sendMany(SENDS_AND_RECEIVES_BATCH_QUEUE_NAME, messagesToSend);
 		Collection<SampleRecord> receivedMessages = template
 			.receiveMany(from -> from
 				.queue(SENDS_AND_RECEIVES_BATCH_QUEUE_NAME)
@@ -178,7 +180,6 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testBody);
 	}
 
-
 	@Test
 	void shouldSendAndReceiveBatchFifo() {
 		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
@@ -201,7 +202,6 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			.containsExactlyElementsOf(messagesToSend.stream().map(Message::getPayload).toList());
 	}
 
-
 	@Test
 	void shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader() {
 		SqsTemplate<SampleRecord> template = SqsTemplate
@@ -210,8 +210,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			.defaultMessageConverter(converter -> converter.setPayloadTypeHeaderValueFunction(msg -> null))
 			.build();
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
-		UUID messageId = template.send(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME, testRecord);
-		assertThat(messageId).isNotNull();
+		SendResult<SampleRecord> result = template.send(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME, testRecord);
+		assertThat(result).isNotNull();
 		Optional<Message<SampleRecord>> receivedMessage = template.receive(from -> from
 			.queue(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME)
 			.payloadClass(SampleRecord.class));

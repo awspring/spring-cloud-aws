@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface AsyncMessagingOperations<T, R> {
+public interface AsyncMessagingOperations<T> {
 
 	/**
 	 * Send a {@link Message} to the default endpoint with the provided payload.
@@ -26,7 +26,7 @@ public interface AsyncMessagingOperations<T, R> {
 	 * @param payload the payload to send.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	CompletableFuture<UUID> sendAsync(T payload);
+	CompletableFuture<SendResult<T>> sendAsync(T payload);
 
 	/**
 	 * Send a message to the provided endpoint with the provided payload.
@@ -36,7 +36,7 @@ public interface AsyncMessagingOperations<T, R> {
 	 * @param payload the payload to send.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	CompletableFuture<UUID> sendAsync(@Nullable String endpointName, T payload);
+	CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, T payload);
 
 	/**
 	 * Send the provided message along with its headers to the provided endpoint.
@@ -47,7 +47,7 @@ public interface AsyncMessagingOperations<T, R> {
 	 * @param message the message to be sent.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	CompletableFuture<UUID> sendAsync(@Nullable String endpointName, Message<T> message);
+	CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, Message<T> message);
 
 	/**
 	 * Send the provided messages along with their headers to the provided endpoint.
@@ -58,7 +58,7 @@ public interface AsyncMessagingOperations<T, R> {
 	 * @param messages the messages to be sent.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	CompletableFuture<R> sendAsync(@Nullable String endpointName, Collection<Message<T>> messages);
+	CompletableFuture<SendResult.Batch<T>> sendManyAsync(@Nullable String endpointName, Collection<Message<T>> messages);
 
 	/**
 	 * Receive a message from the default endpoint with default settings.

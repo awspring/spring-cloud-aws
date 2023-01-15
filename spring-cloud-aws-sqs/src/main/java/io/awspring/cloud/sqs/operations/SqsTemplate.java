@@ -47,8 +47,10 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMessageBatchResponse>
+public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	implements SqsOperations<T>, SqsAsyncOperations<T> {
+
+	private static final String SEQUENCE_NUMBER_PARAMETER_NAME = "sequenceNumber";
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsTemplate.class);
 
@@ -85,17 +87,17 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 	}
 
 	@Override
-	public UUID send(Consumer<SqsSendOptions.Standard<T>> to) {
+	public SendResult<T> send(Consumer<SqsSendOptions.Standard<T>> to) {
 		return sendAsync(to).join();
 	}
 
 	@Override
-	public UUID sendFifo(Consumer<SqsSendOptions.Fifo<T>> to) {
+	public SendResult<T> sendFifo(Consumer<SqsSendOptions.Fifo<T>> to) {
 		return sendFifoAsync(to).join();
 	}
 
 	@Override
-	public CompletableFuture<UUID> sendAsync(Consumer<SqsSendOptions.Standard<T>> to) {
+	public CompletableFuture<SendResult<T>> sendAsync(Consumer<SqsSendOptions.Standard<T>> to) {
 		Assert.notNull(to, "to must not be null");
 		SendStandardOptionsImpl<T> options = new SendStandardOptionsImpl<>();
 		to.accept(options);
@@ -103,7 +105,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 	}
 
 	@Override
-	public CompletableFuture<UUID> sendFifoAsync(Consumer<SqsSendOptions.Fifo<T>> to) {
+	public CompletableFuture<SendResult<T>> sendFifoAsync(Consumer<SqsSendOptions.Fifo<T>> to) {
 		Assert.notNull(to, "to must not be null");
 		SendFifoOptionsImpl<T> options = new SendFifoOptionsImpl<>();
 		to.accept(options);
@@ -114,14 +116,14 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 	}
 
 	@Override
-	public SendMessageBatchResponse sendFifo(String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
+	public SendResult.Batch<T> sendFifo(String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
 		return sendFifoAsync(endpoint, messages).join();
 	}
 
 	@Override
-	public CompletableFuture<SendMessageBatchResponse> sendFifoAsync(@Nullable String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
+	public CompletableFuture<SendResult.Batch<T>> sendFifoAsync(@Nullable String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
 		Assert.notEmpty(messages, "messages must not be empty");
-		return sendAsync(endpoint, messages.stream().map(msg -> MessageBuilder.fromMessage(msg)
+		return sendManyAsync(endpoint, messages.stream().map(msg -> MessageBuilder.fromMessage(msg)
 				.setHeaderIfAbsent(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID())
 				.setHeaderIfAbsent(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, UUID.randomUUID())
 			.build()).toList());
@@ -214,11 +216,19 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 	}
 
 	@Override
-	protected CompletableFuture<UUID> doSendAsync(String endpointName, Message message) {
+	protected CompletableFuture<SendResult<T>> doSendAsync(String endpointName, Message message,
+														   org.springframework.messaging.Message<T> originalMessage) {
 		logger.debug("Sending message with id {} to endpoint {}", endpointName, message.messageId());
 		return createSendMessageRequest(endpointName, message)
 			.thenCompose(this.sqsAsyncClient::sendMessage)
-			.thenApply(response -> UUID.fromString(response.messageId()));
+			.thenApply(response -> createSendResult(UUID.fromString(response.messageId()), response.sequenceNumber(), endpointName, originalMessage));
+	}
+
+	private SendResult<T> createSendResult(UUID messageId, @Nullable String sequenceNumber, String endpointName, org.springframework.messaging.Message<T> originalMessage) {
+		return new SendResult<>(messageId, endpointName, originalMessage,
+			sequenceNumber != null
+				? Collections.singletonMap(SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber)
+				: Collections.emptyMap());
 	}
 
 	private CompletableFuture<SendMessageRequest> createSendMessageRequest(String endpointName, Message message) {
@@ -239,10 +249,36 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 	}
 
 	@Override
-	protected CompletableFuture<SendMessageBatchResponse> doSendBatchAsync(String endpointName, Collection<Message> messages) {
+	protected CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName, Collection<Message> messages,
+																	  Collection<org.springframework.messaging.Message<T>> originalMessages) {
 		logger.debug("Sending messages {} to endpoint {}", messages, endpointName);
 		return createSendMessageBatchRequest(endpointName, messages)
-			.thenCompose(this.sqsAsyncClient::sendMessageBatch);
+			.thenCompose(this.sqsAsyncClient::sendMessageBatch)
+			.thenApply(response -> createSendResultBatch(response, endpointName,
+				originalMessages.stream().collect(Collectors.toMap(MessageHeaderUtils::getId, msg -> msg))));
+	}
+
+	private SendResult.Batch<T> createSendResultBatch(SendMessageBatchResponse response, String endpointName,
+													  Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		return new SendResult.Batch<>(doCreateSendResultBatch(response, endpointName, originalMessagesById),
+			createSendResultFailed(response, endpointName, originalMessagesById));
+	}
+
+	private Collection<SendResult.Failed<T>> createSendResultFailed(SendMessageBatchResponse response, String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		return response
+			.failed()
+			.stream()
+			.map(entry -> new SendResult.Failed<>(entry.message(),
+				new SendResult<>(UUID.fromString(entry.id()), endpointName, originalMessagesById.get(entry.id()), Map.of("senderFault", entry.senderFault(), "code", entry.code()))))
+			.toList();
+	}
+
+	private Collection<SendResult<T>> doCreateSendResultBatch(SendMessageBatchResponse response, String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		return response
+			.successful()
+			.stream()
+			.map(entry -> createSendResult(UUID.fromString(entry.messageId()), entry.sequenceNumber(), endpointName, originalMessagesById.get(entry.messageId())))
+			.toList();
 	}
 
 	@Nullable
@@ -260,7 +296,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 		Assert.isTrue(queueAttributes.isDone(), () -> "Queue attributes not done for " + newEndpoint);
 		conversionContext.setQueueAttributes(queueAttributes.join());
 		conversionContext.setPayloadClass(payloadClass);
-		conversionContext.setAcknowledgementCallback(new TemplateAcknowledgementCallback<>());
+		conversionContext.setAcknowledgementCallback(new TemplateAcknowledgementCallback());
 		return conversionContext;
 	}
 
@@ -776,7 +812,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message, SendMe
 
 	}
 
-	private class TemplateAcknowledgementCallback<T> implements AcknowledgementCallback<T> {
+	private class TemplateAcknowledgementCallback implements AcknowledgementCallback<T> {
 
 		@Override
 		public CompletableFuture<Void> onAcknowledge(org.springframework.messaging.Message<T> message) {

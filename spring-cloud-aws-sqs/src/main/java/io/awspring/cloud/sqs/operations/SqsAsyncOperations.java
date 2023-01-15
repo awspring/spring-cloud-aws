@@ -26,21 +26,21 @@ import java.util.function.Consumer;
  * @since 3.0
  * @param <T> the message payload type, or {@link Object}.
  */
-public interface SqsAsyncOperations<T> extends AsyncMessagingOperations<T, SendMessageBatchResponse> {
+public interface SqsAsyncOperations<T> extends AsyncMessagingOperations<T> {
 
 	/**
 	 * Send a message to a Standard SQS queue using the {@link SqsSendOptions.Standard} options.
 	 * @param to a {@link SqsSendOptions.Standard} consumer.
 	 * @return a {@link CompletableFuture} to be completed with the {@link UUID} of the message.
 	 */
-	CompletableFuture<UUID> sendAsync(Consumer<SqsSendOptions.Standard<T>> to);
+	CompletableFuture<SendResult<T>> sendAsync(Consumer<SqsSendOptions.Standard<T>> to);
 
 	/**
 	 * Send a message to a Fifo SQS queue using the {@link SqsSendOptions.Fifo} options.
 	 * @param to a {@link SqsSendOptions.Fifo} consumer.
 	 * @return a {@link CompletableFuture} to be completed with the {@link UUID} of the message.
 	 */
-	CompletableFuture<UUID> sendFifoAsync(Consumer<SqsSendOptions.Fifo<T>> to);
+	CompletableFuture<SendResult<T>> sendFifoAsync(Consumer<SqsSendOptions.Fifo<T>> to);
 
 	/**
 	 * Send a batch of messages to a Fifo SQS queue.
@@ -48,7 +48,7 @@ public interface SqsAsyncOperations<T> extends AsyncMessagingOperations<T, SendM
 	 * @param messages the messages.
 	 * @return a {@link CompletableFuture} to be completed with the {@link SendMessageBatchResponse}.
 	 */
-	CompletableFuture<SendMessageBatchResponse> sendFifoAsync(@Nullable String endpoint, Collection<Message<T>> messages);
+	CompletableFuture<SendResult.Batch<T>> sendFifoAsync(@Nullable String endpoint, Collection<Message<T>> messages);
 
 	/**
 	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions.Standard} options.

@@ -23,23 +23,23 @@ import java.util.function.Consumer;
  *
  * @author Tomaz Fernandes
  * @since 3.0
- * @param <T>
+ * @param <T> the payload type
  */
-public interface SqsOperations<T> extends MessagingOperations<T, SendMessageBatchResponse> {
+public interface SqsOperations<T> extends MessagingOperations<T> {
 
 	/**
 	 * Send a message to a Standard SQS queue using the {@link SqsSendOptions.Standard} options.
 	 * @param to a {@link SqsSendOptions.Standard} consumer.
 	 * @return The {@link UUID} of the message.
 	 */
-	UUID send(Consumer<SqsSendOptions.Standard<T>> to);
+	SendResult<T> send(Consumer<SqsSendOptions.Standard<T>> to);
 
 	/**
 	 * Send a message to a Fifo SQS queue using the {@link SqsSendOptions.Fifo} options.
 	 * @param to a {@link SqsSendOptions.Fifo} consumer.
 	 * @return The {@link UUID} of the message.
 	 */
-	UUID sendFifo(Consumer<SqsSendOptions.Fifo<T>> to);
+	SendResult<T> sendFifo(Consumer<SqsSendOptions.Fifo<T>> to);
 
 	/**
 	 * Send a batch of messages to a Fifo SQS queue.
@@ -47,7 +47,7 @@ public interface SqsOperations<T> extends MessagingOperations<T, SendMessageBatc
 	 * @param messages the messages.
 	 * @return the {@link SendMessageBatchResponse}
 	 */
-	SendMessageBatchResponse sendFifo(String endpoint, Collection<Message<T>> messages);
+	SendResult.Batch<T> sendFifo(String endpoint, Collection<Message<T>> messages);
 
 	/**
 	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions.Standard} options.

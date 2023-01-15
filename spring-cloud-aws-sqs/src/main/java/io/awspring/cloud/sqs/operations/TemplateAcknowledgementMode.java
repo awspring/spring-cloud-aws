@@ -5,6 +5,9 @@ import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
 /**
  * Acknowledgement modes to be used by a {@link org.springframework.messaging.core.MessageReceivingOperations}
  * implementation.
+ *
+ * @author Tomaz Fernandes
+ * @since 3.0
  */
 public enum TemplateAcknowledgementMode {
 
