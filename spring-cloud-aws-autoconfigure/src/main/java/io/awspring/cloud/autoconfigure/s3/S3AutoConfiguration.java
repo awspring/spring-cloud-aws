@@ -91,7 +91,8 @@ public class S3AutoConfiguration {
 			AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
 		S3Presigner.Builder builder = S3Presigner.builder().serviceConfiguration(properties.toS3Configuration())
 				.credentialsProvider(credentialsProvider).region(regionProvider.getRegion());
-		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(properties.getEndpoint()).ifPresentOrElse(builder::endpointOverride,
+			() -> Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride));
 		Optional.ofNullable(awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
 		Optional.ofNullable(awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
 		return builder.build();
