@@ -194,6 +194,18 @@ s3Template.upload(BUCKET, "file.txt", is);
 s3Template.upload(BUCKET, "file.txt", is, ObjectMetadata.builder().contentType("text/plain").build());
 ----
 
+Another feature of `S3Template` is the ability to generate signed URLs for getting/putting S3 objects in a single method call.
+[source,java]
+----
+@Autowired
+private S3Template template;
+private final String BUCKET = "bucket_name";
+private final String KEY = "file.txt";
+private final Duration DUR = Duration.ofMinutes(5);
+
+URL signedGetUrl = template.createSignedGetUrl(BUCKET, KEY, DUR);
+
+----
 `S3Template` also allows storing & retrieving Java objects.
 
 [source,java]
