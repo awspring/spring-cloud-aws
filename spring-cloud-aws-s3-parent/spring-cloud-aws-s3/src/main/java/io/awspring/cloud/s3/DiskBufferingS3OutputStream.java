@@ -23,10 +23,10 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
  * {@link S3OutputStream} implementation, that first uploads to a local file in tmp folder and then flushes file to S3.
- *
- * Originally developed in
- * https://github.com/Alluxio/alluxio/blob/master/underfs/s3a/src/main/java/alluxio/underfs/s3a/S3AOutputStream.java and
- * adopted to Spring Cloud AWS needs.
+ * <p>
+ * Originally developed in <a href=
+ * "https://github.com/Alluxio/alluxio/blob/master/underfs/s3a/src/main/java/alluxio/underfs/s3a/S3AOutputStream.java">...</a>
+ * and adopted to Spring Cloud AWS needs.
  *
  * @author Maciej Walkowiak
  * @since 3.0

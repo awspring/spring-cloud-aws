@@ -18,6 +18,7 @@ package io.awspring.cloud.sns.core;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * SNS notification object.
@@ -53,6 +54,7 @@ public class SnsNotification<T> {
 	}
 
 	public SnsNotification(T payload, @Nullable Map<String, Object> headers) {
+		Assert.notNull(payload, "payload is required");
 		this.payload = payload;
 		this.headers = headers;
 	}

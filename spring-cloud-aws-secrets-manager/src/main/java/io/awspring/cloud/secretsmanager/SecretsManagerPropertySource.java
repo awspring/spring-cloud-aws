@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -48,7 +49,14 @@ public class SecretsManagerPropertySource
 
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
+	/**
+	 * Full secret path containing both secret id and prefix.
+	 */
 	private final String context;
+
+	/**
+	 * Id of a secret stored in AWS Secrets Manager.
+	 */
 	private final String secretId;
 
 	/**
@@ -62,6 +70,7 @@ public class SecretsManagerPropertySource
 
 	public SecretsManagerPropertySource(String context, SecretsManagerClient smClient) {
 		super("aws-secretsmanager:" + context, smClient);
+		Assert.notNull(context, "context is required");
 		this.context = context;
 		this.secretId = resolveSecretId(context);
 		this.prefix = resolvePrefix(context);

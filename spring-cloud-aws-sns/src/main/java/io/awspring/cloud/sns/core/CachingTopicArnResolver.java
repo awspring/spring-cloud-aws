@@ -17,6 +17,7 @@ package io.awspring.cloud.sns.core;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.arns.Arn;
 
 /**
@@ -31,11 +32,14 @@ public class CachingTopicArnResolver implements TopicArnResolver {
 	private final Map<String, Arn> cache = new ConcurrentHashMap<>();
 
 	public CachingTopicArnResolver(TopicArnResolver topicArnResolver) {
+		Assert.notNull(topicArnResolver, "topicArnResolver is required");
 		this.delegate = topicArnResolver;
 	}
 
 	@Override
 	public Arn resolveTopicArn(String topicName) {
+		Assert.notNull(topicName, "topicName is required");
+
 		if (topicName.toLowerCase().startsWith("arn:")) {
 			return delegate.resolveTopicArn(topicName);
 		}

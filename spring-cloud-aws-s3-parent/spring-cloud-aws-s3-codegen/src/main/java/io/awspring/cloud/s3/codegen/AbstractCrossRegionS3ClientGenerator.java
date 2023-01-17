@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 /**
  * Generates AbstractCrossRegionS3Client class from {@link AbstractCrossRegionS3ClientTemplate}.
- *
+ * <p>
  * Generated methods wrap every bucket-specific {@link S3Client} method with
  * {@link AbstractCrossRegionS3ClientTemplate#executeInBucketRegion(String, Function)} and every bucket-independent
  * {@link S3Client} method with {@link AbstractCrossRegionS3ClientTemplate#executeInDefaultRegion(Function)}

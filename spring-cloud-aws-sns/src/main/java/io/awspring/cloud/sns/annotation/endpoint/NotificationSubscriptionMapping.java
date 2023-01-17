@@ -28,12 +28,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * model. This annotation configures a method to receive notification subscriptions using a
  * {@link io.awspring.cloud.sns.handlers.NotificationStatus} object and to confirm them using the
  * {@link io.awspring.cloud.sns.handlers.NotificationStatus#confirmSubscription()} method.
- *
+ * <p>
  * A notification controller will be mapped to a particular url inside the application context. The mapped url must be
  * configured inside the Amazon Web Service platform as a subscription. Before receiving any notification itself a
  * controller must confirm the subscription. After confirming the subscription, the controller will start to receive
  * notifications using an annotated {@link NotificationMessageMapping} method.
- *
+ * <p>
  * Since 3.0 Annotation can be used on a method level and provide path mapping. Works like {@link RequestMapping}.
  *
  * @author Agim Emruli

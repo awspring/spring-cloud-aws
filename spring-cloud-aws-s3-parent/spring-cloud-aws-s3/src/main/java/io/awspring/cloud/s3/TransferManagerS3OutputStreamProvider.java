@@ -29,6 +29,7 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 public class TransferManagerS3OutputStreamProvider implements S3OutputStreamProvider {
 
 	private final S3TransferManager s3TransferManager;
+
 	@Nullable
 	private final S3ObjectContentTypeResolver contentTypeResolver;
 

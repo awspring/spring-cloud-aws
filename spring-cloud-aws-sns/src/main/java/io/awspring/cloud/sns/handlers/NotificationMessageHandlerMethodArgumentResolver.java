@@ -35,7 +35,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Handles conversion of SNS notification value to a variable that is annotated with {@link NotificationMessage}.
- * Validation is not implemented in SDKv2. https://github.com/aws/aws-sdk-java-v2/issues/1302
+ * Validation is not implemented in SDKv2. <a href="https://github.com/aws/aws-sdk-java-v2/issues/1302">...</a>
  *
  * @author Agim Emruli
  * @author Manuel Wessner

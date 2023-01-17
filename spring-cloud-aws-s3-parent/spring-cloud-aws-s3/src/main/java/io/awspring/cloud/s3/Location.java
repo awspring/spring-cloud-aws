@@ -149,7 +149,7 @@ class Location {
 			throw new IllegalArgumentException("The location :'" + location + "' does not contain a valid bucket name");
 		}
 
-		return location.substring(++objectNameEndIndex, location.length());
+		return location.substring(++objectNameEndIndex);
 	}
 
 }

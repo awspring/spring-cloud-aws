@@ -29,9 +29,8 @@ public enum QueueNotFoundStrategy {
 	FAIL,
 
 	/**
-	 * Create queues that are not found at startup.
-	 * Mind that in production environments the application might not have permissions
-	 * to create the queue and throw an exception.
+	 * Create queues that are not found at startup. Mind that in production environments the application might not have
+	 * permissions to create the queue and throw an exception.
 	 */
 	CREATE
 

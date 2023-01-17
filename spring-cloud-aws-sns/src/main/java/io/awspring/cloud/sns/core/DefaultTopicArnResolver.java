@@ -30,6 +30,7 @@ public class DefaultTopicArnResolver implements TopicArnResolver {
 	private final SnsClient snsClient;
 
 	public DefaultTopicArnResolver(SnsClient snsClient) {
+		Assert.notNull(snsClient, "snsClient is required");
 		this.snsClient = snsClient;
 	}
 
