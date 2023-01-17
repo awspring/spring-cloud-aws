@@ -20,6 +20,8 @@ import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 
+import org.springframework.lang.Nullable;
+
 /**
  * Interface for simple DynamoDB template operations.
  *
@@ -63,6 +65,7 @@ public interface DynamoDbOperations {
 	 *     generated.
 	 * @param <T> Type of Entity object.
 	 */
+	@Nullable
 	<T> T load(Key key, Class<T> clazz);
 
 	/**
@@ -92,7 +95,7 @@ public interface DynamoDbOperations {
 	 *     {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient} to execute scan request.
 	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
 	 *     generated.
-	 * 
+	 *
 	 * @param <T> type of Entity object.
 	 * @return Iterable object which can be used to iterate pages and items.
 	 */
