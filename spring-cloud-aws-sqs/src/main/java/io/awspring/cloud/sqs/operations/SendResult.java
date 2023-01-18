@@ -8,8 +8,8 @@ import java.util.UUID;
 
 /**
  * The result of a send operation.
- * @param messageId the message id as returned by the endpoint.
- * @param message the message.
+ * @param messageId the message id as returned by the endpoint if successful, the id from the original {@link Message} if failed.
+ * @param message the message that was sent, with any additional headers added by the framework.
  * @param additionalInformation additional information on the send operation.
  * @param <T> the message payload type.
  */
@@ -28,6 +28,6 @@ public record SendResult<T>(UUID messageId, String endpoint, Message<T> message,
 	 * @param errorMessage a message with information on the error.
 	 * @param <T> the message payload type.
 	 */
-	public record Failed<T> (String errorMessage, SendResult<T> result) {}
+	public record Failed<T> (String errorMessage, String endpoint, Message<T> message, Map<String, Object> additionalInformation) {}
 
 }

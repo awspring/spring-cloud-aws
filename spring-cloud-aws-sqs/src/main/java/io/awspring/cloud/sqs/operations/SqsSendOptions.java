@@ -45,11 +45,11 @@ public interface SqsSendOptions<T, O extends SqsSendOptions<T, O>> {
 	O headers(Map<String, Object> headers);
 
 	/**
-	 * Set a delay for the message.
-	 * @param delay the delay.
+	 * Set a delay for the message in seconds.
+	 * @param delaySeconds the delay in seconds.
 	 * @return the options instance.
 	 */
-	O delay(Duration delay);
+	O delaySeconds(Integer delaySeconds);
 
 	/**
 	 * Specific options for Standard Sqs queues.

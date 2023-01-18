@@ -16,11 +16,16 @@
 package io.awspring.cloud.sqs;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageHeaderAccessor;
 
 /**
  * Utility class for extracting {@link MessageHeaders} from a {@link Message}.
@@ -86,6 +91,42 @@ public class MessageHeaderUtils {
 	 */
 	public static String getHeaderAsString(Message<?> message, String headerName) {
 		return getHeader(message, headerName, String.class);
+	}
+
+	/**
+	 * Add a header to a {@link Message} while preserving the id and timestamp.
+	 * Note that since messages are immutable, a new instance will be returned.
+	 * @param message the message to add headers to.
+	 * @param headerName the header name.
+	 * @param headerValue the header value.
+	 * @return the new message.
+	 * @param <T> the payload type.
+	 */
+	public static <T> Message<T> addHeaderToMessage(Message<T> message, String headerName, Object headerValue) {
+		return addHeadersToMessage(message, Map.of(headerName, headerValue));
+	}
+
+	/**
+	 * Add headers to a {@link Message} while preserving the id and timestamp.
+	 * Note that since messages are immutable, a new instance will be returned.
+	 * @param message the message to add headers to.
+	 * @param newHeaders the headers to add.
+	 * @return the new message.
+	 * @param <T> the payload type.
+	 */
+	public static <T> Message<T> addHeadersToMessage(Message<T> message, Map<String, Object> newHeaders) {
+		return new GenericMessage<>(message.getPayload(), addHeaders(message.getHeaders(), newHeaders));
+	}
+
+	public static MessageHeaders addHeader(MessageHeaders headers, String headerName, Object headerValue) {
+		return addHeaders(headers, Map.of(headerName, headerValue));
+	}
+
+	public static MessageHeaders addHeaders(MessageHeaders headers, Map<String, Object> newHeaders) {
+		MessageHeaderAccessor accessor = new MessageHeaderAccessor();
+		accessor.copyHeaders(headers);
+		accessor.copyHeadersIfAbsent(newHeaders);
+		return new MessagingMessageHeaders(accessor.toMessageHeaders(), headers.getId(), headers.getTimestamp());
 	}
 
 }

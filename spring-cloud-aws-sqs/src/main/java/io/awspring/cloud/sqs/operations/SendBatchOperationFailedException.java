@@ -31,7 +31,7 @@ public class SendBatchOperationFailedException extends MessagingOperationFailedE
 	 */
 	public SendBatchOperationFailedException(String msg, String endpoint, SendResult.Batch<?> sendBatchResult,
 											 @Nullable Throwable cause) {
-		super(msg, endpoint, sendBatchResult.failed().stream().map(result -> result.result().message()).toList(), cause);
+		super(msg, endpoint, sendBatchResult.failed().stream().map(SendResult.Failed::message).toList(), cause);
 		this.sendBatchResult = sendBatchResult;
 	}
 
@@ -41,6 +41,16 @@ public class SendBatchOperationFailedException extends MessagingOperationFailedE
 	 */
 	public SendResult.Batch<?> getSendBatchResult() {
 		return this.sendBatchResult;
+	}
+
+	/**
+	 * Get the detailed result of the batch send attempt,
+	 * casting the result to the provided payload type.
+	 * @return the result.
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> SendResult.Batch<T> getSendBatchResult(Class<T> payloadClass) {
+		return (SendResult.Batch<T>) this.sendBatchResult;
 	}
 
 }

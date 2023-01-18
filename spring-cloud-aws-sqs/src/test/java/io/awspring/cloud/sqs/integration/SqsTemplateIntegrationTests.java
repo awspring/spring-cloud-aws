@@ -1,9 +1,11 @@
 package io.awspring.cloud.sqs.integration;
 
+import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
 import io.awspring.cloud.sqs.operations.SendResult;
 import io.awspring.cloud.sqs.operations.SqsOperations;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.awspring.cloud.sqs.operations.SqsTemplateParameters;
 import io.awspring.cloud.sqs.operations.TemplateAcknowledgementMode;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
@@ -14,15 +16,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 
@@ -45,6 +47,10 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final String SENDS_AND_RECEIVES_BATCH_QUEUE_NAME = "send-receive-batch-queue";
 
+	private static final String RETURNS_ON_PARTIAL_BATCH_QUEUE_NAME = "returns-on-partial-batch-queue";
+
+	private static final String THROWS_ON_PARTIAL_BATCH_QUEUE_NAME = "returns-on-partial-batch-queue";
+
 	private static final String SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME = "send-receive-batch-fifo-queue.fifo";
 
 	private static final String RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME = "record-without-type-header-queue";
@@ -65,6 +71,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			createQueue(client, SENDS_AND_RECEIVES_BATCH_QUEUE_NAME),
 			createQueue(client, SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME),
 			createQueue(client, RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME),
+			createQueue(client, RETURNS_ON_PARTIAL_BATCH_QUEUE_NAME),
+			createQueue(client, THROWS_ON_PARTIAL_BATCH_QUEUE_NAME),
 			createQueue(client, SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME),
 			createQueue(client, EMPTY_QUEUE_NAME),
 			createFifoQueue(client, SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME),
@@ -101,6 +109,24 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
+	void shouldSendMessageWithDelay() {
+		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
+		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		int delaySeconds = 1;
+		SendResult<SampleRecord> result = template.send(to -> to
+			.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME)
+			.delaySeconds(delaySeconds)
+			.payload(testRecord));
+		Optional<Message<SampleRecord>> receivedMessage = template.receive(from -> from
+			.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME));
+		stopWatch.stop();
+		assertThat(stopWatch.getTotalTimeSeconds()).isGreaterThanOrEqualTo(1.0);
+		assertThat(result.message().getHeaders().get(SqsHeaders.SQS_DELAY_HEADER)).isEqualTo(delaySeconds);
+	}
+
+	@Test
 	void shouldSendAndReceiveMessageWithHeaders() {
 		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
@@ -108,6 +134,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		String myCustomValue = "MyCustomValue";
 		String myCustomHeader2 = "MyCustomHeader2";
 		String myCustomValue2 = "MyCustomValue2";
+		String myCustomHeader3 = "MyCustomHeader";
+		String myCustomValue3 = "MyCustomValue";
 		template.send(to -> to
 			.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME)
 			.payload(testRecord)
@@ -115,11 +143,12 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			.headers(Map.of(myCustomHeader2, myCustomValue2))
 		);
 		Optional<Message<SampleRecord>> receivedMessage = template.receive(from -> from
-			.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME));
+			.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME)
+			.additionalHeaders(Map.of(myCustomHeader3, myCustomValue3)));
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getHeaders)
 			.asInstanceOf(InstanceOfAssertFactories.MAP)
-			.containsKeys(myCustomHeader, myCustomHeader2)
-			.containsValues(myCustomValue, myCustomValue2);
+			.containsKeys(myCustomHeader, myCustomHeader2, myCustomHeader3)
+			.containsValues(myCustomValue, myCustomValue2, myCustomValue3);
 	}
 
 	@Test
@@ -127,7 +156,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SqsTemplate<SampleRecord> template = SqsTemplate.<SampleRecord>builder()
 			.sqsAsyncClient(this.asyncClient)
 			.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.DO_NOT_ACKNOWLEDGE)
-				.endpointName(SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME))
+				.defaultEndpointName(SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME))
 			.build();
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		template.send(to -> to.payload(testRecord));
@@ -148,58 +177,103 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendAndReceiveBatch() {
-		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
+		SqsOperations<SampleRecord> template = SqsTemplate.<SampleRecord>builder()
+			.sqsAsyncClient(this.asyncClient)
+			.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.DO_NOT_ACKNOWLEDGE))
+			.buildSyncTemplate();
 		List<Message<SampleRecord>> messagesToSend = IntStream
 			.range(0, 5)
 			.mapToObj(index -> new SampleRecord("Hello world - " + index, "From SQS!"))
 			.map(record -> MessageBuilder.withPayload(record).build())
 			.toList();
 		SendResult.Batch<SampleRecord> response = template.sendMany(SENDS_AND_RECEIVES_BATCH_QUEUE_NAME, messagesToSend);
-		Collection<SampleRecord> receivedMessages = template
+		Collection<Message<SampleRecord>> receivedMessages = template
 			.receiveMany(from -> from
 				.queue(SENDS_AND_RECEIVES_BATCH_QUEUE_NAME)
 				.pollTimeout(Duration.ofSeconds(10))
-				.maxNumberOfMessages(10))
-			.stream()
+				.maxNumberOfMessages(10)
+				.visibilityTimeout(Duration.ofSeconds(1))
+			);
+		assertThat(receivedMessages.stream()
 			.map(Message::getPayload)
-			.toList();
-		assertThat(receivedMessages)
+			.toList())
 			.hasSize(5)
 			.containsExactlyElementsOf(messagesToSend.stream().map(Message::getPayload).toList());
+		Acknowledgement.acknowledge(receivedMessages);
+		Collection<Message<SampleRecord>> noMessages = template
+			.receiveMany(from -> from
+				.queue(SENDS_AND_RECEIVES_BATCH_QUEUE_NAME)
+				.pollTimeout(Duration.ofSeconds(2))
+			);
+		assertThat(noMessages).isEmpty();
 	}
 
 	@Test
 	void shouldSendAndReceiveMessageFifo() {
 		String testBody = "Hello world!";
 		SqsOperations<Object> template = SqsTemplate.newTemplate(this.asyncClient);
-		template.sendFifo(to -> to
+		SendResult<Object> result = template.sendFifo(to -> to
 			.queue(SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME)
 			.payload(testBody));
 		Optional<Message<Object>> receivedMessage = template
 			.receiveFifo(from -> from.queue(SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME));
-		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testBody);
+		assertThat(receivedMessage).isPresent().get().isInstanceOfSatisfying(Message.class, message -> {
+			assertThat(message.getPayload()).isEqualTo(testBody);
+			assertThat(result.additionalInformation().get(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME))
+				.isEqualTo(message.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_SEQUENCE_NUMBER));
+			assertThat(message.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER))
+				.isEqualTo(result.message().getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
+			assertThat(message.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER))
+				.isEqualTo(result.message().getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER));
+			assertThat(result.messageId()).isEqualTo(message.getHeaders().getId());
+		});
+
 	}
 
 	@Test
 	void shouldSendAndReceiveBatchFifo() {
+		int batchSize = 5;
 		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
 		List<Message<SampleRecord>> messagesToSend = IntStream
-			.range(0, 5)
+			.range(0, batchSize)
 			.mapToObj(index -> new SampleRecord("Hello world - " + index, "From SQS!"))
 			.map(record -> MessageBuilder.withPayload(record).build())
 			.toList();
-		template.sendFifo(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME, messagesToSend);
-		Collection<SampleRecord> receivedMessages = template
+		SendResult.Batch<SampleRecord> batchSendResult = template.sendManyFifo(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME, messagesToSend);
+		List<SendResult<SampleRecord>> successful = new ArrayList<>(batchSendResult.successful());
+		assertThat(batchSendResult.failed()).isEmpty();
+		assertThat(successful).hasSize(batchSize);
+		IntStream.range(0, batchSize)
+				.forEach(index -> {
+					SendResult<SampleRecord> result = successful.get(index);
+					Message<SampleRecord> originalMessage = messagesToSend.get(index);
+					assertThat(result.endpoint()).isEqualTo(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME);
+					assertThat(result.message().getPayload()).isEqualTo(originalMessage.getPayload());
+					assertThat(result.message().getHeaders().getId()).isEqualTo(originalMessage.getHeaders().getId());
+					assertThat(result.message().getHeaders())
+						.containsKeys(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER);
+					assertThat(result.additionalInformation().get(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME)).isNotNull();
+				});
+		List<Message<SampleRecord>> receivedMessages = new ArrayList<>(template
 			.receiveManyFifo(from -> from
 				.queue(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME)
 				.pollTimeout(Duration.ofSeconds(10))
-				.maxNumberOfMessages(10))
-			.stream()
-			.map(Message::getPayload)
-			.toList();
-		assertThat(receivedMessages)
-			.hasSize(5)
-			.containsExactlyElementsOf(messagesToSend.stream().map(Message::getPayload).toList());
+				.maxNumberOfMessages(10)));
+		IntStream.range(0, batchSize)
+			.forEach(index -> {
+				SendResult<SampleRecord> result = successful.get(index);
+				Message<SampleRecord> originalMessage = messagesToSend.get(index);
+				Message<SampleRecord> receivedMessage = receivedMessages.get(index);
+				assertThat(receivedMessage.getPayload()).isEqualTo(originalMessage.getPayload());
+				assertThat(receivedMessage.getHeaders().getId()).isEqualTo(result.messageId());
+				assertThat(result.message().getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER))
+					.isEqualTo(receivedMessage.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
+				assertThat(result.message().getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER))
+					.isEqualTo(receivedMessage.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER));
+				assertThat(result.additionalInformation().get(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME))
+					.isEqualTo(receivedMessage.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_SEQUENCE_NUMBER));
+			});
+
 	}
 
 	@Test
@@ -207,7 +281,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SqsTemplate<SampleRecord> template = SqsTemplate
 			.<SampleRecord>builder()
 			.sqsAsyncClient(this.asyncClient)
-			.defaultMessageConverter(converter -> converter.setPayloadTypeHeaderValueFunction(msg -> null))
+			.setupDefaultConverter(converter -> converter.setPayloadTypeHeaderValueFunction(msg -> null))
 			.build();
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		SendResult<SampleRecord> result = template.send(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME, testRecord);

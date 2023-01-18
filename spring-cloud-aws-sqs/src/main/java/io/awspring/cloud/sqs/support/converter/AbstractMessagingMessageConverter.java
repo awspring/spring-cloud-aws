@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
@@ -143,17 +145,8 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	private MessageHeaders createMessageHeaders(S message, @Nullable MessageConversionContext context) {
 		MessageHeaders messageHeaders = this.headerMapper.toHeaders(message);
 		return context != null && this.headerMapper instanceof ContextAwareHeaderMapper
-				? addContextHeaders(message, context, messageHeaders)
+				? MessageHeaderUtils.addHeaders(messageHeaders, getContextHeaders(message, context))
 				: messageHeaders;
-	}
-
-	private MessageHeaders addContextHeaders(S message, MessageConversionContext context,
-			MessageHeaders messageHeaders) {
-		MessageHeaders contextHeaders = getContextHeaders(message, context);
-		MessageHeaderAccessor accessor = new MessageHeaderAccessor();
-		accessor.copyHeaders(messageHeaders);
-		accessor.copyHeaders(contextHeaders);
-		return accessor.getMessageHeaders();
 	}
 
 	private MessageHeaders getContextHeaders(S message, MessageConversionContext context) {
@@ -206,16 +199,9 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	private MessageHeaders getMessageHeaders(Message<?> message) {
 		String typeHeaderName = this.payloadTypeHeaderFunction.apply(message);
-		return typeHeaderName != null ? addTypeInfo(message, typeHeaderName) : message.getHeaders();
-	}
-
-	private MessageHeaders addTypeInfo(Message<?> message, String typeHeaderName) {
-		MessageHeaders headers;
-		MessageHeaderAccessor accessor = new MessageHeaderAccessor();
-		accessor.copyHeaders(message.getHeaders());
-		accessor.setHeader(this.typeHeader, typeHeaderName);
-		headers = accessor.getMessageHeaders();
-		return headers;
+ 		return typeHeaderName != null
+			? MessageHeaderUtils.addHeader(message.getHeaders(), this.typeHeader, typeHeaderName)
+			: message.getHeaders();
 	}
 
 	protected abstract S doConvertMessage(S messageWithHeaders, Object payload);

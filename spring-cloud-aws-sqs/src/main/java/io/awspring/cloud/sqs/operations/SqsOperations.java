@@ -6,7 +6,6 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 /**
@@ -47,7 +46,7 @@ public interface SqsOperations<T> extends MessagingOperations<T> {
 	 * @param messages the messages.
 	 * @return the {@link SendMessageBatchResponse}
 	 */
-	SendResult.Batch<T> sendFifo(String endpoint, Collection<Message<T>> messages);
+	SendResult.Batch<T> sendManyFifo(String endpoint, Collection<Message<T>> messages);
 
 	/**
 	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions.Standard} options.

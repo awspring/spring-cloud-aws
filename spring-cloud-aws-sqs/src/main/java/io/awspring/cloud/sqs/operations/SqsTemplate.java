@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
 import java.time.Duration;
@@ -49,8 +50,6 @@ import java.util.stream.Collectors;
 
 public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	implements SqsOperations<T>, SqsAsyncOperations<T> {
-
-	private static final String SEQUENCE_NUMBER_PARAMETER_NAME = "sequenceNumber";
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsTemplate.class);
 
@@ -78,12 +77,46 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		this.messageSystemAttributeNames = options.messageSystemAttributeNames;
 	}
 
+	/**
+	 * Create a new {@link Builder}.
+	 * @return the builder.
+	 * @param <T> the payload type.
+	 */
 	public static <T> Builder<T> builder() {
 		return new BuilderImpl<>();
 	}
 
+	/**
+	 * Create a new {@link SqsTemplate} instance with the provided {@link SqsAsyncClient}
+	 * and both sync and async operations.
+	 * @param sqsAsyncClient the client to be used by the template.
+	 * @return the {@link SqsTemplate} instance.
+	 * @param <T> the payload type.
+	 */
 	public static <T> SqsTemplate<T> newTemplate(SqsAsyncClient sqsAsyncClient) {
 		return new BuilderImpl<T>().sqsAsyncClient(sqsAsyncClient).build();
+	}
+
+	/**
+	 * Create a new {@link SqsTemplate} instance with the provided {@link SqsAsyncClient},
+	 * only exposing the sync methods contained in {@link SqsOperations}.
+	 * @param sqsAsyncClient the client.
+	 * @return the new template instance.
+	 * @param <T> the payload type.
+	 */
+	public static <T> SqsOperations<T> newSyncTemplate(SqsAsyncClient sqsAsyncClient) {
+		return newTemplate(sqsAsyncClient);
+	}
+
+	/**
+	 * Create a new {@link SqsTemplate} instance with the provided {@link SqsAsyncClient},
+	 * only exposing the async methods contained in {@link SqsAsyncOperations}.
+	 * @param sqsAsyncClient the client.
+	 * @return the new template instance.
+	 * @param <T> the payload type.
+	 */
+	public static <T> SqsAsyncOperations<T> newAsyncTemplate(SqsAsyncClient sqsAsyncClient) {
+		return newTemplate(sqsAsyncClient);
 	}
 
 	@Override
@@ -101,7 +134,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		Assert.notNull(to, "to must not be null");
 		SendStandardOptionsImpl<T> options = new SendStandardOptionsImpl<>();
 		to.accept(options);
-		return sendAsync(options.queue, messageBuilderFromOptions(options).build());
+		return sendAsync(options.queue, messageFromSendOptions(options));
 	}
 
 	@Override
@@ -109,24 +142,28 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		Assert.notNull(to, "to must not be null");
 		SendFifoOptionsImpl<T> options = new SendFifoOptionsImpl<>();
 		to.accept(options);
-		return sendAsync(options.queue, messageBuilderFromOptions(options)
-				.setHeaderIfAbsent(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, getUUIDOrRandom(options.messageGroupId))
-				.setHeaderIfAbsent(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, getUUIDOrRandom(options.messageDeduplicationId))
-			.build());
+		return sendAsync(options.queue, addFifoHeaders(messageFromSendOptions(options),
+			getUUIDOrRandom(options.messageGroupId),
+			getUUIDOrRandom(options.messageDeduplicationId)));
 	}
 
 	@Override
-	public SendResult.Batch<T> sendFifo(String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
+	public SendResult.Batch<T> sendManyFifo(String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
 		return sendFifoAsync(endpoint, messages).join();
 	}
 
 	@Override
 	public CompletableFuture<SendResult.Batch<T>> sendFifoAsync(@Nullable String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
 		Assert.notEmpty(messages, "messages must not be empty");
-		return sendManyAsync(endpoint, messages.stream().map(msg -> MessageBuilder.fromMessage(msg)
-				.setHeaderIfAbsent(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID())
-				.setHeaderIfAbsent(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, UUID.randomUUID())
-			.build()).toList());
+		return sendManyAsync(endpoint, messages.stream().map(message -> addFifoHeaders(message, UUID.randomUUID(), UUID.randomUUID())).toList());
+	}
+
+	private org.springframework.messaging.Message<T> addFifoHeaders(org.springframework.messaging.Message<T> message,
+																	UUID messageGroupId, UUID messageDeduplicationID) {
+		return MessageHeaderUtils.addHeadersToMessage(message,
+			Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, messageGroupId.toString(),
+				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, messageDeduplicationID.toString()
+		));
 	}
 
 	@Override
@@ -154,6 +191,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		Assert.notNull(from, "from must not be null");
 		ReceiveStandardOptionsImpl<T> options = new ReceiveStandardOptionsImpl<>();
 		from.accept(options);
+		options.maxNumberOfMessages(1);
 		Map<String, Object> additionalHeaders = getAdditionalHeaders(options);
 		return receiveAsync(options.queue, options.payloadClass, options.pollTimeout, additionalHeaders);
 	}
@@ -163,6 +201,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		Assert.notNull(from, "from must not be null");
 		ReceiveFifoOptionsImpl<T> options = new ReceiveFifoOptionsImpl<>();
 		from.accept(options);
+		options.maxNumberOfMessages(1);
 		Map<String, Object> additionalHeaders = handleReceiveRequestHeader(options);
 		return receiveAsync(options.queue, options.payloadClass, options.pollTimeout, additionalHeaders);
 	}
@@ -204,7 +243,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		return uuid != null ? uuid : UUID.randomUUID();
 	}
 
-	private MessageBuilder<T> messageBuilderFromOptions(AbstractSqsSendOptionsImpl<T, ?> options) {
+	private org.springframework.messaging.Message<T> messageFromSendOptions(AbstractSqsSendOptionsImpl<T, ?> options) {
 		Assert.notNull(options.payload, "payload must not be null");
 		MessageBuilder<T> builder = MessageBuilder
 			.withPayload(options.payload)
@@ -212,13 +251,12 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		if (options.delay != null) {
 			builder.setHeader(SqsHeaders.SQS_DELAY_HEADER, options.delay);
 		}
-		return builder;
+		return builder.build();
 	}
 
 	@Override
 	protected CompletableFuture<SendResult<T>> doSendAsync(String endpointName, Message message,
 														   org.springframework.messaging.Message<T> originalMessage) {
-		logger.debug("Sending message with id {} to endpoint {}", endpointName, message.messageId());
 		return createSendMessageRequest(endpointName, message)
 			.thenCompose(this.sqsAsyncClient::sendMessage)
 			.thenApply(response -> createSendResult(UUID.fromString(response.messageId()), response.sequenceNumber(), endpointName, originalMessage));
@@ -227,7 +265,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	private SendResult<T> createSendResult(UUID messageId, @Nullable String sequenceNumber, String endpointName, org.springframework.messaging.Message<T> originalMessage) {
 		return new SendResult<>(messageId, endpointName, originalMessage,
 			sequenceNumber != null
-				? Collections.singletonMap(SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber)
+				? Collections.singletonMap(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber)
 				: Collections.emptyMap());
 	}
 
@@ -268,8 +306,9 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		return response
 			.failed()
 			.stream()
-			.map(entry -> new SendResult.Failed<>(entry.message(),
-				new SendResult<>(UUID.fromString(entry.id()), endpointName, originalMessagesById.get(entry.id()), Map.of("senderFault", entry.senderFault(), "code", entry.code()))))
+			.map(entry -> new SendResult.Failed<>(entry.message(), endpointName, originalMessagesById.get(entry.id()),
+					Map.of(SqsTemplateParameters.SENDER_FAULT_PARAMETER_NAME, entry.senderFault(),
+						SqsTemplateParameters.CODE_PARAMETER_NAME, entry.code())))
 			.toList();
 	}
 
@@ -277,8 +316,16 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		return response
 			.successful()
 			.stream()
-			.map(entry -> createSendResult(UUID.fromString(entry.messageId()), entry.sequenceNumber(), endpointName, originalMessagesById.get(entry.messageId())))
+			.map(entry -> createSendResult(UUID.fromString(entry.messageId()), entry.sequenceNumber(), endpointName, getOriginalMessage(originalMessagesById, entry)))
 			.toList();
+	}
+
+	private org.springframework.messaging.Message<T> getOriginalMessage(Map<String, org.springframework.messaging.Message<T>> originalMessagesById,
+																		SendMessageBatchResultEntry entry) {
+		org.springframework.messaging.Message<T> originalMessage = originalMessagesById.get(entry.id());
+		Assert.notNull(originalMessage, () -> "Could not correlate send result to original message for id %s. Original messages: %s."
+			.formatted(entry.messageId(), originalMessagesById));
+		return originalMessage;
 	}
 
 	@Nullable
@@ -409,7 +456,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	private void logAcknowledgement(String endpointName, Collection<String> receiptHandles,
 									DeleteMessageBatchResponse response, @Nullable Throwable t) {
 		if (t != null) {
-			logger.error("Error acknowledging im queue {} messages {}", endpointName, receiptHandles);
+			logger.error("Error acknowledging in queue {} messages {}", endpointName, receiptHandles);
 		}
 		else if (!response.failed().isEmpty()) {
 			logger.error("Some messages could not be acknowledged in queue {}: {}", endpointName, response
@@ -504,7 +551,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 		private Collection<QueueAttributeName> queueAttributeNames = Collections.emptyList();
 
-		private QueueNotFoundStrategy queueNotFoundStrategy = QueueNotFoundStrategy.FAIL;
+		private QueueNotFoundStrategy queueNotFoundStrategy = QueueNotFoundStrategy.CREATE;
 
 		private Collection<String> messageAttributeNames = Collections.singletonList("All");
 
@@ -563,7 +610,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		 * @param messageConverterConfigurer a {@link SqsMessagingMessageConverter} consumer.
 		 * @return the builder.
 		 */
-		Builder<T> defaultMessageConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer);
+		Builder<T> setupDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer);
 
 		/**
 		 * Configure options for the template.
@@ -573,10 +620,24 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		Builder<T> configure(Consumer<SqsTemplateOptions<T>> options);
 
 		/**
-		 * Create the template with the provided options.
+		 * Create the template with the provided options, exposing both sync and async methods.
 		 * @return the {@link SqsTemplate} instance.
 		 */
 		SqsTemplate<T> build();
+
+		/**
+		 * Create the template with the provided options, exposing only the async methods
+		 * contained in the {@link SqsAsyncOperations} interface.
+		 * @return the {@link SqsTemplate} instance.
+		 */
+		SqsAsyncOperations<T> buildAsyncTemplate();
+
+		/**
+		 * Create the template with the provided options, exposing only the sync methods
+		 * contained in the {@link SqsOperations} interface.
+		 * @return the {@link SqsTemplate} instance.
+		 */
+		SqsOperations<T> buildSyncTemplate();
 
 	}
 
@@ -608,7 +669,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 
 		@Override
-		public Builder<T> defaultMessageConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer) {
+		public Builder<T> setupDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer) {
 			Assert.notNull(messageConverterConfigurer, "messageConverterConfigurer must not be null");
 			Assert.isNull(this.messageConverter, "messageConverter already configured");
 			SqsMessagingMessageConverter defaultMessageConverter = createDefaultMessageConverter();
@@ -633,6 +694,16 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 			return new SqsTemplate<>(this);
 		}
 
+		@Override
+		public SqsOperations<T> buildSyncTemplate() {
+			return build();
+		}
+
+		@Override
+		public SqsAsyncOperations<T> buildAsyncTemplate() {
+			return build();
+		}
+
 	}
 
 	private static abstract class AbstractSqsSendOptionsImpl<T, O extends SqsSendOptions<T, O>> implements SqsSendOptions<T, O> {
@@ -646,7 +717,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		protected T payload;
 
 		@Nullable
-		protected Duration delay;
+		protected Integer delay;
 
 		@Override
 		public O queue(String queue) {
@@ -678,9 +749,9 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 
 		@Override
-		public O delay(Duration delay) {
-			Assert.notNull(delay, "delay must not be null");
-			this.delay = delay;
+		public O delaySeconds(Integer delaySeconds) {
+			Assert.notNull(delaySeconds, "delaySeconds must not be null");
+			this.delay = delaySeconds;
 			return self();
 		}
 

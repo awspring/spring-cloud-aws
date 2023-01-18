@@ -53,7 +53,7 @@ public interface Acknowledgement {
 	 * Acknowledge the provided messages.
 	 * @param messages the messages.
 	 */
-	static void acknowledge(Collection<Message<?>> messages) {
+	static <T> void acknowledge(Collection<Message<T>> messages) {
 		acknowledgeAsync(messages).join();
 	}
 
@@ -72,7 +72,7 @@ public interface Acknowledgement {
 	 * @param messages the messages.
 	 */
 	@SuppressWarnings("unchecked")
-	static CompletableFuture<Void> acknowledgeAsync(Collection<Message<?>> messages) {
+	static <T> CompletableFuture<Void> acknowledgeAsync(Collection<Message<T>> messages) {
 		return !messages.isEmpty()
 			? MessageHeaderUtils.getHeader(messages.iterator().next(), SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class)
 			.onAcknowledge(messages)

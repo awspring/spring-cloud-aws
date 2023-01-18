@@ -22,6 +22,7 @@ import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -115,7 +116,9 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 	private boolean isSkipHeader(String headerName) {
 		return SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER.equals(headerName)
 			|| SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER.equals(headerName)
-			|| SqsHeaders.SQS_DELAY_HEADER.equals(headerName);
+			|| SqsHeaders.SQS_DELAY_HEADER.equals(headerName)
+			|| MessageHeaders.ID.equals(headerName)
+			|| MessageHeaders.TIMESTAMP.equals(headerName);
 	}
 
 	private MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {

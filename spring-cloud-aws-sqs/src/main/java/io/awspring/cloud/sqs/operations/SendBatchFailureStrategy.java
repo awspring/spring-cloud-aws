@@ -6,7 +6,7 @@ package io.awspring.cloud.sqs.operations;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public enum SendBatchOperationFailureStrategy {
+public enum SendBatchFailureStrategy {
 
 	/**
 	 * Throw a {@link SendBatchOperationFailedException} with a {@link SendResult.Batch} object.

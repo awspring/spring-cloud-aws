@@ -1,9 +1,7 @@
 package io.awspring.cloud.sqs.operations;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
-import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.ContextAwareMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
@@ -11,9 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
 
 import java.time.Duration;
@@ -23,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 /**
@@ -39,8 +36,8 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	private static final Duration DEFAULT_POLL_TIMEOUT = Duration.ofSeconds(10);
 
-	private static final SendBatchOperationFailureStrategy DEFAULT_SEND_BATCH_OPERATION_FAILURE_STRATEGY =
-		SendBatchOperationFailureStrategy.THROW_EXCEPTION;
+	private static final SendBatchFailureStrategy DEFAULT_SEND_BATCH_OPERATION_FAILURE_STRATEGY =
+		SendBatchFailureStrategy.THROW_EXCEPTION;
 
 	private static final int DEFAULT_MAX_NUMBER_OF_MESSAGES = 10;
 
@@ -56,7 +53,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	private final TemplateAcknowledgementMode acknowledgementMode;
 
-	private final SendBatchOperationFailureStrategy sendBatchOperationFailureStrategy;
+	private final SendBatchFailureStrategy sendBatchFailureStrategy;
 
 	@Nullable
 	private final Class<T> defaultPayloadClass;
@@ -73,36 +70,29 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 		this.defaultPayloadClass = options.defaultPayloadClass;
 		this.defaultEndpointName = options.defaultEndpointName;
 		this.acknowledgementMode = options.acknowledgementMode;
-		this.sendBatchOperationFailureStrategy = options.sendBatchOperationFailureStrategy;
-	}
-
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "objectMapper must not be null");
-		Assert.isInstanceOf(AbstractMessagingMessageConverter.class, this.messageConverter,
-			"objectMappers can only be set on AbstractMessagingMessageConverter instances.");
-		((AbstractMessagingMessageConverter<?>) this.messageConverter).setObjectMapper(objectMapper);
+		this.sendBatchFailureStrategy = options.sendBatchFailureStrategy;
 	}
 
 	@Override
 	public Optional<Message<T>> receive() {
-		return receiveAsync().join();
+		return unwrapCompletionException(receiveAsync());
 	}
 
 	@Override
 	public Optional<Message<T>> receive(@Nullable String endpoint, @Nullable Class<T> payloadClass, @Nullable Duration pollTimeout, @Nullable Map<String, Object> additionalHeaders) {
-		return receiveAsync(endpoint, payloadClass, pollTimeout, additionalHeaders).join();
+		return unwrapCompletionException(receiveAsync(endpoint, payloadClass, pollTimeout, additionalHeaders));
 	}
 
 	@Override
 	public Collection<Message<T>> receiveMany() {
-		return receiveManyAsync().join();
+		return unwrapCompletionException(receiveManyAsync());
 	}
 
 	@Override
 	public Collection<Message<T>> receiveMany(@Nullable String endpoint, @Nullable Class<T> payloadClass,
 											  @Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
 											  @Nullable Map<String, Object> additionalHeaders) {
-		return receiveManyAsync(endpoint, payloadClass, pollTimeout, maxNumberOfMessages, additionalHeaders).join();
+		return unwrapCompletionException(receiveManyAsync(endpoint, payloadClass, pollTimeout, maxNumberOfMessages, additionalHeaders));
 	}
 
 	@Override
@@ -119,8 +109,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	@Override
 	public CompletableFuture<Collection<Message<T>>> receiveManyAsync() {
-		return receiveManyAsync(this.defaultEndpointName, this.defaultPayloadClass, this.defaultPollTimeout,
-			this.defaultMaxNumberOfMessages, this.defaultAdditionalHeaders);
+		return receiveManyAsync(null, null, null, null, null);
 	}
 
 	@Override
@@ -161,14 +150,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 		Map<String, Object> headersToAdd = handleAdditionalHeaders(additionalHeaders);
 		return headersToAdd.isEmpty()
 			? message
-			: MessageBuilder.createMessage(message.getPayload(), doAddAdditionalHeaders(message.getHeaders(), headersToAdd));
-	}
-
-	private MessageHeaders doAddAdditionalHeaders(Map<String, Object> headers, Map<String, Object> headersToAdd) {
-		MessageHeaderAccessor accessor = new MessageHeaderAccessor();
-		accessor.copyHeaders(headers);
-		accessor.copyHeaders(headersToAdd);
-		return accessor.toMessageHeaders();
+			: MessageHeaderUtils.addHeadersToMessage(message, headersToAdd);
 	}
 
 	protected abstract Map<String, Object> handleAdditionalHeaders(Map<String, Object> additionalHeaders);
@@ -182,7 +164,9 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 	protected abstract CompletableFuture<Void> doAcknowledgeMessages(String endpointName, Collection<Message<T>> messages);
 
 	private String getEndpointName(@Nullable String endpoint) {
-		return getOrDefault(endpoint, this.defaultEndpointName, "endpointName");
+		String endpointName = getOrDefault(endpoint, this.defaultEndpointName, "endpointName");
+		Assert.hasText(endpointName, "No endpoint name informed and no default value available");
+		return endpointName;
 	}
 
 	private <V> V getOrDefault(@Nullable V value, V defaultValue, String valueName) {
@@ -209,22 +193,22 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	@Override
 	public SendResult<T> send(T payload) {
-		return sendAsync(payload).join();
+		return unwrapCompletionException(sendAsync(payload));
 	}
 
 	@Override
 	public SendResult<T> send(@Nullable String endpointName, T payload) {
-		return sendAsync(endpointName, payload).join();
+		return unwrapCompletionException(sendAsync(endpointName, payload));
 	}
 
 	@Override
 	public SendResult<T> send(@Nullable String endpointName, Message<T> message) {
-		return sendAsync(endpointName, message).join();
+		return unwrapCompletionException(sendAsync(endpointName, message));
 	}
 
 	@Override
 	public SendResult.Batch<T> sendMany(@Nullable String endpointName, Collection<Message<T>> messages) {
-		return sendManyAsync(endpointName, messages).join();
+		return unwrapCompletionException(sendManyAsync(endpointName, messages));
 	}
 
 	@Override
@@ -240,7 +224,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	@Override
 	public CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, Message<T> message) {
-		String endpointToUse = getOrDefault(endpointName, this.defaultEndpointName, "endpointName");
+		String endpointToUse = getEndpointName(endpointName);
 		logger.trace("Sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointName);
 		return doSendAsync(endpointToUse, convertMessageToSend(message), message)
 			.exceptionallyCompose(t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
@@ -253,7 +237,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 	public CompletableFuture<SendResult.Batch<T>> sendManyAsync(@Nullable String endpointName,
 																Collection<Message<T>> messages) {
 		logger.trace("Sending messages {} to endpoint {}", MessageHeaderUtils.getId(messages), endpointName);
-		String endpointToUse = getOrDefault(endpointName, this.defaultEndpointName, "endpointName");
+		String endpointToUse = getEndpointName(endpointName);
 		return doSendBatchAsync(endpointToUse, convertMessagesToSend(messages), messages)
 			.exceptionallyCompose(t -> wrapSendException(messages, endpointToUse, t))
 			.thenCompose(result -> handleFailedMessages(endpointToUse, result))
@@ -262,7 +246,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	private CompletableFuture<SendResult.Batch<T>> handleFailedMessages(String endpointToUse, SendResult.Batch<T> result) {
 		return !result.failed().isEmpty()
-			&& SendBatchOperationFailureStrategy.THROW_EXCEPTION.equals(this.sendBatchOperationFailureStrategy)
+			&& SendBatchFailureStrategy.THROW_EXCEPTION.equals(this.sendBatchFailureStrategy)
 				? handleFailedSendBatch(endpointToUse, result)
 				: CompletableFuture.completedFuture(result);
 	}
@@ -302,8 +286,13 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 				MessageHeaderUtils.getId(message), endpointToUse);
 		}
 		else {
-			logger.error("Error sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointToUse, t);
+			logger.error("Error sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointToUse,
+				unwrapCompletionException(t));
 		}
+	}
+
+	private Throwable unwrapCompletionException(Throwable t) {
+		return t instanceof CompletionException && t.getCause() != null ? t.getCause() : t;
 	}
 
 	private void logSendMessageBatchResult(String endpointToUse, Collection<Message<T>> messages, @Nullable Throwable t) {
@@ -312,9 +301,23 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 				MessageHeaderUtils.getId(messages), endpointToUse);
 		}
 		else {
-			logger.error("Error sending messages {} to endpoint {}", MessageHeaderUtils.getId(messages), endpointToUse, t);
+			logger.error("Error sending messages {} to endpoint {}", MessageHeaderUtils.getId(messages), endpointToUse,
+				unwrapCompletionException(t));
 		}
 	}
+
+	private <V> V unwrapCompletionException(CompletableFuture<V> future) {
+		try {
+			return future.join();
+		}
+		catch (CompletionException ex) {
+			if (ex.getCause() instanceof RuntimeException re) {
+				throw re;
+			}
+			throw new RuntimeException("Unexpected exception", ex);
+		}
+	}
+
 
 	/**
 	 * Options to be used by the template.
@@ -325,6 +328,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 		/**
 		 * Set the acknowledgement mode for this template.
+		 * Default is {@link TemplateAcknowledgementMode#ACKNOWLEDGE_ON_RECEIVE}
 		 * @param acknowledgementMode the mode.
 		 * @return the options instance.
 		 */
@@ -332,39 +336,43 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 		/**
 		 * Set the strategy to use when handling batch send operations with at least one failed message.
-		 * @param sendBatchOperationFailureStrategy the strategy.
+		 * Default is {@link SendBatchFailureStrategy#THROW_EXCEPTION}
+		 * @param sendBatchFailureStrategy the strategy.
 		 * @return the options instance.
 		 */
-		O sendBatchOperationFailureStrategy(SendBatchOperationFailureStrategy sendBatchOperationFailureStrategy);
+		O sendBatchFailureStrategy(SendBatchFailureStrategy sendBatchFailureStrategy);
 
 		/**
 		 * Set the default maximum amount of time this template will wait for the maximum
 		 * number of messages before returning.
+		 * Default is 10 seconds.
 		 * @param defaultPollTimeout the timeout.
 		 * @return the options instance.
 		 */
-		O pollTimeout(Duration defaultPollTimeout);
+		O defaultPollTimeout(Duration defaultPollTimeout);
 
 		/**
-		 * Set the maximum number of messages to be retrieved in a single batch.
+		 * Set the default maximum number of messages to be retrieved in a single batch.
+		 * Default is 10.
 		 * @param defaultMaxNumberOfMessages the maximum number of messages.
 		 * @return the options instance.
 		 */
-		O maxNumberOfMessages(Integer defaultMaxNumberOfMessages);
+		O defaultMaxNumberOfMessages(Integer defaultMaxNumberOfMessages);
 
 		/**
 		 * Set the default endpoint name for this template.
+		 * Default is blank.
 		 * @param defaultEndpointName the default endpoint name.
 		 * @return the options instance.
 		 */
-		O endpointName(String defaultEndpointName);
+		O defaultEndpointName(String defaultEndpointName);
 
 		/**
 		 * The default class to which this template should convert payloads to.
 		 * @param defaultPayloadClass the default payload class.
 		 * @return the options instance.
 		 */
-		O payloadClass(Class<T> defaultPayloadClass);
+		O defaultPayloadClass(Class<T> defaultPayloadClass);
 
 		/**
 		 * Set a default additional header to be added to received messages.
@@ -398,7 +406,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 		private TemplateAcknowledgementMode acknowledgementMode = DEFAULT_ACKNOWLEDGEMENT_MODE;
 
-		private SendBatchOperationFailureStrategy sendBatchOperationFailureStrategy = DEFAULT_SEND_BATCH_OPERATION_FAILURE_STRATEGY;
+		private SendBatchFailureStrategy sendBatchFailureStrategy = DEFAULT_SEND_BATCH_OPERATION_FAILURE_STRATEGY;
 
 		private final Map<String, Object> defaultAdditionalHeaders = new HashMap<>();
 
@@ -413,35 +421,35 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 		}
 
 		@Override
-		public O sendBatchOperationFailureStrategy(SendBatchOperationFailureStrategy sendBatchOperationFailureStrategy) {
-			Assert.notNull(sendBatchOperationFailureStrategy, "partialBatchSendFailureStrategy must not be null");
-			this.sendBatchOperationFailureStrategy = sendBatchOperationFailureStrategy;
+		public O sendBatchFailureStrategy(SendBatchFailureStrategy sendBatchFailureStrategy) {
+			Assert.notNull(sendBatchFailureStrategy, "partialBatchSendFailureStrategy must not be null");
+			this.sendBatchFailureStrategy = sendBatchFailureStrategy;
 			return self();
 		}
 
 		@Override
-		public O pollTimeout(Duration defaultPollTimeout) {
+		public O defaultPollTimeout(Duration defaultPollTimeout) {
 			Assert.notNull(defaultPollTimeout, "pollTimeout must not be null");
 			this.defaultPollTimeout = defaultPollTimeout;
 			return self();
 		}
 
 		@Override
-		public O maxNumberOfMessages(Integer defaultMaxNumberOfMessages) {
+		public O defaultMaxNumberOfMessages(Integer defaultMaxNumberOfMessages) {
 			Assert.isTrue(defaultMaxNumberOfMessages > 0, "defaultMaxNumberOfMessages must be greater than zero");
 			this.defaultMaxNumberOfMessages = defaultMaxNumberOfMessages;
 			return self();
 		}
 
 		@Override
-		public O endpointName(String defaultEndpointName) {
+		public O defaultEndpointName(String defaultEndpointName) {
 			Assert.hasText(defaultEndpointName, "defaultEndpointName must have text");
 			this.defaultEndpointName = defaultEndpointName;
 			return self();
 		}
 
 		@Override
-		public O payloadClass(Class<T> defaultPayloadClass) {
+		public O defaultPayloadClass(Class<T> defaultPayloadClass) {
 			Assert.notNull(defaultPayloadClass, "defaultPayloadClass must not be null");
 			this.defaultPayloadClass = defaultPayloadClass;
 			return self();
