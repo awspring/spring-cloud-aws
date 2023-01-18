@@ -22,6 +22,7 @@ import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +33,7 @@ import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
-import org.springframework.messaging.support.GenericMessage;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
 
 /**
@@ -92,9 +91,20 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	 */
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		Assert.notNull(objectMapper, "messageConverter cannot be null");
-		Assert.isInstanceOf(MappingJackson2MessageConverter.class, this.payloadMessageConverter,
-			"ObjectMapper can only be set in MappingJackson2MessageConverter instances");
-		((MappingJackson2MessageConverter) this.payloadMessageConverter).setObjectMapper(objectMapper);
+		MappingJackson2MessageConverter converter = getMappingJackson2MessageConverter()
+			.orElseThrow(() -> new IllegalStateException("%s can only be set in %s instances, or %s containing one."
+				.formatted(ObjectMapper.class.getSimpleName(), MappingJackson2MessageConverter.class.getSimpleName(),
+					CompositeMessageConverter.class.getSimpleName())));
+		converter.setObjectMapper(objectMapper);
+	}
+
+	private Optional<MappingJackson2MessageConverter> getMappingJackson2MessageConverter() {
+		return this.payloadMessageConverter instanceof CompositeMessageConverter compositeConverter
+			? compositeConverter.getConverters().stream().filter(converter -> converter instanceof MappingJackson2MessageConverter)
+				.map(MappingJackson2MessageConverter.class::cast).findFirst()
+			: this.payloadMessageConverter instanceof MappingJackson2MessageConverter converter
+				? Optional.of(converter)
+				: Optional.empty();
 	}
 
 	/**
