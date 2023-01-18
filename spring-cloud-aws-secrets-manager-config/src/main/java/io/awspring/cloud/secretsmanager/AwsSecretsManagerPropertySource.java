@@ -31,6 +31,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.lang.Nullable;
 
 /**
  * Retrieves secret value under the given context / path from the AWS Secrets Manager
@@ -44,15 +45,25 @@ public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<AW
 
 	private static Log LOG = LogFactory.getLog(AwsSecretsManagerPropertySource.class);
 
+	private static final String PREFIX_PART = "?prefix=";
+
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
-	private final String context;
+	private final String secretId;
+
+	/**
+	 * Prefix that gets added to resolved property keys. Useful same property keys are
+	 * returned by multiple property sources.
+	 */
+	@Nullable
+	private final String prefix;
 
 	private final Map<String, Object> properties = new LinkedHashMap<>();
 
 	public AwsSecretsManagerPropertySource(String context, AWSSecretsManager smClient) {
 		super(context, smClient);
-		this.context = context;
+		this.secretId = resolveSecretId(context);
+		this.prefix = resolvePrefix(context);
 	}
 
 	/**
@@ -61,7 +72,7 @@ public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<AW
 	 * database.
 	 */
 	public void init() {
-		readSecretValue(new GetSecretValueRequest().withSecretId(context));
+		readSecretValue(new GetSecretValueRequest().withSecretId(secretId));
 	}
 
 	@Override
@@ -84,12 +95,30 @@ public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<AW
 
 			for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
 				LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
-				properties.put(secretEntry.getKey(), secretEntry.getValue());
+				String propertyKey = prefix != null ? prefix + secretEntry.getKey() : secretEntry.getKey();
+				properties.put(propertyKey, secretEntry.getValue());
 			}
 		}
 		catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Nullable
+	private static String resolvePrefix(String context) {
+		int prefixIndex = context.indexOf(PREFIX_PART);
+		if (prefixIndex != -1) {
+			return context.substring(prefixIndex + PREFIX_PART.length());
+		}
+		return null;
+	}
+
+	private static String resolveSecretId(String context) {
+		int prefixIndex = context.indexOf(PREFIX_PART);
+		if (prefixIndex != -1) {
+			return context.substring(0, prefixIndex);
+		}
+		return context;
 	}
 
 }
