@@ -29,8 +29,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link AbstractMessageListenerContainer}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class AbstractMessageListenerContainerTests {

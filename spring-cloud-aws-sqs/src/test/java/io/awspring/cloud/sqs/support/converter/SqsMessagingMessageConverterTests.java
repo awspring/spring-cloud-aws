@@ -34,8 +34,9 @@ import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
 /**
+ * Tests for {@link SqsMessagingMessageConverter}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class SqsMessagingMessageConverterTests {
 

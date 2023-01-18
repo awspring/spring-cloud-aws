@@ -52,8 +52,9 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ConfirmSubscriptionRequest;
 
 /**
+ * Tests for controller method endpoint annotations.
+ *
  * @author Matej Nedic
- * @since 3.0.0
  */
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration

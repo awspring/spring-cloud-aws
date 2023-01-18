@@ -56,8 +56,8 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 
 /**
+ * Tests for {@link BatchingAcknowledgementProcessor}.
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @ExtendWith(MockitoExtension.class)
 class BatchingAcknowledgementProcessorTests {

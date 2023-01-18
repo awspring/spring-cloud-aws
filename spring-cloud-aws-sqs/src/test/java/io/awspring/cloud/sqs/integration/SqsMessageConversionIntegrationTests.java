@@ -49,8 +49,9 @@ import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
+ * Integration tests for SQS message conversion.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {

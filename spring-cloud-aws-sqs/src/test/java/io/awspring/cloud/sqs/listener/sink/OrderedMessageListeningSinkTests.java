@@ -29,8 +29,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
 /**
+ * Tests for {@link OrderedMessageSink}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class OrderedMessageListeningSinkTests {
 

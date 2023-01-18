@@ -36,8 +36,9 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**
+ * Tests for {@link BatchAcknowledgmentArgumentResolver}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class BatchAcknowledgmentArgumentResolverTests {

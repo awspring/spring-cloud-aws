@@ -15,12 +15,11 @@
  */
 package io.awspring.cloud.dynamodb;
 
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
-
-import org.springframework.lang.Nullable;
 
 /**
  * Interface for simple DynamoDB template operations.

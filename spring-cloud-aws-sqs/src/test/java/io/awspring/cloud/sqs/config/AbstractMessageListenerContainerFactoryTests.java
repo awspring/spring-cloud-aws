@@ -35,8 +35,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link AbstractMessageListenerContainerFactory}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class AbstractMessageListenerContainerFactoryTests {

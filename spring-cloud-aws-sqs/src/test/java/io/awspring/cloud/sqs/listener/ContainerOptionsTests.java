@@ -27,8 +27,9 @@ import org.springframework.core.task.TaskExecutor;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 
 /**
+ * Tests for {@link SqsContainerOptions}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class ContainerOptionsTests {
 

@@ -22,8 +22,9 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link NeverAcknowledgementHandler}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class NeverAcknowledgementHandlerTests extends AbstractAcknowledgementHandlerTests {
 

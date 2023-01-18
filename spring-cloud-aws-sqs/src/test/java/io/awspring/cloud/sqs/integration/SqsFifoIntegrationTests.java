@@ -74,8 +74,9 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 
 /**
+ * Integration tests for handling SQS FIFO queues.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {

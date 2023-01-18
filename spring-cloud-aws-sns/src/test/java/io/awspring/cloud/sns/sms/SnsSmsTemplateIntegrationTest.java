@@ -36,7 +36,6 @@ import software.amazon.awssdk.services.sns.SnsClient;
  * Integration tests for {@link SnsSmsTemplate}.
  *
  * @author Matej Nedic
- * @since 3.0.0
  */
 @Testcontainers
 class SnsSmsTemplateIntegrationTest {

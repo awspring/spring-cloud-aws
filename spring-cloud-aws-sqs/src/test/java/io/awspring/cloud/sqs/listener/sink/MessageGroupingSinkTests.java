@@ -38,8 +38,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
 /**
+ * Tests for {@link MessageGroupingSinkAdapter}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class MessageGroupingSinkTests {
 

@@ -55,8 +55,9 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
+ * Integration tests for SQS interceptors.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {

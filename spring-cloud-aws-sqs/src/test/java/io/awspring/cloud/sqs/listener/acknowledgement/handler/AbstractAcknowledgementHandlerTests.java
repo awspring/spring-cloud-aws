@@ -29,8 +29,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
 /**
+ * Base class for acknowledgement handler tests.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @ExtendWith(MockitoExtension.class)
 public class AbstractAcknowledgementHandlerTests {

@@ -81,8 +81,9 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 /**
+ * Integration tests for SQS integration.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 @TestPropertySource(properties = { "property.one=1", "property.five.seconds=5s",

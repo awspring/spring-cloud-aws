@@ -28,7 +28,6 @@ import software.amazon.awssdk.services.sns.SnsClient;
  * Unit tests for {@link SnsSmsTemplate}.
  *
  * @author Matej Nedic
- * @since 3.0.0
  */
 class SnsSmsTemplateTest {
 
