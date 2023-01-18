@@ -126,7 +126,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 			.thenCompose(messages -> handleAcknowledgement(endpointToUse, messages))
 			.exceptionallyCompose(t -> CompletableFuture
 				.failedFuture(new MessagingOperationFailedException("Message receive operation failed for endpoint %s"
-					.formatted(endpointToUse), endpointToUse, t)))
+					.formatted(endpointToUse), endpointToUse, t instanceof CompletionException ? t.getCause() : t)))
 			.whenComplete((v, t) -> logReceiveMessageResult(endpointToUse, v, t));
 	}
 
@@ -176,7 +176,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 	@SuppressWarnings("unchecked")
 	private Message<T> convertReceivedMessage(String endpoint, S message, @Nullable Class<T> payloadClass) {
 		return this.messageConverter instanceof ContextAwareMessagingMessageConverter<S> contextConverter
-			? (Message<T>) contextConverter.toMessagingMessage(message, getMessageConversionContext(endpoint, payloadClass))
+			? (Message<T>) contextConverter.toMessagingMessage(message, getReceiveMessageConversionContext(endpoint, payloadClass))
 			: (Message<T>) this.messageConverter.toMessagingMessage(message);
 	}
 
@@ -266,7 +266,9 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 	}
 
 	private S convertMessageToSend(Message<T> message) {
-		return this.messageConverter.fromMessagingMessage(message);
+		return this.messageConverter instanceof ContextAwareMessagingMessageConverter<S> contextConverter
+			? contextConverter.fromMessagingMessage(message, getSendMessageConversionContext(message))
+			: messageConverter.fromMessagingMessage(message);
 	}
 
 	protected abstract CompletableFuture<SendResult<T>> doSendAsync(String endpointName, S message, Message<T> originalMessage);
@@ -275,7 +277,13 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 																			   Collection<Message<T>> originalMessages);
 
 	@Nullable
-	protected MessageConversionContext getMessageConversionContext(String endpointName, @Nullable Class<T> payloadClass) {
+	protected MessageConversionContext getReceiveMessageConversionContext(String endpointName, @Nullable Class<T> payloadClass) {
+		// Subclasses can override this method to return a context
+		return null;
+	}
+
+	@Nullable
+	protected MessageConversionContext getSendMessageConversionContext(Message<T> message) {
 		// Subclasses can override this method to return a context
 		return null;
 	}
@@ -306,7 +314,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 		}
 	}
 
-	private <V> V unwrapCompletionException(CompletableFuture<V> future) {
+	protected  <V> V unwrapCompletionException(CompletableFuture<V> future) {
 		try {
 			return future.join();
 		}

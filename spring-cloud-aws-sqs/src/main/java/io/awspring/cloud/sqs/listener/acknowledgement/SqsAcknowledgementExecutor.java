@@ -22,6 +22,7 @@ import io.awspring.cloud.sqs.listener.QueueAttributesAware;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -82,7 +83,7 @@ public class SqsAcknowledgementExecutor<T>
 	private SqsAcknowledgementException createAcknowledgementException(Collection<Message<T>> messagesToAck,
 			Throwable e) {
 		return new SqsAcknowledgementException(
-				"Error acknowledging messages " + MessageHeaderUtils.getId(messagesToAck), messagesToAck, this.queueUrl,
+				"Error acknowledging messages " + MessageHeaderUtils.getId(messagesToAck), Collections.emptyList(), messagesToAck, this.queueUrl,
 				e);
 	}
 

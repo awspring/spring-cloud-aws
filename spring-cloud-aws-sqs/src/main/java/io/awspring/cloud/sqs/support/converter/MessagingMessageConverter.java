@@ -24,8 +24,18 @@ import org.springframework.messaging.Message;
  */
 public interface MessagingMessageConverter<S> {
 
+	/**
+	 * Convert a source message from a specific messaging system to a {@link Message}.
+	 * @param source the source message.
+	 * @return the converted message.
+	 */
 	Message<?> toMessagingMessage(S source);
 
+	/**
+	 * Convert a {@link Message} to a message from a specific messaging system.
+	 * @param message the message from which to convert.
+	 * @return the system specific message.
+	 */
 	S fromMessagingMessage(Message<?> message);
 
 }

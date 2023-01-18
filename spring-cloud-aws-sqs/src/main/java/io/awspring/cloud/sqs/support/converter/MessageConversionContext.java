@@ -26,6 +26,11 @@ import org.springframework.lang.Nullable;
  */
 public interface MessageConversionContext {
 
+	/**
+	 * An optional parameter with the payload class to be used by the
+	 * conversion process.
+	 * @return the payload class.
+	 */
 	@Nullable
 	Class<?> getPayloadClass();
 

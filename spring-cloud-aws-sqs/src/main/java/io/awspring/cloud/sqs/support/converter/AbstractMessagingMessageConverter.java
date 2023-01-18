@@ -189,7 +189,7 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	}
 
 	@Override
-	public S fromMessagingMessage(Message<?> message) {
+	public S fromMessagingMessage(Message<?> message, @Nullable MessageConversionContext context) {
 		MessageHeaders headers = getMessageHeaders(message);
 		S messageWithHeaders = this.headerMapper.fromHeaders(headers);
 		Object payload = Objects.requireNonNull(this.payloadMessageConverter.toMessage(message.getPayload(), message.getHeaders()),

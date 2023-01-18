@@ -18,6 +18,8 @@ package io.awspring.cloud.sqs.listener.acknowledgement;
 import io.awspring.cloud.sqs.SqsException;
 import java.util.Collection;
 import java.util.stream.Collectors;
+
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
@@ -29,24 +31,40 @@ import org.springframework.messaging.Message;
  */
 public class SqsAcknowledgementException extends SqsException {
 
+	private final String queueUrl;
+
 	private final Collection<Message<?>> failedAcknowledgementMessages;
 
-	private final String queueUrl;
+	private final Collection<Message<?>> successfullyAcknowledgedMessages;
 
 	/**
 	 * Contruct an instance with the given parameters.
 	 * @param errorMessage the error message.
 	 * @param failedAcknowledgementMessages the messages that failed to be acknowledged.
 	 * @param queueUrl the url for the queue from which the messages were polled from.
-	 * @param e the exception cause.
 	 * @param <T> the messages payload type.
 	 */
-	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> failedAcknowledgementMessages,
-			String queueUrl, Throwable e) {
-		super(errorMessage, e);
+	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> successfullyAcknowledgedMessages,
+										   Collection<Message<T>> failedAcknowledgementMessages, String queueUrl) {
+		this(errorMessage, successfullyAcknowledgedMessages, failedAcknowledgementMessages, queueUrl, null);
+	}
+
+	/**
+	 * Contruct an instance with the given parameters.
+	 * @param errorMessage the error message.
+	 * @param failedAcknowledgementMessages the messages that failed to be acknowledged.
+	 * @param queueUrl the url for the queue from which the messages were polled from.
+	 * @param cause the exception cause.
+	 * @param <T> the messages payload type.
+	 */
+	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> successfullyAcknowledgedMessages,
+										   Collection<Message<T>> failedAcknowledgementMessages, String queueUrl, @Nullable Throwable cause) {
+		super(errorMessage, cause);
 		this.queueUrl = queueUrl;
 		this.failedAcknowledgementMessages = failedAcknowledgementMessages.stream().map(msg -> (Message<?>) msg)
 				.collect(Collectors.toList());
+		this.successfullyAcknowledgedMessages = successfullyAcknowledgedMessages.stream().map(msg -> (Message<?>) msg)
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -55,6 +73,14 @@ public class SqsAcknowledgementException extends SqsException {
 	 */
 	public Collection<Message<?>> getFailedAcknowledgementMessages() {
 		return this.failedAcknowledgementMessages;
+	}
+
+	/**
+	 * Return the messages that failed to be acknowledged.
+	 * @return the messages.
+	 */
+	public Collection<Message<?>> getSuccessfullyAcknowledgedMessages() {
+		return this.successfullyAcknowledgedMessages;
 	}
 
 	/**

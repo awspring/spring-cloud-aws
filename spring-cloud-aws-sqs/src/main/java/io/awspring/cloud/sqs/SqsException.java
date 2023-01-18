@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs;
 
 import org.springframework.core.NestedRuntimeException;
+import org.springframework.lang.Nullable;
 
 /**
  * Top-level exception for Sqs {@link RuntimeException} instances.
@@ -30,7 +31,7 @@ public class SqsException extends NestedRuntimeException {
 	 * @param msg the message.
 	 * @param cause the cause.
 	 */
-	public SqsException(String msg, Throwable cause) {
+	public SqsException(String msg, @Nullable Throwable cause) {
 		super(msg, cause);
 	}
 

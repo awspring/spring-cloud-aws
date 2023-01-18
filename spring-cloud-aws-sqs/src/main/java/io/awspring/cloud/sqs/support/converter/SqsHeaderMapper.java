@@ -16,24 +16,19 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import io.awspring.cloud.sqs.ConfigUtils;
-import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 
 import java.nio.ByteBuffer;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -83,7 +78,7 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		Map<String, MessageAttributeValue> messageAttributes = headers
 			.entrySet()
 			.stream()
-			.filter(Predicate.not(entry -> isSkipHeader(entry.getKey())))
+			.filter(entry -> !isSkipHeader(entry.getKey()))
 			.collect(Collectors.toMap(Map.Entry::getKey, entry -> getMessageAttributeValue(entry.getKey(), entry.getValue())));
 		if (headers.containsKey(SqsHeaders.SQS_DELAY_HEADER)) {
 			messageAttributes.put(SqsHeaders.SQS_DELAY_HEADER,
@@ -97,9 +92,6 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 	private MessageAttributeValue getMessageAttributeValue(String messageHeaderName, @Nullable Object messageHeaderValue) {
 		if (MessageHeaders.CONTENT_TYPE.equals(messageHeaderName) && messageHeaderValue != null) {
 			return getContentTypeMessageAttribute(messageHeaderValue);
-		}
-		else if (MessageHeaders.ID.equals(messageHeaderName) && messageHeaderValue != null) {
-			return getStringMessageAttribute(messageHeaderValue.toString());
 		}
 		else if (messageHeaderValue instanceof String) {
 			return getStringMessageAttribute((String) messageHeaderValue);

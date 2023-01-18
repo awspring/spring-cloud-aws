@@ -32,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
