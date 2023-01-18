@@ -19,7 +19,6 @@ import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
-
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.HashMap;
@@ -28,7 +27,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -44,8 +42,8 @@ import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 
 /**
- * A {@link HeaderMapper} implementation for SQS {@link Message}s. Enables
- * creating additional SQS related headers from a {@link SqsMessageConversionContext}.
+ * A {@link HeaderMapper} implementation for SQS {@link Message}s. Enables creating additional SQS related headers from
+ * a {@link SqsMessageConversionContext}.
  * @author Tomaz Fernandes
  * @since 3.0
  * @see SqsMessagingMessageConverter
@@ -69,27 +67,25 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		Map<MessageSystemAttributeName, String> attributes = new HashMap<>();
 		if (headers.containsKey(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER)) {
 			attributes.put(MessageSystemAttributeName.MESSAGE_GROUP_ID,
-				headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER).toString());
+					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER).toString());
 		}
 		if (headers.containsKey(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER)) {
 			attributes.put(MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID,
-				headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER).toString());
+					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER).toString());
 		}
-		Map<String, MessageAttributeValue> messageAttributes = headers
-			.entrySet()
-			.stream()
-			.filter(entry -> !isSkipHeader(entry.getKey()))
-			.collect(Collectors.toMap(Map.Entry::getKey, entry -> getMessageAttributeValue(entry.getKey(), entry.getValue())));
+		Map<String, MessageAttributeValue> messageAttributes = headers.entrySet().stream()
+				.filter(entry -> !isSkipHeader(entry.getKey())).collect(Collectors.toMap(Map.Entry::getKey,
+						entry -> getMessageAttributeValue(entry.getKey(), entry.getValue())));
 		if (headers.containsKey(SqsHeaders.SQS_DELAY_HEADER)) {
-			messageAttributes.put(SqsHeaders.SQS_DELAY_HEADER,
-				getNumberMessageAttribute(Objects.requireNonNull(headers.get(SqsHeaders.SQS_DELAY_HEADER, Integer.class),
-					"Delay header value must not be null")));
+			messageAttributes.put(SqsHeaders.SQS_DELAY_HEADER, getNumberMessageAttribute(Objects.requireNonNull(
+					headers.get(SqsHeaders.SQS_DELAY_HEADER, Integer.class), "Delay header value must not be null")));
 		}
 		String messageId = Objects.requireNonNull(headers.getId(), "No ID found for message").toString();
 		return builder.attributes(attributes).messageId(messageId).messageAttributes(messageAttributes).build();
 	}
 
-	private MessageAttributeValue getMessageAttributeValue(String messageHeaderName, @Nullable Object messageHeaderValue) {
+	private MessageAttributeValue getMessageAttributeValue(String messageHeaderName,
+			@Nullable Object messageHeaderValue) {
 		if (MessageHeaders.CONTENT_TYPE.equals(messageHeaderName) && messageHeaderValue != null) {
 			return getContentTypeMessageAttribute(messageHeaderValue);
 		}
@@ -107,15 +103,14 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 
 	private boolean isSkipHeader(String headerName) {
 		return SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER.equals(headerName)
-			|| SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER.equals(headerName)
-			|| SqsHeaders.SQS_DELAY_HEADER.equals(headerName)
-			|| MessageHeaders.ID.equals(headerName)
-			|| MessageHeaders.TIMESTAMP.equals(headerName);
+				|| SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER.equals(headerName)
+				|| SqsHeaders.SQS_DELAY_HEADER.equals(headerName) || MessageHeaders.ID.equals(headerName)
+				|| MessageHeaders.TIMESTAMP.equals(headerName);
 	}
 
 	private MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {
 		return MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.BINARY)
-			.binaryValue(SdkBytes.fromByteBuffer(messageHeaderValue)).build();
+				.binaryValue(SdkBytes.fromByteBuffer(messageHeaderValue)).build();
 	}
 
 	private MessageAttributeValue getContentTypeMessageAttribute(Object messageHeaderValue) {
@@ -130,16 +125,15 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 
 	private MessageAttributeValue getStringMessageAttribute(String messageHeaderValue) {
 		return MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
-			.stringValue(messageHeaderValue).build();
+				.stringValue(messageHeaderValue).build();
 	}
 
 	private MessageAttributeValue getNumberMessageAttribute(Object messageHeaderValue) {
 		Assert.isTrue(NumberUtils.STANDARD_NUMBER_TYPES.contains(messageHeaderValue.getClass()),
-			"Only standard number types are accepted as message header.");
+				"Only standard number types are accepted as message header.");
 		return MessageAttributeValue.builder()
-			.dataType(MessageAttributeDataTypes.NUMBER + "." + messageHeaderValue.getClass().getName())
-			.stringValue(messageHeaderValue.toString())
-			.build();
+				.dataType(MessageAttributeDataTypes.NUMBER + "." + messageHeaderValue.getClass().getName())
+				.stringValue(messageHeaderValue.toString()).build();
 	}
 
 	@Override

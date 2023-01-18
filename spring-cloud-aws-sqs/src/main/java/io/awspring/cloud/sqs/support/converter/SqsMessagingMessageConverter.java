@@ -47,7 +47,7 @@ public class SqsMessagingMessageConverter
 
 	@Override
 	protected software.amazon.awssdk.services.sqs.model.Message doConvertMessage(
-		software.amazon.awssdk.services.sqs.model.Message messageWithHeaders, Object payload) {
+			software.amazon.awssdk.services.sqs.model.Message messageWithHeaders, Object payload) {
 		Assert.isInstanceOf(String.class, payload, "payload must be instance of String");
 		return messageWithHeaders.toBuilder().body((String) payload).build();
 	}

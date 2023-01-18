@@ -53,7 +53,6 @@ public interface ContextAwareMessagingMessageConverter<S> extends MessagingMessa
 	 */
 	S fromMessagingMessage(Message<?> message, @Nullable MessageConversionContext context);
 
-
 	/**
 	 * An optional context to be used in the conversion process.
 	 * @return the context.

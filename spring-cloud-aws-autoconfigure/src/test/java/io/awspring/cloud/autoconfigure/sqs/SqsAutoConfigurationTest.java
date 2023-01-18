@@ -32,11 +32,10 @@ import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
-
-import io.awspring.cloud.sqs.operations.SqsTemplate;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -92,8 +91,7 @@ class SqsAutoConfigurationTest {
 
 	@Test
 	void configuresSqsTemplate() {
-		this.contextRunner.run(context ->
-			assertThat(context).hasSingleBean(SqsTemplate.class));
+		this.contextRunner.run(context -> assertThat(context).hasSingleBean(SqsTemplate.class));
 	}
 
 	@Test

@@ -1,6 +1,20 @@
+/*
+ * Copyright 2013-2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.awspring.cloud.sqs.operations;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,15 +33,14 @@ public interface SqsSendOptions<T, O extends SqsSendOptions<T, O>> {
 	O queue(String queue);
 
 	/**
-	 * Set the  payload to send in the message. The payload will be serialized if necessary.
+	 * Set the payload to send in the message. The payload will be serialized if necessary.
 	 * @param payload the payload.
 	 * @return the options instance.
 	 */
 	O payload(T payload);
 
 	/**
-	 * Add a header to be sent in the message. The header will be sent
-	 * as a MessageAttribute.
+	 * Add a header to be sent in the message. The header will be sent as a MessageAttribute.
 	 *
 	 * @param headerName the header name.
 	 * @param headerValue the header value.
@@ -36,8 +49,7 @@ public interface SqsSendOptions<T, O extends SqsSendOptions<T, O>> {
 	O header(String headerName, Object headerValue);
 
 	/**
-	 * Add headers to be sent in the message. The headers will be sent
-	 * as MessageAttributes.
+	 * Add headers to be sent in the message. The headers will be sent as MessageAttributes.
 	 *
 	 * @param headers the headers to add.
 	 * @return the options instance.
@@ -65,16 +77,14 @@ public interface SqsSendOptions<T, O extends SqsSendOptions<T, O>> {
 	interface Fifo<T> extends SqsSendOptions<T, Fifo<T>> {
 
 		/**
-		 * Set the messageGroupId for the message. If none is provided,
-		 * a random one is added.
+		 * Set the messageGroupId for the message. If none is provided, a random one is added.
 		 * @param messageGroupId the id.
 		 * @return the options instance.
 		 */
 		Fifo<T> messageGroupId(UUID messageGroupId);
 
 		/**
-		 * Set the messageDeduplicationId for the message. If none is provided,
-		 * a random on is added.
+		 * Set the messageDeduplicationId for the message. If none is provided, a random on is added.
 		 * @param messageDeduplicationId the id.
 		 * @return the options instance.
 		 */

@@ -107,7 +107,8 @@ public class SqsHeaders {
 		/**
 		 * Deduplication header in a SQS message.
 		 */
-		public static final String SQS_MESSAGE_DEDUPLICATION_ID_HEADER = SQS_MSA_HEADER_PREFIX + "MessageDeduplicationId";
+		public static final String SQS_MESSAGE_DEDUPLICATION_ID_HEADER = SQS_MSA_HEADER_PREFIX
+				+ "MessageDeduplicationId";
 
 		/**
 		 * ApproximateFirstReceiveTimestamp header in a SQS message.

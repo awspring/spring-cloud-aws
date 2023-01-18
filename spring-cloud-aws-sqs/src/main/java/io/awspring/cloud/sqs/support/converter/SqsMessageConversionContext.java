@@ -25,8 +25,8 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
  * {@link MessageConversionContext} implementation that contains SQS related properties for mapping additional
- * {@link MessageHeaders}. Also contains a {@link AcknowledgementCallback} to be used for
- * mapping acknowledgement related headers.
+ * {@link MessageHeaders}. Also contains a {@link AcknowledgementCallback} to be used for mapping acknowledgement
+ * related headers.
  * @author Tomaz Fernandes
  * @since 3.0
  * @see SqsHeaderMapper

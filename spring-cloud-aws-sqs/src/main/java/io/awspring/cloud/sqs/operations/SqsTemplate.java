@@ -1,3 +1,18 @@
+/*
+ * Copyright 2013-2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.awspring.cloud.sqs.operations;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
@@ -12,6 +27,18 @@ import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import java.time.Duration;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -37,21 +64,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
-import java.time.Duration;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
 public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
-	implements SqsOperations<T>, SqsAsyncOperations<T> {
+		implements SqsOperations<T>, SqsAsyncOperations<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsTemplate.class);
 
@@ -89,8 +103,8 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	/**
-	 * Create a new {@link SqsTemplate} instance with the provided {@link SqsAsyncClient}
-	 * and both sync and async operations.
+	 * Create a new {@link SqsTemplate} instance with the provided {@link SqsAsyncClient} and both sync and async
+	 * operations.
 	 * @param sqsAsyncClient the client to be used by the template.
 	 * @return the {@link SqsTemplate} instance.
 	 * @param <T> the payload type.
@@ -100,8 +114,8 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	/**
-	 * Create a new {@link SqsTemplate} instance with the provided {@link SqsAsyncClient},
-	 * only exposing the sync methods contained in {@link SqsOperations}.
+	 * Create a new {@link SqsTemplate} instance with the provided {@link SqsAsyncClient}, only exposing the sync
+	 * methods contained in {@link SqsOperations}.
 	 * @param sqsAsyncClient the client.
 	 * @return the new template instance.
 	 * @param <T> the payload type.
@@ -111,8 +125,8 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	/**
-	 * Create a new {@link SqsTemplate} instance with the provided {@link SqsAsyncClient},
-	 * only exposing the async methods contained in {@link SqsAsyncOperations}.
+	 * Create a new {@link SqsTemplate} instance with the provided {@link SqsAsyncClient}, only exposing the async
+	 * methods contained in {@link SqsAsyncOperations}.
 	 * @param sqsAsyncClient the client.
 	 * @return the new template instance.
 	 * @param <T> the payload type.
@@ -145,27 +159,29 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		SendFifoOptionsImpl<T> options = new SendFifoOptionsImpl<>();
 		to.accept(options);
 		return sendAsync(options.queue, addFifoHeaders(messageFromSendOptions(options),
-			getUUIDOrRandom(options.messageGroupId),
-			getUUIDOrRandom(options.messageDeduplicationId)));
+				getUUIDOrRandom(options.messageGroupId), getUUIDOrRandom(options.messageDeduplicationId)));
 	}
 
 	@Override
-	public SendResult.Batch<T> sendManyFifo(String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
+	public SendResult.Batch<T> sendManyFifo(String endpoint,
+			Collection<org.springframework.messaging.Message<T>> messages) {
 		return unwrapCompletionException(sendFifoAsync(endpoint, messages));
 	}
 
 	@Override
-	public CompletableFuture<SendResult.Batch<T>> sendFifoAsync(@Nullable String endpoint, Collection<org.springframework.messaging.Message<T>> messages) {
+	public CompletableFuture<SendResult.Batch<T>> sendFifoAsync(@Nullable String endpoint,
+			Collection<org.springframework.messaging.Message<T>> messages) {
 		Assert.notEmpty(messages, "messages must not be empty");
-		return sendManyAsync(endpoint, messages.stream().map(message -> addFifoHeaders(message, UUID.randomUUID(), UUID.randomUUID())).toList());
+		return sendManyAsync(endpoint, messages.stream()
+				.map(message -> addFifoHeaders(message, UUID.randomUUID(), UUID.randomUUID())).toList());
 	}
 
 	private org.springframework.messaging.Message<T> addFifoHeaders(org.springframework.messaging.Message<T> message,
-																	UUID messageGroupId, UUID messageDeduplicationID) {
+			UUID messageGroupId, UUID messageDeduplicationID) {
 		return MessageHeaderUtils.addHeadersToMessage(message,
-			Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, messageGroupId.toString(),
-				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, messageDeduplicationID.toString()
-		));
+				Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, messageGroupId.toString(),
+						SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER,
+						messageDeduplicationID.toString()));
 	}
 
 	@Override
@@ -179,17 +195,20 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	public Collection<org.springframework.messaging.Message<T>> receiveMany(Consumer<SqsReceiveOptions.Standard<T>> from) {
+	public Collection<org.springframework.messaging.Message<T>> receiveMany(
+			Consumer<SqsReceiveOptions.Standard<T>> from) {
 		return unwrapCompletionException(receiveManyAsync(from));
 	}
 
 	@Override
-	public Collection<org.springframework.messaging.Message<T>> receiveManyFifo(Consumer<SqsReceiveOptions.Fifo<T>> from) {
+	public Collection<org.springframework.messaging.Message<T>> receiveManyFifo(
+			Consumer<SqsReceiveOptions.Fifo<T>> from) {
 		return unwrapCompletionException(receiveManyFifoAsync(from));
 	}
 
 	@Override
-	public CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveAsync(Consumer<SqsReceiveOptions.Standard<T>> from) {
+	public CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveAsync(
+			Consumer<SqsReceiveOptions.Standard<T>> from) {
 		Assert.notNull(from, "from must not be null");
 		ReceiveStandardOptionsImpl<T> options = new ReceiveStandardOptionsImpl<>();
 		from.accept(options);
@@ -199,7 +218,8 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	public CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveFifoAsync(Consumer<SqsReceiveOptions.Fifo<T>> from) {
+	public CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveFifoAsync(
+			Consumer<SqsReceiveOptions.Fifo<T>> from) {
 		Assert.notNull(from, "from must not be null");
 		ReceiveFifoOptionsImpl<T> options = new ReceiveFifoOptionsImpl<>();
 		from.accept(options);
@@ -209,27 +229,31 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	public CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyAsync(Consumer<SqsReceiveOptions.Standard<T>> from) {
+	public CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyAsync(
+			Consumer<SqsReceiveOptions.Standard<T>> from) {
 		Assert.notNull(from, "from must not be null");
 		ReceiveStandardOptionsImpl<T> options = new ReceiveStandardOptionsImpl<>();
 		from.accept(options);
 		Map<String, Object> additionalHeaders = getAdditionalHeaders(options);
-		return receiveManyAsync(options.queue, options.payloadClass, options.pollTimeout, options.maxNumberOfMessages, additionalHeaders);
+		return receiveManyAsync(options.queue, options.payloadClass, options.pollTimeout, options.maxNumberOfMessages,
+				additionalHeaders);
 	}
 
 	@Override
-	public CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyFifoAsync(Consumer<SqsReceiveOptions.Fifo<T>> from) {
+	public CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyFifoAsync(
+			Consumer<SqsReceiveOptions.Fifo<T>> from) {
 		Assert.notNull(from, "from must not be null");
 		ReceiveFifoOptionsImpl<T> options = new ReceiveFifoOptionsImpl<>();
 		from.accept(options);
 		Map<String, Object> additionalHeaders = handleReceiveRequestHeader(options);
-		return receiveManyAsync(options.queue, options.payloadClass, options.pollTimeout, options.maxNumberOfMessages, additionalHeaders);
+		return receiveManyAsync(options.queue, options.payloadClass, options.pollTimeout, options.maxNumberOfMessages,
+				additionalHeaders);
 	}
 
 	private Map<String, Object> handleReceiveRequestHeader(ReceiveFifoOptionsImpl<T> options) {
 		Map<String, Object> additionalHeaders = getAdditionalHeaders(options);
 		additionalHeaders.put(SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER,
-			getUUIDOrRandom(options.receiveRequestAttemptId));
+				getUUIDOrRandom(options.receiveRequestAttemptId));
 		return additionalHeaders;
 	}
 
@@ -247,9 +271,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	private org.springframework.messaging.Message<T> messageFromSendOptions(AbstractSqsSendOptionsImpl<T, ?> options) {
 		Assert.notNull(options.payload, "payload must not be null");
-		MessageBuilder<T> builder = MessageBuilder
-			.withPayload(options.payload)
-			.copyHeaders(options.headers);
+		MessageBuilder<T> builder = MessageBuilder.withPayload(options.payload).copyHeaders(options.headers);
 		if (options.delay != null) {
 			builder.setHeader(SqsHeaders.SQS_DELAY_HEADER, options.delay);
 		}
@@ -258,75 +280,73 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	@Override
 	protected CompletableFuture<SendResult<T>> doSendAsync(String endpointName, Message message,
-														   org.springframework.messaging.Message<T> originalMessage) {
-		return createSendMessageRequest(endpointName, message)
-			.thenCompose(this.sqsAsyncClient::sendMessage)
-			.thenApply(response -> createSendResult(UUID.fromString(response.messageId()), response.sequenceNumber(), endpointName, originalMessage));
+			org.springframework.messaging.Message<T> originalMessage) {
+		return createSendMessageRequest(endpointName, message).thenCompose(this.sqsAsyncClient::sendMessage)
+				.thenApply(response -> createSendResult(UUID.fromString(response.messageId()),
+						response.sequenceNumber(), endpointName, originalMessage));
 	}
 
-	private SendResult<T> createSendResult(UUID messageId, @Nullable String sequenceNumber, String endpointName, org.springframework.messaging.Message<T> originalMessage) {
+	private SendResult<T> createSendResult(UUID messageId, @Nullable String sequenceNumber, String endpointName,
+			org.springframework.messaging.Message<T> originalMessage) {
 		return new SendResult<>(messageId, endpointName, originalMessage,
-			sequenceNumber != null
-				? Collections.singletonMap(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber)
-				: Collections.emptyMap());
+				sequenceNumber != null
+						? Collections.singletonMap(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber)
+						: Collections.emptyMap());
 	}
 
 	private CompletableFuture<SendMessageRequest> createSendMessageRequest(String endpointName, Message message) {
 		return getQueueAttributes(endpointName)
-			.thenApply(queueAttributes -> doCreateSendMessageRequest(message, queueAttributes));
+				.thenApply(queueAttributes -> doCreateSendMessageRequest(message, queueAttributes));
 	}
 
 	private SendMessageRequest doCreateSendMessageRequest(Message message, QueueAttributes queueAttributes) {
-		return SendMessageRequest.builder()
-			.queueUrl(queueAttributes.getQueueUrl())
-			.messageBody(message.body())
-			.messageDeduplicationId(message.attributes().get(MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID))
-			.messageGroupId(message.attributes().get(MessageSystemAttributeName.MESSAGE_GROUP_ID))
-			.delaySeconds(getDelaySeconds(message))
-			.messageAttributes(excludeKnownFields(message.messageAttributes()))
-			.messageSystemAttributes(mapMessageSystemAttributes(message))
-			.build();
+		return SendMessageRequest.builder().queueUrl(queueAttributes.getQueueUrl()).messageBody(message.body())
+				.messageDeduplicationId(message.attributes().get(MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID))
+				.messageGroupId(message.attributes().get(MessageSystemAttributeName.MESSAGE_GROUP_ID))
+				.delaySeconds(getDelaySeconds(message))
+				.messageAttributes(excludeKnownFields(message.messageAttributes()))
+				.messageSystemAttributes(mapMessageSystemAttributes(message)).build();
 	}
 
 	@Override
 	protected CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName, Collection<Message> messages,
-																	  Collection<org.springframework.messaging.Message<T>> originalMessages) {
+			Collection<org.springframework.messaging.Message<T>> originalMessages) {
 		logger.debug("Sending messages {} to endpoint {}", messages, endpointName);
-		return createSendMessageBatchRequest(endpointName, messages)
-			.thenCompose(this.sqsAsyncClient::sendMessageBatch)
-			.thenApply(response -> createSendResultBatch(response, endpointName,
-				originalMessages.stream().collect(Collectors.toMap(MessageHeaderUtils::getId, msg -> msg))));
+		return createSendMessageBatchRequest(endpointName, messages).thenCompose(this.sqsAsyncClient::sendMessageBatch)
+				.thenApply(response -> createSendResultBatch(response, endpointName,
+						originalMessages.stream().collect(Collectors.toMap(MessageHeaderUtils::getId, msg -> msg))));
 	}
 
 	private SendResult.Batch<T> createSendResultBatch(SendMessageBatchResponse response, String endpointName,
-													  Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+			Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
 		return new SendResult.Batch<>(doCreateSendResultBatch(response, endpointName, originalMessagesById),
-			createSendResultFailed(response, endpointName, originalMessagesById));
+				createSendResultFailed(response, endpointName, originalMessagesById));
 	}
 
-	private Collection<SendResult.Failed<T>> createSendResultFailed(SendMessageBatchResponse response, String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+	private Collection<SendResult.Failed<T>> createSendResultFailed(SendMessageBatchResponse response,
+			String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		return response.failed().stream()
+				.map(entry -> new SendResult.Failed<>(entry.message(), endpointName,
+						originalMessagesById.get(entry.id()), Map.of(SqsTemplateParameters.SENDER_FAULT_PARAMETER_NAME,
+								entry.senderFault(), SqsTemplateParameters.ERROR_CODE_PARAMETER_NAME, entry.code())))
+				.toList();
+	}
+
+	private Collection<SendResult<T>> doCreateSendResultBatch(SendMessageBatchResponse response, String endpointName,
+			Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
 		return response
-			.failed()
-			.stream()
-			.map(entry -> new SendResult.Failed<>(entry.message(), endpointName, originalMessagesById.get(entry.id()),
-					Map.of(SqsTemplateParameters.SENDER_FAULT_PARAMETER_NAME, entry.senderFault(),
-						SqsTemplateParameters.CODE_PARAMETER_NAME, entry.code())))
-			.toList();
+				.successful().stream().map(entry -> createSendResult(UUID.fromString(entry.messageId()),
+						entry.sequenceNumber(), endpointName, getOriginalMessage(originalMessagesById, entry)))
+				.toList();
 	}
 
-	private Collection<SendResult<T>> doCreateSendResultBatch(SendMessageBatchResponse response, String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
-		return response
-			.successful()
-			.stream()
-			.map(entry -> createSendResult(UUID.fromString(entry.messageId()), entry.sequenceNumber(), endpointName, getOriginalMessage(originalMessagesById, entry)))
-			.toList();
-	}
-
-	private org.springframework.messaging.Message<T> getOriginalMessage(Map<String, org.springframework.messaging.Message<T>> originalMessagesById,
-																		SendMessageBatchResultEntry entry) {
+	private org.springframework.messaging.Message<T> getOriginalMessage(
+			Map<String, org.springframework.messaging.Message<T>> originalMessagesById,
+			SendMessageBatchResultEntry entry) {
 		org.springframework.messaging.Message<T> originalMessage = originalMessagesById.get(entry.id());
-		Assert.notNull(originalMessage, () -> "Could not correlate send result to original message for id %s. Original messages: %s."
-			.formatted(entry.messageId(), originalMessagesById));
+		Assert.notNull(originalMessage,
+				() -> "Could not correlate send result to original message for id %s. Original messages: %s."
+						.formatted(entry.messageId(), originalMessagesById));
 		return originalMessage;
 	}
 
@@ -334,7 +354,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	@Override
 	protected MessageConversionContext getReceiveMessageConversionContext(String endpointName, Class<T> payloadClass) {
 		return this.conversionContextCache.computeIfAbsent(endpointName,
-			newEndpoint -> doGetSqsMessageConversionContext(endpointName, payloadClass));
+				newEndpoint -> doGetSqsMessageConversionContext(endpointName, payloadClass));
 	}
 
 	private SqsMessageConversionContext doGetSqsMessageConversionContext(String newEndpoint, Class<T> payloadClass) {
@@ -349,73 +369,60 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		return conversionContext;
 	}
 
-	private CompletableFuture<SendMessageBatchRequest> createSendMessageBatchRequest(String endpointName, Collection<Message> messages) {
+	private CompletableFuture<SendMessageBatchRequest> createSendMessageBatchRequest(String endpointName,
+			Collection<Message> messages) {
 		return getQueueAttributes(endpointName)
-			.thenApply(queueAttributes -> doCreateSendMessageBatchRequest(messages, queueAttributes));
+				.thenApply(queueAttributes -> doCreateSendMessageBatchRequest(messages, queueAttributes));
 	}
 
-	private SendMessageBatchRequest doCreateSendMessageBatchRequest(Collection<Message> messages, QueueAttributes queueAttributes) {
-		return SendMessageBatchRequest.builder()
-			.queueUrl(queueAttributes.getQueueUrl())
-			.entries(messages.stream().map(this::createSendMessageBatchRequestEntry).collect(Collectors.toList()))
-			.build();
+	private SendMessageBatchRequest doCreateSendMessageBatchRequest(Collection<Message> messages,
+			QueueAttributes queueAttributes) {
+		return SendMessageBatchRequest.builder().queueUrl(queueAttributes.getQueueUrl())
+				.entries(messages.stream().map(this::createSendMessageBatchRequestEntry).collect(Collectors.toList()))
+				.build();
 	}
 
 	private SendMessageBatchRequestEntry createSendMessageBatchRequestEntry(Message message) {
-		return SendMessageBatchRequestEntry.builder()
-			.id(message.messageId())
-			.messageBody(message.body())
-			.messageDeduplicationId(message.attributes().get(MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID))
-			.messageGroupId(message.attributes().get(MessageSystemAttributeName.MESSAGE_GROUP_ID))
-			.delaySeconds(getDelaySeconds(message))
-			.messageAttributes(excludeKnownFields(message.messageAttributes()))
-			.messageSystemAttributes(mapMessageSystemAttributes(message))
-			.build();
+		return SendMessageBatchRequestEntry.builder().id(message.messageId()).messageBody(message.body())
+				.messageDeduplicationId(message.attributes().get(MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID))
+				.messageGroupId(message.attributes().get(MessageSystemAttributeName.MESSAGE_GROUP_ID))
+				.delaySeconds(getDelaySeconds(message))
+				.messageAttributes(excludeKnownFields(message.messageAttributes()))
+				.messageSystemAttributes(mapMessageSystemAttributes(message)).build();
 	}
 
-	private Map<String, MessageAttributeValue> excludeKnownFields(Map<String, MessageAttributeValue> messageAttributes) {
-		return messageAttributes
-			.entrySet()
-			.stream()
-			.filter(entry -> !SqsHeaders.SQS_DELAY_HEADER.equals(entry.getKey()))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	private Map<String, MessageAttributeValue> excludeKnownFields(
+			Map<String, MessageAttributeValue> messageAttributes) {
+		return messageAttributes.entrySet().stream()
+				.filter(entry -> !SqsHeaders.SQS_DELAY_HEADER.equals(entry.getKey()))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 	}
 
 	@Nullable
 	private Integer getDelaySeconds(Message message) {
 		return message.messageAttributes().containsKey(SqsHeaders.SQS_DELAY_HEADER)
-			? Integer.parseInt(message.messageAttributes().get(SqsHeaders.SQS_DELAY_HEADER).stringValue())
-			: null;
+				? Integer.parseInt(message.messageAttributes().get(SqsHeaders.SQS_DELAY_HEADER).stringValue())
+				: null;
 	}
 
-	private Map<MessageSystemAttributeNameForSends, MessageSystemAttributeValue> mapMessageSystemAttributes(Message message) {
-		return message.attributes()
-			.entrySet()
-			.stream()
-			.filter(Predicate.not(entry -> isSkipAttribute(entry.getKey())))
-			.collect(Collectors.toMap(
-				entry -> MessageSystemAttributeNameForSends.fromValue(entry.getKey().name()),
-				entry -> MessageSystemAttributeValue.builder()
-					.dataType(MessageAttributeDataTypes.STRING)
-					.stringValue(entry.getValue())
-					.build())
-			);
+	private Map<MessageSystemAttributeNameForSends, MessageSystemAttributeValue> mapMessageSystemAttributes(
+			Message message) {
+		return message.attributes().entrySet().stream().filter(Predicate.not(entry -> isSkipAttribute(entry.getKey())))
+				.collect(Collectors.toMap(entry -> MessageSystemAttributeNameForSends.fromValue(entry.getKey().name()),
+						entry -> MessageSystemAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
+								.stringValue(entry.getValue()).build()));
 	}
 
 	private boolean isSkipAttribute(MessageSystemAttributeName name) {
 		return MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID.equals(name)
-			|| MessageSystemAttributeName.MESSAGE_GROUP_ID.equals(name);
+				|| MessageSystemAttributeName.MESSAGE_GROUP_ID.equals(name);
 	}
 
 	private CompletableFuture<QueueAttributes> getQueueAttributes(String endpointName) {
-		return this.queueAttributesCache.computeIfAbsent(endpointName, newName ->
-			QueueAttributesResolver.builder()
-				.sqsAsyncClient(this.sqsAsyncClient)
-				.queueName(newName)
-				.queueNotFoundStrategy(this.queueNotFoundStrategy)
-				.queueAttributeNames(this.queueAttributeNames)
-				.build()
-				.resolveQueueAttributes());
+		return this.queueAttributesCache.computeIfAbsent(endpointName,
+				newName -> QueueAttributesResolver.builder().sqsAsyncClient(this.sqsAsyncClient).queueName(newName)
+						.queueNotFoundStrategy(this.queueNotFoundStrategy).queueAttributeNames(this.queueAttributeNames)
+						.build().resolveQueueAttributes());
 	}
 
 	@Override
@@ -427,99 +434,113 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	protected CompletableFuture<Void> doAcknowledgeMessages(String endpointName, Collection<org.springframework.messaging.Message<T>> messages) {
+	protected CompletableFuture<Void> doAcknowledgeMessages(String endpointName,
+			Collection<org.springframework.messaging.Message<T>> messages) {
 		return deleteMessages(endpointName, messages);
 	}
 
 	@Override
 	protected CompletableFuture<Collection<Message>> doReceiveAsync(String endpointName, Duration pollTimeout,
-																	Integer maxNumberOfMessages,
-																	Map<String, Object> additionalHeaders) {
-		logger.trace("Receiving messages with settings: endpointName - {}, pollTimeout - {}, maxNumberOfMessages - {}, additionalHeaders - {}",
-			endpointName, pollTimeout, maxNumberOfMessages, additionalHeaders);
+			Integer maxNumberOfMessages, Map<String, Object> additionalHeaders) {
+		logger.trace(
+				"Receiving messages with settings: endpointName - {}, pollTimeout - {}, maxNumberOfMessages - {}, additionalHeaders - {}",
+				endpointName, pollTimeout, maxNumberOfMessages, additionalHeaders);
 		return createReceiveMessageRequest(endpointName, pollTimeout, maxNumberOfMessages, additionalHeaders)
-			.thenCompose(this.sqsAsyncClient::receiveMessage)
-			.thenApply(ReceiveMessageResponse::messages);
+				.thenCompose(this.sqsAsyncClient::receiveMessage).thenApply(ReceiveMessageResponse::messages);
 	}
 
-	private CompletableFuture<Void> deleteMessages(String endpointName, Collection<org.springframework.messaging.Message<T>> messages) {
+	private CompletableFuture<Void> deleteMessages(String endpointName,
+			Collection<org.springframework.messaging.Message<T>> messages) {
 		logger.trace("Acknowledging in queue {} messages {}", endpointName, MessageHeaderUtils.getId(messages));
 		return getQueueAttributes(endpointName)
-			.thenCompose(attributes -> this.sqsAsyncClient.deleteMessageBatch(DeleteMessageBatchRequest
-				.builder()
-				.queueUrl(attributes.getQueueUrl())
-				.entries(createDeleteMessageEntries(messages))
-				.build()))
-			.exceptionallyCompose(t -> createAcknowledgementException(endpointName, Collections.emptyList(), messages, t))
-			.thenCompose(response -> !response.failed().isEmpty()
-				? createAcknowledgementException(endpointName, getSuccessfulAckMessages(response, messages, endpointName),
-				getFailedAckMessages(response, messages, endpointName), null)
-				: CompletableFuture.completedFuture(response))
-			.whenComplete((response, t) -> logAcknowledgement(endpointName, messages, response, t))
-			.thenRun(() -> {});
+				.thenCompose(attributes -> this.sqsAsyncClient.deleteMessageBatch(DeleteMessageBatchRequest.builder()
+						.queueUrl(attributes.getQueueUrl()).entries(createDeleteMessageEntries(messages)).build()))
+				.exceptionallyCompose(
+						t -> createAcknowledgementException(endpointName, Collections.emptyList(), messages, t))
+				.thenCompose(response -> !response.failed().isEmpty()
+						? createAcknowledgementException(endpointName,
+								getSuccessfulAckMessages(response, messages, endpointName),
+								getFailedAckMessages(response, messages, endpointName), null)
+						: CompletableFuture.completedFuture(response))
+				.whenComplete((response, t) -> logAcknowledgement(endpointName, messages, response, t)).thenRun(() -> {
+				});
 	}
 
-	private Collection<org.springframework.messaging.Message<T>> getFailedAckMessages(DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<T>> messages, String endpointName) {
-		return response.failed().stream().map(BatchResultErrorEntry::id).map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst().orElseThrow(() ->
-			new SqsAcknowledgementException("Could not correlate ids for acknowledgement failure", Collections.emptyList(), messages, endpointName))).collect(Collectors.toList());
+	private Collection<org.springframework.messaging.Message<T>> getFailedAckMessages(
+			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<T>> messages,
+			String endpointName) {
+		return response.failed().stream().map(BatchResultErrorEntry::id)
+				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst()
+						.orElseThrow(() -> new SqsAcknowledgementException(
+								"Could not correlate ids for acknowledgement failure", Collections.emptyList(),
+								messages, endpointName)))
+				.collect(Collectors.toList());
 	}
 
-	private Collection<org.springframework.messaging.Message<T>> getSuccessfulAckMessages(DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<T>> messages, String endpointName) {
-		return response.successful().stream().map(DeleteMessageBatchResultEntry::id).map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst().orElseThrow(() ->
-			new SqsAcknowledgementException("Could not correlate ids for acknowledgement failure", Collections.emptyList(), messages, endpointName))).collect(Collectors.toList());
+	private Collection<org.springframework.messaging.Message<T>> getSuccessfulAckMessages(
+			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<T>> messages,
+			String endpointName) {
+		return response.successful().stream().map(DeleteMessageBatchResultEntry::id)
+				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst()
+						.orElseThrow(() -> new SqsAcknowledgementException(
+								"Could not correlate ids for acknowledgement failure", Collections.emptyList(),
+								messages, endpointName)))
+				.collect(Collectors.toList());
 	}
 
-	private CompletableFuture<DeleteMessageBatchResponse> createAcknowledgementException(String endpointName, Collection<org.springframework.messaging.Message<T>> successfulAckMessages, Collection<org.springframework.messaging.Message<T>> failedAckMessages,
-																						 @Nullable Throwable t) {
-		return CompletableFuture
-			.failedFuture(new SqsAcknowledgementException("Error acknowledging messages", successfulAckMessages, failedAckMessages, endpointName, t));
+	private CompletableFuture<DeleteMessageBatchResponse> createAcknowledgementException(String endpointName,
+			Collection<org.springframework.messaging.Message<T>> successfulAckMessages,
+			Collection<org.springframework.messaging.Message<T>> failedAckMessages, @Nullable Throwable t) {
+		return CompletableFuture.failedFuture(new SqsAcknowledgementException("Error acknowledging messages",
+				successfulAckMessages, failedAckMessages, endpointName, t));
 	}
 
 	private void logAcknowledgement(String endpointName, Collection<org.springframework.messaging.Message<T>> messages,
-									DeleteMessageBatchResponse response, @Nullable Throwable t) {
+			DeleteMessageBatchResponse response, @Nullable Throwable t) {
 		if (t != null) {
-			logger.error("Error acknowledging in queue {} messages {}", endpointName, MessageHeaderUtils.getId(messages));
+			logger.error("Error acknowledging in queue {} messages {}", endpointName,
+					MessageHeaderUtils.getId(messages));
 		}
 		else if (!response.failed().isEmpty()) {
-			logger.error("Some messages could not be acknowledged in queue {}: {}", endpointName, response
-				.failed().stream().map(BatchResultErrorEntry::id).toList());
+			logger.error("Some messages could not be acknowledged in queue {}: {}", endpointName,
+					response.failed().stream().map(BatchResultErrorEntry::id).toList());
 		}
 		else {
 			logger.trace("Acknowledged messages in queue {}: {}", endpointName, MessageHeaderUtils.getId(messages));
 		}
 	}
 
-	private Collection<DeleteMessageBatchRequestEntry> createDeleteMessageEntries(Collection<org.springframework.messaging.Message<T>> messages) {
+	private Collection<DeleteMessageBatchRequestEntry> createDeleteMessageEntries(
+			Collection<org.springframework.messaging.Message<T>> messages) {
 		return messages.stream()
-			.map(message -> DeleteMessageBatchRequestEntry.builder()
-				.id(MessageHeaderUtils.getId(message))
-				.receiptHandle(MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER))
-				.build())
-			.collect(Collectors.toList());
+				.map(message -> DeleteMessageBatchRequestEntry.builder().id(MessageHeaderUtils.getId(message))
+						.receiptHandle(
+								MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER))
+						.build())
+				.collect(Collectors.toList());
 	}
 
-	private CompletableFuture<ReceiveMessageRequest> createReceiveMessageRequest(String endpointName, Duration pollTimeout,
-																				 Integer maxNumberOfMessages,
-																				 Map<String, Object> additionalHeaders) {
-		return getQueueAttributes(endpointName)
-			.thenApply(attributes -> doCreateReceiveMessageRequest(pollTimeout, maxNumberOfMessages, attributes, additionalHeaders));
+	private CompletableFuture<ReceiveMessageRequest> createReceiveMessageRequest(String endpointName,
+			Duration pollTimeout, Integer maxNumberOfMessages, Map<String, Object> additionalHeaders) {
+		return getQueueAttributes(endpointName).thenApply(attributes -> doCreateReceiveMessageRequest(pollTimeout,
+				maxNumberOfMessages, attributes, additionalHeaders));
 	}
 
 	private ReceiveMessageRequest doCreateReceiveMessageRequest(Duration pollTimeout, Integer maxNumberOfMessages,
-																QueueAttributes attributes, Map<String, Object> additionalHeaders) {
-		ReceiveMessageRequest.Builder builder = ReceiveMessageRequest.builder()
-			.queueUrl(attributes.getQueueUrl())
-			.maxNumberOfMessages(maxNumberOfMessages)
-			.messageAttributeNames(this.messageAttributeNames)
-			.attributeNamesWithStrings(this.messageSystemAttributeNames)
-			.waitTimeSeconds(pollTimeout.toSecondsPart());
+			QueueAttributes attributes, Map<String, Object> additionalHeaders) {
+		ReceiveMessageRequest.Builder builder = ReceiveMessageRequest.builder().queueUrl(attributes.getQueueUrl())
+				.maxNumberOfMessages(maxNumberOfMessages).messageAttributeNames(this.messageAttributeNames)
+				.attributeNamesWithStrings(this.messageSystemAttributeNames)
+				.waitTimeSeconds(pollTimeout.toSecondsPart());
 		if (additionalHeaders.containsKey(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER)) {
-			builder.visibilityTimeout(getValueAs(additionalHeaders, SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, Duration.class)
-					.toSecondsPart());
+			builder.visibilityTimeout(
+					getValueAs(additionalHeaders, SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, Duration.class)
+							.toSecondsPart());
 		}
 		if (additionalHeaders.containsKey(SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER)) {
-			builder.receiveRequestAttemptId(getValueAs(additionalHeaders, SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER, UUID.class)
-					.toString());
+			builder.receiveRequestAttemptId(
+					getValueAs(additionalHeaders, SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER, UUID.class)
+							.toString());
 		}
 		return builder.build();
 	}
@@ -546,32 +567,34 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		SqsTemplateOptions<T> queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy);
 
 		/**
-		 * The queue attribute names that will be retrieved by this template and added
-		 * as headers to received messages. Default is none.
+		 * The queue attribute names that will be retrieved by this template and added as headers to received messages.
+		 * Default is none.
 		 * @param queueAttributeNames the names.
 		 * @return the options instance.
 		 */
 		SqsTemplateOptions<T> queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames);
 
 		/**
-		 * The message attributes to be retrieved with the message and added as headers
-		 * to received messages. Default is ALL.
+		 * The message attributes to be retrieved with the message and added as headers to received messages. Default is
+		 * ALL.
 		 * @param messageAttributeNames the names.
 		 * @return the options instance.
 		 */
 		SqsTemplateOptions<T> messageAttributeNames(Collection<String> messageAttributeNames);
 
 		/**
-		 * The message system attributes to be retrieved with the message and added as headers
-		 * to received messages. Default is ALL.
+		 * The message system attributes to be retrieved with the message and added as headers to received messages.
+		 * Default is ALL.
 		 * @param messageSystemAttributeNames the names.
 		 * @return the options instance.
 		 */
-		SqsTemplateOptions<T> messageSystemAttributeNames(Collection<MessageSystemAttributeName> messageSystemAttributeNames);
+		SqsTemplateOptions<T> messageSystemAttributeNames(
+				Collection<MessageSystemAttributeName> messageSystemAttributeNames);
 
 	}
 
-	private static class SqsTemplateOptionsImpl<T> extends AbstractMessagingTemplateOptions<T, SqsTemplateOptions<T>> implements SqsTemplateOptions<T> {
+	private static class SqsTemplateOptionsImpl<T> extends AbstractMessagingTemplateOptions<T, SqsTemplateOptions<T>>
+			implements SqsTemplateOptions<T> {
 
 		private Collection<QueueAttributeName> queueAttributeNames = Collections.emptyList();
 
@@ -602,8 +625,10 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 
 		@Override
-		public SqsTemplateOptions<T> messageSystemAttributeNames(Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
-			this.messageSystemAttributeNames = messageSystemAttributeNames.stream().map(MessageSystemAttributeName::name).toList();
+		public SqsTemplateOptions<T> messageSystemAttributeNames(
+				Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
+			this.messageSystemAttributeNames = messageSystemAttributeNames.stream()
+					.map(MessageSystemAttributeName::name).toList();
 			return this;
 		}
 
@@ -650,15 +675,15 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		SqsTemplate<T> build();
 
 		/**
-		 * Create the template with the provided options, exposing only the async methods
-		 * contained in the {@link SqsAsyncOperations} interface.
+		 * Create the template with the provided options, exposing only the async methods contained in the
+		 * {@link SqsAsyncOperations} interface.
 		 * @return the {@link SqsTemplate} instance.
 		 */
 		SqsAsyncOperations<T> buildAsyncTemplate();
 
 		/**
-		 * Create the template with the provided options, exposing only the sync methods
-		 * contained in the {@link SqsOperations} interface.
+		 * Create the template with the provided options, exposing only the sync methods contained in the
+		 * {@link SqsOperations} interface.
 		 * @return the {@link SqsTemplate} instance.
 		 */
 		SqsOperations<T> buildSyncTemplate();
@@ -730,7 +755,8 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	}
 
-	private static abstract class AbstractSqsSendOptionsImpl<T, O extends SqsSendOptions<T, O>> implements SqsSendOptions<T, O> {
+	private static abstract class AbstractSqsSendOptionsImpl<T, O extends SqsSendOptions<T, O>>
+			implements SqsSendOptions<T, O> {
 
 		protected final Map<String, Object> headers = new HashMap<>();
 
@@ -785,10 +811,12 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 	}
 
-	private static class SendStandardOptionsImpl<T> extends AbstractSqsSendOptionsImpl<T, SqsSendOptions.Standard<T>> implements SqsSendOptions.Standard<T> {
+	private static class SendStandardOptionsImpl<T> extends AbstractSqsSendOptionsImpl<T, SqsSendOptions.Standard<T>>
+			implements SqsSendOptions.Standard<T> {
 	}
 
-	private static class SendFifoOptionsImpl<T> extends AbstractSqsSendOptionsImpl<T, SqsSendOptions.Fifo<T>> implements SqsSendOptions.Fifo<T> {
+	private static class SendFifoOptionsImpl<T> extends AbstractSqsSendOptionsImpl<T, SqsSendOptions.Fifo<T>>
+			implements SqsSendOptions.Fifo<T> {
 
 		@Nullable
 		private UUID messageGroupId;
@@ -812,7 +840,8 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	}
 
-	private static abstract class AbstractSqsReceiveOptionsImpl<T, O extends SqsReceiveOptions<T, O>> implements SqsReceiveOptions<T, O> {
+	private static abstract class AbstractSqsReceiveOptionsImpl<T, O extends SqsReceiveOptions<T, O>>
+			implements SqsReceiveOptions<T, O> {
 
 		protected final Map<String, Object> additionalHeaders = new HashMap<>();
 
@@ -863,7 +892,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		public O maxNumberOfMessages(Integer maxNumberOfMessages) {
 			Assert.notNull(maxNumberOfMessages, "maxNumberOfMessages must not be null");
 			Assert.isTrue(maxNumberOfMessages > 0 && maxNumberOfMessages <= 10,
-				"maxNumberOfMessages must be between 0 and 10");
+					"maxNumberOfMessages must be between 0 and 10");
 			this.maxNumberOfMessages = maxNumberOfMessages;
 			return self();
 		}
@@ -890,10 +919,12 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	}
 
-	private static class ReceiveStandardOptionsImpl<T> extends AbstractSqsReceiveOptionsImpl<T, SqsReceiveOptions.Standard<T>> implements SqsReceiveOptions.Standard<T> {
+	private static class ReceiveStandardOptionsImpl<T> extends
+			AbstractSqsReceiveOptionsImpl<T, SqsReceiveOptions.Standard<T>> implements SqsReceiveOptions.Standard<T> {
 	}
 
-	private static class ReceiveFifoOptionsImpl<T> extends AbstractSqsReceiveOptionsImpl<T, SqsReceiveOptions.Fifo<T>> implements SqsReceiveOptions.Fifo<T> {
+	private static class ReceiveFifoOptionsImpl<T> extends AbstractSqsReceiveOptionsImpl<T, SqsReceiveOptions.Fifo<T>>
+			implements SqsReceiveOptions.Fifo<T> {
 
 		@Nullable
 		private UUID receiveRequestAttemptId;
@@ -912,14 +943,14 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		@Override
 		public CompletableFuture<Void> onAcknowledge(org.springframework.messaging.Message<T> message) {
 			return deleteMessages(MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.SQS_QUEUE_NAME_HEADER),
-				Collections.singletonList(message));
+					Collections.singletonList(message));
 		}
 
 		@Override
 		public CompletableFuture<Void> onAcknowledge(Collection<org.springframework.messaging.Message<T>> messages) {
-			return messages.isEmpty() ? CompletableFuture.completedFuture(null) :
-				deleteMessages(MessageHeaderUtils.getHeaderAsString(messages.iterator().next(), SqsHeaders.SQS_QUEUE_NAME_HEADER),
-					messages);
+			return messages.isEmpty() ? CompletableFuture.completedFuture(null)
+					: deleteMessages(MessageHeaderUtils.getHeaderAsString(messages.iterator().next(),
+							SqsHeaders.SQS_QUEUE_NAME_HEADER), messages);
 		}
 	}
 

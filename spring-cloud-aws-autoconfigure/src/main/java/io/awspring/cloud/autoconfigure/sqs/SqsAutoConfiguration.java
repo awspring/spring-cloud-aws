@@ -74,18 +74,18 @@ public class SqsAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public SqsTemplate<Object> sqsTemplate(SqsAsyncClient sqsAsyncClient,
-										   ObjectProvider<ObjectMapper> objectMapperProvider) {
-		SqsTemplate.Builder<Object> builder = SqsTemplate.builder()
-			.sqsAsyncClient(sqsAsyncClient);
-		objectMapperProvider.ifAvailable(om -> builder
-			.setupDefaultConverter(converter -> converter.setObjectMapper(om)));
+			ObjectProvider<ObjectMapper> objectMapperProvider) {
+		SqsTemplate.Builder<Object> builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
+		objectMapperProvider
+				.ifAvailable(om -> builder.setupDefaultConverter(converter -> converter.setObjectMapper(om)));
 		return builder.build();
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(
-			ObjectProvider<SqsAsyncClient> sqsAsyncClient, ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
+			ObjectProvider<SqsAsyncClient> sqsAsyncClient,
+			ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
 			ObjectProvider<ErrorHandler<Object>> errorHandler,
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
 			ObjectProvider<MessageInterceptor<Object>> interceptors) {

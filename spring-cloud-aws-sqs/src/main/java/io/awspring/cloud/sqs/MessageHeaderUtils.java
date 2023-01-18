@@ -15,13 +15,12 @@
  */
 package io.awspring.cloud.sqs;
 
+import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.GenericMessage;
@@ -94,8 +93,8 @@ public class MessageHeaderUtils {
 	}
 
 	/**
-	 * Add a header to a {@link Message} while preserving the id and timestamp.
-	 * Note that since messages are immutable, a new instance will be returned.
+	 * Add a header to a {@link Message} while preserving the id and timestamp. Note that since messages are immutable,
+	 * a new instance will be returned.
 	 * @param message the message to add headers to.
 	 * @param headerName the header name.
 	 * @param headerValue the header value.
@@ -107,8 +106,8 @@ public class MessageHeaderUtils {
 	}
 
 	/**
-	 * Add headers to a {@link Message} while preserving the id and timestamp.
-	 * Note that since messages are immutable, a new instance will be returned.
+	 * Add headers to a {@link Message} while preserving the id and timestamp. Note that since messages are immutable, a
+	 * new instance will be returned.
 	 * @param message the message to add headers to.
 	 * @param newHeaders the headers to add.
 	 * @return the new message.

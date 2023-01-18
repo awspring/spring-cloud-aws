@@ -18,13 +18,11 @@ package io.awspring.cloud.sqs.listener.acknowledgement;
 import io.awspring.cloud.sqs.SqsException;
 import java.util.Collection;
 import java.util.stream.Collectors;
-
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**
- * {@link RuntimeException} that wraps an error thrown during acknowledgement execution.
- *
+ * Exception representing an error during acknowledgement execution.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -45,7 +43,7 @@ public class SqsAcknowledgementException extends SqsException {
 	 * @param <T> the messages payload type.
 	 */
 	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> successfullyAcknowledgedMessages,
-										   Collection<Message<T>> failedAcknowledgementMessages, String queueUrl) {
+			Collection<Message<T>> failedAcknowledgementMessages, String queueUrl) {
 		this(errorMessage, successfullyAcknowledgedMessages, failedAcknowledgementMessages, queueUrl, null);
 	}
 
@@ -58,13 +56,13 @@ public class SqsAcknowledgementException extends SqsException {
 	 * @param <T> the messages payload type.
 	 */
 	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> successfullyAcknowledgedMessages,
-										   Collection<Message<T>> failedAcknowledgementMessages, String queueUrl, @Nullable Throwable cause) {
+			Collection<Message<T>> failedAcknowledgementMessages, String queueUrl, @Nullable Throwable cause) {
 		super(errorMessage, cause);
 		this.queueUrl = queueUrl;
 		this.failedAcknowledgementMessages = failedAcknowledgementMessages.stream().map(msg -> (Message<?>) msg)
 				.collect(Collectors.toList());
 		this.successfullyAcknowledgedMessages = successfullyAcknowledgedMessages.stream().map(msg -> (Message<?>) msg)
-			.collect(Collectors.toList());
+				.collect(Collectors.toList());
 	}
 
 	/**
