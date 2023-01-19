@@ -142,9 +142,11 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		private Duration messageVisibility;
 
 		protected Builder() {
+			super();
 		}
 
 		protected Builder(SqsContainerOptions options) {
+			super(options);
 			this.queueAttributeNames = options.queueAttributeNames;
 			this.messageAttributeNames = options.messageAttributeNames;
 			this.messageSystemAttributeNames = options.messageSystemAttributeNames;
@@ -157,7 +159,6 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		 * messages. Default is none.
 		 * @param queueAttributeNames the names.
 		 * @return this instance.
-		 * @see QueueAttributesResolver
 		 */
 		public Builder queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notEmpty(queueAttributeNames, "queueAttributeNames cannot be empty");

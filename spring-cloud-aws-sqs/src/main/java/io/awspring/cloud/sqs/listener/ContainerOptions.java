@@ -82,10 +82,18 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	TaskExecutor getAcknowledgementResultTaskExecutor();
 
 	/**
-	 * Return the maximum amount of time that the container should wait for tasks to finish before shutting down.
+	 * Return the maximum amount of time that the container should wait for processing tasks to finish before shutting down.
+	 * Note that when acknowledgement batching is used, the container will also wait for {@link #getAcknowledgementShutdownTimeout()}.
 	 * @return the timeout.
 	 */
-	Duration getShutdownTimeout();
+	Duration getListenerShutdownTimeout();
+
+	/**
+	 * Return the maximum amount of time that the container should wait for batched acknowledgements to finish before shutting down.
+	 * This timeout starts counting after listener processing is finished, including due to {@link #getListenerShutdownTimeout()}.
+	 * @return the timeout.
+	 */
+	Duration getAcknowledgementShutdownTimeout();
 
 	/**
 	 * Return the {@link BackPressureMode} for this container.
@@ -246,11 +254,20 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 
 		/**
 		 * Set the maximum amount of time that the container should wait for tasks to finish before shutting down.
-		 * Default is 10 seconds.
+		 * Default is 20 seconds.
 		 * @param shutdownTimeout the timeout.
 		 * @return this instance.
 		 */
-		B shutdownTimeout(Duration shutdownTimeout);
+		B listenerShutdownTimeout(Duration shutdownTimeout);
+
+		/**
+		 * Set the maximum amount of time that the container should wait for batched acknowledgements to finish before shutting down.
+		 * Note that this timeout starts counting after listener processing is done or timed out.
+		 * Default is 20 seconds.
+		 * @param acknowledgementShutdownTimeout the timeout.
+		 * @return this instance.
+		 */
+		B acknowledgementShutdownTimeout(Duration acknowledgementShutdownTimeout);
 
 		/**
 		 * Set the {@link BackPressureMode} for this container. Default is {@link BackPressureMode#AUTO}

@@ -353,7 +353,7 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 					.permitAcquireTimeout(Duration.ofSeconds(1))
 					.acknowledgementInterval(Duration.ofMillis(500))
 					.backPressureMode(BackPressureMode.FIXED_HIGH_THROUGHPUT)
-					.shutdownTimeout(Duration.ofSeconds(40)));
+					.listenerShutdownTimeout(Duration.ofSeconds(40)));
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createHighThroughputAsyncClient);
 			factory.setContainerComponentFactories(Collections.singletonList(getTestAckHandlerComponentFactory()));
 			return factory;

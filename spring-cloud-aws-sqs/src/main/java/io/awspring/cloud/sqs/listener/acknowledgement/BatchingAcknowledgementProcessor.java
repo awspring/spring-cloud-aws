@@ -60,7 +60,7 @@ import org.springframework.util.Assert;
  *
  * All buffer access must be synchronized by the {@link Lock}.
  *
- * When this processor is signaled to {@link SmartLifecycle#stop()}, it waits for up to 20 seconds for ongoing
+ * When this processor is signaled to {@link SmartLifecycle#stop()}, it waits for up to {@link #acknowledgementShutdownTimeout} seconds for ongoing
  * acknowledgement executions to complete. After that time, it will cancel all executions and return the flow to the
  * caller.
  *
@@ -84,13 +84,13 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 
 	private TaskScheduler taskScheduler;
 
-	private Duration shutdownTimeout;
+	private Duration acknowledgementShutdownTimeout;
 
 	@Override
-	protected void doConfigure(ContainerOptions containerOptions) {
+	protected void doConfigure(ContainerOptions<?, ?> containerOptions) {
 		this.ackInterval = containerOptions.getAcknowledgementInterval();
 		this.ackThreshold = containerOptions.getAcknowledgementThreshold();
-		this.shutdownTimeout = containerOptions.getShutdownTimeout();
+		this.acknowledgementShutdownTimeout = containerOptions.getAcknowledgementShutdownTimeout();
 	}
 
 	@Override
@@ -120,6 +120,7 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 		Assert.notNull(this.ackInterval, "ackInterval not set");
 		Assert.notNull(this.ackThreshold, "ackThreshold not set");
 		Assert.notNull(this.taskExecutor, "executor not set");
+		Assert.notNull(this.acknowledgementShutdownTimeout, "timeout not set");
 		Assert.state(this.ackInterval != Duration.ZERO || this.ackThreshold > 0,
 				() -> getClass().getSimpleName() + " cannot be used with Duration.ZERO and acknowledgement threshold 0."
 						+ "Consider using a " + ImmediateAcknowledgementProcessor.class + "instead");
@@ -169,7 +170,7 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 		private BufferingAcknowledgementProcessor(BatchingAcknowledgementProcessor<T> parent) {
 			this.acks = parent.acks;
 			this.ackThreshold = parent.ackThreshold;
-			this.ackShutdownTimeout = parent.shutdownTimeout;
+			this.ackShutdownTimeout = parent.acknowledgementShutdownTimeout;
 			this.parent = parent;
 			this.acksBuffer = new ConcurrentHashMap<>();
 			this.messageGroupingFunction = parent.getMessageGroupingFunction();
@@ -209,7 +210,7 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				throw new IllegalStateException("Interrupted while waiting for acks to finish");
+				throw new IllegalStateException("Interrupted while waiting for acknowledgements to finish");
 			}
 			catch (TimeoutException e) {
 				logger.warn("Acknowledgements did not finish in {} ms. Proceeding with shutdown.",

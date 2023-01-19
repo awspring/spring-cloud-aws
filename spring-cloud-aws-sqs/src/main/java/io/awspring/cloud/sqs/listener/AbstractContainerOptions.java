@@ -41,7 +41,9 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	private final Duration permitAcquireTimeout;
 
-	private final Duration shutdownTimeout;
+	private final Duration listenerShutdownTimeout;
+
+	private final Duration acknowledgementShutdownTimeout;
 
 	private final BackPressureMode backPressureMode;
 
@@ -71,7 +73,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
 		this.pollTimeout = builder.pollTimeout;
 		this.permitAcquireTimeout = builder.permitAcquireTimeout;
-		this.shutdownTimeout = builder.shutdownTimeout;
+		this.listenerShutdownTimeout = builder.listenerShutdownTimeout;
+		this.acknowledgementShutdownTimeout = builder.acknowledgementShutdownTimeout;
 		this.backPressureMode = builder.backPressureMode;
 		this.listenerMode = builder.listenerMode;
 		this.messageConverter = builder.messageConverter;
@@ -119,8 +122,13 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	}
 
 	@Override
-	public Duration getShutdownTimeout() {
-		return this.shutdownTimeout;
+	public Duration getListenerShutdownTimeout() {
+		return this.listenerShutdownTimeout;
+	}
+
+	@Override
+	public Duration getAcknowledgementShutdownTimeout() {
+		return this.acknowledgementShutdownTimeout;
 	}
 
 	@Override
@@ -172,7 +180,9 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final Duration DEFAULT_SEMAPHORE_TIMEOUT = Duration.ofSeconds(10);
 
-		private static final Duration DEFAULT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
+		private static final Duration DEFAULT_LISTENER_SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
+
+		private static final Duration DEFAULT_ACKNOWLEDGEMENT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
 
 		private static final BackPressureMode DEFAULT_THROUGHPUT_CONFIGURATION = BackPressureMode.AUTO;
 
@@ -192,7 +202,9 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private BackPressureMode backPressureMode = DEFAULT_THROUGHPUT_CONFIGURATION;
 
-		private Duration shutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT;
+		private Duration listenerShutdownTimeout = DEFAULT_LISTENER_SHUTDOWN_TIMEOUT;
+
+		private Duration acknowledgementShutdownTimeout = DEFAULT_ACKNOWLEDGEMENT_SHUTDOWN_TIMEOUT;
 
 		private ListenerMode listenerMode = DEFAULT_MESSAGE_DELIVERY_STRATEGY;
 
@@ -223,7 +235,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.maxMessagesPerPoll = options.maxMessagesPerPoll;
 			this.pollTimeout = options.pollTimeout;
 			this.permitAcquireTimeout = options.permitAcquireTimeout;
-			this.shutdownTimeout = options.shutdownTimeout;
+			this.listenerShutdownTimeout = options.listenerShutdownTimeout;
+			this.acknowledgementShutdownTimeout = options.acknowledgementShutdownTimeout;
 			this.backPressureMode = options.backPressureMode;
 			this.listenerMode = options.listenerMode;
 			this.messageConverter = options.messageConverter;
@@ -284,9 +297,16 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		}
 
 		@Override
-		public B shutdownTimeout(Duration shutdownTimeout) {
-			Assert.notNull(shutdownTimeout, "shutdownTimeout cannot be null");
-			this.shutdownTimeout = shutdownTimeout;
+		public B listenerShutdownTimeout(Duration listenerShutdownTimeout) {
+			Assert.notNull(listenerShutdownTimeout, "listenerShutdownTimeout cannot be null");
+			this.listenerShutdownTimeout = listenerShutdownTimeout;
+			return self();
+		}
+
+		@Override
+		public B acknowledgementShutdownTimeout(Duration acknowledgementShutdownTimeout) {
+			Assert.notNull(acknowledgementShutdownTimeout, "acknowledgementShutdownTimeout cannot be null");
+			this.acknowledgementShutdownTimeout = acknowledgementShutdownTimeout;
 			return self();
 		}
 
