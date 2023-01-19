@@ -28,6 +28,15 @@ public class PersonEntity {
 	private String name;
 	private String lastName;
 
+	public PersonEntity() {
+	}
+
+	PersonEntity(UUID uuid, String name, String lastName) {
+		this.uuid = uuid;
+		this.name = name;
+		this.lastName = lastName;
+	}
+
 	@DynamoDbPartitionKey
 	public UUID getUuid() {
 		return uuid;
@@ -67,41 +76,5 @@ public class PersonEntity {
 	@Override
 	public int hashCode() {
 		return Objects.hash(uuid, name, lastName);
-	}
-
-	public static final class Builder {
-		private UUID uuid;
-		private String name;
-		private String lastName;
-
-		private Builder() {
-		}
-
-		public static Builder person() {
-			return new Builder();
-		}
-
-		public Builder withUuid(UUID uuid) {
-			this.uuid = uuid;
-			return this;
-		}
-
-		public Builder withName(String name) {
-			this.name = name;
-			return this;
-		}
-
-		public Builder withLastName(String lastName) {
-			this.lastName = lastName;
-			return this;
-		}
-
-		public PersonEntity build() {
-			PersonEntity personEntity = new PersonEntity();
-			personEntity.setUuid(uuid);
-			personEntity.setName(name);
-			personEntity.setLastName(lastName);
-			return personEntity;
-		}
 	}
 }
