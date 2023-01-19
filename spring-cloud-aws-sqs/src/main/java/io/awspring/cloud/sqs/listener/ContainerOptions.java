@@ -22,7 +22,6 @@ import java.time.Duration;
 import java.util.Collection;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Contains the options to be used by the {@link MessageListenerContainer} at runtime. Note that after the object has
@@ -82,15 +81,17 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	TaskExecutor getAcknowledgementResultTaskExecutor();
 
 	/**
-	 * Return the maximum amount of time that the container should wait for processing tasks to finish before shutting down.
-	 * Note that when acknowledgement batching is used, the container will also wait for {@link #getAcknowledgementShutdownTimeout()}.
+	 * Return the maximum amount of time that the container should wait for processing tasks to finish before shutting
+	 * down. Note that when acknowledgement batching is used, the container will also wait for
+	 * {@link #getAcknowledgementShutdownTimeout()}.
 	 * @return the timeout.
 	 */
 	Duration getListenerShutdownTimeout();
 
 	/**
-	 * Return the maximum amount of time that the container should wait for batched acknowledgements to finish before shutting down.
-	 * This timeout starts counting after listener processing is finished, including due to {@link #getListenerShutdownTimeout()}.
+	 * Return the maximum amount of time that the container should wait for batched acknowledgements to finish before
+	 * shutting down. This timeout starts counting after listener processing is finished, including due to
+	 * {@link #getListenerShutdownTimeout()}.
 	 * @return the timeout.
 	 */
 	Duration getAcknowledgementShutdownTimeout();
@@ -168,16 +169,8 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	 * @return a copy of this instance;
 	 */
 	default O createCopy() {
-		O newCopy = createInstance();
-		ReflectionUtils.shallowCopyFieldState(this, newCopy);
-		return newCopy;
+		return toBuilder().build();
 	}
-
-	/**
-	 * Create a new instance of this container options object.
-	 * @return the new instance.
-	 */
-	O createInstance();
 
 	/**
 	 * Creates a new {@link Builder) instance configured with this options. Note that any changes made to the builder
@@ -261,9 +254,9 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 		B listenerShutdownTimeout(Duration shutdownTimeout);
 
 		/**
-		 * Set the maximum amount of time that the container should wait for batched acknowledgements to finish before shutting down.
-		 * Note that this timeout starts counting after listener processing is done or timed out.
-		 * Default is 20 seconds.
+		 * Set the maximum amount of time that the container should wait for batched acknowledgements to finish before
+		 * shutting down. Note that this timeout starts counting after listener processing is done or timed out. Default
+		 * is 20 seconds.
 		 * @param acknowledgementShutdownTimeout the timeout.
 		 * @return this instance.
 		 */

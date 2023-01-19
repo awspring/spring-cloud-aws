@@ -18,13 +18,18 @@ package io.awspring.cloud.sqs.listener;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.TaskExecutor;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
  * Tests for {@link SqsContainerOptions}.
@@ -41,28 +46,28 @@ class ContainerOptionsTests {
 
 	@Test
 	void shouldHaveSameValuesAfterBuilder() {
-		SqsContainerOptions options = SqsContainerOptions.builder().build();
+		SqsContainerOptions options = createConfiguredOptions();
 		SqsContainerOptions builtCopy = options.toBuilder().build();
 		assertThat(options).usingRecursiveComparison().isEqualTo(builtCopy);
 	}
 
 	@Test
 	void shouldCreateCopy() {
-		SqsContainerOptions options = SqsContainerOptions.builder().build();
+		SqsContainerOptions options = createConfiguredOptions();
 		SqsContainerOptions copy = options.createCopy();
 		assertThat(options).usingRecursiveComparison().isEqualTo(copy);
 	}
 
 	@Test
 	void shouldCreateCopyOfBuilder() {
-		SqsContainerOptions.Builder builder = SqsContainerOptions.builder();
+		SqsContainerOptions.Builder builder = createConfiguredBuilder();
 		SqsContainerOptions.Builder copy = builder.createCopy();
 		assertThat(copy).usingRecursiveComparison().isEqualTo(builder);
 	}
 
 	@Test
 	void shouldHaveSameFieldsInBuilder() {
-		SqsContainerOptions options = SqsContainerOptions.builder().build();
+		SqsContainerOptions options = createConfiguredOptions();
 		SqsContainerOptions.Builder builtCopy = options.toBuilder();
 		assertThat(options).usingRecursiveComparison().isEqualTo(builtCopy);
 	}
@@ -104,6 +109,24 @@ class ContainerOptionsTests {
 		MessagingMessageConverter<Object> converter = mock(MessagingMessageConverter.class);
 		SqsContainerOptions options = SqsContainerOptions.builder().messageConverter(converter).build();
 		assertThat(options.getMessageConverter()).isEqualTo(converter);
+	}
+
+	private SqsContainerOptions createConfiguredOptions() {
+		return createConfiguredBuilder().build();
+	}
+
+	private SqsContainerOptions.Builder createConfiguredBuilder() {
+		return SqsContainerOptions.builder().acknowledgementShutdownTimeout(Duration.ofSeconds(7))
+				.messageVisibility(Duration.ofSeconds(11))
+				.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
+				.messageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.MESSAGE_GROUP_ID))
+				.messageAttributeNames(Collections.singletonList("my-attribute"))
+				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
+				.queueNotFoundStrategy(QueueNotFoundStrategy.FAIL).acknowledgementThreshold(12)
+				.maxInflightMessagesPerQueue(39).pollTimeout(Duration.ofSeconds(13))
+				.acknowledgementMode(AcknowledgementMode.MANUAL).acknowledgementResultTaskExecutor(Runnable::run)
+				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).componentsTaskExecutor(Runnable::run)
+				.listenerMode(ListenerMode.BATCH).permitAcquireTimeout(Duration.ofSeconds(16));
 	}
 
 }

@@ -109,11 +109,6 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	}
 
 	@Override
-	public SqsContainerOptions createInstance() {
-		return new SqsContainerOptions(new Builder());
-	}
-
-	@Override
 	public Builder toBuilder() {
 		return new Builder(this);
 	}

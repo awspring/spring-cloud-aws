@@ -60,9 +60,9 @@ import org.springframework.util.Assert;
  *
  * All buffer access must be synchronized by the {@link Lock}.
  *
- * When this processor is signaled to {@link SmartLifecycle#stop()}, it waits for up to {@link #acknowledgementShutdownTimeout} seconds for ongoing
- * acknowledgement executions to complete. After that time, it will cancel all executions and return the flow to the
- * caller.
+ * When this processor is signaled to {@link SmartLifecycle#stop()}, it waits for up to
+ * {@link #acknowledgementShutdownTimeout} seconds for ongoing acknowledgement executions to complete. After that time,
+ * it will cancel all executions and return the flow to the caller.
  *
  * @author Tomaz Fernandes
  * @since 3.0
