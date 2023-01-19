@@ -83,7 +83,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	private final Collection<String> messageSystemAttributeNames;
 
-	private SqsTemplate(BuilderImpl<T> builder) {
+	private SqsTemplate(SqsTemplateBuilderImpl<T> builder) {
 		super(builder.messageConverter, builder.options);
 		SqsTemplateOptionsImpl<T> options = builder.options;
 		this.sqsAsyncClient = builder.sqsAsyncClient;
@@ -94,12 +94,12 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	/**
-	 * Create a new {@link Builder}.
+	 * Create a new {@link SqsTemplateBuilder}.
 	 * @return the builder.
 	 * @param <T> the payload type.
 	 */
-	public static <T> Builder<T> builder() {
-		return new BuilderImpl<>();
+	public static <T> SqsTemplateBuilder<T> builder() {
+		return new SqsTemplateBuilderImpl<>();
 	}
 
 	/**
@@ -110,7 +110,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	 * @param <T> the payload type.
 	 */
 	public static <T> SqsTemplate<T> newTemplate(SqsAsyncClient sqsAsyncClient) {
-		return new BuilderImpl<T>().sqsAsyncClient(sqsAsyncClient).build();
+		return new SqsTemplateBuilderImpl<T>().sqsAsyncClient(sqsAsyncClient).build();
 	}
 
 	/**
@@ -352,12 +352,14 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	@Nullable
 	@Override
-	protected MessageConversionContext getReceiveMessageConversionContext(String endpointName, @Nullable Class<? extends T> payloadClass) {
+	protected MessageConversionContext getReceiveMessageConversionContext(String endpointName,
+			@Nullable Class<? extends T> payloadClass) {
 		return this.conversionContextCache.computeIfAbsent(endpointName,
 				newEndpoint -> doGetSqsMessageConversionContext(endpointName, payloadClass));
 	}
 
-	private SqsMessageConversionContext doGetSqsMessageConversionContext(String newEndpoint, @Nullable Class<? extends T> payloadClass) {
+	private SqsMessageConversionContext doGetSqsMessageConversionContext(String newEndpoint,
+			@Nullable Class<? extends T> payloadClass) {
 		SqsMessageConversionContext conversionContext = new SqsMessageConversionContext();
 		conversionContext.setSqsAsyncClient(this.sqsAsyncClient);
 		// At this point we'll already have retrieved and cached the queue attributes
@@ -555,46 +557,6 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		return new SqsMessagingMessageConverter();
 	}
 
-	/**
-	 * Sqs specific options for the {@link SqsTemplate}.
-	 * @param <T> the payload type.
-	 */
-	public interface SqsTemplateOptions<T> extends MessagingTemplateOptions<T, SqsTemplateOptions<T>> {
-
-		/**
-		 * The {@link QueueNotFoundStrategy} for this template.
-		 * @param queueNotFoundStrategy the strategy.
-		 * @return the options instance.
-		 */
-		SqsTemplateOptions<T> queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy);
-
-		/**
-		 * The queue attribute names that will be retrieved by this template and added as headers to received messages.
-		 * Default is none.
-		 * @param queueAttributeNames the names.
-		 * @return the options instance.
-		 */
-		SqsTemplateOptions<T> queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames);
-
-		/**
-		 * The message attributes to be retrieved with the message and added as headers to received messages. Default is
-		 * ALL.
-		 * @param messageAttributeNames the names.
-		 * @return the options instance.
-		 */
-		SqsTemplateOptions<T> messageAttributeNames(Collection<String> messageAttributeNames);
-
-		/**
-		 * The message system attributes to be retrieved with the message and added as headers to received messages.
-		 * Default is ALL.
-		 * @param messageSystemAttributeNames the names.
-		 * @return the options instance.
-		 */
-		SqsTemplateOptions<T> messageSystemAttributeNames(
-				Collection<MessageSystemAttributeName> messageSystemAttributeNames);
-
-	}
-
 	private static class SqsTemplateOptionsImpl<T> extends AbstractMessagingTemplateOptions<T, SqsTemplateOptions<T>>
 			implements SqsTemplateOptions<T> {
 
@@ -636,63 +598,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	}
 
-	/**
-	 * Builder interface for creating a {@link SqsTemplate} instance.
-	 * @param <T> the payload type.
-	 */
-	public interface Builder<T> {
-
-		/**
-		 * Set the {@link SqsAsyncClient} to be used by the {@link SqsTemplate}.
-		 * @param sqsAsyncClient the instance.
-		 * @return the builder.
-		 */
-		Builder<T> sqsAsyncClient(SqsAsyncClient sqsAsyncClient);
-
-		/**
-		 * Set the {@link MessagingMessageConverter} to be used by the template.
-		 * @param messageConverter the converter.
-		 * @return the builder.
-		 */
-		Builder<T> messageConverter(MessagingMessageConverter<Message> messageConverter);
-
-		/**
-		 * Configure the default message converter.
-		 * @param messageConverterConfigurer a {@link SqsMessagingMessageConverter} consumer.
-		 * @return the builder.
-		 */
-		Builder<T> configureDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer);
-
-		/**
-		 * Configure options for the template.
-		 * @param options a {@link SqsTemplateOptions} consumer.
-		 * @return the builder.
-		 */
-		Builder<T> configure(Consumer<SqsTemplateOptions<T>> options);
-
-		/**
-		 * Create the template with the provided options, exposing both sync and async methods.
-		 * @return the {@link SqsTemplate} instance.
-		 */
-		SqsTemplate<T> build();
-
-		/**
-		 * Create the template with the provided options, exposing only the async methods contained in the
-		 * {@link SqsAsyncOperations} interface.
-		 * @return the {@link SqsTemplate} instance.
-		 */
-		SqsAsyncOperations<T> buildAsyncTemplate();
-
-		/**
-		 * Create the template with the provided options, exposing only the sync methods contained in the
-		 * {@link SqsOperations} interface.
-		 * @return the {@link SqsTemplate} instance.
-		 */
-		SqsOperations<T> buildSyncTemplate();
-
-	}
-
-	private static class BuilderImpl<T> implements Builder<T> {
+	private static class SqsTemplateBuilderImpl<T> implements SqsTemplateBuilder<T> {
 
 		private final SqsTemplateOptionsImpl<T> options;
 
@@ -700,19 +606,19 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 		private MessagingMessageConverter<Message> messageConverter;
 
-		private BuilderImpl() {
+		private SqsTemplateBuilderImpl() {
 			this.options = new SqsTemplateOptionsImpl<>();
 		}
 
 		@Override
-		public Builder<T> sqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
+		public SqsTemplateBuilder<T> sqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 			Assert.notNull(sqsAsyncClient, "sqsAsyncClient must not be null");
 			this.sqsAsyncClient = sqsAsyncClient;
 			return this;
 		}
 
 		@Override
-		public Builder<T> messageConverter(MessagingMessageConverter<Message> messageConverter) {
+		public SqsTemplateBuilder<T> messageConverter(MessagingMessageConverter<Message> messageConverter) {
 			Assert.notNull(messageConverter, "messageConverter must not be null");
 			Assert.isNull(this.messageConverter, "messageConverter already configured");
 			this.messageConverter = messageConverter;
@@ -720,7 +626,8 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 
 		@Override
-		public Builder<T> configureDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer) {
+		public SqsTemplateBuilder<T> configureDefaultConverter(
+				Consumer<SqsMessagingMessageConverter> messageConverterConfigurer) {
 			Assert.notNull(messageConverterConfigurer, "messageConverterConfigurer must not be null");
 			Assert.isNull(this.messageConverter, "messageConverter already configured");
 			SqsMessagingMessageConverter defaultMessageConverter = createDefaultMessageConverter();
@@ -730,7 +637,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 
 		@Override
-		public Builder<T> configure(Consumer<SqsTemplateOptions<T>> options) {
+		public SqsTemplateBuilder<T> configure(Consumer<SqsTemplateOptions<T>> options) {
 			Assert.notNull(options, "options must not be null");
 			options.accept(this.options);
 			return this;

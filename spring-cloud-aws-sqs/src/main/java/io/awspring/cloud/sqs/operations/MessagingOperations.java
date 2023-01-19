@@ -113,8 +113,12 @@ public interface MessagingOperations<T> {
 	 * @param additionalHeaders headers to be added to the received messages.
 	 * @return the messages, or {@link Optional#empty()} if none is returned.
 	 */
-	Collection<Message<T>> receiveMany(@Nullable String endpointName, @Nullable Class<T> payloadClass,
-			@Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
-			@Nullable Map<String, Object> additionalHeaders);
+	// @formatter:off
+	Collection<Message<T>> receiveMany(@Nullable String endpointName,
+									   @Nullable Class<T> payloadClass,
+									   @Nullable Duration pollTimeout,
+									   @Nullable Integer maxNumberOfMessages,
+									   @Nullable Map<String, Object> additionalHeaders);
+	// @formatter:on
 
 }

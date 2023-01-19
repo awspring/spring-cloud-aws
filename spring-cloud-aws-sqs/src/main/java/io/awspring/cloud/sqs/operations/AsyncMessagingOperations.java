@@ -94,8 +94,12 @@ public interface AsyncMessagingOperations<T> {
 	 * @return a {@link CompletableFuture} to be completed with the message, or {@link Optional#empty()} if none is
 	 * returned.
 	 */
-	CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpointName, @Nullable Class<? extends T> payloadClass,
-			@Nullable Duration pollTimeout, @Nullable Map<String, Object> additionalHeaders);
+	// @formatter:off
+	CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpointName,
+														 @Nullable Class<? extends T> payloadClass,
+														 @Nullable Duration pollTimeout,
+														 @Nullable Map<String, Object> additionalHeaders);
+	// @formatter:on
 
 	/**
 	 * Receive a batch of messages from the default endpoint with default settings.

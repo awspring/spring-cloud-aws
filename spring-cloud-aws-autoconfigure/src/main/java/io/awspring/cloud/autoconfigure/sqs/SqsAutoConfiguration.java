@@ -29,6 +29,7 @@ import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -75,7 +76,7 @@ public class SqsAutoConfiguration {
 	@Bean
 	public SqsTemplate<Object> sqsTemplate(SqsAsyncClient sqsAsyncClient,
 			ObjectProvider<ObjectMapper> objectMapperProvider) {
-		SqsTemplate.Builder<Object> builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
+		SqsTemplateBuilder<Object> builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
 		objectMapperProvider
 				.ifAvailable(om -> builder.configureDefaultConverter(converter -> converter.setObjectMapper(om)));
 		return builder.build();

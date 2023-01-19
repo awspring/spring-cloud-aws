@@ -129,8 +129,8 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	@Override
 	public CompletableFuture<Collection<Message<T>>> receiveManyAsync(@Nullable String endpoint,
-			@Nullable Class<? extends T> payloadClass, @Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
-			@Nullable Map<String, Object> additionalHeaders) {
+			@Nullable Class<? extends T> payloadClass, @Nullable Duration pollTimeout,
+			@Nullable Integer maxNumberOfMessages, @Nullable Map<String, Object> additionalHeaders) {
 		String endpointToUse = getEndpointName(endpoint);
 		logger.trace("Receiving messages from endpoint {}", endpointToUse);
 		Map<String, Object> headers = getAdditionalHeadersToReceive(additionalHeaders);
@@ -350,74 +350,6 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 			}
 			throw new RuntimeException("Unexpected exception", ex);
 		}
-	}
-
-	/**
-	 * Options to be used by the template.
-	 * @param <T> the payload type.
-	 * @param <O> the options subclass to be returned by the chained methods.
-	 */
-	protected interface MessagingTemplateOptions<T, O extends MessagingTemplateOptions<T, O>> {
-
-		/**
-		 * Set the acknowledgement mode for this template. Default is {@link TemplateAcknowledgementMode#ACKNOWLEDGE}
-		 * @param acknowledgementMode the mode.
-		 * @return the options instance.
-		 */
-		O acknowledgementMode(TemplateAcknowledgementMode acknowledgementMode);
-
-		/**
-		 * Set the strategy to use when handling batch send operations with at least one failed message. Default is
-		 * {@link SendBatchFailureHandlingStrategy#THROW}
-		 * @param sendBatchFailureHandlingStrategy the strategy.
-		 * @return the options instance.
-		 */
-		O sendBatchFailureHandlingStrategy(SendBatchFailureHandlingStrategy sendBatchFailureHandlingStrategy);
-
-		/**
-		 * Set the default maximum amount of time this template will wait for the maximum number of messages before
-		 * returning. Default is 10 seconds.
-		 * @param defaultPollTimeout the timeout.
-		 * @return the options instance.
-		 */
-		O defaultPollTimeout(Duration defaultPollTimeout);
-
-		/**
-		 * Set the default maximum number of messages to be retrieved in a single batch. Default is 10.
-		 * @param defaultMaxNumberOfMessages the maximum number of messages.
-		 * @return the options instance.
-		 */
-		O defaultMaxNumberOfMessages(Integer defaultMaxNumberOfMessages);
-
-		/**
-		 * Set the default endpoint name for this template. Default is blank.
-		 * @param defaultEndpointName the default endpoint name.
-		 * @return the options instance.
-		 */
-		O defaultEndpointName(String defaultEndpointName);
-
-		/**
-		 * The default class to which this template should convert payloads to.
-		 * @param defaultPayloadClass the default payload class.
-		 * @return the options instance.
-		 */
-		O defaultPayloadClass(Class<T> defaultPayloadClass);
-
-		/**
-		 * Set a default header to be added to received messages.
-		 * @param name the header name.
-		 * @param value the header value.
-		 * @return the options instance.
-		 */
-		O additionalHeaderForReceive(String name, Object value);
-
-		/**
-		 * Set default headers to be added to received messages.
-		 * @param defaultAdditionalHeaders the headers.
-		 * @return the options instance.
-		 */
-		O additionalHeadersForReceive(Map<String, Object> defaultAdditionalHeaders);
-
 	}
 
 	/**

@@ -16,10 +16,9 @@
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.MessagingHeaders;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-
-import io.awspring.cloud.sqs.MessagingHeaders;
 import org.springframework.messaging.Message;
 
 /**
@@ -55,7 +54,8 @@ public interface Acknowledgement {
 	 */
 	@SuppressWarnings("unchecked")
 	static CompletableFuture<Void> acknowledgeAsync(Message<?> message) {
-		return MessageHeaderUtils.getHeader(message, MessagingHeaders.ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class)
+		return MessageHeaderUtils
+				.getHeader(message, MessagingHeaders.ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class)
 				.onAcknowledge(message);
 	}
 
@@ -74,7 +74,7 @@ public interface Acknowledgement {
 	@SuppressWarnings("unchecked")
 	static <T> CompletableFuture<Void> acknowledgeAsync(Collection<Message<T>> messages) {
 		return !messages.isEmpty() ? MessageHeaderUtils.getHeader(messages.iterator().next(),
-			MessagingHeaders.ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class).onAcknowledge(messages)
+				MessagingHeaders.ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class).onAcknowledge(messages)
 				: CompletableFuture.completedFuture(null);
 	}
 

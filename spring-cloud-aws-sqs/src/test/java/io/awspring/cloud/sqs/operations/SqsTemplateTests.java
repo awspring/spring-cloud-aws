@@ -444,8 +444,9 @@ class SqsTemplateTests {
 		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(Consumer.class))).willReturn(CompletableFuture.completedFuture(urlResponse));
-		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder().messages(builder -> builder
-				.messageId(UUID.randomUUID().toString()).receiptHandle("test-receipt-handle").body(payloadString).build())
+		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
+				.messages(builder -> builder.messageId(UUID.randomUUID().toString())
+						.receiptHandle("test-receipt-handle").body(payloadString).build())
 				.build();
 		given(mockClient.receiveMessage(any(ReceiveMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(receiveMessageResponse));
@@ -455,7 +456,7 @@ class SqsTemplateTests {
 				.willReturn(CompletableFuture.completedFuture(deleteResponse));
 		SqsOperations<Object> template = SqsTemplate.newSyncTemplate(mockClient);
 		Optional<Message<Object>> receivedMessage = template
-			.receive(from -> from.queue(queue).payloadClass(SampleRecord.class));
+				.receive(from -> from.queue(queue).payloadClass(SampleRecord.class));
 		assertThat(receivedMessage).isPresent()
 				.hasValueSatisfying(message -> assertThat(message.getPayload()).isEqualTo(payload));
 	}
