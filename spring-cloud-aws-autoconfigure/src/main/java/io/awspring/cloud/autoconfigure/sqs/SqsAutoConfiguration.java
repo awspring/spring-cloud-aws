@@ -77,7 +77,7 @@ public class SqsAutoConfiguration {
 			ObjectProvider<ObjectMapper> objectMapperProvider) {
 		SqsTemplate.Builder<Object> builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
 		objectMapperProvider
-				.ifAvailable(om -> builder.setupDefaultConverter(converter -> converter.setObjectMapper(om)));
+				.ifAvailable(om -> builder.configureDefaultConverter(converter -> converter.setObjectMapper(om)));
 		return builder.build();
 	}
 

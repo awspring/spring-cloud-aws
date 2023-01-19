@@ -44,11 +44,11 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMessagingTemplate.class);
 
-	private static final TemplateAcknowledgementMode DEFAULT_ACKNOWLEDGEMENT_MODE = TemplateAcknowledgementMode.ACKNOWLEDGE_ON_RECEIVE;
+	private static final TemplateAcknowledgementMode DEFAULT_ACKNOWLEDGEMENT_MODE = TemplateAcknowledgementMode.ACKNOWLEDGE;
 
 	private static final Duration DEFAULT_POLL_TIMEOUT = Duration.ofSeconds(10);
 
-	private static final SendBatchFailureStrategy DEFAULT_SEND_BATCH_OPERATION_FAILURE_STRATEGY = SendBatchFailureStrategy.THROW_EXCEPTION;
+	private static final SendBatchFailureHandlingStrategy DEFAULT_SEND_BATCH_OPERATION_FAILURE_STRATEGY = SendBatchFailureHandlingStrategy.THROW;
 
 	private static final int DEFAULT_MAX_NUMBER_OF_MESSAGES = 10;
 
@@ -64,7 +64,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	private final TemplateAcknowledgementMode acknowledgementMode;
 
-	private final SendBatchFailureStrategy sendBatchFailureStrategy;
+	private final SendBatchFailureHandlingStrategy sendBatchFailureHandlingStrategy;
 
 	@Nullable
 	private final Class<T> defaultPayloadClass;
@@ -82,7 +82,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 		this.defaultPayloadClass = options.defaultPayloadClass;
 		this.defaultEndpointName = options.defaultEndpointName;
 		this.acknowledgementMode = options.acknowledgementMode;
-		this.sendBatchFailureStrategy = options.sendBatchFailureStrategy;
+		this.sendBatchFailureHandlingStrategy = options.sendBatchFailureHandlingStrategy;
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	@Override
 	public CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpoint,
-			@Nullable Class<T> payloadClass, @Nullable Duration pollTimeout,
+			@Nullable Class<? extends T> payloadClass, @Nullable Duration pollTimeout,
 			@Nullable Map<String, Object> additionalHeaders) {
 		return receiveManyAsync(endpoint, payloadClass, pollTimeout, 1, additionalHeaders)
 				.thenApply(msgs -> msgs.isEmpty() ? Optional.empty() : Optional.of(msgs.iterator().next()));
@@ -129,7 +129,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	@Override
 	public CompletableFuture<Collection<Message<T>>> receiveManyAsync(@Nullable String endpoint,
-			@Nullable Class<T> payloadClass, @Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
+			@Nullable Class<? extends T> payloadClass, @Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
 			@Nullable Map<String, Object> additionalHeaders) {
 		String endpointToUse = getEndpointName(endpoint);
 		logger.trace("Receiving messages from endpoint {}", endpointToUse);
@@ -152,7 +152,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 		return headers;
 	}
 
-	private Collection<Message<T>> convertReceivedMessages(String endpoint, @Nullable Class<T> payloadClass,
+	private Collection<Message<T>> convertReceivedMessages(String endpoint, @Nullable Class<? extends T> payloadClass,
 			Collection<S> messages, Map<String, Object> additionalHeaders) {
 		return messages.stream()
 				.map(message -> convertReceivedMessage(getEndpointName(endpoint), message,
@@ -169,10 +169,9 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	private CompletableFuture<Collection<Message<T>>> handleAcknowledgement(@Nullable String endpoint,
 			Collection<Message<T>> messages) {
-		return TemplateAcknowledgementMode.ACKNOWLEDGE_ON_RECEIVE.equals(this.acknowledgementMode)
-				&& !messages.isEmpty()
-						? doAcknowledgeMessages(getEndpointName(endpoint), messages).thenApply(theVoid -> messages)
-						: CompletableFuture.completedFuture(messages);
+		return TemplateAcknowledgementMode.ACKNOWLEDGE.equals(this.acknowledgementMode) && !messages.isEmpty()
+				? doAcknowledgeMessages(getEndpointName(endpoint), messages).thenApply(theVoid -> messages)
+				: CompletableFuture.completedFuture(messages);
 	}
 
 	protected abstract CompletableFuture<Void> doAcknowledgeMessages(String endpointName,
@@ -190,7 +189,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 	}
 
 	@SuppressWarnings("unchecked")
-	private Message<T> convertReceivedMessage(String endpoint, S message, @Nullable Class<T> payloadClass) {
+	private Message<T> convertReceivedMessage(String endpoint, S message, @Nullable Class<? extends T> payloadClass) {
 		return this.messageConverter instanceof ContextAwareMessagingMessageConverter<S> contextConverter
 				? (Message<T>) contextConverter.toMessagingMessage(message,
 						getReceiveMessageConversionContext(endpoint, payloadClass))
@@ -269,7 +268,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 	private CompletableFuture<SendResult.Batch<T>> handleFailedMessages(String endpointToUse,
 			SendResult.Batch<T> result) {
 		return !result.failed().isEmpty()
-				&& SendBatchFailureStrategy.THROW_EXCEPTION.equals(this.sendBatchFailureStrategy)
+				&& SendBatchFailureHandlingStrategy.THROW.equals(this.sendBatchFailureHandlingStrategy)
 						? handleFailedSendBatch(endpointToUse, result)
 						: CompletableFuture.completedFuture(result);
 	}
@@ -303,7 +302,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 	@Nullable
 	protected MessageConversionContext getReceiveMessageConversionContext(String endpointName,
-			@Nullable Class<T> payloadClass) {
+			@Nullable Class<? extends T> payloadClass) {
 		// Subclasses can override this method to return a context
 		return null;
 	}
@@ -361,8 +360,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 	protected interface MessagingTemplateOptions<T, O extends MessagingTemplateOptions<T, O>> {
 
 		/**
-		 * Set the acknowledgement mode for this template. Default is
-		 * {@link TemplateAcknowledgementMode#ACKNOWLEDGE_ON_RECEIVE}
+		 * Set the acknowledgement mode for this template. Default is {@link TemplateAcknowledgementMode#ACKNOWLEDGE}
 		 * @param acknowledgementMode the mode.
 		 * @return the options instance.
 		 */
@@ -370,11 +368,11 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 		/**
 		 * Set the strategy to use when handling batch send operations with at least one failed message. Default is
-		 * {@link SendBatchFailureStrategy#THROW_EXCEPTION}
-		 * @param sendBatchFailureStrategy the strategy.
+		 * {@link SendBatchFailureHandlingStrategy#THROW}
+		 * @param sendBatchFailureHandlingStrategy the strategy.
 		 * @return the options instance.
 		 */
-		O sendBatchFailureStrategy(SendBatchFailureStrategy sendBatchFailureStrategy);
+		O sendBatchFailureHandlingStrategy(SendBatchFailureHandlingStrategy sendBatchFailureHandlingStrategy);
 
 		/**
 		 * Set the default maximum amount of time this template will wait for the maximum number of messages before
@@ -406,7 +404,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 		O defaultPayloadClass(Class<T> defaultPayloadClass);
 
 		/**
-		 * Set a default additional header to be added to received messages.
+		 * Set a default header to be added to received messages.
 		 * @param name the header name.
 		 * @param value the header value.
 		 * @return the options instance.
@@ -414,7 +412,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 		O additionalHeaderForReceive(String name, Object value);
 
 		/**
-		 * Add default additional headers to be added to received messages.
+		 * Set default headers to be added to received messages.
 		 * @param defaultAdditionalHeaders the headers.
 		 * @return the options instance.
 		 */
@@ -438,7 +436,7 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 
 		private TemplateAcknowledgementMode acknowledgementMode = DEFAULT_ACKNOWLEDGEMENT_MODE;
 
-		private SendBatchFailureStrategy sendBatchFailureStrategy = DEFAULT_SEND_BATCH_OPERATION_FAILURE_STRATEGY;
+		private SendBatchFailureHandlingStrategy sendBatchFailureHandlingStrategy = DEFAULT_SEND_BATCH_OPERATION_FAILURE_STRATEGY;
 
 		private final Map<String, Object> defaultAdditionalHeaders = new HashMap<>();
 
@@ -453,9 +451,9 @@ public abstract class AbstractMessagingTemplate<T, S> implements MessagingOperat
 		}
 
 		@Override
-		public O sendBatchFailureStrategy(SendBatchFailureStrategy sendBatchFailureStrategy) {
-			Assert.notNull(sendBatchFailureStrategy, "partialBatchSendFailureStrategy must not be null");
-			this.sendBatchFailureStrategy = sendBatchFailureStrategy;
+		public O sendBatchFailureHandlingStrategy(SendBatchFailureHandlingStrategy sendBatchFailureHandlingStrategy) {
+			Assert.notNull(sendBatchFailureHandlingStrategy, "sendBatchFailureStrategy must not be null");
+			this.sendBatchFailureHandlingStrategy = sendBatchFailureHandlingStrategy;
 			return self();
 		}
 

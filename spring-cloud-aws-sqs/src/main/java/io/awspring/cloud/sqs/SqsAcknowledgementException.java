@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener.acknowledgement;
+package io.awspring.cloud.sqs;
 
-import io.awspring.cloud.sqs.SqsException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.springframework.lang.Nullable;
@@ -29,36 +28,36 @@ import org.springframework.messaging.Message;
  */
 public class SqsAcknowledgementException extends SqsException {
 
-	private final String queueUrl;
+	private final String queue;
 
 	private final Collection<Message<?>> failedAcknowledgementMessages;
 
 	private final Collection<Message<?>> successfullyAcknowledgedMessages;
 
 	/**
-	 * Contruct an instance with the given parameters.
+	 * Construct an instance with the given parameters.
 	 * @param errorMessage the error message.
 	 * @param failedAcknowledgementMessages the messages that failed to be acknowledged.
-	 * @param queueUrl the url for the queue from which the messages were polled from.
+	 * @param queue the queue from which the messages were received from.
 	 * @param <T> the messages payload type.
 	 */
 	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> successfullyAcknowledgedMessages,
-			Collection<Message<T>> failedAcknowledgementMessages, String queueUrl) {
-		this(errorMessage, successfullyAcknowledgedMessages, failedAcknowledgementMessages, queueUrl, null);
+			Collection<Message<T>> failedAcknowledgementMessages, String queue) {
+		this(errorMessage, successfullyAcknowledgedMessages, failedAcknowledgementMessages, queue, null);
 	}
 
 	/**
-	 * Contruct an instance with the given parameters.
+	 * Construct an instance with the given parameters.
 	 * @param errorMessage the error message.
 	 * @param failedAcknowledgementMessages the messages that failed to be acknowledged.
-	 * @param queueUrl the url for the queue from which the messages were polled from.
+	 * @param queue the queue from which the messages were received from.
 	 * @param cause the exception cause.
 	 * @param <T> the messages payload type.
 	 */
 	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> successfullyAcknowledgedMessages,
-			Collection<Message<T>> failedAcknowledgementMessages, String queueUrl, @Nullable Throwable cause) {
+			Collection<Message<T>> failedAcknowledgementMessages, String queue, @Nullable Throwable cause) {
 		super(errorMessage, cause);
-		this.queueUrl = queueUrl;
+		this.queue = queue;
 		this.failedAcknowledgementMessages = failedAcknowledgementMessages.stream().map(msg -> (Message<?>) msg)
 				.collect(Collectors.toList());
 		this.successfullyAcknowledgedMessages = successfullyAcknowledgedMessages.stream().map(msg -> (Message<?>) msg)
@@ -74,7 +73,7 @@ public class SqsAcknowledgementException extends SqsException {
 	}
 
 	/**
-	 * Return the messages that failed to be acknowledged.
+	 * Return the messages that were successfully acknowledged.
 	 * @return the messages.
 	 */
 	public Collection<Message<?>> getSuccessfullyAcknowledgedMessages() {
@@ -82,11 +81,11 @@ public class SqsAcknowledgementException extends SqsException {
 	}
 
 	/**
-	 * Return the url for the queue from which the messages were polled from.
+	 * Return the queue from which the messages were received from.
 	 * @return the queue url.
 	 */
-	public String getQueueUrl() {
-		return this.queueUrl;
+	public String getQueue() {
+		return this.queue;
 	}
 
 }

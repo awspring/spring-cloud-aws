@@ -15,28 +15,23 @@
  */
 package io.awspring.cloud.sqs.operations;
 
-import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
-
 /**
- * Acknowledgement modes to be used by a {@link org.springframework.messaging.core.MessageReceivingOperations}
- * implementation.
+ * The strategy to use when handling a send batch operation that has at least one failed message.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public enum TemplateAcknowledgementMode {
+public enum SendBatchFailureHandlingStrategy {
 
 	/**
-	 * Don't acknowledge messages automatically. The message or messages can be acknowledged later with
-	 * {@link io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement#acknowledge} or
-	 * {@link Acknowledgement#acknowledgeAsync()}
+	 * Throw a {@link SendBatchOperationFailedException} containing a {@link SendResult.Batch} object. This is the
+	 * default strategy.
 	 */
-	MANUAL,
+	THROW,
 
 	/**
-	 * Acknowledge received messages. Any exceptions that might occur in the acknowledging process are wrapped and
-	 * rethrown.
+	 * Do not throw an exception and return the {@link SendResult.Batch} object directly.
 	 */
-	ACKNOWLEDGE
+	DO_NOT_THROW
 
 }

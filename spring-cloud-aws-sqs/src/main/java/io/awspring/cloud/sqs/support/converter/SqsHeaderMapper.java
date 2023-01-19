@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.MessagingHeaders;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
@@ -205,7 +206,7 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 	private void maybeAddAcknowledgementHeader(AcknowledgementAwareMessageConversionContext sqsContext,
 			MessageHeaderAccessor accessor) {
 		ConfigUtils.INSTANCE.acceptIfNotNull(sqsContext.getAcknowledgementCallback(),
-				callback -> accessor.setHeader(SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, callback));
+				callback -> accessor.setHeader(MessagingHeaders.ACKNOWLEDGMENT_CALLBACK_HEADER, callback));
 	}
 
 }

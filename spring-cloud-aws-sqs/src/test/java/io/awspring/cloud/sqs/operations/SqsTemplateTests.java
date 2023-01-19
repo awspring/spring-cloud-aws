@@ -23,10 +23,11 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.QueueAttributesResolvingException;
+import io.awspring.cloud.sqs.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
-import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.support.converter.ContextAwareMessagingMessageConverter;
 import java.time.Duration;
 import java.util.Collection;
@@ -290,8 +291,8 @@ class SqsTemplateTests {
 				.build();
 		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(response));
-		SqsOperations<String> template = SqsTemplate.<String> builder()
-				.configure(options -> options.sendBatchFailureStrategy(SendBatchFailureStrategy.RETURN_RESULT))
+		SqsOperations<String> template = SqsTemplate.<String> builder().configure(
+				options -> options.sendBatchFailureHandlingStrategy(SendBatchFailureHandlingStrategy.DO_NOT_THROW))
 				.sqsAsyncClient(mockClient).buildSyncTemplate();
 		SendResult.Batch<String> results = template.sendMany(queue, messages);
 		assertThat(results.successful()).isNotEmpty();
@@ -436,6 +437,33 @@ class SqsTemplateTests {
 	}
 
 	@Test
+	void shouldConvertToPayloadClass() throws Exception {
+		String queue = "test-queue";
+		SampleRecord payload = new SampleRecord("first-prop", "second-prop");
+		String payloadString = new ObjectMapper().writeValueAsString(payload);
+		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(Consumer.class))).willReturn(CompletableFuture.completedFuture(urlResponse));
+		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder().messages(builder -> builder
+				.messageId(UUID.randomUUID().toString()).receiptHandle("test-receipt-handle").body(payloadString).build())
+				.build();
+		given(mockClient.receiveMessage(any(ReceiveMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(receiveMessageResponse));
+		DeleteMessageBatchResponse deleteResponse = DeleteMessageBatchResponse.builder()
+				.successful(builder -> builder.id(UUID.randomUUID().toString())).build();
+		given(mockClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(deleteResponse));
+		SqsOperations<Object> template = SqsTemplate.newSyncTemplate(mockClient);
+		Optional<Message<Object>> receivedMessage = template
+			.receive(from -> from.queue(queue).payloadClass(SampleRecord.class));
+		assertThat(receivedMessage).isPresent()
+				.hasValueSatisfying(message -> assertThat(message.getPayload()).isEqualTo(payload));
+	}
+
+	record SampleRecord(String firstProperty, String secondProperty) {
+	}
+
+	@Test
 	void shouldUseCustomConverter() {
 		String queue = "test-queue";
 		String payload = "test-payload";
@@ -476,8 +504,8 @@ class SqsTemplateTests {
 				.messageId(UUID.randomUUID().toString()).receiptHandle(receiptHandle).body(payload).build()).build();
 		given(mockClient.receiveMessage(any(ReceiveMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(receiveMessageResponse));
-		SqsOperations<Object> template = SqsTemplate.builder().sqsAsyncClient(mockClient).configure(options -> options
-				.defaultEndpointName(queue).acknowledgementMode(TemplateAcknowledgementMode.DO_NOT_ACKNOWLEDGE))
+		SqsOperations<Object> template = SqsTemplate.builder().sqsAsyncClient(mockClient).configure(
+				options -> options.defaultEndpointName(queue).acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
 				.buildSyncTemplate();
 		Optional<Message<Object>> receivedMessage = template.receive();
 		assertThat(receivedMessage).isPresent()

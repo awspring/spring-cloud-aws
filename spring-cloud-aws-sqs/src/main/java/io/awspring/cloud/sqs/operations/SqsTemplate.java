@@ -17,11 +17,11 @@ package io.awspring.cloud.sqs.operations;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.QueueAttributesResolver;
+import io.awspring.cloud.sqs.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
-import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.support.converter.MessageAttributeDataTypes;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
@@ -352,19 +352,21 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	@Nullable
 	@Override
-	protected MessageConversionContext getReceiveMessageConversionContext(String endpointName, Class<T> payloadClass) {
+	protected MessageConversionContext getReceiveMessageConversionContext(String endpointName, @Nullable Class<? extends T> payloadClass) {
 		return this.conversionContextCache.computeIfAbsent(endpointName,
 				newEndpoint -> doGetSqsMessageConversionContext(endpointName, payloadClass));
 	}
 
-	private SqsMessageConversionContext doGetSqsMessageConversionContext(String newEndpoint, Class<T> payloadClass) {
+	private SqsMessageConversionContext doGetSqsMessageConversionContext(String newEndpoint, @Nullable Class<? extends T> payloadClass) {
 		SqsMessageConversionContext conversionContext = new SqsMessageConversionContext();
 		conversionContext.setSqsAsyncClient(this.sqsAsyncClient);
 		// At this point we'll already have retrieved and cached the queue attributes
 		CompletableFuture<QueueAttributes> queueAttributes = getQueueAttributes(newEndpoint);
 		Assert.isTrue(queueAttributes.isDone(), () -> "Queue attributes not done for " + newEndpoint);
 		conversionContext.setQueueAttributes(queueAttributes.join());
-		conversionContext.setPayloadClass(payloadClass);
+		if (payloadClass != null) {
+			conversionContext.setPayloadClass(payloadClass);
+		}
 		conversionContext.setAcknowledgementCallback(new TemplateAcknowledgementCallback());
 		return conversionContext;
 	}
@@ -659,7 +661,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		 * @param messageConverterConfigurer a {@link SqsMessagingMessageConverter} consumer.
 		 * @return the builder.
 		 */
-		Builder<T> setupDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer);
+		Builder<T> configureDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer);
 
 		/**
 		 * Configure options for the template.
@@ -718,7 +720,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 
 		@Override
-		public Builder<T> setupDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer) {
+		public Builder<T> configureDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer) {
 			Assert.notNull(messageConverterConfigurer, "messageConverterConfigurer must not be null");
 			Assert.isNull(this.messageConverter, "messageConverter already configured");
 			SqsMessagingMessageConverter defaultMessageConverter = createDefaultMessageConverter();
@@ -855,7 +857,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		protected Duration visibilityTimeout;
 
 		@Nullable
-		protected Class<T> payloadClass;
+		protected Class<? extends T> payloadClass;
 
 		@Nullable
 		protected Integer maxNumberOfMessages;
@@ -875,7 +877,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 
 		@Override
-		public O payloadClass(Class<T> payloadClass) {
+		public O payloadClass(Class<? extends T> payloadClass) {
 			Assert.notNull(payloadClass, "payloadClass must not be null");
 			this.payloadClass = payloadClass;
 			return self();

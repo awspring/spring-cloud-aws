@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.support.resolver;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
-import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.MessagingHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.BatchAcknowledgement;
 import java.util.Collection;
@@ -46,7 +46,7 @@ public class BatchAcknowledgmentArgumentResolver implements HandlerMethodArgumen
 		Assert.isInstanceOf(Collection.class, payloadObject, "Payload must be instance of Collection");
 		Collection<Message<Object>> messages = (Collection<Message<Object>>) payloadObject;
 		AcknowledgementCallback<Object> callback = messages.iterator().next().getHeaders()
-				.get(SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class);
+				.get(MessagingHeaders.ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class);
 		Assert.notNull(callback, "No acknowledgement found for messages " + MessageHeaderUtils.getId(messages)
 				+ ". AcknowledgeMode should be MANUAL.");
 		return createBatchAcknowledgement(messages, callback);

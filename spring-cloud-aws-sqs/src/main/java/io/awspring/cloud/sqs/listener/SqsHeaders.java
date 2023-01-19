@@ -70,11 +70,6 @@ public class SqsHeaders {
 	public static final String SQS_DELAY_HEADER = SQS_HEADER_PREFIX + "Delay";
 
 	/**
-	 * Header for a {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback} for this message.
-	 */
-	public static final String SQS_ACKNOWLEDGMENT_CALLBACK_HEADER = SQS_HEADER_PREFIX + "Acknowledgement";
-
-	/**
 	 * Header for the {@link QueueAttributes} for this message.
 	 */
 	public static final String SQS_QUEUE_ATTRIBUTES_HEADER = SQS_HEADER_PREFIX + "QueueAttributes";

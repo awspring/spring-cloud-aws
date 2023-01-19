@@ -46,7 +46,7 @@ public interface SqsReceiveOptions<T, O extends SqsReceiveOptions<T, O>> {
 	 * @param payloadClass the class.
 	 * @return the options instance.
 	 */
-	O payloadClass(Class<T> payloadClass);
+	O payloadClass(Class<? extends T> payloadClass);
 
 	/**
 	 * Set the visibility timeout to be applied by received messages.

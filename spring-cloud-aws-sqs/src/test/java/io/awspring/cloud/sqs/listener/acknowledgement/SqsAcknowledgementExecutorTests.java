@@ -23,6 +23,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import io.awspring.cloud.sqs.CompletableFutures;
+import io.awspring.cloud.sqs.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Collection;
@@ -123,7 +124,7 @@ class SqsAcknowledgementExecutorTests {
 		executor.setQueueAttributes(queueAttributes);
 		assertThatThrownBy(() -> executor.execute(messages).join()).isInstanceOf(CompletionException.class).getCause()
 				.isInstanceOf(SqsAcknowledgementException.class).asInstanceOf(type(SqsAcknowledgementException.class))
-				.extracting(SqsAcknowledgementException::getQueueUrl).isEqualTo(queueUrl);
+				.extracting(SqsAcknowledgementException::getQueue).isEqualTo(queueUrl);
 	}
 
 }

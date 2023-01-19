@@ -134,7 +134,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendAndReceiveMessageWithHeaders() {
-		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
+		SqsOperations<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		String myCustomHeader = "MyCustomHeader";
 		String myCustomValue = "MyCustomValue";
@@ -145,7 +145,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		template.send(to -> to.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME).payload(testRecord)
 				.header(myCustomHeader, myCustomValue).headers(Map.of(myCustomHeader2, myCustomValue2)));
 		Optional<Message<SampleRecord>> receivedMessage = template
-				.receive(from -> from.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME)
+				.receiveFifo(from -> from.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME)
 						.additionalHeaders(Map.of(myCustomHeader3, myCustomValue3)));
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getHeaders)
 				.asInstanceOf(InstanceOfAssertFactories.MAP)
@@ -156,16 +156,14 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveWithManualAcknowledgement() {
 		SqsTemplate<SampleRecord> template = SqsTemplate.<SampleRecord> builder().sqsAsyncClient(this.asyncClient)
-				.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.DO_NOT_ACKNOWLEDGE)
+				.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL)
 						.defaultEndpointName(SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME))
 				.build();
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		template.send(to -> to.payload(testRecord));
 		Optional<Message<SampleRecord>> receivedMessage = template
 				.receive(from -> from.visibilityTimeout(Duration.ofSeconds(1)));
-
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testRecord);
-
 		Optional<Message<SampleRecord>> receivedMessage2 = template
 				.receive(from -> from.visibilityTimeout(Duration.ofSeconds(1)));
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testRecord);
@@ -179,7 +177,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveBatch() {
 		SqsOperations<SampleRecord> template = SqsTemplate.<SampleRecord> builder().sqsAsyncClient(this.asyncClient)
-				.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.DO_NOT_ACKNOWLEDGE))
+				.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
 				.buildSyncTemplate();
 		List<Message<SampleRecord>> messagesToSend = IntStream.range(0, 5)
 				.mapToObj(index -> new SampleRecord("Hello world - " + index, "From SQS!"))
@@ -271,7 +269,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader() {
 		SqsTemplate<SampleRecord> template = SqsTemplate.<SampleRecord> builder().sqsAsyncClient(this.asyncClient)
-				.setupDefaultConverter(converter -> converter.setPayloadTypeHeaderValueFunction(msg -> null)).build();
+				.configureDefaultConverter(converter -> converter.setPayloadTypeHeaderValueFunction(msg -> null))
+				.build();
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		SendResult<SampleRecord> result = template.send(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME, testRecord);
 		assertThat(result).isNotNull();

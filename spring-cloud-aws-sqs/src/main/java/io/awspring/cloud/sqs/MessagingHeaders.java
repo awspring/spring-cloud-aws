@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.operations;
+package io.awspring.cloud.sqs;
 
 /**
- * The strategy to use when handling a send batch operation that has at least one failed message.
- *
+ * {@link org.springframework.messaging.MessageHeaders} associated with messaging operations.
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public enum SendBatchFailureStrategy {
+public class MessagingHeaders {
 
 	/**
-	 * Throw a {@link SendBatchOperationFailedException} with a {@link SendResult.Batch} object.
+	 * Header for a {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback} for this message.
 	 */
-	THROW_EXCEPTION,
-
-	/**
-	 * Do not throw an exception and return the {@link SendResult.Batch} object directly.
-	 */
-	RETURN_RESULT
+	public static final String ACKNOWLEDGMENT_CALLBACK_HEADER = "AcknowledgementCallback";
 
 }

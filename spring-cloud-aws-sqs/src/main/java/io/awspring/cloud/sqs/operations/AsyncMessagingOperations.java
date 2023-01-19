@@ -94,7 +94,7 @@ public interface AsyncMessagingOperations<T> {
 	 * @return a {@link CompletableFuture} to be completed with the message, or {@link Optional#empty()} if none is
 	 * returned.
 	 */
-	CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpointName, @Nullable Class<T> payloadClass,
+	CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpointName, @Nullable Class<? extends T> payloadClass,
 			@Nullable Duration pollTimeout, @Nullable Map<String, Object> additionalHeaders);
 
 	/**
@@ -122,7 +122,7 @@ public interface AsyncMessagingOperations<T> {
 	 */
 	// @formatter:off
 	CompletableFuture<Collection<Message<T>>> receiveManyAsync(@Nullable String endpointName,
-															   @Nullable Class<T> payloadClass,
+															   @Nullable Class<? extends T> payloadClass,
 															   @Nullable Duration pollTimeout,
 															   @Nullable Integer maxNumberOfMessages,
 															   @Nullable Map<String, Object> additionalHeaders);
