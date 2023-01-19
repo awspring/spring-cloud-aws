@@ -100,7 +100,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * @since 3.0
  */
 public class SqsMessageListenerContainer<T>
-		extends AbstractPipelineMessageListenerContainer<T, SqsContainerOptions, SqsContainerOptions.Builder> {
+		extends AbstractPipelineMessageListenerContainer<T, SqsContainerOptions, SqsContainerOptionsBuilder> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsMessageListenerContainer.class);
 
@@ -170,7 +170,7 @@ public class SqsMessageListenerContainer<T>
 
 		private ErrorHandler<T> errorHandler;
 
-		private Consumer<SqsContainerOptions.Builder> optionsConsumer = options -> {
+		private Consumer<SqsContainerOptionsBuilder> optionsConsumer = options -> {
 		};
 
 		private AsyncAcknowledgementResultCallback<T> asyncAcknowledgementResultCallback;
@@ -245,7 +245,7 @@ public class SqsMessageListenerContainer<T>
 			return this;
 		}
 
-		public Builder<T> configure(Consumer<SqsContainerOptions.Builder> options) {
+		public Builder<T> configure(Consumer<SqsContainerOptionsBuilder> options) {
 			this.optionsConsumer = options;
 			return this;
 		}

@@ -145,7 +145,7 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 		if (AcknowledgementOrdering.ORDERED_BY_GROUP.equals(options.getAcknowledgementOrdering())) {
 			processor.setMessageGroupingFunction(getMessageGroupingFunction());
 		}
-		SqsContainerOptions.Builder builder = options.toBuilder();
+		SqsContainerOptionsBuilder builder = options.toBuilder();
 		ConfigUtils.INSTANCE.acceptIfNotNullOrElse(builder::acknowledgementOrdering,
 				options.getAcknowledgementOrdering(), DEFAULT_FIFO_SQS_ACK_ORDERING_IMMEDIATE);
 		processor.configure(builder.build());
@@ -154,7 +154,7 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 
 	protected BatchingAcknowledgementProcessor<T> configureBatchingAckProcessor(SqsContainerOptions options,
 			BatchingAcknowledgementProcessor<T> processor) {
-		SqsContainerOptions.Builder builder = options.toBuilder();
+		SqsContainerOptionsBuilder builder = options.toBuilder();
 		ConfigUtils.INSTANCE
 				.acceptIfNotNullOrElse(builder::acknowledgementInterval, options.getAcknowledgementInterval(),
 						DEFAULT_FIFO_SQS_ACK_INTERVAL)

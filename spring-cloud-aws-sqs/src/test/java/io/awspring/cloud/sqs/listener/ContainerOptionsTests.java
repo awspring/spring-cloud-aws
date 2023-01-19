@@ -46,29 +46,29 @@ class ContainerOptionsTests {
 
 	@Test
 	void shouldHaveSameValuesAfterBuilder() {
-		SqsContainerOptions options = createConfiguredOptions();
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
 		SqsContainerOptions builtCopy = options.toBuilder().build();
 		assertThat(options).usingRecursiveComparison().isEqualTo(builtCopy);
 	}
 
 	@Test
 	void shouldCreateCopy() {
-		SqsContainerOptions options = createConfiguredOptions();
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
 		SqsContainerOptions copy = options.createCopy();
 		assertThat(options).usingRecursiveComparison().isEqualTo(copy);
 	}
 
 	@Test
 	void shouldCreateCopyOfBuilder() {
-		SqsContainerOptions.Builder builder = createConfiguredBuilder();
-		SqsContainerOptions.Builder copy = builder.createCopy();
+		SqsContainerOptionsBuilder builder = createConfiguredBuilder();
+		SqsContainerOptionsBuilder copy = builder.createCopy();
 		assertThat(copy).usingRecursiveComparison().isEqualTo(builder);
 	}
 
 	@Test
 	void shouldHaveSameFieldsInBuilder() {
 		SqsContainerOptions options = createConfiguredOptions();
-		SqsContainerOptions.Builder builtCopy = options.toBuilder();
+		SqsContainerOptionsBuilder builtCopy = options.toBuilder();
 		assertThat(options).usingRecursiveComparison().isEqualTo(builtCopy);
 	}
 
@@ -115,7 +115,7 @@ class ContainerOptionsTests {
 		return createConfiguredBuilder().build();
 	}
 
-	private SqsContainerOptions.Builder createConfiguredBuilder() {
+	private SqsContainerOptionsBuilder createConfiguredBuilder() {
 		return SqsContainerOptions.builder().acknowledgementShutdownTimeout(Duration.ofSeconds(7))
 				.messageVisibility(Duration.ofSeconds(11))
 				.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))

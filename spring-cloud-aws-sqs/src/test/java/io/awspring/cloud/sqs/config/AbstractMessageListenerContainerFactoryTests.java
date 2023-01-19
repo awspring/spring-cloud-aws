@@ -23,6 +23,7 @@ import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.MessageListener;
 import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
@@ -46,11 +47,11 @@ class AbstractMessageListenerContainerFactoryTests {
 	void shouldSetBlockingComponents() {
 		SqsMessageListenerContainer<Object> container = mock(SqsMessageListenerContainer.class);
 
-		AbstractMessageListenerContainerFactory<Object, SqsMessageListenerContainer<Object>, SqsContainerOptions, SqsContainerOptions.Builder> factory = new AbstractMessageListenerContainerFactory<>(
+		AbstractMessageListenerContainerFactory<Object, SqsMessageListenerContainer<Object>, SqsContainerOptions, SqsContainerOptionsBuilder> factory = new AbstractMessageListenerContainerFactory<>(
 				SqsContainerOptions.builder().build()) {
 
 			@Override
-			protected void configureContainerOptions(Endpoint endpoint, SqsContainerOptions.Builder containerOptions) {
+			protected void configureContainerOptions(Endpoint endpoint, SqsContainerOptionsBuilder containerOptions) {
 
 			}
 
@@ -87,10 +88,10 @@ class AbstractMessageListenerContainerFactoryTests {
 	@Test
 	void shouldSetAsyncComponents() {
 		SqsMessageListenerContainer<Object> container = mock(SqsMessageListenerContainer.class);
-		AbstractMessageListenerContainerFactory<Object, SqsMessageListenerContainer<Object>, SqsContainerOptions, SqsContainerOptions.Builder> factory = new AbstractMessageListenerContainerFactory<>(
+		AbstractMessageListenerContainerFactory<Object, SqsMessageListenerContainer<Object>, SqsContainerOptions, SqsContainerOptionsBuilder> factory = new AbstractMessageListenerContainerFactory<>(
 				SqsContainerOptions.builder().build()) {
 			@Override
-			protected void configureContainerOptions(Endpoint endpoint, SqsContainerOptions.Builder containerOptions) {
+			protected void configureContainerOptions(Endpoint endpoint, SqsContainerOptionsBuilder containerOptions) {
 
 			}
 

@@ -30,6 +30,7 @@ import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
@@ -139,8 +140,8 @@ class SqsAutoConfigurationTest {
 					.extracting("asyncMessageInterceptors").asList().isNotEmpty();
 				assertThat(factory)
 					.extracting("containerOptionsBuilder")
-					.asInstanceOf(type(ContainerOptions.Builder.class))
-					.extracting(ContainerOptions.Builder::build)
+					.asInstanceOf(type(ContainerOptionsBuilder.class))
+					.extracting(ContainerOptionsBuilder::build)
 					.isInstanceOfSatisfying(ContainerOptions.class, options -> {
 						assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(19);
 						assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);

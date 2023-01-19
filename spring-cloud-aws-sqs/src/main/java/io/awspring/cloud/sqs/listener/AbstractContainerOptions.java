@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptions.Builder<B, O>>
+public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>>
 		implements ContainerOptions<O, B> {
 
 	private final int maxInflightMessagesPerQueue;
@@ -169,8 +169,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		return this.acknowledgementOrdering;
 	}
 
-	protected abstract static class Builder<B extends ContainerOptions.Builder<B, O>, O extends ContainerOptions<O, B>>
-			implements ContainerOptions.Builder<B, O> {
+	protected abstract static class Builder<B extends ContainerOptionsBuilder<B, O>, O extends ContainerOptions<O, B>>
+			implements ContainerOptionsBuilder<B, O> {
 
 		private static final int DEFAULT_MAX_INFLIGHT_MSG_PER_QUEUE = 10;
 

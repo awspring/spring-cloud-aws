@@ -65,7 +65,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractPipelineMessageListenerContainer<T, O extends ContainerOptions<O, B>, B extends ContainerOptions.Builder<B, O>>
+public abstract class AbstractPipelineMessageListenerContainer<T, O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>>
 		extends AbstractMessageListenerContainer<T, O, B> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractPipelineMessageListenerContainer.class);

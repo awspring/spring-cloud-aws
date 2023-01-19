@@ -96,7 +96,7 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 	protected ImmediateAcknowledgementProcessor<T> configureImmediateAcknowledgementProcessor(
 			ImmediateAcknowledgementProcessor<T> processor, SqsContainerOptions options) {
 		processor.setMaxAcknowledgementsPerBatch(10);
-		SqsContainerOptions.Builder builder = options.toBuilder();
+		SqsContainerOptionsBuilder builder = options.toBuilder();
 		ConfigUtils.INSTANCE.acceptIfNotNullOrElse(builder::acknowledgementOrdering,
 				options.getAcknowledgementOrdering(), DEFAULT_STANDARD_SQS_ACK_ORDERING);
 		processor.configure(builder.build());
@@ -106,7 +106,7 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 	protected BatchingAcknowledgementProcessor<T> configureBatchingAcknowledgementProcessor(SqsContainerOptions options,
 			BatchingAcknowledgementProcessor<T> processor) {
 		processor.setMaxAcknowledgementsPerBatch(10);
-		SqsContainerOptions.Builder builder = options.toBuilder();
+		SqsContainerOptionsBuilder builder = options.toBuilder();
 		ConfigUtils.INSTANCE
 				.acceptIfNotNullOrElse(builder::acknowledgementInterval, options.getAcknowledgementInterval(),
 						DEFAULT_STANDARD_SQS_ACK_INTERVAL)

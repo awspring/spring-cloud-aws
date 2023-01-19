@@ -25,14 +25,15 @@ import org.springframework.lang.Nullable;
 
 /**
  * Contains the options to be used by the {@link MessageListenerContainer} at runtime. Note that after the object has
- * been built by the {@link Builder} it's immutable and thread-safe. If a new {@link Builder} is created from this
- * object, any changes on it won't reflect on the original instance. Also note that any copies are shallow, meaning that
- * complex objects are not copied but shared between the original instance and the copy.
+ * been built by the {@link ContainerOptionsBuilder} it's immutable and thread-safe. If a new
+ * {@link ContainerOptionsBuilder} is created from this object, any changes on it won't reflect on the original
+ * instance. Also note that any copies are shallow, meaning that complex objects are not copied but shared between the
+ * original instance and the copy.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptions.Builder<B, O>> {
+public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>> {
 
 	/**
 	 * Return the maximum allowed number of inflight messages for each queue.
@@ -173,8 +174,8 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	}
 
 	/**
-	 * Creates a new {@link Builder) instance configured with this options. Note that any changes made to the builder
-	 * will have no effect on this object.
+	 * Creates a new {@link ContainerOptionsBuilder ) instance configured with this options. Note that any changes made
+	 * to the builder will have no effect on this object.
 	 * @return the new builder instance.
 	 */
 	B toBuilder();
@@ -184,147 +185,5 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	 * @param <B> the builder subclass type
 	 * @param <O> the ContainerOptions subclass type
 	 */
-	interface Builder<B extends Builder<B, O>, O extends ContainerOptions<O, B>> {
-
-		/**
-		 * Set the maximum allowed number of inflight messages for each queue. Default is 10.
-		 * @return this instance.
-		 */
-		B maxInflightMessagesPerQueue(int maxInflightMessagesPerQueue);
-
-		/**
-		 * Set the number of messages that should be returned per poll. If a value greater than 10 is provided, the
-		 * result of multiple polls will be combined, which can be useful for
-		 * {@link io.awspring.cloud.sqs.listener.ListenerMode#BATCH} Default is 10.
-		 * @param maxMessagesPerPoll the number of messages.
-		 * @return this instance.
-		 */
-		B maxMessagesPerPoll(int maxMessagesPerPoll);
-
-		/**
-		 * Set the timeout for polling messages for this endpoint. Default is 10 seconds.
-		 * @param pollTimeout the poll timeout.
-		 * @return this instance.
-		 */
-		B pollTimeout(Duration pollTimeout);
-
-		/**
-		 * Set the maximum time the polling thread should wait for permits. Default is 10 seconds.
-		 * @param permitAcquireTimeout the timeout.
-		 * @return this instance.
-		 */
-		B permitAcquireTimeout(Duration permitAcquireTimeout);
-
-		/**
-		 * Set the {@link ListenerMode} mode for this container. Default is {@link ListenerMode#SINGLE_MESSAGE}
-		 * @param listenerMode the listener mode.
-		 * @return this instance.
-		 */
-		B listenerMode(ListenerMode listenerMode);
-
-		/**
-		 * Set the {@link TaskExecutor} to be used by this container's components. It's shared by the
-		 * {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components the container might have.
-		 * For custom executors, it's highly recommended to add a
-		 * {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}, as this will significantly decrease Thread
-		 * hopping, which both increases performance and decreases the number of Threads the executor must support.
-		 * Also, specially if the executor is to be shared between containers or multiple queues, make sure there's
-		 * enough Thread capacity / queues to support the load otherwise some tasks might be rejected.
-		 * @see ContainerOptions#getComponentsTaskExecutor()
-		 * @param taskExecutor the task executor.
-		 * @return this instance.
-		 */
-		B componentsTaskExecutor(TaskExecutor taskExecutor);
-
-		/**
-		 * Set the {@link TaskExecutor} to be used by blocking
-		 * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback} implementations for this
-		 * container.
-		 * @param taskExecutor the task executor.
-		 * @return this instance.
-		 */
-		B acknowledgementResultTaskExecutor(TaskExecutor taskExecutor);
-
-		/**
-		 * Set the maximum amount of time that the container should wait for tasks to finish before shutting down.
-		 * Default is 20 seconds.
-		 * @param shutdownTimeout the timeout.
-		 * @return this instance.
-		 */
-		B listenerShutdownTimeout(Duration shutdownTimeout);
-
-		/**
-		 * Set the maximum amount of time that the container should wait for batched acknowledgements to finish before
-		 * shutting down. Note that this timeout starts counting after listener processing is done or timed out. Default
-		 * is 20 seconds.
-		 * @param acknowledgementShutdownTimeout the timeout.
-		 * @return this instance.
-		 */
-		B acknowledgementShutdownTimeout(Duration acknowledgementShutdownTimeout);
-
-		/**
-		 * Set the {@link BackPressureMode} for this container. Default is {@link BackPressureMode#AUTO}
-		 * @param backPressureMode the backpressure mode.
-		 * @return this instance.
-		 */
-		B backPressureMode(BackPressureMode backPressureMode);
-
-		/**
-		 * Set the maximum interval between acknowledgements for batch acknowledgements. The default depends on the
-		 * specific {@link ContainerComponentFactory} implementation.
-		 * @param acknowledgementInterval the interval.
-		 * @return this instance.
-		 */
-		B acknowledgementInterval(Duration acknowledgementInterval);
-
-		/**
-		 * Set the threshold for triggering a batch acknowledgement. The default depends on the specific
-		 * {@link ContainerComponentFactory} implementation.
-		 * @param acknowledgementThreshold the threshold.
-		 * @return this instance.
-		 */
-		B acknowledgementThreshold(int acknowledgementThreshold);
-
-		/**
-		 * Set the {@link AcknowledgementMode} for this container. Default is {@link AcknowledgementMode#ON_SUCCESS}.
-		 * @param acknowledgementMode the acknowledgement mode.
-		 * @return this instance.
-		 */
-		B acknowledgementMode(AcknowledgementMode acknowledgementMode);
-
-		/**
-		 * Set the {@link AcknowledgementOrdering} for this container. Default is
-		 * {@link AcknowledgementOrdering#PARALLEL}.
-		 * @param acknowledgementOrdering the acknowledgement ordering.
-		 * @return this instance
-		 */
-		B acknowledgementOrdering(AcknowledgementOrdering acknowledgementOrdering);
-
-		/**
-		 * Set the {@link MessagingMessageConverter} for this container.
-		 * @param messageConverter the message converter.
-		 * @return this instance.
-		 */
-		B messageConverter(MessagingMessageConverter<?> messageConverter);
-
-		/**
-		 * Create the {@link ContainerOptions} instance.
-		 * @return the new instance.
-		 */
-		O build();
-
-		/**
-		 * Create a copy of this builder.
-		 * @return the copy.
-		 */
-		B createCopy();
-
-		/**
-		 * Copy the given builder settings to this builder.
-		 * @param builder the builder from which to copy settings from.
-		 */
-		void fromBuilder(B builder);
-
-	}
 
 }

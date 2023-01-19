@@ -29,6 +29,7 @@ import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.StandardSqsComponentFactory;
@@ -233,7 +234,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.manuallyStartedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		container.setMessageListener(msg -> latchContainer.manuallyStartedContainerLatch2.countDown());
-		SqsContainerOptions.Builder builder = container.getContainerOptions().toBuilder();
+		SqsContainerOptionsBuilder builder = container.getContainerOptions().toBuilder();
 		builder.acknowledgementMode(AcknowledgementMode.ALWAYS);
 		container.configure(options -> options.fromBuilder(builder));
 		container.start();
