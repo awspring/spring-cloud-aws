@@ -48,20 +48,21 @@ public abstract class AbstractMessageConvertingMessageSource<T, S> implements Me
 
 	private MessagingMessageConverter<S> messagingMessageConverter;
 
+	@Nullable
 	private MessageConversionContext messageConversionContext;
 
 	private AcknowledgementMode acknowledgementMode;
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void configure(ContainerOptions containerOptions) {
+	public void configure(ContainerOptions<?, ?> containerOptions) {
 		this.messagingMessageConverter = (MessagingMessageConverter<S>) containerOptions.getMessageConverter();
 		this.messageConversionContext = maybeCreateConversionContext();
 		this.acknowledgementMode = containerOptions.getAcknowledgementMode();
 		configureMessageSource(containerOptions);
 	}
 
-	protected void configureMessageSource(ContainerOptions containerOptions) {
+	protected void configureMessageSource(ContainerOptions<?, ?> containerOptions) {
 	}
 
 	protected void setupAcknowledgementForConversion(AcknowledgementCallback<T> callback) {
@@ -95,6 +96,7 @@ public abstract class AbstractMessageConvertingMessageSource<T, S> implements Me
 		return (ContextAwareMessagingMessageConverter<S>) this.messagingMessageConverter;
 	}
 
+	@Nullable
 	protected MessageConversionContext getMessageConversionContext() {
 		return this.messageConversionContext;
 	}

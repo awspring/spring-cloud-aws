@@ -53,7 +53,7 @@ import org.springframework.core.annotation.AliasFor;
  * <li>{@link io.awspring.cloud.sqs.listener.QueueAttributes}</li>
  * <li>{@link software.amazon.awssdk.services.sqs.model.Message}</li>
  * <li>{@link io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement}</li>
- * <li>{@link io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgement}</li>
+ * <li>{@link io.awspring.cloud.sqs.listener.acknowledgement.BatchAcknowledgement}</li>
  * </ul>
  * Method signatures also accept {@link java.util.List}&lt;Pojo&gt; and
  * {@link java.util.List}{@link org.springframework.messaging.Message}&lt;Pojo&gt; arguments . Such arguments will
@@ -62,7 +62,7 @@ import org.springframework.core.annotation.AliasFor;
  * {@link org.springframework.messaging.MessageHeaders}.
  * <p>
  * To support {@link io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement} and
- * {@link io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgement} arguments, the factory used to create the
+ * {@link io.awspring.cloud.sqs.listener.acknowledgement.BatchAcknowledgement} arguments, the factory used to create the
  * containers must be set to {@link io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode#MANUAL}.
  * <p>
  * Properties in this annotation support property placeholders ("${...}") and SpEL ("#{...}").

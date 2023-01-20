@@ -1,4 +1,4 @@
-== SQS Support
+== SQS Integration
 :source-highlighter: highlight.js
 :highlightjs-theme: googlecode
 
@@ -143,7 +143,7 @@ To receive messages in a manually created container, a `MessageListener` or `Asy
 Both interfaces come with `single message` and a `batch` methods.
 These are functional interfaces and a lambda or method reference can be provided for the single message methods.
 
-Single message / batch modes and message payload conversion can be configured via `ContainerOptions`.
+Single message / batch modes and message payload conversion can be configured via `SqsContainerOptions`.
 See <<Message Conversion and Payload Deserialization>> for more information.
 
 [source, java]
@@ -349,7 +349,7 @@ When using a `Spring Boot` application with `auto-configuration`, a default fact
 ===== Other Annotation Properties
 
 The following properties can be specified in the `@SqsListener` annotation.
-Such properties override the equivalent `ContainerOptions` for the resulting `MessageListenerContainer`.
+Such properties override the equivalent `SqsContainerOptions` for the resulting `MessageListenerContainer`.
 
 - `id` - Specify the resulting container's id.
 This can be used for fetching the container from the `MessageListenerContainerRegistry`, and is used by the container and its components for general logging and thread naming.
@@ -411,7 +411,7 @@ If a value greater than 10 is provided for `maxMessagesPerPoll`, the result of m
 To enable batch processing using `@SqsListener`, a single `List<MyPojo>` or `List<Message<MyPojo>>` method argument should be provided in the listener method.
 The listener method can also have an optional `BatchAcknowledgement` argument for `AcknowledgementMode.MANUAL`.
 
-Alternatively, `ContainerOptions` can be set to `ListenerMode.BATCH` in the `ContainerOptions` in the factory or container.
+Alternatively, `SqsContainerOptions` can be set to `ListenerMode.BATCH` in the `SqsContainerOptions` in the factory or container.
 
 NOTE: The same factory can be used to create both `single message` and `batch` containers for `@SqsListener` methods.
 
@@ -421,7 +421,7 @@ IMPORTANT: In case the same factory is shared by both delivery methods, any supp
 ==== Container Options
 
 Each `MessageListenerContainer` can have a different set of options.
-`MessageListenerContainerFactory` instances have a `ContainerOptions.Builder` instance property that is used as a template for the containers it creates.
+`MessageListenerContainerFactory` instances have a `SqsContainerOptions.Builder` instance property that is used as a template for the containers it creates.
 
 Both factory and container offer a `configure` method that can be used to change the options:
 
@@ -455,13 +455,13 @@ MessageListenerContainer<Object> listenerContainer(SqsAsyncClient sqsAsyncClient
 }
 ----
 
-The `ContainerOptions` instance is immutable and can be retrieved via the `container.getContainerOptions()` method.
+The `SqsContainerOptions` instance is immutable and can be retrieved via the `container.getContainerOptions()` method.
 If more complex configurations are necessary, the `toBuilder` and `fromBuilder` methods provide ways to create a new copy of the options, and then set it back to the factory or container:
 
 [source, java]
 ----
 void myMethod(MessageListenerContainer<Object> container) {
-    ContainerOptions.Builder modifiedOptions = container.getContainerOptions()
+    SqsContainerOptions.Builder modifiedOptions = container.getContainerOptions()
             .toBuilder()
             .pollTimeout(Duration.ofSeconds(5))
             .shutdownTimeout(Duration.ofSeconds(20));
@@ -487,7 +487,7 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 |===
 
 
-===== ContainerOptions Descriptions
+===== SqsContainerOptions Descriptions
 [cols="13,9,9,16", options="header"]
 |===
 | Property
@@ -620,7 +620,7 @@ See <<Container Lifecycle>>.
 ==== Retrieving Attributes from SQS
 
 `QueueAttributes`, `MessageAttributes` and `MessageSystemAttributes` can be retrieved from SQS.
-These can be configured using the `ContainerOptions` `queueAttributeNames`, `messageAttributeNames` and `messageSystemAttributeNames` methods.
+These can be configured using the `SqsContainerOptions` `queueAttributeNames`, `messageAttributeNames` and `messageSystemAttributeNames` methods.
 
 `QueueAttributes` for a queue are retrieved when containers start, and can be looked up by adding the `QueueAttributes` method parameter in a `@SqsListener` method, or by getting the `SqsHeaders.SQS_QUEUE_ATTRIBUTES_HEADER` header.
 
@@ -643,9 +643,9 @@ Providing queue urls instead of names and not requesting queue attributes can re
 
 NOTE: If retrieving the queue url fails due to the queue not existing, the framework can be configured to either create the queue or fail.
 If a URL is provided instead of a queue name the framework will not make this request at startup, and thus if the queue does not exist it will fail at runtime.
-This configuration is available in `ContainerOptions` `queueNotFoundStrategy.`
+This configuration is available in `SqsContainerOptions` `queueNotFoundStrategy.`
 
-At shutdown, by default containers will wait for all polling, processing and acknowledging operations to finish, up to `ContainerOptions.getShutdownTimeout()`.
+At shutdown, by default containers will wait for all polling, processing and acknowledging operations to finish, up to `SqsContainerOptions.getShutdownTimeout()`.
 After this period, operations will be canceled and the container will attempt to forcefully shutdown.
 
 ===== Containers as Spring Beans
@@ -703,7 +703,7 @@ expires.
 * Messages which were already successfully processed and acknowledged will not be served again.
 * If a `batch` listener is used, each message group from a poll will be served as a batch to the listener method.
 * `FIFO` queues also have different defaults for acknowledging messages, see <<Acknowledgement Defaults>> for more information.
-* If a `message visibility` is set through `@SqsListener` or `ContainerOptions`, visibility will be extended for all messages in the message group before each message is processed.
+* If a `message visibility` is set through `@SqsListener` or `SqsContainerOptions`, visibility will be extended for all messages in the message group before each message is processed.
 
 IMPORTANT: A `MessageListenerContainer` can either have only `Standard` queues or `FIFO` queues - not both.
 This is valid both for manually created containers and `@SqsListener` annotated methods.
@@ -894,7 +894,7 @@ For manually created `MessageListeners`, `MessageInterceptor` and `ErrorHandler`
 By default, the framework looks for a `MessageHeader` named `Sqs_MA_JavaType` containing the fully qualified class name (`FQCN`) for which the payload should be deserialized to.
 If such header is found, the message is automatically deserialized to the provided class.
 
-Further configuration can be achieved by providing a configured `MessagingMessageConverter` instance in the `ContainerOptions`.
+Further configuration can be achieved by providing a configured `MessagingMessageConverter` instance in the `SqsContainerOptions`.
 
 NOTE: If type mapping is setup or type information is added to the headers, payloads are deserialized right after the message is polled.
 Otherwise, for `@SqsListener` annotated methods, payloads are deserialized right before the message is sent to the listener.
@@ -994,7 +994,7 @@ public class SqsApplication {
 === Acknowledging Messages
 
 In `SQS` acknowledging a message is the same as deleting the message from the queue.
-A number of `Acknowledgement` strategies are available and can be configured via `ContainerOptions`.
+A number of `Acknowledgement` strategies are available and can be configured via `SqsContainerOptions`.
 Optionally, a callback action can be added to be executed after either a successful or failed acknowledgement.
 
 Here's an example of a possible configuration:
@@ -1047,7 +1047,7 @@ IMPORTANT: If an immediate acknowledging triggers an error, message processing i
 
 ==== Manual Acknowledgement
 
-Acknowledgements can be handled manually by setting `AcknowledgementMode.MANUAL` in the `ContainerOptions`.
+Acknowledgements can be handled manually by setting `AcknowledgementMode.MANUAL` in the `SqsContainerOptions`.
 
 Manual acknowledgement can be used in conjunction with acknowledgement batching - the message will be queued for acknowledgement but won't be executed until one of the above criteria is met.
 
@@ -1222,12 +1222,12 @@ All instances will be looked up at application startup and iterated through.
 === Message Processing Throughput
 
 The following options are available for tuning the application's throughput.
-When a configuration is available both in the `ContainerOptions` and `@SqsListener` annotation, the annotation value takes precedence, if any.
+When a configuration is available both in the `SqsContainerOptions` and `@SqsListener` annotation, the annotation value takes precedence, if any.
 
-==== ContainerOptions and `@SqsListener` properties
+==== SqsContainerOptions and `@SqsListener` properties
 
 ===== maxInflightMessagesPerQueue
-Can be set in either the `ContainerOptions` or the `@SqsListener` annotation.
+Can be set in either the `SqsContainerOptions` or the `@SqsListener` annotation.
 Represents the maximum number of messages being processed by the container at a given time.
 Defaults to 10.
 
@@ -1238,7 +1238,7 @@ When using immediate acknowledgement, a message is considered as no longer infli
 
 
 ===== maxMessagesPerPoll
-Set in `ContainerOptions` or the `@SqsListener` annotation.
+Set in `SqsContainerOptions` or the `@SqsListener` annotation.
 Represents the maximum number of messages returned by a single poll to a SQS queue, to a maximum of 10.
 This value has to be less than or equal to `maxInflightMessagesPerQueue`.
 Defaults to 10.
@@ -1246,13 +1246,13 @@ Defaults to 10.
 Note that even if the queue has more messages, a poll can return less messages than specified. See the AWS documentation for more information.
 
 ===== pollTimeout
-Can be set in either the `ContainerOptions` or the `@SqsListener` annotation.
+Can be set in either the `SqsContainerOptions` or the `@SqsListener` annotation.
 Represents the maximum duration of a poll.
 Higher values represent `long polls` and increase the probability of receiving full batches of messages.
 Defaults to 10 seconds.
 
 ===== permitAcquireTimeout
-Set in `ContainerOptions`.
+Set in `SqsContainerOptions`.
 Represents the maximum amount of time the container will wait for `maxMessagesPerPoll` permits to be available before trying to acquire a partial batch.
 This wait is applied per queue and one queue has no interference in another in this regard.
 Defaults to 10 seconds.
@@ -1273,7 +1273,7 @@ If after the 5 seconds for `permitAcquireTimeout` 6 messages have been processed
 If the queue is depleted and a poll returns no messages, it'll enter `low throughput` mode again and perform only one poll at a time.
 
 ==== Configuring BackPressureMode
-The following `BackPressureMode` values can be set in `ContainerOptions` to configure polling behavior:
+The following `BackPressureMode` values can be set in `SqsContainerOptions` to configure polling behavior:
 
 * `AUTO` - The default mode, as described in the previous section.
 * `ALWAYS_POLL_MAX_MESSAGES` - Disables partial batch polling, i.e. if the container is configured for 10 messages per poll, it'll wait for 10 messages to be processed before attempting to poll for the next 10 messages.
@@ -1309,7 +1309,7 @@ Otherwise, a `sync` interface should be used.
 
 ==== Providing a TaskExecutor
 
-The default `TaskExecutor` is a `ThreadPoolTaskExecutor`, and a different `componentTaskExecutor` supplier can be set in the `ContainerOptions`.
+The default `TaskExecutor` is a `ThreadPoolTaskExecutor`, and a different `componentTaskExecutor` supplier can be set in the `SqsContainerOptions`.
 
 When providing a custom executor, it's important that it's configured to support all threads that will be created, which should be (maxInflightMessagesPerQueue * total number of queues).
 Also, to avoid unnecessary thread hopping between blocking components, a `MessageExecutionThreadFactory` should be set to the executor.

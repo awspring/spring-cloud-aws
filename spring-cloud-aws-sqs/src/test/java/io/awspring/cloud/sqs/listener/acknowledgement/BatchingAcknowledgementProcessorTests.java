@@ -25,7 +25,7 @@ import static org.mockito.Mockito.times;
 
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -100,7 +100,7 @@ class BatchingAcknowledgementProcessorTests {
 				return super.sendToExecutor(messagesToAck).thenRun(ackLatch::countDown);
 			}
 		};
-		ContainerOptions options = ContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_ZERO)
+		SqsContainerOptions options = SqsContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_ZERO)
 				.acknowledgementThreshold(ACK_THRESHOLD_TEN).acknowledgementOrdering(AcknowledgementOrdering.PARALLEL)
 				.build();
 		processor.configure(options);
@@ -129,7 +129,7 @@ class BatchingAcknowledgementProcessorTests {
 				return super.sendToExecutor(messagesToAck).thenRun(ackLatch::countDown);
 			}
 		};
-		ContainerOptions options = ContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS)
+		SqsContainerOptions options = SqsContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS)
 				.acknowledgementThreshold(ACK_THRESHOLD_ZERO).acknowledgementOrdering(AcknowledgementOrdering.PARALLEL)
 				.build();
 		processor.configure(options);
@@ -158,7 +158,7 @@ class BatchingAcknowledgementProcessorTests {
 				return super.sendToExecutor(messagesToAck).thenRun(ackLatch::countDown);
 			}
 		};
-		ContainerOptions options = ContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS)
+		SqsContainerOptions options = SqsContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS)
 				.acknowledgementThreshold(ACK_THRESHOLD_ZERO).acknowledgementOrdering(AcknowledgementOrdering.PARALLEL)
 				.build();
 		processor.configure(options);
@@ -189,7 +189,7 @@ class BatchingAcknowledgementProcessorTests {
 			return CompletableFuture.completedFuture(null);
 		};
 		BatchingAcknowledgementProcessor<String> processor = new BatchingAcknowledgementProcessor<>();
-		ContainerOptions options = ContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS)
+		SqsContainerOptions options = SqsContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS)
 				.acknowledgementThreshold(ACK_THRESHOLD_ZERO).acknowledgementOrdering(AcknowledgementOrdering.PARALLEL)
 				.build();
 		processor.configure(options);
@@ -250,7 +250,7 @@ class BatchingAcknowledgementProcessorTests {
 			});
 		};
 		BatchingAcknowledgementProcessor<String> processor = new BatchingAcknowledgementProcessor<>();
-		ContainerOptions options = ContainerOptions.builder()// .acknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS)
+		SqsContainerOptions options = SqsContainerOptions.builder()// .acknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS)
 				.acknowledgementInterval(Duration.ZERO).acknowledgementThreshold(10)
 				.acknowledgementOrdering(acknowledgementOrdering).build();
 		if (groupingFunction != null) {
@@ -298,7 +298,7 @@ class BatchingAcknowledgementProcessorTests {
 				return super.sendToExecutor(messagesToAck).whenComplete((v, t) -> ackLatch.countDown());
 			}
 		};
-		ContainerOptions options = ContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS)
+		SqsContainerOptions options = SqsContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_HUNDRED_MILLIS)
 				.acknowledgementThreshold(ACK_THRESHOLD_ZERO).acknowledgementOrdering(AcknowledgementOrdering.ORDERED)
 				.build();
 		processor.configure(options);

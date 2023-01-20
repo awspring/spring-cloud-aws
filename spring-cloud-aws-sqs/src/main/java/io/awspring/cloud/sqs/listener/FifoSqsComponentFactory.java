@@ -31,6 +31,7 @@ import io.awspring.cloud.sqs.listener.source.MessageSource;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.function.Function;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
@@ -43,7 +44,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * @since 3.0
  * @see StandardSqsComponentFactory
  */
-public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> {
+public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, SqsContainerOptions> {
 
 	// Defaults to immediate (sync) ack
 	private static final Duration DEFAULT_FIFO_SQS_ACK_INTERVAL = Duration.ZERO;
@@ -56,17 +57,17 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> 
 	private static final AcknowledgementOrdering DEFAULT_FIFO_SQS_ACK_ORDERING_BATCHING = AcknowledgementOrdering.ORDERED;
 
 	@Override
-	public boolean supports(Collection<String> queueNames, ContainerOptions options) {
+	public boolean supports(Collection<String> queueNames, SqsContainerOptions options) {
 		return queueNames.stream().allMatch(name -> name.endsWith(".fifo"));
 	}
 
 	@Override
-	public MessageSource<T> createMessageSource(ContainerOptions options) {
+	public MessageSource<T> createMessageSource(SqsContainerOptions options) {
 		return new FifoSqsMessageSource<>();
 	}
 
 	@Override
-	public MessageSink<T> createMessageSink(ContainerOptions options) {
+	public MessageSink<T> createMessageSink(SqsContainerOptions options) {
 		MessageSink<T> deliverySink = createDeliverySink(options.getListenerMode());
 		return new MessageGroupingSinkAdapter<>(
 				maybeWrapWithVisibilityAdapter(deliverySink, options.getMessageVisibility()),
@@ -80,7 +81,7 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> 
 			: new BatchMessageSink<>();
 	}
 
-	private MessageSink<T> maybeWrapWithVisibilityAdapter(MessageSink<T> deliverySink, Duration messageVisibility) {
+	private MessageSink<T> maybeWrapWithVisibilityAdapter(MessageSink<T> deliverySink, @Nullable Duration messageVisibility) {
 		return messageVisibility != null
 			? addMessageVisibilityExtendingSinkAdapter(deliverySink, messageVisibility)
 			: deliverySink;
@@ -99,33 +100,33 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> 
 	}
 
 	@Override
-	public AcknowledgementProcessor<T> createAcknowledgementProcessor(ContainerOptions options) {
+	public AcknowledgementProcessor<T> createAcknowledgementProcessor(SqsContainerOptions options) {
 		validateFifoOptions(options);
 		return hasNoAcknowledgementIntervalSet(options) && hasNoAcknowledgementThresholdSet(options)
 				? createAndConfigureImmediateProcessor(options)
 				: createAndConfigureBatchingAckProcessor(options);
 	}
 
-	private void validateFifoOptions(ContainerOptions options) {
+	private void validateFifoOptions(SqsContainerOptions options) {
 		Assert.isTrue(options.getMessageSystemAttributeNames().contains(QueueAttributeName.ALL.toString())
 				|| options.getMessageSystemAttributeNames().contains(MessageSystemAttributeName.MESSAGE_GROUP_ID.toString())
 		, "MessageSystemAttributeName.MESSAGE_GROUP_ID is required for FIFO queues.");
 	}
 
-	private boolean hasNoAcknowledgementThresholdSet(ContainerOptions options) {
+	private boolean hasNoAcknowledgementThresholdSet(SqsContainerOptions options) {
 		return options.getAcknowledgementThreshold() == null || DEFAULT_FIFO_SQS_ACK_THRESHOLD.equals(options.getAcknowledgementThreshold());
 	}
 
-	private boolean hasNoAcknowledgementIntervalSet(ContainerOptions options) {
+	private boolean hasNoAcknowledgementIntervalSet(SqsContainerOptions options) {
 		return options.getAcknowledgementInterval() == null || DEFAULT_FIFO_SQS_ACK_INTERVAL.equals(options.getAcknowledgementInterval());
 	}
 	// @formatter:on
 
-	private ImmediateAcknowledgementProcessor<T> createAndConfigureImmediateProcessor(ContainerOptions options) {
+	private ImmediateAcknowledgementProcessor<T> createAndConfigureImmediateProcessor(SqsContainerOptions options) {
 		return configureImmediateProcessor(createImmediateProcessorInstance(), options);
 	}
 
-	private BatchingAcknowledgementProcessor<T> createAndConfigureBatchingAckProcessor(ContainerOptions options) {
+	private BatchingAcknowledgementProcessor<T> createAndConfigureBatchingAckProcessor(SqsContainerOptions options) {
 		return configureBatchingAckProcessor(options, createBatchingProcessorInstance());
 	}
 
@@ -138,21 +139,21 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T> 
 	}
 
 	protected ImmediateAcknowledgementProcessor<T> configureImmediateProcessor(
-			ImmediateAcknowledgementProcessor<T> processor, ContainerOptions options) {
+			ImmediateAcknowledgementProcessor<T> processor, SqsContainerOptions options) {
 		processor.setMaxAcknowledgementsPerBatch(10);
 		if (AcknowledgementOrdering.ORDERED_BY_GROUP.equals(options.getAcknowledgementOrdering())) {
 			processor.setMessageGroupingFunction(getMessageGroupingFunction());
 		}
-		ContainerOptions.Builder builder = options.toBuilder();
+		SqsContainerOptions.Builder builder = options.toBuilder();
 		ConfigUtils.INSTANCE.acceptIfNotNullOrElse(builder::acknowledgementOrdering,
 				options.getAcknowledgementOrdering(), DEFAULT_FIFO_SQS_ACK_ORDERING_IMMEDIATE);
 		processor.configure(builder.build());
 		return processor;
 	}
 
-	protected BatchingAcknowledgementProcessor<T> configureBatchingAckProcessor(ContainerOptions options,
+	protected BatchingAcknowledgementProcessor<T> configureBatchingAckProcessor(SqsContainerOptions options,
 			BatchingAcknowledgementProcessor<T> processor) {
-		ContainerOptions.Builder builder = options.toBuilder();
+		SqsContainerOptions.Builder builder = options.toBuilder();
 		ConfigUtils.INSTANCE
 				.acceptIfNotNullOrElse(builder::acknowledgementInterval, options.getAcknowledgementInterval(),
 						DEFAULT_FIFO_SQS_ACK_INTERVAL)

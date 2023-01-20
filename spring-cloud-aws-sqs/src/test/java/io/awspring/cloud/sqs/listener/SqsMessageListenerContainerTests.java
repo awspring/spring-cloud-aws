@@ -45,8 +45,9 @@ class SqsMessageListenerContainerTests {
 		MessageInterceptor<Object> interceptor1 = mock(MessageInterceptor.class);
 		MessageInterceptor<Object> interceptor2 = mock(MessageInterceptor.class);
 		AcknowledgementResultCallback<Object> callback = mock(AcknowledgementResultCallback.class);
-		ContainerComponentFactory<Object> componentFactory = mock(ContainerComponentFactory.class);
-		List<ContainerComponentFactory<Object>> componentFactories = Collections.singletonList(componentFactory);
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
+				.singletonList(componentFactory);
 		List<String> queueNames = Arrays.asList("test-queue-name-1", "test-queue-name-2");
 
 		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder().messageListener(listener)
@@ -89,8 +90,9 @@ class SqsMessageListenerContainerTests {
 		AsyncMessageInterceptor<Object> interceptor1 = mock(AsyncMessageInterceptor.class);
 		AsyncMessageInterceptor<Object> interceptor2 = mock(AsyncMessageInterceptor.class);
 		AsyncAcknowledgementResultCallback<Object> callback = mock(AsyncAcknowledgementResultCallback.class);
-		ContainerComponentFactory<Object> componentFactory = mock(ContainerComponentFactory.class);
-		List<ContainerComponentFactory<Object>> componentFactories = Collections.singletonList(componentFactory);
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
+				.singletonList(componentFactory);
 		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder()
 				.asyncMessageListener(listener).sqsAsyncClient(client).errorHandler(errorHandler)
 				.componentFactories(componentFactories).acknowledgementResultCallback(callback)

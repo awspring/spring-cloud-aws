@@ -37,16 +37,18 @@ class AbstractMessageListenerContainerTests {
 
 	@Test
 	void shouldAdaptBlockingComponents() {
-		ContainerOptions options = ContainerOptions.builder().build();
-		AbstractMessageListenerContainer<Object> container = new AbstractMessageListenerContainer<Object>(options) {
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
+		AbstractMessageListenerContainer<Object, SqsContainerOptions, SqsContainerOptions.Builder> container = new AbstractMessageListenerContainer<>(
+				options) {
 		};
 
 		MessageListener<Object> listener = mock(MessageListener.class);
 		ErrorHandler<Object> errorHandler = mock(ErrorHandler.class);
 		MessageInterceptor<Object> interceptor = mock(MessageInterceptor.class);
 		AcknowledgementResultCallback<Object> callback = mock(AcknowledgementResultCallback.class);
-		ContainerComponentFactory<Object> componentFactory = mock(ContainerComponentFactory.class);
-		List<ContainerComponentFactory<Object>> componentFactories = Collections.singletonList(componentFactory);
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
+				.singletonList(componentFactory);
 
 		container.setMessageListener(listener);
 		container.setErrorHandler(errorHandler);
@@ -74,16 +76,18 @@ class AbstractMessageListenerContainerTests {
 
 	@Test
 	void shouldSetAsyncComponents() {
-		ContainerOptions options = ContainerOptions.builder().build();
-		AbstractMessageListenerContainer<Object> container = new AbstractMessageListenerContainer<Object>(options) {
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
+		AbstractMessageListenerContainer<Object, SqsContainerOptions, SqsContainerOptions.Builder> container = new AbstractMessageListenerContainer<>(
+				options) {
 		};
 
 		AsyncMessageListener<Object> listener = mock(AsyncMessageListener.class);
 		AsyncErrorHandler<Object> errorHandler = mock(AsyncErrorHandler.class);
 		AsyncMessageInterceptor<Object> interceptor = mock(AsyncMessageInterceptor.class);
 		AsyncAcknowledgementResultCallback<Object> callback = mock(AsyncAcknowledgementResultCallback.class);
-		ContainerComponentFactory<Object> componentFactory = mock(ContainerComponentFactory.class);
-		List<ContainerComponentFactory<Object>> componentFactories = Collections.singletonList(componentFactory);
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
+				.singletonList(componentFactory);
 
 		container.setAsyncMessageListener(listener);
 		container.setErrorHandler(errorHandler);
@@ -94,7 +98,7 @@ class AbstractMessageListenerContainerTests {
 		assertThat(container.getMessageListener()).isEqualTo(listener);
 		assertThat(container.getErrorHandler()).isEqualTo(errorHandler);
 		assertThat(container.getAcknowledgementResultCallback()).isEqualTo(callback);
-		assertThat(container.getContainerComponentFactories()).isEqualTo(componentFactories);
+		assertThat(container.getContainerComponentFactories()).containsExactlyElementsOf(componentFactories);
 		assertThat(container.getMessageInterceptors()).containsExactly(interceptor);
 
 	}
