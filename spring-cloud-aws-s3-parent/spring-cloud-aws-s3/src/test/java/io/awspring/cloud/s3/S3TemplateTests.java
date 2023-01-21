@@ -15,24 +15,23 @@
  */
 package io.awspring.cloud.s3;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
-import org.mockito.ArgumentMatchers;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
+import org.mockito.ArgumentMatchers;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
  * Unit tests for {@link S3Template}. Tests edge cases not tested by {@link S3TemplateIntegrationTests}.
@@ -48,7 +47,8 @@ class S3TemplateTests {
 
 	private final S3Presigner s3Presigner = mock(S3Presigner.class);
 
-	private final S3Template s3Template = new S3Template(client, s3OutputStreamProvider, s3ObjectConverter, s3Presigner);
+	private final S3Template s3Template = new S3Template(client, s3OutputStreamProvider, s3ObjectConverter,
+			s3Presigner);
 
 	@Test
 	void throwsExceptionWhenUploadFails() throws IOException {

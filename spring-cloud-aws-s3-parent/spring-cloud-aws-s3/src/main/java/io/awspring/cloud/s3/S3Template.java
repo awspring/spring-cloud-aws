@@ -15,6 +15,10 @@
  */
 package io.awspring.cloud.s3;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.time.Duration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
@@ -26,11 +30,6 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.time.Duration;
 
 /**
  * Higher level abstraction over {@link S3Client} providing methods for the most common use cases.

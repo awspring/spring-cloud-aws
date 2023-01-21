@@ -89,14 +89,13 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean
 	S3Presigner s3Presigner(S3Properties properties, AwsProperties awsProperties,
 			AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
-		S3Presigner.Builder builder = S3Presigner.builder()
-			.serviceConfiguration(properties.toS3Configuration())
-			.credentialsProvider(credentialsProvider)
-			.region(regionProvider.getRegion());
+		S3Presigner.Builder builder = S3Presigner.builder().serviceConfiguration(properties.toS3Configuration())
+				.credentialsProvider(credentialsProvider).region(regionProvider.getRegion());
 
 		if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());
-		} else if (awsProperties.getEndpoint() != null) {
+		}
+		else if (awsProperties.getEndpoint() != null) {
 			builder.endpointOverride(awsProperties.getEndpoint());
 		}
 		Optional.ofNullable(awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);

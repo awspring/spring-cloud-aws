@@ -167,11 +167,11 @@ class S3AutoConfigurationTests {
 		void withCustomGlobalEndpointAndS3Endpoint() {
 			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
 					"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
-				S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
-				ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
-				assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
-				assertThat(client.isEndpointOverridden()).isTrue();
-			});
+						S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+						ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+						assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
+						assertThat(client.isEndpointOverridden()).isTrue();
+					});
 		}
 	}
 
@@ -232,13 +232,13 @@ class S3AutoConfigurationTests {
 	@Test
 	void setsCommonAwsProperties() {
 		contextRunner.withPropertyValues("spring.cloud.aws.dualstack-enabled:true",
-			"spring.cloud.aws.fips-enabled:true", "spring.cloud.aws.defaults-mode:MOBILE").run(context -> {
-			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
-			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
-			assertThat(client.getDualstackEnabled()).isTrue();
-			assertThat(client.getFipsEnabled()).isTrue();
-			assertThat(client.getDefaultsMode()).isEqualTo(DefaultsMode.MOBILE);
-		});
+				"spring.cloud.aws.fips-enabled:true", "spring.cloud.aws.defaults-mode:MOBILE").run(context -> {
+					S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+					ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+					assertThat(client.getDualstackEnabled()).isTrue();
+					assertThat(client.getFipsEnabled()).isTrue();
+					assertThat(client.getDefaultsMode()).isEqualTo(DefaultsMode.MOBILE);
+				});
 	}
 
 	@Nested
@@ -247,22 +247,25 @@ class S3AutoConfigurationTests {
 		@Test
 		void s3EndpointTakesPriorityOverGlobalEndpoint() {
 			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
-				"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
-				ConfiguredAwsPresigner presigner = new ConfiguredAwsPresigner(context.getBean(S3Presigner.class));
-				assertThat(presigner.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
-				assertThat(presigner.isEndpointOverridden()).isTrue();
-			});
+					"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
+						ConfiguredAwsPresigner presigner = new ConfiguredAwsPresigner(
+								context.getBean(S3Presigner.class));
+						assertThat(presigner.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
+						assertThat(presigner.isEndpointOverridden()).isTrue();
+					});
 		}
 
 		@Test
 		void setsCommonAwsPropertiesOnPresigner() {
-			contextRunner.withPropertyValues("spring.cloud.aws.dualstack-enabled:true",
-				"spring.cloud.aws.fips-enabled:true").run(context -> {
-				ConfiguredAwsPresigner presigner = new ConfiguredAwsPresigner(context.getBean(S3Presigner.class));
-				assertThat(presigner.getDualstackEnabled()).isTrue();
-				assertThat(presigner.getFipsEnabled()).isTrue();
-				assertThat(presigner.getRegion()).isEqualTo(Region.of("eu-west-1"));
-			});
+			contextRunner
+					.withPropertyValues("spring.cloud.aws.dualstack-enabled:true", "spring.cloud.aws.fips-enabled:true")
+					.run(context -> {
+						ConfiguredAwsPresigner presigner = new ConfiguredAwsPresigner(
+								context.getBean(S3Presigner.class));
+						assertThat(presigner.getDualstackEnabled()).isTrue();
+						assertThat(presigner.getFipsEnabled()).isTrue();
+						assertThat(presigner.getRegion()).isEqualTo(Region.of("eu-west-1"));
+					});
 		}
 	}
 

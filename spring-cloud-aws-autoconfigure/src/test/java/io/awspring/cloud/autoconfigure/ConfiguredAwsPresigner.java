@@ -15,16 +15,14 @@
  */
 package io.awspring.cloud.autoconfigure;
 
+import java.net.URI;
+import java.util.Objects;
 import org.springframework.test.util.ReflectionTestUtils;
-
 import software.amazon.awssdk.awscore.presigner.SdkPresigner;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
-
-import java.net.URI;
-import java.util.Objects;
 
 public class ConfiguredAwsPresigner {
 
@@ -33,8 +31,10 @@ public class ConfiguredAwsPresigner {
 
 	public ConfiguredAwsPresigner(SdkPresigner presigner) {
 		this.presigner = presigner;
-		SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(presigner, "clientConfiguration");
-		this.attributes = (AttributeMap) ReflectionTestUtils.getField(Objects.requireNonNull(clientConfiguration), "attributes");
+		SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(presigner,
+				"clientConfiguration");
+		this.attributes = (AttributeMap) ReflectionTestUtils.getField(Objects.requireNonNull(clientConfiguration),
+				"attributes");
 	}
 
 	public URI getEndpoint() {

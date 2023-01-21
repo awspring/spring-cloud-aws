@@ -15,12 +15,11 @@
  */
 package io.awspring.cloud.s3;
 
-import org.springframework.lang.Nullable;
-import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
-
 import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
+import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
 
 public interface S3Operations {
 

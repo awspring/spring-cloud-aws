@@ -15,7 +15,17 @@
  */
 package io.awspring.cloud.s3;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -45,17 +55,6 @@ import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-
 /**
  * Integration tests for {@link S3Template}.
  *
@@ -74,7 +73,6 @@ class S3TemplateIntegrationTests {
 
 	private static S3Client client;
 
-
 	private static S3Presigner presigner;
 	private S3Template s3Template;
 
@@ -86,8 +84,9 @@ class S3TemplateIntegrationTests {
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
-		presigner = S3Presigner.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-			.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
+		presigner = S3Presigner.builder().region(Region.of(localstack.getRegion()))
+				.credentialsProvider(credentialsProvider)
+				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
 	}
 
 	@BeforeEach
@@ -218,21 +217,21 @@ class S3TemplateIntegrationTests {
 	@Test
 	void createsWorkingSignedPutURL() throws IOException {
 		ObjectMetadata metadata = ObjectMetadata.builder().metadata("testkey", "testvalue").build();
-		URL signedPutUrl = s3Template.createSignedPutURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1), metadata, "text/plain");
+		URL signedPutUrl = s3Template.createSignedPutURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1), metadata,
+				"text/plain");
 
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		HttpPut httpPut = new HttpPut(signedPutUrl.toString());
 		httpPut.setHeader("x-amz-meta-testkey", "testvalue");
-		httpPut.setHeader("Content-Type","text/plain");
+		httpPut.setHeader("Content-Type", "text/plain");
 		HttpEntity body = new StringEntity("hello");
 		httpPut.setEntity(body);
 
 		HttpResponse response = httpClient.execute(httpPut);
 		httpClient.close();
 
-		HeadObjectResponse headObjectResponse = client.headObject(HeadObjectRequest.builder()
-			.bucket(BUCKET_NAME)
-			.key("file.txt").build());
+		HeadObjectResponse headObjectResponse = client
+				.headObject(HeadObjectRequest.builder().bucket(BUCKET_NAME).key("file.txt").build());
 
 		assertThat(headObjectResponse.contentLength()).isEqualTo(5);
 		assertThat(headObjectResponse.metadata().containsKey("testkey")).isTrue();
