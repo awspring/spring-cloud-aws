@@ -28,6 +28,7 @@ import java.util.concurrent.CompletionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
@@ -91,8 +92,18 @@ public class QueueAttributesResolver {
 	}
 
 	private CompletableFuture<String> doResolveQueueUrl() {
+		return isValidQueueArn(this.queueName)
+			? doResolveQueueUrlFromArn()
+			: CompletableFutures.exceptionallyCompose(this.sqsAsyncClient.getQueueUrl(req -> req.queueName(this.queueName))
+				.thenApply(GetQueueUrlResponse::queueUrl), this::handleException);
+	}
+
+	private CompletableFuture<String> doResolveQueueUrlFromArn() {
+		Arn arn = Arn.fromString(this.queueName);
+		Assert.isTrue(arn.accountId().isPresent(), "accountId is missing from arn");
+		String accountId = arn.accountId().get();
 		return CompletableFutures
-			.exceptionallyCompose(this.sqsAsyncClient.getQueueUrl(req -> req.queueName(this.queueName))
+			.exceptionallyCompose(this.sqsAsyncClient.getQueueUrl(req -> req.queueName(arn.resourceAsString()).queueOwnerAWSAccountId(accountId))
 				.thenApply(GetQueueUrlResponse::queueUrl), this::handleException);
 	}
 
@@ -138,6 +149,16 @@ public class QueueAttributesResolver {
 			return ("http".equals(candidate.getScheme()) || "https".equals(candidate.getScheme()));
 		}
 		catch (URISyntaxException e) {
+			return false;
+		}
+	}
+
+	private boolean isValidQueueArn(String queueArn) {
+		try {
+			Arn.fromString(queueArn);
+			return true;
+		}
+		catch (IllegalArgumentException e) {
 			return false;
 		}
 	}

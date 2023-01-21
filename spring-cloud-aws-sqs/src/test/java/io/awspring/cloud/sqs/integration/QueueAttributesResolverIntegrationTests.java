@@ -128,6 +128,31 @@ class QueueAttributesResolverIntegrationTests extends BaseSqsIntegrationTest {
 			client.deleteQueue(DeleteQueueRequest.builder().queueUrl(queueUrl).build()).join();
 		}
 	}
+
+	@Test
+	void shouldResolveFromArn() {
+		String queueName = "should-get-queue-from-arn";
+		String queueArn = "arn:aws:sqs:us-east-1:000000000000:%s".formatted("should-get-queue-from-arn");
+		SqsAsyncClient client = createAsyncClient();
+		String queueUrl = client.createQueue(CreateQueueRequest.builder().queueName(queueName).build()).join().queueUrl();
+
+		QueueAttributesResolver resolver = QueueAttributesResolver
+				.builder()
+				.sqsAsyncClient(client)
+				.queueName(queueArn)
+				.queueNotFoundStrategy(QueueNotFoundStrategy.CREATE)
+			.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
+			.build();
+			try {
+				QueueAttributes attributes = resolver.resolveQueueAttributes().join();
+				assertThat(attributes.getQueueUrl()).isEqualTo(queueUrl);
+				assertThat(attributes.getQueueName()).isEqualTo(queueArn);
+				assertThat(attributes.getQueueAttribute(QueueAttributeName.QUEUE_ARN)).isEqualTo(queueArn);
+			}
+			finally {
+				client.deleteQueue(DeleteQueueRequest.builder().queueUrl(queueUrl).build()).join();
+			}
+	}
 	// @formatter:on
 
 }

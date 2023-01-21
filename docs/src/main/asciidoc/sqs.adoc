@@ -638,11 +638,11 @@ The `MessageListenerContainer` interface extends `SmartLifecycle`, which provide
 Containers created from `@SqsListener` annotations are registered in a `MessageListenerContainerRegistry` bean that is registered by the framework.
 The containers themselves are not Spring-managed beans, and the registry is responsible for managing these containers` lifecycle in application startup and shutdown.
 
-At startup, the containers will make requests to `SQS` to retrieve the queues` urls for the provided queue names, and for retrieving `QueueAttributes` if so configured.
+At startup, the containers will make requests to `SQS` to retrieve the queues` urls for the provided queue names or ARNs, and for retrieving `QueueAttributes` if so configured.
 Providing queue urls instead of names and not requesting queue attributes can result in slightly better startup times since there's no need for such requests.
 
 NOTE: If retrieving the queue url fails due to the queue not existing, the framework can be configured to either create the queue or fail.
-If a URL is provided instead of a queue name the framework will not make this request at startup, and thus if the queue does not exist it will fail at runtime.
+If a URL or ARN is provided instead of a queue name the framework will not make this request at startup, and thus if the queue does not exist it will fail at runtime.
 This configuration is available in `SqsContainerOptions` `queueNotFoundStrategy.`
 
 At shutdown, by default containers will wait for all polling, processing and acknowledging operations to finish, up to `SqsContainerOptions.getShutdownTimeout()`.
