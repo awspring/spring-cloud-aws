@@ -16,76 +16,44 @@
 package io.awspring.cloud.autoconfigure;
 
 import org.springframework.test.util.ReflectionTestUtils;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
+
 import software.amazon.awssdk.awscore.presigner.SdkPresigner;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.utils.AttributeMap;
 
 import java.net.URI;
-import java.time.Duration;
 import java.util.Objects;
 
 public class ConfiguredAwsPresigner {
 
-	private final AttributeMap presignerConfigurationAttributes;
+	private final AttributeMap attributes;
+	private final SdkPresigner presigner;
 
-	public ConfiguredAwsPresigner(SdkPresigner sdkPresigner) {
-		SdkClientConfiguration clientConfiguration;
-		try {
-			clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(sdkPresigner,
-					"clientConfiguration");
-		}
-		catch (IllegalArgumentException e) {
-			// special case for S3CrtAsyncClient
-			Object delegate = ReflectionTestUtils.getField(sdkPresigner, "delegate");
-			clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(delegate,
-					"clientConfiguration");
-		}
-		this.presignerConfigurationAttributes = (AttributeMap) ReflectionTestUtils
-				.getField(Objects.requireNonNull(clientConfiguration), "attributes");
+	public ConfiguredAwsPresigner(SdkPresigner presigner) {
+		this.presigner = presigner;
+		SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(presigner, "clientConfiguration");
+		this.attributes = (AttributeMap) ReflectionTestUtils.getField(Objects.requireNonNull(clientConfiguration), "attributes");
 	}
 
 	public URI getEndpoint() {
-		return presignerConfigurationAttributes.get(SdkClientOption.ENDPOINT);
+		return attributes.get(SdkClientOption.ENDPOINT);
 	}
 
 	public boolean isEndpointOverridden() {
-		return presignerConfigurationAttributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN);
-	}
-
-	public Region getRegion() {
-		return presignerConfigurationAttributes.get(AwsClientOption.AWS_REGION);
-	}
-
-	public Duration getApiCallTimeout() {
-		return presignerConfigurationAttributes.get(SdkClientOption.API_CALL_TIMEOUT);
-	}
-
-	public SdkHttpClient getSyncHttpClient() {
-		return presignerConfigurationAttributes.get(SdkClientOption.SYNC_HTTP_CLIENT);
+		return attributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN);
 	}
 
 	public Boolean getFipsEnabled() {
-		return presignerConfigurationAttributes.get(AwsClientOption.FIPS_ENDPOINT_ENABLED);
+		return (Boolean) ReflectionTestUtils.getField(presigner, "fipsEnabled");
 	}
 
 	public Boolean getDualstackEnabled() {
-		return presignerConfigurationAttributes.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED);
+		return (Boolean) ReflectionTestUtils.getField(presigner, "dualstackEnabled");
 	}
 
-	public DefaultsMode getDefaultsMode() {
-		return presignerConfigurationAttributes.get(AwsClientOption.DEFAULTS_MODE);
+	public Region getRegion() {
+		return (Region) ReflectionTestUtils.getField(presigner, "region");
 	}
-
-	public SdkAsyncHttpClient getAsyncHttpClient() {
-		return presignerConfigurationAttributes.get(SdkClientOption.ASYNC_HTTP_CLIENT);
-	}
-
 }
