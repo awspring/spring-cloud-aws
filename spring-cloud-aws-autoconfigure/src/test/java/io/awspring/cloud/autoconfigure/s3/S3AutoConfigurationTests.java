@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
+import io.awspring.cloud.autoconfigure.ConfiguredAwsPresigner;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -33,6 +34,7 @@ import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
+import java.net.ContentHandler;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
@@ -53,6 +55,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
  * Tests for {@link S3AutoConfiguration}.
@@ -164,11 +167,11 @@ class S3AutoConfigurationTests {
 		void withCustomGlobalEndpointAndS3Endpoint() {
 			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
 					"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
-						S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
-						ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
-						assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
-						assertThat(client.isEndpointOverridden()).isTrue();
-					});
+				S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+				ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+				assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
+				assertThat(client.isEndpointOverridden()).isTrue();
+			});
 		}
 	}
 
@@ -223,6 +226,32 @@ class S3AutoConfigurationTests {
 						S3Template s3Template = context.getBean(S3Template.class);
 						assertThat(s3Template).extracting("s3ObjectConverter").isEqualTo(customS3ObjectConverter);
 					});
+		}
+	}
+
+	@Nested
+	class S3PresignerAutoConfigurationTests {
+
+		@Test
+		void s3EndpointTakesPriority() {
+			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
+				"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
+				S3Presigner presigner = context.getBean(S3Presigner.class);
+				ConfiguredAwsPresigner configPresigner = new ConfiguredAwsPresigner(presigner);
+				assertThat(configPresigner.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
+				assertThat(configPresigner.isEndpointOverridden()).isTrue();
+			});
+		}
+
+		@Test
+		void presignerCommonAwsProperties() {
+			contextRunner.withPropertyValues("spring.cloud.aws.dualstack-enabled:true",
+				"spring.cloud.aws.fips-enabled:true").run(context -> {
+				S3Presigner presigner = context.getBean(S3Presigner.class);
+				ConfiguredAwsPresigner configPresigner = new ConfiguredAwsPresigner(presigner);
+				assertThat(configPresigner.getDualstackEnabled()).isTrue();
+				assertThat(configPresigner.getFipsEnabled()).isTrue();
+			});
 		}
 	}
 
