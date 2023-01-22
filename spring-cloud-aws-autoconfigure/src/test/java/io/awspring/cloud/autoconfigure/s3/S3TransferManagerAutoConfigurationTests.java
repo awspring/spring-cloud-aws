@@ -43,7 +43,8 @@ class S3TransferManagerAutoConfigurationTests {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, S3CrtAsyncClientAutoConfiguration.class, S3TransferManagerAutoConfiguration.class));
+					CredentialsProviderAutoConfiguration.class, S3CrtAsyncClientAutoConfiguration.class,
+					S3TransferManagerAutoConfiguration.class));
 
 	@Nested
 	class TransferManagerTests {

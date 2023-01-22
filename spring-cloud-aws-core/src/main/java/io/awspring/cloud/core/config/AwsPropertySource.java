@@ -22,6 +22,8 @@ import org.springframework.core.env.EnumerablePropertySource;
  *
  * @param <K> - self
  * @param <T> - the source type
+ * @author Maciej Walkowiak
+ * @since 3.0
  */
 public abstract class AwsPropertySource<K extends AwsPropertySource, T> extends EnumerablePropertySource<T> {
 	public AwsPropertySource(String name, T source) {

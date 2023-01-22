@@ -17,8 +17,16 @@ package io.awspring.cloud.s3;
 
 import java.io.InputStream;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
 
+/**
+ * Higher level abstraction over {@link S3Client} providing methods for the most common use cases. Implemented by
+ * {@link S3Template}.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public interface S3Operations {
 
 	/**

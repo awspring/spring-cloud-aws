@@ -32,6 +32,8 @@ import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 /**
+ * Tests for {@link SnsTemplate}.
+ *
  * @author Alain Sahli
  */
 class SnsTemplateTest {

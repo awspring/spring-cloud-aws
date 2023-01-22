@@ -25,11 +25,10 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Contains the options to be used by the {@link MessageListenerContainer} at runtime.
- * Note that after the object has been built by the {@link Builder} it's immutable and thread-safe.
- * If a new {@link Builder} is created from this object, any changes on it won't reflect on the original instance.
- * Also note that any copies are shallow, meaning that complex objects are not copied but shared
- * between the original instance and the copy.
+ * Contains the options to be used by the {@link MessageListenerContainer} at runtime. Note that after the object has
+ * been built by the {@link Builder} it's immutable and thread-safe. If a new {@link Builder} is created from this
+ * object, any changes on it won't reflect on the original instance. Also note that any copies are shallow, meaning that
+ * complex objects are not copied but shared between the original instance and the copy.
  *
  * @author Tomaz Fernandes
  * @since 3.0
@@ -61,14 +60,13 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	Duration getPermitAcquireTimeout();
 
 	/**
-	 * Return the {@link TaskExecutor} to be used by this container's components.
-	 * It's shared by the {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components
-	 * the container might have.
-	 * For custom executors, it's highly recommended to add a {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory},
+	 * Return the {@link TaskExecutor} to be used by this container's components. It's shared by the
+	 * {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components the container might have. For
+	 * custom executors, it's highly recommended to add a {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory},
 	 * as this will significantly decrease Thread hopping, which both increases performance and decreases the number of
-	 * Threads the executor must support.
-	 * Also, specially if the executor is to be shared between containers or multiple queues, make sure there's enough
-	 * Thread capacity / queues to support the load otherwise some tasks might be rejected.
+	 * Threads the executor must support. Also, specially if the executor is to be shared between containers or multiple
+	 * queues, make sure there's enough Thread capacity / queues to support the load otherwise some tasks might be
+	 * rejected.
 	 * @return the task executor.
 	 */
 	@Nullable
@@ -76,8 +74,8 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 
 	/**
 	 * Return the {@link TaskExecutor} to be used by blocking
-	 * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback} implementations
-	 * for this container.
+	 * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback} implementations for this
+	 * container.
 	 * @return the task executor.
 	 */
 	@Nullable
@@ -135,8 +133,7 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	AcknowledgementOrdering getAcknowledgementOrdering();
 
 	/**
-	 * Configure a {@link ConfigurableContainerComponent} with this options.
-	 * Internal use mostly.
+	 * Configure a {@link ConfigurableContainerComponent} with this options. Internal use mostly.
 	 * @param configurable the component to be configured.
 	 * @return this instance.
 	 */
@@ -147,8 +144,7 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	}
 
 	/**
-	 * Configure a collection of {@link ConfigurableContainerComponent} with this options.
-	 * Internal use mostly.
+	 * Configure a collection of {@link ConfigurableContainerComponent} with this options. Internal use mostly.
 	 * @param configurables the components to be configured.
 	 * @return this instance.
 	 */
@@ -159,8 +155,8 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	}
 
 	/**
-	 * Create a copy of this options. Note that this does not copy complex objects
-	 * and those will be shared between the original and the copy.
+	 * Create a copy of this options. Note that this does not copy complex objects and those will be shared between the
+	 * original and the copy.
 	 * @return a copy of this instance;
 	 */
 	default O createCopy() {
@@ -176,8 +172,8 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	O createInstance();
 
 	/**
-	 * Creates a new {@link Builder) instance configured with this options.
-	 * Note that any changes made to the builder will have no effect on this object.
+	 * Creates a new {@link Builder) instance configured with this options. Note that any changes made to the builder
+	 * will have no effect on this object.
 	 * @return the new builder instance.
 	 */
 	B toBuilder();
@@ -190,8 +186,7 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	interface Builder<B extends Builder<B, O>, O extends ContainerOptions<O, B>> {
 
 		/**
-		 * Set the maximum allowed number of inflight messages for each queue.
-		 * Default is 10.
+		 * Set the maximum allowed number of inflight messages for each queue. Default is 10.
 		 * @return this instance.
 		 */
 		B maxInflightMessagesPerQueue(int maxInflightMessagesPerQueue);
@@ -199,46 +194,41 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 		/**
 		 * Set the number of messages that should be returned per poll. If a value greater than 10 is provided, the
 		 * result of multiple polls will be combined, which can be useful for
-		 * {@link io.awspring.cloud.sqs.listener.ListenerMode#BATCH}
-		 * Default is 10.
+		 * {@link io.awspring.cloud.sqs.listener.ListenerMode#BATCH} Default is 10.
 		 * @param maxMessagesPerPoll the number of messages.
 		 * @return this instance.
 		 */
 		B maxMessagesPerPoll(int maxMessagesPerPoll);
 
 		/**
-		 * Set the timeout for polling messages for this endpoint.
-		 * Default is 10 seconds.
+		 * Set the timeout for polling messages for this endpoint. Default is 10 seconds.
 		 * @param pollTimeout the poll timeout.
 		 * @return this instance.
 		 */
 		B pollTimeout(Duration pollTimeout);
 
 		/**
-		 * Set the maximum time the polling thread should wait for permits.
-		 * Default is 10 seconds.
+		 * Set the maximum time the polling thread should wait for permits. Default is 10 seconds.
 		 * @param permitAcquireTimeout the timeout.
 		 * @return this instance.
 		 */
 		B permitAcquireTimeout(Duration permitAcquireTimeout);
 
 		/**
-		 * Set the {@link ListenerMode} mode for this container.
-		 * Default is {@link ListenerMode#SINGLE_MESSAGE}
+		 * Set the {@link ListenerMode} mode for this container. Default is {@link ListenerMode#SINGLE_MESSAGE}
 		 * @param listenerMode the listener mode.
 		 * @return this instance.
 		 */
 		B listenerMode(ListenerMode listenerMode);
 
 		/**
-		 * Set the {@link TaskExecutor} to be used by this container's components.
-		 * It's shared by the {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components
-		 * the container might have.
-		 * For custom executors, it's highly recommended to add a {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory},
-		 * as this will significantly decrease Thread hopping, which both increases performance and decreases the number of
-		 * Threads the executor must support.
-		 * Also, specially if the executor is to be shared between containers or multiple queues, make sure there's enough
-		 * Thread capacity / queues to support the load otherwise some tasks might be rejected.
+		 * Set the {@link TaskExecutor} to be used by this container's components. It's shared by the
+		 * {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components the container might have.
+		 * For custom executors, it's highly recommended to add a
+		 * {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}, as this will significantly decrease Thread
+		 * hopping, which both increases performance and decreases the number of Threads the executor must support.
+		 * Also, specially if the executor is to be shared between containers or multiple queues, make sure there's
+		 * enough Thread capacity / queues to support the load otherwise some tasks might be rejected.
 		 * @see ContainerOptions#getComponentsTaskExecutor()
 		 * @param taskExecutor the task executor.
 		 * @return this instance.
@@ -247,8 +237,8 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 
 		/**
 		 * Set the {@link TaskExecutor} to be used by blocking
-		 * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback} implementations
-		 * for this container.
+		 * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback} implementations for this
+		 * container.
 		 * @param taskExecutor the task executor.
 		 * @return this instance.
 		 */
@@ -263,40 +253,38 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 		B shutdownTimeout(Duration shutdownTimeout);
 
 		/**
-		 * Set the {@link BackPressureMode} for this container.
-		 * Default is {@link BackPressureMode#AUTO}
+		 * Set the {@link BackPressureMode} for this container. Default is {@link BackPressureMode#AUTO}
 		 * @param backPressureMode the backpressure mode.
 		 * @return this instance.
 		 */
 		B backPressureMode(BackPressureMode backPressureMode);
 
 		/**
-		 * Set the maximum interval between acknowledgements for batch acknowledgements.
-		 * The default depends on the specific {@link ContainerComponentFactory} implementation.
+		 * Set the maximum interval between acknowledgements for batch acknowledgements. The default depends on the
+		 * specific {@link ContainerComponentFactory} implementation.
 		 * @param acknowledgementInterval the interval.
 		 * @return this instance.
 		 */
 		B acknowledgementInterval(Duration acknowledgementInterval);
 
 		/**
-		 * Set the threshold for triggering a batch acknowledgement.
-		 * The default depends on the specific {@link ContainerComponentFactory} implementation.
+		 * Set the threshold for triggering a batch acknowledgement. The default depends on the specific
+		 * {@link ContainerComponentFactory} implementation.
 		 * @param acknowledgementThreshold the threshold.
 		 * @return this instance.
 		 */
 		B acknowledgementThreshold(int acknowledgementThreshold);
 
 		/**
-		 * Set the {@link AcknowledgementMode} for this container.
-		 * Default is {@link AcknowledgementMode#ON_SUCCESS}.
+		 * Set the {@link AcknowledgementMode} for this container. Default is {@link AcknowledgementMode#ON_SUCCESS}.
 		 * @param acknowledgementMode the acknowledgement mode.
 		 * @return this instance.
 		 */
 		B acknowledgementMode(AcknowledgementMode acknowledgementMode);
 
 		/**
-		 * Set the {@link AcknowledgementOrdering} for this container.
-		 * Default is {@link AcknowledgementOrdering#PARALLEL}.
+		 * Set the {@link AcknowledgementOrdering} for this container. Default is
+		 * {@link AcknowledgementOrdering#PARALLEL}.
 		 * @param acknowledgementOrdering the acknowledgement ordering.
 		 * @return this instance
 		 */

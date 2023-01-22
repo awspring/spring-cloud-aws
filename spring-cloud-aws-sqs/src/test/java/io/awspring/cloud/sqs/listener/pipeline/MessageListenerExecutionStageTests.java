@@ -34,8 +34,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
 /**
+ * Tests for {@link MessageListenerExecutionStage}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class MessageListenerExecutionStageTests {

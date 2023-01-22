@@ -15,11 +15,11 @@
  */
 package io.awspring.cloud.autoconfigure.config.reload;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
+import org.springframework.util.Assert;
 
 /**
  * This is the superclass of all named strategies that can be fired when the configuration changes.
@@ -53,7 +53,8 @@ public class ConfigurationUpdateStrategy implements Runnable {
 	}
 
 	private ConfigurationUpdateStrategy(Runnable reloadProcedure) {
-		this.reloadProcedure = Objects.requireNonNull(reloadProcedure, "reloadProcedure cannot be null");
+		Assert.notNull(reloadProcedure, "reloadProcedure cannot be null");
+		this.reloadProcedure = reloadProcedure;
 	}
 
 	public void run() {

@@ -30,8 +30,9 @@ import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundExce
 /**
  * Tests for {@link SecretsManagerPropertySource}.
  *
+ * @author Arun Patra
+ * @author Maciej Walkowiak
  */
-
 class SecretsManagerPropertySourceTest {
 
 	private SecretsManagerClient client = mock(SecretsManagerClient.class);

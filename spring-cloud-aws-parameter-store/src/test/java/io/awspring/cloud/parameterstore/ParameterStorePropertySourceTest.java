@@ -26,6 +26,14 @@ import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
 
+/**
+ * Unit tests for {@link ParameterStorePropertySource}.
+ *
+ * @author Joris Kuipers
+ * @author Eddú Meléndez
+ * @author Maciej Walkowiak
+ * @author Matej Nedic
+ */
 class ParameterStorePropertySourceTest {
 
 	private SsmClient ssmClient = mock(SsmClient.class);

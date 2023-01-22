@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class DiskBufferingS3OutputStreamProvider implements S3OutputStreamProvider {
 
 	private final S3Client s3Client;
+
 	@Nullable
 	private final S3ObjectContentTypeResolver contentTypeResolver;
 

@@ -32,8 +32,9 @@ import org.assertj.core.api.AbstractObjectAssert;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link FifoSqsComponentFactory}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class FifoSqsComponentFactoryTests {
 

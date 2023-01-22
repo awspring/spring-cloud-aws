@@ -34,8 +34,9 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 /**
+ * Tests for {@link StandardSqsMessageSource}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class StandardSqsMessageSourceTests {
 

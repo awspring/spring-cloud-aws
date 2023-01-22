@@ -41,8 +41,9 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 
 /**
+ * Tests for {@link SqsAcknowledgementExecutor}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @ExtendWith(MockitoExtension.class)
 class SqsAcknowledgementExecutorTests {

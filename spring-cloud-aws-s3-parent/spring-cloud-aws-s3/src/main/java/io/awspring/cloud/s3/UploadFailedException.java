@@ -21,6 +21,7 @@ import org.springframework.lang.Nullable;
  * Thrown when uploading to S3 fails.
  *
  * @author Maciej Walkowiak
+ * @since 3.0
  */
 public class UploadFailedException extends S3Exception {
 

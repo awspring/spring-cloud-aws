@@ -76,8 +76,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	}
 
 	/**
-	 * Get the messageAttributeNames that will be retrieved and added as headers in messages.
-	 * Default is ALL.
+	 * Get the messageAttributeNames that will be retrieved and added as headers in messages. Default is ALL.
 	 * @return the names.
 	 */
 	public Collection<String> getMessageAttributeNames() {
@@ -154,8 +153,8 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		}
 
 		/**
-		 * Set the {@link QueueAttributeName}s that will be retrieved from the queue and added as headers to the messages.
-		 * Default is none.
+		 * Set the {@link QueueAttributeName}s that will be retrieved from the queue and added as headers to the
+		 * messages. Default is none.
 		 * @param queueAttributeNames the names.
 		 * @return this instance.
 		 * @see QueueAttributesResolver
@@ -167,8 +166,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		}
 
 		/**
-		 * Set the messageAttributeNames that will be retrieved and added as headers in messages.
-		 * Default is ALL.
+		 * Set the messageAttributeNames that will be retrieved and added as headers in messages. Default is ALL.
 		 * @param messageAttributeNames the names.
 		 * @return this instance.
 		 */

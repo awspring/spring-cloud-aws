@@ -68,8 +68,9 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 		}
 	}
 
-	public void setDefaultDestinationName(String defaultDestination) {
-		super.setDefaultDestination(resolveMessageChannelByTopicName(defaultDestination));
+	public void setDefaultDestinationName(@Nullable String defaultDestination) {
+		super.setDefaultDestination(
+				defaultDestination == null ? null : resolveMessageChannelByTopicName(defaultDestination));
 	}
 
 	@Override

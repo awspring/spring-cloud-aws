@@ -39,10 +39,9 @@ import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
- * Integration tests for SQS.
+ * Integration tests for {@link SqsAutoConfiguration}.
  *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 @Testcontainers

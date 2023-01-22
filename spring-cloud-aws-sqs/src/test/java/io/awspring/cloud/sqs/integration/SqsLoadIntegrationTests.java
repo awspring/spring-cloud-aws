@@ -64,8 +64,9 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 /**
+ * Load test for SQS integration.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {

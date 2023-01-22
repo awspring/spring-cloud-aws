@@ -13,22 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.dynamodb;
-
-import java.util.Locale;
-import org.springframework.util.Assert;
 
 /**
- * Simple implementation of {@link DynamoDbTableNameResolver} that resolves class simple name to table name.
- *
- * @author Matej Nedic
- * @since 3.0
+ * Base classes for storing and retrieving configuration from AWS resources.
  */
-public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolver {
-
-	@Override
-	public String resolve(Class clazz) {
-		Assert.notNull(clazz, "clazz is required");
-		return clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT);
-	}
-}
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
+package io.awspring.cloud.core.config;

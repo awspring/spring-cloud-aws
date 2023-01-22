@@ -24,8 +24,9 @@ import static org.mockito.Mockito.mock;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link DefaultListenerContainerRegistry}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class DefaultListenerContainerRegistryTests {

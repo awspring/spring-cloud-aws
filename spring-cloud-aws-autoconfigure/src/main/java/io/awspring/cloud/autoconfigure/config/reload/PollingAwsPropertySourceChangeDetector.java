@@ -23,6 +23,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.util.Assert;
 
 /**
  * Configuration change detector that checks for changed configuration on a scheduled basis.
@@ -42,6 +43,7 @@ public class PollingAwsPropertySourceChangeDetector<T extends AwsPropertySource<
 	public PollingAwsPropertySourceChangeDetector(ReloadProperties properties, Class<T> clazz,
 			ConfigurationUpdateStrategy strategy, TaskScheduler taskExecutor, ConfigurableEnvironment environment) {
 		super(properties, strategy, environment, clazz);
+		Assert.notNull(taskExecutor, "taskExecutor is required");
 		this.taskExecutor = taskExecutor;
 
 	}

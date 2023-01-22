@@ -48,10 +48,9 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 
 /**
- * Tests for class {@link SqsAutoConfiguration}.
+ * Tests for {@link SqsAutoConfiguration}.
  *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class SqsAutoConfigurationTest {
 

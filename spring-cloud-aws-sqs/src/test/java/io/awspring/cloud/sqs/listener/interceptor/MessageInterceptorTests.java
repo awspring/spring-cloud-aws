@@ -25,8 +25,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 
 /**
+ * Tests for {@link MessageInterceptor}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class MessageInterceptorTests {

@@ -31,8 +31,9 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
+ * Tests for {@link SqsMessageListenerContainer}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class SqsMessageListenerContainerTests {

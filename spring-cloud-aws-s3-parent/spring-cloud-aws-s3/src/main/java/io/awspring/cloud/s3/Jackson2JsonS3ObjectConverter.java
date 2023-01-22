@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
  * Jackson based implementation of {@link S3ObjectConverter}. Serializes/deserializes objects to/from JSON.
  *
  * @author Maciej Walkowiak
+ * @since 3.0
  */
 public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 	private final ObjectMapper objectMapper;

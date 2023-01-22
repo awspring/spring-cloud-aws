@@ -27,6 +27,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
  * Higher level abstraction over {@link S3Client} providing methods for the most common use cases.
  *
  * @author Maciej Walkowiak
+ * @since 3.0
  */
 public class S3Template implements S3Operations {
 

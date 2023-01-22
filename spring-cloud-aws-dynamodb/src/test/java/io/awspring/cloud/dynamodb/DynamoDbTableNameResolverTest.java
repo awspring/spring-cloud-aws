@@ -19,6 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link DynamoDbTableNameResolver}.
+ *
+ * @author Matej Nedic
+ */
 class DynamoDbTableNameResolverTest {
 
 	private static final DefaultDynamoDbTableNameResolver tableNameResolver = new DefaultDynamoDbTableNameResolver();
@@ -29,39 +34,17 @@ class DynamoDbTableNameResolverTest {
 		assertThat(tableNameResolver.resolve(Person.class)).isEqualTo("person");
 	}
 
-	private class Person {
-		private String firstName;
-		private String lastName;
-
-		public Person(String firstName, String lastName) {
-			this.firstName = firstName;
-			this.lastName = lastName;
-		}
-
-		public String getFirstName() {
-			return firstName;
-		}
-
-		public String getLastName() {
-			return lastName;
-		}
+	@Test
+	void resolvesTableNameFromRecord() {
+		assertThat(tableNameResolver.resolve(PersonRecord.class)).isEqualTo("person_record");
 	}
 
-	private class MoreComplexPerson {
-		private String firstName;
-		private String lastName;
+	record PersonRecord(String name) {
+	}
 
-		public MoreComplexPerson(String firstName, String lastName) {
-			this.firstName = firstName;
-			this.lastName = lastName;
-		}
+	private static class Person {
+	}
 
-		public String getFirstName() {
-			return firstName;
-		}
-
-		public String getLastName() {
-			return lastName;
-		}
+	private static class MoreComplexPerson {
 	}
 }

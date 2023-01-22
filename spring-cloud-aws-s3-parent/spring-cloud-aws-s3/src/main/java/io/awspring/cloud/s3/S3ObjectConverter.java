@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
  * Converter used to serialize Java objects into S3 objects.
  *
  * @author Maciej Walkowiak
+ * @since 3.0
  */
 public interface S3ObjectConverter {
 	/**

@@ -30,7 +30,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 class BaseNotificationMessageHandlerMethodArgumentResolverTest {
 
 	@Test
-	void resolveArgument_SubScriptionMessage_createsObjectWithAllFields() throws Exception {
+	void resolveArgument_SubscriptionMessage_createsObjectWithAllFields() throws Exception {
 		// Arrange
 		AbstractNotificationMessageHandlerMethodArgumentResolver resolver = null;
 		resolver = new AbstractNotificationMessageHandlerMethodArgumentResolver() {

@@ -36,8 +36,9 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 
 /**
+ * Integration tests for {@link QueueAttributesResolver}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest(classes = SqsBootstrapConfiguration.class)
 class QueueAttributesResolverIntegrationTests extends BaseSqsIntegrationTest {
