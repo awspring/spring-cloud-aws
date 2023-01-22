@@ -20,7 +20,10 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,23 +33,48 @@ import static org.mockito.Mockito.when;
 
 class AwsSecretsManagerPropertySourceTest {
 
-	private AWSSecretsManager client = mock(AWSSecretsManager.class);
+	private AWSSecretsManager client;
 
-	private AwsSecretsManagerPropertySource propertySource = new AwsSecretsManagerPropertySource("/config/myservice",
-			client);
+	private AwsSecretsManagerPropertySource propertySource;
+
+	private ArgumentCaptor<GetSecretValueRequest> secretValueRequestArgumentCaptor;
+
+	@BeforeEach
+	void setUp() {
+		client = mock(AWSSecretsManager.class);
+		secretValueRequestArgumentCaptor = ArgumentCaptor.forClass(GetSecretValueRequest.class);
+		propertySource = new AwsSecretsManagerPropertySource("/config/myservice", client);
+	}
 
 	@Test
 	void shouldParseSecretValue() {
-		GetSecretValueResult secretValueResult = new GetSecretValueResult();
-		secretValueResult.setSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
+		GetSecretValueResult secretValueResult = new GetSecretValueResult()
+				.withSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
 
-		when(client.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
+		when(client.getSecretValue(secretValueRequestArgumentCaptor.capture())).thenReturn(secretValueResult);
 
 		propertySource.init();
 
+		assertThat(secretValueRequestArgumentCaptor.getValue().getSecretId()).isEqualTo("/config/myservice");
 		assertThat(propertySource.getPropertyNames()).containsExactly("key1", "key2");
 		assertThat(propertySource.getProperty("key1")).isEqualTo("value1");
 		assertThat(propertySource.getProperty("key2")).isEqualTo("value2");
+	}
+
+	@Test
+	void shouldAppendPrefixIfPrefixConfigured() {
+		propertySource = new AwsSecretsManagerPropertySource("/config/myservice2?prefix=service2.", client);
+		GetSecretValueResult secretValueResult = new GetSecretValueResult()
+				.withSecretString("{\"key1\": \"value1\", \"key2\": \"value2\"}");
+
+		when(client.getSecretValue(secretValueRequestArgumentCaptor.capture())).thenReturn(secretValueResult);
+
+		propertySource.init();
+
+		assertThat(secretValueRequestArgumentCaptor.getValue().getSecretId()).isEqualTo("/config/myservice2");
+		assertThat(propertySource.getPropertyNames()).containsExactly("service2.key1", "service2.key2");
+		assertThat(propertySource.getProperty("service2.key1")).isEqualTo("value1");
+		assertThat(propertySource.getProperty("service2.key2")).isEqualTo("value2");
 	}
 
 	@Test
@@ -54,7 +82,18 @@ class AwsSecretsManagerPropertySourceTest {
 		when(client.getSecretValue(any(GetSecretValueRequest.class)))
 				.thenThrow(new ResourceNotFoundException("secret not found"));
 
-		assertThatThrownBy(() -> propertySource.init()).isInstanceOf(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> propertySource.init()).isInstanceOf(ResourceNotFoundException.class)
+				.hasMessageContaining("secret not found");
+	}
+
+	@Test
+	void throwsExceptionWhenSecretIsNotJsonSecret() {
+		GetSecretValueResult secretValueResult = new GetSecretValueResult()
+				.withSecretString("plain text secret string, not json secret");
+		when(client.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
+
+		assertThatThrownBy(() -> propertySource.init()).isInstanceOf(RuntimeException.class)
+				.extracting(Throwable::getCause).isInstanceOf(JsonProcessingException.class);
 	}
 
 }
