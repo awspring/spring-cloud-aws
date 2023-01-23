@@ -43,8 +43,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
  * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
@@ -78,8 +81,26 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean(S3Operations.class)
 	@ConditionalOnBean(S3ObjectConverter.class)
 	S3Template s3Template(S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider,
-			S3ObjectConverter s3ObjectConverter) {
-		return new S3Template(s3Client, s3OutputStreamProvider, s3ObjectConverter);
+			S3ObjectConverter s3ObjectConverter, S3Presigner s3Presigner) {
+		return new S3Template(s3Client, s3OutputStreamProvider, s3ObjectConverter, s3Presigner);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	S3Presigner s3Presigner(S3Properties properties, AwsProperties awsProperties,
+			AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
+		S3Presigner.Builder builder = S3Presigner.builder().serviceConfiguration(properties.toS3Configuration())
+				.credentialsProvider(credentialsProvider).region(regionProvider.getRegion());
+
+		if (properties.getEndpoint() != null) {
+			builder.endpointOverride(properties.getEndpoint());
+		}
+		else if (awsProperties.getEndpoint() != null) {
+			builder.endpointOverride(awsProperties.getEndpoint());
+		}
+		Optional.ofNullable(awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
+		Optional.ofNullable(awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
+		return builder.build();
 	}
 
 	@Configuration(proxyBeanMethods = false)
