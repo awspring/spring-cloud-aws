@@ -65,8 +65,8 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	private final S3OutputStreamProvider s3OutputStreamProvider;
 
 	/**
-	 * Creates a {@link S3PathMatchingResourcePatternResolver} with the given s3Client and
-	 * resourcePatternResolverDelegate. For the S3 Resource a {@link InMemoryBufferingS3OutputStreamProvider} is used in
+	 * Creates a {@link S3PathMatchingResourcePatternResolver} with the given {@link S3Client},
+	 * {@link ResourcePatternResolver}. For the S3 Resource a {@link InMemoryBufferingS3OutputStreamProvider} is used in
 	 * case the resource should be modified and for the pattern matching a {@link AntPathMatcher} is used.
 	 *
 	 * @param s3Client the s3Client of the Amazon SDK
@@ -76,13 +76,27 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	public S3PathMatchingResourcePatternResolver(S3Client s3Client,
 			ResourcePatternResolver resourcePatternResolverDelegate) {
 		this(s3Client, resourcePatternResolverDelegate,
-				new InMemoryBufferingS3OutputStreamProvider(s3Client, new PropertiesS3ObjectContentTypeResolver()),
-				new AntPathMatcher(), List.of("**", "*", "?"));
+				new InMemoryBufferingS3OutputStreamProvider(s3Client, new PropertiesS3ObjectContentTypeResolver()));
 	}
 
 	/**
-	 * Creates a {@link S3PathMatchingResourcePatternResolver} with the given s3Client and
-	 * resourcePatternResolverDelegate.
+	 * Creates a {@link S3PathMatchingResourcePatternResolver} with the given {@link S3Client},
+	 * {@link ResourcePatternResolver} and {@link S3OutputStreamProvider}.
+	 *
+	 * @param s3Client the s3Client of the Amazon SDK
+	 * @param resourcePatternResolverDelegate the resourcePatternResolverDelegate which is used if the given scheme is
+	 *     not S3. In this case all processing is delegated to this implementation.
+	 * @param s3OutputStreamProvider The s3OutputStreamProvider used if the resource is going to be written
+	 */
+	public S3PathMatchingResourcePatternResolver(S3Client s3Client,
+			ResourcePatternResolver resourcePatternResolverDelegate, S3OutputStreamProvider s3OutputStreamProvider) {
+		this(s3Client, resourcePatternResolverDelegate, s3OutputStreamProvider, new AntPathMatcher(),
+				List.of("**", "*", "?"));
+	}
+
+	/**
+	 * Creates a {@link S3PathMatchingResourcePatternResolver} with the given {@link S3Client},
+	 * {@link ResourcePatternResolver}.
 	 *
 	 * @param s3Client the s3Client of the Amazon SDK
 	 * @param resourcePatternResolverDelegate the resourcePatternResolverDelegate which is used if the given scheme is
