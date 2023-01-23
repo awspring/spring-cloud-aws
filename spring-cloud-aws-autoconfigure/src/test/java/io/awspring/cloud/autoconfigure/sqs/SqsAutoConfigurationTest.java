@@ -27,6 +27,7 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
+import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
@@ -36,6 +37,7 @@ import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -64,6 +66,12 @@ class SqsAutoConfigurationTest {
 	@Test
 	void sqsAutoConfigurationIsDisabled() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:false")
+				.run(context -> assertThat(context).doesNotHaveBean(SqsAsyncClient.class));
+	}
+
+	@Test
+	void sqsAutoConfigurationIsDisabledWhenSqsModuleIsNotInClassPath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(SqsBootstrapConfiguration.class))
 				.run(context -> assertThat(context).doesNotHaveBean(SqsAsyncClient.class));
 	}
 
