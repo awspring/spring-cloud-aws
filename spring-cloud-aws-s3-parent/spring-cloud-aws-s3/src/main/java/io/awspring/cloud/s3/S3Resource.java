@@ -45,11 +45,11 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
  */
 public class S3Resource extends AbstractResource implements WritableResource {
 
-	private final Location location;
+	protected final Location location;
 
-	private final S3Client s3Client;
+	protected final S3Client s3Client;
 
-	private final S3OutputStreamProvider s3OutputStreamProvider;
+	protected final S3OutputStreamProvider s3OutputStreamProvider;
 
 	@Nullable
 	private HeadMetadata headMetadata;
@@ -70,7 +70,7 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	public S3Resource(String bucket, String key, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
-		this(new Location(bucket, key, null), s3Client, s3OutputStreamProvider);
+		this(Location.of(bucket, key), s3Client, s3OutputStreamProvider);
 	}
 
 	public S3Resource(Location location, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
