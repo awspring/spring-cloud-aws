@@ -117,6 +117,7 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 */
 	@Override
 	public Resource[] getResources(String locationPattern) throws IOException {
+		Assert.notNull(locationPattern, "Location pattern must not be null");
 		LOGGER.debug("Get resources of the following location pattern {}", locationPattern);
 		Resource[] resources = locationPattern.toLowerCase().startsWith(S3_PROTOCOL_PREFIX)
 				? findResourcesInBucketsWithPatterns(locationPattern)
@@ -135,7 +136,7 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 	 */
 	@Override
 	public Resource getResource(String location) {
-		Assert.notNull(location, "location cannot be null.");
+		Assert.notNull(location, "Location cannot be null");
 		LOGGER.debug("Get resource of the following location {}", location);
 		Resource resource = location.toLowerCase().startsWith(S3_PROTOCOL_PREFIX) ? createS3Resource(location)
 				: this.resourcePatternResolverDelegate.getResource(location);
