@@ -59,6 +59,7 @@
 |spring.cloud.aws.sns.enabled | `+++true+++` | Enables SNS integration.
 |spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sns.region |  | Overrides the default region.
+|spring.cloud.aws.sqs.enabled | `+++true+++` | Enables SQS integration.
 |spring.cloud.aws.sqs.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue |  | The maximum number of simultaneous inflight messages in a queue.
 |spring.cloud.aws.sqs.listener.max-messages-per-poll |  | The maximum number of messages to be retrieved in a single poll to SQS.
