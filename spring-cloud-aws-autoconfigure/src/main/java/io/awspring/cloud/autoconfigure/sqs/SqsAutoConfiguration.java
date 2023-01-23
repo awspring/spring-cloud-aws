@@ -49,7 +49,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
  * @since 3.0
  */
 @AutoConfiguration
-@ConditionalOnClass(SqsAsyncClient.class)
+@ConditionalOnClass({ SqsAsyncClient.class, SqsBootstrapConfiguration.class })
 @EnableConfigurationProperties(SqsProperties.class)
 @Import(SqsBootstrapConfiguration.class)
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
