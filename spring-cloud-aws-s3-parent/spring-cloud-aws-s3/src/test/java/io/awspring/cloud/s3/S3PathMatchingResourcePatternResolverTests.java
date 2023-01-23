@@ -131,9 +131,9 @@ class S3PathMatchingResourcePatternResolverTests {
 		assertThat(resourcesWithFileNameWildcard[0].exists()).isTrue();
 	}
 
-	private static ResourcePatternResolver getResourceLoader(S3Client amazonS3) {
+	private static ResourcePatternResolver getResourceLoader(S3Client s3Client) {
 		DefaultResourceLoader loader = new DefaultResourceLoader();
-		loader.addProtocolResolver(new S3ProtocolResolver(amazonS3));
-		return new S3PathMatchingResourcePatternResolver(amazonS3, new PathMatchingResourcePatternResolver(loader));
+		loader.addProtocolResolver(new S3ProtocolResolver(s3Client));
+		return new S3PathMatchingResourcePatternResolver(s3Client, new PathMatchingResourcePatternResolver(loader));
 	}
 }
