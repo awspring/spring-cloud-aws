@@ -23,9 +23,13 @@ import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesResolver;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -130,11 +134,22 @@ class QueueAttributesResolverIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
-	void shouldResolveFromArn() {
+	void shouldResolveFromArn() throws MalformedURLException {
 		String queueName = "should-get-queue-from-arn";
-		String queueArn = "arn:aws:sqs:us-east-1:000000000000:%s".formatted("should-get-queue-from-arn");
 		SqsAsyncClient client = createAsyncClient();
 		String queueUrl = client.createQueue(CreateQueueRequest.builder().queueName(queueName).build()).join().queueUrl();
+		String region = useLocalStackClient
+			? localstack.getRegion()
+			: new URL(queueUrl).getHost().split("\\.")[1];
+
+		Pattern accountIdPattern = Pattern.compile("\\d{12}");
+		Matcher accountIdMatcher = accountIdPattern.matcher(queueUrl);
+		String accountId = "";
+		if (accountIdMatcher.find()){
+			accountId = accountIdMatcher.group();
+		}
+
+		String queueArn = "arn:aws:sqs:%s:%s:%s".formatted(region, accountId, queueName);
 
 		QueueAttributesResolver resolver = QueueAttributesResolver
 				.builder()
