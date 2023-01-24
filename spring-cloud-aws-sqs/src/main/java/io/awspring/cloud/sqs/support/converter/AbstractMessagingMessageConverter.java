@@ -176,8 +176,10 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	@Nullable
 	private Class<?> getTargetType(Message<?> messagingMessage, @Nullable MessageConversionContext context) {
-		return context != null && context.getPayloadClass() != null ? context.getPayloadClass()
-				: this.payloadTypeMapper.apply(messagingMessage);
+		Class<?> classFromTypeMapper = this.payloadTypeMapper.apply(messagingMessage);
+		return classFromTypeMapper == null && context != null && context.getPayloadClass() != null
+			? context.getPayloadClass()
+			: classFromTypeMapper;
 	}
 
 	protected abstract Object getPayloadToDeserialize(S message);

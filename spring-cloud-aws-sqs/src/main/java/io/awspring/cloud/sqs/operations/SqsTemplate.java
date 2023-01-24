@@ -64,8 +64,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
-public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
-		implements SqsOperations<T>, SqsAsyncOperations<T> {
+public class SqsTemplate extends AbstractMessagingTemplate<Message>
+		implements SqsOperations, SqsAsyncOperations {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsTemplate.class);
 
@@ -83,9 +83,9 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	private final Collection<String> messageSystemAttributeNames;
 
-	private SqsTemplate(SqsTemplateBuilderImpl<T> builder) {
+	private SqsTemplate(SqsTemplateBuilderImpl builder) {
 		super(builder.messageConverter, builder.options);
-		SqsTemplateOptionsImpl<T> options = builder.options;
+		SqsTemplateOptionsImpl options = builder.options;
 		this.sqsAsyncClient = builder.sqsAsyncClient;
 		this.messageAttributeNames = options.messageAttributeNames;
 		this.queueAttributeNames = options.queueAttributeNames;
@@ -96,10 +96,9 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	/**
 	 * Create a new {@link SqsTemplateBuilder}.
 	 * @return the builder.
-	 * @param <T> the payload type.
 	 */
-	public static <T> SqsTemplateBuilder<T> builder() {
-		return new SqsTemplateBuilderImpl<>();
+	public static SqsTemplateBuilder builder() {
+		return new SqsTemplateBuilderImpl();
 	}
 
 	/**
@@ -107,10 +106,9 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	 * operations.
 	 * @param sqsAsyncClient the client to be used by the template.
 	 * @return the {@link SqsTemplate} instance.
-	 * @param <T> the payload type.
 	 */
-	public static <T> SqsTemplate<T> newTemplate(SqsAsyncClient sqsAsyncClient) {
-		return new SqsTemplateBuilderImpl<T>().sqsAsyncClient(sqsAsyncClient).build();
+	public static SqsTemplate newTemplate(SqsAsyncClient sqsAsyncClient) {
+		return new SqsTemplateBuilderImpl().sqsAsyncClient(sqsAsyncClient).build();
 	}
 
 	/**
@@ -118,9 +116,8 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	 * methods contained in {@link SqsOperations}.
 	 * @param sqsAsyncClient the client.
 	 * @return the new template instance.
-	 * @param <T> the payload type.
 	 */
-	public static <T> SqsOperations<T> newSyncTemplate(SqsAsyncClient sqsAsyncClient) {
+	public static SqsOperations newSyncTemplate(SqsAsyncClient sqsAsyncClient) {
 		return newTemplate(sqsAsyncClient);
 	}
 
@@ -129,24 +126,23 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	 * methods contained in {@link SqsAsyncOperations}.
 	 * @param sqsAsyncClient the client.
 	 * @return the new template instance.
-	 * @param <T> the payload type.
 	 */
-	public static <T> SqsAsyncOperations<T> newAsyncTemplate(SqsAsyncClient sqsAsyncClient) {
+	public static SqsAsyncOperations newAsyncTemplate(SqsAsyncClient sqsAsyncClient) {
 		return newTemplate(sqsAsyncClient);
 	}
 
 	@Override
-	public SendResult<T> send(Consumer<SqsSendOptions.Standard<T>> to) {
+	public <T> SendResult<T> send(Consumer<SqsSendOptions.Standard<T>> to) {
 		return unwrapCompletionException(sendAsync(to));
 	}
 
 	@Override
-	public SendResult<T> sendFifo(Consumer<SqsSendOptions.Fifo<T>> to) {
+	public <T> SendResult<T> sendFifo(Consumer<SqsSendOptions.Fifo<T>> to) {
 		return unwrapCompletionException(sendFifoAsync(to));
 	}
 
 	@Override
-	public CompletableFuture<SendResult<T>> sendAsync(Consumer<SqsSendOptions.Standard<T>> to) {
+	public <T> CompletableFuture<SendResult<T>> sendAsync(Consumer<SqsSendOptions.Standard<T>> to) {
 		Assert.notNull(to, "to must not be null");
 		SendStandardOptionsImpl<T> options = new SendStandardOptionsImpl<>();
 		to.accept(options);
@@ -154,7 +150,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	public CompletableFuture<SendResult<T>> sendFifoAsync(Consumer<SqsSendOptions.Fifo<T>> to) {
+	public <T> CompletableFuture<SendResult<T>> sendFifoAsync(Consumer<SqsSendOptions.Fifo<T>> to) {
 		Assert.notNull(to, "to must not be null");
 		SendFifoOptionsImpl<T> options = new SendFifoOptionsImpl<>();
 		to.accept(options);
@@ -163,20 +159,20 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	public SendResult.Batch<T> sendManyFifo(String endpoint,
+	public <T> SendResult.Batch<T> sendManyFifo(String endpoint,
 			Collection<org.springframework.messaging.Message<T>> messages) {
 		return unwrapCompletionException(sendFifoAsync(endpoint, messages));
 	}
 
 	@Override
-	public CompletableFuture<SendResult.Batch<T>> sendFifoAsync(@Nullable String endpoint,
+	public <T> CompletableFuture<SendResult.Batch<T>> sendFifoAsync(@Nullable String endpoint,
 			Collection<org.springframework.messaging.Message<T>> messages) {
 		Assert.notEmpty(messages, "messages must not be empty");
 		return sendManyAsync(endpoint, messages.stream()
 				.map(message -> addFifoHeaders(message, UUID.randomUUID(), UUID.randomUUID())).toList());
 	}
 
-	private org.springframework.messaging.Message<T> addFifoHeaders(org.springframework.messaging.Message<T> message,
+	private <T> org.springframework.messaging.Message<T> addFifoHeaders(org.springframework.messaging.Message<T> message,
 			UUID messageGroupId, UUID messageDeduplicationID) {
 		return MessageHeaderUtils.addHeadersToMessage(message,
 				Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, messageGroupId.toString(),
@@ -185,29 +181,29 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	public Optional<org.springframework.messaging.Message<T>> receive(Consumer<SqsReceiveOptions.Standard<T>> from) {
+	public <T> Optional<org.springframework.messaging.Message<T>> receive(Consumer<SqsReceiveOptions.Standard<T>> from) {
 		return unwrapCompletionException(receiveAsync(from));
 	}
 
 	@Override
-	public Optional<org.springframework.messaging.Message<T>> receiveFifo(Consumer<SqsReceiveOptions.Fifo<T>> from) {
+	public <T> Optional<org.springframework.messaging.Message<T>> receiveFifo(Consumer<SqsReceiveOptions.Fifo<T>> from) {
 		return unwrapCompletionException(receiveFifoAsync(from));
 	}
 
 	@Override
-	public Collection<org.springframework.messaging.Message<T>> receiveMany(
+	public <T> Collection<org.springframework.messaging.Message<T>> receiveMany(
 			Consumer<SqsReceiveOptions.Standard<T>> from) {
 		return unwrapCompletionException(receiveManyAsync(from));
 	}
 
 	@Override
-	public Collection<org.springframework.messaging.Message<T>> receiveManyFifo(
+	public <T> Collection<org.springframework.messaging.Message<T>> receiveManyFifo(
 			Consumer<SqsReceiveOptions.Fifo<T>> from) {
 		return unwrapCompletionException(receiveManyFifoAsync(from));
 	}
 
 	@Override
-	public CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveAsync(
+	public <T> CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveAsync(
 			Consumer<SqsReceiveOptions.Standard<T>> from) {
 		Assert.notNull(from, "from must not be null");
 		ReceiveStandardOptionsImpl<T> options = new ReceiveStandardOptionsImpl<>();
@@ -218,7 +214,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	public CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveFifoAsync(
+	public <T> CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveFifoAsync(
 			Consumer<SqsReceiveOptions.Fifo<T>> from) {
 		Assert.notNull(from, "from must not be null");
 		ReceiveFifoOptionsImpl<T> options = new ReceiveFifoOptionsImpl<>();
@@ -229,7 +225,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	public CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyAsync(
+	public <T> CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyAsync(
 			Consumer<SqsReceiveOptions.Standard<T>> from) {
 		Assert.notNull(from, "from must not be null");
 		ReceiveStandardOptionsImpl<T> options = new ReceiveStandardOptionsImpl<>();
@@ -240,7 +236,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	public CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyFifoAsync(
+	public <T> CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyFifoAsync(
 			Consumer<SqsReceiveOptions.Fifo<T>> from) {
 		Assert.notNull(from, "from must not be null");
 		ReceiveFifoOptionsImpl<T> options = new ReceiveFifoOptionsImpl<>();
@@ -250,7 +246,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 				additionalHeaders);
 	}
 
-	private Map<String, Object> handleReceiveRequestHeader(ReceiveFifoOptionsImpl<T> options) {
+	private <T> Map<String, Object> handleReceiveRequestHeader(ReceiveFifoOptionsImpl<T> options) {
 		Map<String, Object> additionalHeaders = getAdditionalHeaders(options);
 		additionalHeaders.put(SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER,
 				getUUIDOrRandom(options.receiveRequestAttemptId));
@@ -269,7 +265,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		return uuid != null ? uuid : UUID.randomUUID();
 	}
 
-	private org.springframework.messaging.Message<T> messageFromSendOptions(AbstractSqsSendOptionsImpl<T, ?> options) {
+	private <T> org.springframework.messaging.Message<T> messageFromSendOptions(AbstractSqsSendOptionsImpl<T, ?> options) {
 		Assert.notNull(options.payload, "payload must not be null");
 		MessageBuilder<T> builder = MessageBuilder.withPayload(options.payload).copyHeaders(options.headers);
 		if (options.delay != null) {
@@ -279,14 +275,14 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	protected CompletableFuture<SendResult<T>> doSendAsync(String endpointName, Message message,
+	protected <T> CompletableFuture<SendResult<T>> doSendAsync(String endpointName, Message message,
 			org.springframework.messaging.Message<T> originalMessage) {
 		return createSendMessageRequest(endpointName, message).thenCompose(this.sqsAsyncClient::sendMessage)
 				.thenApply(response -> createSendResult(UUID.fromString(response.messageId()),
 						response.sequenceNumber(), endpointName, originalMessage));
 	}
 
-	private SendResult<T> createSendResult(UUID messageId, @Nullable String sequenceNumber, String endpointName,
+	private <T> SendResult<T> createSendResult(UUID messageId, @Nullable String sequenceNumber, String endpointName,
 			org.springframework.messaging.Message<T> originalMessage) {
 		return new SendResult<>(messageId, endpointName, originalMessage,
 				sequenceNumber != null
@@ -309,7 +305,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	protected CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName, Collection<Message> messages,
+	protected <T> CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName, Collection<Message> messages,
 			Collection<org.springframework.messaging.Message<T>> originalMessages) {
 		logger.debug("Sending messages {} to endpoint {}", messages, endpointName);
 		return createSendMessageBatchRequest(endpointName, messages).thenCompose(this.sqsAsyncClient::sendMessageBatch)
@@ -317,13 +313,13 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 						originalMessages.stream().collect(Collectors.toMap(MessageHeaderUtils::getId, msg -> msg))));
 	}
 
-	private SendResult.Batch<T> createSendResultBatch(SendMessageBatchResponse response, String endpointName,
+	private <T> SendResult.Batch<T> createSendResultBatch(SendMessageBatchResponse response, String endpointName,
 			Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
 		return new SendResult.Batch<>(doCreateSendResultBatch(response, endpointName, originalMessagesById),
 				createSendResultFailed(response, endpointName, originalMessagesById));
 	}
 
-	private Collection<SendResult.Failed<T>> createSendResultFailed(SendMessageBatchResponse response,
+	private <T> Collection<SendResult.Failed<T>> createSendResultFailed(SendMessageBatchResponse response,
 			String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
 		return response.failed().stream()
 				.map(entry -> new SendResult.Failed<>(entry.message(), endpointName,
@@ -332,7 +328,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 				.toList();
 	}
 
-	private Collection<SendResult<T>> doCreateSendResultBatch(SendMessageBatchResponse response, String endpointName,
+	private <T> Collection<SendResult<T>> doCreateSendResultBatch(SendMessageBatchResponse response, String endpointName,
 			Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
 		return response
 				.successful().stream().map(entry -> createSendResult(UUID.fromString(entry.messageId()),
@@ -340,7 +336,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 				.toList();
 	}
 
-	private org.springframework.messaging.Message<T> getOriginalMessage(
+	private <T> org.springframework.messaging.Message<T> getOriginalMessage(
 			Map<String, org.springframework.messaging.Message<T>> originalMessagesById,
 			SendMessageBatchResultEntry entry) {
 		org.springframework.messaging.Message<T> originalMessage = originalMessagesById.get(entry.id());
@@ -352,14 +348,14 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	@Nullable
 	@Override
-	protected MessageConversionContext getReceiveMessageConversionContext(String endpointName,
-			@Nullable Class<? extends T> payloadClass) {
+	protected <T> MessageConversionContext getReceiveMessageConversionContext(String endpointName,
+			@Nullable Class<T> payloadClass) {
 		return this.conversionContextCache.computeIfAbsent(endpointName,
 				newEndpoint -> doGetSqsMessageConversionContext(endpointName, payloadClass));
 	}
 
-	private SqsMessageConversionContext doGetSqsMessageConversionContext(String newEndpoint,
-			@Nullable Class<? extends T> payloadClass) {
+	private <T> SqsMessageConversionContext doGetSqsMessageConversionContext(String newEndpoint,
+			@Nullable Class<T> payloadClass) {
 		SqsMessageConversionContext conversionContext = new SqsMessageConversionContext();
 		conversionContext.setSqsAsyncClient(this.sqsAsyncClient);
 		// At this point we'll already have retrieved and cached the queue attributes
@@ -369,7 +365,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		if (payloadClass != null) {
 			conversionContext.setPayloadClass(payloadClass);
 		}
-		conversionContext.setAcknowledgementCallback(new TemplateAcknowledgementCallback());
+		conversionContext.setAcknowledgementCallback(new TemplateAcknowledgementCallback<T>());
 		return conversionContext;
 	}
 
@@ -438,7 +434,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 	}
 
 	@Override
-	protected CompletableFuture<Void> doAcknowledgeMessages(String endpointName,
+	protected <T> CompletableFuture<Void> doAcknowledgeMessages(String endpointName,
 			Collection<org.springframework.messaging.Message<T>> messages) {
 		return deleteMessages(endpointName, messages);
 	}
@@ -453,7 +449,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 				.thenCompose(this.sqsAsyncClient::receiveMessage).thenApply(ReceiveMessageResponse::messages);
 	}
 
-	private CompletableFuture<Void> deleteMessages(String endpointName,
+	private <T> CompletableFuture<Void> deleteMessages(String endpointName,
 			Collection<org.springframework.messaging.Message<T>> messages) {
 		logger.trace("Acknowledging in queue {} messages {}", endpointName, MessageHeaderUtils.getId(messages));
 		return getQueueAttributes(endpointName)
@@ -470,7 +466,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 				});
 	}
 
-	private Collection<org.springframework.messaging.Message<T>> getFailedAckMessages(
+	private <T> Collection<org.springframework.messaging.Message<T>> getFailedAckMessages(
 			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<T>> messages,
 			String endpointName) {
 		return response.failed().stream().map(BatchResultErrorEntry::id)
@@ -481,7 +477,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 				.collect(Collectors.toList());
 	}
 
-	private Collection<org.springframework.messaging.Message<T>> getSuccessfulAckMessages(
+	private <T> Collection<org.springframework.messaging.Message<T>> getSuccessfulAckMessages(
 			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<T>> messages,
 			String endpointName) {
 		return response.successful().stream().map(DeleteMessageBatchResultEntry::id)
@@ -492,14 +488,14 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 				.collect(Collectors.toList());
 	}
 
-	private CompletableFuture<DeleteMessageBatchResponse> createAcknowledgementException(String endpointName,
+	private <T> CompletableFuture<DeleteMessageBatchResponse> createAcknowledgementException(String endpointName,
 			Collection<org.springframework.messaging.Message<T>> successfulAckMessages,
 			Collection<org.springframework.messaging.Message<T>> failedAckMessages, @Nullable Throwable t) {
 		return CompletableFuture.failedFuture(new SqsAcknowledgementException("Error acknowledging messages",
 				successfulAckMessages, failedAckMessages, endpointName, t));
 	}
 
-	private void logAcknowledgement(String endpointName, Collection<org.springframework.messaging.Message<T>> messages,
+	private <T> void logAcknowledgement(String endpointName, Collection<org.springframework.messaging.Message<T>> messages,
 			DeleteMessageBatchResponse response, @Nullable Throwable t) {
 		if (t != null) {
 			logger.error("Error acknowledging in queue {} messages {}", endpointName,
@@ -514,7 +510,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 	}
 
-	private Collection<DeleteMessageBatchRequestEntry> createDeleteMessageEntries(
+	private <T> Collection<DeleteMessageBatchRequestEntry> createDeleteMessageEntries(
 			Collection<org.springframework.messaging.Message<T>> messages) {
 		return messages.stream()
 				.map(message -> DeleteMessageBatchRequestEntry.builder().id(MessageHeaderUtils.getId(message))
@@ -557,8 +553,8 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		return new SqsMessagingMessageConverter();
 	}
 
-	private static class SqsTemplateOptionsImpl<T> extends AbstractMessagingTemplateOptions<T, SqsTemplateOptions<T>>
-			implements SqsTemplateOptions<T> {
+	private static class SqsTemplateOptionsImpl extends AbstractMessagingTemplateOptions<SqsTemplateOptions>
+			implements SqsTemplateOptions {
 
 		private Collection<QueueAttributeName> queueAttributeNames = Collections.emptyList();
 
@@ -569,27 +565,27 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		private Collection<String> messageSystemAttributeNames = Collections.singletonList("All");
 
 		@Override
-		public SqsTemplateOptions<T> queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
+		public SqsTemplateOptions queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notEmpty(queueAttributeNames, "queueAttributeNames cannot be null or empty");
 			this.queueAttributeNames = queueAttributeNames;
 			return this;
 		}
 
 		@Override
-		public SqsTemplateOptions<T> queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
+		public SqsTemplateOptions queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
 			Assert.notNull(queueNotFoundStrategy, "queueNotFoundStrategy cannot be null");
 			this.queueNotFoundStrategy = queueNotFoundStrategy;
 			return this;
 		}
 
 		@Override
-		public SqsTemplateOptions<T> messageAttributeNames(Collection<String> messageAttributeNames) {
+		public SqsTemplateOptions messageAttributeNames(Collection<String> messageAttributeNames) {
 			this.messageAttributeNames = messageAttributeNames;
 			return this;
 		}
 
 		@Override
-		public SqsTemplateOptions<T> messageSystemAttributeNames(
+		public SqsTemplateOptions messageSystemAttributeNames(
 				Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
 			this.messageSystemAttributeNames = messageSystemAttributeNames.stream()
 					.map(MessageSystemAttributeName::name).toList();
@@ -598,27 +594,27 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	}
 
-	private static class SqsTemplateBuilderImpl<T> implements SqsTemplateBuilder<T> {
+	private static class SqsTemplateBuilderImpl implements SqsTemplateBuilder {
 
-		private final SqsTemplateOptionsImpl<T> options;
+		private final SqsTemplateOptionsImpl options;
 
 		private SqsAsyncClient sqsAsyncClient;
 
 		private MessagingMessageConverter<Message> messageConverter;
 
 		private SqsTemplateBuilderImpl() {
-			this.options = new SqsTemplateOptionsImpl<>();
+			this.options = new SqsTemplateOptionsImpl();
 		}
 
 		@Override
-		public SqsTemplateBuilder<T> sqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
+		public SqsTemplateBuilder sqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 			Assert.notNull(sqsAsyncClient, "sqsAsyncClient must not be null");
 			this.sqsAsyncClient = sqsAsyncClient;
 			return this;
 		}
 
 		@Override
-		public SqsTemplateBuilder<T> messageConverter(MessagingMessageConverter<Message> messageConverter) {
+		public SqsTemplateBuilder messageConverter(MessagingMessageConverter<Message> messageConverter) {
 			Assert.notNull(messageConverter, "messageConverter must not be null");
 			Assert.isNull(this.messageConverter, "messageConverter already configured");
 			this.messageConverter = messageConverter;
@@ -626,7 +622,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 
 		@Override
-		public SqsTemplateBuilder<T> configureDefaultConverter(
+		public SqsTemplateBuilder configureDefaultConverter(
 				Consumer<SqsMessagingMessageConverter> messageConverterConfigurer) {
 			Assert.notNull(messageConverterConfigurer, "messageConverterConfigurer must not be null");
 			Assert.isNull(this.messageConverter, "messageConverter already configured");
@@ -637,28 +633,28 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 
 		@Override
-		public SqsTemplateBuilder<T> configure(Consumer<SqsTemplateOptions<T>> options) {
+		public SqsTemplateBuilder configure(Consumer<SqsTemplateOptions> options) {
 			Assert.notNull(options, "options must not be null");
 			options.accept(this.options);
 			return this;
 		}
 
 		@Override
-		public SqsTemplate<T> build() {
+		public SqsTemplate build() {
 			Assert.notNull(this.sqsAsyncClient, "no sqsAsyncClient set");
 			if (this.messageConverter == null) {
 				this.messageConverter = createDefaultMessageConverter();
 			}
-			return new SqsTemplate<>(this);
+			return new SqsTemplate(this);
 		}
 
 		@Override
-		public SqsOperations<T> buildSyncTemplate() {
+		public SqsOperations buildSyncTemplate() {
 			return build();
 		}
 
 		@Override
-		public SqsAsyncOperations<T> buildAsyncTemplate() {
+		public SqsAsyncOperations buildAsyncTemplate() {
 			return build();
 		}
 
@@ -764,7 +760,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		protected Duration visibilityTimeout;
 
 		@Nullable
-		protected Class<? extends T> payloadClass;
+		protected Class<T> payloadClass;
 
 		@Nullable
 		protected Integer maxNumberOfMessages;
@@ -784,7 +780,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 		}
 
 		@Override
-		public O payloadClass(Class<? extends T> payloadClass) {
+		public O payloadClass(Class<T> payloadClass) {
 			Assert.notNull(payloadClass, "payloadClass must not be null");
 			this.payloadClass = payloadClass;
 			return self();
@@ -847,7 +843,7 @@ public class SqsTemplate<T> extends AbstractMessagingTemplate<T, Message>
 
 	}
 
-	private class TemplateAcknowledgementCallback implements AcknowledgementCallback<T> {
+	private class TemplateAcknowledgementCallback<T> implements AcknowledgementCallback<T> {
 
 		@Override
 		public CompletableFuture<Void> onAcknowledge(org.springframework.messaging.Message<T> message) {

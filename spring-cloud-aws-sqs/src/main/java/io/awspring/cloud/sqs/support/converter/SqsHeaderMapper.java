@@ -195,12 +195,16 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 	private void addSqsContextHeaders(Message source, SqsMessageConversionContext sqsContext,
 			MessageHeaderAccessor accessor) {
 		QueueAttributes queueAttributes = sqsContext.getQueueAttributes();
+		if (queueAttributes != null) {
+			accessor.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, queueAttributes.getQueueName());
+			accessor.setHeader(SqsHeaders.SQS_QUEUE_URL_HEADER, queueAttributes.getQueueUrl());
+			accessor.setHeader(SqsHeaders.SQS_QUEUE_ATTRIBUTES_HEADER, queueAttributes);
+		}
 		SqsAsyncClient sqsAsyncClient = sqsContext.getSqsAsyncClient();
-		accessor.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, queueAttributes.getQueueName());
-		accessor.setHeader(SqsHeaders.SQS_QUEUE_URL_HEADER, queueAttributes.getQueueUrl());
-		accessor.setHeader(SqsHeaders.SQS_QUEUE_ATTRIBUTES_HEADER, queueAttributes);
-		accessor.setHeader(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER,
+		if (sqsAsyncClient != null && queueAttributes != null) {
+			accessor.setHeader(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER,
 				new QueueMessageVisibility(sqsAsyncClient, queueAttributes.getQueueUrl(), source.receiptHandle()));
+		}
 	}
 
 	private void maybeAddAcknowledgementHeader(AcknowledgementAwareMessageConversionContext sqsContext,

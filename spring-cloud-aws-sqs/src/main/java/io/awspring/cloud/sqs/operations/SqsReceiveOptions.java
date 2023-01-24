@@ -21,7 +21,6 @@ import java.util.UUID;
 
 /**
  * Options for receiving messages from SQS queues, with a method chaining API.
- * @param <T> the payload type.
  * @param <O> the implementation class to be returned by the chained methods.
  */
 public interface SqsReceiveOptions<T, O extends SqsReceiveOptions<T, O>> {
@@ -46,7 +45,7 @@ public interface SqsReceiveOptions<T, O extends SqsReceiveOptions<T, O>> {
 	 * @param payloadClass the class.
 	 * @return the options instance.
 	 */
-	O payloadClass(Class<? extends T> payloadClass);
+	O payloadClass(Class<T> payloadClass);
 
 	/**
 	 * Set the visibility timeout to be applied by received messages.
@@ -79,14 +78,12 @@ public interface SqsReceiveOptions<T, O extends SqsReceiveOptions<T, O>> {
 
 	/**
 	 * Specific options for Standard Sqs queues
-	 * @param <T> the payload type.
 	 */
 	interface Standard<T> extends SqsReceiveOptions<T, Standard<T>> {
 	}
 
 	/**
 	 * Specific options for Fifo Sqs queues.
-	 * @param <T> the payload type.
 	 */
 	interface Fifo<T> extends SqsReceiveOptions<T, Fifo<T>> {
 

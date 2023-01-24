@@ -31,7 +31,7 @@ import org.springframework.messaging.Message;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface AsyncMessagingOperations<T> {
+public interface AsyncMessagingOperations {
 
 	/**
 	 * Send a {@link Message} to the default endpoint with the provided payload. The payload will be serialized if
@@ -40,7 +40,7 @@ public interface AsyncMessagingOperations<T> {
 	 * @param payload the payload to send.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	CompletableFuture<SendResult<T>> sendAsync(T payload);
+	<T> CompletableFuture<SendResult<T>> sendAsync(T payload);
 
 	/**
 	 * Send a message to the provided endpoint with the provided payload. The payload will be serialized if necessary.
@@ -49,7 +49,7 @@ public interface AsyncMessagingOperations<T> {
 	 * @param payload the payload to send.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, T payload);
+	<T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, T payload);
 
 	/**
 	 * Send the provided message along with its headers to the provided endpoint. The payload will be serialized if
@@ -59,7 +59,7 @@ public interface AsyncMessagingOperations<T> {
 	 * @param message the message to be sent.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, Message<T> message);
+	<T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, Message<T> message);
 
 	/**
 	 * Send the provided messages along with their headers to the provided endpoint. The payloads will be serialized if
@@ -69,7 +69,7 @@ public interface AsyncMessagingOperations<T> {
 	 * @param messages the messages to be sent.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	CompletableFuture<SendResult.Batch<T>> sendManyAsync(@Nullable String endpointName,
+	<T> CompletableFuture<SendResult.Batch<T>> sendManyAsync(@Nullable String endpointName,
 			Collection<Message<T>> messages);
 
 	/**
@@ -77,7 +77,7 @@ public interface AsyncMessagingOperations<T> {
 	 * @return a {@link CompletableFuture} to be completed with the message, or {@link Optional#empty()} if none is
 	 * returned.
 	 */
-	CompletableFuture<Optional<Message<T>>> receiveAsync();
+	<T> CompletableFuture<Optional<Message<T>>> receiveAsync();
 
 	/**
 	 * Receive a message from the provided endpoint and convert the payload to the provided class. If no message is
@@ -95,8 +95,8 @@ public interface AsyncMessagingOperations<T> {
 	 * returned.
 	 */
 	// @formatter:off
-	CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpointName,
-														 @Nullable Class<? extends T> payloadClass,
+	<T> CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpointName,
+														 @Nullable Class<T> payloadClass,
 														 @Nullable Duration pollTimeout,
 														 @Nullable Map<String, Object> additionalHeaders);
 	// @formatter:on
@@ -106,7 +106,7 @@ public interface AsyncMessagingOperations<T> {
 	 * @return a {@link CompletableFuture} to be completed with the messages, or an empty collection if none is
 	 * returned.
 	 */
-	CompletableFuture<Collection<Message<T>>> receiveManyAsync();
+	<T> CompletableFuture<Collection<Message<T>>> receiveManyAsync();
 
 	/**
 	 * Receive a batch of messages from the provided endpoint and convert the payloads to the provided class. If no
@@ -125,8 +125,8 @@ public interface AsyncMessagingOperations<T> {
 	 * returned.
 	 */
 	// @formatter:off
-	CompletableFuture<Collection<Message<T>>> receiveManyAsync(@Nullable String endpointName,
-															   @Nullable Class<? extends T> payloadClass,
+	<T> CompletableFuture<Collection<Message<T>>> receiveManyAsync(@Nullable String endpointName,
+															   @Nullable Class<T> payloadClass,
 															   @Nullable Duration pollTimeout,
 															   @Nullable Integer maxNumberOfMessages,
 															   @Nullable Map<String, Object> additionalHeaders);

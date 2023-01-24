@@ -23,9 +23,8 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 /**
  * Sqs specific options for the {@link SqsTemplate}.
  *
- * @param <T> the payload type.
  */
-public interface SqsTemplateOptions<T> extends MessagingTemplateOptions<T, SqsTemplateOptions<T>> {
+public interface SqsTemplateOptions extends MessagingTemplateOptions<SqsTemplateOptions> {
 
 	/**
 	 * The {@link QueueNotFoundStrategy} for this template.
@@ -33,7 +32,7 @@ public interface SqsTemplateOptions<T> extends MessagingTemplateOptions<T, SqsTe
 	 * @param queueNotFoundStrategy the strategy.
 	 * @return the options instance.
 	 */
-	SqsTemplateOptions<T> queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy);
+	SqsTemplateOptions queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy);
 
 	/**
 	 * The queue attribute names that will be retrieved by this template and added as headers to received messages.
@@ -42,7 +41,7 @@ public interface SqsTemplateOptions<T> extends MessagingTemplateOptions<T, SqsTe
 	 * @param queueAttributeNames the names.
 	 * @return the options instance.
 	 */
-	SqsTemplateOptions<T> queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames);
+	SqsTemplateOptions queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames);
 
 	/**
 	 * The message attributes to be retrieved with the message and added as headers to received messages. Default is
@@ -51,7 +50,7 @@ public interface SqsTemplateOptions<T> extends MessagingTemplateOptions<T, SqsTe
 	 * @param messageAttributeNames the names.
 	 * @return the options instance.
 	 */
-	SqsTemplateOptions<T> messageAttributeNames(Collection<String> messageAttributeNames);
+	SqsTemplateOptions messageAttributeNames(Collection<String> messageAttributeNames);
 
 	/**
 	 * The message system attributes to be retrieved with the message and added as headers to received messages. Default
@@ -60,7 +59,7 @@ public interface SqsTemplateOptions<T> extends MessagingTemplateOptions<T, SqsTe
 	 * @param messageSystemAttributeNames the names.
 	 * @return the options instance.
 	 */
-	SqsTemplateOptions<T> messageSystemAttributeNames(
+	SqsTemplateOptions messageSystemAttributeNames(
 			Collection<MessageSystemAttributeName> messageSystemAttributeNames);
 
 }

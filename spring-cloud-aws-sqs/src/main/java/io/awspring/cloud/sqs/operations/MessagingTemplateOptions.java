@@ -21,10 +21,9 @@ import java.util.Map;
 /**
  * Options to be used by the template.
  *
- * @param <T> the payload type.
  * @param <O> the options subclass to be returned by the chained methods.
  */
-public interface MessagingTemplateOptions<T, O extends MessagingTemplateOptions<T, O>> {
+public interface MessagingTemplateOptions<O extends MessagingTemplateOptions<O>> {
 
 	/**
 	 * Set the acknowledgement mode for this template. Default is {@link TemplateAcknowledgementMode#ACKNOWLEDGE}
@@ -74,7 +73,7 @@ public interface MessagingTemplateOptions<T, O extends MessagingTemplateOptions<
 	 * @param defaultPayloadClass the default payload class.
 	 * @return the options instance.
 	 */
-	O defaultPayloadClass(Class<T> defaultPayloadClass);
+	O defaultPayloadClass(Class<?> defaultPayloadClass);
 
 	/**
 	 * Set a default header to be added to received messages.

@@ -92,7 +92,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendAndReceiveStringMessage() {
-		SqsTemplate<Object> template = SqsTemplate.newTemplate(this.asyncClient);
+		SqsTemplate template = SqsTemplate.newTemplate(this.asyncClient);
 		String testBody = "Hello world!";
 		SendResult<Object> result = template
 				.send(to -> to.queue(SENDS_AND_RECEIVES_MESSAGE_QUEUE_NAME).payload(testBody));
@@ -104,7 +104,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendAndReceiveRecordMessageAndAcknowledge() {
-		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
+		SqsTemplate template = SqsTemplate.newTemplate(this.asyncClient);
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		SendResult<SampleRecord> result = template.send(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME, testRecord);
 		assertThat(result).isNotNull();
@@ -118,7 +118,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendMessageWithDelay() {
-		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
+		SqsTemplate template = SqsTemplate.newTemplate(this.asyncClient);
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
@@ -134,7 +134,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendAndReceiveMessageWithHeaders() {
-		SqsOperations<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
+		SqsOperations template = SqsTemplate.newTemplate(this.asyncClient);
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		String myCustomHeader = "MyCustomHeader";
 		String myCustomValue = "MyCustomValue";
@@ -155,7 +155,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendAndReceiveWithManualAcknowledgement() {
-		SqsTemplate<SampleRecord> template = SqsTemplate.<SampleRecord> builder().sqsAsyncClient(this.asyncClient)
+		SqsTemplate template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
 				.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL)
 						.defaultEndpointName(SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME))
 				.build();
@@ -176,7 +176,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendAndReceiveBatch() {
-		SqsOperations<SampleRecord> template = SqsTemplate.<SampleRecord> builder().sqsAsyncClient(this.asyncClient)
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
 				.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
 				.buildSyncTemplate();
 		List<Message<SampleRecord>> messagesToSend = IntStream.range(0, 5)
@@ -198,7 +198,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveMessageFifo() {
 		String testBody = "Hello world!";
-		SqsOperations<Object> template = SqsTemplate.newTemplate(this.asyncClient);
+		SqsOperations template = SqsTemplate.newTemplate(this.asyncClient);
 		SendResult<Object> result = template
 				.sendFifo(to -> to.queue(SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME).payload(testBody));
 		Optional<Message<Object>> receivedMessage = template
@@ -221,7 +221,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveBatchFifo() {
 		int batchSize = 5;
-		SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(this.asyncClient);
+		SqsTemplate template = SqsTemplate.newTemplate(this.asyncClient);
 		List<Message<SampleRecord>> messagesToSend = IntStream.range(0, batchSize)
 				.mapToObj(index -> new SampleRecord("Hello world - " + index, "From SQS!"))
 				.map(record -> MessageBuilder.withPayload(record).build()).toList();
@@ -268,7 +268,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader() {
-		SqsTemplate<SampleRecord> template = SqsTemplate.<SampleRecord> builder().sqsAsyncClient(this.asyncClient)
+		SqsTemplate template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
 				.configureDefaultConverter(converter -> converter.setPayloadTypeHeaderValueFunction(msg -> null))
 				.build();
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");

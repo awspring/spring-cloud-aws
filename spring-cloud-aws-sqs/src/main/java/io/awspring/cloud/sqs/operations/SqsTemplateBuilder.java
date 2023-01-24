@@ -24,9 +24,8 @@ import software.amazon.awssdk.services.sqs.model.Message;
 /**
  * Builder interface for creating a {@link SqsTemplate} instance.
  *
- * @param <T> the payload type.
  */
-public interface SqsTemplateBuilder<T> {
+public interface SqsTemplateBuilder {
 
 	/**
 	 * Set the {@link SqsAsyncClient} to be used by the {@link SqsTemplate}.
@@ -34,7 +33,7 @@ public interface SqsTemplateBuilder<T> {
 	 * @param sqsAsyncClient the instance.
 	 * @return the builder.
 	 */
-	SqsTemplateBuilder<T> sqsAsyncClient(SqsAsyncClient sqsAsyncClient);
+	SqsTemplateBuilder sqsAsyncClient(SqsAsyncClient sqsAsyncClient);
 
 	/**
 	 * Set the {@link MessagingMessageConverter} to be used by the template.
@@ -42,7 +41,7 @@ public interface SqsTemplateBuilder<T> {
 	 * @param messageConverter the converter.
 	 * @return the builder.
 	 */
-	SqsTemplateBuilder<T> messageConverter(MessagingMessageConverter<Message> messageConverter);
+	SqsTemplateBuilder messageConverter(MessagingMessageConverter<Message> messageConverter);
 
 	/**
 	 * Configure the default message converter.
@@ -50,7 +49,7 @@ public interface SqsTemplateBuilder<T> {
 	 * @param messageConverterConfigurer a {@link SqsMessagingMessageConverter} consumer.
 	 * @return the builder.
 	 */
-	SqsTemplateBuilder<T> configureDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer);
+	SqsTemplateBuilder configureDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer);
 
 	/**
 	 * Configure options for the template.
@@ -58,14 +57,14 @@ public interface SqsTemplateBuilder<T> {
 	 * @param options a {@link SqsTemplateOptions} consumer.
 	 * @return the builder.
 	 */
-	SqsTemplateBuilder<T> configure(Consumer<SqsTemplateOptions<T>> options);
+	SqsTemplateBuilder configure(Consumer<SqsTemplateOptions> options);
 
 	/**
 	 * Create the template with the provided options, exposing both sync and async methods.
 	 *
 	 * @return the {@link SqsTemplate} instance.
 	 */
-	SqsTemplate<T> build();
+	SqsTemplate build();
 
 	/**
 	 * Create the template with the provided options, exposing only the async methods contained in the
@@ -73,7 +72,7 @@ public interface SqsTemplateBuilder<T> {
 	 *
 	 * @return the {@link SqsTemplate} instance.
 	 */
-	SqsAsyncOperations<T> buildAsyncTemplate();
+	SqsAsyncOperations buildAsyncTemplate();
 
 	/**
 	 * Create the template with the provided options, exposing only the sync methods contained in the
@@ -81,6 +80,6 @@ public interface SqsTemplateBuilder<T> {
 	 *
 	 * @return the {@link SqsTemplate} instance.
 	 */
-	SqsOperations<T> buildSyncTemplate();
+	SqsOperations buildSyncTemplate();
 
 }

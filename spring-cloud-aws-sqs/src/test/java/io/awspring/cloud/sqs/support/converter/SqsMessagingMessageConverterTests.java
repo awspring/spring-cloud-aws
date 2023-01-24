@@ -67,6 +67,23 @@ class SqsMessagingMessageConverterTests {
 		assertThat(resultMessage.getPayload()).isEqualTo(myPojo);
 	}
 
+	@Test
+	void shouldUseHeaderOverPayloadClass() throws Exception {
+		String typeHeader = "myHeader";
+		MyPojo myPojo = new MyPojo();
+		String payload = this.objectMapper.writeValueAsString(myPojo);
+		Message message = Message.builder()
+				.messageAttributes(Collections.singletonMap(typeHeader,
+						MessageAttributeValue.builder().stringValue(MyPojo.class.getName()).build()))
+				.body(payload).messageId(UUID.randomUUID().toString()).build();
+		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		SqsMessageConversionContext context = new SqsMessageConversionContext();
+		context.setPayloadClass(String.class);
+		converter.setPayloadTypeHeader(typeHeader);
+		org.springframework.messaging.Message<?> resultMessage = converter.toMessagingMessage(message, context);
+		assertThat(resultMessage.getPayload()).isEqualTo(myPojo);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	void shouldUseProvidedHeaderMapper() {
