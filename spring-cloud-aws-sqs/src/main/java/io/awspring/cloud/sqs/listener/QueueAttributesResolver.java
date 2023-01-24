@@ -44,6 +44,7 @@ import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
  * {@link QueueAttributeName} collection.
  *
  * @author Tomaz Fernandes
+ * @author Adrian Stoelken
  * @since 3.0
  * @see ContainerOptions#getQueueAttributeNames()
  * @see ContainerOptions#getQueueNotFoundStrategy()
