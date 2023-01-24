@@ -27,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -92,14 +93,14 @@ public class QueueAttributesResolver {
 	}
 
 	private CompletableFuture<String> doResolveQueueUrl() {
-		return isValidQueueArn(this.queueName)
-			? doResolveQueueUrlFromArn()
+		Arn arn = convertToQueueArn(this.queueName);
+		return arn != null
+			? doResolveQueueUrlFromArn(arn)
 			: CompletableFutures.exceptionallyCompose(this.sqsAsyncClient.getQueueUrl(req -> req.queueName(this.queueName))
 				.thenApply(GetQueueUrlResponse::queueUrl), this::handleException);
 	}
 
-	private CompletableFuture<String> doResolveQueueUrlFromArn() {
-		Arn arn = Arn.fromString(this.queueName);
+	private CompletableFuture<String> doResolveQueueUrlFromArn(Arn arn) {
 		Assert.isTrue(arn.accountId().isPresent(), "accountId is missing from arn");
 		String accountId = arn.accountId().get();
 		return CompletableFutures
@@ -153,13 +154,13 @@ public class QueueAttributesResolver {
 		}
 	}
 
-	private boolean isValidQueueArn(String queueArn) {
+	@Nullable
+	private Arn convertToQueueArn(String queueArn) {
 		try {
-			Arn.fromString(queueArn);
-			return true;
+			return Arn.fromString(queueArn);
 		}
 		catch (IllegalArgumentException e) {
-			return false;
+			return null;
 		}
 	}
 
