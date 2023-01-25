@@ -536,6 +536,12 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		}
 
 		@Override
+		public SqsTemplateOptions defaultQueue(String defaultQueue) {
+			super.defaultEndpointName(defaultQueue);
+			return this;
+		}
+
+		@Override
 		public SqsTemplateOptions queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
 			Assert.notNull(queueNotFoundStrategy, "queueNotFoundStrategy cannot be null");
 			this.queueNotFoundStrategy = queueNotFoundStrategy;

@@ -25,7 +25,7 @@ import java.util.UUID;
 public interface SqsReceiveOptions<T> {
 
 	/**
-	 * Set the queue from which to receive messages from.
+	 * Set the queue name or url from which to receive messages from.
 	 * @param queue the queue name.
 	 * @return the options instance.
 	 */

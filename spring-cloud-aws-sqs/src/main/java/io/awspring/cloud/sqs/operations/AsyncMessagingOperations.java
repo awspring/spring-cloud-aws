@@ -34,7 +34,7 @@ import org.springframework.messaging.Message;
 public interface AsyncMessagingOperations {
 
 	/**
-	 * Send a {@link Message} to the default endpoint with the provided payload. The payload will be serialized if
+	 * Send a {@link Message} to the default queue with the provided payload. The payload will be serialized if
 	 * necessary.
 	 *
 	 * @param payload the payload to send.
@@ -43,51 +43,51 @@ public interface AsyncMessagingOperations {
 	<T> CompletableFuture<SendResult<T>> sendAsync(T payload);
 
 	/**
-	 * Send a message to the provided endpoint with the provided payload. The payload will be serialized if necessary.
+	 * Send a message to the provided queue with the provided payload. The payload will be serialized if necessary.
 	 *
-	 * @param endpointName the endpoint to send the message to.
+	 * @param queue the queue to send the message to.
 	 * @param payload the payload to send.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	<T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, T payload);
+	<T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String queue, T payload);
 
 	/**
-	 * Send the provided message along with its headers to the provided endpoint. The payload will be serialized if
+	 * Send the provided message along with its headers to the provided queue. The payload will be serialized if
 	 * necessary, and headers will be converted to the specific messaging system metadata types.
 	 *
-	 * @param endpointName the endpoint to send the message to.
+	 * @param queue the queue to send the message to.
 	 * @param message the message to be sent.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	<T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, Message<T> message);
+	<T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String queue, Message<T> message);
 
 	/**
-	 * Send the provided messages along with their headers to the provided endpoint. The payloads will be serialized if
+	 * Send the provided messages along with their headers to the provided queue. The payloads will be serialized if
 	 * necessary, and headers will be converted to the specific messaging system metadata types.
 	 *
-	 * @param endpointName the endpoint to send the messages to.
+	 * @param queue the queue to send the messages to.
 	 * @param messages the messages to be sent.
 	 * @return a {@link CompletableFuture} to be completed with the message's {@link UUID}.
 	 */
-	<T> CompletableFuture<SendResult.Batch<T>> sendManyAsync(@Nullable String endpointName,
+	<T> CompletableFuture<SendResult.Batch<T>> sendManyAsync(@Nullable String queue,
 			Collection<Message<T>> messages);
 
 	/**
-	 * Receive a message from the default endpoint with default settings.
+	 * Receive a message from the default queue with default settings.
 	 * @return a {@link CompletableFuture} to be completed with the message, or {@link Optional#empty()} if none is
 	 * returned.
 	 */
 	<T> CompletableFuture<Optional<Message<T>>> receiveAsync();
 
 	/**
-	 * Receive a message from the provided endpoint and convert the payload to the provided class. If no message is
+	 * Receive a message from the provided queue and convert the payload to the provided class. If no message is
 	 * returned after the specified {@link Duration}, an {@link Optional#empty()} is returned.
 	 * <p>
 	 * Any headers provided in the additional headers parameter will be added to the {@link Message} instances returned
 	 * by this method. The implementation can also allow some specific headers to change particular settings, in which
 	 * case the headers are removed before sending. See the implementation javadocs for more information.
 	 *
-	 * @param endpointName the endpoint from which to receive the messages.
+	 * @param queue the queue from which to receive the messages.
 	 * @param payloadClass the class to which the payload should be converted to.
 	 * @param pollTimeout the maximum amount of time to wait for messages.
 	 * @param additionalHeaders headers to be added to the received messages.
@@ -95,28 +95,28 @@ public interface AsyncMessagingOperations {
 	 * returned.
 	 */
 	// @formatter:off
-	<T> CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpointName,
+	<T> CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String queue,
 														 @Nullable Class<T> payloadClass,
 														 @Nullable Duration pollTimeout,
 														 @Nullable Map<String, Object> additionalHeaders);
 	// @formatter:on
 
 	/**
-	 * Receive a batch of messages from the default endpoint with default settings.
+	 * Receive a batch of messages from the default queue with default settings.
 	 * @return a {@link CompletableFuture} to be completed with the messages, or an empty collection if none is
 	 * returned.
 	 */
 	<T> CompletableFuture<Collection<Message<T>>> receiveManyAsync();
 
 	/**
-	 * Receive a batch of messages from the provided endpoint and convert the payloads to the provided class. If no
+	 * Receive a batch of messages from the provided queue and convert the payloads to the provided class. If no
 	 * message is returned after the specified {@link Duration}, an empty collection is returned.
 	 * <p>
 	 * Any headers provided in the additional headers parameter will be added to the {@link Message} instances returned
 	 * by this method. The implementation can also allow some specific headers to change particular settings, in which
 	 * case the headers are removed before sending. See the implementation javadocs for more information.
 	 *
-	 * @param endpointName the endpoint from which to receive the messages.
+	 * @param queue the queue from which to receive the messages.
 	 * @param payloadClass the class to which the payloads should be converted to.
 	 * @param pollTimeout the maximum amount of time to wait for messages.
 	 * @param maxNumberOfMessages the maximum number of messages to receive.
@@ -125,7 +125,7 @@ public interface AsyncMessagingOperations {
 	 * returned.
 	 */
 	// @formatter:off
-	<T> CompletableFuture<Collection<Message<T>>> receiveManyAsync(@Nullable String endpointName,
+	<T> CompletableFuture<Collection<Message<T>>> receiveManyAsync(@Nullable String queue,
 															   @Nullable Class<T> payloadClass,
 															   @Nullable Duration pollTimeout,
 															   @Nullable Integer maxNumberOfMessages,
