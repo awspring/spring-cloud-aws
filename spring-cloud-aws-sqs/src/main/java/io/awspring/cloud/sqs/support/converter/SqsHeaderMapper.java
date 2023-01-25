@@ -45,7 +45,10 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 /**
  * A {@link HeaderMapper} implementation for SQS {@link Message}s. Enables creating additional SQS related headers from
  * a {@link SqsMessageConversionContext}.
+ *
  * @author Tomaz Fernandes
+ * @author Alain Sahli
+ * @author Maciej Walkowiak
  * @since 3.0
  * @see SqsMessagingMessageConverter
  */
