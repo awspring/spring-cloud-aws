@@ -95,8 +95,8 @@ public class QueueAttributesResolver {
 	}
 
 	private CompletableFuture<String> doResolveQueueUrl() {
-		Arn arn = convertToQueueArn(this.queueName);
 		GetQueueUrlRequest.Builder getQueueUrlRequestBuilder = GetQueueUrlRequest.builder();
+		Arn arn = getQueueArnFromUrl();
 		if (arn != null) {
 			Assert.isTrue(arn.accountId().isPresent(), "accountId is missing from arn");
 			getQueueUrlRequestBuilder.queueName(arn.resourceAsString()).queueOwnerAWSAccountId(arn.accountId().get());
@@ -156,9 +156,9 @@ public class QueueAttributesResolver {
 	}
 
 	@Nullable
-	private Arn convertToQueueArn(String queueArn) {
+	private Arn getQueueArnFromUrl() {
 		try {
-			return Arn.fromString(queueArn);
+			return Arn.fromString(this.queueName);
 		}
 		catch (IllegalArgumentException e) {
 			return null;
