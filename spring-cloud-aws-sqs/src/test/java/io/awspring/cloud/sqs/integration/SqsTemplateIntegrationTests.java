@@ -118,7 +118,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendMessageWithDelay() {
-		SqsTemplate template = SqsTemplate.newTemplate(this.asyncClient);
+		SqsOperations template = SqsTemplate.newSyncTemplate(this.asyncClient);
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
@@ -145,7 +145,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		template.send(to -> to.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME).payload(testRecord)
 				.header(myCustomHeader, myCustomValue).headers(Map.of(myCustomHeader2, myCustomValue2)));
 		Optional<Message<SampleRecord>> receivedMessage = template
-				.receiveFifo(from -> from.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME)
+				.receive(from -> from.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME)
 						.additionalHeaders(Map.of(myCustomHeader3, myCustomValue3)));
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getHeaders)
 				.asInstanceOf(InstanceOfAssertFactories.MAP)
@@ -200,9 +200,9 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		String testBody = "Hello world!";
 		SqsOperations template = SqsTemplate.newTemplate(this.asyncClient);
 		SendResult<Object> result = template
-				.sendFifo(to -> to.queue(SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME).payload(testBody));
+				.send(to -> to.queue(SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME).payload(testBody));
 		Optional<Message<Object>> receivedMessage = template
-				.receiveFifo(from -> from.queue(SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME));
+				.receive(from -> from.queue(SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME));
 		assertThat(receivedMessage).isPresent().get().isInstanceOfSatisfying(Message.class, message -> {
 			assertThat(message.getPayload()).isEqualTo(testBody);
 			assertThat(result.additionalInformation().get(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME))
@@ -225,7 +225,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		List<Message<SampleRecord>> messagesToSend = IntStream.range(0, batchSize)
 				.mapToObj(index -> new SampleRecord("Hello world - " + index, "From SQS!"))
 				.map(record -> MessageBuilder.withPayload(record).build()).toList();
-		SendResult.Batch<SampleRecord> batchSendResult = template.sendManyFifo(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME,
+		SendResult.Batch<SampleRecord> batchSendResult = template.sendMany(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME,
 				messagesToSend);
 		List<SendResult<SampleRecord>> successful = new ArrayList<>(batchSendResult.successful());
 		assertThat(batchSendResult.failed()).isEmpty();
@@ -243,7 +243,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 					.isNotNull();
 		});
 		List<Message<SampleRecord>> receivedMessages = new ArrayList<>(
-				template.receiveManyFifo(from -> from.queue(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME)
+				template.receiveMany(from -> from.queue(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME)
 						.pollTimeout(Duration.ofSeconds(10)).maxNumberOfMessages(10)));
 		IntStream.range(0, batchSize).forEach(index -> {
 			SendResult<SampleRecord> result = successful.get(index);

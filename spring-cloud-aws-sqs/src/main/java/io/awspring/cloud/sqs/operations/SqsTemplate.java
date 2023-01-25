@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.operations;
 
+import io.awspring.cloud.sqs.FifoUtils;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.QueueAttributesResolver;
 import io.awspring.cloud.sqs.SqsAcknowledgementException;
@@ -64,8 +65,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
-public class SqsTemplate extends AbstractMessagingTemplate<Message>
-		implements SqsOperations, SqsAsyncOperations {
+public class SqsTemplate extends AbstractMessagingTemplate<Message> implements SqsOperations, SqsAsyncOperations {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsTemplate.class);
 
@@ -132,146 +132,99 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message>
 	}
 
 	@Override
-	public <T> SendResult<T> send(Consumer<SqsSendOptions.Standard<T>> to) {
+	public <T> SendResult<T> send(Consumer<SqsSendOptions<T>> to) {
 		return unwrapCompletionException(sendAsync(to));
 	}
 
 	@Override
-	public <T> SendResult<T> sendFifo(Consumer<SqsSendOptions.Fifo<T>> to) {
-		return unwrapCompletionException(sendFifoAsync(to));
-	}
-
-	@Override
-	public <T> CompletableFuture<SendResult<T>> sendAsync(Consumer<SqsSendOptions.Standard<T>> to) {
+	public <T> CompletableFuture<SendResult<T>> sendAsync(Consumer<SqsSendOptions<T>> to) {
 		Assert.notNull(to, "to must not be null");
-		SendStandardOptionsImpl<T> options = new SendStandardOptionsImpl<>();
+		SqsSendOptionsImpl<T> options = new SqsSendOptionsImpl<>();
 		to.accept(options);
-		return sendAsync(options.queue, messageFromSendOptions(options));
+		org.springframework.messaging.Message<T> message = messageFromSendOptions(options);
+		return sendAsync(options.queue, message);
 	}
 
-	@Override
-	public <T> CompletableFuture<SendResult<T>> sendFifoAsync(Consumer<SqsSendOptions.Fifo<T>> to) {
-		Assert.notNull(to, "to must not be null");
-		SendFifoOptionsImpl<T> options = new SendFifoOptionsImpl<>();
-		to.accept(options);
-		return sendAsync(options.queue, addFifoHeaders(messageFromSendOptions(options),
-				getUUIDOrRandom(options.messageGroupId), getUUIDOrRandom(options.messageDeduplicationId)));
-	}
-
-	@Override
-	public <T> SendResult.Batch<T> sendManyFifo(String endpoint,
-			Collection<org.springframework.messaging.Message<T>> messages) {
-		return unwrapCompletionException(sendFifoAsync(endpoint, messages));
-	}
-
-	@Override
-	public <T> CompletableFuture<SendResult.Batch<T>> sendFifoAsync(@Nullable String endpoint,
-			Collection<org.springframework.messaging.Message<T>> messages) {
-		Assert.notEmpty(messages, "messages must not be empty");
-		return sendManyAsync(endpoint, messages.stream()
-				.map(message -> addFifoHeaders(message, UUID.randomUUID(), UUID.randomUUID())).toList());
-	}
-
-	private <T> org.springframework.messaging.Message<T> addFifoHeaders(org.springframework.messaging.Message<T> message,
-			UUID messageGroupId, UUID messageDeduplicationID) {
-		return MessageHeaderUtils.addHeadersToMessage(message,
-				Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, messageGroupId.toString(),
-						SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER,
-						messageDeduplicationID.toString()));
-	}
-
-	@Override
-	public <T> Optional<org.springframework.messaging.Message<T>> receive(Consumer<SqsReceiveOptions.Standard<T>> from) {
-		return unwrapCompletionException(receiveAsync(from));
-	}
-
-	@Override
-	public <T> Optional<org.springframework.messaging.Message<T>> receiveFifo(Consumer<SqsReceiveOptions.Fifo<T>> from) {
-		return unwrapCompletionException(receiveFifoAsync(from));
-	}
-
-	@Override
-	public <T> Collection<org.springframework.messaging.Message<T>> receiveMany(
-			Consumer<SqsReceiveOptions.Standard<T>> from) {
-		return unwrapCompletionException(receiveManyAsync(from));
-	}
-
-	@Override
-	public <T> Collection<org.springframework.messaging.Message<T>> receiveManyFifo(
-			Consumer<SqsReceiveOptions.Fifo<T>> from) {
-		return unwrapCompletionException(receiveManyFifoAsync(from));
-	}
-
-	@Override
-	public <T> CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveAsync(
-			Consumer<SqsReceiveOptions.Standard<T>> from) {
-		Assert.notNull(from, "from must not be null");
-		ReceiveStandardOptionsImpl<T> options = new ReceiveStandardOptionsImpl<>();
-		from.accept(options);
-		options.maxNumberOfMessages(1);
-		Map<String, Object> additionalHeaders = getAdditionalHeaders(options);
-		return receiveAsync(options.queue, options.payloadClass, options.pollTimeout, additionalHeaders);
-	}
-
-	@Override
-	public <T> CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveFifoAsync(
-			Consumer<SqsReceiveOptions.Fifo<T>> from) {
-		Assert.notNull(from, "from must not be null");
-		ReceiveFifoOptionsImpl<T> options = new ReceiveFifoOptionsImpl<>();
-		from.accept(options);
-		options.maxNumberOfMessages(1);
-		Map<String, Object> additionalHeaders = handleReceiveRequestHeader(options);
-		return receiveAsync(options.queue, options.payloadClass, options.pollTimeout, additionalHeaders);
-	}
-
-	@Override
-	public <T> CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyAsync(
-			Consumer<SqsReceiveOptions.Standard<T>> from) {
-		Assert.notNull(from, "from must not be null");
-		ReceiveStandardOptionsImpl<T> options = new ReceiveStandardOptionsImpl<>();
-		from.accept(options);
-		Map<String, Object> additionalHeaders = getAdditionalHeaders(options);
-		return receiveManyAsync(options.queue, options.payloadClass, options.pollTimeout, options.maxNumberOfMessages,
-				additionalHeaders);
-	}
-
-	@Override
-	public <T> CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyFifoAsync(
-			Consumer<SqsReceiveOptions.Fifo<T>> from) {
-		Assert.notNull(from, "from must not be null");
-		ReceiveFifoOptionsImpl<T> options = new ReceiveFifoOptionsImpl<>();
-		from.accept(options);
-		Map<String, Object> additionalHeaders = handleReceiveRequestHeader(options);
-		return receiveManyAsync(options.queue, options.payloadClass, options.pollTimeout, options.maxNumberOfMessages,
-				additionalHeaders);
-	}
-
-	private <T> Map<String, Object> handleReceiveRequestHeader(ReceiveFifoOptionsImpl<T> options) {
-		Map<String, Object> additionalHeaders = getAdditionalHeaders(options);
-		additionalHeaders.put(SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER,
-				getUUIDOrRandom(options.receiveRequestAttemptId));
-		return additionalHeaders;
-	}
-
-	private Map<String, Object> getAdditionalHeaders(AbstractSqsReceiveOptionsImpl<?, ?> options) {
-		Map<String, Object> additionalHeaders = new HashMap<>(options.additionalHeaders);
-		if (options.visibilityTimeout != null) {
-			additionalHeaders.put(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, options.visibilityTimeout);
-		}
-		return additionalHeaders;
-	}
-
-	private static UUID getUUIDOrRandom(@Nullable UUID uuid) {
-		return uuid != null ? uuid : UUID.randomUUID();
-	}
-
-	private <T> org.springframework.messaging.Message<T> messageFromSendOptions(AbstractSqsSendOptionsImpl<T, ?> options) {
+	private <T> org.springframework.messaging.Message<T> messageFromSendOptions(SqsSendOptionsImpl<T> options) {
 		Assert.notNull(options.payload, "payload must not be null");
 		MessageBuilder<T> builder = MessageBuilder.withPayload(options.payload).copyHeaders(options.headers);
 		if (options.delay != null) {
 			builder.setHeader(SqsHeaders.SQS_DELAY_HEADER, options.delay);
 		}
+		if (options.messageDeduplicationId != null) {
+			builder.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER,
+					options.messageDeduplicationId.toString());
+		}
+		if (options.messageGroupId != null) {
+			builder.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER,
+					options.messageGroupId.toString());
+		}
 		return builder.build();
+	}
+
+	@Override
+	public <T> Optional<org.springframework.messaging.Message<T>> receive(Consumer<SqsReceiveOptions<T>> from) {
+		return unwrapCompletionException(receiveAsync(from));
+	}
+
+	@Override
+	public <T> Collection<org.springframework.messaging.Message<T>> receiveMany(Consumer<SqsReceiveOptions<T>> from) {
+		return unwrapCompletionException(receiveManyAsync(from));
+	}
+
+	@Override
+	public <T> CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveAsync(
+			Consumer<SqsReceiveOptions<T>> from) {
+		Assert.notNull(from, "from must not be null");
+		SqsReceiveOptionsImpl<T> options = new SqsReceiveOptionsImpl<>();
+		from.accept(options);
+		Assert.isTrue(options.maxNumberOfMessages == null || options.maxNumberOfMessages == 1,
+				"maxNumberOfMessages must be null or 1. Use receiveMany to receive more messages.");
+		Map<String, Object> additionalHeaders = addFifoReceiveHeaders(options);
+		return receiveAsync(options.queue, options.payloadClass, options.pollTimeout, additionalHeaders);
+	}
+
+	@Override
+	public <T> CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyAsync(
+			Consumer<SqsReceiveOptions<T>> from) {
+		Assert.notNull(from, "from must not be null");
+		SqsReceiveOptionsImpl<T> options = new SqsReceiveOptionsImpl<>();
+		from.accept(options);
+		return receiveManyAsync(options.queue, options.payloadClass, options.pollTimeout, options.maxNumberOfMessages,
+				addFifoReceiveHeaders(options));
+	}
+
+	private Map<String, Object> addFifoReceiveHeaders(SqsReceiveOptionsImpl<?> options) {
+		Map<String, Object> additionalHeaders = new HashMap<>(options.additionalHeaders);
+		if (options.visibilityTimeout != null) {
+			additionalHeaders.put(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, options.visibilityTimeout);
+		}
+		if (options.receiveRequestAttemptId != null) {
+			additionalHeaders.put(SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER, options.receiveRequestAttemptId);
+		}
+		return additionalHeaders;
+	}
+
+	@Override
+	protected <T> org.springframework.messaging.Message<T> preProcessMessageForSend(String endpointToUse,
+			org.springframework.messaging.Message<T> message) {
+		return FifoUtils.isFifo(endpointToUse) ? addMissingFifoSendHeaders(message) : message;
+	}
+
+	@Override
+	protected <T> Collection<org.springframework.messaging.Message<T>> preProcessMessagesForSend(String endpointToUse,
+			Collection<org.springframework.messaging.Message<T>> messages) {
+		return FifoUtils.isFifo(endpointToUse)
+				? messages.stream().map(this::addMissingFifoSendHeaders).collect(Collectors.toList())
+				: messages;
+	}
+
+	private <T> org.springframework.messaging.Message<T> addMissingFifoSendHeaders(
+			org.springframework.messaging.Message<T> message) {
+		return MessageHeaderUtils.addHeadersIfAbsent(message,
+				Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString(),
+						SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER,
+						UUID.randomUUID().toString()));
 	}
 
 	@Override
@@ -305,8 +258,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message>
 	}
 
 	@Override
-	protected <T> CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName, Collection<Message> messages,
-			Collection<org.springframework.messaging.Message<T>> originalMessages) {
+	protected <T> CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName,
+			Collection<Message> messages, Collection<org.springframework.messaging.Message<T>> originalMessages) {
 		logger.debug("Sending messages {} to endpoint {}", messages, endpointName);
 		return createSendMessageBatchRequest(endpointName, messages).thenCompose(this.sqsAsyncClient::sendMessageBatch)
 				.thenApply(response -> createSendResultBatch(response, endpointName,
@@ -328,8 +281,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message>
 				.toList();
 	}
 
-	private <T> Collection<SendResult<T>> doCreateSendResultBatch(SendMessageBatchResponse response, String endpointName,
-			Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+	private <T> Collection<SendResult<T>> doCreateSendResultBatch(SendMessageBatchResponse response,
+			String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
 		return response
 				.successful().stream().map(entry -> createSendResult(UUID.fromString(entry.messageId()),
 						entry.sequenceNumber(), endpointName, getOriginalMessage(originalMessagesById, entry)))
@@ -449,6 +402,16 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message>
 				.thenCompose(this.sqsAsyncClient::receiveMessage).thenApply(ReceiveMessageResponse::messages);
 	}
 
+	@Override
+	protected Map<String, Object> preProcessHeadersForReceive(String endpointToUse, Map<String, Object> headers) {
+		return FifoUtils.isFifo(endpointToUse) ? addMissingFifoReceiveHeaders(headers) : headers;
+	}
+
+	private Map<String, Object> addMissingFifoReceiveHeaders(Map<String, Object> headers) {
+		headers.putIfAbsent(SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER, UUID.randomUUID());
+		return headers;
+	}
+
 	private <T> CompletableFuture<Void> deleteMessages(String endpointName,
 			Collection<org.springframework.messaging.Message<T>> messages) {
 		logger.trace("Acknowledging in queue {} messages {}", endpointName, MessageHeaderUtils.getId(messages));
@@ -495,8 +458,9 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message>
 				successfulAckMessages, failedAckMessages, endpointName, t));
 	}
 
-	private <T> void logAcknowledgement(String endpointName, Collection<org.springframework.messaging.Message<T>> messages,
-			DeleteMessageBatchResponse response, @Nullable Throwable t) {
+	private <T> void logAcknowledgement(String endpointName,
+			Collection<org.springframework.messaging.Message<T>> messages, DeleteMessageBatchResponse response,
+			@Nullable Throwable t) {
 		if (t != null) {
 			logger.error("Error acknowledging in queue {} messages {}", endpointName,
 					MessageHeaderUtils.getId(messages));
@@ -660,10 +624,15 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message>
 
 	}
 
-	private static abstract class AbstractSqsSendOptionsImpl<T, O extends SqsSendOptions<T, O>>
-			implements SqsSendOptions<T, O> {
+	private static class SqsSendOptionsImpl<T> implements SqsSendOptions<T> {
 
 		protected final Map<String, Object> headers = new HashMap<>();
+
+		@Nullable
+		private UUID messageGroupId;
+
+		@Nullable
+		private UUID messageDeduplicationId;
 
 		@Nullable
 		protected String queue;
@@ -675,69 +644,50 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message>
 		protected Integer delay;
 
 		@Override
-		public O queue(String queue) {
+		public SqsSendOptionsImpl<T> queue(String queue) {
 			Assert.hasText(queue, "queue must have text");
 			this.queue = queue;
-			return self();
+			return this;
 		}
 
 		@Override
-		public O payload(T payload) {
+		public SqsSendOptionsImpl<T> payload(T payload) {
 			Assert.notNull(payload, "payload must not be null");
 			this.payload = payload;
-			return self();
+			return this;
 		}
 
 		@Override
-		public O header(String headerName, Object headerValue) {
+		public SqsSendOptionsImpl<T> header(String headerName, Object headerValue) {
 			Assert.hasText(headerName, "headerName must have text");
 			Assert.notNull(headerValue, "headerValue must not be null");
 			this.headers.put(headerName, headerValue);
-			return self();
+			return this;
 		}
 
 		@Override
-		public O headers(Map<String, Object> headers) {
+		public SqsSendOptionsImpl<T> headers(Map<String, Object> headers) {
 			Assert.notNull(headers, "headers must not be null");
 			this.headers.putAll(headers);
-			return self();
+			return this;
 		}
 
 		@Override
-		public O delaySeconds(Integer delaySeconds) {
+		public SqsSendOptionsImpl<T> delaySeconds(Integer delaySeconds) {
 			Assert.notNull(delaySeconds, "delaySeconds must not be null");
 			this.delay = delaySeconds;
-			return self();
+			return this;
 		}
-
-		@SuppressWarnings("unchecked")
-		private O self() {
-			return (O) this;
-		}
-	}
-
-	private static class SendStandardOptionsImpl<T> extends AbstractSqsSendOptionsImpl<T, SqsSendOptions.Standard<T>>
-			implements SqsSendOptions.Standard<T> {
-	}
-
-	private static class SendFifoOptionsImpl<T> extends AbstractSqsSendOptionsImpl<T, SqsSendOptions.Fifo<T>>
-			implements SqsSendOptions.Fifo<T> {
-
-		@Nullable
-		private UUID messageGroupId;
-
-		@Nullable
-		private UUID messageDeduplicationId;
 
 		@Override
-		public SqsSendOptions.Fifo<T> messageGroupId(UUID messageGroupId) {
+		public SqsSendOptions<T> messageGroupId(UUID messageGroupId) {
 			Assert.notNull(messageGroupId, "messageGroupId must not be null");
 			this.messageGroupId = messageGroupId;
 			return this;
 		}
 
 		@Override
-		public SqsSendOptions.Fifo<T> messageDeduplicationId(UUID messageDeduplicationId) {
+		public SqsSendOptions<T> messageDeduplicationId(UUID messageDeduplicationId) {
 			Assert.notNull(messageDeduplicationId, "messageDeduplicationId must not be null");
 			this.messageDeduplicationId = messageDeduplicationId;
 			return this;
@@ -745,8 +695,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message>
 
 	}
 
-	private static abstract class AbstractSqsReceiveOptionsImpl<T, O extends SqsReceiveOptions<T, O>>
-			implements SqsReceiveOptions<T, O> {
+	private static class SqsReceiveOptionsImpl<T> implements SqsReceiveOptions<T> {
 
 		protected final Map<String, Object> additionalHeaders = new HashMap<>();
 
@@ -765,77 +714,63 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message>
 		@Nullable
 		protected Integer maxNumberOfMessages;
 
-		@Override
-		public O queue(String queue) {
-			Assert.notNull(queue, "queue must not be null");
-			this.queue = queue;
-			return self();
-		}
-
-		@Override
-		public O pollTimeout(Duration pollTimeout) {
-			Assert.notNull(pollTimeout, "pollTimeout must not be null");
-			this.pollTimeout = pollTimeout;
-			return self();
-		}
-
-		@Override
-		public O payloadClass(Class<T> payloadClass) {
-			Assert.notNull(payloadClass, "payloadClass must not be null");
-			this.payloadClass = payloadClass;
-			return self();
-		}
-
-		@Override
-		public O visibilityTimeout(Duration visibilityTimeout) {
-			Assert.notNull(visibilityTimeout, "visibilityTimeout must not be null");
-			this.visibilityTimeout = visibilityTimeout;
-			return self();
-		}
-
-		@Override
-		public O maxNumberOfMessages(Integer maxNumberOfMessages) {
-			Assert.notNull(maxNumberOfMessages, "maxNumberOfMessages must not be null");
-			Assert.isTrue(maxNumberOfMessages > 0 && maxNumberOfMessages <= 10,
-					"maxNumberOfMessages must be between 0 and 10");
-			this.maxNumberOfMessages = maxNumberOfMessages;
-			return self();
-		}
-
-		@Override
-		public O additionalHeader(String name, Object value) {
-			Assert.notNull(name, "name must not be null");
-			Assert.notNull(value, "value must not be null");
-			this.additionalHeaders.put(name, value);
-			return self();
-		}
-
-		@Override
-		public O additionalHeaders(Map<String, Object> additionalHeaders) {
-			Assert.notNull(additionalHeaders, "additionalHeaders must not be null");
-			this.additionalHeaders.putAll(additionalHeaders);
-			return self();
-		}
-
-		@SuppressWarnings("unchecked")
-		private O self() {
-			return (O) this;
-		}
-
-	}
-
-	private static class ReceiveStandardOptionsImpl<T> extends
-			AbstractSqsReceiveOptionsImpl<T, SqsReceiveOptions.Standard<T>> implements SqsReceiveOptions.Standard<T> {
-	}
-
-	private static class ReceiveFifoOptionsImpl<T> extends AbstractSqsReceiveOptionsImpl<T, SqsReceiveOptions.Fifo<T>>
-			implements SqsReceiveOptions.Fifo<T> {
-
 		@Nullable
 		private UUID receiveRequestAttemptId;
 
 		@Override
-		public Fifo<T> receiveRequestAttemptId(UUID receiveRequestAttemptId) {
+		public SqsReceiveOptionsImpl<T> queue(String queue) {
+			Assert.notNull(queue, "queue must not be null");
+			this.queue = queue;
+			return this;
+		}
+
+		@Override
+		public SqsReceiveOptionsImpl<T> pollTimeout(Duration pollTimeout) {
+			Assert.notNull(pollTimeout, "pollTimeout must not be null");
+			this.pollTimeout = pollTimeout;
+			return this;
+		}
+
+		@Override
+		public SqsReceiveOptionsImpl<T> payloadClass(Class<T> payloadClass) {
+			Assert.notNull(payloadClass, "payloadClass must not be null");
+			this.payloadClass = payloadClass;
+			return this;
+		}
+
+		@Override
+		public SqsReceiveOptionsImpl<T> visibilityTimeout(Duration visibilityTimeout) {
+			Assert.notNull(visibilityTimeout, "visibilityTimeout must not be null");
+			this.visibilityTimeout = visibilityTimeout;
+			return this;
+		}
+
+		@Override
+		public SqsReceiveOptionsImpl<T> maxNumberOfMessages(Integer maxNumberOfMessages) {
+			Assert.notNull(maxNumberOfMessages, "maxNumberOfMessages must not be null");
+			Assert.isTrue(maxNumberOfMessages > 0 && maxNumberOfMessages <= 10,
+					"maxNumberOfMessages must be between 0 and 10");
+			this.maxNumberOfMessages = maxNumberOfMessages;
+			return this;
+		}
+
+		@Override
+		public SqsReceiveOptionsImpl<T> additionalHeader(String name, Object value) {
+			Assert.notNull(name, "name must not be null");
+			Assert.notNull(value, "value must not be null");
+			this.additionalHeaders.put(name, value);
+			return this;
+		}
+
+		@Override
+		public SqsReceiveOptionsImpl<T> additionalHeaders(Map<String, Object> additionalHeaders) {
+			Assert.notNull(additionalHeaders, "additionalHeaders must not be null");
+			this.additionalHeaders.putAll(additionalHeaders);
+			return this;
+		}
+
+		@Override
+		public SqsReceiveOptionsImpl<T> receiveRequestAttemptId(UUID receiveRequestAttemptId) {
 			Assert.notNull(receiveRequestAttemptId, "receiveRequestAttemptId must not be null");
 			this.receiveRequestAttemptId = receiveRequestAttemptId;
 			return this;

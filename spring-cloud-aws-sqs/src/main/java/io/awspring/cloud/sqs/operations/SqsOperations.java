@@ -20,70 +20,33 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import org.springframework.messaging.Message;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 
 /**
  * Sqs-specific synchronous messaging operations for Standard and Fifo queues.
- * <p>
- * Note that the Standard queue methods can be used for Fifo queues as long as necessary headers are added for required
- * attributes such as message deduplication id. See {@link io.awspring.cloud.sqs.listener.SqsHeaders} for reference of
- * available headers.
- * <p>
- * Fifo queue methods accept the required attributes and add a random value if none is specified.
- *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public interface SqsOperations extends MessagingOperations {
 
 	/**
-	 * Send a message to a Standard SQS queue using the {@link SqsSendOptions.Standard} options.
-	 * @param to a {@link SqsSendOptions.Standard} consumer.
+	 * Send a message to a Standard SQS queue using the {@link SqsSendOptions} options.
+	 * @param to a {@link SqsSendOptions} consumer.
 	 * @return The {@link UUID} of the message.
 	 */
-	<T> SendResult<T> send(Consumer<SqsSendOptions.Standard<T>> to);
+	<T> SendResult<T> send(Consumer<SqsSendOptions<T>> to);
 
 	/**
-	 * Send a message to a Fifo SQS queue using the {@link SqsSendOptions.Fifo} options.
-	 * @param to a {@link SqsSendOptions.Fifo} consumer.
-	 * @return The {@link UUID} of the message.
-	 */
-	<T> SendResult<T> sendFifo(Consumer<SqsSendOptions.Fifo<T>> to);
-
-	/**
-	 * Send a batch of messages to a Fifo SQS queue.
-	 * @param endpoint the endpoint to which to send the messages.
-	 * @param messages the messages.
-	 * @return the {@link SendMessageBatchResponse}
-	 */
-	<T> SendResult.Batch<T> sendManyFifo(String endpoint, Collection<Message<T>> messages);
-
-	/**
-	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions.Standard} options.
-	 * @param from a {@link SqsReceiveOptions.Standard} consumer.
+	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return The message, or an empty collection if none is returned.
 	 */
-	<T> Optional<Message<T>> receive(Consumer<SqsReceiveOptions.Standard<T>> from);
+	<T> Optional<Message<T>> receive(Consumer<SqsReceiveOptions<T>> from);
 
 	/**
-	 * Receive a message from a Fifo SQS queue using the {@link SqsReceiveOptions.Fifo} options.
-	 * @param from a {@link SqsReceiveOptions.Fifo} consumer.
+	 * Receive a batch of messages from a Standard SQS queue using {@link SqsReceiveOptions}.
+	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return The message, or an empty collection if none is returned.
 	 */
-	<T> Optional<Message<T>> receiveFifo(Consumer<SqsReceiveOptions.Fifo<T>> from);
-
-	/**
-	 * Receive a batch of messages from a Standard SQS queue using the {@link SqsReceiveOptions.Standard} options.
-	 * @param from a {@link SqsReceiveOptions.Standard} consumer.
-	 * @return The message, or an empty collection if none is returned.
-	 */
-	<T> Collection<Message<T>> receiveMany(Consumer<SqsReceiveOptions.Standard<T>> from);
-
-	/**
-	 * Receive a batch of messages from a Fifo SQS queue using the {@link SqsReceiveOptions.Fifo} options.
-	 * @param from a {@link SqsReceiveOptions.Fifo} consumer.
-	 * @return The message, or an empty collection if none is returned.
-	 */
-	<T> Collection<Message<T>> receiveManyFifo(Consumer<SqsReceiveOptions.Fifo<T>> from);
+	<T> Collection<Message<T>> receiveMany(Consumer<SqsReceiveOptions<T>> from);
 
 }

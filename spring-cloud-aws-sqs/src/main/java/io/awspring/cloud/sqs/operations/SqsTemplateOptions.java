@@ -59,7 +59,6 @@ public interface SqsTemplateOptions extends MessagingTemplateOptions<SqsTemplate
 	 * @param messageSystemAttributeNames the names.
 	 * @return the options instance.
 	 */
-	SqsTemplateOptions messageSystemAttributeNames(
-			Collection<MessageSystemAttributeName> messageSystemAttributeNames);
+	SqsTemplateOptions messageSystemAttributeNames(Collection<MessageSystemAttributeName> messageSystemAttributeNames);
 
 }

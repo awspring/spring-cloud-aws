@@ -67,7 +67,7 @@ class SqsAutoConfigurationIntegrationTest {
 	@Test
 	void sendsAndReceivesMessage() {
 		this.contextRunner.run(context -> {
-			SqsTemplate<Object> sqsTemplate = context.getBean(SqsTemplate.class);
+			SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
 			sqsTemplate.send(to -> to.queue(QUEUE_NAME).payload(PAYLOAD));
 			CountDownLatch latch = context.getBean(CountDownLatch.class);
 			assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();

@@ -20,9 +20,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 
 /**
  * Sqs-specific asynchronous messaging operations for Standard and Fifo queues.
@@ -39,57 +37,26 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 public interface SqsAsyncOperations extends AsyncMessagingOperations {
 
 	/**
-	 * Send a message to a Standard SQS queue using the {@link SqsSendOptions.Standard} options.
-	 * @param to a {@link SqsSendOptions.Standard} consumer.
+	 * Send a message to a Standard SQS queue using {@link SqsSendOptions}.
+	 * @param to a {@link SqsSendOptions} consumer.
 	 * @return a {@link CompletableFuture} to be completed with the {@link UUID} of the message.
 	 */
-	<T> CompletableFuture<SendResult<T>> sendAsync(Consumer<SqsSendOptions.Standard<T>> to);
+	<T> CompletableFuture<SendResult<T>> sendAsync(Consumer<SqsSendOptions<T>> to);
 
 	/**
-	 * Send a message to a Fifo SQS queue using the {@link SqsSendOptions.Fifo} options.
-	 * @param to a {@link SqsSendOptions.Fifo} consumer.
-	 * @return a {@link CompletableFuture} to be completed with the {@link UUID} of the message.
-	 */
-	<T> CompletableFuture<SendResult<T>> sendFifoAsync(Consumer<SqsSendOptions.Fifo<T>> to);
-
-	/**
-	 * Send a batch of messages to a Fifo SQS queue.
-	 * @param endpoint the endpoint to which to send the messages or null to use the default.
-	 * @param messages the messages.
-	 * @return a {@link CompletableFuture} to be completed with the {@link SendMessageBatchResponse}.
-	 */
-	<T> CompletableFuture<SendResult.Batch<T>> sendFifoAsync(@Nullable String endpoint, Collection<Message<T>> messages);
-
-	/**
-	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions.Standard} options.
-	 * @param from a {@link SqsReceiveOptions.Standard} consumer.
+	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return a {@link CompletableFuture} to be completed with the message, or {@link Optional#empty()} if none is
 	 * returned.
 	 */
-	<T> CompletableFuture<Optional<Message<T>>> receiveAsync(Consumer<SqsReceiveOptions.Standard<T>> from);
+	<T> CompletableFuture<Optional<Message<T>>> receiveAsync(Consumer<SqsReceiveOptions<T>> from);
 
 	/**
-	 * Receive a message from a Fifo SQS queue using the {@link SqsReceiveOptions.Fifo} options.
-	 * @param from a {@link SqsReceiveOptions.Fifo} consumer.
-	 * @return a {@link CompletableFuture} to be completed with the message, or {@link Optional#empty()} if none is
-	 * returned.
-	 */
-	<T> CompletableFuture<Optional<Message<T>>> receiveFifoAsync(Consumer<SqsReceiveOptions.Fifo<T>> from);
-
-	/**
-	 * Receive a batch of messages from a Standard SQS queue using the {@link SqsReceiveOptions.Standard} options.
-	 * @param from a {@link SqsReceiveOptions.Standard} consumer.
+	 * Receive a batch of messages from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return a {@link CompletableFuture} to be completed with the messages, or an empty collection if none is
 	 * returned.
 	 */
-	<T> CompletableFuture<Collection<Message<T>>> receiveManyAsync(Consumer<SqsReceiveOptions.Standard<T>> from);
-
-	/**
-	 * Receive a batch of messages from a Fifo SQS queue using the {@link SqsReceiveOptions.Fifo} options.
-	 * @param from a {@link SqsReceiveOptions.Fifo} consumer.
-	 * @return a {@link CompletableFuture} to be completed with the messages, or an empty collection if none is
-	 * returned.
-	 */
-	<T> CompletableFuture<Collection<Message<T>>> receiveManyFifoAsync(Consumer<SqsReceiveOptions.Fifo<T>> from);
+	<T> CompletableFuture<Collection<Message<T>>> receiveManyAsync(Consumer<SqsReceiveOptions<T>> from);
 
 }

@@ -53,6 +53,8 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 
 	private static final String DEFAULT_ENDPOINT_NAME = "";
 
+	private static final int MAX_ONE_MESSAGE = 1;
+
 	private final Map<String, Object> defaultAdditionalHeaders;
 
 	private final Duration defaultPollTimeout;
@@ -117,7 +119,7 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	public <T> CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpoint,
 			@Nullable Class<T> payloadClass, @Nullable Duration pollTimeout,
 			@Nullable Map<String, Object> additionalHeaders) {
-		return receiveManyAsync(endpoint, payloadClass, pollTimeout, 1, additionalHeaders)
+		return receiveManyAsync(endpoint, payloadClass, pollTimeout, MAX_ONE_MESSAGE, additionalHeaders)
 				.thenApply(msgs -> msgs.isEmpty() ? Optional.empty() : Optional.of(msgs.iterator().next()));
 	}
 
@@ -128,28 +130,33 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 
 	@Override
 	public <T> CompletableFuture<Collection<Message<T>>> receiveManyAsync(@Nullable String endpoint,
-			@Nullable Class<T> payloadClass, @Nullable Duration pollTimeout,
-			@Nullable Integer maxNumberOfMessages, @Nullable Map<String, Object> additionalHeaders) {
+			@Nullable Class<T> payloadClass, @Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
+			@Nullable Map<String, Object> additionalHeaders) {
 		String endpointToUse = getEndpointName(endpoint);
 		logger.trace("Receiving messages from endpoint {}", endpointToUse);
-		Map<String, Object> headers = getAdditionalHeadersToReceive(additionalHeaders);
+		Map<String, Object> headers = getAdditionalHeadersToReceive(endpointToUse, additionalHeaders);
 		Duration pollTimeoutToUse = getOrDefault(pollTimeout, this.defaultPollTimeout, "pollTimeout");
-		Integer maxNumberOfMessagesToUse = getOrDefault(maxNumberOfMessages, this.defaultMaxNumberOfMessages, "defaultMaxNumberOfMessages");
+		Integer maxNumberOfMessagesToUse = getOrDefault(maxNumberOfMessages, this.defaultMaxNumberOfMessages,
+				"defaultMaxNumberOfMessages");
 		return doReceiveAsync(endpointToUse, pollTimeoutToUse, maxNumberOfMessagesToUse, headers)
-						.thenApply(messages -> convertReceivedMessages(endpointToUse, payloadClass, messages, headers))
-						.thenCompose(messages -> handleAcknowledgement(endpointToUse, messages))
-						.exceptionallyCompose(t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
-								"Message receive operation failed for endpoint %s".formatted(endpointToUse),
-								endpointToUse, t instanceof CompletionException ? t.getCause() : t)))
-						.whenComplete((v, t) -> logReceiveMessageResult(endpointToUse, v, t));
+				.thenApply(messages -> convertReceivedMessages(endpointToUse, payloadClass, messages, headers))
+				.thenCompose(messages -> handleAcknowledgement(endpointToUse, messages))
+				.exceptionallyCompose(t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
+						"Message receive operation failed for endpoint %s".formatted(endpointToUse), endpointToUse,
+						t instanceof CompletionException ? t.getCause() : t)))
+				.whenComplete((v, t) -> logReceiveMessageResult(endpointToUse, v, t));
 	}
 
-	private Map<String, Object> getAdditionalHeadersToReceive(@Nullable Map<String, Object> additionalHeaders) {
+	protected abstract Map<String, Object> preProcessHeadersForReceive(String endpointToUse,
+			Map<String, Object> additionalHeaders);
+
+	private Map<String, Object> getAdditionalHeadersToReceive(String endpointToUse,
+			@Nullable Map<String, Object> additionalHeaders) {
 		Map<String, Object> headers = new HashMap<>(this.defaultAdditionalHeaders);
 		if (additionalHeaders != null) {
 			headers.putAll(additionalHeaders);
 		}
-		return headers;
+		return preProcessHeadersForReceive(endpointToUse, headers);
 	}
 
 	private <T> Collection<Message<T>> convertReceivedMessages(String endpoint, @Nullable Class<T> payloadClass,
@@ -168,13 +175,13 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 		}
 		catch (ClassCastException ex) {
 			throw new IllegalStateException("Could not cast defaultPayloadClass %s to the provided type."
-				.formatted(this.defaultPayloadClass.getSimpleName()));
+					.formatted(this.defaultPayloadClass.getSimpleName()));
 		}
 	}
 
 	protected <T> Message<T> addAdditionalHeaders(Message<T> message, Map<String, Object> additionalHeaders) {
 		Map<String, Object> headersToAdd = handleAdditionalHeaders(additionalHeaders);
-		return headersToAdd.isEmpty() ? message : MessageHeaderUtils.addHeadersToMessage(message, headersToAdd);
+		return headersToAdd.isEmpty() ? message : MessageHeaderUtils.addHeadersIfAbsent(message, headersToAdd);
 	}
 
 	protected abstract Map<String, Object> handleAdditionalHeaders(Map<String, Object> additionalHeaders);
@@ -208,7 +215,8 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 				: (Message<T>) this.messageConverter.toMessagingMessage(message);
 	}
 
-	private <T> void logReceiveMessageResult(String endpoint, @Nullable Collection<Message<T>> v, @Nullable Throwable t) {
+	private <T> void logReceiveMessageResult(String endpoint, @Nullable Collection<Message<T>> v,
+			@Nullable Throwable t) {
 		if (v != null) {
 			logger.trace("Received messages {} from endpoint {}", MessageHeaderUtils.getId(v), endpoint);
 		}
@@ -218,7 +226,7 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	}
 
 	protected abstract CompletableFuture<Collection<S>> doReceiveAsync(String endpointName, Duration pollTimeout,
-			Integer maxNumberOfMessages, Map<String, Object> additionalHEaders);
+			Integer maxNumberOfMessages, Map<String, Object> additionalHeaders);
 
 	@Override
 	public <T> SendResult<T> send(T payload) {
@@ -255,8 +263,9 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	@Override
 	public <T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, Message<T> message) {
 		String endpointToUse = getEndpointName(endpointName);
+		Message<T> messageToUse = preProcessMessageForSend(endpointToUse, message);
 		logger.trace("Sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointName);
-		return doSendAsync(endpointToUse, convertMessageToSend(message), message)
+		return doSendAsync(endpointToUse, convertMessageToSend(messageToUse), messageToUse)
 				.exceptionallyCompose(
 						t -> CompletableFuture
 								.failedFuture(new MessagingOperationFailedException(
@@ -266,16 +275,22 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 				.whenComplete((v, t) -> logSendMessageResult(endpointToUse, message, t));
 	}
 
+	protected abstract <T> Message<T> preProcessMessageForSend(String endpointToUse, Message<T> message);
+
 	@Override
 	public <T> CompletableFuture<SendResult.Batch<T>> sendManyAsync(@Nullable String endpointName,
 			Collection<Message<T>> messages) {
 		logger.trace("Sending messages {} to endpoint {}", MessageHeaderUtils.getId(messages), endpointName);
 		String endpointToUse = getEndpointName(endpointName);
-		return doSendBatchAsync(endpointToUse, convertMessagesToSend(messages), messages)
-				.exceptionallyCompose(t -> wrapSendException(messages, endpointToUse, t))
+		Collection<Message<T>> messagesToUse = preProcessMessagesForSend(endpointToUse, messages);
+		return doSendBatchAsync(endpointToUse, convertMessagesToSend(messagesToUse), messagesToUse)
+				.exceptionallyCompose(t -> wrapSendException(messagesToUse, endpointToUse, t))
 				.thenCompose(result -> handleFailedMessages(endpointToUse, result))
-				.whenComplete((v, t) -> logSendMessageBatchResult(endpointToUse, messages, t));
+				.whenComplete((v, t) -> logSendMessageBatchResult(endpointToUse, messagesToUse, t));
 	}
+
+	protected abstract <T> Collection<Message<T>> preProcessMessagesForSend(String endpointToUse,
+			Collection<Message<T>> messages);
 
 	private <T> CompletableFuture<SendResult.Batch<T>> handleFailedMessages(String endpointToUse,
 			SendResult.Batch<T> result) {
@@ -292,7 +307,8 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 						.formatted(MessageHeaderUtils.getId(messages), endpointToUse), endpointToUse, messages, t));
 	}
 
-	private <T> CompletableFuture<SendResult.Batch<T>> handleFailedSendBatch(String endpoint, SendResult.Batch<T> result) {
+	private <T> CompletableFuture<SendResult.Batch<T>> handleFailedSendBatch(String endpoint,
+			SendResult.Batch<T> result) {
 		return CompletableFuture.failedFuture(new SendBatchOperationFailedException("", endpoint, result));
 	}
 

@@ -43,6 +43,7 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
@@ -118,7 +119,7 @@ class SqsTemplateTests {
 		UUID messageDeduplicationId = UUID.randomUUID();
 		SqsOperations template = SqsTemplate.newTemplate(mockClient);
 		String payload = "test-payload";
-		SendResult<String> result = template.sendFifo(to -> to.queue(queue).messageGroupId(messageGroupId)
+		SendResult<String> result = template.send(to -> to.queue(queue).messageGroupId(messageGroupId)
 				.messageDeduplicationId(messageDeduplicationId).payload(payload));
 		assertThat(result.endpoint()).isEqualTo(queue);
 		assertThat(result.message().getHeaders())
@@ -131,6 +132,41 @@ class SqsTemplateTests {
 		SendMessageRequest capturedRequest = captor.getValue();
 		assertThat(capturedRequest.queueUrl()).isEqualTo(queue);
 		assertThat(capturedRequest.messageBody()).isEqualTo(payload);
+		assertThat(capturedRequest.messageGroupId()).isEqualTo(messageGroupId.toString());
+		assertThat(capturedRequest.messageDeduplicationId()).isEqualTo(messageDeduplicationId.toString());
+	}
+
+	@Test
+	void shouldAddFifoHeadersToSend() {
+		String queue = "test-queue.fifo";
+		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(Consumer.class))).willReturn(CompletableFuture.completedFuture(urlResponse));
+		UUID uuid = UUID.randomUUID();
+		String sequenceNumber = "1234";
+		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
+				.sequenceNumber(sequenceNumber).build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(response));
+		SqsOperations template = SqsTemplate.newTemplate(mockClient);
+		String payload = "test-payload";
+		SendResult<String> result = template.send(queue, payload);
+		assertThat(result.endpoint()).isEqualTo(queue);
+		MessageHeaders resultHeaders = result.message().getHeaders();
+		assertThat(resultHeaders).containsKeys(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER,
+				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER);
+		String messageDeduplicationId = resultHeaders
+				.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, String.class);
+		String messageGroupId = resultHeaders.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER,
+				String.class);
+		assertThat(result.message().getPayload()).isEqualTo(payload);
+		ArgumentCaptor<SendMessageRequest> captor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		then(mockClient).should().sendMessage(captor.capture());
+		SendMessageRequest capturedRequest = captor.getValue();
+		assertThat(capturedRequest.queueUrl()).isEqualTo(queue);
+		assertThat(capturedRequest.messageBody()).isEqualTo(payload);
+		assertThat(capturedRequest.messageGroupId()).isEqualTo(messageGroupId);
+		assertThat(capturedRequest.messageDeduplicationId()).isEqualTo(messageDeduplicationId);
 	}
 
 	@Test
@@ -479,17 +515,15 @@ class SqsTemplateTests {
 		given(mockClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(deleteResponse));
 		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient)
-			.configure(options -> options.defaultPayloadClass(SampleRecord.class))
-			.buildSyncTemplate();
+				.configure(options -> options.defaultPayloadClass(SampleRecord.class)).buildSyncTemplate();
 		Optional<Message<SampleRecord>> receivedMessage = template
 				.receive(from -> from.queue(queue).payloadClass(SampleRecord.class));
-		assertThat(receivedMessage).isPresent()
-				.hasValueSatisfying(message -> {
-					SampleRecord receivedPayload = message.getPayload();
-					assertThat(receivedPayload).isEqualTo(payload);
-					assertThat(receivedPayload.firstProperty).isEqualTo(payload.firstProperty);
-					assertThat(receivedPayload.secondProperty).isEqualTo(payload.secondProperty);
-				});
+		assertThat(receivedMessage).isPresent().hasValueSatisfying(message -> {
+			SampleRecord receivedPayload = message.getPayload();
+			assertThat(receivedPayload).isEqualTo(payload);
+			assertThat(receivedPayload.firstProperty).isEqualTo(payload.firstProperty);
+			assertThat(receivedPayload.secondProperty).isEqualTo(payload.secondProperty);
+		});
 	}
 
 	record SampleRecord(String firstProperty, String secondProperty) {
@@ -728,7 +762,7 @@ class SqsTemplateTests {
 		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
 		UUID attemptId = UUID.randomUUID();
 		Optional<Message<String>> receivedMessage = template
-				.receiveFifo(from -> from.queue(queue).receiveRequestAttemptId(attemptId));
+				.receive(from -> from.queue(queue).receiveRequestAttemptId(attemptId));
 		assertThat(receivedMessage).isPresent().hasValueSatisfying(message -> {
 			assertThat(message.getPayload()).isEqualTo(payload);
 			assertThat(message.getHeaders())
@@ -740,6 +774,43 @@ class SqsTemplateTests {
 		then(mockClient).should().receiveMessage(captor.capture());
 		ReceiveMessageRequest request = captor.getValue();
 		assertThat(request.receiveRequestAttemptId()).isEqualTo(attemptId.toString());
+		assertThat(request.maxNumberOfMessages()).isEqualTo(1);
+	}
+
+	@Test
+	void shouldReceiveFifoWithRandomAttemptId() {
+		String queue = "test-queue.fifo";
+		String payload = "test-payload";
+		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(Consumer.class))).willReturn(CompletableFuture.completedFuture(urlResponse));
+		String messageGroupId = UUID.randomUUID().toString();
+		String deduplicationId = UUID.randomUUID().toString();
+		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
+				.messages(builder -> builder.messageId(UUID.randomUUID().toString())
+						.attributes(Map.of(MessageSystemAttributeName.MESSAGE_GROUP_ID, messageGroupId,
+								MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID, deduplicationId))
+						.receiptHandle("test-receipt-handle").body(payload).build())
+				.build();
+		given(mockClient.receiveMessage(any(ReceiveMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(receiveMessageResponse));
+		DeleteMessageBatchResponse deleteResponse = DeleteMessageBatchResponse.builder()
+				.successful(builder -> builder.id(UUID.randomUUID().toString())).build();
+		given(mockClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(deleteResponse));
+		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
+		Optional<Message<String>> receivedMessage = template.receive(from -> from.queue(queue));
+		assertThat(receivedMessage).isPresent().hasValueSatisfying(message -> {
+			assertThat(message.getPayload()).isEqualTo(payload);
+			assertThat(message.getHeaders())
+					.containsEntry(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, messageGroupId);
+			assertThat(message.getHeaders()).containsEntry(
+					SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, deduplicationId);
+		});
+		ArgumentCaptor<ReceiveMessageRequest> captor = ArgumentCaptor.forClass(ReceiveMessageRequest.class);
+		then(mockClient).should().receiveMessage(captor.capture());
+		ReceiveMessageRequest request = captor.getValue();
+		assertThat(request.receiveRequestAttemptId()).isNotNull();
 		assertThat(request.maxNumberOfMessages()).isEqualTo(1);
 	}
 
@@ -898,7 +969,7 @@ class SqsTemplateTests {
 		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
 		UUID attemptId = UUID.randomUUID();
 		Collection<Message<String>> receivedMessages = template
-				.receiveManyFifo(from -> from.queue(queue).receiveRequestAttemptId(attemptId));
+				.receiveMany(from -> from.queue(queue).receiveRequestAttemptId(attemptId));
 		assertThat(receivedMessages).hasSize(5);
 		ArgumentCaptor<ReceiveMessageRequest> captor = ArgumentCaptor.forClass(ReceiveMessageRequest.class);
 		then(mockClient).should().receiveMessage(captor.capture());

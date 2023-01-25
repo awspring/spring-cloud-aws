@@ -156,7 +156,7 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	private MessageHeaders createMessageHeaders(S message, @Nullable MessageConversionContext context) {
 		MessageHeaders messageHeaders = this.headerMapper.toHeaders(message);
 		return context != null && this.headerMapper instanceof ContextAwareHeaderMapper
-				? MessageHeaderUtils.addHeaders(messageHeaders, getContextHeaders(message, context))
+				? MessageHeaderUtils.addHeadersIfAbsent(messageHeaders, getContextHeaders(message, context))
 				: messageHeaders;
 	}
 
@@ -178,8 +178,8 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	private Class<?> getTargetType(Message<?> messagingMessage, @Nullable MessageConversionContext context) {
 		Class<?> classFromTypeMapper = this.payloadTypeMapper.apply(messagingMessage);
 		return classFromTypeMapper == null && context != null && context.getPayloadClass() != null
-			? context.getPayloadClass()
-			: classFromTypeMapper;
+				? context.getPayloadClass()
+				: classFromTypeMapper;
 	}
 
 	protected abstract Object getPayloadToDeserialize(S message);
@@ -217,7 +217,7 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	private MessageHeaders getMessageHeaders(Message<?> message) {
 		String typeHeaderName = this.payloadTypeHeaderFunction.apply(message);
 		return typeHeaderName != null
-				? MessageHeaderUtils.addHeader(message.getHeaders(), this.typeHeader, typeHeaderName)
+				? MessageHeaderUtils.addHeaderIfAbsent(message.getHeaders(), this.typeHeader, typeHeaderName)
 				: message.getHeaders();
 	}
 

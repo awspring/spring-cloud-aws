@@ -74,9 +74,8 @@ public class SqsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SqsTemplate<Object> sqsTemplate(SqsAsyncClient sqsAsyncClient,
-			ObjectProvider<ObjectMapper> objectMapperProvider) {
-		SqsTemplateBuilder<Object> builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
+	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObjectProvider<ObjectMapper> objectMapperProvider) {
+		SqsTemplateBuilder builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
 		objectMapperProvider
 				.ifAvailable(om -> builder.configureDefaultConverter(converter -> converter.setObjectMapper(om)));
 		return builder.build();

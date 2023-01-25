@@ -203,7 +203,7 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		SqsAsyncClient sqsAsyncClient = sqsContext.getSqsAsyncClient();
 		if (sqsAsyncClient != null && queueAttributes != null) {
 			accessor.setHeader(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER,
-				new QueueMessageVisibility(sqsAsyncClient, queueAttributes.getQueueUrl(), source.receiptHandle()));
+					new QueueMessageVisibility(sqsAsyncClient, queueAttributes.getQueueUrl(), source.receiptHandle()));
 		}
 	}
 

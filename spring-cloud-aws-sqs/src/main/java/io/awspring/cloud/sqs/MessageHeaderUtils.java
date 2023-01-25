@@ -101,8 +101,8 @@ public class MessageHeaderUtils {
 	 * @return the new message.
 	 * @param <T> the payload type.
 	 */
-	public static <T> Message<T> addHeaderToMessage(Message<T> message, String headerName, Object headerValue) {
-		return addHeadersToMessage(message, Map.of(headerName, headerValue));
+	public static <T> Message<T> addHeaderIfAbsent(Message<T> message, String headerName, Object headerValue) {
+		return addHeadersIfAbsent(message, Map.of(headerName, headerValue));
 	}
 
 	/**
@@ -113,15 +113,15 @@ public class MessageHeaderUtils {
 	 * @return the new message.
 	 * @param <T> the payload type.
 	 */
-	public static <T> Message<T> addHeadersToMessage(Message<T> message, Map<String, Object> newHeaders) {
-		return new GenericMessage<>(message.getPayload(), addHeaders(message.getHeaders(), newHeaders));
+	public static <T> Message<T> addHeadersIfAbsent(Message<T> message, Map<String, Object> newHeaders) {
+		return new GenericMessage<>(message.getPayload(), addHeadersIfAbsent(message.getHeaders(), newHeaders));
 	}
 
-	public static MessageHeaders addHeader(MessageHeaders headers, String headerName, Object headerValue) {
-		return addHeaders(headers, Map.of(headerName, headerValue));
+	public static MessageHeaders addHeaderIfAbsent(MessageHeaders headers, String headerName, Object headerValue) {
+		return addHeadersIfAbsent(headers, Map.of(headerName, headerValue));
 	}
 
-	public static MessageHeaders addHeaders(MessageHeaders headers, Map<String, Object> newHeaders) {
+	public static MessageHeaders addHeadersIfAbsent(MessageHeaders headers, Map<String, Object> newHeaders) {
 		MessageHeaderAccessor accessor = new MessageHeaderAccessor();
 		accessor.copyHeaders(headers);
 		accessor.copyHeadersIfAbsent(newHeaders);
