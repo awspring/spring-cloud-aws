@@ -33,6 +33,7 @@ import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
@@ -95,18 +96,17 @@ public class QueueAttributesResolver {
 
 	private CompletableFuture<String> doResolveQueueUrl() {
 		Arn arn = convertToQueueArn(this.queueName);
-		return arn != null
-			? doResolveQueueUrlFromArn(arn)
-			: CompletableFutures.exceptionallyCompose(this.sqsAsyncClient.getQueueUrl(req -> req.queueName(this.queueName))
-				.thenApply(GetQueueUrlResponse::queueUrl), this::handleException);
-	}
-
-	private CompletableFuture<String> doResolveQueueUrlFromArn(Arn arn) {
-		Assert.isTrue(arn.accountId().isPresent(), "accountId is missing from arn");
-		String accountId = arn.accountId().get();
-		return CompletableFutures
-			.exceptionallyCompose(this.sqsAsyncClient.getQueueUrl(req -> req.queueName(arn.resourceAsString()).queueOwnerAWSAccountId(accountId))
-				.thenApply(GetQueueUrlResponse::queueUrl), this::handleException);
+		GetQueueUrlRequest.Builder getQueueUrlRequestBuilder = GetQueueUrlRequest.builder();
+		if (arn != null) {
+			Assert.isTrue(arn.accountId().isPresent(), "accountId is missing from arn");
+			getQueueUrlRequestBuilder.queueName(arn.resourceAsString()).queueOwnerAWSAccountId(arn.accountId().get());
+		}
+		else {
+			getQueueUrlRequestBuilder.queueName(this.queueName);
+		}
+		return CompletableFutures.exceptionallyCompose(this.sqsAsyncClient
+				.getQueueUrl(getQueueUrlRequestBuilder.build()).thenApply(GetQueueUrlResponse::queueUrl),
+				this::handleException);
 	}
 
 	private CompletableFuture<String> handleException(Throwable t) {
