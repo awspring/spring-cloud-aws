@@ -31,14 +31,14 @@ import org.springframework.messaging.Message;
 public interface SqsAsyncOperations extends AsyncMessagingOperations {
 
 	/**
-	 * Send a message to a Standard SQS queue using {@link SqsSendOptions}.
+	 * Send a message using {@link SqsSendOptions}.
 	 * @param to a {@link SqsSendOptions} consumer.
 	 * @return a {@link CompletableFuture} to be completed with the {@link UUID} of the message.
 	 */
 	<T> CompletableFuture<SendResult<T>> sendAsync(Consumer<SqsSendOptions<T>> to);
 
 	/**
-	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * Receive a message using the {@link SqsReceiveOptions} options.
 	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return a {@link CompletableFuture} to be completed with the message, or {@link Optional#empty()} if none is
 	 * returned.
@@ -46,7 +46,7 @@ public interface SqsAsyncOperations extends AsyncMessagingOperations {
 	CompletableFuture<Optional<Message<?>>> receiveAsync(Consumer<SqsReceiveOptions> from);
 
 	/**
-	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * Receive a message using the {@link SqsReceiveOptions} options and convert the payload to the provided class.
 	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return a {@link CompletableFuture} to be completed with the message, or {@link Optional#empty()} if none is
 	 * returned.
@@ -54,7 +54,7 @@ public interface SqsAsyncOperations extends AsyncMessagingOperations {
 	<T> CompletableFuture<Optional<Message<T>>> receiveAsync(Consumer<SqsReceiveOptions> from, Class<T> payloadClass);
 
 	/**
-	 * Receive a batch of messages from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * Receive a batch of messages using the {@link SqsReceiveOptions} options.
 	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return a {@link CompletableFuture} to be completed with the messages, or an empty collection if none is
 	 * returned.
@@ -62,7 +62,8 @@ public interface SqsAsyncOperations extends AsyncMessagingOperations {
 	CompletableFuture<Collection<Message<?>>> receiveManyAsync(Consumer<SqsReceiveOptions> from);
 
 	/**
-	 * Receive a batch of messages from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * Receive a batch of messages using the {@link SqsReceiveOptions} options and convert the payloads to the provided
+	 * class.
 	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return a {@link CompletableFuture} to be completed with the messages, or an empty collection if none is
 	 * returned.

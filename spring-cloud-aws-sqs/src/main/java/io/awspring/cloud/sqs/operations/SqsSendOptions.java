@@ -25,7 +25,7 @@ import java.util.UUID;
 public interface SqsSendOptions<T> {
 
 	/**
-	 * Set the queue name or url to send the message to.
+	 * Set the queue name, url or ARN to send the message to.
 	 * @param queue the queue name.
 	 * @return the options instance.
 	 */

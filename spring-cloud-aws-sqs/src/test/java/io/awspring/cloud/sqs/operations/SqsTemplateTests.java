@@ -882,12 +882,12 @@ class SqsTemplateTests {
 				.willReturn(CompletableFuture.completedFuture(deleteResponse));
 		int defaultPollTimeout = 5;
 		int defaultMaxNumberOfMessages = 6;
-		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient)
+		SqsAsyncOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient)
 				.configure(options -> options.defaultQueue(queue)
 						.defaultPollTimeout(Duration.ofSeconds(defaultPollTimeout))
 						.defaultMaxNumberOfMessages(defaultMaxNumberOfMessages))
-				.buildSyncTemplate();
-		Collection<Message<String>> receivedMessages = template.receiveMany(queue, String.class);
+				.buildAsyncTemplate();
+		Collection<Message<String>> receivedMessages = template.receiveManyAsync(queue, String.class).join();
 		assertThat(receivedMessages).hasSize(5);
 		ArgumentCaptor<ReceiveMessageRequest> captor = ArgumentCaptor.forClass(ReceiveMessageRequest.class);
 		then(mockClient).should().receiveMessage(captor.capture());

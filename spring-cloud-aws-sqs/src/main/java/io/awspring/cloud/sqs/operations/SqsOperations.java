@@ -30,35 +30,36 @@ import org.springframework.messaging.Message;
 public interface SqsOperations extends MessagingOperations {
 
 	/**
-	 * Send a message to a Standard SQS queue using the {@link SqsSendOptions} options.
+	 * Send a message using the {@link SqsSendOptions} options.
 	 * @param to a {@link SqsSendOptions} consumer.
 	 * @return The {@link UUID} of the message.
 	 */
 	<T> SendResult<T> send(Consumer<SqsSendOptions<T>> to);
 
 	/**
-	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * Receive a message using {@link SqsReceiveOptions}.
 	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return The message, or an empty collection if none is returned.
 	 */
 	Optional<Message<?>> receive(Consumer<SqsReceiveOptions> from);
 
 	/**
-	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * Receive a message using {@link SqsReceiveOptions} and convert the payload to the provided class.
 	 * @param from a {@link SqsReceiveOptions} consumer.
+	 * @param payloadClass to class to convert the payload to.
 	 * @return The message, or an empty collection if none is returned.
 	 */
 	<T> Optional<Message<T>> receive(Consumer<SqsReceiveOptions> from, Class<T> payloadClass);
 
 	/**
-	 * Receive a batch of messages from a Standard SQS queue using {@link SqsReceiveOptions}.
+	 * Receive a batch of messages using {@link SqsReceiveOptions}.
 	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return The message, or an empty collection if none is returned.
 	 */
 	Collection<Message<?>> receiveMany(Consumer<SqsReceiveOptions> from);
 
 	/**
-	 * Receive a batch of messages from a Standard SQS queue using {@link SqsReceiveOptions}.
+	 * Receive a batch of messages using {@link SqsReceiveOptions} and convert the payloads to the provided class.
 	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return The message, or an empty collection if none is returned.
 	 */

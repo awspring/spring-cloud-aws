@@ -79,11 +79,7 @@ public interface AsyncMessagingOperations {
 
 	/**
 	 * Receive a message from the provided queue and convert the payload to the provided class. If no message is
-	 * returned after the specified {@link Duration}, an {@link Optional#empty()} is returned.
-	 * <p>
-	 * Any headers provided in the additional headers parameter will be added to the {@link Message} instances returned
-	 * by this method. The implementation can also allow some specific headers to change particular settings, in which
-	 * case the headers are removed before sending. See the implementation javadocs for more information.
+	 * returned after the default {@link Duration}, an {@link Optional#empty()} is returned.
 	 *
 	 * @param queue the queue from which to receive the messages.
 	 * @param payloadClass the class to which the payload should be converted to.
@@ -101,11 +97,7 @@ public interface AsyncMessagingOperations {
 
 	/**
 	 * Receive a batch of messages from the provided queue and convert the payloads to the provided class. If no message
-	 * is returned after the specified {@link Duration}, an empty collection is returned.
-	 * <p>
-	 * Any headers provided in the additional headers parameter will be added to the {@link Message} instances returned
-	 * by this method. The implementation can also allow some specific headers to change particular settings, in which
-	 * case the headers are removed before sending. See the implementation javadocs for more information.
+	 * is returned after the default {@link Duration}, an empty collection is returned.
 	 *
 	 * @param queue the queue from which to receive the messages.
 	 * @param payloadClass the class to which the payloads should be converted to.

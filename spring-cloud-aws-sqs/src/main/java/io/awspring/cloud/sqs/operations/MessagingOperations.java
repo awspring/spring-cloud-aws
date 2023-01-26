@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.operations;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
@@ -75,7 +76,11 @@ public interface MessagingOperations {
 	Optional<Message<?>> receive();
 
 	/**
-	 * Receive a message from the default queue with default settings.
+	 * Receive a message from the provided queue and convert the payload to the provided class. If no message is
+	 * returned after the default {@link Duration}, an {@link Optional#empty()} is returned.
+	 *
+	 * @param queue the queue from which to receive the messages.
+	 * @param payloadClass the class to which the payload should be converted to.
 	 * @return the message or {@link Optional#empty()} if none is returned.
 	 */
 	<T> Optional<Message<T>> receive(String queue, Class<T> payloadClass);
@@ -87,7 +92,11 @@ public interface MessagingOperations {
 	Collection<Message<?>> receiveMany();
 
 	/**
-	 * Receive a batch of messages from the default queue with default settings.
+	 * Receive a batch of messages from the provided queue and convert the payloads to the provided class. If no message
+	 * is returned after the default {@link Duration}, an empty collection is returned.
+	 *
+	 * @param queue the queue from which to receive the messages.
+	 * @param payloadClass the class to which the payloads should be converted to.
 	 * @return The messages, or an empty collection if none is returned.
 	 */
 	<T> Collection<Message<T>> receiveMany(String queue, Class<T> payloadClass);
