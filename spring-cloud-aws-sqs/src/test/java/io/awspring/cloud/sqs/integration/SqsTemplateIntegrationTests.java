@@ -97,7 +97,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SendResult<Object> result = template
 				.send(to -> to.queue(SENDS_AND_RECEIVES_MESSAGE_QUEUE_NAME).payload(testBody));
 		assertThat(result).isNotNull();
-		Optional<Message<Object>> receivedMessage = template
+		Optional<Message<?>> receivedMessage = template
 				.receive(from -> from.queue(SENDS_AND_RECEIVES_MESSAGE_QUEUE_NAME));
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testBody);
 	}
@@ -109,10 +109,11 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SendResult<SampleRecord> result = template.send(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME, testRecord);
 		assertThat(result).isNotNull();
 		Optional<Message<SampleRecord>> receivedMessage = template
-				.receive(from -> from.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME));
+				.receive(from -> from.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME), SampleRecord.class);
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testRecord);
-		Optional<Message<SampleRecord>> receivedMessage2 = template
-				.receive(from -> from.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME).pollTimeout(Duration.ofSeconds(1)));
+		Optional<Message<SampleRecord>> receivedMessage2 = template.receive(
+				from -> from.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME).pollTimeout(Duration.ofSeconds(1)),
+				SampleRecord.class);
 		assertThat(receivedMessage2).isEmpty();
 	}
 
@@ -126,7 +127,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SendResult<SampleRecord> result = template.send(
 				to -> to.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME).delaySeconds(delaySeconds).payload(testRecord));
 		Optional<Message<SampleRecord>> receivedMessage = template
-				.receive(from -> from.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME));
+				.receive(from -> from.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME), SampleRecord.class);
 		stopWatch.stop();
 		assertThat(stopWatch.getTotalTimeSeconds()).isGreaterThanOrEqualTo(1.0);
 		assertThat(result.message().getHeaders().get(SqsHeaders.SQS_DELAY_HEADER)).isEqualTo(delaySeconds);
@@ -146,7 +147,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 				.header(myCustomHeader, myCustomValue).headers(Map.of(myCustomHeader2, myCustomValue2)));
 		Optional<Message<SampleRecord>> receivedMessage = template
 				.receive(from -> from.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME)
-						.additionalHeaders(Map.of(myCustomHeader3, myCustomValue3)));
+						.additionalHeaders(Map.of(myCustomHeader3, myCustomValue3)), SampleRecord.class);
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getHeaders)
 				.asInstanceOf(InstanceOfAssertFactories.MAP)
 				.containsKeys(myCustomHeader, myCustomHeader2, myCustomHeader3)
@@ -162,15 +163,15 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		template.send(to -> to.payload(testRecord));
 		Optional<Message<SampleRecord>> receivedMessage = template
-				.receive(from -> from.visibilityTimeout(Duration.ofSeconds(1)));
+				.receive(from -> from.visibilityTimeout(Duration.ofSeconds(1)), SampleRecord.class);
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testRecord);
 		Optional<Message<SampleRecord>> receivedMessage2 = template
-				.receive(from -> from.visibilityTimeout(Duration.ofSeconds(1)));
+				.receive(from -> from.visibilityTimeout(Duration.ofSeconds(1)), SampleRecord.class);
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testRecord);
 		Message<SampleRecord> message = receivedMessage2.get();
 		Acknowledgement.acknowledge(message);
 		Optional<Message<SampleRecord>> receivedMessage3 = template
-				.receive(from -> from.pollTimeout(Duration.ofSeconds(1)));
+				.receive(from -> from.pollTimeout(Duration.ofSeconds(1)), SampleRecord.class);
 		assertThat(receivedMessage3).isEmpty();
 	}
 
@@ -186,12 +187,13 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 				messagesToSend);
 		Collection<Message<SampleRecord>> receivedMessages = template
 				.receiveMany(from -> from.queue(SENDS_AND_RECEIVES_BATCH_QUEUE_NAME).pollTimeout(Duration.ofSeconds(10))
-						.maxNumberOfMessages(10).visibilityTimeout(Duration.ofSeconds(1)));
+						.maxNumberOfMessages(10).visibilityTimeout(Duration.ofSeconds(1)), SampleRecord.class);
 		assertThat(receivedMessages.stream().map(Message::getPayload).toList()).hasSize(5)
 				.containsExactlyElementsOf(messagesToSend.stream().map(Message::getPayload).toList());
 		Acknowledgement.acknowledge(receivedMessages);
 		Collection<Message<SampleRecord>> noMessages = template.receiveMany(
-				from -> from.queue(SENDS_AND_RECEIVES_BATCH_QUEUE_NAME).pollTimeout(Duration.ofSeconds(2)));
+				from -> from.queue(SENDS_AND_RECEIVES_BATCH_QUEUE_NAME).pollTimeout(Duration.ofSeconds(2)),
+				SampleRecord.class);
 		assertThat(noMessages).isEmpty();
 	}
 
@@ -201,7 +203,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SqsOperations template = SqsTemplate.newTemplate(this.asyncClient);
 		SendResult<Object> result = template
 				.send(to -> to.queue(SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME).payload(testBody));
-		Optional<Message<Object>> receivedMessage = template
+		Optional<Message<?>> receivedMessage = template
 				.receive(from -> from.queue(SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME));
 		assertThat(receivedMessage).isPresent().get().isInstanceOfSatisfying(Message.class, message -> {
 			assertThat(message.getPayload()).isEqualTo(testBody);
@@ -244,7 +246,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		});
 		List<Message<SampleRecord>> receivedMessages = new ArrayList<>(
 				template.receiveMany(from -> from.queue(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME)
-						.pollTimeout(Duration.ofSeconds(10)).maxNumberOfMessages(10)));
+						.pollTimeout(Duration.ofSeconds(10)).maxNumberOfMessages(10), SampleRecord.class));
 		IntStream.range(0, batchSize).forEach(index -> {
 			SendResult<SampleRecord> result = successful.get(index);
 			Message<SampleRecord> originalMessage = messagesToSend.get(index);
@@ -275,13 +277,13 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SendResult<SampleRecord> result = template.send(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME, testRecord);
 		assertThat(result).isNotNull();
 		Optional<Message<SampleRecord>> receivedMessage = template
-				.receive(from -> from.queue(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME).payloadClass(SampleRecord.class));
+				.receive(from -> from.queue(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME), SampleRecord.class);
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testRecord);
 	}
 
 	@Test
 	void shouldReceiveEmptyMessage() {
-		Optional<Message<Object>> receivedMessage = SqsTemplate.newTemplate(this.asyncClient)
+		Optional<Message<?>> receivedMessage = SqsTemplate.newTemplate(this.asyncClient)
 				.receive(from -> from.queue(EMPTY_QUEUE_NAME).pollTimeout(Duration.ofSeconds(1)));
 		assertThat(receivedMessage).isEmpty();
 	}

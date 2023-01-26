@@ -26,7 +26,6 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  */
 public interface SqsTemplateOptions extends MessagingTemplateOptions<SqsTemplateOptions> {
 
-
 	/**
 	 * Set the default queue for this template. Default is blank.
 	 *

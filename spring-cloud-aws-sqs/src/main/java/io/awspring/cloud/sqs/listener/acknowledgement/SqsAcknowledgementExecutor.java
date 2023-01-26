@@ -85,7 +85,7 @@ public class SqsAcknowledgementExecutor<T>
 			Throwable e) {
 		return new SqsAcknowledgementException(
 				"Error acknowledging messages " + MessageHeaderUtils.getId(messagesToAck), Collections.emptyList(),
-				messagesToAck, this.queueUrl, e);
+				messagesToAck.stream().map(msg -> (Message<?>) msg).collect(Collectors.toList()), this.queueUrl, e);
 	}
 
 	// @formatter:off

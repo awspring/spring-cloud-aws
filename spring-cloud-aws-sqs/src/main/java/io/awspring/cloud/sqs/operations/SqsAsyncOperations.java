@@ -24,13 +24,7 @@ import org.springframework.messaging.Message;
 
 /**
  * Sqs-specific asynchronous messaging operations for Standard and Fifo queues.
- * <p>
- * Note that the Standard queue methods can be used for Fifo queues as long as necessary headers are added for required
- * attributes such as message deduplication id. See {@link io.awspring.cloud.sqs.listener.SqsHeaders} for reference of
- * available headers.
- * <p>
- * Fifo queue methods accept the required attributes and add a random value if none is specified.
- * 
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
@@ -49,7 +43,15 @@ public interface SqsAsyncOperations extends AsyncMessagingOperations {
 	 * @return a {@link CompletableFuture} to be completed with the message, or {@link Optional#empty()} if none is
 	 * returned.
 	 */
-	<T> CompletableFuture<Optional<Message<T>>> receiveAsync(Consumer<SqsReceiveOptions<T>> from);
+	CompletableFuture<Optional<Message<?>>> receiveAsync(Consumer<SqsReceiveOptions> from);
+
+	/**
+	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * @param from a {@link SqsReceiveOptions} consumer.
+	 * @return a {@link CompletableFuture} to be completed with the message, or {@link Optional#empty()} if none is
+	 * returned.
+	 */
+	<T> CompletableFuture<Optional<Message<T>>> receiveAsync(Consumer<SqsReceiveOptions> from, Class<T> payloadClass);
 
 	/**
 	 * Receive a batch of messages from a Standard SQS queue using the {@link SqsReceiveOptions} options.
@@ -57,6 +59,15 @@ public interface SqsAsyncOperations extends AsyncMessagingOperations {
 	 * @return a {@link CompletableFuture} to be completed with the messages, or an empty collection if none is
 	 * returned.
 	 */
-	<T> CompletableFuture<Collection<Message<T>>> receiveManyAsync(Consumer<SqsReceiveOptions<T>> from);
+	CompletableFuture<Collection<Message<?>>> receiveManyAsync(Consumer<SqsReceiveOptions> from);
+
+	/**
+	 * Receive a batch of messages from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * @param from a {@link SqsReceiveOptions} consumer.
+	 * @return a {@link CompletableFuture} to be completed with the messages, or an empty collection if none is
+	 * returned.
+	 */
+	<T> CompletableFuture<Collection<Message<T>>> receiveManyAsync(Consumer<SqsReceiveOptions> from,
+			Class<T> payloadClass);
 
 }

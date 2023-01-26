@@ -41,8 +41,8 @@ public class SqsAcknowledgementException extends SqsException {
 	 * @param queue the queue from which the messages were received from.
 	 * @param <T> the messages payload type.
 	 */
-	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> successfullyAcknowledgedMessages,
-			Collection<Message<T>> failedAcknowledgementMessages, String queue) {
+	public SqsAcknowledgementException(String errorMessage, Collection<Message<?>> successfullyAcknowledgedMessages,
+			Collection<Message<?>> failedAcknowledgementMessages, String queue) {
 		this(errorMessage, successfullyAcknowledgedMessages, failedAcknowledgementMessages, queue, null);
 	}
 
@@ -54,8 +54,8 @@ public class SqsAcknowledgementException extends SqsException {
 	 * @param cause the exception cause.
 	 * @param <T> the messages payload type.
 	 */
-	public <T> SqsAcknowledgementException(String errorMessage, Collection<Message<T>> successfullyAcknowledgedMessages,
-			Collection<Message<T>> failedAcknowledgementMessages, String queue, @Nullable Throwable cause) {
+	public SqsAcknowledgementException(String errorMessage, Collection<Message<?>> successfullyAcknowledgedMessages,
+			Collection<Message<?>> failedAcknowledgementMessages, String queue, @Nullable Throwable cause) {
 		super(errorMessage, cause);
 		this.queue = queue;
 		this.failedAcknowledgementMessages = failedAcknowledgementMessages.stream().map(msg -> (Message<?>) msg)

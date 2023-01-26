@@ -163,38 +163,75 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	}
 
 	@Override
-	public <T> Optional<org.springframework.messaging.Message<T>> receive(Consumer<SqsReceiveOptions<T>> from) {
+	public Optional<org.springframework.messaging.Message<?>> receive(Consumer<SqsReceiveOptions> from) {
 		return unwrapCompletionException(receiveAsync(from));
 	}
 
 	@Override
-	public <T> Collection<org.springframework.messaging.Message<T>> receiveMany(Consumer<SqsReceiveOptions<T>> from) {
+	public <T> Optional<org.springframework.messaging.Message<T>> receive(Consumer<SqsReceiveOptions> from,
+			Class<T> payloadClass) {
+		return unwrapCompletionException(receiveAsync(from, payloadClass));
+	}
+
+	@Override
+	public Collection<org.springframework.messaging.Message<?>> receiveMany(Consumer<SqsReceiveOptions> from) {
 		return unwrapCompletionException(receiveManyAsync(from));
 	}
 
 	@Override
-	public <T> CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveAsync(
-			Consumer<SqsReceiveOptions<T>> from) {
+	public <T> Collection<org.springframework.messaging.Message<T>> receiveMany(Consumer<SqsReceiveOptions> from,
+			Class<T> payloadClass) {
+		return unwrapCompletionException(receiveManyAsync(from, payloadClass));
+	}
+
+	@Override
+	public CompletableFuture<Optional<org.springframework.messaging.Message<?>>> receiveAsync(
+			Consumer<SqsReceiveOptions> from) {
 		Assert.notNull(from, "from must not be null");
-		SqsReceiveOptionsImpl<T> options = new SqsReceiveOptionsImpl<>();
+		SqsReceiveOptionsImpl options = new SqsReceiveOptionsImpl();
 		from.accept(options);
 		Assert.isTrue(options.maxNumberOfMessages == null || options.maxNumberOfMessages == 1,
 				"maxNumberOfMessages must be null or 1. Use receiveMany to receive more messages.");
-		Map<String, Object> additionalHeaders = addFifoReceiveHeaders(options);
-		return receiveAsync(options.queue, options.payloadClass, options.pollTimeout, additionalHeaders);
+		Map<String, Object> additionalHeaders = addAdditionalReceiveHeaders(options);
+		return receiveAsync(options.queue, null, options.pollTimeout, additionalHeaders);
+	}
+
+	@Override
+	public <T> CompletableFuture<Optional<org.springframework.messaging.Message<T>>> receiveAsync(
+			Consumer<SqsReceiveOptions> from, Class<T> payloadClass) {
+		Assert.notNull(from, "from must not be null");
+		Assert.notNull(payloadClass, "payloadClass must not be null");
+		SqsReceiveOptionsImpl options = new SqsReceiveOptionsImpl();
+		from.accept(options);
+		Assert.isTrue(options.maxNumberOfMessages == null || options.maxNumberOfMessages == 1,
+				"maxNumberOfMessages must be null or 1. Use receiveMany to receive more messages.");
+		Map<String, Object> additionalHeaders = addAdditionalReceiveHeaders(options);
+		return receiveAsync(options.queue, payloadClass, options.pollTimeout, additionalHeaders)
+				.thenApply(super::castFromOptional);
+	}
+
+	@Override
+	public CompletableFuture<Collection<org.springframework.messaging.Message<?>>> receiveManyAsync(
+			Consumer<SqsReceiveOptions> from) {
+		Assert.notNull(from, "from must not be null");
+		SqsReceiveOptionsImpl options = new SqsReceiveOptionsImpl();
+		from.accept(options);
+		return receiveManyAsync(options.queue, null, options.pollTimeout, options.maxNumberOfMessages,
+				addAdditionalReceiveHeaders(options));
 	}
 
 	@Override
 	public <T> CompletableFuture<Collection<org.springframework.messaging.Message<T>>> receiveManyAsync(
-			Consumer<SqsReceiveOptions<T>> from) {
+			Consumer<SqsReceiveOptions> from, Class<T> payloadClass) {
 		Assert.notNull(from, "from must not be null");
-		SqsReceiveOptionsImpl<T> options = new SqsReceiveOptionsImpl<>();
+		Assert.notNull(payloadClass, "payloadClass must not be null");
+		SqsReceiveOptionsImpl options = new SqsReceiveOptionsImpl();
 		from.accept(options);
-		return receiveManyAsync(options.queue, options.payloadClass, options.pollTimeout, options.maxNumberOfMessages,
-				addFifoReceiveHeaders(options));
+		return receiveManyAsync(options.queue, payloadClass, options.pollTimeout, options.maxNumberOfMessages,
+				addAdditionalReceiveHeaders(options)).thenApply(super::castFromCollection);
 	}
 
-	private Map<String, Object> addFifoReceiveHeaders(SqsReceiveOptionsImpl<?> options) {
+	private Map<String, Object> addAdditionalReceiveHeaders(SqsReceiveOptionsImpl options) {
 		Map<String, Object> additionalHeaders = new HashMap<>(options.additionalHeaders);
 		if (options.visibilityTimeout != null) {
 			additionalHeaders.put(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, options.visibilityTimeout);
@@ -387,8 +424,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	}
 
 	@Override
-	protected <T> CompletableFuture<Void> doAcknowledgeMessages(String endpointName,
-			Collection<org.springframework.messaging.Message<T>> messages) {
+	protected CompletableFuture<Void> doAcknowledgeMessages(String endpointName,
+			Collection<org.springframework.messaging.Message<?>> messages) {
 		return deleteMessages(endpointName, messages);
 	}
 
@@ -412,9 +449,10 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		return headers;
 	}
 
-	private <T> CompletableFuture<Void> deleteMessages(String endpointName,
-			Collection<org.springframework.messaging.Message<T>> messages) {
-		logger.trace("Acknowledging in queue {} messages {}", endpointName, MessageHeaderUtils.getId(messages));
+	private CompletableFuture<Void> deleteMessages(String endpointName,
+			Collection<org.springframework.messaging.Message<?>> messages) {
+		logger.trace("Acknowledging in queue {} messages {}", endpointName,
+				MessageHeaderUtils.getId(addTypeToMessages(messages)));
 		return getQueueAttributes(endpointName)
 				.thenCompose(attributes -> this.sqsAsyncClient.deleteMessageBatch(DeleteMessageBatchRequest.builder()
 						.queueUrl(attributes.getQueueUrl()).entries(createDeleteMessageEntries(messages)).build()))
@@ -429,8 +467,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 				});
 	}
 
-	private <T> Collection<org.springframework.messaging.Message<T>> getFailedAckMessages(
-			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<T>> messages,
+	private Collection<org.springframework.messaging.Message<?>> getFailedAckMessages(
+			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<?>> messages,
 			String endpointName) {
 		return response.failed().stream().map(BatchResultErrorEntry::id)
 				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst()
@@ -440,8 +478,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 				.collect(Collectors.toList());
 	}
 
-	private <T> Collection<org.springframework.messaging.Message<T>> getSuccessfulAckMessages(
-			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<T>> messages,
+	private Collection<org.springframework.messaging.Message<?>> getSuccessfulAckMessages(
+			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<?>> messages,
 			String endpointName) {
 		return response.successful().stream().map(DeleteMessageBatchResultEntry::id)
 				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst()
@@ -451,31 +489,31 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 				.collect(Collectors.toList());
 	}
 
-	private <T> CompletableFuture<DeleteMessageBatchResponse> createAcknowledgementException(String endpointName,
-			Collection<org.springframework.messaging.Message<T>> successfulAckMessages,
-			Collection<org.springframework.messaging.Message<T>> failedAckMessages, @Nullable Throwable t) {
+	private CompletableFuture<DeleteMessageBatchResponse> createAcknowledgementException(String endpointName,
+			Collection<org.springframework.messaging.Message<?>> successfulAckMessages,
+			Collection<org.springframework.messaging.Message<?>> failedAckMessages, @Nullable Throwable t) {
 		return CompletableFuture.failedFuture(new SqsAcknowledgementException("Error acknowledging messages",
 				successfulAckMessages, failedAckMessages, endpointName, t));
 	}
 
-	private <T> void logAcknowledgement(String endpointName,
-			Collection<org.springframework.messaging.Message<T>> messages, DeleteMessageBatchResponse response,
-			@Nullable Throwable t) {
+	private void logAcknowledgement(String endpointName, Collection<org.springframework.messaging.Message<?>> messages,
+			DeleteMessageBatchResponse response, @Nullable Throwable t) {
 		if (t != null) {
 			logger.error("Error acknowledging in queue {} messages {}", endpointName,
-					MessageHeaderUtils.getId(messages));
+					MessageHeaderUtils.getId(addTypeToMessages(messages)));
 		}
 		else if (!response.failed().isEmpty()) {
-			logger.error("Some messages could not be acknowledged in queue {}: {}", endpointName,
+			logger.warn("Some messages could not be acknowledged in queue {}: {}", endpointName,
 					response.failed().stream().map(BatchResultErrorEntry::id).toList());
 		}
 		else {
-			logger.trace("Acknowledged messages in queue {}: {}", endpointName, MessageHeaderUtils.getId(messages));
+			logger.trace("Acknowledged messages in queue {}: {}", endpointName,
+					MessageHeaderUtils.getId(addTypeToMessages(messages)));
 		}
 	}
 
-	private <T> Collection<DeleteMessageBatchRequestEntry> createDeleteMessageEntries(
-			Collection<org.springframework.messaging.Message<T>> messages) {
+	private Collection<DeleteMessageBatchRequestEntry> createDeleteMessageEntries(
+			Collection<org.springframework.messaging.Message<?>> messages) {
 		return messages.stream()
 				.map(message -> DeleteMessageBatchRequestEntry.builder().id(MessageHeaderUtils.getId(message))
 						.receiptHandle(
@@ -701,7 +739,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	}
 
-	private static class SqsReceiveOptionsImpl<T> implements SqsReceiveOptions<T> {
+	private static class SqsReceiveOptionsImpl implements SqsReceiveOptions {
 
 		protected final Map<String, Object> additionalHeaders = new HashMap<>();
 
@@ -715,44 +753,34 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		protected Duration visibilityTimeout;
 
 		@Nullable
-		protected Class<T> payloadClass;
-
-		@Nullable
 		protected Integer maxNumberOfMessages;
 
 		@Nullable
 		private UUID receiveRequestAttemptId;
 
 		@Override
-		public SqsReceiveOptionsImpl<T> queue(String queue) {
+		public SqsReceiveOptionsImpl queue(String queue) {
 			Assert.notNull(queue, "queue must not be null");
 			this.queue = queue;
 			return this;
 		}
 
 		@Override
-		public SqsReceiveOptionsImpl<T> pollTimeout(Duration pollTimeout) {
+		public SqsReceiveOptionsImpl pollTimeout(Duration pollTimeout) {
 			Assert.notNull(pollTimeout, "pollTimeout must not be null");
 			this.pollTimeout = pollTimeout;
 			return this;
 		}
 
 		@Override
-		public SqsReceiveOptionsImpl<T> payloadClass(Class<T> payloadClass) {
-			Assert.notNull(payloadClass, "payloadClass must not be null");
-			this.payloadClass = payloadClass;
-			return this;
-		}
-
-		@Override
-		public SqsReceiveOptionsImpl<T> visibilityTimeout(Duration visibilityTimeout) {
+		public SqsReceiveOptionsImpl visibilityTimeout(Duration visibilityTimeout) {
 			Assert.notNull(visibilityTimeout, "visibilityTimeout must not be null");
 			this.visibilityTimeout = visibilityTimeout;
 			return this;
 		}
 
 		@Override
-		public SqsReceiveOptionsImpl<T> maxNumberOfMessages(Integer maxNumberOfMessages) {
+		public SqsReceiveOptionsImpl maxNumberOfMessages(Integer maxNumberOfMessages) {
 			Assert.notNull(maxNumberOfMessages, "maxNumberOfMessages must not be null");
 			Assert.isTrue(maxNumberOfMessages > 0 && maxNumberOfMessages <= 10,
 					"maxNumberOfMessages must be between 0 and 10");
@@ -761,7 +789,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		}
 
 		@Override
-		public SqsReceiveOptionsImpl<T> additionalHeader(String name, Object value) {
+		public SqsReceiveOptionsImpl additionalHeader(String name, Object value) {
 			Assert.notNull(name, "name must not be null");
 			Assert.notNull(value, "value must not be null");
 			this.additionalHeaders.put(name, value);
@@ -769,14 +797,14 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		}
 
 		@Override
-		public SqsReceiveOptionsImpl<T> additionalHeaders(Map<String, Object> additionalHeaders) {
+		public SqsReceiveOptionsImpl additionalHeaders(Map<String, Object> additionalHeaders) {
 			Assert.notNull(additionalHeaders, "additionalHeaders must not be null");
 			this.additionalHeaders.putAll(additionalHeaders);
 			return this;
 		}
 
 		@Override
-		public SqsReceiveOptionsImpl<T> receiveRequestAttemptId(UUID receiveRequestAttemptId) {
+		public SqsReceiveOptionsImpl receiveRequestAttemptId(UUID receiveRequestAttemptId) {
 			Assert.notNull(receiveRequestAttemptId, "receiveRequestAttemptId must not be null");
 			this.receiveRequestAttemptId = receiveRequestAttemptId;
 			return this;
@@ -795,8 +823,11 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		@Override
 		public CompletableFuture<Void> onAcknowledge(Collection<org.springframework.messaging.Message<T>> messages) {
 			return messages.isEmpty() ? CompletableFuture.completedFuture(null)
-					: deleteMessages(MessageHeaderUtils.getHeaderAsString(messages.iterator().next(),
-							SqsHeaders.SQS_QUEUE_NAME_HEADER), messages);
+					: deleteMessages(
+							MessageHeaderUtils.getHeaderAsString(messages.iterator().next(),
+									SqsHeaders.SQS_QUEUE_NAME_HEADER),
+							messages.stream().map(msg -> (org.springframework.messaging.Message<?>) msg)
+									.collect(Collectors.toList()));
 		}
 	}
 

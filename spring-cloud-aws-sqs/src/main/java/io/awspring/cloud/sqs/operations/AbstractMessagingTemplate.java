@@ -22,6 +22,7 @@ import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -87,50 +88,68 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	}
 
 	@Override
-	public <T> Optional<Message<T>> receive() {
+	public Optional<Message<?>> receive() {
 		return unwrapCompletionException(receiveAsync());
 	}
 
 	@Override
-	public <T> Optional<Message<T>> receive(@Nullable String endpoint, @Nullable Class<T> payloadClass,
-			@Nullable Duration pollTimeout, @Nullable Map<String, Object> additionalHeaders) {
-		return unwrapCompletionException(receiveAsync(endpoint, payloadClass, pollTimeout, additionalHeaders));
+	public <T> Optional<Message<T>> receive(String queue, Class<T> payloadClass) {
+		return unwrapCompletionException(receiveAsync(queue, payloadClass));
 	}
 
 	@Override
-	public <T> Collection<Message<T>> receiveMany() {
+	public Collection<Message<?>> receiveMany() {
 		return unwrapCompletionException(receiveManyAsync());
 	}
 
 	@Override
-	public <T> Collection<Message<T>> receiveMany(@Nullable String endpoint, @Nullable Class<T> payloadClass,
-			@Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
-			@Nullable Map<String, Object> additionalHeaders) {
-		return unwrapCompletionException(
-				receiveManyAsync(endpoint, payloadClass, pollTimeout, maxNumberOfMessages, additionalHeaders));
+	public <T> Collection<Message<T>> receiveMany(String queue, Class<T> payloadClass) {
+		Assert.notNull(queue, "queue cannot be null");
+		Assert.notNull(payloadClass, "payloadClass cannot be null");
+		return unwrapCompletionException(receiveManyAsync(queue, payloadClass));
 	}
 
 	@Override
-	public <T> CompletableFuture<Optional<Message<T>>> receiveAsync() {
+	public CompletableFuture<Optional<Message<?>>> receiveAsync() {
 		return receiveAsync(null, null, null, null);
 	}
 
 	@Override
-	public <T> CompletableFuture<Optional<Message<T>>> receiveAsync(@Nullable String endpoint,
-			@Nullable Class<T> payloadClass, @Nullable Duration pollTimeout,
+	public <T> CompletableFuture<Optional<Message<T>>> receiveAsync(String queue, Class<T> payloadClass) {
+		Assert.notNull(queue, "queue cannot be null");
+		Assert.notNull(payloadClass, "payloadClass cannot be null");
+		return receiveAsync(queue, payloadClass, null, null).thenApply(this::castFromOptional);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <T> Optional<Message<T>> castFromOptional(Optional<Message<?>> optional) {
+		return optional.map(msg -> (Message<T>) msg);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <T> List<Message<T>> castFromCollection(Collection<Message<?>> msgs) {
+		return msgs.stream().map(msg -> (Message<T>) msg).toList();
+	}
+
+	protected CompletableFuture<Optional<Message<?>>> receiveAsync(@Nullable String endpoint,
+			@Nullable Class<?> payloadClass, @Nullable Duration pollTimeout,
 			@Nullable Map<String, Object> additionalHeaders) {
 		return receiveManyAsync(endpoint, payloadClass, pollTimeout, MAX_ONE_MESSAGE, additionalHeaders)
 				.thenApply(msgs -> msgs.isEmpty() ? Optional.empty() : Optional.of(msgs.iterator().next()));
 	}
 
 	@Override
-	public <T> CompletableFuture<Collection<Message<T>>> receiveManyAsync() {
+	public CompletableFuture<Collection<Message<?>>> receiveManyAsync() {
 		return receiveManyAsync(null, null, null, null, null);
 	}
 
 	@Override
-	public <T> CompletableFuture<Collection<Message<T>>> receiveManyAsync(@Nullable String endpoint,
-			@Nullable Class<T> payloadClass, @Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
+	public <T> CompletableFuture<Collection<Message<T>>> receiveManyAsync(String queue, Class<T> payloadClass) {
+		return receiveManyAsync(queue, payloadClass, null, null, null).thenApply(this::castFromCollection);
+	}
+
+	protected CompletableFuture<Collection<Message<?>>> receiveManyAsync(@Nullable String endpoint,
+			@Nullable Class<?> payloadClass, @Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
 			@Nullable Map<String, Object> additionalHeaders) {
 		String endpointToUse = getEndpointName(endpoint);
 		logger.trace("Receiving messages from endpoint {}", endpointToUse);
@@ -159,24 +178,12 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 		return preProcessHeadersForReceive(endpointToUse, headers);
 	}
 
-	private <T> Collection<Message<T>> convertReceivedMessages(String endpoint, @Nullable Class<T> payloadClass,
+	private Collection<Message<?>> convertReceivedMessages(String endpoint, @Nullable Class<?> payloadClass,
 			Collection<S> messages, Map<String, Object> additionalHeaders) {
 		return messages.stream()
 				.map(message -> convertReceivedMessage(getEndpointName(endpoint), message,
-						payloadClass != null ? payloadClass : maybeCastToDefaultClass()))
+						payloadClass != null ? payloadClass : this.defaultPayloadClass))
 				.map(message -> addAdditionalHeaders(message, additionalHeaders)).collect(Collectors.toList());
-	}
-
-	@SuppressWarnings("unchecked")
-	@Nullable
-	private <T> Class<T> maybeCastToDefaultClass() {
-		try {
-			return this.defaultPayloadClass != null ? (Class<T>) this.defaultPayloadClass : null;
-		}
-		catch (ClassCastException ex) {
-			throw new IllegalStateException("Could not cast defaultPayloadClass %s to the provided type."
-					.formatted(this.defaultPayloadClass.getSimpleName()));
-		}
 	}
 
 	protected <T> Message<T> addAdditionalHeaders(Message<T> message, Map<String, Object> additionalHeaders) {
@@ -186,15 +193,15 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 
 	protected abstract Map<String, Object> handleAdditionalHeaders(Map<String, Object> additionalHeaders);
 
-	private <T> CompletableFuture<Collection<Message<T>>> handleAcknowledgement(@Nullable String endpoint,
-			Collection<Message<T>> messages) {
+	private CompletableFuture<Collection<Message<?>>> handleAcknowledgement(@Nullable String endpoint,
+			Collection<Message<?>> messages) {
 		return TemplateAcknowledgementMode.ACKNOWLEDGE.equals(this.acknowledgementMode) && !messages.isEmpty()
 				? doAcknowledgeMessages(getEndpointName(endpoint), messages).thenApply(theVoid -> messages)
 				: CompletableFuture.completedFuture(messages);
 	}
 
-	protected abstract <T> CompletableFuture<Void> doAcknowledgeMessages(String endpointName,
-			Collection<Message<T>> messages);
+	protected abstract CompletableFuture<Void> doAcknowledgeMessages(String endpointName,
+			Collection<Message<?>> messages);
 
 	private String getEndpointName(@Nullable String endpoint) {
 		String endpointName = getOrDefault(endpoint, this.defaultEndpointName, "endpointName");
@@ -207,22 +214,27 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 				valueName + " not set and no default value provided");
 	}
 
-	@SuppressWarnings("unchecked")
-	private <T> Message<T> convertReceivedMessage(String endpoint, S message, @Nullable Class<T> payloadClass) {
+	private Message<?> convertReceivedMessage(String endpoint, S message, @Nullable Class<?> payloadClass) {
 		return this.messageConverter instanceof ContextAwareMessagingMessageConverter<S> contextConverter
-				? (Message<T>) contextConverter.toMessagingMessage(message,
+				? contextConverter.toMessagingMessage(message,
 						getReceiveMessageConversionContext(endpoint, payloadClass))
-				: (Message<T>) this.messageConverter.toMessagingMessage(message);
+				: this.messageConverter.toMessagingMessage(message);
 	}
 
-	private <T> void logReceiveMessageResult(String endpoint, @Nullable Collection<Message<T>> v,
+	private void logReceiveMessageResult(String endpoint, @Nullable Collection<Message<?>> messages,
 			@Nullable Throwable t) {
-		if (v != null) {
-			logger.trace("Received messages {} from endpoint {}", MessageHeaderUtils.getId(v), endpoint);
+		if (messages != null) {
+			logger.trace("Received messages {} from endpoint {}", MessageHeaderUtils.getId(addTypeToMessages(messages)),
+					endpoint);
 		}
 		else {
 			logger.error("Error receiving messages", t);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	protected Collection<Message<Object>> addTypeToMessages(Collection<Message<?>> messages) {
+		return messages.stream().map(message -> (Message<Object>) message).collect(Collectors.toList());
 	}
 
 	protected abstract CompletableFuture<Collection<S>> doReceiveAsync(String endpointName, Duration pollTimeout,

@@ -23,6 +23,7 @@ import org.springframework.messaging.Message;
 
 /**
  * Sqs-specific synchronous messaging operations for Standard and Fifo queues.
+ *
  * @author Tomaz Fernandes
  * @since 3.0
  */
@@ -40,13 +41,27 @@ public interface SqsOperations extends MessagingOperations {
 	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return The message, or an empty collection if none is returned.
 	 */
-	<T> Optional<Message<T>> receive(Consumer<SqsReceiveOptions<T>> from);
+	Optional<Message<?>> receive(Consumer<SqsReceiveOptions> from);
+
+	/**
+	 * Receive a message from a Standard SQS queue using the {@link SqsReceiveOptions} options.
+	 * @param from a {@link SqsReceiveOptions} consumer.
+	 * @return The message, or an empty collection if none is returned.
+	 */
+	<T> Optional<Message<T>> receive(Consumer<SqsReceiveOptions> from, Class<T> payloadClass);
 
 	/**
 	 * Receive a batch of messages from a Standard SQS queue using {@link SqsReceiveOptions}.
 	 * @param from a {@link SqsReceiveOptions} consumer.
 	 * @return The message, or an empty collection if none is returned.
 	 */
-	<T> Collection<Message<T>> receiveMany(Consumer<SqsReceiveOptions<T>> from);
+	Collection<Message<?>> receiveMany(Consumer<SqsReceiveOptions> from);
+
+	/**
+	 * Receive a batch of messages from a Standard SQS queue using {@link SqsReceiveOptions}.
+	 * @param from a {@link SqsReceiveOptions} consumer.
+	 * @return The message, or an empty collection if none is returned.
+	 */
+	<T> Collection<Message<T>> receiveMany(Consumer<SqsReceiveOptions> from, Class<T> payloadClass);
 
 }
