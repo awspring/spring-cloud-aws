@@ -23,9 +23,13 @@ import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesResolver;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -39,6 +43,7 @@ import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
  * Integration tests for {@link QueueAttributesResolver}.
  *
  * @author Tomaz Fernandes
+ * @author Adrian Stoelken
  */
 @SpringBootTest(classes = SqsBootstrapConfiguration.class)
 class QueueAttributesResolverIntegrationTests extends BaseSqsIntegrationTest {
@@ -127,6 +132,42 @@ class QueueAttributesResolverIntegrationTests extends BaseSqsIntegrationTest {
 		finally {
 			client.deleteQueue(DeleteQueueRequest.builder().queueUrl(queueUrl).build()).join();
 		}
+	}
+
+	@Test
+	void shouldResolveFromArn() throws MalformedURLException {
+		String queueName = "should-get-queue-from-arn";
+		SqsAsyncClient client = createAsyncClient();
+		String queueUrl = client.createQueue(CreateQueueRequest.builder().queueName(queueName).build()).join().queueUrl();
+		String region = useLocalStackClient
+			? localstack.getRegion()
+			: new URL(queueUrl).getHost().split("\\.")[1];
+
+		Pattern accountIdPattern = Pattern.compile("\\d{12}");
+		Matcher accountIdMatcher = accountIdPattern.matcher(queueUrl);
+		String accountId = "";
+		if (accountIdMatcher.find()){
+			accountId = accountIdMatcher.group();
+		}
+
+		String queueArn = "arn:aws:sqs:%s:%s:%s".formatted(region, accountId, queueName);
+
+		QueueAttributesResolver resolver = QueueAttributesResolver
+				.builder()
+				.sqsAsyncClient(client)
+				.queueName(queueArn)
+				.queueNotFoundStrategy(QueueNotFoundStrategy.CREATE)
+			.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
+			.build();
+			try {
+				QueueAttributes attributes = resolver.resolveQueueAttributes().join();
+				assertThat(attributes.getQueueUrl()).isEqualTo(queueUrl);
+				assertThat(attributes.getQueueName()).isEqualTo(queueArn);
+				assertThat(attributes.getQueueAttribute(QueueAttributeName.QUEUE_ARN)).isEqualTo(queueArn);
+			}
+			finally {
+				client.deleteQueue(DeleteQueueRequest.builder().queueUrl(queueUrl).build()).join();
+			}
 	}
 	// @formatter:on
 
