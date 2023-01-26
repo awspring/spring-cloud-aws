@@ -158,7 +158,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	void shouldSendAndReceiveWithManualAcknowledgement() {
 		SqsTemplate template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
 				.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL)
-						.defaultEndpointName(SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME))
+						.defaultQueue(SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME))
 				.build();
 		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
 		template.send(to -> to.payload(testRecord));

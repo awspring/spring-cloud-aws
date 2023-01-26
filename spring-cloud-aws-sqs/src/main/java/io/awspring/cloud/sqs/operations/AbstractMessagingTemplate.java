@@ -442,11 +442,13 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 			return self();
 		}
 
-		@Override
-		public O defaultEndpointName(String defaultEndpointName) {
-			Assert.hasText(defaultEndpointName, "defaultEndpointName must have text");
+		/**
+		 * Subclasses should have a method with a more specific name and delegate to this.
+		 * @param defaultEndpointName the default endpoint name.
+		 */
+		protected void defaultEndpointName(String defaultEndpointName) {
+			Assert.notNull(defaultEndpointName, "defaultEndpointName must not be null");
 			this.defaultEndpointName = defaultEndpointName;
-			return self();
 		}
 
 		@Override

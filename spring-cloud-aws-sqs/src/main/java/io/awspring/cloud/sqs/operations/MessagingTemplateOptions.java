@@ -60,14 +60,6 @@ public interface MessagingTemplateOptions<O extends MessagingTemplateOptions<O>>
 	O defaultMaxNumberOfMessages(Integer defaultMaxNumberOfMessages);
 
 	/**
-	 * Set the default endpoint for this template. Default is blank.
-	 *
-	 * @param defaultEndpointName the default endpoint.
-	 * @return the options instance.
-	 */
-	O defaultEndpointName(String defaultEndpointName);
-
-	/**
 	 * The default class to which this template should convert payloads to.
 	 *
 	 * @param defaultPayloadClass the default payload class.
