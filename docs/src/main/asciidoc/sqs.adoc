@@ -86,7 +86,7 @@ public class SQSConfiguration {
 
 [[sqs-template-send]]
 ==== SqsTemplate
-When using `Spring Boot` and autoconfiguration, a `SqsTemplate<Object>` instance is autowired by default in case no other template bean is found in the context.
+When using `Spring Boot` and autoconfiguration, a `SqsTemplate` instance is autowired by default in case no other template bean is found in the context.
 This template instance is backed by the autoconfigured `SqsAsyncClient`, with any configurations provided.
 `SqsTemplate` instances are immutable and thread-safe.
 
@@ -100,11 +100,11 @@ In case only sync or async operations are to be used, the corresponding interfac
 The following methods can be used to create new `SqsTemplate` instances with default options:
 
 ```java
-SqsTemplate<SampleRecord> template = SqsTemplate.newTemplate(sqsAsyncClient);
+SqsTemplate template = SqsTemplate.newTemplate(sqsAsyncClient);
 
-SqsOperations<SampleRecord> blockingTemplate = SqsTemplate.newSyncTemplate(sqsAsyncClient);
+SqsOperations blockingTemplate = SqsTemplate.newSyncTemplate(sqsAsyncClient);
 
-SqsAsyncOperations<SampleRecord> asyncTemplate = SqsTemplate.newAsyncTemplate(sqsAsyncClient);
+SqsAsyncOperations asyncTemplate = SqsTemplate.newAsyncTemplate(sqsAsyncClient);
 ```
 
 NOTE: The returned object is always the `SqsTemplate`, and the separate methods are only for convenience of the interface return type.
@@ -112,7 +112,7 @@ NOTE: The returned object is always the `SqsTemplate`, and the separate methods 
 In case more complex configuration is required, a builder is also provided, and a set of options:
 
 ```java
-SqsTemplate<SampleRecord> template = SqsTemplate.<SampleRecord>builder()
+SqsTemplate template = SqsTemplate.builder()
     .sqsAsyncClient(this.asyncClient)
         .configure(options -> options
                 .acknowledgementMode(TemplateAcknowledgementMode.MANUAL)
@@ -121,9 +121,6 @@ SqsTemplate<SampleRecord> template = SqsTemplate.<SampleRecord>builder()
 ```
 
 The builder also offers the `buildSyncTemplate()` method to return the template as `SqsOperations`, and `buildAsyncTemplate()` to return it as `SqsAsyncOperations`.
-
-NOTE: The generic class is used for compile time safety only.
-An `Object` generic type can be provided to create a template that can be used with different classes.
 
 
 ==== Template Options
@@ -217,31 +214,24 @@ Such attributes are available as `MessageHeaders` in received messages.
 
 ==== Sending Messages
 
-There are a number of available methods to send messages to `Standard` and `Fifo` queues using the `SqsTemplate`.
+There are a number of available methods to send messages to SQS queues using the `SqsTemplate`.
 The following methods are available through the `SqsOperations` interface, with the respective `async` counterparts available in the `SqsAsyncOperations`.
 
 ```java
 // Send a message to the configured default endpoint.
 SendResult<T> send(T payload);
 
-// Send a message to the provided endpoint (or default) with the given payload.
-SendResult<T> send(@Nullable String endpointName, T payload);
+// Send a message to the provided queue with the given payload.
+SendResult<T> send(String queue, T payload);
 
-// Send the given Message to the provided (or default) endpoint.
-SendResult<T> send(@Nullable String endpointName, Message<T> message);
-
-// Send a batch of Messages to the provided (or default) endpoint
-SendResult.Batch<T> sendMany(@Nullable String endpointName, Collection<Message<T>> messages);
+// Send the given Message to the provided queue.
+SendResult<T> send(String queue, Message<T> message);
 
 // Send a message with the provided options.
-SendResult<T> send(Consumer<SqsSendOptions.Standard<T>> to);
+SendResult<T> send(Consumer<SqsSendOptions> to);
 
-// Send a message to a FIFO queue and add relevant headers.
-SendResult<T> sendFifo(Consumer<SqsSendOptions.Fifo<T>> to);
-
-// Send a batch of Messages to a FIFO queue and add relevant headers.
-SendResult.Batch<T> sendManyFifo(String endpoint, Collection<Message<T>> messages);
-
+// Send a batch of Messages to the provided queue
+SendResult.Batch<T> sendMany(String queue, Collection<Message<T>> messages);
 ```
 
 An example using the `options` variant follows:
@@ -255,9 +245,10 @@ SendResult<String> result = template.send(to -> to.queue("myQueue")
 );
 ```
 
-The `Fifo` variant includes the options of specifying a `messageDeduplicationId` and a `messageGroupId`.
-If either values are not provided, a random `UUID` is generated.
+NOTE: To send messages to a Fifo queue, the options include `messageDeduplicationId` and `messageGroupId` properties.
+If either values are not provided, a random UUID is generated.
 The generated values can be retrieved in the headers of the `Message` contained in the `SendResult` object.
+
 
 ===== SendResult
 
@@ -312,7 +303,7 @@ Message conversion by default is handled by a `SqsMessagingMessageConverter` ins
 A custom `MessagingMessageConverter` implementation can be provided in the `SqsTemplate.builder()`:
 
 ```java
-SqsOperations<Object> template = SqsTemplate
+SqsOperations template = SqsTemplate
     .builder()
     .sqsAsyncClient(sqsAsyncClient)
     .messageConverter(converter)
@@ -322,7 +313,7 @@ SqsOperations<Object> template = SqsTemplate
 The default `SqsMessagingMessageConverter` instance can also be configured in the builder:
 
 ```java
-SqsOperations<Object> template = SqsTemplate
+SqsOperations template = SqsTemplate
     .builder()
     .sqsAsyncClient(sqsAsyncClient)
     .configureDefaultConverter(converter -> {
@@ -348,13 +339,9 @@ The `typeHeaderName` can be configured using the `setPayloadTypeHeader` method.
 In case type mapping information is not available, the payload class can be specified either in the <<template-options>> or in the `receive()` method variants:
 
 ```java
-Optional<Message<Object>> receivedMessage = template
-			.receive(from -> from.queue(queue)
-                .payloadClass(SampleRecord.class));
+Optional<Message<SampleRecord>> receivedMessage = template
+			.receive(queue, SampleRecord.class);
 ```
-
-NOTE: The payload class must be a subclass of the class specified in the `SqsTemplate` generics.
-For a more versatile template, `Object` can be used as the generic type.
 
 === Receiving Messages
 
@@ -373,31 +360,28 @@ The following methods are available through the `SqsOperations` interface, with 
 
 ```java
 // Receive a message from the configured default endpoint and options.
-Optional<Message<T>> receive();
+Optional<Message<?>> receive();
 
-// Receive a message with the provided parameters or their defaults if null.
-Optional<Message<T>> receive(@Nullable String endpointName, @Nullable Class<T> payloadClass,
-			@Nullable Duration pollTimeout, @Nullable Map<String, Object> additionalHeaders);
-
-// Receive a batch of messages from the configured default endpoint and options.
-Collection<Message<T>> receiveMany();
-
-// Receive a batch of messages with the provided parameters or their defaults if null.
-Collection<Message<T>> receiveMany(@Nullable String endpointName, @Nullable Class<T> payloadClass,
-        @Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
-        @Nullable Map<String, Object> additionalHeaders);
+// Receive a message from the provided queue and convert the payload to the provided class.
+<T> Optional<Message<T>> receive(String queue, Class<T> payloadClass);
 
 // Receive a message with the provided options.
-Optional<Message<T>> receive(Consumer<SqsReceiveOptions.Standard<T>> from);
+Optional<Message<?>> receive(Consumer<SqsReceiveOptions> from);
 
-// Receive a message from a Fifo queue with the provided options.
-Optional<Message<T>> receiveFifo(Consumer<SqsReceiveOptions.Fifo<T>> from);
+// Receive a message with the provided options and convert the payload to the provided class.
+<T> Optional<Message<T>> receive(Consumer<SqsReceiveOptions> from, Class<T> payloadClass);
+
+// Receive a batch of messages from the configured default endpoint and options.
+Collection<Message<?>> receiveMany();
+
+// Receive a batch of messages from the provided queue and convert the payloads to the provided class.
+<T> Collection<Message<T>> receiveMany(String queue, Class<T> payloadClass);
 
 // Receive a batch of messages with the provided options.
-Collection<Message<T>> receiveMany(Consumer<SqsReceiveOptions.Standard<T>> from);
+Collection<Message<?>> receiveMany(Consumer<SqsReceiveOptions> from);
 
-// Receive a batch of messages from a Fifo queue with the provided options.
-Collection<Message<T>> receiveManyFifo(Consumer<SqsReceiveOptions.Fifo<T>> from);
+// Receive a batch of messages with the provided options and convert the payloads to the provided class.
+<T> Collection<Message<T>> receiveMany(Consumer<SqsReceiveOptions> from, Class<T> payloadClass);
 ```
 
 The following is an example for receiving a message with options:
@@ -407,12 +391,13 @@ Optional<Message<SampleRecord>> receivedMessage = template
         .receive(from -> from.queue("my-queue")
                 .visibilityTimeout(Duration.ofSeconds(10))
                 .pollTimeout(Duration.ofSeconds(5))
-                .payloadClass(SampleRecord.class)
-                .additionalHeaders(Map.of("my-custom-header-name", "my-custom-header-value")));
+                .additionalHeaders(Map.of("my-custom-header-name", "my-custom-header-value")),
+		SampleRecord.class);
 ```
 
-The `Fifo` variant adds a `receiveRequestAttemptId` option.
-If none is provided, a random `UUID` is generated.
+NOTE: To receive messages from a Fifo queue, the options include a `receiveRequestAttemptId` parameter.
+If no such parameter is provided, a random one is generated.
+
 
 [[sqs-template-acknowledgement]]
 ===== SqsTemplate Acknowledgement
