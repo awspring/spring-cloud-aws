@@ -20,7 +20,6 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -87,13 +86,31 @@ class AwsSecretsManagerPropertySourceTest {
 	}
 
 	@Test
-	void throwsExceptionWhenSecretIsNotJsonSecret() {
+	void shouldProcessTextSecretWhenSecretIsNotJsonSecret() {
 		GetSecretValueResult secretValueResult = new GetSecretValueResult()
-				.withSecretString("plain text secret string, not json secret");
-		when(client.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(secretValueResult);
+				.withSecretString("plain text secret string, not json secret").withName("/config/myservice");
+		when(client.getSecretValue(secretValueRequestArgumentCaptor.capture())).thenReturn(secretValueResult);
 
-		assertThatThrownBy(() -> propertySource.init()).isInstanceOf(RuntimeException.class)
-				.extracting(Throwable::getCause).isInstanceOf(JsonProcessingException.class);
+		propertySource.init();
+
+		assertThat(secretValueRequestArgumentCaptor.getValue().getSecretId()).isEqualTo("/config/myservice");
+		assertThat(propertySource.getPropertyNames()).containsExactly("myservice");
+		assertThat(propertySource.getProperty("myservice")).isEqualTo("plain text secret string, not json secret");
+	}
+
+	@Test
+	void shouldProcessTextSecretWithPrefix() {
+		propertySource = new AwsSecretsManagerPropertySource("/config/myservice2?prefix=service2.", client);
+		GetSecretValueResult secretValueResult = new GetSecretValueResult()
+				.withSecretString("plain text secret string, not json secret").withName("/config/myservice2");
+		when(client.getSecretValue(secretValueRequestArgumentCaptor.capture())).thenReturn(secretValueResult);
+
+		propertySource.init();
+
+		assertThat(secretValueRequestArgumentCaptor.getValue().getSecretId()).isEqualTo("/config/myservice2");
+		assertThat(propertySource.getPropertyNames()).containsExactly("service2.myservice2");
+		assertThat(propertySource.getProperty("service2.myservice2"))
+				.isEqualTo("plain text secret string, not json secret");
 	}
 
 }
