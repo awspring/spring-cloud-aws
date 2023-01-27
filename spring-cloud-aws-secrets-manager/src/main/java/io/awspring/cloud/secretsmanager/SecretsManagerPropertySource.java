@@ -39,6 +39,7 @@ import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundExce
  * @author Fabio Maia
  * @author Maciej Walkowiak
  * @author Arun Patra
+ * @author Matej Nedic
  * @since 2.0.0
  */
 public class SecretsManagerPropertySource
@@ -124,7 +125,9 @@ public class SecretsManagerPropertySource
 		else {
 			String[] parts = secretValueResponse.name().split("/");
 			String secretName = parts[parts.length - 1];
-			properties.put(secretName, secretValueResponse.secretBinary().asByteArray());
+			LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretName);
+			String propertyKey = prefix != null ? prefix + secretName : secretName;
+			properties.put(propertyKey, secretValueResponse.secretBinary().asByteArray());
 		}
 	}
 
