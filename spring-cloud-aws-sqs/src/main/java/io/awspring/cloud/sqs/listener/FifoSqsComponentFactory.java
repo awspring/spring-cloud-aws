@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.FifoUtils;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
@@ -58,7 +59,7 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 
 	@Override
 	public boolean supports(Collection<String> queueNames, SqsContainerOptions options) {
-		return queueNames.stream().allMatch(name -> name.endsWith(".fifo"));
+		return FifoUtils.areAllFifo(queueNames);
 	}
 
 	@Override
@@ -96,7 +97,7 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 	}
 
 	private Function<Message<T>, String> getMessageGroupingFunction() {
-		return message -> MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER);
+		return message -> MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER);
 	}
 
 	@Override

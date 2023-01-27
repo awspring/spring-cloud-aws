@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.FifoUtils;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor;
@@ -45,7 +46,7 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 
 	@Override
 	public boolean supports(Collection<String> queueNames, SqsContainerOptions options) {
-		return queueNames.stream().noneMatch(name -> name.endsWith(".fifo"));
+		return FifoUtils.areNotFifo(queueNames);
 	}
 
 	@Override

@@ -17,11 +17,13 @@ package io.awspring.cloud.sqs.listener.acknowledgement;
 
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesAware;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -82,8 +84,8 @@ public class SqsAcknowledgementExecutor<T>
 	private SqsAcknowledgementException createAcknowledgementException(Collection<Message<T>> messagesToAck,
 			Throwable e) {
 		return new SqsAcknowledgementException(
-				"Error acknowledging messages " + MessageHeaderUtils.getId(messagesToAck), messagesToAck, this.queueUrl,
-				e);
+				"Error acknowledging messages " + MessageHeaderUtils.getId(messagesToAck), Collections.emptyList(),
+				messagesToAck.stream().map(msg -> (Message<?>) msg).collect(Collectors.toList()), this.queueUrl, e);
 	}
 
 	// @formatter:off

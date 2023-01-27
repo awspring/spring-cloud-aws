@@ -81,61 +81,336 @@ public class SQSConfiguration {
 ----
 
 === Sending Messages
-Spring Cloud AWS SQS autoconfigures a `SqsAsyncClient` bean that can be used for sending messages.
-Note that the payload has to be converted to a JSON String to be sent.
-A `SqsTemplate` should be included in a future milestone simplifying this process.
 
-Currently, a lightweight producer abstraction can be created to facilitate sending messages, such as:
+`Spring Cloud AWS` provides the `SqsTemplate` to send messages to `SQS`.
 
-[source,java]
-----
-@Component
-public class SqsSampleProducer {
+[[sqs-template-send]]
+==== SqsTemplate
+When using `Spring Boot` and autoconfiguration, a `SqsTemplate` instance is autowired by default in case no other template bean is found in the context.
+This template instance is backed by the autoconfigured `SqsAsyncClient`, with any configurations provided.
+`SqsTemplate` instances are immutable and thread-safe.
 
-    private final SqsAsyncClient sqsAsyncClient;
+NOTE: The endpoint to which the message will be sent can be either the queue name or URL.
 
-    private final ObjectMapper objectMapper;
+==== Creating a SqsTemplate Instance
 
-    public SqsSampleProducer(SqsAsyncClient sqsAsyncClient, ObjectMapper objectMapper) {
-        this.sqsAsyncClient = sqsAsyncClient;
-        this.objectMapper = objectMapper;
-    }
+`SqsTemplate` implements two `Operations` interfaces: `SqsOperations` contains blocking methods, and `SqsAsyncOperations` contains async methods that return `CompletableFuture` instances.
+In case only sync or async operations are to be used, the corresponding interface can be utilized to eliminate unnecessary methods.
 
-    public CompletableFuture<Void> sendToUrl(String queueUrl, Object payload) {
-        return this.sqsAsyncClient.sendMessage(request -> request.messageBody(getMessageBodyAsJson(payload)).queueUrl(queueUrl))
-                .thenRun(() -> {});
-    }
+The following methods can be used to create new `SqsTemplate` instances with default options:
 
-    public CompletableFuture<Void> send(String queueName, Object payload) {
-        return this.sqsAsyncClient.getQueueUrl(request -> request.queueName(queueName))
-                .thenApply(GetQueueUrlResponse::queueUrl)
-                .thenCompose(queueUrl -> sendToUrl(queueUrl, payload));
-    }
+```java
+SqsTemplate template = SqsTemplate.newTemplate(sqsAsyncClient);
 
-    private String getMessageBodyAsJson(Object payload) {
-        try {
-            return objectMapper.writeValueAsString(payload);
-        }
-        catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Error converting payload: " + payload, e);
-        }
-    }
+SqsOperations blockingTemplate = SqsTemplate.newSyncTemplate(sqsAsyncClient);
+
+SqsAsyncOperations asyncTemplate = SqsTemplate.newAsyncTemplate(sqsAsyncClient);
+```
+
+NOTE: The returned object is always the `SqsTemplate`, and the separate methods are only for convenience of the interface return type.
+
+In case more complex configuration is required, a builder is also provided, and a set of options:
+
+```java
+SqsTemplate template = SqsTemplate.builder()
+    .sqsAsyncClient(this.asyncClient)
+        .configure(options -> options
+                .acknowledgementMode(TemplateAcknowledgementMode.MANUAL)
+                .defaultEndpointName("my-queue"))
+        .build();
+```
+
+The builder also offers the `buildSyncTemplate()` method to return the template as `SqsOperations`, and `buildAsyncTemplate()` to return it as `SqsAsyncOperations`.
+
+
+==== Template Options
+
+The following options can be configured through the `options` object.
+The defaults are applied in case no other value is provided as a parameter in the operation method.
+
+===== TemplateOptions Descriptions
+[cols="12,5,5,16", options="header"]
+|===
+| Name
+| Type
+| Default
+| Description
+
+|`acknowledgementMode`
+|TemplateAcknowledgementMode
+|TemplateAcknowledgementMode
+#ACKNOWLEDGE_ON_RECEIVE
+|Whether messages should be acknowledged by the template after being received.
+Messages can be acknowledged later by using the `Acknowledgement#acknowledge` methods. See <<sqs-template-acknowledgement>> for more information.
+
+|`sendBatchFailureHandlingStrategy`
+|SendBatchFailureStrategy
+|SendBatchFailureStrategy
+#THROW
+|Whether a `SendBatchOperationFailedException` containing a `SendResult.Batch` instance should be thrown if at least one message from a sent batch fails to be delivered.
+With SendBatchFailureStrategy#DO_NOT_THROW, the `SendResult.Batch` object is returned.
+
+|`defaultPollTimeout`
+|Duration
+|10 seconds
+|The default maximum time to wait for messages when performing a receive request to SQS.
+See <<template-receive>> for more information.
+
+|`defaultMaxNumberOfMessages`
+|Integer
+|10
+|The default maximum of messages to be returned by a receive request to SQS.
+See <<template-receive>> for more information.
+
+|`defaultEndpointName`
+|String
+|blank
+|The default endpoint name to be used by the template.
+See <<template-receive>> for more information.
+
+|`defaultPayloadClass`
+|Class
+|null
+|The default class to which payloads should be converted to.
+Note that messages sent with the `SqsTemplate` by default contains a header with the type information, so no configuration is needed.
+See <<template-message-conversion>> for more information.
+
+|`additionalHeaderForReceive`
+|String, Object
+|empty
+|Set a single header to be added to all messages received by this template.
+
+|`additionalHeadersForReceive`
+|Map<String, Object>
+|empty
+|Set headers to be added to all messages received by this template.
+
+|`queueNotFoundStrategy`
+|QueueNotFoundStrategy
+|QueueNotFoundStrategy
+#CREATE
+|Set the strategy to use in case a queue is not found.
+With `QueueNotFoundStrategy#FAIL`, an exception is thrown in case a queue is not found.
+
+|`queueAttributeNames`
+|Collection<AttributeNames>
+|empty
+|Set the queue attribute names that will be retrieved.
+Such attributes are available as `MessageHeaders` in received messages.
+
+|`messageAttributeNames`
+|Collection<String>
+|All
+|Set the message attribute names that will be retrieved with messages on receive operations.
+Such attributes are available as `MessageHeaders` in received messages.
+
+|`messageSystemAttributeNames`
+|Collection
+<MessageSystemAttributeName>
+|All
+|Set the message system attribute names that will be retrieved with messages on receive operations.
+Such attributes are available as `MessageHeaders` in received messages.
+|===
+
+==== Sending Messages
+
+There are a number of available methods to send messages to SQS queues using the `SqsTemplate`.
+The following methods are available through the `SqsOperations` interface, with the respective `async` counterparts available in the `SqsAsyncOperations`.
+
+```java
+// Send a message to the configured default endpoint.
+SendResult<T> send(T payload);
+
+// Send a message to the provided queue with the given payload.
+SendResult<T> send(String queue, T payload);
+
+// Send the given Message to the provided queue.
+SendResult<T> send(String queue, Message<T> message);
+
+// Send a message with the provided options.
+SendResult<T> send(Consumer<SqsSendOptions> to);
+
+// Send a batch of Messages to the provided queue
+SendResult.Batch<T> sendMany(String queue, Collection<Message<T>> messages);
+```
+
+An example using the `options` variant follows:
+
+```java
+SendResult<String> result = template.send(to -> to.queue("myQueue")
+    .payload("myPayload")
+    .header("myHeaderName", "myHeaderValue")
+    .headers(Map.of("myOtherHeaderName", "myOtherHeaderValue"))
+    .delaySeconds(10)
+);
+```
+
+NOTE: To send messages to a Fifo queue, the options include `messageDeduplicationId` and `messageGroupId` properties.
+If either values are not provided, a random UUID is generated.
+The generated values can be retrieved in the headers of the `Message` contained in the `SendResult` object.
+
+
+===== SendResult
+
+The `SendResult` record contains useful information on the send operation.
+
+```java
+public record SendResult<T>(UUID messageId, String endpoint, Message<T> message, Map<String, Object> additionalInformation) {
+
+	public record Batch<T>(Collection<SendResult<T>> successful, Collection<SendResult.Failed<T>> failed) {}
+
+	public record Failed<T> (String errorMessage, String endpoint, Message<T> message, Map<String, Object> additionalInformation) {}
 
 }
-----
+```
 
-Modifications can be made to enable adding other attributes such as `MessageGroupId`, `MessageAttributes` and `MessageDeduplicationId`.
+When the send operation is successful, the `SendResult` object is created with:
 
-It can then be autowired and used such as:
+* the `messageId` returned from `SQS` for the message
+* the `endpoint` the message was sent to
+* the `Message` instance that was sent, with any additional headers that might have been added by the framework
+* an `additionalInformation` map with the `sequenceNumber` generated for the message in `Fifo` queues.
 
-`sampleProducer.send(queueName, new MyPojo("My value", "My Other Value")).join();`
+When the send operation fails for single message operations, a `MessagingOperationFailedException` containing the message is thrown.
 
-IMPORTANT: The `join()` method blocks the thread and throws any error from the operation. If a `CompletableFuture` chain is being used, simply return the value instead.
+For `Batch` send operations, a `SendResult.Batch` object is returned.
+This object contains a `Collection` of `successful` and `failed` results.
 
+In case there are messages that failed to be sent within a batch, corresponding `SendResult.Failed` objects are generated.
+The `SendBatch.Failed` object contains:
+
+* the `errorMessage` returned by SQS
+* the `endpoint` the message was to be sent to
+* the `Message` instance that was tried to be sent, with any additional headers that might have been added by the framework
+* an `additionalInformation` map with the `code` and `senderFault` parameters returned by SQS.
+
+By default, if there's at least one failed message in a send batch operation, a `SendBatchOperationFailedException` will be thrown.
+Such exception contains a `SendResult.Batch<?>` property containing both successful and failed messages.
+
+This behavior can be configured using the `sendBatchFailureHandlingStrategy` option when creating the template.
+If `SendBatchFailureStrategy#DO_NOT_THROW` is configured, no exception is thrown and a `SendResult.Batch` object containing both successful and failed messages is returned.
+
+For convenience, the `additionalInformation` parameters can be found as constants in the `SqsTemplateParameters` class.
+
+[[template-message-conversion]]
+==== Template Message Conversion
+
+Message conversion by default is handled by a `SqsMessagingMessageConverter` instance, which contains:
+
+* `SqsHeaderMapper` for mapping headers to and from `messageAttributes`
+* `CompositeMessageConverter` with a `StringMessageConverter` and a `MappingJackson2MessageConverter` for converting payloads to and from JSON.
+
+A custom `MessagingMessageConverter` implementation can be provided in the `SqsTemplate.builder()`:
+
+```java
+SqsOperations template = SqsTemplate
+    .builder()
+    .sqsAsyncClient(sqsAsyncClient)
+    .messageConverter(converter)
+    .buildSyncTemplate();
+```
+
+The default `SqsMessagingMessageConverter` instance can also be configured in the builder:
+
+```java
+SqsOperations template = SqsTemplate
+    .builder()
+    .sqsAsyncClient(sqsAsyncClient)
+    .configureDefaultConverter(converter -> {
+            converter.setObjectMapper(objectMapper);
+            converter.setHeaderMapper(headerMapper);
+            converter.setPayloadTypeHeader("my-custom-type-header");
+        }
+    )
+    .buildSyncTemplate();
+```
+
+===== Specifying a Payload Class for Receive Operations
+
+By default, the `SqsTemplate` adds a header with name `JavaType` containing the fully qualified name of the payload class to all messages sent.
+Such header is used in receive operations by the `SqsTemplate`, `SqsMessageListenerContainer` and `@SqsListener` to identify to which class the payload should be deserialized to.
+
+This behavior can be configured in the `SqsMessagingMessageConverter` using the `setPayloadTypeHeaderValueFunction` method.
+The function receives a `Message` object and returns a `String` with the value to be used in the header, the payload's class `FQCN` by default.
+If `null` is returned by the function, no header with type information is added.
+
+The `typeHeaderName` can be configured using the `setPayloadTypeHeader` method.
+
+In case type mapping information is not available, the payload class can be specified either in the <<template-options>> or in the `receive()` method variants:
+
+```java
+Optional<Message<SampleRecord>> receivedMessage = template
+			.receive(queue, SampleRecord.class);
+```
 
 === Receiving Messages
 
 The framework offers the following options to receive messages from a queue.
+
+[[template-receive]]
+==== SqsTemplate
+
+The `SqsTemplate` offers convenient methods to receive messages from `Standard` and `Fifo` SQS queues.
+These methods are separated into two interfaces that are implemented by `SqsTemplate`: `SqsOperations` and `SqsAsyncOperations`.
+If only `sync` or `async` operations are to be used, using the specific interface can narrow down the methods.
+
+See <<sqs-template-send>> for more information on the interfaces, <<creating-a-sqstemplate-instance>> and <<template-options>>.
+
+The following methods are available through the `SqsOperations` interface, with the respective `async` counterparts available in the `SqsAsyncOperations`.
+
+```java
+// Receive a message from the configured default endpoint and options.
+Optional<Message<?>> receive();
+
+// Receive a message from the provided queue and convert the payload to the provided class.
+<T> Optional<Message<T>> receive(String queue, Class<T> payloadClass);
+
+// Receive a message with the provided options.
+Optional<Message<?>> receive(Consumer<SqsReceiveOptions> from);
+
+// Receive a message with the provided options and convert the payload to the provided class.
+<T> Optional<Message<T>> receive(Consumer<SqsReceiveOptions> from, Class<T> payloadClass);
+
+// Receive a batch of messages from the configured default endpoint and options.
+Collection<Message<?>> receiveMany();
+
+// Receive a batch of messages from the provided queue and convert the payloads to the provided class.
+<T> Collection<Message<T>> receiveMany(String queue, Class<T> payloadClass);
+
+// Receive a batch of messages with the provided options.
+Collection<Message<?>> receiveMany(Consumer<SqsReceiveOptions> from);
+
+// Receive a batch of messages with the provided options and convert the payloads to the provided class.
+<T> Collection<Message<T>> receiveMany(Consumer<SqsReceiveOptions> from, Class<T> payloadClass);
+```
+
+The following is an example for receiving a message with options:
+
+```java
+Optional<Message<SampleRecord>> receivedMessage = template
+        .receive(from -> from.queue("my-queue")
+                .visibilityTimeout(Duration.ofSeconds(10))
+                .pollTimeout(Duration.ofSeconds(5))
+                .additionalHeaders(Map.of("my-custom-header-name", "my-custom-header-value")),
+		SampleRecord.class);
+```
+
+NOTE: To receive messages from a Fifo queue, the options include a `receiveRequestAttemptId` parameter.
+If no such parameter is provided, a random one is generated.
+
+
+[[sqs-template-acknowledgement]]
+===== SqsTemplate Acknowledgement
+
+The `SqsTemplate` by default acknowledges all received messages, which can be changed by setting `TemplateAcknowledgementMode.MANUAL` in the template options:
+
+```java
+SqsTemplate.builder().configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL));
+```
+
+If an error occurs during acknowledgement, a `SqsAcknowledgementException` is thrown, containing both the messages that were successfully acknowledged and those which failed.
+
+To acknowledge messages received with `MANUAL` acknowledgement, the `Acknowledgement#acknowledge` and `Acknowledgement#acknowledgeAsync` methods can be used.
 
 ==== Message Listeners
 
@@ -488,6 +763,7 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 
 
 ===== SqsContainerOptions Descriptions
+
 [cols="13,9,9,16", options="header"]
 |===
 | Property
@@ -1048,10 +1324,10 @@ IMPORTANT: If an immediate acknowledging triggers an error, message processing i
 ==== Manual Acknowledgement
 
 Acknowledgements can be handled manually by setting `AcknowledgementMode.MANUAL` in the `SqsContainerOptions`.
-
-Manual acknowledgement can be used in conjunction with acknowledgement batching - the message will be queued for acknowledgement but won't be executed until one of the above criteria is met.
-
+Manual acknowledgement can be used in conjunction with acknowledgement batching - the message will be queued for acknowledgement but won't be executed until one of the acknowledgement thresholds is reached.
 It can also be used in conjunction with immediate acknowledgement.
+
+The `Acknowledgement#acknowledge` and `Acknowledgement#acknowledgeAsync` methods are also available to acknowledge messages received in `MANUAL` acknowledgement mode.
 
 The following arguments can be used in listener methods to manually acknowledge:
 

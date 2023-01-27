@@ -23,11 +23,13 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -46,6 +48,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
  * {@link EnableAutoConfiguration Auto-configuration} for SQS integration.
  *
  * @author Tomaz Fernandes
+ * @author Maciej Walkowiak
  * @since 3.0
  */
 @AutoConfiguration
@@ -72,6 +75,15 @@ public class SqsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
+	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObjectProvider<ObjectMapper> objectMapperProvider) {
+		SqsTemplateBuilder builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
+		objectMapperProvider
+				.ifAvailable(om -> builder.configureDefaultConverter(converter -> converter.setObjectMapper(om)));
+		return builder.build();
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
 	public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(
 			ObjectProvider<SqsAsyncClient> sqsAsyncClient, ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
 			ObjectProvider<ErrorHandler<Object>> errorHandler,
@@ -88,7 +100,7 @@ public class SqsAutoConfiguration {
 		return factory;
 	}
 
-	private void configureContainerOptions(ContainerOptions.Builder options) {
+	private void configureContainerOptions(SqsContainerOptions.Builder options) {
 		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
 		mapper.from(this.sqsProperties.getListener().getMaxInflightMessagesPerQueue())
 				.to(options::maxInflightMessagesPerQueue);

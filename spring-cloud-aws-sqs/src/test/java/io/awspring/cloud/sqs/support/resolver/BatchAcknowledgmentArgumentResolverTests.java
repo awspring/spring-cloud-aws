@@ -21,7 +21,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
-import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.MessagingHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.BatchAcknowledgement;
 import java.util.Arrays;
@@ -131,7 +131,7 @@ class BatchAcknowledgmentArgumentResolverTests {
 
 	@NotNull
 	private MessageHeaders getMessageHeaders(AcknowledgementCallback<Object> callback) {
-		return new MessageHeaders(Collections.singletonMap(SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, callback));
+		return new MessageHeaders(Collections.singletonMap(MessagingHeaders.ACKNOWLEDGMENT_CALLBACK_HEADER, callback));
 	}
 
 }

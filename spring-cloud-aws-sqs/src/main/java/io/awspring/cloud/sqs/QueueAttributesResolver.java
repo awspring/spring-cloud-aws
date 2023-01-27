@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs;
 
-import io.awspring.cloud.sqs.CompletableFutures;
-import io.awspring.cloud.sqs.QueueAttributesResolvingException;
+import io.awspring.cloud.sqs.listener.QueueAttributes;
+import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -45,10 +46,11 @@ import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
  * {@link QueueAttributeName} collection.
  *
  * @author Tomaz Fernandes
+ * @author Agim Emruli
  * @author Adrian Stoelken
  * @since 3.0
- * @see ContainerOptions#getQueueAttributeNames()
- * @see ContainerOptions#getQueueNotFoundStrategy()
+ * @see SqsContainerOptions#getQueueAttributeNames()
+ * @see SqsContainerOptions#getQueueNotFoundStrategy()
  */
 public class QueueAttributesResolver {
 

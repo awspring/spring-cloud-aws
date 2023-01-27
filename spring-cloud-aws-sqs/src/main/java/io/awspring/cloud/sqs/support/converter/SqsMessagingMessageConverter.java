@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import org.springframework.messaging.Message;
-import org.springframework.messaging.support.HeaderMapper;
+import org.springframework.util.Assert;
 
 /**
  * {@link MessagingMessageConverter} implementation for converting SQS
@@ -31,18 +31,25 @@ public class SqsMessagingMessageConverter
 		extends AbstractMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
 
 	@Override
-	protected HeaderMapper<software.amazon.awssdk.services.sqs.model.Message> getDefaultHeaderMapper() {
+	protected HeaderMapper<software.amazon.awssdk.services.sqs.model.Message> createDefaultHeaderMapper() {
 		return new SqsHeaderMapper();
 	}
 
 	@Override
-	protected Object getPayloadToConvert(software.amazon.awssdk.services.sqs.model.Message message) {
+	protected Object getPayloadToDeserialize(software.amazon.awssdk.services.sqs.model.Message message) {
 		return message.body();
 	}
 
 	@Override
 	public MessageConversionContext createMessageConversionContext() {
 		return new SqsMessageConversionContext();
+	}
+
+	@Override
+	protected software.amazon.awssdk.services.sqs.model.Message doConvertMessage(
+			software.amazon.awssdk.services.sqs.model.Message messageWithHeaders, Object payload) {
+		Assert.isInstanceOf(String.class, payload, "payload must be instance of String");
+		return messageWithHeaders.toBuilder().body((String) payload).build();
 	}
 
 }

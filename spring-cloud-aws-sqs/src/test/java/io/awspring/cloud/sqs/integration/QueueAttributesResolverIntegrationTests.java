@@ -18,10 +18,10 @@ package io.awspring.cloud.sqs.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.awspring.cloud.sqs.QueueAttributesResolver;
 import io.awspring.cloud.sqs.QueueAttributesResolvingException;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
-import io.awspring.cloud.sqs.listener.QueueAttributesResolver;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import java.net.MalformedURLException;
 import java.net.URL;

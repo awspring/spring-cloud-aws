@@ -13,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.converter;
-
-import org.springframework.messaging.MessageHeaders;
 
 /**
- * A {@link HeaderMapper} specialization that supports receiving a {@link MessageConversionContext} for mapping context
- * dependent headers.
- * @author Tomaz Fernandes
- * @since 3.0
- * @see ContextAwareMessagingMessageConverter
+ * Components for converting source messages to Spring messaging messages.
  */
-public interface ContextAwareHeaderMapper<S> extends HeaderMapper<S> {
-
-	MessageHeaders createContextHeaders(S source, MessageConversionContext context);
-
-}
+@org.springframework.lang.NonNullApi
+@org.springframework.lang.NonNullFields
+package io.awspring.cloud.sqs.operations;

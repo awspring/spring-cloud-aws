@@ -212,7 +212,7 @@ class BatchingAcknowledgementProcessorTests {
 	@Test
 	void shouldAcknowledgeOrderedByGroupFromManyMessageGroups() throws Exception {
 		testAcknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP, msg -> MessageHeaderUtils
-				.getHeaderAsString(msg, SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER));
+				.getHeaderAsString(msg, SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
 	}
 
 	@Test
@@ -232,7 +232,7 @@ class BatchingAcknowledgementProcessorTests {
 				.stream().map(
 						group -> createFifoMessages(messagesPerGroup, group))
 				.collect(Collectors.toMap(msgs -> MessageHeaderUtils.getHeaderAsString(msgs.iterator().next(),
-						SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER), msgs -> msgs));
+						SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER), msgs -> msgs));
 		CountDownLatch ackLatch = new CountDownLatch(numberOfMessages);
 		Map<String, Collection<String>> acknowledgedMessages = new ConcurrentHashMap<>();
 		AcknowledgementExecutor<String> acknowledgementExecutor = messagesToAck -> {
@@ -242,7 +242,7 @@ class BatchingAcknowledgementProcessorTests {
 				messagesToAck.stream()
 						.collect(
 								groupingBy(msg -> MessageHeaderUtils.getHeaderAsString(msg,
-										SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER)))
+										SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER)))
 						.forEach((key, value) -> acknowledgedMessages
 								.computeIfAbsent(key, newGroup -> Collections.synchronizedList(new ArrayList<>()))
 								.addAll(value.stream().map(Message::getPayload).collect(toList())));
@@ -333,7 +333,7 @@ class BatchingAcknowledgementProcessorTests {
 
 	private Message<String> createFifoMessage(int index, String messageGroup) {
 		return MessageBuilder.withPayload(String.valueOf(index))
-				.setHeader(SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER, messageGroup).build();
+				.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, messageGroup).build();
 	}
 
 	private List<Message<String>> createFifoMessages(int numberOfMessages, String messageGroup) {

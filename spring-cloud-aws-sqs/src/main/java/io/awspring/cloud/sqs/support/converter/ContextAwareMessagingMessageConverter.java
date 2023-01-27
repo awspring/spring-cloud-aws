@@ -32,8 +32,32 @@ public interface ContextAwareMessagingMessageConverter<S> extends MessagingMessa
 		return toMessagingMessage(source, null);
 	}
 
+	@Override
+	default S fromMessagingMessage(Message<?> message) {
+		return fromMessagingMessage(message, null);
+	}
+
+	/**
+	 * Convert a source message from a specific messaging system to a {@link Message} with an optional context.
+	 * @param source the source message.
+	 * @param context an optional context with information to be used in the conversion process.
+	 * @return the converted message.
+	 */
 	Message<?> toMessagingMessage(S source, @Nullable MessageConversionContext context);
 
+	/**
+	 * Convert a {@link Message} to a message from a specific messaging system.
+	 * @param message the message from which to convert.
+	 * @param context an optional context with information to be used in the conversion process.
+	 * @return the system specific message.
+	 */
+	S fromMessagingMessage(Message<?> message, @Nullable MessageConversionContext context);
+
+	/**
+	 * An optional context to be used in the conversion process.
+	 * @return the context.
+	 */
+	@Nullable
 	MessageConversionContext createMessageConversionContext();
 
 }

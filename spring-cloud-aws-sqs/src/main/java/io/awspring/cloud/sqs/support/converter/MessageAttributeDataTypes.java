@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,34 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import org.springframework.messaging.MessageHeaders;
-
 /**
- * A {@link HeaderMapper} specialization that supports receiving a {@link MessageConversionContext} for mapping context
- * dependent headers.
- * @author Tomaz Fernandes
- * @since 3.0
- * @see ContextAwareMessagingMessageConverter
+ * @author Alain Sahli
+ * @since 1.0
  */
-public interface ContextAwareHeaderMapper<S> extends HeaderMapper<S> {
+public final class MessageAttributeDataTypes {
 
-	MessageHeaders createContextHeaders(S source, MessageConversionContext context);
+	private MessageAttributeDataTypes() {
+		// Avoid instantiation
+	}
+
+	/**
+	 * Binary message attribute data type.
+	 */
+	public static final String BINARY = "Binary";
+
+	/**
+	 * Number message attribute data type.
+	 */
+	public static final String NUMBER = "Number";
+
+	/**
+	 * String message attribute data type.
+	 */
+	public static final String STRING = "String";
+
+	/**
+	 * String.Array message attribute data type.
+	 */
+	public static final String STRING_ARRAY = "String.Array";
 
 }
