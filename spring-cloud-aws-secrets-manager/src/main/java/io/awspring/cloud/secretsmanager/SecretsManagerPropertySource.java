@@ -99,27 +99,32 @@ public class SecretsManagerPropertySource
 
 	private void readSecretValue(GetSecretValueRequest secretValueRequest) {
 		GetSecretValueResponse secretValueResponse = source.getSecretValue(secretValueRequest);
-		try {
-			Map<String, Object> secretMap = jsonMapper.readValue(secretValueResponse.secretString(),
-					new TypeReference<Map<String, Object>>() {
+		if (secretValueResponse.secretString() != null) {
+			try {
+				Map<String, Object> secretMap = jsonMapper.readValue(secretValueResponse.secretString(),
+					new TypeReference<>() {
 					});
 
-			for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
-				LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
-				String propertyKey = prefix != null ? prefix + secretEntry.getKey() : secretEntry.getKey();
-				properties.put(propertyKey, secretEntry.getValue());
+				for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
+					LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
+					String propertyKey = prefix != null ? prefix + secretEntry.getKey() : secretEntry.getKey();
+					properties.put(propertyKey, secretEntry.getValue());
+				}
+			} catch (JsonParseException e) {
+				// If the secret is not a JSON string, then it is a simple "plain text" string
+				String[] parts = secretValueResponse.name().split("/");
+				String secretName = parts[parts.length - 1];
+				LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretName);
+				String propertyKey = prefix != null ? prefix + secretName : secretName;
+				properties.put(propertyKey, secretValueResponse.secretString());
+			} catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
 			}
 		}
-		catch (JsonParseException e) {
-			// If the secret is not a JSON string, then it is a simple "plain text" string
+		else {
 			String[] parts = secretValueResponse.name().split("/");
 			String secretName = parts[parts.length - 1];
-			LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretName);
-			String propertyKey = prefix != null ? prefix + secretName : secretName;
-			properties.put(propertyKey, secretValueResponse.secretString());
-		}
-		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
+			properties.put(secretName, secretValueResponse.secretBinary().asByteArray());
 		}
 	}
 

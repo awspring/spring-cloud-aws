@@ -51,7 +51,6 @@ public class SecretsManagerPropertySources {
 			SecretsManagerPropertySource propertySource = new SecretsManagerPropertySource(context, client);
 			propertySource.init();
 			return propertySource;
-			// TODO: howto call close when /refresh
 		}
 		catch (Exception e) {
 			if (!optional) {
