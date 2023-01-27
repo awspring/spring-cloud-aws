@@ -24,6 +24,7 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -87,8 +88,8 @@ public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<AW
 	}
 
 	private void readSecretValue(GetSecretValueRequest secretValueRequest) {
+		GetSecretValueResult secretValueResult = source.getSecretValue(secretValueRequest);
 		try {
-			GetSecretValueResult secretValueResult = source.getSecretValue(secretValueRequest);
 			Map<String, Object> secretMap = jsonMapper.readValue(secretValueResult.getSecretString(),
 					new TypeReference<Map<String, Object>>() {
 					});
@@ -98,6 +99,14 @@ public class AwsSecretsManagerPropertySource extends EnumerablePropertySource<AW
 				String propertyKey = prefix != null ? prefix + secretEntry.getKey() : secretEntry.getKey();
 				properties.put(propertyKey, secretEntry.getValue());
 			}
+		}
+		catch (JsonParseException e) {
+			// If the secret is not a JSON string, then it is a simple "plain text" string
+			String[] parts = secretValueResult.getName().split("/");
+			String secretName = parts[parts.length - 1];
+			LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretName);
+			String propertyKey = prefix != null ? prefix + secretName : secretName;
+			properties.put(propertyKey, secretValueResult.getSecretString());
 		}
 		catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
