@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>4.0.0</version>
+		<version>4.0.1</version>
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
@@ -27,8 +27,8 @@
 	</scm>
 
 	<properties>
-		<spotless.version>2.25.0</spotless.version>
-		<jacoco.version>0.8.7</jacoco.version>
+		<spotless.version>2.31.0</spotless.version>
+		<jacoco.version>0.8.8</jacoco.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 	</properties>
 
