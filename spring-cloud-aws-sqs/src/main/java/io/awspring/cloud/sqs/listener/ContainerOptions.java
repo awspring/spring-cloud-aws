@@ -36,16 +36,29 @@ import org.springframework.lang.Nullable;
 public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>> {
 
 	/**
-	 * Return the maximum allowed number of inflight messages for each queue.
-	 * @return the number.
+	 * Set the maximum concurrent messages that can be processed simultaneously for each queue. Note that if
+	 * acknowledgement batching is being used, the actual maximum number of messages inflight might be higher. Default
+	 * is 10.
+	 *
+	 * @return the maximum concurrent messages.
 	 */
-	int getMaxInFlightMessagesPerQueue();
+	int getMaxConcurrentMessages();
 
 	/**
 	 * Return the number of messages that should be returned per poll.
-	 * @return the number.
+	 * @return the maximum number of messages per poll.
 	 */
 	int getMaxMessagesPerPoll();
+
+	/**
+	 * Set the maximum time the polling thread should wait for a full batch of permits to be available before trying to
+	 * acquire a partial batch if so configured. A poll is only actually executed if at least one permit is available.
+	 * Default is 10 seconds.
+	 *
+	 * @return the maximum delay between polls.
+	 * @see BackPressureMode
+	 */
+	Duration getMaxDelayBetweenPolls();
 
 	/**
 	 * Return the timeout for polling messages for this endpoint.
@@ -54,16 +67,11 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	Duration getPollTimeout();
 
 	/**
-	 * Return the maximum time the polling thread should wait for permits.
-	 * @return the timeout.
-	 */
-	Duration getPermitAcquireTimeout();
-
-	/**
 	 * Return the {@link TaskExecutor} to be used by this container's components. It's shared by the
-	 * {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components the container might have.
-	 * Due to performance concerns, the provided executor MUST have a {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}.
-	 * The container should have enough Threads to support the full load, including if it's shared between containers.
+	 * {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components the container might have. Due
+	 * to performance concerns, the provided executor MUST have a
+	 * {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}. The container should have enough Threads to support
+	 * the full load, including if it's shared between containers.
 	 * @return the task executor.
 	 */
 	@Nullable
@@ -72,9 +80,9 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	/**
 	 * Return the {@link TaskExecutor} to be used by blocking
 	 * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback} implementations for this
-	 * container.
-	 * Due to performance concerns, the provided executor MUST have a {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}.
-	 * The container should have enough Threads to support the full load, including if it's shared between containers.
+	 * container. Due to performance concerns, the provided executor MUST have a
+	 * {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}. The container should have enough Threads to support
+	 * the full load, including if it's shared between containers.
 	 * @return the task executor.
 	 */
 	@Nullable

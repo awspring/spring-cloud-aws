@@ -158,8 +158,7 @@ public class SqsMessageListenerContainerFactory<T> extends
 	}
 
 	private void configureFromSqsEndpoint(SqsEndpoint sqsEndpoint, SqsContainerOptionsBuilder options) {
-		ConfigUtils.INSTANCE
-				.acceptIfNotNull(sqsEndpoint.getMaxInflightMessagesPerQueue(), options::maxInflightMessagesPerQueue)
+		ConfigUtils.INSTANCE.acceptIfNotNull(sqsEndpoint.getMaxConcurrentMessages(), options::maxConcurrentMessages)
 				.acceptIfNotNull(sqsEndpoint.getMaxMessagesPerPoll(), options::maxMessagesPerPoll)
 				.acceptIfNotNull(sqsEndpoint.getPollTimeout(), options::pollTimeout)
 				.acceptIfNotNull(sqsEndpoint.getMessageVisibility(), options::messageVisibility);

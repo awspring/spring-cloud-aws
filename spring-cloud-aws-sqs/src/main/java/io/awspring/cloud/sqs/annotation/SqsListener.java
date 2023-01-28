@@ -110,11 +110,11 @@ public @interface SqsListener {
 	String id() default "";
 
 	/**
-	 * The maximum number of inflight messages that should be processed simultaneously for each queue declared in this
-	 * annotation.
-	 * @return the maximum number of inflight messages.
+	 * The maximum concurrent messages that can be processed simultaneously for each queue. Note that if acknowledgement
+	 * batching is being used, the actual maximum number of inflight messages might be higher. Default is 10.
+	 * @return the maximum number of concurrent messages.
 	 */
-	String maxInflightMessagesPerQueue() default "";
+	String maxConcurrentMessages() default "";
 
 	/**
 	 * The maximum number of seconds to wait for messages in a poll to SQS.

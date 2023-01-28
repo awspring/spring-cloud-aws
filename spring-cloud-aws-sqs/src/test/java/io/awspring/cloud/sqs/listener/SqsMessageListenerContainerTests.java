@@ -29,15 +29,12 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.listener.source.MessageSource;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-
-import io.awspring.cloud.sqs.listener.sink.MessageSink;
-import io.awspring.cloud.sqs.listener.source.MessageSource;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -123,28 +120,23 @@ class SqsMessageListenerContainerTests {
 	void shouldThrowIfWrongCustomExecutor() {
 		SqsAsyncClient client = mock(SqsAsyncClient.class);
 		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder().sqsAsyncClient(client)
-			.queueNames("test-queue")
-			.configure(options -> options.componentsTaskExecutor(Runnable::run))
-			.messageListener(msg -> {})
-			.build();
-		assertThatThrownBy(container::start)
-			.isInstanceOf(CompletionException.class)
-			.cause()
-			.isInstanceOf(UnsupportedThreadFactoryException.class);
+				.queueNames("test-queue").configure(options -> options.componentsTaskExecutor(Runnable::run))
+				.messageListener(msg -> {
+				}).build();
+		assertThatThrownBy(container::start).isInstanceOf(CompletionException.class).cause()
+				.isInstanceOf(UnsupportedThreadFactoryException.class);
 	}
 
 	@Test
 	void shouldNotThrowIfProperCustomExecutor() {
 		SqsAsyncClient client = mock(SqsAsyncClient.class);
-		given(client.getQueueUrl(any(GetQueueUrlRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl("test-queue").build()));
+		given(client.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(
+				CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl("test-queue").build()));
 		SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor(new MessageExecutionThreadFactory());
 		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder().sqsAsyncClient(client)
-			.queueNames("test-queue")
-			.componentFactories(getNoOpsComponentFactory())
-			.configure(options -> options.componentsTaskExecutor(executor))
-			.messageListener(msg -> {})
-			.build();
+				.queueNames("test-queue").componentFactories(getNoOpsComponentFactory())
+				.configure(options -> options.componentsTaskExecutor(executor)).messageListener(msg -> {
+				}).build();
 		container.start();
 		container.stop();
 	}
@@ -162,34 +154,29 @@ class SqsMessageListenerContainerTests {
 	@Test
 	void shouldThrowIfWrongCustomExecutorAckResult() {
 		SqsAsyncClient client = mock(SqsAsyncClient.class);
-		given(client.getQueueUrl(any(GetQueueUrlRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl("test-queue").build()));
+		given(client.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(
+				CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl("test-queue").build()));
 		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder().sqsAsyncClient(client)
-			.queueNames("test-queue")
-			.configure(options -> options.acknowledgementResultTaskExecutor(Runnable::run))
-			.messageListener(msg -> {})
-			.componentFactories(getNoOpsComponentFactory())
-			.acknowledgementResultCallback(new AcknowledgementResultCallback<>() {})
-			.build();
-		assertThatThrownBy(container::start)
-			.isInstanceOf(CompletionException.class)
-			.cause()
-			.isInstanceOf(UnsupportedThreadFactoryException.class);
+				.queueNames("test-queue").configure(options -> options.acknowledgementResultTaskExecutor(Runnable::run))
+				.messageListener(msg -> {
+				}).componentFactories(getNoOpsComponentFactory())
+				.acknowledgementResultCallback(new AcknowledgementResultCallback<>() {
+				}).build();
+		assertThatThrownBy(container::start).isInstanceOf(CompletionException.class).cause()
+				.isInstanceOf(UnsupportedThreadFactoryException.class);
 	}
 
 	@Test
 	void shouldNotThrowIfProperCustomExecutorAckResult() {
 		SqsAsyncClient client = mock(SqsAsyncClient.class);
-		given(client.getQueueUrl(any(GetQueueUrlRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl("test-queue").build()));
+		given(client.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(
+				CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl("test-queue").build()));
 		SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor(new MessageExecutionThreadFactory());
 		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder().sqsAsyncClient(client)
-			.queueNames("test-queue")
-			.componentFactories(getNoOpsComponentFactory())
-			.acknowledgementResultCallback(new AcknowledgementResultCallback<>() {})
-			.configure(options -> options.acknowledgementResultTaskExecutor(executor))
-			.messageListener(msg -> {})
-			.build();
+				.queueNames("test-queue").componentFactories(getNoOpsComponentFactory())
+				.acknowledgementResultCallback(new AcknowledgementResultCallback<>() {
+				}).configure(options -> options.acknowledgementResultTaskExecutor(executor)).messageListener(msg -> {
+				}).build();
 		container.start();
 		container.stop();
 	}

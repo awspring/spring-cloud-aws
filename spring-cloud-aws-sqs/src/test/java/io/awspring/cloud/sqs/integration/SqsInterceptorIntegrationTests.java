@@ -170,7 +170,7 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<String> defaultSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
 			factory.configure(options -> options
-				.permitAcquireTimeout(Duration.ofSeconds(1))
+				.maxDelayBetweenPolls(Duration.ofSeconds(1))
 				.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 				.acknowledgementMode(AcknowledgementMode.ALWAYS)
 				.pollTimeout(Duration.ofSeconds(3)));

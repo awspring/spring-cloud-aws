@@ -123,10 +123,10 @@ class ContainerOptionsTests {
 				.messageAttributeNames(Collections.singletonList("my-attribute"))
 				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
 				.queueNotFoundStrategy(QueueNotFoundStrategy.FAIL).acknowledgementThreshold(12)
-				.maxInflightMessagesPerQueue(39).pollTimeout(Duration.ofSeconds(13))
+				.maxConcurrentMessages(39).pollTimeout(Duration.ofSeconds(13))
 				.acknowledgementMode(AcknowledgementMode.MANUAL).acknowledgementResultTaskExecutor(Runnable::run)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).componentsTaskExecutor(Runnable::run)
-				.listenerMode(ListenerMode.BATCH).permitAcquireTimeout(Duration.ofSeconds(16));
+				.listenerMode(ListenerMode.BATCH).maxDelayBetweenPolls(Duration.ofSeconds(16));
 	}
 
 }

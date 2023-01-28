@@ -29,11 +29,12 @@ import org.springframework.core.task.TaskExecutor;
 public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>, O extends ContainerOptions<O, B>> {
 
 	/**
-	 * Set the maximum allowed number of inflight messages for each queue. Default is 10.
+	 * Set the maximum concurrent messages that can be processed simultaneously for each queue. Default is 10. Note that
+	 * if acknowledgement batching is being used, the actual maximum number of inflight messages might be higher.
 	 *
 	 * @return this instance.
 	 */
-	B maxInflightMessagesPerQueue(int maxInflightMessagesPerQueue);
+	B maxConcurrentMessages(int maxConcurrentMessages);
 
 	/**
 	 * Set the number of messages that should be returned per poll. If a value greater than 10 is provided, the result
@@ -46,20 +47,23 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	B maxMessagesPerPoll(int maxMessagesPerPoll);
 
 	/**
+	 * Set the maximum time the polling thread should wait for a full batch of permits to be available before trying to
+	 * acquire a partial batch if so configured. A poll is only actually executed if at least one permit is available.
+	 * Default is 10 seconds.
+	 *
+	 * @param maxDelayBetweenPolls the maximum delay.
+	 * @return this instance.
+	 * @see BackPressureMode
+	 */
+	B maxDelayBetweenPolls(Duration maxDelayBetweenPolls);
+
+	/**
 	 * Set the timeout for polling messages for this endpoint. Default is 10 seconds.
 	 *
 	 * @param pollTimeout the poll timeout.
 	 * @return this instance.
 	 */
 	B pollTimeout(Duration pollTimeout);
-
-	/**
-	 * Set the maximum time the polling thread should wait for permits. Default is 10 seconds.
-	 *
-	 * @param permitAcquireTimeout the timeout.
-	 * @return this instance.
-	 */
-	B permitAcquireTimeout(Duration permitAcquireTimeout);
 
 	/**
 	 * Set the {@link ListenerMode} mode for this container. Default is {@link ListenerMode#SINGLE_MESSAGE}
@@ -71,9 +75,10 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 
 	/**
 	 * Set the {@link TaskExecutor} to be used by this container's components. It's shared by the
-	 * {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components the container might have.
-	 * Due to performance concerns, the provided executor MUST have a {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}.
-	 * The container should have enough Threads to support the full load, including if it's shared between containers.
+	 * {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components the container might have. Due
+	 * to performance concerns, the provided executor MUST have a
+	 * {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}. The container should have enough Threads to support
+	 * the full load, including if it's shared between containers.
 	 *
 	 * @param taskExecutor the task executor.
 	 * @return this instance.
@@ -84,9 +89,9 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	/**
 	 * Set the {@link TaskExecutor} to be used by blocking
 	 * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback} implementations for this
-	 * container.
-	 * Due to performance concerns, the provided executor MUST have a {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}.
-	 * The container should have enough Threads to support the full load, including if it's shared between containers.
+	 * container. Due to performance concerns, the provided executor MUST have a
+	 * {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}. The container should have enough Threads to support
+	 * the full load, including if it's shared between containers.
 	 *
 	 * @param taskExecutor the task executor.
 	 * @return this instance.

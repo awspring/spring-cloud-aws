@@ -128,7 +128,7 @@ class SqsAutoConfigurationTest {
 	void configuresFactoryComponentsAndOptions() {
 		this.contextRunner
 				.withPropertyValues("spring.cloud.aws.sqs.enabled:true",
-						"spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue:19",
+						"spring.cloud.aws.sqs.listener.max-concurrent-messages:19",
 						"spring.cloud.aws.sqs.listener.max-messages-per-poll:8",
 						"spring.cloud.aws.sqs.listener.poll-timeout:6s")
 				.withUserConfiguration(CustomComponentsConfiguration.class).run(context -> {
@@ -143,7 +143,7 @@ class SqsAutoConfigurationTest {
 					.asInstanceOf(type(ContainerOptionsBuilder.class))
 					.extracting(ContainerOptionsBuilder::build)
 					.isInstanceOfSatisfying(ContainerOptions.class, options -> {
-						assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(19);
+						assertThat(options.getMaxConcurrentMessages()).isEqualTo(19);
 						assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);
 						assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
 					});

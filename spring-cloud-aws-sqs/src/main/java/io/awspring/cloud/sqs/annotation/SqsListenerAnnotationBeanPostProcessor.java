@@ -49,8 +49,8 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 				.id(getEndpointId(sqsListenerAnnotation.id()))
 				.pollTimeoutSeconds(resolveAsInteger(sqsListenerAnnotation.pollTimeoutSeconds(), "pollTimeoutSeconds"))
 				.maxMessagesPerPoll(resolveAsInteger(sqsListenerAnnotation.maxMessagesPerPoll(), "maxMessagesPerPoll"))
-				.maxInflightMessagesPerQueue(resolveAsInteger(sqsListenerAnnotation.maxInflightMessagesPerQueue(),
-						"maxInflightMessagesPerQueue"))
+				.maxConcurrentMessages(
+						resolveAsInteger(sqsListenerAnnotation.maxConcurrentMessages(), "maxConcurrentMessages"))
 				.messageVisibility(
 						resolveAsInteger(sqsListenerAnnotation.messageVisibilitySeconds(), "messageVisibility"))
 				.build();

@@ -48,7 +48,6 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.util.Assert;
 
 /**
  * Base {@link MessageListenerContainer} implementation for managing {@link org.springframework.messaging.Message}
@@ -227,8 +226,8 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 
 	protected BackPressureHandler createBackPressureHandler() {
 		return SemaphoreBackPressureHandler.builder().batchSize(getContainerOptions().getMaxMessagesPerPoll())
-				.totalPermits(getContainerOptions().getMaxInFlightMessagesPerQueue())
-				.acquireTimeout(getContainerOptions().getPermitAcquireTimeout())
+				.totalPermits(getContainerOptions().getMaxConcurrentMessages())
+				.acquireTimeout(getContainerOptions().getMaxDelayBetweenPolls())
 				.throughputConfiguration(getContainerOptions().getBackPressureMode()).build();
 	}
 
@@ -240,7 +239,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 
 	protected TaskExecutor createTaskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		int poolSize = getContainerOptions().getMaxInFlightMessagesPerQueue() * this.messageSources.size();
+		int poolSize = getContainerOptions().getMaxConcurrentMessages() * this.messageSources.size();
 		executor.setMaxPoolSize(poolSize);
 		executor.setCorePoolSize(getContainerOptions().getMaxMessagesPerPoll());
 		// Necessary due to a small racing condition between releasing the permit and releasing the thread.
@@ -277,8 +276,8 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 
 	private TaskExecutor determineAcknowledgementResultExecutor() {
 		return getContainerOptions().getAcknowledgementResultTaskExecutor() != null
-			? validateCustomExecutor(getContainerOptions().getAcknowledgementResultTaskExecutor())
-			: createTaskExecutor();
+				? validateCustomExecutor(getContainerOptions().getAcknowledgementResultTaskExecutor())
+				: createTaskExecutor();
 	}
 
 	private void shutdownComponentsTaskExecutor() {
