@@ -61,12 +61,9 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 
 	/**
 	 * Return the {@link TaskExecutor} to be used by this container's components. It's shared by the
-	 * {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components the container might have. For
-	 * custom executors, it's highly recommended to add a {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory},
-	 * as this will significantly decrease Thread hopping, which both increases performance and decreases the number of
-	 * Threads the executor must support. Also, specially if the executor is to be shared between containers or multiple
-	 * queues, make sure there's enough Thread capacity / queues to support the load otherwise some tasks might be
-	 * rejected.
+	 * {@link io.awspring.cloud.sqs.listener.sink.MessageSink} and any blocking components the container might have.
+	 * Due to performance concerns, the provided executor MUST have a {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}.
+	 * The container should have enough Threads to support the full load, including if it's shared between containers.
 	 * @return the task executor.
 	 */
 	@Nullable
@@ -76,6 +73,8 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	 * Return the {@link TaskExecutor} to be used by blocking
 	 * {@link io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback} implementations for this
 	 * container.
+	 * Due to performance concerns, the provided executor MUST have a {@link io.awspring.cloud.sqs.MessageExecutionThreadFactory}.
+	 * The container should have enough Threads to support the full load, including if it's shared between containers.
 	 * @return the task executor.
 	 */
 	@Nullable
@@ -179,11 +178,5 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	 * @return the new builder instance.
 	 */
 	B toBuilder();
-
-	/**
-	 * Builder to create an immutable instance of {@link ContainerOptions}.
-	 * @param <B> the builder subclass type
-	 * @param <O> the ContainerOptions subclass type
-	 */
 
 }

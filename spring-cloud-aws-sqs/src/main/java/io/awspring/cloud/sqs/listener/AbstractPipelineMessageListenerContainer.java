@@ -17,7 +17,9 @@ package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.LifecycleHandler;
+import io.awspring.cloud.sqs.MessageExecutionThread;
 import io.awspring.cloud.sqs.MessageExecutionThreadFactory;
+import io.awspring.cloud.sqs.UnsupportedThreadFactoryException;
 import io.awspring.cloud.sqs.listener.pipeline.AcknowledgementHandlerExecutionStage;
 import io.awspring.cloud.sqs.listener.pipeline.AfterProcessingContextInterceptorExecutionStage;
 import io.awspring.cloud.sqs.listener.pipeline.AfterProcessingInterceptorExecutionStage;
@@ -36,6 +38,7 @@ import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -45,20 +48,21 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.Assert;
 
 /**
  * Base {@link MessageListenerContainer} implementation for managing {@link org.springframework.messaging.Message}
  * instances' lifecycles.
- *
+ * <p>
  * This container uses a {@link MessageSource} to create the {@link org.springframework.messaging.Message} instances,
  * which are forwarded to a {@link MessageSink} and finally emitted to a {@link MessageProcessingPipeline}.
- *
+ * <p>
  * The pipeline has several stages for processing the messages and executing logic in components such as
  * {@link AsyncMessageListener}, {@link io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler} and
  * {@link io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor}.
- *
+ * <p>
  * Such components are created by the {@link ContainerComponentFactory} and the container manages their lifecycles.
- *
+ * <p>
  * Components and {@link ContainerOptions} can be changed at runtime and such changes will be valid upon container
  * restart.
  *
@@ -136,6 +140,13 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 		configureMessageSink(createMessageProcessingPipeline(componentFactory));
 		configureContainerComponents();
 	}
+
+	private void verifyThreadType() {
+		if (!MessageExecutionThread.class.isAssignableFrom(Thread.currentThread().getClass())) {
+			throw new UnsupportedThreadFactoryException("Custom TaskExecutors must use a %s."
+				.formatted(MessageExecutionThreadFactory.class.getSimpleName()));
+		}
+	}
 	// @formatter:on
 
 	@SuppressWarnings("unchecked")
@@ -205,8 +216,13 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 
 	private TaskExecutor resolveComponentsTaskExecutor() {
 		return getContainerOptions().getComponentsTaskExecutor() != null
-				? getContainerOptions().getComponentsTaskExecutor()
+				? validateCustomExecutor(getContainerOptions().getComponentsTaskExecutor())
 				: createTaskExecutor();
+	}
+
+	private TaskExecutor validateCustomExecutor(TaskExecutor taskExecutor) {
+		CompletableFuture.runAsync(this::verifyThreadType, taskExecutor).join();
+		return taskExecutor;
 	}
 
 	protected BackPressureHandler createBackPressureHandler() {
@@ -254,9 +270,15 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 
 	protected TaskExecutor getAcknowledgementResultTaskExecutor() {
 		if (this.acknowledgementResultTaskExecutor == null) {
-			this.acknowledgementResultTaskExecutor = createTaskExecutor();
+			this.acknowledgementResultTaskExecutor = determineAcknowledgementResultExecutor();
 		}
 		return this.acknowledgementResultTaskExecutor;
+	}
+
+	private TaskExecutor determineAcknowledgementResultExecutor() {
+		return getContainerOptions().getAcknowledgementResultTaskExecutor() != null
+			? validateCustomExecutor(getContainerOptions().getAcknowledgementResultTaskExecutor())
+			: createTaskExecutor();
 	}
 
 	private void shutdownComponentsTaskExecutor() {
