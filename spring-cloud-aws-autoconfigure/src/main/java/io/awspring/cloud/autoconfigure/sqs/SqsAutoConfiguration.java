@@ -23,7 +23,7 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
-import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
@@ -100,10 +100,9 @@ public class SqsAutoConfiguration {
 		return factory;
 	}
 
-	private void configureContainerOptions(SqsContainerOptions.Builder options) {
+	private void configureContainerOptions(ContainerOptionsBuilder<?, ?> options) {
 		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
-		mapper.from(this.sqsProperties.getListener().getMaxInflightMessagesPerQueue())
-				.to(options::maxInflightMessagesPerQueue);
+		mapper.from(this.sqsProperties.getListener().getMaxConcurrentMessages()).to(options::maxConcurrentMessages);
 		mapper.from(this.sqsProperties.getListener().getMaxMessagesPerPoll()).to(options::maxMessagesPerPoll);
 		mapper.from(this.sqsProperties.getListener().getPollTimeout()).to(options::pollTimeout);
 	}

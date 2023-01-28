@@ -86,7 +86,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 
 	@Override
 	protected void configureMessageSource(ContainerOptions<?, ?> containerOptions) {
-		this.shutdownTimeout = containerOptions.getShutdownTimeout();
+		this.shutdownTimeout = containerOptions.getListenerShutdownTimeout();
 		doConfigure(containerOptions);
 	}
 

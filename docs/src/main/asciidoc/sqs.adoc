@@ -628,7 +628,7 @@ Such properties override the equivalent `SqsContainerOptions` for the resulting 
 
 - `id` - Specify the resulting container's id.
 This can be used for fetching the container from the `MessageListenerContainerRegistry`, and is used by the container and its components for general logging and thread naming.
-- `maxInflightMessagesPerQueue` - Set the maximum number of messages that can be `inflight` at any given moment.
+- `maxConcurrentMessages` - Set the maximum number of messages that can be `inflight` at any given moment.
 See <<Message Processing Throughput>> for more information.
 - `pollTimeoutSeconds` - Set the maximum time to wait before a poll returns from SQS.
 Note that if there are messages available the call may return earlier than this setting.
@@ -756,7 +756,7 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 | `spring.cloud.aws.sqs.enabled` | Enables the SQS integration. | No | `true`
 | `spring.cloud.aws.sqs.endpoint` | Configures endpoint used by `SqsAsyncClient`. | No | `http://localhost:4566`
 | `spring.cloud.aws.sqs.region` | Configures region used by `SqsAsyncClient`. | No | `eu-west-1`
-| <<maxInflightMessagesPerQueue, `spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue`>> | Maximum number of inflight messages per queue. | No | 10
+| <<maxConcurrentMessages, `spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue`>> | Maximum number of inflight messages per queue. | No | 10
 | <<maxMessagesPerPoll, `spring.cloud.aws.sqs.listener.max-messages-per-poll`>> | Maximum number of messages to be received per poll. | No | 10
 | <<pollTimeout, `spring.cloud.aws.sqs.listener.poll-timeout`>> | Maximum amount of time to wait for messages in a poll. | No | 10 seconds
 |===
@@ -771,11 +771,11 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 | Default
 | Description
 
-|<<maxInflightMessagesPerQueue>>
+|<<maxConcurrentMessages>>
 |1 - `Integer.MAX_VALUE`
 |10
 |The maximum number of messages from each queue that can be processed simultaneously in this container.
-This number will be used for defining the thread pool size for the container following (maxInflightMessagesPerQueue * number of queues).
+This number will be used for defining the thread pool size for the container following (maxConcurrentMessages * number of queues).
 For batching acknowledgements a message is considered as no longer inflight when it's handed to the acknowledgement queue.
 See <<Acknowledging Messages>>.
 
@@ -795,17 +795,23 @@ See AWS documentation for more information.
 Longer polls decrease the chance of empty polls when messages are available.
 See AWS documentation for more information.
 
-|<<permitAcquireTimeout>>
+|<<maxDelayBetweenPolls>>
 |1 - 10 seconds
 |10 seconds
 |The maximum time the framework will wait for permits to be available for a queue before attempting the next poll.
 After that period, the framework will try to perform a partial acquire with the available permits, resulting in a poll for less than `maxMessagesPerPoll` messages, unless otherwise configured.
 See <<Message Processing Throughput>>.
 
-|`shutdownTimeout`
+|`listenerShutdownTimeout`
 |0 - undefined
 |10 seconds
-|The amount of time the container will wait for a queue to complete its operations before attempting to forcefully shutdown.
+|The amount of time the container will wait for a queue to complete message processing before attempting to forcefully shutdown.
+See <<Container Lifecycle>>.
+
+|`acknowledgementShutdownTimeout`
+|0 - undefined
+|10 seconds
+|The amount of time the container will wait for acknowledgements to complete for a queue after message processing has ended.
 See <<Container Lifecycle>>.
 
 |`backPressureMode`
@@ -872,10 +878,16 @@ See <<Acknowledging Messages>>.
 Fifo queues can be acknowledged in parallel for immediate acknowledgement since the next message for a message group will only start being processed after the previous one has been acknowledged.
 See <<Acknowledging Messages>>.
 
-|`containerComponentsTaskExecutor`
+|`componentsTaskExecutor`
 |`TaskExecutor`
 |`null`
 |Provides a `TaskExecutor` instance to be used by the `MessageListenerContainer` internal components.
+See <<Providing a TaskExecutor>>.
+
+|`acknowledgementResultTaskExecutor`
+|`TaskExecutor`
+|`null`
+|Provides a `TaskExecutor` instance to be used by the `AcknowledgementProcessor` for blocking `AcknowledgementResultCallback`.
 See <<Providing a TaskExecutor>>.
 
 |`messageVisibility`
@@ -1502,12 +1514,12 @@ When a configuration is available both in the `SqsContainerOptions` and `@SqsLis
 
 ==== SqsContainerOptions and `@SqsListener` properties
 
-===== maxInflightMessagesPerQueue
+===== maxConcurrentMessages
 Can be set in either the `SqsContainerOptions` or the `@SqsListener` annotation.
 Represents the maximum number of messages being processed by the container at a given time.
 Defaults to 10.
 
-This value is enforced per queue, meaning the number of inflight messages in a container can be up to (number of queues in container * maxInflightMessagesPerQueue).
+This value is enforced per queue, meaning the number of inflight messages in a container can be up to (number of queues in container * maxConcurrentMessages).
 
 NOTE: When using acknowledgement batching, a message is considered as no longer inflight when it's delivered to the acknowledgement queue. In this case, the actual number of inflight messages on AWS SQS console can be higher than the configured value.
 When using immediate acknowledgement, a message is considered as no longer inflight after it's been acknowledged or throws an error.
@@ -1516,7 +1528,7 @@ When using immediate acknowledgement, a message is considered as no longer infli
 ===== maxMessagesPerPoll
 Set in `SqsContainerOptions` or the `@SqsListener` annotation.
 Represents the maximum number of messages returned by a single poll to a SQS queue, to a maximum of 10.
-This value has to be less than or equal to `maxInflightMessagesPerQueue`.
+This value has to be less than or equal to `maxConcurrentMessages`.
 Defaults to 10.
 
 Note that even if the queue has more messages, a poll can return less messages than specified. See the AWS documentation for more information.
@@ -1527,25 +1539,25 @@ Represents the maximum duration of a poll.
 Higher values represent `long polls` and increase the probability of receiving full batches of messages.
 Defaults to 10 seconds.
 
-===== permitAcquireTimeout
+===== maxDelayBetweenPolls
 Set in `SqsContainerOptions`.
-Represents the maximum amount of time the container will wait for `maxMessagesPerPoll` permits to be available before trying to acquire a partial batch.
+Represents the maximum amount of time the container will wait for `maxMessagesPerPoll` permits to be available before trying to acquire a partial batch if so configured.
 This wait is applied per queue and one queue has no interference in another in this regard.
 Defaults to 10 seconds.
 
 ==== Default Polling Behavior
 By default, the framework starts all queues in `low throughput mode`, where it will perform one poll for messages at a time.
-When a poll returns at least one message, the queue enters a `high throughput mode` where it will try to fulfill `maxInflightMessagesPerQueue` messages by making (maxInflightMessagesPerQueue / maxMessagesPerPoll) parallel polls to the queue.
+When a poll returns at least one message, the queue enters a `high throughput mode` where it will try to fulfill `maxConcurrentMessages` messages by making (maxConcurrentMessages / maxMessagesPerPoll) parallel polls to the queue.
 Any poll that returns no messages will trigger a `low throughput mode` again, until at least one message is returned, triggering `high throughput mode` again, and so forth.
 
-After `permitAcquireTimeout`, if `maxMessagesPerPoll` permits are not available, it'll poll for the difference, i.e. as many messages as have been processed so far, if any.
+After `maxDelayBetweenPolls`, if `maxMessagesPerPoll` permits are not available, it'll poll for the difference, i.e. as many messages as have been processed so far, if any.
 
-E.g. Let's consider a scenario where the container is configured for: `maxInflightMessagesPerQueue` = 20, `maxMessagesPerPoll` = 10, `permitAcquireTimeout` = 5 seconds, and a `pollTimeout` = 10 seconds.
+E.g. Let's consider a scenario where the container is configured for: `maxConcurrentMessages` = 20, `maxMessagesPerPoll` = 10, `maxDelayBetweenPolls` = 5 seconds, and a `pollTimeout` = 10 seconds.
 
 The container starts in `low throughput mode`, meaning it'll attempt a single poll for 10 messages.
 If any messages are returned, it'll switch to `high throughput mode`, and will make up to 2 simultaneous polls for 10 messages each.
 If all 20 messages are retrieved, it'll not attempt any more polls until messages are processed.
-If after the 5 seconds for `permitAcquireTimeout` 6 messages have been processed, the framework will poll for the 6 messages.
+If after the 5 seconds for `maxDelayBetweenPolls` 6 messages have been processed, the framework will poll for the 6 messages.
 If the queue is depleted and a poll returns no messages, it'll enter `low throughput` mode again and perform only one poll at a time.
 
 ==== Configuring BackPressureMode
@@ -1587,10 +1599,9 @@ Otherwise, a `sync` interface should be used.
 
 The default `TaskExecutor` is a `ThreadPoolTaskExecutor`, and a different `componentTaskExecutor` supplier can be set in the `SqsContainerOptions`.
 
-When providing a custom executor, it's important that it's configured to support all threads that will be created, which should be (maxInflightMessagesPerQueue * total number of queues).
-Also, to avoid unnecessary thread hopping between blocking components, a `MessageExecutionThreadFactory` should be set to the executor.
+When providing a custom executor, it's important that it's configured to support all threads that will be created, which should be (maxConcurrentMessages * total number of queues).
 
-If setting the `ThreadFactory` is not possible, it's advisable to allow for extra threads in the thread pool to account for the time between a new thread is requested and the previous thread is released.
+IMPORTANT: To avoid unnecessary thread hopping between blocking components, a `MessageExecutionThreadFactory` MUST be set to the executor.
 
 
 === IAM Permissions

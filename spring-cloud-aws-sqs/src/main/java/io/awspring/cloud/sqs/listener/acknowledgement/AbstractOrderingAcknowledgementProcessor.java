@@ -77,12 +77,12 @@ public abstract class AbstractOrderingAcknowledgementProcessor<T>
 	}
 
 	@Override
-	public void configure(ContainerOptions containerOptions) {
+	public void configure(ContainerOptions<?, ?> containerOptions) {
 		this.acknowledgementOrdering = containerOptions.getAcknowledgementOrdering();
 		doConfigure(containerOptions);
 	}
 
-	protected void doConfigure(ContainerOptions containerOptions) {
+	protected void doConfigure(ContainerOptions<?, ?> containerOptions) {
 	}
 
 	@Override

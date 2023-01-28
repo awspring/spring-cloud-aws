@@ -30,6 +30,7 @@ import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
@@ -127,7 +128,7 @@ class SqsAutoConfigurationTest {
 	void configuresFactoryComponentsAndOptions() {
 		this.contextRunner
 				.withPropertyValues("spring.cloud.aws.sqs.enabled:true",
-						"spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue:19",
+						"spring.cloud.aws.sqs.listener.max-concurrent-messages:19",
 						"spring.cloud.aws.sqs.listener.max-messages-per-poll:8",
 						"spring.cloud.aws.sqs.listener.poll-timeout:6s")
 				.withUserConfiguration(CustomComponentsConfiguration.class).run(context -> {
@@ -139,10 +140,10 @@ class SqsAutoConfigurationTest {
 					.extracting("asyncMessageInterceptors").asList().isNotEmpty();
 				assertThat(factory)
 					.extracting("containerOptionsBuilder")
-					.asInstanceOf(type(ContainerOptions.Builder.class))
-					.extracting(ContainerOptions.Builder::build)
+					.asInstanceOf(type(ContainerOptionsBuilder.class))
+					.extracting(ContainerOptionsBuilder::build)
 					.isInstanceOfSatisfying(ContainerOptions.class, options -> {
-						assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(19);
+						assertThat(options.getMaxConcurrentMessages()).isEqualTo(19);
 						assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);
 						assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
 					});
