@@ -802,10 +802,16 @@ See AWS documentation for more information.
 After that period, the framework will try to perform a partial acquire with the available permits, resulting in a poll for less than `maxMessagesPerPoll` messages, unless otherwise configured.
 See <<Message Processing Throughput>>.
 
-|`shutdownTimeout`
+|`listenerShutdownTimeout`
 |0 - undefined
 |10 seconds
-|The amount of time the container will wait for a queue to complete its operations before attempting to forcefully shutdown.
+|The amount of time the container will wait for a queue to complete message processing before attempting to forcefully shutdown.
+See <<Container Lifecycle>>.
+
+|`acknowledgementShutdownTimeout`
+|0 - undefined
+|10 seconds
+|The amount of time the container will wait for acknowledgements to complete for a queue after message processing has ended.
 See <<Container Lifecycle>>.
 
 |`backPressureMode`
@@ -872,10 +878,16 @@ See <<Acknowledging Messages>>.
 Fifo queues can be acknowledged in parallel for immediate acknowledgement since the next message for a message group will only start being processed after the previous one has been acknowledged.
 See <<Acknowledging Messages>>.
 
-|`containerComponentsTaskExecutor`
+|`componentsTaskExecutor`
 |`TaskExecutor`
 |`null`
 |Provides a `TaskExecutor` instance to be used by the `MessageListenerContainer` internal components.
+See <<Providing a TaskExecutor>>.
+
+|`acknowledgementResultTaskExecutor`
+|`TaskExecutor`
+|`null`
+|Provides a `TaskExecutor` instance to be used by the `AcknowledgementProcessor` for blocking `AcknowledgementResultCallback`.
 See <<Providing a TaskExecutor>>.
 
 |`messageVisibility`
