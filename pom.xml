@@ -48,7 +48,7 @@
 		<javax-mail.version>1.5.5</javax-mail.version>
 		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
 		<javax.activation.version>1.2.0</javax.activation.version>
-		<spring-cloud-commons.version>3.1.0</spring-cloud-commons.version>
+		<spring-cloud-commons.version>3.1.5</spring-cloud-commons.version>
 		<spring-javaformat.version>0.0.25</spring-javaformat.version>
 	</properties>
 
@@ -109,7 +109,7 @@
 			<dependency>
 				<groupId>org.testcontainers</groupId>
 				<artifactId>testcontainers-bom</artifactId>
-				<version>1.16.3</version>
+				<version>1.17.6</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
