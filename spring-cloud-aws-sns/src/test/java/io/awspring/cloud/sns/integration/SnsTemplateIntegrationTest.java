@@ -21,7 +21,9 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.sns.Person;
+import io.awspring.cloud.sns.core.ListTopicArnResolverCached;
 import io.awspring.cloud.sns.core.SnsTemplate;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 /**
@@ -48,6 +51,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 @Testcontainers
 class SnsTemplateIntegrationTest {
 	private static final String TOPIC_NAME = "my_topic_name";
+	private static String queueUrl;
 	private static SnsTemplate snsTemplate;
 	private static SnsClient snsClient;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -70,11 +74,16 @@ class SnsTemplateIntegrationTest {
 		MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
 		mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
 		snsTemplate = new SnsTemplate(snsClient, mappingJackson2MessageConverter);
+		queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
+	}
+
+	@AfterEach
+	public void purgeQueue() {
+		sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(queueUrl).build());
 	}
 
 	@Test
 	void send_validTextMessage_usesTopicChannel_send_arn_read_by_sqs() {
-		String queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
 		String topicArn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
 		snsClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueUrl));
 
@@ -90,7 +99,6 @@ class SnsTemplateIntegrationTest {
 
 	@Test
 	void send_validPersonObject_usesTopicChannel_send_arn_read_sqs() {
-		String queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
 		String topic_arn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
 
 		snsClient.subscribe(r -> r.topicArn(topic_arn).protocol("sqs").endpoint(queueUrl));
@@ -104,6 +112,29 @@ class SnsTemplateIntegrationTest {
 					objectMapper.readTree(response.messages().get(0).body()).get("Message").asText(), Person.class);
 			assertThat(person.getName()).isEqualTo("foo");
 		});
+	}
+
+	@Test
+	void sendsTestMessageListCacheHit() {
+		createTopics();
+		ListTopicArnResolverCached listTopicArnResolverCached = new ListTopicArnResolverCached(snsClient);
+		SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, listTopicArnResolverCached, null);
+		snsTemplateTestCache.sendNotification(TOPIC_NAME, "message content", "subject");
+		assertThat(listTopicArnResolverCached.cacheSize()).isEqualTo(8);
+
+		snsTemplateTestCache.sendNotification(TOPIC_NAME, "message content", "subject");
+		assertThat(listTopicArnResolverCached.cacheSize()).isEqualTo(8);
+	}
+
+	private void createTopics() {
+		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build());
+		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 1).build());
+		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 2).build());
+		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 3).build());
+		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 4).build());
+		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 5).build());
+		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 6).build());
+		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 7).build());
 	}
 
 }
