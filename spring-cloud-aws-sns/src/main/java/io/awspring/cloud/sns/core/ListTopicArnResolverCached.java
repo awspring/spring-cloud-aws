@@ -23,6 +23,10 @@ import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.Topic;
 
+/**
+ * @author Matej Nedić
+ * @since 3.0.0
+ */
 public class ListTopicArnResolverCached implements TopicArnResolver {
 
 	private final SnsClient snsClient;
