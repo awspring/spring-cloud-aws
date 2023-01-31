@@ -18,7 +18,6 @@ package io.awspring.cloud.autoconfigure.sns;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
@@ -70,7 +69,7 @@ class SnsAutoConfigurationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-		DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SNS).withServices(SQS).withReuse(true);
+		DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SNS).withReuse(true);
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
