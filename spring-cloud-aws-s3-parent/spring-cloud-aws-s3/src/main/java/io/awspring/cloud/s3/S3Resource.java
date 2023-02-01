@@ -99,6 +99,11 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	@Override
+	public S3Resource createRelative(String relativePath) {
+		return new S3Resource(location.relative(relativePath), this.s3Client, this.s3OutputStreamProvider);
+	}
+
+	@Override
 	public InputStream getInputStream() throws IOException {
 		return s3Client.getObject(request -> request.bucket(location.getBucket()).key(location.getObject())
 				.versionId(location.getVersion()));
