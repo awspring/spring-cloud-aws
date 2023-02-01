@@ -39,8 +39,8 @@ public class ListTopicArnResolver implements TopicArnResolver {
 	}
 
 	/**
-	 * Resolves topic ARN by topic name. If topicName is already an ARN, it returns {@link Arn}. If topicName is just a
-	 * string with a topic name, it lists all of topics or if topic already exists, just returns its ARN.
+	 * Resolves topic ARN by topic name. If topicName is already an ARN, it returns {@link Arn}. If topicName has value
+	 * topic name of type String it will List all topics inside
 	 */
 	@Override
 	public Arn resolveTopicArn(String topicName) {
