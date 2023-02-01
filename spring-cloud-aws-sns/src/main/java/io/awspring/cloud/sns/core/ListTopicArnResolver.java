@@ -15,27 +15,25 @@
  */
 package io.awspring.cloud.sns.core;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.ListTopicsRequest;
+import software.amazon.awssdk.services.sns.model.ListTopicsResponse;
 import software.amazon.awssdk.services.sns.model.Topic;
 
 /**
  * @author Matej Nedić
  * @since 3.0.0
  */
-public class ListTopicArnResolverCached implements TopicArnResolver {
+public class ListTopicArnResolver implements TopicArnResolver {
 
 	private final SnsClient snsClient;
 
-	private final ConcurrentHashMap<String, Arn> cache = new ConcurrentHashMap<>();
-
-	public ListTopicArnResolverCached(SnsClient snsClient) {
+	public ListTopicArnResolver(SnsClient snsClient) {
 		this.snsClient = snsClient;
-		resolveByCallingPaginator();
 	}
 
 	/**
@@ -48,23 +46,34 @@ public class ListTopicArnResolverCached implements TopicArnResolver {
 		if (topicName.toLowerCase().startsWith("arn:")) {
 			return Arn.fromString(topicName);
 		}
-		else if (cache.get(topicName) != null) {
-			return cache.get(topicName);
+		return resolveTopicArnBySnsCall(topicName);
+	}
+
+	private Arn resolveTopicArnBySnsCall(String topicName) {
+		ListTopicsResponse listTopicsResponse = snsClient.listTopics();
+		return checkIfArnIsInList(topicName, listTopicsResponse);
+	}
+
+	private Arn doRecursiveCall(@Nullable String token, String topicName) {
+		if (token != null) {
+			ListTopicsResponse topicsResponse = snsClient
+					.listTopics(ListTopicsRequest.builder().nextToken(token).build());
+			return checkIfArnIsInList(topicName, topicsResponse);
 		}
 		else {
-			resolveByCallingPaginator();
-			return cache.get(topicName);
+			throw new NotExistentTopicException("Topic does not exist for given topic name!");
 		}
 	}
 
-	private void resolveByCallingPaginator() {
-		Map<String, Arn> nameAndArn = snsClient.listTopicsPaginator().topics().stream().collect(
-				Collectors.toMap(t -> t.topicArn().substring(t.topicArn().lastIndexOf(":") + 1), topic -> Arn.fromString(topic.topicArn())));
-		nameAndArn.forEach((key, value) -> cache.merge(key, value, (v1, v2) -> v2));
-	}
-
-	public int cacheSize() {
-		return cache.size();
+	private Arn checkIfArnIsInList(String topicName, ListTopicsResponse listTopicsResponse) {
+		Optional<String> arn = listTopicsResponse.topics().stream().map(Topic::topicArn)
+				.filter(ta -> ta.contains(topicName)).findFirst();
+		if (arn.isPresent()) {
+			return Arn.fromString(arn.get());
+		}
+		else {
+			return doRecursiveCall(listTopicsResponse.nextToken(), topicName);
+		}
 	}
 
 }

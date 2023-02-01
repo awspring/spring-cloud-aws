@@ -22,7 +22,6 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.sns.core.ListTopicArnResolverCached;
 import io.awspring.cloud.sns.core.SnsOperations;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
@@ -69,12 +68,6 @@ public class SnsAutoConfiguration {
 			ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer) {
 		return awsClientBuilderConfigurer.configure(SnsClient.builder(), properties, configurer.getIfAvailable())
 				.build();
-	}
-
-	@Bean
-	@ConditionalOnProperty(name = SnsProperties.PREFIX + ".resolve_by_list", havingValue = "true")
-	public TopicArnResolver topicArnResolver(SnsClient snsClient) {
-		return new ListTopicArnResolverCached(snsClient);
 	}
 
 	@ConditionalOnMissingBean(SnsOperations.class)

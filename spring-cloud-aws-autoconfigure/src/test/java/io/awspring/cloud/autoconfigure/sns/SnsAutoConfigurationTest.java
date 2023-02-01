@@ -17,14 +17,12 @@ package io.awspring.cloud.autoconfigure.sns;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.sns.core.ListTopicArnResolverCached;
 import io.awspring.cloud.sns.core.SnsOperations;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
@@ -43,21 +41,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.arns.Arn;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.SnsClientBuilder;
-import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 
 /**
  * Tests for class {@link io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration}.
@@ -66,10 +57,6 @@ import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
  */
 @Testcontainers
 class SnsAutoConfigurationTest {
-
-	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-		DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SNS).withReuse(true);
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
@@ -107,19 +94,6 @@ class SnsAutoConfigurationTest {
 			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
 			assertThat(client.isEndpointOverridden()).isTrue();
 		});
-	}
-
-	@Test
-	void withListCacheTopicArnResolver() {
-		SnsClient snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(SNS))
-			.region(Region.of(localstack.getRegion()))
-			.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
-			.build();
-		snsClient.createTopic(CreateTopicRequest.builder().name("topic_name").build());
-		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.resolve_by_list:true",
-				"spring.cloud.aws.sns.endpoint:"+localstack.getEndpointOverride(SNS)).run(context -> {
-					assertThat(context).hasSingleBean(ListTopicArnResolverCached.class);
-				});
 	}
 
 	@Test

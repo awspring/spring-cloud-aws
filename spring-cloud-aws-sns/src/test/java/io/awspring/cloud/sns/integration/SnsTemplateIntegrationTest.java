@@ -15,13 +15,14 @@
  */
 package io.awspring.cloud.sns.integration;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.sns.Person;
-import io.awspring.cloud.sns.core.ListTopicArnResolverCached;
+import io.awspring.cloud.sns.core.ListTopicArnResolver;
+import io.awspring.cloud.sns.core.NotExistentTopicException;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -75,6 +76,7 @@ class SnsTemplateIntegrationTest {
 		mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
 		snsTemplate = new SnsTemplate(snsClient, mappingJackson2MessageConverter);
 		queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
+		createTopics();
 	}
 
 	@AfterEach
@@ -115,26 +117,25 @@ class SnsTemplateIntegrationTest {
 	}
 
 	@Test
-	void sendsTestMessageListCacheHit() {
-		createTopics();
-		ListTopicArnResolverCached listTopicArnResolverCached = new ListTopicArnResolverCached(snsClient);
-		SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, listTopicArnResolverCached, null);
-		snsTemplateTestCache.sendNotification(TOPIC_NAME, "message content", "subject");
-		assertThat(listTopicArnResolverCached.cacheSize()).isEqualTo(8);
-
-		snsTemplateTestCache.sendNotification(TOPIC_NAME, "message content", "subject");
-		assertThat(listTopicArnResolverCached.cacheSize()).isEqualTo(8);
+	void send_test_message_for_existing_topic_name_trigger_trigger_iteration() {
+		ListTopicArnResolver listTopicArnResolver = new ListTopicArnResolver(snsClient);
+		SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, listTopicArnResolver, null);
+		snsTemplateTestCache.sendNotification(TOPIC_NAME + 110, "message content", "subject");
 	}
 
-	private void createTopics() {
-		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build());
-		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 1).build());
-		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 2).build());
-		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 3).build());
-		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 4).build());
-		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 5).build());
-		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 6).build());
-		snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + 7).build());
+	@Test
+	void send_test_message_for_not_existing_topic_name() {
+		ListTopicArnResolver listTopicArnResolver = new ListTopicArnResolver(snsClient);
+		SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, listTopicArnResolver, null);
+		assertThatThrownBy(
+				() -> snsTemplateTestCache.sendNotification("Some_random_topic", "message content", "subject"))
+						.isInstanceOf(NotExistentTopicException.class);
+	}
+
+	private static void createTopics() {
+		for (int i = 0; i < 300; i++) {
+			snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + i).build());
+		}
 	}
 
 }
