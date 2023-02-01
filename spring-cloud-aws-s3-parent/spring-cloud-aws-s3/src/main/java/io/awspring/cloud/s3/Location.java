@@ -15,8 +15,10 @@
  */
 package io.awspring.cloud.s3;
 
+import java.util.Objects;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Represents S3 bucket or object location.
@@ -95,6 +97,11 @@ public class Location {
 		this.version = resolveVersionId(location);
 	}
 
+	public Location relative(String relativePath) {
+		String relativeKey = StringUtils.hasText(object) ? object + "/" + relativePath : relativePath;
+		return Location.of(bucket, relativeKey);
+	}
+
 	public String getBucket() {
 		return bucket;
 	}
@@ -163,4 +170,19 @@ public class Location {
 		return location.substring(++objectNameEndIndex);
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		Location location = (Location) o;
+		return bucket.equals(location.bucket) && object.equals(location.object)
+				&& Objects.equals(version, location.version);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(bucket, object, version);
+	}
 }
