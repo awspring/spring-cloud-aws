@@ -16,7 +16,7 @@
 package io.awspring.cloud.sns.core;
 
 /**
- * Thrown when @{@link ListTopicArnResolver} cannot determine ARN based on topicName.
+ * Thrown when {@link ListTopicArnResolver} cannot determine ARN based on topicName.
  *
  * @author Matej Nedic
  * @since 3.0.0
