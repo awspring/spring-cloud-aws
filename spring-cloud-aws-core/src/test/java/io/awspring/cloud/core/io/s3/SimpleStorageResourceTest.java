@@ -261,6 +261,22 @@ class SimpleStorageResourceTest {
 	}
 
 	@Test
+	void createRelative_root_returnsRelativeCreatedFile() throws IOException {
+
+		// Arrange
+		AmazonS3 amazonS3 = mock(AmazonS3.class);
+		when(amazonS3.getObjectMetadata(any(GetObjectMetadataRequest.class))).thenReturn(new ObjectMetadata());
+		SimpleStorageResource simpleStorageResource = new SimpleStorageResource(amazonS3, "bucket", "",
+				new SyncTaskExecutor());
+
+		// Act
+		SimpleStorageResource subObject = simpleStorageResource.createRelative("subObject");
+
+		// Assert
+		assertThat(subObject.getFilename()).isEqualTo("subObject");
+	}
+
+	@Test
 	void writeFile_forNewFile_writesFileContent() throws Exception {
 		// Arrange
 		AmazonS3 amazonS3 = mock(AmazonS3.class);

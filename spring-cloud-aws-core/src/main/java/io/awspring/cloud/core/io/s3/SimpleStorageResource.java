@@ -58,6 +58,7 @@ import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.ExecutorServiceAdapter;
+import org.springframework.util.StringUtils;
 
 /**
  * {@link org.springframework.core.io.Resource} implementation for
@@ -192,7 +193,7 @@ public class SimpleStorageResource extends AbstractResource implements WritableR
 
 	@Override
 	public SimpleStorageResource createRelative(String relativePath) throws IOException {
-		String relativeKey = this.objectName + "/" + relativePath;
+		String relativeKey = StringUtils.hasText(this.objectName) ? this.objectName + "/" + relativePath : relativePath;
 		return new SimpleStorageResource(this.amazonS3, this.bucketName, relativeKey, this.taskExecutor);
 	}
 
