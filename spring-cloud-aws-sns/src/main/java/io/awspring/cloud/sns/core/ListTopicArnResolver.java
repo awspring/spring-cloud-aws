@@ -25,6 +25,8 @@ import software.amazon.awssdk.services.sns.model.ListTopicsResponse;
 import software.amazon.awssdk.services.sns.model.Topic;
 
 /**
+ * Basic implementation for resolving ARN from topicName. It is using {@link SnsClient#listTopics()} to determine topicArn for topicName.
+ *
  * @author Matej Nedić
  * @since 3.0.0
  */
