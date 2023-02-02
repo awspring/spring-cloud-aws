@@ -64,7 +64,7 @@ Otherwise, Spring Cloud AWS will make an attempt to create topic with this name 
 The behavior of resolving topic ARN by a topic name can be altered by providing a custom bean of type `io.awspring.cloud.sns.core.TopicArnResolver`.
 
 If resolving topic name by create topic call is not possible you can autoconfigure Bean of `io.awspring.cloud.sns.core.TopicsListingTopicArnResolver`.
-Autoconfiguration will automatically configure `SnsTemplate` with `TopicArnResolverConfiguration` then.
+Autoconfiguration will automatically configure `SnsTemplate` with `TopicArnResolverConfiguration`.
 
 ----
 import org.springframework.context.annotation.Bean;
