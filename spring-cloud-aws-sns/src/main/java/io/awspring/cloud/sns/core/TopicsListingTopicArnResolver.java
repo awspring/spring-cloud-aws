@@ -25,16 +25,18 @@ import software.amazon.awssdk.services.sns.model.ListTopicsResponse;
 import software.amazon.awssdk.services.sns.model.Topic;
 
 /**
- * Basic implementation for resolving ARN from topicName. It is using {@link SnsClient#listTopics()} to determine topicArn for topicName.
+ * Basic implementation for resolving ARN from topicName. It is listing all topics using {@link SnsClient#listTopics()}
+ * to determine topicArn for topicName.
  *
  * @author Matej Nedić
  * @since 3.0.0
  */
-public class ListTopicArnResolver implements TopicArnResolver {
+public class TopicsListingTopicArnResolver implements TopicArnResolver {
 
 	private final SnsClient snsClient;
 
-	public ListTopicArnResolver(SnsClient snsClient) {
+	public TopicsListingTopicArnResolver(SnsClient snsClient) {
+		Assert.notNull(snsClient, "SnsClient cannot be null!");
 		this.snsClient = snsClient;
 	}
 
@@ -63,7 +65,7 @@ public class ListTopicArnResolver implements TopicArnResolver {
 			return checkIfArnIsInList(topicName, topicsResponse);
 		}
 		else {
-			throw new NotExistentTopicException("Topic does not exist for given topic name!");
+			throw new TopicNotFoundException("Topic does not exist for given topic name!");
 		}
 	}
 
