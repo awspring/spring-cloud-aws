@@ -5,7 +5,7 @@ include::intro.adoc[]
 
 *{project-version}*
 
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing-docs.adoc[]
+include::contributing.adoc[]
 
 == Using Amazon Web Services
 
