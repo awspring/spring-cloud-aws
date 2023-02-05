@@ -55,7 +55,7 @@
 		<module>spring-cloud-aws-samples</module>
 		<module>spring-cloud-aws-test</module>
 		<module>docs</module>
-		</modules>
+	</modules>
 
 	<dependencyManagement>
 		<dependencies>
@@ -132,6 +132,7 @@
 					<author>true</author>
 					<header>${project.name}</header>
 					<reportOutputDirectory>${project.build.directory}/site/${project.version}/apidocs</reportOutputDirectory>
+					<source>17</source>
 				</configuration>
 			</plugin>
 			<plugin>
