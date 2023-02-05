@@ -1,5 +1,61 @@
 == Migration from 2.x to 3.x
 
+=== XML & Java configuration removed
+
+Support for configuring Spring Cloud AWS using Spring Framework XML configuration has been dropped.
+
+Support for configuring Spring Cloud AWS using `@EnableXXX` has been dropped as well.
+
+Instead, we suggest to rely on auto-configurations, or if your proejct does not use Spring Boot but plain Spring Framework, you must create beans manually.
+
+=== AWS SDK for Java v2
+
+Spring Cloud AWS 2.x uses AWS SDK for Java v1, while Spring Cloud AWS 3.x uses AWS SDK v2. Any code that referenced the AWS SDK directly must be updated to AWS SDK v2.
+
+[INFO]
+====
+While Spring Cloud AWS 3.0 does not use AWS SDK for Java v1, there is nothing preventing you from having both Spring Cloud AWS 3.0 and AWS SDK v1 at once in the classpath.
+====
+
+=== Removed Modules
+
+In Spring Cloud AWS 3.0 following modules and integrations have been removed:
+
+- RDS integration with `spring-cloud-aws-jdbc` module
+- ElastiCache integration
+- Cloudformation integration
+- EC2 integration
+
+==== Spring Cloud AWS JDBC
+
+Instead of resolving JDBC properties by cluster id, we recommend using regular Spring Boot JDBC auto-configuration and pass JDBC url, username and password through environment variables.
+
+To configure read-replicas we recommend following Vlad Mihalcea's tutorial: https://vladmihalcea.com/read-write-read-only-transaction-routing-spring/[Read-write and read-only transaction routing with Spring].
+
+To configure failover support you may want to consider using official AWS JDBC drivers:
+
+- **MySQL**: AWS JDBC driver for MySQL: https://github.com/awslabs/aws-mysql-jdbc
+- **PostgreSQL**: AWS Advanced JDBC Wrapper: https://github.com/awslabs/aws-advanced-jdbc-wrapper
+
+==== Elasticache
+
+For Redis variant of Elasticache, we recommend using regular https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#io.caching.provider.redis[Spring Boot's Redis support]
+
+For Memcached variant of Elasticache, you may want to consider using https://github.com/sixhours-team/memcached-spring-boot[memcached-spring-boot] project.
+
+==== Cloudformation
+
+We are not aware of any existing implementation that reflects what Spring Cloud AWS 2.x does with Cloudformation stacks.
+
+==== EC2
+
+- `io.awspring.cloud.core.region.Ec2MetadataRegionProvider` has been removed. Resolving region from EC2 metadata is done automatically by AWS SDK v2 `software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain`, specifically using `software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider`.
+- there is no support for passing EC2 instance metadata to Spring's environment. If you need such functionality, you must implement it yourself (and you may want to consider submitting a pull request).
+
+=== Renamed modules
+
+- `spring-cloud-aws-messaging` is now split into two modules `spring-cloud-aws-sqs` and `spring-cloud-aws-sns`
+
 [WARNING]
 ====
 Migration guide is work in progress.
