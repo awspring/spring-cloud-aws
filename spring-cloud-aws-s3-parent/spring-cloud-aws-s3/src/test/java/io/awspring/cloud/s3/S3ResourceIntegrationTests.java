@@ -18,6 +18,7 @@ package io.awspring.cloud.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.maciejwalkowiak.testcontainers.localstack.LocalStackContainer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -40,16 +41,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.google.common.io.Files;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -69,8 +64,7 @@ class S3ResourceIntegrationTests {
 	private static final int DEFAULT_PART_SIZE = 5242880;
 
 	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(Service.S3).withReuse(true);
+	static LocalStackContainer localstack = new LocalStackContainer();
 
 	private static S3Client client;
 	private static S3AsyncClient asyncClient;
@@ -86,15 +80,8 @@ class S3ResourceIntegrationTests {
 
 	@BeforeAll
 	static void beforeAll() {
-		// region and credentials are irrelevant for test, but must be added to make
-		// test work on environments without AWS cli configured
-		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
-				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
-		asyncClient = S3AsyncClient.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpointOverride(Service.S3))
-				.build();
-		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
+		asyncClient = localstack.asyncClients().s3();
+		client = localstack.clients().s3();
 		s3TransferManager = S3TransferManager.builder().s3Client(asyncClient).build();
 		client.createBucket(request -> request.bucket("first-bucket"));
 	}

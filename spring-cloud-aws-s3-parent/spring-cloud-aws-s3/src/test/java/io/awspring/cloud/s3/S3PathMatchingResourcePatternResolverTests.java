@@ -17,6 +17,7 @@ package io.awspring.cloud.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.maciejwalkowiak.testcontainers.localstack.LocalStackContainer;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -24,14 +25,9 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -40,21 +36,13 @@ class S3PathMatchingResourcePatternResolverTests {
 	private static final RequestBody requestBody = RequestBody.fromString("test-file-content");
 
 	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(LocalStackContainer.Service.S3)
-					.withReuse(true);
+	static LocalStackContainer localstack = new LocalStackContainer();
 
 	private static ResourcePatternResolver resourceLoader;
 
 	@BeforeAll
 	static void beforeAll() {
-		// region and credentials are irrelevant for test, but must be added to make
-		// test work on environments without AWS cli configured
-		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
-				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
-		S3Client client = S3Client.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
+		S3Client client = localstack.clients().s3();
 
 		// prepare buckets and objects for tests
 		client.createBucket(request -> request.bucket("my-bucket"));

@@ -16,8 +16,8 @@
 package io.awspring.cloud.autoconfigure.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
+import com.maciejwalkowiak.testcontainers.localstack.LocalStackContainer;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -32,10 +32,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 /**
  * Integration tests for {@link SqsAutoConfiguration}.
@@ -52,7 +50,7 @@ class SqsAutoConfigurationIntegrationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.sqs.region=eu-west-1",
-					"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpointOverride(SQS).toString(),
+					"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpointOverride().toString(),
 					"spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
 					"spring.cloud.aws.region.static=eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
@@ -60,8 +58,7 @@ class SqsAutoConfigurationIntegrationTest {
 					ListenerConfiguration.class));
 
 	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SQS);
+	static LocalStackContainer localstack = new LocalStackContainer();
 
 	@SuppressWarnings("unchecked")
 	@Test

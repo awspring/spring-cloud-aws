@@ -56,8 +56,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>localstack</artifactId>
+			<groupId>com.maciejwalkowiak</groupId>
+			<artifactId>testcontainers-localstack</artifactId>
+			<version>0.1.0-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -73,12 +74,6 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>sqs</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<!-- AWS SDK v1 is required by testcontainers-localstack -->
-		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

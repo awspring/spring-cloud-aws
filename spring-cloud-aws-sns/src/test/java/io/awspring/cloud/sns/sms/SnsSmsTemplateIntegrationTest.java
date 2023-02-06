@@ -17,20 +17,14 @@ package io.awspring.cloud.sns.sms;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 
+import com.maciejwalkowiak.testcontainers.localstack.LocalStackContainer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
  * Integration tests for {@link SnsSmsTemplate}.
@@ -42,16 +36,11 @@ class SnsSmsTemplateIntegrationTest {
 	private static SnsSmsTemplate snsSmsTemplate;
 
 	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SNS).withEnv("DEBUG", "1");
+	static LocalStackContainer localstack = new LocalStackContainer().withEnv("DEBUG", "1");
 
 	@BeforeAll
 	public static void createSnsTemplate() {
-		SnsClient snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(SNS))
-				.region(Region.of(localstack.getRegion()))
-				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
-				.build();
-		snsSmsTemplate = new SnsSmsTemplate(snsClient);
+		snsSmsTemplate = new SnsSmsTemplate(localstack.clients().sns());
 	}
 
 	@Test

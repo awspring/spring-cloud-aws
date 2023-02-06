@@ -15,8 +15,7 @@
  */
 package io.awspring.cloud.sqs.integration;
 
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
-
+import com.maciejwalkowiak.testcontainers.localstack.LocalStackContainer;
 import io.awspring.cloud.sqs.CompletableFutures;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,13 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
@@ -48,10 +43,7 @@ abstract class BaseSqsIntegrationTest {
 
 	protected static final boolean purgeQueues = true;
 
-	private static final String LOCAL_STACK_VERSION = "localstack/localstack:1.3.1";
-
-	static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse(LOCAL_STACK_VERSION))
-			.withServices(SQS);
+	static LocalStackContainer localstack = new LocalStackContainer();
 
 	static StaticCredentialsProvider credentialsProvider;
 
@@ -59,15 +51,13 @@ abstract class BaseSqsIntegrationTest {
 	static synchronized void beforeAll() {
 		if (!localstack.isRunning()) {
 			localstack.start();
-			credentialsProvider = StaticCredentialsProvider
-					.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		}
 	}
 
 	@DynamicPropertySource
 	static void registerSqsProperties(DynamicPropertyRegistry registry) {
 		// overwrite SQS endpoint with one provided by Localstack
-		registry.add("spring.cloud.aws.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
+		registry.add("spring.cloud.aws.endpoint", () -> localstack.getEndpointOverride().toString());
 	}
 
 	protected static CompletableFuture<?> createQueue(SqsAsyncClient client, String queueName) {
@@ -125,14 +115,12 @@ abstract class BaseSqsIntegrationTest {
 
 	protected static SqsAsyncClient createHighThroughputAsyncClient() {
 		return useLocalStackClient ? createLocalStackClient()
-				: SqsAsyncClient.builder().httpClientBuilder(NettyNioAsyncHttpClient.builder().maxConcurrency(6000))
-						.build();
+				: localstack.asyncClients().sqs(
+						builder -> builder.httpClientBuilder(NettyNioAsyncHttpClient.builder().maxConcurrency(6000)));
 	}
 
 	private static SqsAsyncClient createLocalStackClient() {
-		return SqsAsyncClient.builder().credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
-				.build();
+		return localstack.asyncClients().sqs();
 	}
 
 	protected static class LoadSimulator {

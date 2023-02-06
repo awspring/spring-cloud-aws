@@ -16,10 +16,9 @@
 package io.awspring.cloud.autoconfigure.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.CLOUDWATCH;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import com.maciejwalkowiak.testcontainers.localstack.LocalStackContainer;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
@@ -32,10 +31,8 @@ import org.springframework.boot.test.autoconfigure.actuate.observability.AutoCon
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
 import software.amazon.awssdk.services.cloudwatch.model.GetMetricDataRequest;
@@ -54,13 +51,11 @@ import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
 class CloudWatchExportAutoConfigurationIntegrationTests {
 
 	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(CLOUDWATCH);
+	static LocalStackContainer localstack = new LocalStackContainer();
 
 	@DynamicPropertySource
 	static void registerProperties(DynamicPropertyRegistry registry) {
-		registry.add("spring.cloud.aws.cloudwatch.endpoint",
-				() -> localstack.getEndpointOverride(CLOUDWATCH).toString());
+		registry.add("spring.cloud.aws.cloudwatch.endpoint", () -> localstack.getEndpointOverride().toString());
 	}
 
 	@Test
@@ -70,7 +65,7 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = application.run(
-				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride().toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=us-east-1", "--management.metrics.export.cloudwatch.step=5s",
 				"--management.metrics.export.cloudwatch.namespace=awspring/spring-cloud-aws",
