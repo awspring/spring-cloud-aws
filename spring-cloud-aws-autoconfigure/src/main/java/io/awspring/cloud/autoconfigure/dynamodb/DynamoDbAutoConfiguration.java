@@ -21,6 +21,7 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.dynamodb.*;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -37,6 +38,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
@@ -118,11 +120,23 @@ public class DynamoDbAutoConfiguration {
 	@Bean
 	public DynamoDbTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
 			Optional<DynamoDbTableSchemaResolver> tableSchemaResolver,
-			Optional<DynamoDbTableNameResolver> tableNameResolver) {
+			Optional<DynamoDbTableNameResolver> tableNameResolver, List<TableSchema<?>> tableSchemas) {
+		DynamoDbTableNameResolver tableNameRes = tableNameResolver.orElseGet(DefaultDynamoDbTableNameResolver::new);
+
 		DynamoDbTableSchemaResolver tableSchemaRes = tableSchemaResolver
 				.orElseGet(DefaultDynamoDbTableSchemaResolver::new);
-		DynamoDbTableNameResolver tableNameRes = tableNameResolver.orElseGet(DefaultDynamoDbTableNameResolver::new);
+
+		registerTableSchemas(tableSchemas, tableNameRes, tableSchemaRes);
+
 		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaRes, tableNameRes);
+	}
+
+	private void registerTableSchemas(List<TableSchema<?>> tableSchemas, DynamoDbTableNameResolver tableNameRes,
+			DynamoDbTableSchemaResolver tableSchemaRes) {
+		tableSchemas.forEach(schema -> {
+			var tableName = tableNameRes.resolve(schema.itemType().rawClass());
+			tableSchemaRes.register(schema, tableName);
+		});
 	}
 
 	static class MissingDaxUrlCondition extends NoneNestedConditions {

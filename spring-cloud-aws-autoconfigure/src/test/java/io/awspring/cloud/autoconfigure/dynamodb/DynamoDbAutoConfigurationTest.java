@@ -16,6 +16,8 @@
 package io.awspring.cloud.autoconfigure.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
@@ -29,6 +31,7 @@ import java.net.URI;
 import java.time.Duration;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -38,6 +41,7 @@ import org.springframework.lang.Nullable;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -125,6 +129,31 @@ class DynamoDbAutoConfigurationTest {
 						assertThat(dynamoDbClient.getSyncHttpClient()).isNotNull();
 					});
 		}
+
+		@Test
+		void tableSchemaBeansGetRegistered() {
+
+			contextRunner.withUserConfiguration(TableSchemaConfiguration.class).run(context -> {
+				var schemaResolver = context.getBean(DynamoDbTableSchemaResolver.class);
+				var nameResolver = context.getBean(DynamoDbTableNameResolver.class);
+
+				assertThat(schemaResolver).isNotNull();
+				assertThat(nameResolver).isNotNull();
+
+				assertTableSchemaRegistered(context.getBean("firstTableSchema", TableSchema.class), nameResolver,
+						schemaResolver);
+				assertTableSchemaRegistered(context.getBean("secondTableSchema", TableSchema.class), nameResolver,
+						schemaResolver);
+
+			});
+		}
+
+		private static void assertTableSchemaRegistered(TableSchema<?> tableSchema,
+				DynamoDbTableNameResolver nameResolver, DynamoDbTableSchemaResolver schemaResolver) {
+			var tableName = verify(nameResolver).resolve(tableSchema.itemType().rawClass());
+			verify(schemaResolver).register(tableSchema, tableName);
+		}
+
 	}
 
 	@Nested
@@ -254,6 +283,7 @@ class DynamoDbAutoConfigurationTest {
 		DynamoDbTableNameResolver tableNameResolver() {
 			return new CustomDynamoDBDynamoDbTableNameResolver();
 		}
+
 	}
 
 	static class CustomDynamoDBDynamoDbTableSchemaResolver implements DynamoDbTableSchemaResolver {
@@ -261,6 +291,11 @@ class DynamoDbAutoConfigurationTest {
 		@Override
 		public <T> TableSchema resolve(Class<T> clazz, String tableName) {
 			return null;
+		}
+
+		@Override
+		public <T> void register(TableSchema<T> tableSchema, String tableName) {
+
 		}
 
 	}
@@ -293,6 +328,31 @@ class DynamoDbAutoConfigurationTest {
 			public SdkHttpClient httpClient() {
 				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 			}
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class TableSchemaConfiguration {
+
+		@Bean
+		TableSchema<Object> firstTableSchema() {
+			return StaticTableSchema.builder(Object.class).build();
+		}
+
+		@Bean
+		TableSchema<String> secondTableSchema() {
+			return StaticTableSchema.builder(String.class).build();
+		}
+
+		@Bean
+		DynamoDbTableSchemaResolver schemaResolver() {
+			return spy(CustomDynamoDBDynamoDbTableSchemaResolver.class);
+		}
+
+		@Bean
+		DynamoDbTableNameResolver tableNameResolver() {
+			return spy(CustomDynamoDBDynamoDbTableNameResolver.class);
 		}
 
 	}

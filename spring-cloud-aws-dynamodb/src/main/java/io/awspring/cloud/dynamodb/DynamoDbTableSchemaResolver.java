@@ -35,4 +35,13 @@ public interface DynamoDbTableSchemaResolver {
 	 * @param <T> - type
 	 */
 	<T> TableSchema resolve(Class<T> clazz, String tableName);
+
+	/**
+	 * Register manually a {@link TableSchema}
+	 *
+	 * @param tableSchema - the schema to be registered
+	 * @param tableName - the table name
+	 */
+	<T> void register(TableSchema<T> tableSchema, String tableName);
+
 }

@@ -31,4 +31,9 @@ public class DefaultDynamoDbTableSchemaResolver implements DynamoDbTableSchemaRe
 	public <T> TableSchema<T> resolve(Class<T> clazz, String tableName) {
 		return tableSchemaCache.computeIfAbsent(tableName, entityClassName -> TableSchema.fromBean(clazz));
 	}
+
+	@Override
+	public <T> void register(TableSchema<T> tableSchema, String tableName) {
+		tableSchemaCache.put(tableName, tableSchema);
+	}
 }
