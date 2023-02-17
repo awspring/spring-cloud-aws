@@ -15,14 +15,18 @@
  */
 package io.awspring.cloud.sns.integration;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.sns.Person;
+import io.awspring.cloud.sns.core.TopicsListingTopicArnResolver;
+import io.awspring.cloud.sns.core.TopicNotFoundException;
 import io.awspring.cloud.sns.core.SnsTemplate;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -37,6 +41,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 /**
@@ -47,6 +52,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 @Testcontainers
 class SnsTemplateIntegrationTest {
 	private static final String TOPIC_NAME = "my_topic_name";
+	private static String queueUrl;
 	private static SnsTemplate snsTemplate;
 	private static SnsClient snsClient;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -69,11 +75,16 @@ class SnsTemplateIntegrationTest {
 		MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
 		mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
 		snsTemplate = new SnsTemplate(snsClient, mappingJackson2MessageConverter);
+		queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
+	}
+
+	@AfterEach
+	public void purgeQueue() {
+		sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(queueUrl).build());
 	}
 
 	@Test
 	void send_validTextMessage_usesTopicChannel_send_arn_read_by_sqs() {
-		String queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
 		String topicArn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
 		snsClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueUrl));
 
@@ -89,7 +100,6 @@ class SnsTemplateIntegrationTest {
 
 	@Test
 	void send_validPersonObject_usesTopicChannel_send_arn_read_sqs() {
-		String queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
 		String topic_arn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
 
 		snsClient.subscribe(r -> r.topicArn(topic_arn).protocol("sqs").endpoint(queueUrl));
@@ -104,5 +114,37 @@ class SnsTemplateIntegrationTest {
 			assertThat(person.getName()).isEqualTo("foo");
 		});
 	}
+
+	@Nested
+	class TopicsListingTopicArnResolverTest {
+
+		@BeforeAll
+		public static void beforeAll() {
+			createTopics();
+		}
+
+		@Test
+		void send_test_message_for_existing_topic_name_trigger_trigger_iteration() {
+			TopicsListingTopicArnResolver topicsListingTopicArnResolver = new TopicsListingTopicArnResolver(snsClient);
+			SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, topicsListingTopicArnResolver, null);
+			snsTemplateTestCache.sendNotification(TOPIC_NAME + 100, "message content", "subject");
+		}
+
+		@Test
+		void send_test_message_for_not_existing_topic_name() {
+			TopicsListingTopicArnResolver topicsListingTopicArnResolver = new TopicsListingTopicArnResolver(snsClient);
+			SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, topicsListingTopicArnResolver, null);
+			assertThatThrownBy(
+				() -> snsTemplateTestCache.sendNotification("Some_random_topic", "message content", "subject"))
+				.isInstanceOf(TopicNotFoundException.class);
+		}
+
+		private static void createTopics() {
+			for (int i = 0; i < 101; i++) {
+				snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + i).build());
+			}
+		}
+	}
+
 
 }
