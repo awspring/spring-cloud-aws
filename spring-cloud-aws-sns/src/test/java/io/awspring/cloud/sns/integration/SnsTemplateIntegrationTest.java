@@ -21,9 +21,9 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.sns.Person;
-import io.awspring.cloud.sns.core.TopicsListingTopicArnResolver;
-import io.awspring.cloud.sns.core.TopicNotFoundException;
 import io.awspring.cloud.sns.core.SnsTemplate;
+import io.awspring.cloud.sns.core.TopicNotFoundException;
+import io.awspring.cloud.sns.core.TopicsListingTopicArnResolver;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -135,8 +135,8 @@ class SnsTemplateIntegrationTest {
 			TopicsListingTopicArnResolver topicsListingTopicArnResolver = new TopicsListingTopicArnResolver(snsClient);
 			SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, topicsListingTopicArnResolver, null);
 			assertThatThrownBy(
-				() -> snsTemplateTestCache.sendNotification("Some_random_topic", "message content", "subject"))
-				.isInstanceOf(TopicNotFoundException.class);
+					() -> snsTemplateTestCache.sendNotification("Some_random_topic", "message content", "subject"))
+							.isInstanceOf(TopicNotFoundException.class);
 		}
 
 		private static void createTopics() {
@@ -145,6 +145,5 @@ class SnsTemplateIntegrationTest {
 			}
 		}
 	}
-
 
 }

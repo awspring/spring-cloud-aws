@@ -31,8 +31,7 @@ public class ParameterStoreMissingKeysFailureAnalyzer
 	@Override
 	protected FailureAnalysis analyze(Throwable rootFailure, ParameterStoreKeysMissingException cause) {
 		return new FailureAnalysis("Could not import properties from AWS Parameter Store: " + cause.getMessage(),
-				"Consider providing keys, for example `spring.config.import=aws-parameterstore:/config/app`",
-				cause);
+				"Consider providing keys, for example `spring.config.import=aws-parameterstore:/config/app`", cause);
 	}
 
 }
