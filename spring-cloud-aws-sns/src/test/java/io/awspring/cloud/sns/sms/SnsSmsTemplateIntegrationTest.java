@@ -33,21 +33,21 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
+ * Integration tests for {@link SnsSmsTemplate}.
+ *
  * @author Matej Nedic
- * @since 3.0.0
  */
 @Testcontainers
 class SnsSmsTemplateIntegrationTest {
 	private static SnsSmsTemplate snsSmsTemplate;
-	private static SnsClient snsClient;
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.2.0")).withServices(SNS).withEnv("DEBUG", "1");
+			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SNS).withEnv("DEBUG", "1");
 
 	@BeforeAll
 	public static void createSnsTemplate() {
-		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(SNS))
+		SnsClient snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(SNS))
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();

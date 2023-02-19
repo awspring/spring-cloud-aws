@@ -23,8 +23,8 @@ import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.MessageListener;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
@@ -40,8 +40,9 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
+ * Tests for {@link SqsMessageListenerContainerFactory}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class SqsMessageListenerContainerFactoryTests {
@@ -52,7 +53,7 @@ class SqsMessageListenerContainerFactoryTests {
 		String id = "test-id";
 		SqsAsyncClient client = mock(SqsAsyncClient.class);
 		SqsEndpoint endpoint = mock(SqsEndpoint.class);
-		given(endpoint.getMaxInflightMessagesPerQueue()).willReturn(null);
+		given(endpoint.getMaxConcurrentMessages()).willReturn(null);
 		given(endpoint.getMessageVisibility()).willReturn(null);
 		given(endpoint.getMaxMessagesPerPoll()).willReturn(null);
 		given(endpoint.getPollTimeout()).willReturn(null);
@@ -63,8 +64,8 @@ class SqsMessageListenerContainerFactoryTests {
 		factory.setSqsAsyncClient(client);
 		SqsMessageListenerContainer<Object> container = factory.createContainer(endpoint);
 
-		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(ContainerOptions.class, options -> {
-			assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(10);
+		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(SqsContainerOptions.class, options -> {
+			assertThat(options.getMaxConcurrentMessages()).isEqualTo(10);
 			assertThat(options.getMessageVisibility()).isNull();
 			assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(10));
 			assertThat(options.getMaxMessagesPerPoll()).isEqualTo(10);
@@ -85,7 +86,7 @@ class SqsMessageListenerContainerFactoryTests {
 		int messagesPerPoll = 7;
 		Duration pollTimeout = Duration.ofSeconds(6);
 		Duration visibility = Duration.ofSeconds(8);
-		given(endpoint.getMaxInflightMessagesPerQueue()).willReturn(inflight);
+		given(endpoint.getMaxConcurrentMessages()).willReturn(inflight);
 		given(endpoint.getMessageVisibility()).willReturn(visibility);
 		given(endpoint.getMaxMessagesPerPoll()).willReturn(messagesPerPoll);
 		given(endpoint.getPollTimeout()).willReturn(pollTimeout);
@@ -96,8 +97,8 @@ class SqsMessageListenerContainerFactoryTests {
 		factory.setSqsAsyncClient(client);
 		SqsMessageListenerContainer<Object> container = factory.createContainer(endpoint);
 
-		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(ContainerOptions.class, options -> {
-			assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(inflight);
+		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(SqsContainerOptions.class, options -> {
+			assertThat(options.getMaxConcurrentMessages()).isEqualTo(inflight);
 			assertThat(options.getMessageVisibility()).isEqualTo(visibility);
 			assertThat(options.getPollTimeout()).isEqualTo(pollTimeout);
 			assertThat(options.getMaxMessagesPerPoll()).isEqualTo(messagesPerPoll);
@@ -116,8 +117,9 @@ class SqsMessageListenerContainerFactoryTests {
 		MessageInterceptor<Object> interceptor1 = mock(MessageInterceptor.class);
 		MessageInterceptor<Object> interceptor2 = mock(MessageInterceptor.class);
 		AcknowledgementResultCallback<Object> callback = mock(AcknowledgementResultCallback.class);
-		ContainerComponentFactory<Object> componentFactory = mock(ContainerComponentFactory.class);
-		List<ContainerComponentFactory<Object>> componentFactories = Collections.singletonList(componentFactory);
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
+				.singletonList(componentFactory);
 
 		SqsMessageListenerContainerFactory<Object> factory = SqsMessageListenerContainerFactory.builder()
 				.messageListener(listener).sqsAsyncClient(client).errorHandler(errorHandler)
@@ -142,8 +144,9 @@ class SqsMessageListenerContainerFactoryTests {
 		AsyncMessageInterceptor<Object> interceptor1 = mock(AsyncMessageInterceptor.class);
 		AsyncMessageInterceptor<Object> interceptor2 = mock(AsyncMessageInterceptor.class);
 		AsyncAcknowledgementResultCallback<Object> callback = mock(AsyncAcknowledgementResultCallback.class);
-		ContainerComponentFactory<Object> componentFactory = mock(ContainerComponentFactory.class);
-		List<ContainerComponentFactory<Object>> componentFactories = Collections.singletonList(componentFactory);
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
+				.singletonList(componentFactory);
 
 		SqsMessageListenerContainerFactory<Object> container = SqsMessageListenerContainerFactory.builder()
 				.asyncMessageListener(listener).sqsAsyncClient(client).errorHandler(errorHandler)

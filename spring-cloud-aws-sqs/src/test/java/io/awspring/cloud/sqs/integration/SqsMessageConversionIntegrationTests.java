@@ -49,8 +49,9 @@ import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
+ * Integration tests for SQS message conversion.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
@@ -227,7 +228,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<String> defaultSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
 			factory.configure(options -> options
-				.permitAcquireTimeout(Duration.ofSeconds(1))
+				.maxDelayBetweenPolls(Duration.ofSeconds(1))
 				.pollTimeout(Duration.ofSeconds(3)));
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
 			return factory;
@@ -238,7 +239,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 			SqsMessageListenerContainerFactory<MyInterface> factory = new SqsMessageListenerContainerFactory<>();
 			factory.configure(options -> options
 					.queueAttributeNames(Collections.singletonList(QueueAttributeName.VISIBILITY_TIMEOUT))
-					.permitAcquireTimeout(Duration.ofSeconds(1))
+					.maxDelayBetweenPolls(Duration.ofSeconds(1))
 					.pollTimeout(Duration.ofSeconds(1)));
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
 			factory.addMessageInterceptor(new AsyncMessageInterceptor<MyInterface>() {

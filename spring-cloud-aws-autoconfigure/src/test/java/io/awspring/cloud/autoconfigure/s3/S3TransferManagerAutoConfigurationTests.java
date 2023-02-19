@@ -16,22 +16,20 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
-import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.s3.TransferManagerS3OutputStreamProvider;
-import java.net.URI;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.lang.NonNull;
-import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
@@ -45,21 +43,50 @@ class S3TransferManagerAutoConfigurationTests {
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, S3TransferManagerAutoConfiguration.class));
+					CredentialsProviderAutoConfiguration.class, S3CrtAsyncClientAutoConfiguration.class,
+					S3TransferManagerAutoConfiguration.class));
 
 	@Nested
 	class TransferManagerTests {
 		@Test
-		void createsS3TransferManagerBeanWhenInClassPath() {
-			contextRunner.run(context -> assertThat(context).hasSingleBean(S3TransferManager.class));
+		void createsS3TransferManagerBeanWithCrtClientWhenInClassPath() {
+			contextRunner.run(context -> {
+				assertThat(context).hasSingleBean(S3TransferManager.class);
+				ConfiguredTransferManager configuredTransferManager = new ConfiguredTransferManager(
+						context.getBean(S3TransferManager.class));
+				assertThat(configuredTransferManager.getClient()).isInstanceOf(DefaultS3CrtAsyncClient.class);
+			});
+		}
+
+		@Test
+		void createsS3TransferManagerBeanWithCustomClient() {
+			contextRunner.withBean(S3AsyncClient.class, () -> mock(S3AsyncClient.class)).run(context -> {
+				assertThat(context).hasSingleBean(S3TransferManager.class);
+				ConfiguredTransferManager configuredTransferManager = new ConfiguredTransferManager(
+						context.getBean(S3TransferManager.class));
+				assertThat(Mockito.mockingDetails(configuredTransferManager.getClient()).isMock()).isTrue();
+			});
 		}
 
 		@Test
 		void usesExistingS3TransferManagerBeanWhenExists() {
-			S3TransferManager customDefinedS3TransferManager = Mockito.mock(S3TransferManager.class);
+			S3TransferManager customDefinedS3TransferManager = mock(S3TransferManager.class);
 			contextRunner.withBean("s3transferManager", S3TransferManager.class, () -> customDefinedS3TransferManager)
 					.run(context -> assertThat(context.getBean(S3TransferManager.class))
 							.isEqualTo(customDefinedS3TransferManager));
+		}
+
+		@Test
+		void setsPropertiesOnTransferManager() {
+			contextRunner.withBean(S3AsyncClient.class, () -> mock(S3AsyncClient.class))
+					.withPropertyValues("spring.cloud.aws.s3.transfer-manager.follow-symbolic-links:true",
+							"spring.cloud.aws.s3.transfer-manager.max-depth:12")
+					.run(context -> {
+						ConfiguredTransferManager transferManager = new ConfiguredTransferManager(
+								context.getBean(S3TransferManager.class));
+						assertThat(transferManager.getUploadDirectoryFileVisitOption()).isTrue();
+						assertThat(transferManager.getMaxDepth()).isEqualTo(12);
+					});
 		}
 
 		@Test
@@ -67,40 +94,6 @@ class S3TransferManagerAutoConfigurationTests {
 			contextRunner.withClassLoader(new FilteredClassLoader(S3TransferManager.class)).run(context -> {
 				assertThat(context).doesNotHaveBean(S3TransferManager.class);
 			});
-		}
-	}
-
-	@Nested
-	class TransferManagerEndpointConfigurationTests {
-		@Test
-		void withCustomEndpoint() {
-			contextRunner.withPropertyValues("spring.cloud.aws.s3.endpoint:http://localhost:8090").run(context -> {
-				S3TransferManager transferManager = context.getBean(S3TransferManager.class);
-				ConfiguredAwsClient client = new ConfiguredAwsClient(resolveS3Client(transferManager));
-				assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
-				assertThat(client.isEndpointOverridden()).isTrue();
-			});
-		}
-
-		@Test
-		void withCustomGlobalEndpoint() {
-			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090").run(context -> {
-				S3TransferManager transferManager = context.getBean(S3TransferManager.class);
-				ConfiguredAwsClient client = new ConfiguredAwsClient(resolveS3Client(transferManager));
-				assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
-				assertThat(client.isEndpointOverridden()).isTrue();
-			});
-		}
-
-		@Test
-		void withCustomGlobalEndpointAndS3Endpoint() {
-			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
-					"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
-						S3TransferManager transferManager = context.getBean(S3TransferManager.class);
-						ConfiguredAwsClient client = new ConfiguredAwsClient(resolveS3Client(transferManager));
-						assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
-						assertThat(client.isEndpointOverridden()).isTrue();
-					});
 		}
 	}
 
@@ -120,12 +113,6 @@ class S3TransferManagerAutoConfigurationTests {
 					.run(context -> assertThat(context)
 							.hasSingleBean(S3AutoConfigurationTests.CustomS3OutputStreamProvider.class));
 		}
-	}
-
-	@NonNull
-	private static S3AsyncClient resolveS3Client(S3TransferManager builder) {
-		return (S3AsyncClient) ReflectionTestUtils.getField(ReflectionTestUtils.getField(builder, "s3CrtAsyncClient"),
-				"delegate");
 	}
 
 }

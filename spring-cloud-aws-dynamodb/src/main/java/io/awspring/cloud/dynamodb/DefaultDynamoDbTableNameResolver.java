@@ -16,16 +16,19 @@
 package io.awspring.cloud.dynamodb;
 
 import java.util.Locale;
+import org.springframework.util.Assert;
 
 /**
  * Simple implementation of {@link DynamoDbTableNameResolver} that resolves class simple name to table name.
  *
  * @author Matej Nedic
+ * @since 3.0
  */
 public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolver {
 
 	@Override
 	public String resolve(Class clazz) {
+		Assert.notNull(clazz, "clazz is required");
 		return clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT);
 	}
 }

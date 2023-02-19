@@ -53,7 +53,7 @@ import org.springframework.core.annotation.AliasFor;
  * <li>{@link io.awspring.cloud.sqs.listener.QueueAttributes}</li>
  * <li>{@link software.amazon.awssdk.services.sqs.model.Message}</li>
  * <li>{@link io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement}</li>
- * <li>{@link io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgement}</li>
+ * <li>{@link io.awspring.cloud.sqs.listener.acknowledgement.BatchAcknowledgement}</li>
  * </ul>
  * Method signatures also accept {@link java.util.List}&lt;Pojo&gt; and
  * {@link java.util.List}{@link org.springframework.messaging.Message}&lt;Pojo&gt; arguments . Such arguments will
@@ -62,7 +62,7 @@ import org.springframework.core.annotation.AliasFor;
  * {@link org.springframework.messaging.MessageHeaders}.
  * <p>
  * To support {@link io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement} and
- * {@link io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgement} arguments, the factory used to create the
+ * {@link io.awspring.cloud.sqs.listener.acknowledgement.BatchAcknowledgement} arguments, the factory used to create the
  * containers must be set to {@link io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode#MANUAL}.
  * <p>
  * Properties in this annotation support property placeholders ("${...}") and SpEL ("#{...}").
@@ -110,11 +110,11 @@ public @interface SqsListener {
 	String id() default "";
 
 	/**
-	 * The maximum number of inflight messages that should be processed simultaneously for each queue declared in this
-	 * annotation.
-	 * @return the maximum number of inflight messages.
+	 * The maximum concurrent messages that can be processed simultaneously for each queue. Note that if acknowledgement
+	 * batching is being used, the actual maximum number of inflight messages might be higher. Default is 10.
+	 * @return the maximum number of concurrent messages.
 	 */
-	String maxInflightMessagesPerQueue() default "";
+	String maxConcurrentMessages() default "";
 
 	/**
 	 * The maximum number of seconds to wait for messages in a poll to SQS.

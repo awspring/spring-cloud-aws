@@ -27,15 +27,19 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
+import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -48,14 +52,14 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 
 /**
- * Tests for class {@link SqsAutoConfiguration}.
+ * Tests for {@link SqsAutoConfiguration}.
  *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class SqsAutoConfigurationTest {
 
 	private static final String CUSTOM_OBJECT_MAPPER_BEAN_NAME = "customObjectMapper";
+
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
@@ -69,6 +73,12 @@ class SqsAutoConfigurationTest {
 	}
 
 	@Test
+	void sqsAutoConfigurationIsDisabledWhenSqsModuleIsNotInClassPath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(SqsBootstrapConfiguration.class))
+				.run(context -> assertThat(context).doesNotHaveBean(SqsAsyncClient.class));
+	}
+
+	@Test
 	void sqsAutoConfigurationIsEnabled() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true").run(context -> {
 			assertThat(context).hasSingleBean(SqsAsyncClient.class);
@@ -78,6 +88,11 @@ class SqsAutoConfigurationTest {
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SqsAsyncClient.class));
 			assertThat(client.getEndpoint()).isEqualTo(URI.create("https://sqs.eu-west-1.amazonaws.com"));
 		});
+	}
+
+	@Test
+	void configuresSqsTemplate() {
+		this.contextRunner.run(context -> assertThat(context).hasSingleBean(SqsTemplate.class));
 	}
 
 	@Test
@@ -113,7 +128,7 @@ class SqsAutoConfigurationTest {
 	void configuresFactoryComponentsAndOptions() {
 		this.contextRunner
 				.withPropertyValues("spring.cloud.aws.sqs.enabled:true",
-						"spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue:19",
+						"spring.cloud.aws.sqs.listener.max-concurrent-messages:19",
 						"spring.cloud.aws.sqs.listener.max-messages-per-poll:8",
 						"spring.cloud.aws.sqs.listener.poll-timeout:6s")
 				.withUserConfiguration(CustomComponentsConfiguration.class).run(context -> {
@@ -125,10 +140,10 @@ class SqsAutoConfigurationTest {
 					.extracting("asyncMessageInterceptors").asList().isNotEmpty();
 				assertThat(factory)
 					.extracting("containerOptionsBuilder")
-					.asInstanceOf(type(ContainerOptions.Builder.class))
-					.extracting(ContainerOptions.Builder::build)
+					.asInstanceOf(type(ContainerOptionsBuilder.class))
+					.extracting(ContainerOptionsBuilder::build)
 					.isInstanceOfSatisfying(ContainerOptions.class, options -> {
-						assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(19);
+						assertThat(options.getMaxConcurrentMessages()).isEqualTo(19);
 						assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);
 						assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
 					});
@@ -153,13 +168,13 @@ class SqsAutoConfigurationTest {
 
 		@Bean
 		AsyncErrorHandler<Object> asyncErrorHandler() {
-			return new AsyncErrorHandler<Object>() {
+			return new AsyncErrorHandler<>() {
 			};
 		}
 
 		@Bean
 		AsyncMessageInterceptor<?> asyncMessageInterceptor() {
-			return new AsyncMessageInterceptor<Object>() {
+			return new AsyncMessageInterceptor<>() {
 			};
 		}
 
@@ -180,7 +195,7 @@ class SqsAutoConfigurationTest {
 
 		@Bean
 		AwsClientCustomizer<SqsAsyncClientBuilder> sqsClientBuilderAwsClientConfigurer() {
-			return new AwsClientCustomizer<SqsAsyncClientBuilder>() {
+			return new AwsClientCustomizer<>() {
 				@Override
 				@Nullable
 				public ClientOverrideConfiguration overrideConfiguration() {

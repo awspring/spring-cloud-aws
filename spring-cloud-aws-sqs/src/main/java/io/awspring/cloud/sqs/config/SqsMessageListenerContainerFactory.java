@@ -21,6 +21,8 @@ import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.MessageListener;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
@@ -125,16 +127,20 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * @see ContainerOptions
  * @see io.awspring.cloud.sqs.listener.AsyncComponentAdapters
  */
-public class SqsMessageListenerContainerFactory<T>
-		extends AbstractMessageListenerContainerFactory<T, SqsMessageListenerContainer<T>> {
+public class SqsMessageListenerContainerFactory<T> extends
+		AbstractMessageListenerContainerFactory<T, SqsMessageListenerContainer<T>, SqsContainerOptions, SqsContainerOptionsBuilder> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsMessageListenerContainerFactory.class);
 
 	private Supplier<SqsAsyncClient> sqsAsyncClientSupplier;
 
+	public SqsMessageListenerContainerFactory() {
+		super(SqsContainerOptions.builder().build());
+	}
+
 	@Override
 	protected SqsMessageListenerContainer<T> createContainerInstance(Endpoint endpoint,
-			ContainerOptions containerOptions) {
+			SqsContainerOptions containerOptions) {
 		logger.debug("Creating {} for endpoint {}", SqsMessageListenerContainer.class.getSimpleName(),
 				endpoint.getId() != null ? endpoint.getId() : endpoint.getLogicalNames());
 		Assert.notNull(this.sqsAsyncClientSupplier, "asyncClientSupplier not set");
@@ -146,14 +152,13 @@ public class SqsMessageListenerContainerFactory<T>
 		return this.sqsAsyncClientSupplier.get();
 	}
 
-	protected void configureContainerOptions(Endpoint endpoint, ContainerOptions.Builder options) {
+	protected void configureContainerOptions(Endpoint endpoint, SqsContainerOptionsBuilder options) {
 		ConfigUtils.INSTANCE.acceptIfInstance(endpoint, SqsEndpoint.class,
 				sqsEndpoint -> configureFromSqsEndpoint(sqsEndpoint, options));
 	}
 
-	private void configureFromSqsEndpoint(SqsEndpoint sqsEndpoint, ContainerOptions.Builder options) {
-		ConfigUtils.INSTANCE
-				.acceptIfNotNull(sqsEndpoint.getMaxInflightMessagesPerQueue(), options::maxInflightMessagesPerQueue)
+	private void configureFromSqsEndpoint(SqsEndpoint sqsEndpoint, SqsContainerOptionsBuilder options) {
+		ConfigUtils.INSTANCE.acceptIfNotNull(sqsEndpoint.getMaxConcurrentMessages(), options::maxConcurrentMessages)
 				.acceptIfNotNull(sqsEndpoint.getMaxMessagesPerPoll(), options::maxMessagesPerPoll)
 				.acceptIfNotNull(sqsEndpoint.getPollTimeout(), options::pollTimeout)
 				.acceptIfNotNull(sqsEndpoint.getMessageVisibility(), options::messageVisibility);
@@ -195,7 +200,7 @@ public class SqsMessageListenerContainerFactory<T>
 
 		private SqsAsyncClient sqsAsyncClient;
 
-		private Collection<ContainerComponentFactory<T>> containerComponentFactories;
+		private Collection<ContainerComponentFactory<T, SqsContainerOptions>> containerComponentFactories;
 
 		private AsyncMessageListener<T> asyncMessageListener;
 
@@ -205,7 +210,7 @@ public class SqsMessageListenerContainerFactory<T>
 
 		private ErrorHandler<T> errorHandler;
 
-		private Consumer<ContainerOptions.Builder> optionsConsumer = options -> {
+		private Consumer<SqsContainerOptionsBuilder> optionsConsumer = options -> {
 		};
 
 		private AcknowledgementResultCallback<T> acknowledgementResultCallback;
@@ -235,7 +240,7 @@ public class SqsMessageListenerContainerFactory<T>
 		}
 
 		public Builder<T> containerComponentFactories(
-				Collection<ContainerComponentFactory<T>> containerComponentFactories) {
+				Collection<ContainerComponentFactory<T, SqsContainerOptions>> containerComponentFactories) {
 			this.containerComponentFactories = containerComponentFactories;
 			return this;
 		}
@@ -282,7 +287,7 @@ public class SqsMessageListenerContainerFactory<T>
 			return this;
 		}
 
-		public Builder<T> configure(Consumer<ContainerOptions.Builder> options) {
+		public Builder<T> configure(Consumer<SqsContainerOptionsBuilder> options) {
 			this.optionsConsumer = options;
 			return this;
 		}

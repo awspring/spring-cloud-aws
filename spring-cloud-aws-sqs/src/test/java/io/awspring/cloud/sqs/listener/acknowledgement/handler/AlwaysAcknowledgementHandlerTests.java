@@ -21,8 +21,9 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link AlwaysAcknowledgementHandler}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class AlwaysAcknowledgementHandlerTests extends AbstractAcknowledgementHandlerTests {
 

@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.FifoUtils;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor;
@@ -24,7 +25,7 @@ import io.awspring.cloud.sqs.listener.sink.BatchMessageSink;
 import io.awspring.cloud.sqs.listener.sink.FanOutMessageSink;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
-import io.awspring.cloud.sqs.listener.source.SqsMessageSource;
+import io.awspring.cloud.sqs.listener.source.StandardSqsMessageSource;
 import java.time.Duration;
 import java.util.Collection;
 import org.springframework.util.Assert;
@@ -35,7 +36,7 @@ import org.springframework.util.Assert;
  * @since 3.0
  * @see FifoSqsComponentFactory
  */
-public class StandardSqsComponentFactory<T> implements ContainerComponentFactory<T> {
+public class StandardSqsComponentFactory<T> implements ContainerComponentFactory<T, SqsContainerOptions> {
 
 	private static final Duration DEFAULT_STANDARD_SQS_ACK_INTERVAL = Duration.ofSeconds(1);
 
@@ -44,18 +45,18 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 	private static final AcknowledgementOrdering DEFAULT_STANDARD_SQS_ACK_ORDERING = AcknowledgementOrdering.PARALLEL;
 
 	@Override
-	public boolean supports(Collection<String> queueNames, ContainerOptions options) {
-		return queueNames.stream().noneMatch(name -> name.endsWith(".fifo"));
+	public boolean supports(Collection<String> queueNames, SqsContainerOptions options) {
+		return FifoUtils.areNotFifo(queueNames);
 	}
 
 	@Override
-	public MessageSource<T> createMessageSource(ContainerOptions options) {
-		return new SqsMessageSource<>();
+	public MessageSource<T> createMessageSource(SqsContainerOptions options) {
+		return new StandardSqsMessageSource<>();
 	}
 
 	// @formatter:off
 	@Override
-	public MessageSink<T> createMessageSink(ContainerOptions options) {
+	public MessageSink<T> createMessageSink(SqsContainerOptions options) {
 		return ListenerMode.SINGLE_MESSAGE.equals(options.getListenerMode())
 			? new FanOutMessageSink<>()
 			: new BatchMessageSink<>();
@@ -63,23 +64,24 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 	// @formatter:on
 
 	@Override
-	public AcknowledgementProcessor<T> createAcknowledgementProcessor(ContainerOptions options) {
+	public AcknowledgementProcessor<T> createAcknowledgementProcessor(SqsContainerOptions options) {
 		validateAcknowledgementOrdering(options);
-		return options.getAcknowledgementInterval() == Duration.ZERO && options.getAcknowledgementThreshold() == 0
-				? createAndConfigureImmediateProcessor(options)
-				: createAndConfigureBatchingProcessor(options);
+		return options.getAcknowledgementInterval() == Duration.ZERO
+				&& (options.getAcknowledgementThreshold() == null || options.getAcknowledgementThreshold() == 0)
+						? createAndConfigureImmediateProcessor(options)
+						: createAndConfigureBatchingProcessor(options);
 	}
 
-	private void validateAcknowledgementOrdering(ContainerOptions options) {
+	private void validateAcknowledgementOrdering(SqsContainerOptions options) {
 		Assert.isTrue(!AcknowledgementOrdering.ORDERED_BY_GROUP.equals(options.getAcknowledgementOrdering()),
 				"Standard SQS queues are not compatible with " + AcknowledgementOrdering.ORDERED_BY_GROUP);
 	}
 
-	private AcknowledgementProcessor<T> createAndConfigureBatchingProcessor(ContainerOptions options) {
+	private AcknowledgementProcessor<T> createAndConfigureBatchingProcessor(SqsContainerOptions options) {
 		return configureBatchingAcknowledgementProcessor(options, createBatchingProcessorInstance());
 	}
 
-	protected ImmediateAcknowledgementProcessor<T> createAndConfigureImmediateProcessor(ContainerOptions options) {
+	protected ImmediateAcknowledgementProcessor<T> createAndConfigureImmediateProcessor(SqsContainerOptions options) {
 		return configureImmediateAcknowledgementProcessor(createImmediateProcessorInstance(), options);
 	}
 
@@ -92,19 +94,19 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 	}
 
 	protected ImmediateAcknowledgementProcessor<T> configureImmediateAcknowledgementProcessor(
-			ImmediateAcknowledgementProcessor<T> processor, ContainerOptions options) {
+			ImmediateAcknowledgementProcessor<T> processor, SqsContainerOptions options) {
 		processor.setMaxAcknowledgementsPerBatch(10);
-		ContainerOptions.Builder builder = options.toBuilder();
+		SqsContainerOptionsBuilder builder = options.toBuilder();
 		ConfigUtils.INSTANCE.acceptIfNotNullOrElse(builder::acknowledgementOrdering,
 				options.getAcknowledgementOrdering(), DEFAULT_STANDARD_SQS_ACK_ORDERING);
 		processor.configure(builder.build());
 		return processor;
 	}
 
-	protected BatchingAcknowledgementProcessor<T> configureBatchingAcknowledgementProcessor(ContainerOptions options,
+	protected BatchingAcknowledgementProcessor<T> configureBatchingAcknowledgementProcessor(SqsContainerOptions options,
 			BatchingAcknowledgementProcessor<T> processor) {
 		processor.setMaxAcknowledgementsPerBatch(10);
-		ContainerOptions.Builder builder = options.toBuilder();
+		SqsContainerOptionsBuilder builder = options.toBuilder();
 		ConfigUtils.INSTANCE
 				.acceptIfNotNullOrElse(builder::acknowledgementInterval, options.getAcknowledgementInterval(),
 						DEFAULT_STANDARD_SQS_ACK_INTERVAL)

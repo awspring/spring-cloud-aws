@@ -1,5 +1,10 @@
 == Migration from 2.x to 3.x
 
+[WARNING]
+====
+Migration guide is work in progress.
+====
+
 Properties that have changed from 2.x to 3.x are listed below:
 
 [cols="2*", options="header", width=100%, %autowidth]
@@ -16,14 +21,8 @@ Properties that have changed from 2.x to 3.x are listed below:
 |`cloud.aws.region.static`
 |`spring.cloud.aws.region.static`
 
-|`aws.paramstore.enabled`
-|`spring.cloud.aws.parameterstore.enabled`
-
 |`aws.paramstore.region`
 |`spring.cloud.aws.parameterstore.region`
-
-|`aws.secretsmanager.enabled`
-|`spring.cloud.aws.secretsmanager.enabled`
 
 |`aws.secretsmanager.region`
 |`spring.cloud.aws.secretsmanager.region`

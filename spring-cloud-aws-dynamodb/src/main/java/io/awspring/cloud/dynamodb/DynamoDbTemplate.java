@@ -16,6 +16,7 @@
 package io.awspring.cloud.dynamodb;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -24,9 +25,10 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 
 /**
- * Default implementation of DynamoDbOperations.
+ * Default implementation of {@link DynamoDbOperations}.
  *
  * @author Matej Nedic
+ * @since 3.0
  */
 public class DynamoDbTemplate implements DynamoDbOperations {
 	private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
@@ -46,46 +48,60 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	}
 
 	public <T> T save(T entity) {
+		Assert.notNull(entity, "entity is required");
 		prepareTable(entity).putItem(entity);
 		return entity;
 	}
 
 	public <T> T update(T entity) {
+		Assert.notNull(entity, "entity is required");
 		return prepareTable(entity).updateItem(entity);
 	}
 
 	public void delete(Key key, Class<?> clazz) {
+		Assert.notNull(key, "key is required");
+		Assert.notNull(clazz, "clazz is required");
 		prepareTable(clazz).deleteItem(key);
 	}
 
 	public <T> void delete(T entity) {
+		Assert.notNull(entity, "entity is required");
 		prepareTable(entity).deleteItem(entity);
 	}
 
 	@Nullable
 	public <T> T load(Key key, Class<T> clazz) {
+		Assert.notNull(key, "key is required");
+		Assert.notNull(clazz, "clazz is required");
 		return prepareTable(clazz).getItem(key);
 	}
 
 	public <T> PageIterable<T> scan(ScanEnhancedRequest scanEnhancedRequest, Class<T> clazz) {
+		Assert.notNull(scanEnhancedRequest, "scanEnhancedRequest is required");
+		Assert.notNull(clazz, "clazz is required");
 		return prepareTable(clazz).scan(scanEnhancedRequest);
 	}
 
 	public <T> PageIterable<T> scanAll(Class<T> clazz) {
+		Assert.notNull(clazz, "clazz is required");
 		return prepareTable(clazz).scan();
 	}
 
 	public <T> PageIterable<T> query(QueryEnhancedRequest queryEnhancedRequest, Class<T> clazz) {
+		Assert.notNull(queryEnhancedRequest, "queryEnhancedRequest is required");
+		Assert.notNull(clazz, "clazz is required");
 		return prepareTable(clazz).query(queryEnhancedRequest);
 	}
 
 	private <T> DynamoDbTable<T> prepareTable(T entity) {
+		Assert.notNull(entity, "entity is required");
 		String tableName = dynamoDbTableNameResolver.resolve(entity.getClass());
 		return dynamoDbEnhancedClient.table(tableName,
 				dynamoDbTableSchemaResolver.resolve(entity.getClass(), tableName));
 	}
 
 	private <T> DynamoDbTable<T> prepareTable(Class<T> clazz) {
+		Assert.notNull(clazz, "clazz is required");
 		String tableName = dynamoDbTableNameResolver.resolve(clazz);
 		return dynamoDbEnhancedClient.table(tableName, dynamoDbTableSchemaResolver.resolve(clazz, tableName));
 	}

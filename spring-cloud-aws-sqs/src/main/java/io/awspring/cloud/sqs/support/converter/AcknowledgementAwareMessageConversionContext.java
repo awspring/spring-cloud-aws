@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
+import org.springframework.lang.Nullable;
 
 /**
  * {@link MessageConversionContext} specialization that enables setting an {@link AcknowledgementCallback} to be used
@@ -27,6 +28,7 @@ public interface AcknowledgementAwareMessageConversionContext extends MessageCon
 
 	void setAcknowledgementCallback(AcknowledgementCallback<?> acknowledgementCallback);
 
+	@Nullable
 	AcknowledgementCallback<?> getAcknowledgementCallback();
 
 }

@@ -45,11 +45,11 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
  */
 public class S3Resource extends AbstractResource implements WritableResource {
 
-	private final Location location;
+	protected final Location location;
 
-	private final S3Client s3Client;
+	protected final S3Client s3Client;
 
-	private final S3OutputStreamProvider s3OutputStreamProvider;
+	protected final S3OutputStreamProvider s3OutputStreamProvider;
 
 	@Nullable
 	private HeadMetadata headMetadata;
@@ -70,7 +70,7 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	public S3Resource(String bucket, String key, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
-		this(new Location(bucket, key, null), s3Client, s3OutputStreamProvider);
+		this(Location.of(bucket, key), s3Client, s3OutputStreamProvider);
 	}
 
 	public S3Resource(Location location, S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
@@ -96,6 +96,11 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	@Override
 	public String getDescription() {
 		return location.toString();
+	}
+
+	@Override
+	public S3Resource createRelative(String relativePath) {
+		return new S3Resource(location.relative(relativePath), this.s3Client, this.s3OutputStreamProvider);
 	}
 
 	@Override
@@ -164,6 +169,10 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	@Override
 	public OutputStream getOutputStream() throws IOException {
 		return s3OutputStreamProvider.create(location.getBucket(), location.getObject(), objectMetadata);
+	}
+
+	public Location getLocation() {
+		return location;
 	}
 
 	private static class HeadMetadata {

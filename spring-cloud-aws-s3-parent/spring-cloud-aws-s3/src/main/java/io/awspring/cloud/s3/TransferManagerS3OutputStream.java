@@ -20,13 +20,13 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 /**
- * {@link S3OutputStream} implementation, that uses the TransferManager from AWS (in preview).
- *
- * Transfer manager has been announced here
- * https://aws.amazon.com/blogs/developer/introducing-amazon-s3-transfer-manager-in-the-aws-sdk-for-java-2-x/
+ * {@link S3OutputStream} implementation, that uses the TransferManager from AWS.
+ * <p>
+ * Transfer manager has been announced here <a href=
+ * "https://aws.amazon.com/blogs/developer/introducing-amazon-s3-transfer-manager-in-the-aws-sdk-for-java-2-x/">...</a>
  *
  * @author Anton Perez
  * @since 3.0

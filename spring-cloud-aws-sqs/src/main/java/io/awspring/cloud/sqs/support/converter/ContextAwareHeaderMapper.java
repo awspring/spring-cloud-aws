@@ -16,7 +16,6 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.HeaderMapper;
 
 /**
  * A {@link HeaderMapper} specialization that supports receiving a {@link MessageConversionContext} for mapping context

@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -38,22 +39,42 @@ import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundExce
  * @author Fabio Maia
  * @author Maciej Walkowiak
  * @author Arun Patra
+ * @author Matej Nedic
  * @since 2.0.0
  */
 public class SecretsManagerPropertySource
 		extends AwsPropertySource<SecretsManagerPropertySource, SecretsManagerClient> {
 
 	private static Log LOG = LogFactory.getLog(SecretsManagerPropertySource.class);
+	private static final String PREFIX_PART = "?prefix=";
 
 	private final ObjectMapper jsonMapper = new ObjectMapper();
 
+	/**
+	 * Full secret path containing both secret id and prefix.
+	 */
 	private final String context;
+
+	/**
+	 * Id of a secret stored in AWS Secrets Manager.
+	 */
+	private final String secretId;
+
+	/**
+	 * Prefix that gets added to resolved property keys. Useful same property keys are returned by multiple property
+	 * sources.
+	 */
+	@Nullable
+	private final String prefix;
 
 	private final Map<String, Object> properties = new LinkedHashMap<>();
 
 	public SecretsManagerPropertySource(String context, SecretsManagerClient smClient) {
-		super(context, smClient);
+		super("aws-secretsmanager:" + context, smClient);
+		Assert.notNull(context, "context is required");
 		this.context = context;
+		this.secretId = resolveSecretId(context);
+		this.prefix = resolvePrefix(context);
 	}
 
 	/**
@@ -62,7 +83,7 @@ public class SecretsManagerPropertySource
 	 */
 	@Override
 	public void init() {
-		readSecretValue(GetSecretValueRequest.builder().secretId(context).build());
+		readSecretValue(GetSecretValueRequest.builder().secretId(secretId).build());
 	}
 
 	@Override
@@ -79,25 +100,36 @@ public class SecretsManagerPropertySource
 
 	private void readSecretValue(GetSecretValueRequest secretValueRequest) {
 		GetSecretValueResponse secretValueResponse = source.getSecretValue(secretValueRequest);
-		try {
-			Map<String, Object> secretMap = jsonMapper.readValue(secretValueResponse.secretString(),
-					new TypeReference<Map<String, Object>>() {
-					});
+		if (secretValueResponse.secretString() != null) {
+			try {
+				Map<String, Object> secretMap = jsonMapper.readValue(secretValueResponse.secretString(),
+						new TypeReference<>() {
+						});
 
-			for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
-				LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
-				properties.put(secretEntry.getKey(), secretEntry.getValue());
+				for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
+					LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
+					String propertyKey = prefix != null ? prefix + secretEntry.getKey() : secretEntry.getKey();
+					properties.put(propertyKey, secretEntry.getValue());
+				}
+			}
+			catch (JsonParseException e) {
+				// If the secret is not a JSON string, then it is a simple "plain text" string
+				String[] parts = secretValueResponse.name().split("/");
+				String secretName = parts[parts.length - 1];
+				LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretName);
+				String propertyKey = prefix != null ? prefix + secretName : secretName;
+				properties.put(propertyKey, secretValueResponse.secretString());
+			}
+			catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
 			}
 		}
-		catch (JsonParseException e) {
-			// If the secret is not a JSON string, then it is a simple "plain text" string
+		else {
 			String[] parts = secretValueResponse.name().split("/");
 			String secretName = parts[parts.length - 1];
 			LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretName);
-			properties.put(secretName, secretValueResponse.secretString());
-		}
-		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
+			String propertyKey = prefix != null ? prefix + secretName : secretName;
+			properties.put(propertyKey, secretValueResponse.secretBinary().asByteArray());
 		}
 	}
 
@@ -106,4 +138,33 @@ public class SecretsManagerPropertySource
 		return new SecretsManagerPropertySource(this.context, this.source);
 	}
 
+	@Nullable
+	String getPrefix() {
+		return prefix;
+	}
+
+	String getContext() {
+		return context;
+	}
+
+	String getSecretId() {
+		return secretId;
+	}
+
+	@Nullable
+	private static String resolvePrefix(String context) {
+		int prefixIndex = context.indexOf(PREFIX_PART);
+		if (prefixIndex != -1) {
+			return context.substring(prefixIndex + PREFIX_PART.length());
+		}
+		return null;
+	}
+
+	private static String resolveSecretId(String context) {
+		int prefixIndex = context.indexOf(PREFIX_PART);
+		if (prefixIndex != -1) {
+			return context.substring(0, prefixIndex);
+		}
+		return context;
+	}
 }

@@ -29,7 +29,7 @@ import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 /**
  * Unit tests for {@link TransferManagerS3OutputStream}.

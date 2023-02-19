@@ -22,7 +22,7 @@ import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,8 +36,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
 /**
+ * Tests for {@link ImmediateAcknowledgementProcessor}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class ImmediateAcknowledgementProcessorTests {
@@ -61,7 +62,7 @@ class ImmediateAcknowledgementProcessorTests {
 		processor.setId("id");
 		processor.setAcknowledgementExecutor(executor);
 		processor.configure(
-				ContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
+				SqsContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
 		processor.start();
 		processor.doOnAcknowledge(message);
 		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -82,7 +83,7 @@ class ImmediateAcknowledgementProcessorTests {
 		AcknowledgementExecutor<Object> executor = mock(AcknowledgementExecutor.class);
 		Message<Object> message = mock(Message.class);
 		MessageHeaders messageHeaders = new MessageHeaders(Collections.singletonMap(
-				SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString()));
+				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString()));
 		given(message.getHeaders()).willReturn(messageHeaders);
 		RuntimeException exception = new RuntimeException("Expected exception from shouldPropagateErrorForOrdered");
 		given(executor.execute(Collections.singletonList(message)))
@@ -91,10 +92,10 @@ class ImmediateAcknowledgementProcessorTests {
 		processor.setMaxAcknowledgementsPerBatch(10);
 		processor.setId("id");
 		processor.setAcknowledgementExecutor(executor);
-		processor.configure(ContainerOptions.builder().acknowledgementOrdering(ordering).build());
+		processor.configure(SqsContainerOptions.builder().acknowledgementOrdering(ordering).build());
 		if (AcknowledgementOrdering.ORDERED_BY_GROUP.equals(ordering)) {
 			processor.setMessageGroupingFunction(msg -> MessageHeaderUtils.getHeaderAsString(msg,
-					SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER));
+					SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
 		}
 		processor.start();
 		CompletableFuture<Void> ackResult = processor.doOnAcknowledge(message);
@@ -124,7 +125,7 @@ class ImmediateAcknowledgementProcessorTests {
 			}
 		});
 		processor.configure(
-				ContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
+				SqsContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
 		processor.start();
 		processor.doOnAcknowledge(message);
 		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -154,7 +155,7 @@ class ImmediateAcknowledgementProcessorTests {
 			}
 		});
 		processor.configure(
-				ContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
+				SqsContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
 		processor.start();
 		processor.doOnAcknowledge(message);
 		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -184,7 +185,7 @@ class ImmediateAcknowledgementProcessorTests {
 			}
 		});
 		processor.configure(
-				ContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
+				SqsContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
 		processor.start();
 		CompletableFuture<Void> resultFuture = processor.doOnAcknowledge(message);
 		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();

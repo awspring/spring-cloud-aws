@@ -47,7 +47,7 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	private final Map<String, Object> properties = new LinkedHashMap<>();
 
 	public ParameterStorePropertySource(String context, SsmClient ssmClient) {
-		super(context, ssmClient);
+		super("aws-parameterstore:" + context, ssmClient);
 		this.context = context;
 	}
 

@@ -28,7 +28,7 @@ public interface ConfigurableContainerComponent {
 	 * Configure the component with the provided {@link ContainerOptions} instance
 	 * @param containerOptions
 	 */
-	default void configure(ContainerOptions containerOptions) {
+	default void configure(ContainerOptions<?, ?> containerOptions) {
 	}
 
 }

@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -41,7 +42,8 @@ import org.springframework.util.Assert;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractMessageListenerContainer<T> implements MessageListenerContainer<T> {
+public abstract class AbstractMessageListenerContainer<T, O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>>
+		implements MessageListenerContainer<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMessageListenerContainer.class);
 
@@ -49,11 +51,12 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private boolean isRunning;
 
+	@Nullable
 	private String id;
 
 	private Collection<String> queueNames = new ArrayList<>();
 
-	private Collection<ContainerComponentFactory<T>> containerComponentFactories;
+	private Collection<ContainerComponentFactory<T, O>> containerComponentFactories = new ArrayList<>();
 
 	private AsyncMessageListener<T> messageListener;
 
@@ -61,7 +64,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 
 	private final Collection<AsyncMessageInterceptor<T>> messageInterceptors = new ArrayList<>();
 
-	private ContainerOptions containerOptions;
+	private O containerOptions;
 
 	private AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback = new AsyncAcknowledgementResultCallback<T>() {
 	};
@@ -70,7 +73,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	 * Create an instance with the provided {@link ContainerOptions}
 	 * @param containerOptions the options instance.
 	 */
-	protected AbstractMessageListenerContainer(ContainerOptions containerOptions) {
+	protected AbstractMessageListenerContainer(O containerOptions) {
 		Assert.notNull(containerOptions, "containerOptions cannot be null");
 		this.containerOptions = containerOptions;
 	}
@@ -154,7 +157,7 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 		this.acknowledgementResultCallback = AsyncComponentAdapters.adapt(acknowledgementResultCallback);
 	}
 
-	public void setComponentFactories(Collection<ContainerComponentFactory<T>> containerComponentFactories) {
+	public void setComponentFactories(Collection<ContainerComponentFactory<T, O>> containerComponentFactories) {
 		Assert.notEmpty(containerComponentFactories, "containerComponentFactories cannot be null or empty");
 		this.containerComponentFactories = containerComponentFactories;
 	}
@@ -163,14 +166,14 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	 * Returns the {@link ContainerOptions} instance for this container. Changed options will take effect on container
 	 * restart.
 	 */
-	public void configure(Consumer<ContainerOptions.Builder> options) {
+	public void configure(Consumer<B> options) {
 		Assert.state(!isRunning(), "Stop the container before making changes to the options");
-		ContainerOptions.Builder builder = this.containerOptions.toBuilder();
+		B builder = this.containerOptions.toBuilder();
 		options.accept(builder);
 		this.containerOptions = builder.build();
 	}
 
-	public ContainerOptions getContainerOptions() {
+	public O getContainerOptions() {
 		return this.containerOptions;
 	}
 
@@ -178,8 +181,8 @@ public abstract class AbstractMessageListenerContainer<T> implements MessageList
 	 * Return the {@link ContainerComponentFactory} instances to be used for creating this container's components.
 	 * @return the instances.
 	 */
-	public Collection<ContainerComponentFactory<T>> getContainerComponentFactories() {
-		return this.containerComponentFactories;
+	public Collection<ContainerComponentFactory<T, O>> getContainerComponentFactories() {
+		return Collections.unmodifiableCollection(this.containerComponentFactories);
 	}
 
 	/**

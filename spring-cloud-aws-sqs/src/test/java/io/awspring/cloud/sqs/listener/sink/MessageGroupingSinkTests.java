@@ -38,14 +38,15 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
 /**
+ * Tests for {@link MessageGroupingSinkAdapter}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class MessageGroupingSinkTests {
 
 	@Test
 	void maintainsOrderWithinEachGroup() {
-		String header = SqsHeaders.MessageSystemAttribute.SQS_MESSAGE_GROUP_ID_HEADER;
+		String header = SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER;
 		String firstMessageGroupId = UUID.randomUUID().toString();
 		String secondMessageGroupId = UUID.randomUUID().toString();
 		String thirdMessageGroupId = UUID.randomUUID().toString();

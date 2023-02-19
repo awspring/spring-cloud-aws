@@ -17,7 +17,9 @@ package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.LifecycleHandler;
+import io.awspring.cloud.sqs.MessageExecutionThread;
 import io.awspring.cloud.sqs.MessageExecutionThreadFactory;
+import io.awspring.cloud.sqs.UnsupportedThreadFactoryException;
 import io.awspring.cloud.sqs.listener.pipeline.AcknowledgementHandlerExecutionStage;
 import io.awspring.cloud.sqs.listener.pipeline.AfterProcessingContextInterceptorExecutionStage;
 import io.awspring.cloud.sqs.listener.pipeline.AfterProcessingInterceptorExecutionStage;
@@ -36,6 +38,7 @@ import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -43,28 +46,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * Base {@link MessageListenerContainer} implementation for managing {@link org.springframework.messaging.Message}
  * instances' lifecycles.
- *
+ * <p>
  * This container uses a {@link MessageSource} to create the {@link org.springframework.messaging.Message} instances,
  * which are forwarded to a {@link MessageSink} and finally emitted to a {@link MessageProcessingPipeline}.
- *
+ * <p>
  * The pipeline has several stages for processing the messages and executing logic in components such as
  * {@link AsyncMessageListener}, {@link io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler} and
  * {@link io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor}.
- *
+ * <p>
  * Such components are created by the {@link ContainerComponentFactory} and the container manages their lifecycles.
- *
+ * <p>
  * Components and {@link ContainerOptions} can be changed at runtime and such changes will be valid upon container
  * restart.
  *
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractPipelineMessageListenerContainer<T> extends AbstractMessageListenerContainer<T> {
+public abstract class AbstractPipelineMessageListenerContainer<T, O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>>
+		extends AbstractMessageListenerContainer<T, O, B> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractPipelineMessageListenerContainer.class);
 
@@ -74,13 +79,16 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 
 	private TaskExecutor componentsTaskExecutor;
 
-	protected AbstractPipelineMessageListenerContainer(ContainerOptions options) {
+	@Nullable
+	private TaskExecutor acknowledgementResultTaskExecutor;
+
+	protected AbstractPipelineMessageListenerContainer(O options) {
 		super(options);
 	}
 
 	@Override
 	protected void doStart() {
-		ContainerComponentFactory<T> componentFactory = determineComponentFactory();
+		ContainerComponentFactory<T, O> componentFactory = determineComponentFactory();
 		this.messageSources = createMessageSources(componentFactory);
 		this.messageSink = componentFactory.createMessageSink(getContainerOptions());
 		configureComponents(componentFactory);
@@ -88,7 +96,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	}
 
 	// @formatter:off
-	private ContainerComponentFactory<T> determineComponentFactory() {
+	private ContainerComponentFactory<T, O> determineComponentFactory() {
 		return getComponentFactories()
 			.stream()
 			.filter(factory -> factory.supports(getQueueNames(), getContainerOptions()))
@@ -96,15 +104,15 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 			.orElseThrow(() -> new IllegalArgumentException("No ContainerComponentFactory found for queues " + getQueueNames()));
 	}
 
-	private Collection<ContainerComponentFactory<T>> getComponentFactories() {
-		return getContainerComponentFactories() != null
+	private Collection<ContainerComponentFactory<T, O>> getComponentFactories() {
+		return !getContainerComponentFactories().isEmpty()
 			? getContainerComponentFactories()
-			: getDefaultComponentFactories();
+			: createDefaultComponentFactories();
 	}
 
-	protected abstract Collection<ContainerComponentFactory<T>> getDefaultComponentFactories();
+	protected abstract Collection<ContainerComponentFactory<T, O>> createDefaultComponentFactories();
 
-	protected Collection<MessageSource<T>> createMessageSources(ContainerComponentFactory<T> componentFactory) {
+	protected Collection<MessageSource<T>> createMessageSources(ContainerComponentFactory<T, O> componentFactory) {
 		List<String> queueNames = new ArrayList<>(getQueueNames());
 		return IntStream.range(0, queueNames.size())
 				.mapToObj(index -> createMessageSource(queueNames.get(index), index, componentFactory))
@@ -112,7 +120,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	}
 
 	protected MessageSource<T> createMessageSource(String queueName, int index,
-			ContainerComponentFactory<T> componentFactory) {
+			ContainerComponentFactory<T, O> componentFactory) {
 		MessageSource<T> messageSource = componentFactory.createMessageSource(getContainerOptions());
 		ConfigUtils.INSTANCE
 			.acceptIfInstance(messageSource, PollingMessageSource.class,
@@ -122,7 +130,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 		return messageSource;
 	}
 
-	private void configureComponents(ContainerComponentFactory<T> componentFactory) {
+	private void configureComponents(ContainerComponentFactory<T, O> componentFactory) {
 		getContainerOptions()
 			.configure(this.messageSources)
 			.configure(this.messageSink);
@@ -131,10 +139,17 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 		configureMessageSink(createMessageProcessingPipeline(componentFactory));
 		configureContainerComponents();
 	}
+
+	private void verifyThreadType() {
+		if (!MessageExecutionThread.class.isAssignableFrom(Thread.currentThread().getClass())) {
+			throw new UnsupportedThreadFactoryException("Custom TaskExecutors must use a %s."
+				.formatted(MessageExecutionThreadFactory.class.getSimpleName()));
+		}
+	}
 	// @formatter:on
 
 	@SuppressWarnings("unchecked")
-	protected void configureMessageSources(ContainerComponentFactory<T> componentFactory) {
+	protected void configureMessageSources(ContainerComponentFactory<T, O> componentFactory) {
 		TaskExecutor taskExecutor = createSourcesTaskExecutor();
 		ConfigUtils.INSTANCE.acceptMany(this.messageSources, source -> source.setMessageSink(this.messageSink))
 				.acceptManyIfInstance(this.messageSources, PollingMessageSource.class,
@@ -150,7 +165,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 	}
 
 	protected void doConfigureMessageSources(Collection<MessageSource<T>> messageSources) {
-	};
+	}
 
 	@SuppressWarnings("unchecked")
 	protected void configureMessageSink(MessageProcessingPipeline<T> messageProcessingPipeline) {
@@ -175,12 +190,12 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 				.acceptIfInstance(getErrorHandler(), TaskExecutorAware.class,
 						teac -> teac.setTaskExecutor(getComponentsTaskExecutor()))
 				.acceptIfInstance(getAcknowledgementResultCallback(), TaskExecutorAware.class,
-						teac -> teac.setTaskExecutor(getComponentsTaskExecutor()));
+						teac -> teac.setTaskExecutor(getAcknowledgementResultTaskExecutor()));
 	}
 
 	// @formatter:off
 	protected MessageProcessingPipeline<T> createMessageProcessingPipeline(
-			ContainerComponentFactory<T> componentFactory) {
+			ContainerComponentFactory<T, O> componentFactory) {
 		return MessageProcessingPipelineBuilder.
 			<T> first(BeforeProcessingContextInterceptorExecutionStage::new)
 				.then(BeforeProcessingInterceptorExecutionStage::new)
@@ -200,14 +215,19 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 
 	private TaskExecutor resolveComponentsTaskExecutor() {
 		return getContainerOptions().getComponentsTaskExecutor() != null
-				? getContainerOptions().getComponentsTaskExecutor()
-				: createComponentsTaskExecutor();
+				? validateCustomExecutor(getContainerOptions().getComponentsTaskExecutor())
+				: createTaskExecutor();
+	}
+
+	private TaskExecutor validateCustomExecutor(TaskExecutor taskExecutor) {
+		CompletableFuture.runAsync(this::verifyThreadType, taskExecutor).join();
+		return taskExecutor;
 	}
 
 	protected BackPressureHandler createBackPressureHandler() {
 		return SemaphoreBackPressureHandler.builder().batchSize(getContainerOptions().getMaxMessagesPerPoll())
-				.totalPermits(getContainerOptions().getMaxInFlightMessagesPerQueue())
-				.acquireTimeout(getContainerOptions().getPermitAcquireTimeout())
+				.totalPermits(getContainerOptions().getMaxConcurrentMessages())
+				.acquireTimeout(getContainerOptions().getMaxDelayBetweenPolls())
 				.throughputConfiguration(getContainerOptions().getBackPressureMode()).build();
 	}
 
@@ -217,12 +237,13 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 		return executor;
 	}
 
-	protected TaskExecutor createComponentsTaskExecutor() {
+	protected TaskExecutor createTaskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		int poolSize = getContainerOptions().getMaxInFlightMessagesPerQueue() * this.messageSources.size();
+		int poolSize = getContainerOptions().getMaxConcurrentMessages() * this.messageSources.size();
 		executor.setMaxPoolSize(poolSize);
 		executor.setCorePoolSize(getContainerOptions().getMaxMessagesPerPoll());
-		executor.setQueueCapacity(0);
+		// Necessary due to a small racing condition between releasing the permit and releasing the thread.
+		executor.setQueueCapacity(poolSize);
 		executor.setAllowCoreThreadTimeOut(true);
 		executor.setThreadFactory(createThreadFactory());
 		executor.afterPropertiesSet();
@@ -246,9 +267,26 @@ public abstract class AbstractPipelineMessageListenerContainer<T> extends Abstra
 		return this.componentsTaskExecutor;
 	}
 
+	protected TaskExecutor getAcknowledgementResultTaskExecutor() {
+		if (this.acknowledgementResultTaskExecutor == null) {
+			this.acknowledgementResultTaskExecutor = determineAcknowledgementResultExecutor();
+		}
+		return this.acknowledgementResultTaskExecutor;
+	}
+
+	private TaskExecutor determineAcknowledgementResultExecutor() {
+		return getContainerOptions().getAcknowledgementResultTaskExecutor() != null
+				? validateCustomExecutor(getContainerOptions().getAcknowledgementResultTaskExecutor())
+				: createTaskExecutor();
+	}
+
 	private void shutdownComponentsTaskExecutor() {
 		if (!this.componentsTaskExecutor.equals(getContainerOptions().getComponentsTaskExecutor())) {
 			LifecycleHandler.get().dispose(getComponentsTaskExecutor());
+		}
+		if (this.acknowledgementResultTaskExecutor != null && !this.acknowledgementResultTaskExecutor
+				.equals(getContainerOptions().getAcknowledgementResultTaskExecutor())) {
+			LifecycleHandler.get().dispose(getAcknowledgementResultTaskExecutor());
 		}
 	}
 

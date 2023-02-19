@@ -40,7 +40,6 @@ public enum AcknowledgementMode {
 	/**
 	 * Messages will not be acknowledged automatically by the container.
 	 * @see io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement
-	 * @see io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgement
 	 */
 	MANUAL
 

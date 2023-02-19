@@ -49,8 +49,8 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 				.id(getEndpointId(sqsListenerAnnotation.id()))
 				.pollTimeoutSeconds(resolveAsInteger(sqsListenerAnnotation.pollTimeoutSeconds(), "pollTimeoutSeconds"))
 				.maxMessagesPerPoll(resolveAsInteger(sqsListenerAnnotation.maxMessagesPerPoll(), "maxMessagesPerPoll"))
-				.maxInflightMessagesPerQueue(resolveAsInteger(sqsListenerAnnotation.maxInflightMessagesPerQueue(),
-						"maxInflightMessagesPerQueue"))
+				.maxConcurrentMessages(
+						resolveAsInteger(sqsListenerAnnotation.maxConcurrentMessages(), "maxConcurrentMessages"))
 				.messageVisibility(
 						resolveAsInteger(sqsListenerAnnotation.messageVisibilitySeconds(), "messageVisibility"))
 				.build();
@@ -63,7 +63,7 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers() {
-		return Arrays.asList(new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_HEADER),
+		return Arrays.asList(new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
 				new SqsMessageMethodArgumentResolver(), new QueueAttributesMethodArgumentResolver());
 	}
 

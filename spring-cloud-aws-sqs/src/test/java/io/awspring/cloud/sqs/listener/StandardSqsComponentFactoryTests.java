@@ -29,30 +29,31 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link StandardSqsComponentFactory}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class StandardSqsComponentFactoryTests {
 
 	@Test
 	void shouldCreateGroupingSink() {
-		ContainerComponentFactory<Object> componentFactory = new StandardSqsComponentFactory<>();
-		MessageSink<Object> messageSink = componentFactory.createMessageSink(ContainerOptions.builder().build());
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = new StandardSqsComponentFactory<>();
+		MessageSink<Object> messageSink = componentFactory.createMessageSink(SqsContainerOptions.builder().build());
 		assertThat(messageSink).isInstanceOf(FanOutMessageSink.class);
 	}
 
 	@Test
 	void shouldCreateBatchSink() {
-		ContainerComponentFactory<Object> componentFactory = new StandardSqsComponentFactory<>();
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = new StandardSqsComponentFactory<>();
 		MessageSink<Object> messageSink = componentFactory
-				.createMessageSink(ContainerOptions.builder().listenerMode(ListenerMode.BATCH).build());
+				.createMessageSink(SqsContainerOptions.builder().listenerMode(ListenerMode.BATCH).build());
 		assertThat(messageSink).isInstanceOf(BatchMessageSink.class);
 	}
 
 	@Test
 	void shouldCreateAcknowledgementProcessorWithDefaults() {
-		ContainerComponentFactory<Object> componentFactory = new StandardSqsComponentFactory<>();
-		ContainerOptions options = ContainerOptions.builder().build();
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = new StandardSqsComponentFactory<>();
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
 		AcknowledgementProcessor<Object> processor = componentFactory.createAcknowledgementProcessor(options);
 		assertThat(processor).isInstanceOf(BatchingAcknowledgementProcessor.class).extracting("acknowledgementOrdering")
 				.isEqualTo(AcknowledgementOrdering.PARALLEL);
@@ -63,10 +64,10 @@ class StandardSqsComponentFactoryTests {
 
 	@Test
 	void shouldCreateImmediateAcknowledgementProcessor() {
-		ContainerComponentFactory<Object> componentFactory = new StandardSqsComponentFactory<>();
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = new StandardSqsComponentFactory<>();
 		Duration acknowledgementInterval = Duration.ZERO;
 		int acknowledgementThreshold = 0;
-		ContainerOptions options = ContainerOptions.builder().acknowledgementInterval(acknowledgementInterval)
+		SqsContainerOptions options = SqsContainerOptions.builder().acknowledgementInterval(acknowledgementInterval)
 				.acknowledgementThreshold(acknowledgementThreshold).build();
 		AcknowledgementProcessor<Object> processor = componentFactory.createAcknowledgementProcessor(options);
 		assertThat(processor).isInstanceOf(ImmediateAcknowledgementProcessor.class)
@@ -76,8 +77,8 @@ class StandardSqsComponentFactoryTests {
 
 	@Test
 	void shouldThrowIfOrderedByGroup() {
-		ContainerComponentFactory<Object> componentFactory = new StandardSqsComponentFactory<>();
-		ContainerOptions options = ContainerOptions.builder()
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = new StandardSqsComponentFactory<>();
+		SqsContainerOptions options = SqsContainerOptions.builder()
 				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP).build();
 		assertThatThrownBy(() -> componentFactory.createAcknowledgementProcessor(options))
 				.isInstanceOf(IllegalArgumentException.class);
@@ -85,9 +86,9 @@ class StandardSqsComponentFactoryTests {
 
 	@Test
 	void shouldCreateBatchingAcknowledgementProcessorOrdered() {
-		ContainerComponentFactory<Object> componentFactory = new StandardSqsComponentFactory<>();
-		ContainerOptions options = ContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.ORDERED)
-				.build();
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = new StandardSqsComponentFactory<>();
+		SqsContainerOptions options = SqsContainerOptions.builder()
+				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED).build();
 		AcknowledgementProcessor<Object> processor = componentFactory.createAcknowledgementProcessor(options);
 		assertThat(processor).isInstanceOf(BatchingAcknowledgementProcessor.class).extracting("acknowledgementOrdering")
 				.isEqualTo(AcknowledgementOrdering.ORDERED);
@@ -98,10 +99,11 @@ class StandardSqsComponentFactoryTests {
 
 	@Test
 	void shouldCreateImmediateAcknowledgementProcessorOrdered() {
-		ContainerComponentFactory<Object> componentFactory = new StandardSqsComponentFactory<>();
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = new StandardSqsComponentFactory<>();
 		Duration acknowledgementInterval = Duration.ZERO;
 		int acknowledgementThreshold = 0;
-		ContainerOptions options = ContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.ORDERED)
+		SqsContainerOptions options = SqsContainerOptions.builder()
+				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED)
 				.acknowledgementInterval(acknowledgementInterval).acknowledgementThreshold(acknowledgementThreshold)
 				.build();
 		AcknowledgementProcessor<Object> processor = componentFactory.createAcknowledgementProcessor(options);

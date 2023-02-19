@@ -32,15 +32,16 @@ import org.assertj.core.api.AbstractObjectAssert;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link FifoSqsComponentFactory}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class FifoSqsComponentFactoryTests {
 
 	@Test
 	void shouldCreateGroupingSink() {
 		FifoSqsComponentFactory<Object> componentFactory = new FifoSqsComponentFactory<>();
-		MessageSink<Object> messageSink = componentFactory.createMessageSink(ContainerOptions.builder().build());
+		MessageSink<Object> messageSink = componentFactory.createMessageSink(SqsContainerOptions.builder().build());
 		assertThat(messageSink).isInstanceOf(MessageGroupingSinkAdapter.class)
 				.asInstanceOf(type(MessageGroupingSinkAdapter.class)).extracting("delegate")
 				.isInstanceOf(OrderedMessageSink.class);
@@ -50,7 +51,7 @@ class FifoSqsComponentFactoryTests {
 	void shouldCreateBatchSink() {
 		FifoSqsComponentFactory<Object> componentFactory = new FifoSqsComponentFactory<>();
 		MessageSink<Object> messageSink = componentFactory
-				.createMessageSink(ContainerOptions.builder().listenerMode(ListenerMode.BATCH).build());
+				.createMessageSink(SqsContainerOptions.builder().listenerMode(ListenerMode.BATCH).build());
 		assertThat(messageSink).isInstanceOf(MessageGroupingSinkAdapter.class)
 				.asInstanceOf(type(MessageGroupingSinkAdapter.class)).extracting("delegate")
 				.isInstanceOf(BatchMessageSink.class);
@@ -61,7 +62,7 @@ class FifoSqsComponentFactoryTests {
 		FifoSqsComponentFactory<Object> componentFactory = new FifoSqsComponentFactory<>();
 		Duration visbilityDuration = Duration.ofSeconds(1);
 		MessageSink<Object> messageSink = componentFactory
-				.createMessageSink(ContainerOptions.builder().messageVisibility(visbilityDuration).build());
+				.createMessageSink(SqsContainerOptions.builder().messageVisibility(visbilityDuration).build());
 		AbstractObjectAssert<?, ?> visibilitySinkAssertion = assertThat(messageSink)
 				.isInstanceOf(MessageGroupingSinkAdapter.class).asInstanceOf(type(MessageGroupingSinkAdapter.class))
 				.extracting("delegate").isInstanceOf(MessageVisibilityExtendingSinkAdapter.class);
@@ -73,7 +74,7 @@ class FifoSqsComponentFactoryTests {
 	void shouldCreateAcknowledgementProcessorWithDefaults() {
 		FifoSqsComponentFactory<Object> componentFactory = new FifoSqsComponentFactory<>();
 
-		ContainerOptions options = ContainerOptions.builder().build();
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
 		AcknowledgementProcessor<Object> processor = componentFactory.createAcknowledgementProcessor(options);
 		assertThat(processor).isInstanceOf(ImmediateAcknowledgementProcessor.class)
 				.extracting("acknowledgementOrdering").isEqualTo(AcknowledgementOrdering.PARALLEL);
@@ -86,7 +87,7 @@ class FifoSqsComponentFactoryTests {
 
 		Duration acknowledgementInterval = Duration.ofSeconds(10);
 		int acknowledgementThreshold = 10;
-		ContainerOptions options = ContainerOptions.builder().acknowledgementInterval(acknowledgementInterval)
+		SqsContainerOptions options = SqsContainerOptions.builder().acknowledgementInterval(acknowledgementInterval)
 				.acknowledgementThreshold(acknowledgementThreshold).build();
 		AcknowledgementProcessor<Object> processor = componentFactory.createAcknowledgementProcessor(options);
 		assertThat(processor).isInstanceOf(BatchingAcknowledgementProcessor.class).extracting("acknowledgementOrdering")
@@ -103,7 +104,7 @@ class FifoSqsComponentFactoryTests {
 
 		Duration acknowledgementInterval = Duration.ofSeconds(10);
 		int acknowledgementThreshold = 10;
-		ContainerOptions options = ContainerOptions.builder().acknowledgementInterval(acknowledgementInterval)
+		SqsContainerOptions options = SqsContainerOptions.builder().acknowledgementInterval(acknowledgementInterval)
 				.acknowledgementThreshold(acknowledgementThreshold)
 				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP).build();
 		AcknowledgementProcessor<Object> processor = componentFactory.createAcknowledgementProcessor(options);
@@ -119,7 +120,7 @@ class FifoSqsComponentFactoryTests {
 	void shouldCreateImmediateAcknowledgementProcessorOrderedByGroup() {
 		FifoSqsComponentFactory<Object> componentFactory = new FifoSqsComponentFactory<>();
 
-		ContainerOptions options = ContainerOptions.builder()
+		SqsContainerOptions options = SqsContainerOptions.builder()
 				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP).build();
 		AcknowledgementProcessor<Object> processor = componentFactory.createAcknowledgementProcessor(options);
 		assertThat(processor).isInstanceOf(ImmediateAcknowledgementProcessor.class)

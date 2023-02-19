@@ -20,8 +20,19 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 /**
  * Resolving Class and TableName to {@link TableSchema} class. Should be cached since creating {@link TableSchema} is
  * expensive.
+ *
  * @author Matej Nedic
+ * @since 3.0
  */
 public interface DynamoDbTableSchemaResolver {
+
+	/**
+	 * Resolving Class and TableName to {@link TableSchema} class.
+	 *
+	 * @param clazz - the class from which table schema is resolved
+	 * @param tableName - the table name
+	 * @return table schema
+	 * @param <T> - type
+	 */
 	<T> TableSchema resolve(Class<T> clazz, String tableName);
 }

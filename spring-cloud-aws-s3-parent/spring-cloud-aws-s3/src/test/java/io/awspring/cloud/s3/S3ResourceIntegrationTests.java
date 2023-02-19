@@ -50,6 +50,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -69,9 +70,10 @@ class S3ResourceIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.2.0")).withServices(Service.S3).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(Service.S3).withReuse(true);
 
 	private static S3Client client;
+	private static S3AsyncClient asyncClient;
 	private static S3TransferManager s3TransferManager;
 
 	// Required for the @TestAvailableOutputStreamProviders annotation
@@ -88,13 +90,12 @@ class S3ResourceIntegrationTests {
 		// test work on environments without AWS cli configured
 		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
+		asyncClient = S3AsyncClient.builder().region(Region.of(localstack.getRegion()))
+				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpointOverride(Service.S3))
+				.build();
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
-		s3TransferManager = S3TransferManager.builder()
-				.s3ClientConfiguration(
-						b -> b.region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-								.endpointOverride(localstack.getEndpointOverride(Service.S3)).build())
-				.build();
+		s3TransferManager = S3TransferManager.builder().s3Client(asyncClient).build();
 		client.createBucket(request -> request.bucket("first-bucket"));
 	}
 
@@ -238,6 +239,16 @@ class S3ResourceIntegrationTests {
 		assertThat(resource.metadata()).containsEntry("key", "keyValue")
 				// retrieved as lower case
 				.containsEntry("camelcasekey", "camelCaseKeyValue").doesNotContainKey("camelCaseKey");
+	}
+
+	@Test
+	void returnsLocationObject() {
+		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt",
+				new InMemoryBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()));
+		Location location = resource.getLocation();
+		assertThat(location).isNotNull();
+		assertThat(location.getBucket()).isEqualTo("first-bucket");
+		assertThat(location.getObject()).isEqualTo("new-file.txt");
 	}
 
 	@NotNull

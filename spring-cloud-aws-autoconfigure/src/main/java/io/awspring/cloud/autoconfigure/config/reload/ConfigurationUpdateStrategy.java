@@ -15,11 +15,11 @@
  */
 package io.awspring.cloud.autoconfigure.config.reload;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.cloud.context.refresh.ContextRefresher;
 import org.springframework.cloud.context.restart.RestartEndpoint;
+import org.springframework.util.Assert;
 
 /**
  * This is the superclass of all named strategies that can be fired when the configuration changes.
@@ -35,8 +35,9 @@ public class ConfigurationUpdateStrategy implements Runnable {
 
 	public static ConfigurationUpdateStrategy create(ReloadProperties reloadProperties, ContextRefresher refresher,
 			Optional<RestartEndpoint> restarter) {
-		if (reloadProperties.getStrategy() != null) {
-			switch (reloadProperties.getStrategy()) {
+		ReloadStrategy strategy = reloadProperties.getStrategy();
+		if (strategy != null) {
+			switch (strategy) {
 			case RESTART_CONTEXT:
 				restarter.orElseThrow(() -> new AssertionError("Restart endpoint is not enabled"));
 				return new ConfigurationUpdateStrategy(() -> {
@@ -46,14 +47,14 @@ public class ConfigurationUpdateStrategy implements Runnable {
 			case REFRESH:
 				return new ConfigurationUpdateStrategy(refresher::refresh);
 			}
-			throw new IllegalStateException(
-					"Unsupported configuration update strategy: " + reloadProperties.getStrategy());
+			throw new IllegalStateException("Unsupported configuration update strategy: " + strategy);
 		}
 		throw new IllegalStateException("Configuration update strategy not set");
 	}
 
 	private ConfigurationUpdateStrategy(Runnable reloadProcedure) {
-		this.reloadProcedure = Objects.requireNonNull(reloadProcedure, "reloadProcedure cannot be null");
+		Assert.notNull(reloadProcedure, "reloadProcedure cannot be null");
+		this.reloadProcedure = reloadProcedure;
 	}
 
 	public void run() {

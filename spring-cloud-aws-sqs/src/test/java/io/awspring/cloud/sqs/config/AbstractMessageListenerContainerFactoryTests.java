@@ -21,8 +21,9 @@ import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.MessageListener;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
@@ -35,8 +36,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link AbstractMessageListenerContainerFactory}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class AbstractMessageListenerContainerFactoryTests {
@@ -45,16 +47,17 @@ class AbstractMessageListenerContainerFactoryTests {
 	void shouldSetBlockingComponents() {
 		SqsMessageListenerContainer<Object> container = mock(SqsMessageListenerContainer.class);
 
-		AbstractMessageListenerContainerFactory<Object, SqsMessageListenerContainer<Object>> factory = new AbstractMessageListenerContainerFactory<Object, SqsMessageListenerContainer<Object>>() {
+		AbstractMessageListenerContainerFactory<Object, SqsMessageListenerContainer<Object>, SqsContainerOptions, SqsContainerOptionsBuilder> factory = new AbstractMessageListenerContainerFactory<>(
+				SqsContainerOptions.builder().build()) {
 
 			@Override
-			protected void configureContainerOptions(Endpoint endpoint, ContainerOptions.Builder containerOptions) {
+			protected void configureContainerOptions(Endpoint endpoint, SqsContainerOptionsBuilder containerOptions) {
 
 			}
 
 			@Override
 			protected SqsMessageListenerContainer<Object> createContainerInstance(Endpoint endpoint,
-					ContainerOptions containerOptions) {
+					SqsContainerOptions containerOptions) {
 				return container;
 			}
 		};
@@ -62,8 +65,9 @@ class AbstractMessageListenerContainerFactoryTests {
 		ErrorHandler<Object> errorHandler = mock(ErrorHandler.class);
 		MessageInterceptor<Object> interceptor = mock(MessageInterceptor.class);
 		AcknowledgementResultCallback<Object> callback = mock(AcknowledgementResultCallback.class);
-		ContainerComponentFactory<Object> componentFactory = mock(ContainerComponentFactory.class);
-		List<ContainerComponentFactory<Object>> componentFactories = Collections.singletonList(componentFactory);
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
+				.singletonList(componentFactory);
 
 		factory.setMessageListener(listener);
 		factory.setErrorHandler(errorHandler);
@@ -84,15 +88,16 @@ class AbstractMessageListenerContainerFactoryTests {
 	@Test
 	void shouldSetAsyncComponents() {
 		SqsMessageListenerContainer<Object> container = mock(SqsMessageListenerContainer.class);
-		AbstractMessageListenerContainerFactory<Object, SqsMessageListenerContainer<Object>> factory = new AbstractMessageListenerContainerFactory<Object, SqsMessageListenerContainer<Object>>() {
+		AbstractMessageListenerContainerFactory<Object, SqsMessageListenerContainer<Object>, SqsContainerOptions, SqsContainerOptionsBuilder> factory = new AbstractMessageListenerContainerFactory<>(
+				SqsContainerOptions.builder().build()) {
 			@Override
-			protected void configureContainerOptions(Endpoint endpoint, ContainerOptions.Builder containerOptions) {
+			protected void configureContainerOptions(Endpoint endpoint, SqsContainerOptionsBuilder containerOptions) {
 
 			}
 
 			@Override
 			protected SqsMessageListenerContainer<Object> createContainerInstance(Endpoint endpoint,
-					ContainerOptions containerOptions) {
+					SqsContainerOptions containerOptions) {
 				return container;
 			}
 		};
@@ -100,8 +105,9 @@ class AbstractMessageListenerContainerFactoryTests {
 		AsyncErrorHandler<Object> errorHandler = mock(AsyncErrorHandler.class);
 		AsyncMessageInterceptor<Object> interceptor = mock(AsyncMessageInterceptor.class);
 		AsyncAcknowledgementResultCallback<Object> callback = mock(AsyncAcknowledgementResultCallback.class);
-		ContainerComponentFactory<Object> componentFactory = mock(ContainerComponentFactory.class);
-		List<ContainerComponentFactory<Object>> componentFactories = Collections.singletonList(componentFactory);
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
+				.singletonList(componentFactory);
 
 		factory.setAsyncMessageListener(listener);
 		factory.setErrorHandler(errorHandler);

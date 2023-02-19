@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>4.0.0-M4</version>
+		<version>4.0.1</version>
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>3.0.0-M3</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 
@@ -27,8 +27,8 @@
 	</scm>
 
 	<properties>
-		<spotless.version>2.25.0</spotless.version>
-		<jacoco.version>0.8.7</jacoco.version>
+		<spotless.version>2.31.0</spotless.version>
+		<jacoco.version>0.8.8</jacoco.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 	</properties>
 
@@ -56,7 +56,7 @@
 		<module>spring-cloud-aws-samples</module>
 		<module>spring-cloud-aws-test</module>
 		<module>docs</module>
-		</modules>
+	</modules>
 
 	<dependencyManagement>
 		<dependencies>
@@ -133,6 +133,7 @@
 					<author>true</author>
 					<header>${project.name}</header>
 					<reportOutputDirectory>${project.build.directory}/site/${project.version}/apidocs</reportOutputDirectory>
+					<source>17</source>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -273,7 +274,7 @@
 				<sonar.projectKey>awspring_spring-cloud-aws</sonar.projectKey>
 
 				<!-- https://community.sonarsource.com/t/project-quarkusio-quarkus-cant-have-2-modules-with-the-following-key-quarkusio-quarkus/33824/6 -->
-				<sonar.moduleKey>${artifactId}</sonar.moduleKey>
+				<sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
 				<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 			</properties>
 			<build>

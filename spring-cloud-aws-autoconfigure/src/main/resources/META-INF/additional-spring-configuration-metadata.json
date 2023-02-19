@@ -29,6 +29,12 @@
 			"name": "spring.cloud.aws.dynamodb.enabled",
 			"description": "Enables DynamoDb integration.",
 			"type": "java.lang.Boolean"
+		},
+		{
+			"defaultValue": true,
+			"name": "spring.cloud.aws.sqs.enabled",
+			"description": "Enables SQS integration.",
+			"type": "java.lang.Boolean"
 		}
 	]
 }

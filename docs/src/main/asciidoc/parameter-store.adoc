@@ -222,7 +222,6 @@ The Spring Boot Starter for Parameter Store provides the following configuration
 |===
 | Name | Description | Required | Default value
 
-| `spring.cloud.aws.parameterstore.enabled` | Enables the Parameter Store integration. | No | `true`
 | `spring.cloud.aws.parameterstore.endpoint` | Configures endpoint used by `SsmClient`. | No | `null`
 | `spring.cloud.aws.parameterstore.region` | Configures region used by `SsmClient`. | No | `null`
 | `spring.cloud.aws.parameterstore.reload.strategy` | `Enum` | `refresh` | The strategy to use when firing a reload (`refresh`, `restart_context`)

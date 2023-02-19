@@ -47,7 +47,6 @@ public class ParameterStorePropertySources {
 			ParameterStorePropertySource propertySource = new ParameterStorePropertySource(context, client);
 			propertySource.init();
 			return propertySource;
-			// TODO: howto call close when /refresh
 		}
 		catch (Exception e) {
 			if (!optional) {
