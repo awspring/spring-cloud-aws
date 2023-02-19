@@ -1,12 +1,11 @@
 = Spring Cloud AWS
 include::_attributes.adoc[]
 
-
 include::intro.adoc[]
 
 *{project-version}*
 
-include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/master/docs/src/main/asciidoc/contributing-docs.adoc[]
+include::contributing.adoc[]
 
 == Using Amazon Web Services
 
@@ -15,15 +14,6 @@ https://aws.amazon.com[Amazon Web Service] platform. While the SDK offers all fu
 Spring Cloud AWS provides application developers already integrated Spring-based modules to consume the most popular AWS services and avoid low level code as much as possible.
 
 Thanks to Spring Cloud AWS modularity you can include only dependencies relevant to the particular AWS service you want to integrate with.
-
-Spring Cloud AWS lets you leverage the power and simplicity of the Spring Framework to:
-
-- Write and read from Spring Resources backed up by S3
-- Send emails using SES
-- Import environment configuration using https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/context/config/ConfigDataLoader.html[ConfigDataLoader] from Parameter Store and Secrets Manager
-- Send and receive HTTP notifications from SNS
-
-Other integrations are under development.
 
 It also simplifies creating any non-integrated AWS SDK client by auto-configuring region and credentials providers.
 
@@ -81,6 +71,10 @@ A summary of these artifacts are provided below.
 | Core
 | Automatically configure authentication and region selection
 | io.awspring.cloud:spring-cloud-aws-starter
+
+| DynamoDB
+| Provides integrations with DynamoDB
+| io.awspring.cloud:spring-cloud-aws-starter-dynamodb
 
 | S3
 | Provides integrations with S3
@@ -145,103 +139,7 @@ include::secrets-manager.adoc[]
 
 include::parameter-store.adoc[]
 
-//
-//===== AWS EKS IAM Roles for Service Accounts configuration
-//If your application is deployed to AWS EKS and you wish to use
-//https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html[IAM Roles for Service Accounts] for AWS Authentication, simply include
-//the `aws-java-sdk-sts` dependency in your project, and the `DefaultAWSCredentialsProviderChain` will load from Java system properties or environment variables.
-//
-//[source,xml,indent=0]
-//----
-//<dependencies>
-//	<dependency>
-//		<groupId>com.amazonaws</groupId>
-//		<artifactId>aws-java-sdk-sts</artifactId>
-//		<version>${aws-java-sdk.version}</version>
-//	</dependency>
-//</dependencies>
-//----
-//
-
-//===== Configuring client configuration
-//
-//For some AWS service integrations you can configure Spring Cloud AWS to use custom `ClientConfiguration`.
-//
-//To override the default `ClientConfiguration` used by all integrations, create a bean of type `ClientConfiguration` with a name `com.amazonaws.ClientConfiguration.BEAN_NAME`.
-//
-//[source,java,indent=0]
-//----
-//@Configuration
-//class CustomAwsConfiguration {
-//
-//    @Bean(name = "com.amazonaws.ClientConfiguration.BEAN_NAME")
-//	ClientConfiguration clientConfiguration() {
-//		ClientConfiguration clientConfiguration= new ClientConfiguration();
-//		clientConfiguration.setProxyHost(proxyHost);
-//		clientConfiguration.setProxyPort(proxyPort);
-//		clientConfiguration.setProxyUsername(proxyUserName);
-//		clientConfiguration.setProxyPassword(proxyPassword);
-//		return clientConfiguration;
-//	}
-//}
-//----
-//
-//It's also possible to provide `ClientConfiguration` for particular integration by defining a bean of type `ClientConfiguration` and a name specific to the integration:
-//
-//[cols="2"]
-//|===
-//| SQS
-//| `sqsClientConfiguration`
-//
-//| SNS
-//| `snsClientConfiguration`
-//
-//| SES
-//| `sesClientConfiguration`
-//
-//| RDS
-//| `rdsClientConfiguration`
-//
-//| ElastiCache
-//| `elastiCacheClientConfiguration`
-//
-//| CloudWatch
-//| `cloudWatchClientConfiguration`
-//
-//|===
-//
-//For example:
-//
-//[source,java,indent=0]
-//----
-//@Configuration
-//class CustomSqsConfiguration {
-//
-//    @Bean
-//    ClientConfiguration sqsClientConfiguration() {
-//        ClientConfiguration clientConfiguration= new ClientConfiguration();
-//		clientConfiguration.setProxyHost(proxyHost);
-//		clientConfiguration.setProxyPort(proxyPort);
-//		clientConfiguration.setProxyUsername(proxyUserName);
-//		clientConfiguration.setProxyPassword(proxyPassword);
-//		return clientConfiguration;
-//    }
-//}
-//----
-//
-//
-//include::parameter-store.adoc[]
-//
-//include::secrets-manager.adoc[]
-//
-//include::sqs.adoc[]
-//
-//include::sns.adoc[]
-//
-//include::ses.adoc[]
-
 include::cloudwatch.adoc[]
-
 
 include::migration.adoc[]
 

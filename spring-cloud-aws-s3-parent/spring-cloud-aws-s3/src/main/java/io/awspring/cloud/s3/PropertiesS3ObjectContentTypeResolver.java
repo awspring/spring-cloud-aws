@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
 
 /**
  * Resolves content type for S3 object from a properties file.
- *
+ * <p>
  * If properties file is not given by constructor, loads default list of known extension to content type relations from
  * a classpath.
  *

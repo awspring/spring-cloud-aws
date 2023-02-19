@@ -26,6 +26,8 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -47,6 +49,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -77,6 +80,9 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		createSecret(localstack, "/certs/dev/fn_certificate/", "=== my dev cert should be here", REGION);
 		createSecret(localstack, "fn_certificate", "=== my cert should be here", REGION);
 		createSecret(localstack, "/config/second", "{\"secondMessage\":\"second value from tests\"}", REGION);
+		createSecretBlob(localstack, "/blob/byte_certificate",
+				SdkBytes.fromString("My certificate", Charset.defaultCharset()), REGION);
+
 	}
 
 	@Test
@@ -130,6 +136,18 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				"aws-secretsmanager:/certs/dev/fn_certificate/")) {
 			assertThat(context.getEnvironment().getProperty("fn_certificate"))
 					.isEqualTo("=== my dev cert should be here");
+		}
+	}
+
+	@Test
+	void resolvesPropertyFromSecretsManager_SecretBinary() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/blob/byte_certificate")) {
+			assertThat(context.getEnvironment().getProperty("byte_certificate", byte[].class))
+					.isEqualTo("My certificate".getBytes(StandardCharsets.UTF_8));
 		}
 	}
 
@@ -377,6 +395,17 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		try {
 			localstack.execInContainer("awslocal", "secretsmanager", "create-secret", "--name", secretName,
 					"--secret-string", parameterValue, "--region", region);
+		}
+		catch (IOException | InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static void createSecretBlob(LocalStackContainer localstack, String secretName, SdkBytes byteValue,
+			String region) {
+		try {
+			localstack.execInContainer("awslocal", "secretsmanager", "create-secret", "--name", secretName,
+					"--secret-binary", byteValue.asUtf8String(), "--region", region);
 		}
 		catch (IOException | InterruptedException e) {
 			throw new RuntimeException(e);

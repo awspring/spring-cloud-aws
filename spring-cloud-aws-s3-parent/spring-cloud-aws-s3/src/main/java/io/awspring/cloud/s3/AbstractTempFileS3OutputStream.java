@@ -43,6 +43,9 @@ abstract class AbstractTempFileS3OutputStream extends S3OutputStream {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
+	/**
+	 * Destination in S3 for uploaded file.
+	 */
 	protected final Location location;
 
 	/**
@@ -51,7 +54,7 @@ abstract class AbstractTempFileS3OutputStream extends S3OutputStream {
 	protected final File file;
 
 	/**
-	 * The outputstream to a local file where the file will be buffered until closed.
+	 * The output stream to a local file where the file will be buffered until closed.
 	 */
 	protected OutputStream localOutputStream;
 
@@ -61,6 +64,9 @@ abstract class AbstractTempFileS3OutputStream extends S3OutputStream {
 	@Nullable
 	protected MessageDigest hash;
 
+	/**
+	 * Uploaded object metadata.
+	 */
 	@Nullable
 	protected final ObjectMetadata objectMetadata;
 
@@ -139,7 +145,11 @@ abstract class AbstractTempFileS3OutputStream extends S3OutputStream {
 				}
 			}
 			this.upload(builder.build());
-			file.delete();
+			boolean result = file.delete();
+
+			if (!result) {
+				getLogger().warn(String.format("Temporary file %s could not be deleted", file.getPath()));
+			}
 		}
 		catch (Exception se) {
 			getLogger().error(

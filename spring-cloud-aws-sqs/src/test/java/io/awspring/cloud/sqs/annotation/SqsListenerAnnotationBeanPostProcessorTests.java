@@ -46,8 +46,9 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.util.StringValueResolver;
 
 /**
+ * Tests for {@link SqsListenerAnnotationBeanPostProcessor}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class SqsListenerAnnotationBeanPostProcessorTests {
 

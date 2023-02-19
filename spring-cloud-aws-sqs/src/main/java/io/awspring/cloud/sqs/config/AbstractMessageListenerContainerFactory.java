@@ -21,6 +21,7 @@ import io.awspring.cloud.sqs.listener.AsyncComponentAdapters;
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.MessageListener;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
@@ -47,7 +48,7 @@ import org.springframework.util.Assert;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractMessageListenerContainerFactory<T, C extends MessageListenerContainer<T>, O extends ContainerOptions<O, B>, B extends ContainerOptions.Builder<B, O>>
+public abstract class AbstractMessageListenerContainerFactory<T, C extends MessageListenerContainer<T>, O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>>
 		implements MessageListenerContainerFactory<C> {
 
 	private final B containerOptionsBuilder;
@@ -167,7 +168,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	}
 
 	/**
-	 * Allows configuring this factories' {@link ContainerOptions.Builder}.
+	 * Allows configuring this factories' {@link ContainerOptionsBuilder}.
 	 */
 	public void configure(Consumer<B> options) {
 		options.accept(this.containerOptionsBuilder);

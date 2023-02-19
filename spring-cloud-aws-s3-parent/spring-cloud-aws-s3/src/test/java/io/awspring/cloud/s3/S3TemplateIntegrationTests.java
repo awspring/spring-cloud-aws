@@ -23,7 +23,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,8 +49,11 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
  * Integration tests for {@link S3Template}.
@@ -61,6 +73,7 @@ class S3TemplateIntegrationTests {
 
 	private static S3Client client;
 
+	private static S3Presigner presigner;
 	private S3Template s3Template;
 
 	@BeforeAll
@@ -71,13 +84,16 @@ class S3TemplateIntegrationTests {
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
+		presigner = S3Presigner.builder().region(Region.of(localstack.getRegion()))
+				.credentialsProvider(credentialsProvider)
+				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
 	}
 
 	@BeforeEach
 	void init() {
 		this.s3Template = new S3Template(client,
 				new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()),
-				new Jackson2JsonS3ObjectConverter(new ObjectMapper()));
+				new Jackson2JsonS3ObjectConverter(new ObjectMapper()), presigner);
 
 		client.createBucket(r -> r.bucket(BUCKET_NAME));
 	}
@@ -181,6 +197,45 @@ class S3TemplateIntegrationTests {
 			String result = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
 			assertThat(result).isEqualTo("hello");
 		}
+	}
+
+	@Test
+	void createsWorkingSignedGetURL() throws IOException {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("file.txt"), RequestBody.fromString("hello"));
+		URL signedGetUrl = s3Template.createSignedGetURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1));
+
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		HttpGet httpGet = new HttpGet(signedGetUrl.toString());
+		HttpResponse response = httpClient.execute(httpGet);
+
+		try (InputStream content = response.getEntity().getContent()) {
+			String result = StreamUtils.copyToString(content, StandardCharsets.UTF_8);
+			assertThat(result).isEqualTo("hello");
+		}
+	}
+
+	@Test
+	void createsWorkingSignedPutURL() throws IOException {
+		ObjectMetadata metadata = ObjectMetadata.builder().metadata("testkey", "testvalue").build();
+		URL signedPutUrl = s3Template.createSignedPutURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1), metadata,
+				"text/plain");
+
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		HttpPut httpPut = new HttpPut(signedPutUrl.toString());
+		httpPut.setHeader("x-amz-meta-testkey", "testvalue");
+		httpPut.setHeader("Content-Type", "text/plain");
+		HttpEntity body = new StringEntity("hello");
+		httpPut.setEntity(body);
+
+		HttpResponse response = httpClient.execute(httpPut);
+		httpClient.close();
+
+		HeadObjectResponse headObjectResponse = client
+				.headObject(HeadObjectRequest.builder().bucket(BUCKET_NAME).key("file.txt").build());
+
+		assertThat(headObjectResponse.contentLength()).isEqualTo(5);
+		assertThat(headObjectResponse.metadata().containsKey("testkey")).isTrue();
+		assertThat(headObjectResponse.metadata().get("testkey")).isEqualTo("testvalue");
 	}
 
 	private void bucketDoesNotExist(ListBucketsResponse r, String bucketName) {

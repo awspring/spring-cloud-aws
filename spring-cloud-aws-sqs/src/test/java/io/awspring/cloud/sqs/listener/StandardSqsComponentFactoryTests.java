@@ -29,8 +29,9 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link StandardSqsComponentFactory}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class StandardSqsComponentFactoryTests {
 

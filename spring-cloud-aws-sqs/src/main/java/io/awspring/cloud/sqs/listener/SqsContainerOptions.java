@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOptions, SqsContainerOptions.Builder> {
+public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOptions, SqsContainerOptionsBuilder> {
 
 	@Nullable
 	private final Duration messageVisibility;
@@ -50,7 +50,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	 * Create a {@link ContainerOptions} instance from the builder.
 	 * @param builder the builder.
 	 */
-	protected SqsContainerOptions(Builder builder) {
+	protected SqsContainerOptions(BuilderImpl builder) {
 		super(builder);
 		this.queueAttributeNames = builder.queueAttributeNames;
 		this.messageAttributeNames = builder.messageAttributeNames;
@@ -63,8 +63,8 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	 * Create a new builder instance.
 	 * @return the new builder instance.
 	 */
-	public static Builder builder() {
-		return new Builder();
+	public static SqsContainerOptionsBuilder builder() {
+		return new BuilderImpl();
 	}
 
 	/**
@@ -76,8 +76,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	}
 
 	/**
-	 * Get the messageAttributeNames that will be retrieved and added as headers in messages.
-	 * Default is ALL.
+	 * Get the messageAttributeNames that will be retrieved and added as headers in messages. Default is ALL.
 	 * @return the names.
 	 */
 	public Collection<String> getMessageAttributeNames() {
@@ -110,16 +109,13 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	}
 
 	@Override
-	public SqsContainerOptions createInstance() {
-		return new SqsContainerOptions(new Builder());
+	public SqsContainerOptionsBuilder toBuilder() {
+		return new BuilderImpl(this);
 	}
 
-	@Override
-	public Builder toBuilder() {
-		return new Builder(this);
-	}
-
-	public static class Builder extends AbstractContainerOptions.Builder<Builder, SqsContainerOptions> {
+	private static class BuilderImpl
+			extends AbstractContainerOptions.Builder<SqsContainerOptionsBuilder, SqsContainerOptions>
+			implements SqsContainerOptionsBuilder {
 
 		private static final List<QueueAttributeName> DEFAULT_QUEUE_ATTRIBUTES_NAMES = Collections.emptyList();
 
@@ -142,10 +138,12 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		@Nullable
 		private Duration messageVisibility;
 
-		protected Builder() {
+		protected BuilderImpl() {
+			super();
 		}
 
-		protected Builder(SqsContainerOptions options) {
+		protected BuilderImpl(SqsContainerOptions options) {
+			super(options);
 			this.queueAttributeNames = options.queueAttributeNames;
 			this.messageAttributeNames = options.messageAttributeNames;
 			this.messageSystemAttributeNames = options.messageSystemAttributeNames;
@@ -153,60 +151,38 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 			this.queueNotFoundStrategy = options.queueNotFoundStrategy;
 		}
 
-		/**
-		 * Set the {@link QueueAttributeName}s that will be retrieved from the queue and added as headers to the messages.
-		 * Default is none.
-		 * @param queueAttributeNames the names.
-		 * @return this instance.
-		 * @see QueueAttributesResolver
-		 */
-		public Builder queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
+		@Override
+		public SqsContainerOptionsBuilder queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notEmpty(queueAttributeNames, "queueAttributeNames cannot be empty");
 			this.queueAttributeNames = Collections.unmodifiableCollection(new ArrayList<>(queueAttributeNames));
 			return this;
 		}
 
-		/**
-		 * Set the messageAttributeNames that will be retrieved and added as headers in messages.
-		 * Default is ALL.
-		 * @param messageAttributeNames the names.
-		 * @return this instance.
-		 */
-		public Builder messageAttributeNames(Collection<String> messageAttributeNames) {
+		@Override
+		public SqsContainerOptionsBuilder messageAttributeNames(Collection<String> messageAttributeNames) {
 			Assert.notEmpty(messageAttributeNames, "messageAttributeNames cannot be empty");
 			this.messageAttributeNames = Collections.unmodifiableCollection(new ArrayList<>(messageAttributeNames));
 			return this;
 		}
 
-		/**
-		 * Set the {@link MessageSystemAttributeName}s that will be retrieved and added as headers in messages.
-		 * @param messageSystemAttributeNames the names.
-		 * @return this instance.
-		 */
-		public Builder messageSystemAttributeNames(Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
+		@Override
+		public SqsContainerOptionsBuilder messageSystemAttributeNames(
+				Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
 			Assert.notEmpty(messageSystemAttributeNames, "messageSystemAttributeNames cannot be empty");
 			this.messageSystemAttributeNames = messageSystemAttributeNames.stream()
 					.map(MessageSystemAttributeName::toString).collect(Collectors.toList());
 			return this;
 		}
 
-		/**
-		 * Set the message visibility for messages retrieved by the container.
-		 * @param messageVisibility the visibility timeout.
-		 * @return this instance.
-		 */
-		public Builder messageVisibility(Duration messageVisibility) {
+		@Override
+		public SqsContainerOptionsBuilder messageVisibility(Duration messageVisibility) {
 			Assert.notNull(messageVisibility, "messageVisibility cannot be null");
 			this.messageVisibility = messageVisibility;
 			return this;
 		}
 
-		/**
-		 * Set the {@link QueueNotFoundStrategy} for the container.
-		 * @param queueNotFoundStrategy the strategy.
-		 * @return this instance.
-		 */
-		public Builder queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
+		@Override
+		public SqsContainerOptionsBuilder queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
 			Assert.notNull(queueNotFoundStrategy, "queueNotFoundStrategy cannot be null");
 			this.queueNotFoundStrategy = queueNotFoundStrategy;
 			return this;
@@ -218,14 +194,14 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		}
 
 		@Override
-		public Builder createCopy() {
-			Builder builder = new Builder();
+		public SqsContainerOptionsBuilder createCopy() {
+			BuilderImpl builder = new BuilderImpl();
 			ReflectionUtils.shallowCopyFieldState(this, builder);
 			return builder;
 		}
 
 		@Override
-		public void fromBuilder(Builder builder) {
+		public void fromBuilder(SqsContainerOptionsBuilder builder) {
 			ReflectionUtils.shallowCopyFieldState(builder, this);
 		}
 	}

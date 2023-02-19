@@ -32,6 +32,7 @@ public class ReloadProperties {
 	/**
 	 * Reload strategy to run when properties change.
 	 */
+	@Nullable
 	private ReloadStrategy strategy;
 
 	/**

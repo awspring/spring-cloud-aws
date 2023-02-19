@@ -29,7 +29,7 @@ public class MessagingMessageHeaders extends MessageHeaders {
 
 	/**
 	 * Create an instance with the provided headers.
-	 * @param headers
+	 * @param headers the original headers.
 	 */
 	public MessagingMessageHeaders(@Nullable Map<String, Object> headers) {
 		super(headers);

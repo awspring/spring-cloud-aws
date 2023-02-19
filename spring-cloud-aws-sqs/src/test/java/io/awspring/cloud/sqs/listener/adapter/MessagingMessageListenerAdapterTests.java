@@ -35,8 +35,9 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 
 /**
+ * Tests for {@link MessagingMessageListenerAdapter}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class MessagingMessageListenerAdapterTests {

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs;
 
-import io.awspring.cloud.sqs.CompletableFutures;
-import io.awspring.cloud.sqs.QueueAttributesResolvingException;
+import io.awspring.cloud.sqs.listener.QueueAttributes;
+import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -27,10 +28,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
@@ -42,9 +46,11 @@ import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
  * {@link QueueAttributeName} collection.
  *
  * @author Tomaz Fernandes
+ * @author Agim Emruli
+ * @author Adrian Stoelken
  * @since 3.0
- * @see ContainerOptions#getQueueAttributeNames()
- * @see ContainerOptions#getQueueNotFoundStrategy()
+ * @see SqsContainerOptions#getQueueAttributeNames()
+ * @see SqsContainerOptions#getQueueNotFoundStrategy()
  */
 public class QueueAttributesResolver {
 
@@ -91,9 +97,18 @@ public class QueueAttributesResolver {
 	}
 
 	private CompletableFuture<String> doResolveQueueUrl() {
-		return CompletableFutures
-			.exceptionallyCompose(this.sqsAsyncClient.getQueueUrl(req -> req.queueName(this.queueName))
-				.thenApply(GetQueueUrlResponse::queueUrl), this::handleException);
+		GetQueueUrlRequest.Builder getQueueUrlRequestBuilder = GetQueueUrlRequest.builder();
+		Arn arn = getQueueArnFromUrl();
+		if (arn != null) {
+			Assert.isTrue(arn.accountId().isPresent(), "accountId is missing from arn");
+			getQueueUrlRequestBuilder.queueName(arn.resourceAsString()).queueOwnerAWSAccountId(arn.accountId().get());
+		}
+		else {
+			getQueueUrlRequestBuilder.queueName(this.queueName);
+		}
+		return CompletableFutures.exceptionallyCompose(this.sqsAsyncClient
+				.getQueueUrl(getQueueUrlRequestBuilder.build()).thenApply(GetQueueUrlResponse::queueUrl),
+				this::handleException);
 	}
 
 	private CompletableFuture<String> handleException(Throwable t) {
@@ -139,6 +154,16 @@ public class QueueAttributesResolver {
 		}
 		catch (URISyntaxException e) {
 			return false;
+		}
+	}
+
+	@Nullable
+	private Arn getQueueArnFromUrl() {
+		try {
+			return Arn.fromString(this.queueName);
+		}
+		catch (IllegalArgumentException e) {
+			return null;
 		}
 	}
 

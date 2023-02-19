@@ -29,6 +29,7 @@ import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.StandardSqsComponentFactory;
@@ -81,8 +82,9 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 /**
+ * Integration tests for SQS integration.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 @TestPropertySource(properties = { "property.one=1", "property.five.seconds=5s",
@@ -224,7 +226,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 			.queueNames(MANUALLY_START_CONTAINER)
 			.messageListener(msg -> latchContainer.manuallyStartedContainerLatch.countDown())
 			.configure(options -> options
-					.permitAcquireTimeout(Duration.ofSeconds(1))
+					.maxDelayBetweenPolls(Duration.ofSeconds(1))
 					.pollTimeout(Duration.ofSeconds(3)))
 			.build();
 		container.start();
@@ -232,7 +234,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.manuallyStartedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		container.setMessageListener(msg -> latchContainer.manuallyStartedContainerLatch2.countDown());
-		SqsContainerOptions.Builder builder = container.getContainerOptions().toBuilder();
+		SqsContainerOptionsBuilder builder = container.getContainerOptions().toBuilder();
 		builder.acknowledgementMode(AcknowledgementMode.ALWAYS);
 		container.configure(options -> options.fromBuilder(builder));
 		container.start();
@@ -276,7 +278,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = "${receives.message.queue.name}", pollTimeoutSeconds = "${property.one}", maxMessagesPerPoll = "${property.one}", maxInflightMessagesPerQueue = "${missing.property:5}", id = "receivesMessageContainer")
+		@SqsListener(queueNames = "${receives.message.queue.name}", pollTimeoutSeconds = "${property.one}", maxMessagesPerPoll = "${property.one}", maxConcurrentMessages = "${missing.property:5}", id = "receivesMessageContainer")
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.receivesMessageLatch.countDown();
@@ -432,7 +434,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
 				.acknowledgementResultCallback(getAcknowledgementResultCallback())
 				.configure(options -> options
-					.permitAcquireTimeout(Duration.ofSeconds(5))
+					.maxDelayBetweenPolls(Duration.ofSeconds(5))
 					.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 					.pollTimeout(Duration.ofSeconds(5)))
 				.build();
@@ -443,10 +445,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 			return SqsMessageListenerContainerFactory
 				.builder()
 				.configure(options -> options
-					.maxInflightMessagesPerQueue(1)
+					.maxConcurrentMessages(1)
 					.pollTimeout(Duration.ofSeconds(5))
 					.maxMessagesPerPoll(1)
-					.permitAcquireTimeout(Duration.ofSeconds(5)))
+					.maxDelayBetweenPolls(Duration.ofSeconds(5)))
 				.messageInterceptor(testInterceptor())
 				.messageInterceptor(testInterceptor())
 				.errorHandler(testErrorHandler())
@@ -459,10 +461,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 			return SqsMessageListenerContainerFactory
 				.builder()
 				.configure(options -> options
-					.maxInflightMessagesPerQueue(10)
+					.maxConcurrentMessages(10)
 					.pollTimeout(Duration.ofSeconds(10))
 					.maxMessagesPerPoll(10)
-					.permitAcquireTimeout(Duration.ofSeconds(1)))
+					.maxDelayBetweenPolls(Duration.ofSeconds(1)))
 				.messageInterceptor(testInterceptor())
 				.messageInterceptor(testInterceptor())
 				.containerComponentFactories(getExceptionThrowingAckExecutor())
@@ -505,11 +507,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				.builder()
 				.configure(options -> options
 					.acknowledgementMode(AcknowledgementMode.MANUAL)
-					.maxInflightMessagesPerQueue(1)
+					.maxConcurrentMessages(1)
 					.pollTimeout(Duration.ofSeconds(3))
 					.maxMessagesPerPoll(1)
 					.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
-					.permitAcquireTimeout(Duration.ofSeconds(1)))
+					.maxDelayBetweenPolls(Duration.ofSeconds(1)))
 				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
 				.acknowledgementResultCallback(new AcknowledgementResultCallback<Object>() {
 					@Override
@@ -532,7 +534,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				.queueNames(queueUrl)
 				.sqsAsyncClient(client)
 				.configure(options -> options
-					.permitAcquireTimeout(Duration.ofSeconds(1))
+					.maxDelayBetweenPolls(Duration.ofSeconds(1))
 					.pollTimeout(Duration.ofSeconds(3)))
 				.messageListener(msg -> latchContainer.manuallyCreatedContainerLatch.countDown())
 				.build();
@@ -542,10 +544,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainer<String> manuallyCreatedFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
 			factory.configure(options -> options
-				.maxInflightMessagesPerQueue(1)
+				.maxConcurrentMessages(1)
 				.pollTimeout(Duration.ofSeconds(3))
 				.maxMessagesPerPoll(1)
-				.permitAcquireTimeout(Duration.ofSeconds(1)));
+				.maxDelayBetweenPolls(Duration.ofSeconds(1)));
 			factory.setContainerComponentFactories(Collections.singletonList(new StandardSqsComponentFactory<String>() {
 				@Override
 				public MessageSource<String> createMessageSource(SqsContainerOptions options) {

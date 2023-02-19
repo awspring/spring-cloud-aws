@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs;
 
 /**
- * Exception thrown when a {@link io.awspring.cloud.sqs.listener.QueueAttributesResolver} fails.
+ * Exception thrown when a {@link QueueAttributesResolver} fails.
  *
  * @author Tomaz Fernandes
  * @since 3.0

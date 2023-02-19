@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.support.resolver;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
-import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.MessagingHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import java.util.concurrent.CompletableFuture;
@@ -42,7 +42,7 @@ public class AcknowledgmentHandlerMethodArgumentResolver implements HandlerMetho
 	@Override
 	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
 		AcknowledgementCallback<Object> callback = message.getHeaders()
-				.get(SqsHeaders.SQS_ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class);
+				.get(MessagingHeaders.ACKNOWLEDGMENT_CALLBACK_HEADER, AcknowledgementCallback.class);
 		Assert.notNull(callback, "No acknowledgement found for message " + MessageHeaderUtils.getId(message)
 				+ ". AcknowledgeMode should be MANUAL.");
 		return new Acknowledgement() {

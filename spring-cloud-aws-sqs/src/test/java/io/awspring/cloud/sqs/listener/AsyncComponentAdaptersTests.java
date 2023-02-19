@@ -46,8 +46,9 @@ import org.springframework.core.task.TaskRejectedException;
 import org.springframework.messaging.Message;
 
 /**
+ * Tests for {@link AsyncComponentAdapters}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class AsyncComponentAdaptersTests {

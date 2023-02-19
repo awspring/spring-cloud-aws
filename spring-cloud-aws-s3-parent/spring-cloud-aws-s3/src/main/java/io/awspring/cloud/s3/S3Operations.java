@@ -16,9 +16,19 @@
 package io.awspring.cloud.s3;
 
 import java.io.InputStream;
+import java.net.URL;
+import java.time.Duration;
 import org.springframework.lang.Nullable;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
 
+/**
+ * Higher level abstraction over {@link S3Client} providing methods for the most common use cases. Implemented by
+ * {@link S3Template}.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.0
+ */
 public interface S3Operations {
 
 	/**
@@ -103,4 +113,29 @@ public interface S3Operations {
 	 * @return downloaded object represented as {@link S3Resource}
 	 */
 	S3Resource download(String bucketName, String key);
+
+	/**
+	 * Creates a signed URL for retrieving an object from S3.
+	 *
+	 * @param bucketName - the bucket name
+	 * @param key - the object key
+	 * @param duration - duration that the URL will work
+	 * @return a {@link URL} representing the signed URL
+	 */
+	URL createSignedGetURL(String bucketName, String key, Duration duration);
+
+	/**
+	 * Creates a signed URL for putting an object into S3.
+	 *
+	 * @param bucketName - the bucket name
+	 * @param key - the object key
+	 * @param duration - duration that the URL will work
+	 * @return a {@link URL} representing the signed URL
+	 */
+	URL createSignedPutURL(String bucketName, String key, Duration duration, @Nullable ObjectMetadata metadata,
+			@Nullable String contentType);
+
+	default URL createSignedPutURL(String bucketName, String key, Duration duration) {
+		return createSignedPutURL(bucketName, key, duration, null, null);
+	}
 }

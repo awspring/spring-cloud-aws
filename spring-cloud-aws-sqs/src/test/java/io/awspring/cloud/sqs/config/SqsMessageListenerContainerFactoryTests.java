@@ -40,8 +40,9 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
+ * Tests for {@link SqsMessageListenerContainerFactory}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class SqsMessageListenerContainerFactoryTests {
@@ -52,7 +53,7 @@ class SqsMessageListenerContainerFactoryTests {
 		String id = "test-id";
 		SqsAsyncClient client = mock(SqsAsyncClient.class);
 		SqsEndpoint endpoint = mock(SqsEndpoint.class);
-		given(endpoint.getMaxInflightMessagesPerQueue()).willReturn(null);
+		given(endpoint.getMaxConcurrentMessages()).willReturn(null);
 		given(endpoint.getMessageVisibility()).willReturn(null);
 		given(endpoint.getMaxMessagesPerPoll()).willReturn(null);
 		given(endpoint.getPollTimeout()).willReturn(null);
@@ -64,7 +65,7 @@ class SqsMessageListenerContainerFactoryTests {
 		SqsMessageListenerContainer<Object> container = factory.createContainer(endpoint);
 
 		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(SqsContainerOptions.class, options -> {
-			assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(10);
+			assertThat(options.getMaxConcurrentMessages()).isEqualTo(10);
 			assertThat(options.getMessageVisibility()).isNull();
 			assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(10));
 			assertThat(options.getMaxMessagesPerPoll()).isEqualTo(10);
@@ -85,7 +86,7 @@ class SqsMessageListenerContainerFactoryTests {
 		int messagesPerPoll = 7;
 		Duration pollTimeout = Duration.ofSeconds(6);
 		Duration visibility = Duration.ofSeconds(8);
-		given(endpoint.getMaxInflightMessagesPerQueue()).willReturn(inflight);
+		given(endpoint.getMaxConcurrentMessages()).willReturn(inflight);
 		given(endpoint.getMessageVisibility()).willReturn(visibility);
 		given(endpoint.getMaxMessagesPerPoll()).willReturn(messagesPerPoll);
 		given(endpoint.getPollTimeout()).willReturn(pollTimeout);
@@ -97,7 +98,7 @@ class SqsMessageListenerContainerFactoryTests {
 		SqsMessageListenerContainer<Object> container = factory.createContainer(endpoint);
 
 		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(SqsContainerOptions.class, options -> {
-			assertThat(options.getMaxInFlightMessagesPerQueue()).isEqualTo(inflight);
+			assertThat(options.getMaxConcurrentMessages()).isEqualTo(inflight);
 			assertThat(options.getMessageVisibility()).isEqualTo(visibility);
 			assertThat(options.getPollTimeout()).isEqualTo(pollTimeout);
 			assertThat(options.getMaxMessagesPerPoll()).isEqualTo(messagesPerPoll);

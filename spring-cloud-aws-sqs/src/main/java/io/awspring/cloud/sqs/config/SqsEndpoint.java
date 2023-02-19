@@ -30,7 +30,7 @@ import org.springframework.lang.Nullable;
  */
 public class SqsEndpoint extends AbstractEndpoint {
 
-	private final Integer maxInflightMessagesPerQueue;
+	private final Integer maxConcurrentMessages;
 
 	private final Integer pollTimeoutSeconds;
 
@@ -40,7 +40,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 	protected SqsEndpoint(SqsEndpointBuilder builder) {
 		super(builder.queueNames, builder.factoryName, builder.id);
-		this.maxInflightMessagesPerQueue = builder.maxInflightMessagesPerQueue;
+		this.maxConcurrentMessages = builder.maxConcurrentMessages;
 		this.pollTimeoutSeconds = builder.pollTimeoutSeconds;
 		this.messageVisibility = builder.messageVisibility;
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
@@ -55,12 +55,13 @@ public class SqsEndpoint extends AbstractEndpoint {
 	}
 
 	/**
-	 * The maximum number of inflight messages each queue in this endpoint can process simultaneously.
+	 * Set the maximum concurrent messages that can be processed simultaneously for each queue. Note that if
+	 * acknowledgement batching is being used, the actual maximum number of messages inflight might be higher.
 	 * @return the maximum number of inflight messages.
 	 */
 	@Nullable
-	public Integer getMaxInflightMessagesPerQueue() {
-		return this.maxInflightMessagesPerQueue;
+	public Integer getMaxConcurrentMessages() {
+		return this.maxConcurrentMessages;
 	}
 
 	/**
@@ -94,7 +95,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 		private Collection<String> queueNames;
 
-		private Integer maxInflightMessagesPerQueue;
+		private Integer maxConcurrentMessages;
 
 		private Integer pollTimeoutSeconds;
 
@@ -116,8 +117,8 @@ public class SqsEndpoint extends AbstractEndpoint {
 			return this;
 		}
 
-		public SqsEndpointBuilder maxInflightMessagesPerQueue(Integer maxInflightMessagesPerQueue) {
-			this.maxInflightMessagesPerQueue = maxInflightMessagesPerQueue;
+		public SqsEndpointBuilder maxConcurrentMessages(Integer maxConcurrentMessages) {
+			this.maxConcurrentMessages = maxConcurrentMessages;
 			return this;
 		}
 

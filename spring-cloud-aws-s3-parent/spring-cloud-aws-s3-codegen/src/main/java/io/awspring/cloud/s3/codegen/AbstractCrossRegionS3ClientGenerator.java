@@ -22,8 +22,8 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.resolution.MethodUsage;
+import com.github.javaparser.resolution.TypeSolver;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
-import com.github.javaparser.symbolsolver.model.resolution.TypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ClassLoaderTypeSolver;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 /**
  * Generates AbstractCrossRegionS3Client class from {@link AbstractCrossRegionS3ClientTemplate}.
- *
+ * <p>
  * Generated methods wrap every bucket-specific {@link S3Client} method with
  * {@link AbstractCrossRegionS3ClientTemplate#executeInBucketRegion(String, Function)} and every bucket-independent
  * {@link S3Client} method with {@link AbstractCrossRegionS3ClientTemplate#executeInDefaultRegion(Function)}

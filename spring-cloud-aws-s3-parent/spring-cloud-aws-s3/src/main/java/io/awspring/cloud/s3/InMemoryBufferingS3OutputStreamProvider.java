@@ -20,6 +20,12 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.unit.DataSize;
 import software.amazon.awssdk.services.s3.S3Client;
 
+/**
+ * Creates {@link InMemoryBufferingS3OutputStream}.
+ *
+ * @author Sam Garfinkel
+ * @since 3.0
+ */
 public class InMemoryBufferingS3OutputStreamProvider implements S3OutputStreamProvider {
 
 	private final S3Client s3Client;

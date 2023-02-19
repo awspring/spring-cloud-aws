@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.sqs.it;
+package io.awspring.cloud.autoconfigure.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
@@ -21,8 +21,8 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration;
 import io.awspring.cloud.sqs.annotation.SqsListener;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -36,13 +36,11 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
- * Integration tests for SQS.
+ * Integration tests for {@link SqsAutoConfiguration}.
  *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 @Testcontainers
@@ -65,12 +63,12 @@ class SqsAutoConfigurationIntegrationTest {
 	static LocalStackContainer localstack = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SQS);
 
+	@SuppressWarnings("unchecked")
 	@Test
 	void sendsAndReceivesMessage() {
 		this.contextRunner.run(context -> {
-			SqsAsyncClient sqsAsyncClient = context.getBean(SqsAsyncClient.class);
-			String queueUrl = sqsAsyncClient.getQueueUrl(req -> req.queueName(QUEUE_NAME)).get().queueUrl();
-			sqsAsyncClient.sendMessage(req -> req.queueUrl(queueUrl).messageBody(PAYLOAD));
+			SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
+			sqsTemplate.send(to -> to.queue(QUEUE_NAME).payload(PAYLOAD));
 			CountDownLatch latch = context.getBean(CountDownLatch.class);
 			assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue();
 		});

@@ -19,12 +19,14 @@ import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesAware;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
+import org.springframework.lang.Nullable;
+import org.springframework.messaging.MessageHeaders;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
  * {@link MessageConversionContext} implementation that contains SQS related properties for mapping additional
- * {@link org.springframework.messaging.MessageHeaders}. Also contains a {@link AcknowledgementCallback} to be used for
- * mapping acknowledgement related headers.
+ * {@link MessageHeaders}. Also contains a {@link AcknowledgementCallback} to be used for mapping acknowledgement
+ * related headers.
  * @author Tomaz Fernandes
  * @since 3.0
  * @see SqsHeaderMapper
@@ -33,11 +35,17 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 public class SqsMessageConversionContext
 		implements AcknowledgementAwareMessageConversionContext, SqsAsyncClientAware, QueueAttributesAware {
 
+	@Nullable
 	private QueueAttributes queueAttributes;
 
+	@Nullable
 	private SqsAsyncClient sqsAsyncClient;
 
+	@Nullable
 	private AcknowledgementCallback<?> acknowledgementCallback;
+
+	@Nullable
+	private Class<?> payloadClass;
 
 	@Override
 	public void setQueueAttributes(QueueAttributes queueAttributes) {
@@ -54,17 +62,28 @@ public class SqsMessageConversionContext
 		this.acknowledgementCallback = acknowledgementCallback;
 	}
 
+	public void setPayloadClass(Class<?> payloadClass) {
+		this.payloadClass = payloadClass;
+	}
+
+	@Nullable
 	public SqsAsyncClient getSqsAsyncClient() {
 		return this.sqsAsyncClient;
 	}
 
+	@Nullable
 	public QueueAttributes getQueueAttributes() {
 		return this.queueAttributes;
 	}
 
+	@Nullable
 	@Override
 	public AcknowledgementCallback<?> getAcknowledgementCallback() {
 		return this.acknowledgementCallback;
 	}
 
+	@Nullable
+	public Class<?> getPayloadClass() {
+		return this.payloadClass;
+	}
 }

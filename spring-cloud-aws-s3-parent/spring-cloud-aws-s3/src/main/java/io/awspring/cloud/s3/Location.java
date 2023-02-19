@@ -15,22 +15,25 @@
  */
 package io.awspring.cloud.s3;
 
+import java.util.Objects;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Represents S3 bucket or object location.
  *
  * @author Maciej Walkowiak
+ * @author Tobias Soloschenko
  * @since 3.0
  */
-class Location {
+public class Location {
 
-	private static final String S3_PROTOCOL_PREFIX = "s3://";
+	public static final String S3_PROTOCOL_PREFIX = "s3://";
 
-	private static final String PATH_DELIMITER = "/";
+	public static final String PATH_DELIMITER = "/";
 
-	private static final String VERSION_DELIMITER = "^";
+	public static final String VERSION_DELIMITER = "^";
 
 	private final String bucket;
 
@@ -44,8 +47,18 @@ class Location {
 	 * @param location - the location
 	 * @return {@link Location}
 	 */
-	static Location of(String location) {
+	public static Location of(String location) {
 		return new Location(location);
+	}
+
+	/**
+	 * Creates {@link Location} from bucket (bucket-name)/ object (object-key)
+	 * @param bucket - the bucket
+	 * @param object - the object key
+	 * @return {@link Location}
+	 */
+	public static Location of(String bucket, String object) {
+		return new Location(bucket, object);
 	}
 
 	/**
@@ -84,16 +97,21 @@ class Location {
 		this.version = resolveVersionId(location);
 	}
 
-	String getBucket() {
+	public Location relative(String relativePath) {
+		String relativeKey = StringUtils.hasText(object) ? object + "/" + relativePath : relativePath;
+		return Location.of(bucket, relativeKey);
+	}
+
+	public String getBucket() {
 		return bucket;
 	}
 
-	String getObject() {
+	public String getObject() {
 		return object;
 	}
 
 	@Nullable
-	String getVersion() {
+	public String getVersion() {
 		return version;
 	}
 
@@ -149,7 +167,22 @@ class Location {
 			throw new IllegalArgumentException("The location :'" + location + "' does not contain a valid bucket name");
 		}
 
-		return location.substring(++objectNameEndIndex, location.length());
+		return location.substring(++objectNameEndIndex);
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		Location location = (Location) o;
+		return bucket.equals(location.bucket) && object.equals(location.object)
+				&& Objects.equals(version, location.version);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(bucket, object, version);
+	}
 }

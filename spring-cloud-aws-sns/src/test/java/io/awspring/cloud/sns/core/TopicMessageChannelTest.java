@@ -41,6 +41,8 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 /**
+ * Tests for {@link TopicMessageChannel}.
+ *
  * @author Alain Sahli
  */
 class TopicMessageChannelTest {

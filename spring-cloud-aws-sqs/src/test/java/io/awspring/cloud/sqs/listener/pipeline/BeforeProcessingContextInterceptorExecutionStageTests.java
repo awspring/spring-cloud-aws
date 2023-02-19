@@ -41,8 +41,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
 /**
+ * Tests for {@link BeforeProcessingContextInterceptorExecutionStage}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class BeforeProcessingContextInterceptorExecutionStageTests {

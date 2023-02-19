@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.dynamodb;
 
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -68,6 +69,7 @@ public interface DynamoDbOperations {
 	 *     generated.
 	 * @param <T> Type of Entity object.
 	 */
+	@Nullable
 	<T> T load(Key key, Class<T> clazz);
 
 	/**

@@ -64,8 +64,9 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 /**
+ * Load test for SQS integration.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SpringBootTest
 class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
@@ -307,7 +308,7 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		MessageContainer messageContainer;
 
 		@SqsListener(queueNames = { RECEIVE_BATCH_1_QUEUE_NAME,
-				RECEIVE_BATCH_2_QUEUE_NAME }, maxMessagesPerPoll = "20", maxInflightMessagesPerQueue = "20", factory = HIGH_THROUGHPUT_FACTORY_NAME, id = "batch-from-two-queues")
+				RECEIVE_BATCH_2_QUEUE_NAME }, maxMessagesPerPoll = "20", maxConcurrentMessages = "20", factory = HIGH_THROUGHPUT_FACTORY_NAME, id = "batch-from-two-queues")
 		void listen(List<Message<MyPojo>> messages) {
 			logger.trace("Started processing {} messages {}", messages.size(), MessageHeaderUtils.getId(messages));
 			String firstField = messages.get(0).getPayload().firstField;// Make sure we got the right type
@@ -343,16 +344,16 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		// @formatter:off
 		@Bean
 		public SqsMessageListenerContainerFactory<String> highThroughputFactory() {
-			// For load tests, set maxInflightMessagesPerQueue to a higher value - e.g. 600
+			// For load tests, set maxConcurrentMessages to a higher value - e.g. 600
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
 			factory.configure(options ->
-				options.maxInflightMessagesPerQueue(settings.maxInflight)
+				options.maxConcurrentMessages(settings.maxInflight)
 					.pollTimeout(Duration.ofSeconds(3))
 					.maxMessagesPerPoll(settings.messagesPerPoll)
-					.permitAcquireTimeout(Duration.ofSeconds(1))
+					.maxDelayBetweenPolls(Duration.ofSeconds(1))
 					.acknowledgementInterval(Duration.ofMillis(500))
 					.backPressureMode(BackPressureMode.FIXED_HIGH_THROUGHPUT)
-					.shutdownTimeout(Duration.ofSeconds(40)));
+					.listenerShutdownTimeout(Duration.ofSeconds(40)));
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createHighThroughputAsyncClient);
 			factory.setContainerComponentFactories(Collections.singletonList(getTestAckHandlerComponentFactory()));
 			return factory;

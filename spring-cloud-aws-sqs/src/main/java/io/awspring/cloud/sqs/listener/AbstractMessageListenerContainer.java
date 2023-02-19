@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractMessageListenerContainer<T, O extends ContainerOptions<O, B>, B extends ContainerOptions.Builder<B, O>>
+public abstract class AbstractMessageListenerContainer<T, O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>>
 		implements MessageListenerContainer<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMessageListenerContainer.class);

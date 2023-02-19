@@ -45,11 +45,13 @@ public class SqsProperties extends AwsClientProperties {
 	}
 
 	public static class Listener {
+
 		/**
-		 * The maximum number of simultaneous inflight messages in a queue.
+		 * The maximum concurrent messages that can be processed simultaneously for each queue. Note that if
+		 * acknowledgement batching is being used, the actual maximum number of messages inflight might be higher.
 		 */
 		@Nullable
-		private Integer maxInflightMessagesPerQueue;
+		private Integer maxConcurrentMessages;
 
 		/**
 		 * The maximum number of messages to be retrieved in a single poll to SQS.
@@ -64,12 +66,12 @@ public class SqsProperties extends AwsClientProperties {
 		private Duration pollTimeout;
 
 		@Nullable
-		public Integer getMaxInflightMessagesPerQueue() {
-			return this.maxInflightMessagesPerQueue;
+		public Integer getMaxConcurrentMessages() {
+			return this.maxConcurrentMessages;
 		}
 
-		public void setMaxInflightMessagesPerQueue(Integer maxInflightMessagesPerQueue) {
-			this.maxInflightMessagesPerQueue = maxInflightMessagesPerQueue;
+		public void setMaxConcurrentMessages(Integer maxConcurrentMessages) {
+			this.maxConcurrentMessages = maxConcurrentMessages;
 		}
 
 		@Nullable

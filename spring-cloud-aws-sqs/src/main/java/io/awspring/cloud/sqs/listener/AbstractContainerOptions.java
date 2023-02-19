@@ -30,18 +30,20 @@ import org.springframework.util.Assert;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptions.Builder<B, O>>
+public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>>
 		implements ContainerOptions<O, B> {
 
-	private final int maxInflightMessagesPerQueue;
+	private final int maxConcurrentMessages;
 
 	private final int maxMessagesPerPoll;
 
 	private final Duration pollTimeout;
 
-	private final Duration permitAcquireTimeout;
+	private final Duration maxDelayBetweenPolls;
 
-	private final Duration shutdownTimeout;
+	private final Duration listenerShutdownTimeout;
+
+	private final Duration acknowledgementShutdownTimeout;
 
 	private final BackPressureMode backPressureMode;
 
@@ -67,11 +69,12 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	private final TaskExecutor acknowledgementResultTaskExecutor;
 
 	protected AbstractContainerOptions(Builder<?, ?> builder) {
-		this.maxInflightMessagesPerQueue = builder.maxInflightMessagesPerQueue;
+		this.maxConcurrentMessages = builder.maxConcurrentMessages;
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
 		this.pollTimeout = builder.pollTimeout;
-		this.permitAcquireTimeout = builder.permitAcquireTimeout;
-		this.shutdownTimeout = builder.shutdownTimeout;
+		this.maxDelayBetweenPolls = builder.maxDelayBetweenPolls;
+		this.listenerShutdownTimeout = builder.listenerShutdownTimeout;
+		this.acknowledgementShutdownTimeout = builder.acknowledgementShutdownTimeout;
 		this.backPressureMode = builder.backPressureMode;
 		this.listenerMode = builder.listenerMode;
 		this.messageConverter = builder.messageConverter;
@@ -81,14 +84,14 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.acknowledgementThreshold = builder.acknowledgementThreshold;
 		this.componentsTaskExecutor = builder.componentsTaskExecutor;
 		this.acknowledgementResultTaskExecutor = builder.acknowledgementResultTaskExecutor;
-		Assert.isTrue(this.maxMessagesPerPoll <= this.maxInflightMessagesPerQueue, String.format(
-				"messagesPerPoll should be less than or equal to maxInflightMessagesPerQueue. Values provided: %s and %s respectively",
-				this.maxMessagesPerPoll, this.maxInflightMessagesPerQueue));
+		Assert.isTrue(this.maxMessagesPerPoll <= this.maxConcurrentMessages, String.format(
+				"messagesPerPoll should be less than or equal to maxConcurrentMessages. Values provided: %s and %s respectively",
+				this.maxMessagesPerPoll, this.maxConcurrentMessages));
 	}
 
 	@Override
-	public int getMaxInFlightMessagesPerQueue() {
-		return this.maxInflightMessagesPerQueue;
+	public int getMaxConcurrentMessages() {
+		return this.maxConcurrentMessages;
 	}
 
 	@Override
@@ -102,8 +105,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	}
 
 	@Override
-	public Duration getPermitAcquireTimeout() {
-		return this.permitAcquireTimeout;
+	public Duration getMaxDelayBetweenPolls() {
+		return this.maxDelayBetweenPolls;
 	}
 
 	@Nullable
@@ -119,8 +122,13 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	}
 
 	@Override
-	public Duration getShutdownTimeout() {
-		return this.shutdownTimeout;
+	public Duration getListenerShutdownTimeout() {
+		return this.listenerShutdownTimeout;
+	}
+
+	@Override
+	public Duration getAcknowledgementShutdownTimeout() {
+		return this.acknowledgementShutdownTimeout;
 	}
 
 	@Override
@@ -161,8 +169,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		return this.acknowledgementOrdering;
 	}
 
-	protected abstract static class Builder<B extends ContainerOptions.Builder<B, O>, O extends ContainerOptions<O, B>>
-			implements ContainerOptions.Builder<B, O> {
+	protected abstract static class Builder<B extends ContainerOptionsBuilder<B, O>, O extends ContainerOptions<O, B>>
+			implements ContainerOptionsBuilder<B, O> {
 
 		private static final int DEFAULT_MAX_INFLIGHT_MSG_PER_QUEUE = 10;
 
@@ -172,7 +180,9 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final Duration DEFAULT_SEMAPHORE_TIMEOUT = Duration.ofSeconds(10);
 
-		private static final Duration DEFAULT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
+		private static final Duration DEFAULT_LISTENER_SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
+
+		private static final Duration DEFAULT_ACKNOWLEDGEMENT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
 
 		private static final BackPressureMode DEFAULT_THROUGHPUT_CONFIGURATION = BackPressureMode.AUTO;
 
@@ -182,17 +192,19 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final AcknowledgementMode DEFAULT_ACKNOWLEDGEMENT_MODE = AcknowledgementMode.ON_SUCCESS;
 
-		private int maxInflightMessagesPerQueue = DEFAULT_MAX_INFLIGHT_MSG_PER_QUEUE;
+		private int maxConcurrentMessages = DEFAULT_MAX_INFLIGHT_MSG_PER_QUEUE;
 
 		private int maxMessagesPerPoll = DEFAULT_MAX_MESSAGES_PER_POLL;
 
 		private Duration pollTimeout = DEFAULT_POLL_TIMEOUT;
 
-		private Duration permitAcquireTimeout = DEFAULT_SEMAPHORE_TIMEOUT;
+		private Duration maxDelayBetweenPolls = DEFAULT_SEMAPHORE_TIMEOUT;
 
 		private BackPressureMode backPressureMode = DEFAULT_THROUGHPUT_CONFIGURATION;
 
-		private Duration shutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT;
+		private Duration listenerShutdownTimeout = DEFAULT_LISTENER_SHUTDOWN_TIMEOUT;
+
+		private Duration acknowledgementShutdownTimeout = DEFAULT_ACKNOWLEDGEMENT_SHUTDOWN_TIMEOUT;
 
 		private ListenerMode listenerMode = DEFAULT_MESSAGE_DELIVERY_STRATEGY;
 
@@ -219,11 +231,12 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		}
 
 		protected Builder(AbstractContainerOptions<?, ?> options) {
-			this.maxInflightMessagesPerQueue = options.maxInflightMessagesPerQueue;
+			this.maxConcurrentMessages = options.maxConcurrentMessages;
 			this.maxMessagesPerPoll = options.maxMessagesPerPoll;
 			this.pollTimeout = options.pollTimeout;
-			this.permitAcquireTimeout = options.permitAcquireTimeout;
-			this.shutdownTimeout = options.shutdownTimeout;
+			this.maxDelayBetweenPolls = options.maxDelayBetweenPolls;
+			this.listenerShutdownTimeout = options.listenerShutdownTimeout;
+			this.acknowledgementShutdownTimeout = options.acknowledgementShutdownTimeout;
 			this.backPressureMode = options.backPressureMode;
 			this.listenerMode = options.listenerMode;
 			this.messageConverter = options.messageConverter;
@@ -236,9 +249,9 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		}
 
 		@Override
-		public B maxInflightMessagesPerQueue(int maxInflightMessagesPerQueue) {
-			Assert.isTrue(maxInflightMessagesPerQueue > 0, "maxInflightMessagesPerQueue must be greater than zero");
-			this.maxInflightMessagesPerQueue = maxInflightMessagesPerQueue;
+		public B maxConcurrentMessages(int maxConcurrentMessages) {
+			Assert.isTrue(maxConcurrentMessages > 0, "maxConcurrentMessages must be greater than zero");
+			this.maxConcurrentMessages = maxConcurrentMessages;
 			return self();
 		}
 
@@ -256,9 +269,9 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		}
 
 		@Override
-		public B permitAcquireTimeout(Duration permitAcquireTimeout) {
-			Assert.notNull(permitAcquireTimeout, "semaphoreAcquireTimeout cannot be null");
-			this.permitAcquireTimeout = permitAcquireTimeout;
+		public B maxDelayBetweenPolls(Duration maxDelayBetweenPolls) {
+			Assert.notNull(maxDelayBetweenPolls, "semaphoreAcquireTimeout cannot be null");
+			this.maxDelayBetweenPolls = maxDelayBetweenPolls;
 			return self();
 		}
 
@@ -284,9 +297,16 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		}
 
 		@Override
-		public B shutdownTimeout(Duration shutdownTimeout) {
-			Assert.notNull(shutdownTimeout, "shutdownTimeout cannot be null");
-			this.shutdownTimeout = shutdownTimeout;
+		public B listenerShutdownTimeout(Duration listenerShutdownTimeout) {
+			Assert.notNull(listenerShutdownTimeout, "listenerShutdownTimeout cannot be null");
+			this.listenerShutdownTimeout = listenerShutdownTimeout;
+			return self();
+		}
+
+		@Override
+		public B acknowledgementShutdownTimeout(Duration acknowledgementShutdownTimeout) {
+			Assert.notNull(acknowledgementShutdownTimeout, "acknowledgementShutdownTimeout cannot be null");
+			this.acknowledgementShutdownTimeout = acknowledgementShutdownTimeout;
 			return self();
 		}
 

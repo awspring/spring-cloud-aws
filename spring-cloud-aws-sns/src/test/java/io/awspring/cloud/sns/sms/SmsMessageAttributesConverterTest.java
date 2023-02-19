@@ -23,8 +23,9 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 /**
+ * Tests for {@link SmsMessageAttributes} conversion.
+ *
  * @author Matej Nedic
- * @since 3.0.0
  */
 class SmsMessageAttributesConverterTest {
 

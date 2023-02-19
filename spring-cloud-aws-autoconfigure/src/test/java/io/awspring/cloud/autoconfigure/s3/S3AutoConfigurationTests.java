@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
+import io.awspring.cloud.autoconfigure.ConfiguredAwsPresigner;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -51,8 +52,10 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 /**
  * Tests for {@link S3AutoConfiguration}.
@@ -236,6 +239,34 @@ class S3AutoConfigurationTests {
 					assertThat(client.getFipsEnabled()).isTrue();
 					assertThat(client.getDefaultsMode()).isEqualTo(DefaultsMode.MOBILE);
 				});
+	}
+
+	@Nested
+	class S3PresignerAutoConfigurationTests {
+
+		@Test
+		void s3EndpointTakesPriorityOverGlobalEndpoint() {
+			contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
+					"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
+						ConfiguredAwsPresigner presigner = new ConfiguredAwsPresigner(
+								context.getBean(S3Presigner.class));
+						assertThat(presigner.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
+						assertThat(presigner.isEndpointOverridden()).isTrue();
+					});
+		}
+
+		@Test
+		void setsCommonAwsPropertiesOnPresigner() {
+			contextRunner
+					.withPropertyValues("spring.cloud.aws.dualstack-enabled:true", "spring.cloud.aws.fips-enabled:true")
+					.run(context -> {
+						ConfiguredAwsPresigner presigner = new ConfiguredAwsPresigner(
+								context.getBean(S3Presigner.class));
+						assertThat(presigner.getDualstackEnabled()).isTrue();
+						assertThat(presigner.getFipsEnabled()).isTrue();
+						assertThat(presigner.getRegion()).isEqualTo(Region.of("eu-west-1"));
+					});
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)

@@ -22,6 +22,7 @@ import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.MessageListener;
 import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
@@ -127,7 +128,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * @see io.awspring.cloud.sqs.listener.AsyncComponentAdapters
  */
 public class SqsMessageListenerContainerFactory<T> extends
-		AbstractMessageListenerContainerFactory<T, SqsMessageListenerContainer<T>, SqsContainerOptions, SqsContainerOptions.Builder> {
+		AbstractMessageListenerContainerFactory<T, SqsMessageListenerContainer<T>, SqsContainerOptions, SqsContainerOptionsBuilder> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsMessageListenerContainerFactory.class);
 
@@ -151,14 +152,13 @@ public class SqsMessageListenerContainerFactory<T> extends
 		return this.sqsAsyncClientSupplier.get();
 	}
 
-	protected void configureContainerOptions(Endpoint endpoint, SqsContainerOptions.Builder options) {
+	protected void configureContainerOptions(Endpoint endpoint, SqsContainerOptionsBuilder options) {
 		ConfigUtils.INSTANCE.acceptIfInstance(endpoint, SqsEndpoint.class,
 				sqsEndpoint -> configureFromSqsEndpoint(sqsEndpoint, options));
 	}
 
-	private void configureFromSqsEndpoint(SqsEndpoint sqsEndpoint, SqsContainerOptions.Builder options) {
-		ConfigUtils.INSTANCE
-				.acceptIfNotNull(sqsEndpoint.getMaxInflightMessagesPerQueue(), options::maxInflightMessagesPerQueue)
+	private void configureFromSqsEndpoint(SqsEndpoint sqsEndpoint, SqsContainerOptionsBuilder options) {
+		ConfigUtils.INSTANCE.acceptIfNotNull(sqsEndpoint.getMaxConcurrentMessages(), options::maxConcurrentMessages)
 				.acceptIfNotNull(sqsEndpoint.getMaxMessagesPerPoll(), options::maxMessagesPerPoll)
 				.acceptIfNotNull(sqsEndpoint.getPollTimeout(), options::pollTimeout)
 				.acceptIfNotNull(sqsEndpoint.getMessageVisibility(), options::messageVisibility);
@@ -210,7 +210,7 @@ public class SqsMessageListenerContainerFactory<T> extends
 
 		private ErrorHandler<T> errorHandler;
 
-		private Consumer<SqsContainerOptions.Builder> optionsConsumer = options -> {
+		private Consumer<SqsContainerOptionsBuilder> optionsConsumer = options -> {
 		};
 
 		private AcknowledgementResultCallback<T> acknowledgementResultCallback;
@@ -287,7 +287,7 @@ public class SqsMessageListenerContainerFactory<T> extends
 			return this;
 		}
 
-		public Builder<T> configure(Consumer<SqsContainerOptions.Builder> options) {
+		public Builder<T> configure(Consumer<SqsContainerOptionsBuilder> options) {
 			this.optionsConsumer = options;
 			return this;
 		}

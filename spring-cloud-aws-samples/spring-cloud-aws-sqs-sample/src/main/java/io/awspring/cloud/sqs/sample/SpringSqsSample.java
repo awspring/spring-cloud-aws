@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.sample;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
@@ -40,8 +41,8 @@ public class SpringSqsSample {
 	}
 
 	@Bean
-	public ApplicationRunner sendMessageToQueue(SqsSampleProducer sampleProducer) {
-		return args -> sampleProducer.send(QUEUE_NAME, new SampleRecord("Hello!", "From SQS!")).join();
+	public ApplicationRunner sendMessageToQueue(SqsTemplate sqsTemplate) {
+		return args -> sqsTemplate.send(QUEUE_NAME, new SampleRecord("Hello!", "From SQS!"));
 	}
 
 	private record SampleRecord(String propertyOne, String propertyTwo) {

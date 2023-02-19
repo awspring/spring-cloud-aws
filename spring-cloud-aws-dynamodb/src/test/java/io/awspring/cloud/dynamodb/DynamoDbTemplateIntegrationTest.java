@@ -66,8 +66,7 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_saveAndRead_entitySuccessful() {
-		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
-				.withUuid(UUID.randomUUID()).build();
+		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
 		PersonEntity personEntity1 = dynamoDbTemplate
@@ -86,8 +85,7 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_saveUpdateAndRead_entitySuccessful() {
-		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
-				.withUuid(UUID.randomUUID()).build();
+		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
 		personEntity.setLastName("xxx");
@@ -103,8 +101,7 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_saveAndDelete_entitySuccessful() {
-		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
-				.withUuid(UUID.randomUUID()).build();
+		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
 		dynamoDbTemplate.delete(personEntity);
@@ -116,8 +113,7 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_saveAndDelete_entitySuccessful_forKey() {
-		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
-				.withUuid(UUID.randomUUID()).build();
+		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
 		dynamoDbTemplate.delete(Key.builder().partitionValue(personEntity.getUuid().toString()).build(),
@@ -156,8 +152,7 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_query_returns_singlePagePerson() {
-		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
-				.withUuid(UUID.randomUUID()).build();
+		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
 		QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder().queryConditional(
@@ -188,8 +183,7 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_saveAndScanAll_entitySuccessful() {
-		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
-				.withUuid(UUID.randomUUID()).build();
+		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
@@ -218,10 +212,8 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_saveAndScanAllReturnsMultiplePersons_entitySuccessful() {
-		PersonEntity personEntity1 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
-				.withUuid(UUID.randomUUID()).build();
-		PersonEntity personEntity2 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
-				.withUuid(UUID.randomUUID()).build();
+		PersonEntity personEntity1 = new PersonEntity(UUID.randomUUID(), "foo", "bar");
+		PersonEntity personEntity2 = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity1);
 		dynamoDbTemplate.save(personEntity2);
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
@@ -232,10 +224,8 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Test
 	void dynamoDbTemplate_saveAndScanForParticular_entitySuccessful() {
-		PersonEntity personEntity1 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
-				.withUuid(UUID.randomUUID()).build();
-		PersonEntity personEntity2 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
-				.withUuid(UUID.randomUUID()).build();
+		PersonEntity personEntity1 = new PersonEntity(UUID.randomUUID(), "foo", "bar");
+		PersonEntity personEntity2 = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity1);
 		dynamoDbTemplate.save(personEntity2);
 		Expression expression = Expression.builder().expression("#uuidToBeLooked = :myValue")

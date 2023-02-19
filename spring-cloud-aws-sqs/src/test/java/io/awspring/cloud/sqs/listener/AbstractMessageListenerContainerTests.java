@@ -29,8 +29,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Tests for {@link AbstractMessageListenerContainer}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 @SuppressWarnings("unchecked")
 class AbstractMessageListenerContainerTests {
@@ -38,7 +39,7 @@ class AbstractMessageListenerContainerTests {
 	@Test
 	void shouldAdaptBlockingComponents() {
 		SqsContainerOptions options = SqsContainerOptions.builder().build();
-		AbstractMessageListenerContainer<Object, SqsContainerOptions, SqsContainerOptions.Builder> container = new AbstractMessageListenerContainer<>(
+		AbstractMessageListenerContainer<Object, SqsContainerOptions, SqsContainerOptionsBuilder> container = new AbstractMessageListenerContainer<>(
 				options) {
 		};
 
@@ -77,7 +78,7 @@ class AbstractMessageListenerContainerTests {
 	@Test
 	void shouldSetAsyncComponents() {
 		SqsContainerOptions options = SqsContainerOptions.builder().build();
-		AbstractMessageListenerContainer<Object, SqsContainerOptions, SqsContainerOptions.Builder> container = new AbstractMessageListenerContainer<>(
+		AbstractMessageListenerContainer<Object, SqsContainerOptions, SqsContainerOptionsBuilder> container = new AbstractMessageListenerContainer<>(
 				options) {
 		};
 

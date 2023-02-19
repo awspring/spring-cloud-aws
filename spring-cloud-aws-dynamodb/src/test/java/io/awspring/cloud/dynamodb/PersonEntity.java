@@ -30,6 +30,16 @@ public class PersonEntity {
 	private String lastName;
 	private String gsPk;
 
+	public PersonEntity() {
+	}
+
+	PersonEntity(UUID uuid, String name, String lastName, String gsPk) {
+		this.uuid = uuid;
+		this.name = name;
+		this.lastName = lastName;
+		this.gsPk = gsPk;
+	}
+
 	@DynamoDbPartitionKey
 	public UUID getUuid() {
 		return uuid;

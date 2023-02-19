@@ -23,8 +23,9 @@ import org.springframework.messaging.MessageHeaders;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
+ * Tests for {@link SqsHeaderMapper}.
+ *
  * @author Tomaz Fernandes
- * @since 3.0
  */
 class SqsHeaderMapperTests {
 
