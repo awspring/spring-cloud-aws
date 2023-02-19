@@ -33,6 +33,12 @@ public class PersonEntity {
 	public PersonEntity() {
 	}
 
+	PersonEntity(UUID uuid, String name, String lastName) {
+		this.uuid = uuid;
+		this.name = name;
+		this.lastName = lastName;
+	}
+
 	PersonEntity(UUID uuid, String name, String lastName, String gsPk) {
 		this.uuid = uuid;
 		this.name = name;
