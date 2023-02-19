@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 // Called PersonEntity so tableName can be resolved to person_entity. Used so it is not a plain tableName.
 @DynamoDbBean
@@ -27,6 +28,7 @@ public class PersonEntity {
 	private UUID uuid;
 	private String name;
 	private String lastName;
+	private String gsPk;
 
 	@DynamoDbPartitionKey
 	public UUID getUuid() {
@@ -53,6 +55,15 @@ public class PersonEntity {
 		this.lastName = lastName;
 	}
 
+	@DynamoDbSecondaryPartitionKey(indexNames = "gsiPersonEntityTable")
+	public String getGsPk() {
+		return gsPk;
+	}
+
+	public void setGsPk(String gsPk) {
+		this.gsPk = gsPk;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -73,6 +84,7 @@ public class PersonEntity {
 		private UUID uuid;
 		private String name;
 		private String lastName;
+		private String gpk1;
 
 		private Builder() {
 		}
@@ -96,11 +108,17 @@ public class PersonEntity {
 			return this;
 		}
 
+		public Builder withGpk1(String gpk1) {
+			this.gpk1 = gpk1;
+			return this;
+		}
+
 		public PersonEntity build() {
 			PersonEntity personEntity = new PersonEntity();
 			personEntity.setUuid(uuid);
 			personEntity.setName(name);
 			personEntity.setLastName(lastName);
+			personEntity.setGsPk(gpk1);
 			return personEntity;
 		}
 	}
