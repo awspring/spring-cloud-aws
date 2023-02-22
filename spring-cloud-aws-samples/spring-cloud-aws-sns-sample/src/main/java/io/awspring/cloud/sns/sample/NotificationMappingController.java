@@ -19,8 +19,12 @@ import io.awspring.cloud.sns.annotation.endpoint.NotificationMessageMapping;
 import io.awspring.cloud.sns.annotation.endpoint.NotificationSubscriptionMapping;
 import io.awspring.cloud.sns.annotation.endpoint.NotificationUnsubscribeConfirmationMapping;
 import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
+import io.awspring.cloud.sns.annotation.handlers.NotificationPayload;
 import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
+import io.awspring.cloud.sns.core.AwsSignatureVerifier;
+import io.awspring.cloud.sns.handlers.NotificationPayloads;
 import io.awspring.cloud.sns.handlers.NotificationStatus;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -30,20 +34,35 @@ public class NotificationMappingController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(NotificationMappingController.class);
 
+	private final AwsSignatureVerifier awsSignatureVerifier;
+
+	public NotificationMappingController(AwsSignatureVerifier awsSignatureVerifier) {
+		this.awsSignatureVerifier = awsSignatureVerifier;
+	}
+
 	@NotificationSubscriptionMapping(path = "/testTopic")
-	public void handleSubscriptionMessage(NotificationStatus status) {
-		status.confirmSubscription();
+	public void handleSubscriptionMessage(NotificationStatus status, @NotificationPayload NotificationPayloads payloads,
+			HttpServletRequest httpServletRequest) {
+		if (this.awsSignatureVerifier.verify(payloads, httpServletRequest)) {
+			status.confirmSubscription();
+		}
 	}
 
 	@NotificationMessageMapping(path = "/testTopic")
-	public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message) {
-		LOGGER.info("NotificationMessageMapping message is: {}", message);
-		LOGGER.info("NotificationMessageMapping subject is: {}", subject);
+	public void handleNotificationMessage(@NotificationSubject String subject, @NotificationMessage String message,
+			@NotificationPayload NotificationPayloads payloads, HttpServletRequest httpServletRequest) {
+		if (this.awsSignatureVerifier.verify(payloads, httpServletRequest)) {
+			LOGGER.info("NotificationMessageMapping message is: {}", message);
+			LOGGER.info("NotificationMessageMapping subject is: {}", subject);
+		}
 	}
 
 	@NotificationUnsubscribeConfirmationMapping(path = "/testTopic")
-	public void handleUnsubscribeMessage(NotificationStatus status) {
-		status.confirmSubscription();
+	public void handleUnsubscribeMessage(NotificationStatus status, @NotificationPayload NotificationPayloads payloads,
+			HttpServletRequest httpServletRequest) {
+		if (this.awsSignatureVerifier.verify(payloads, httpServletRequest)) {
+			status.confirmSubscription();
+		}
 	}
 
 }

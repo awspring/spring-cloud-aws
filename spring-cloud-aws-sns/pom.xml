@@ -75,6 +75,12 @@
 			<artifactId>sqs</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>2.9.3</version>
+		</dependency>
+
 		<!-- AWS SDK v1 is required by testcontainers-localstack -->
 		<dependency>
 			<groupId>com.amazonaws</groupId>

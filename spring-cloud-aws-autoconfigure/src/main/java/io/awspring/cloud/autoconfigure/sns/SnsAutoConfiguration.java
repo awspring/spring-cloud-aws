@@ -22,6 +22,7 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.sns.core.AwsSignatureVerifier;
 import io.awspring.cloud.sns.core.SnsOperations;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
@@ -54,10 +55,11 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
  * @author Maciej Walkowiak
  * @author Manuel Wessner
  * @author Matej Nedic
+ * @author kazaff
  */
 @AutoConfiguration
 @ConditionalOnClass({ SnsClient.class, SnsTemplate.class })
-@EnableConfigurationProperties({ SnsProperties.class })
+@EnableConfigurationProperties({ SnsProperties.class, VerificationProperties.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.sns.enabled", havingValue = "true", matchIfMissing = true)
 public class SnsAutoConfiguration {
@@ -101,6 +103,13 @@ public class SnsAutoConfiguration {
 			};
 		}
 
+	}
+
+	@ConditionalOnProperty(name = "spring.cloud.aws.sns.verification", havingValue = "true", matchIfMissing = true)
+	@ConditionalOnMissingBean
+	@Bean
+	public AwsSignatureVerifier awsSignatureVerifier(VerificationProperties verificationProperties) {
+		return new AwsSignatureVerifier(verificationProperties.getMaxLifeTimeOfMessage());
 	}
 
 }

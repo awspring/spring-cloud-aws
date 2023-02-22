@@ -16,6 +16,7 @@
 package io.awspring.cloud.sns.configuration;
 
 import io.awspring.cloud.sns.handlers.NotificationMessageHandlerMethodArgumentResolver;
+import io.awspring.cloud.sns.handlers.NotificationPayloadHandlerMethodArgumentResolver;
 import io.awspring.cloud.sns.handlers.NotificationStatusHandlerMethodArgumentResolver;
 import io.awspring.cloud.sns.handlers.NotificationSubjectHandlerMethodArgumentResolver;
 import org.springframework.util.Assert;
@@ -28,6 +29,8 @@ import software.amazon.awssdk.services.sns.SnsClient;
  *
  * @author Alain Sahli
  * @since 1.0
+ *
+ * @author kazaff
  */
 public final class NotificationHandlerMethodArgumentResolverConfigurationUtils {
 
@@ -41,6 +44,7 @@ public final class NotificationHandlerMethodArgumentResolverConfigurationUtils {
 		composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(snsClient));
 		composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver());
 		composite.addResolver(new NotificationSubjectHandlerMethodArgumentResolver());
+		composite.addResolver(new NotificationPayloadHandlerMethodArgumentResolver());
 		return composite;
 	}
 
