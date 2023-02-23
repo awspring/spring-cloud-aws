@@ -122,13 +122,15 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 	@Override
 	public boolean exists() {
+		boolean result;
 		try {
 			fetchMetadata();
-			return true;
+			result=true;
 		}
 		catch (NoSuchKeyException e) {
-			return false;
+			result=false;
 		}
+		return result;
 	}
 
 	@Override
