@@ -82,6 +82,18 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 		return prepareTable(clazz).scan(scanEnhancedRequest);
 	}
 
+	public <T> PageIterable<T> scan(ScanEnhancedRequest scanEnhancedRequest, Class<T> clazz, String indexName) {
+		return PageIterable.create(prepareTable(clazz).index(indexName).scan(scanEnhancedRequest));
+	}
+
+	public <T> PageIterable<T> scanAll(Class<T> clazz, String indexName) {
+		return PageIterable.create(prepareTable(clazz).index(indexName).scan());
+	}
+
+	public <T> PageIterable<T> query(QueryEnhancedRequest queryEnhancedRequest, Class<T> clazz, String indexName) {
+		return PageIterable.create(prepareTable(clazz).index(indexName).query(queryEnhancedRequest));
+	}
+
 	public <T> PageIterable<T> scanAll(Class<T> clazz) {
 		Assert.notNull(clazz, "clazz is required");
 		return prepareTable(clazz).scan();
