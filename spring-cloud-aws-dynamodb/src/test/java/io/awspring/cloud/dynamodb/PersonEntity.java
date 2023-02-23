@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 
 // Called PersonEntity so tableName can be resolved to person_entity. Used so it is not a plain tableName.
 @DynamoDbBean
@@ -27,6 +28,7 @@ public class PersonEntity {
 	private UUID uuid;
 	private String name;
 	private String lastName;
+	private String gsPk;
 
 	public PersonEntity() {
 	}
@@ -35,6 +37,13 @@ public class PersonEntity {
 		this.uuid = uuid;
 		this.name = name;
 		this.lastName = lastName;
+	}
+
+	PersonEntity(UUID uuid, String name, String lastName, String gsPk) {
+		this.uuid = uuid;
+		this.name = name;
+		this.lastName = lastName;
+		this.gsPk = gsPk;
 	}
 
 	@DynamoDbPartitionKey
@@ -62,6 +71,15 @@ public class PersonEntity {
 		this.lastName = lastName;
 	}
 
+	@DynamoDbSecondaryPartitionKey(indexNames = "gsiPersonEntityTable")
+	public String getGsPk() {
+		return gsPk;
+	}
+
+	public void setGsPk(String gsPk) {
+		this.gsPk = gsPk;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -76,5 +94,48 @@ public class PersonEntity {
 	@Override
 	public int hashCode() {
 		return Objects.hash(uuid, name, lastName);
+	}
+
+	public static final class Builder {
+		private UUID uuid;
+		private String name;
+		private String lastName;
+		private String gpk1;
+
+		private Builder() {
+		}
+
+		public static Builder person() {
+			return new Builder();
+		}
+
+		public Builder withUuid(UUID uuid) {
+			this.uuid = uuid;
+			return this;
+		}
+
+		public Builder withName(String name) {
+			this.name = name;
+			return this;
+		}
+
+		public Builder withLastName(String lastName) {
+			this.lastName = lastName;
+			return this;
+		}
+
+		public Builder withGpk1(String gpk1) {
+			this.gpk1 = gpk1;
+			return this;
+		}
+
+		public PersonEntity build() {
+			PersonEntity personEntity = new PersonEntity();
+			personEntity.setUuid(uuid);
+			personEntity.setName(name);
+			personEntity.setLastName(lastName);
+			personEntity.setGsPk(gpk1);
+			return personEntity;
+		}
 	}
 }
