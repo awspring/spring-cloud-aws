@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -33,6 +35,8 @@ import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvide
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
 
 /**
  * {@link EnableAutoConfiguration} for {@link AwsCredentialsProvider}.
@@ -45,6 +49,9 @@ import software.amazon.awssdk.profiles.ProfileFile;
 @EnableConfigurationProperties(CredentialsProperties.class)
 public class CredentialsProviderAutoConfiguration {
 
+	public static final String STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER = "software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider";
+	public static final String AWS_ROLE_ARN_ENV_VARIABLE = "AWS_ROLE_ARN";
+	public static final String AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE = "AWS_WEB_IDENTITY_TOKEN_FILE";
 	private final CredentialsProperties properties;
 
 	public CredentialsProviderAutoConfiguration(CredentialsProperties properties) {
@@ -73,6 +80,10 @@ public class CredentialsProviderAutoConfiguration {
 			providers.add(createProfileCredentialProvider(profile));
 		}
 
+		if (shouldCreateStsIdentityTokenCredentialsProvider()) {
+			providers.add(createStsCredentialsProvider());
+		}
+
 		if (providers.isEmpty()) {
 			return DefaultCredentialsProvider.create();
 		}
@@ -99,6 +110,20 @@ public class CredentialsProviderAutoConfiguration {
 			profileFile = ProfileFile.defaultProfileFile();
 		}
 		return ProfileCredentialsProvider.builder().profileName(profile.getName()).profileFile(profileFile).build();
+	}
+
+	private static boolean shouldCreateStsIdentityTokenCredentialsProvider() {
+		return ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)
+			&& StringUtils.hasText(System.getenv(AWS_ROLE_ARN_ENV_VARIABLE))
+			&& StringUtils.hasText(System.getenv(AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE));
+	}
+
+	private static StsWebIdentityTokenFileCredentialsProvider createStsCredentialsProvider() {
+		return StsWebIdentityTokenFileCredentialsProvider.builder()
+			.stsClient(StsClient.builder().build())
+			.roleArn(System.getenv(AWS_ROLE_ARN_ENV_VARIABLE))
+			.webIdentityTokenFile(Path.of(System.getenv(AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE)))
+			.build();
 	}
 
 }

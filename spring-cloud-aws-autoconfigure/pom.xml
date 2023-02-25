@@ -146,6 +146,11 @@
 			<artifactId>spring-boot-starter-aop</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>sts</artifactId>
+			<optional>true</optional>
+		</dependency>
 
 		<!-- AWS SDK v1 is required by testcontainers-localstack -->
 		<dependency>
