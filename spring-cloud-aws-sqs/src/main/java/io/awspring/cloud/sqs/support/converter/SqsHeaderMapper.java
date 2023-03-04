@@ -71,11 +71,11 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		Map<MessageSystemAttributeName, String> attributes = new HashMap<>();
 		if (headers.containsKey(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER)) {
 			attributes.put(MessageSystemAttributeName.MESSAGE_GROUP_ID,
-					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER).toString());
+					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, String.class));
 		}
 		if (headers.containsKey(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER)) {
 			attributes.put(MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID,
-					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER).toString());
+					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, String.class));
 		}
 		Map<String, MessageAttributeValue> messageAttributes = headers.entrySet().stream()
 				.filter(entry -> !isSkipHeader(entry.getKey())).collect(Collectors.toMap(Map.Entry::getKey,

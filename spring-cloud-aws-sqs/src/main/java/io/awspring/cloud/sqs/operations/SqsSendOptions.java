@@ -16,7 +16,6 @@
 package io.awspring.cloud.sqs.operations;
 
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Options for sending messages to SQS queues, with a method chaining API.
@@ -63,17 +62,17 @@ public interface SqsSendOptions<T> {
 	SqsSendOptions<T> delaySeconds(Integer delaySeconds);
 
 	/**
-	 * Set the messageGroupId for the message. If none is provided for a FIFO queue, a random one is added.
+	 * Set the messageGroupId for the message. If none is provided for a FIFO queue, a random UUID is generated.
 	 * @param messageGroupId the id.
 	 * @return the options instance.
 	 */
-	SqsSendOptions<T> messageGroupId(UUID messageGroupId);
+	SqsSendOptions<T> messageGroupId(String messageGroupId);
 
 	/**
-	 * Set the messageDeduplicationId for the message. If none is provided for a FIFO queue, a random one is added.
+	 * Set the messageDeduplicationId for the message. If none is provided for a FIFO queue, a random UUID is generated.
 	 * @param messageDeduplicationId the id.
 	 * @return the options instance.
 	 */
-	SqsSendOptions<T> messageDeduplicationId(UUID messageDeduplicationId);
+	SqsSendOptions<T> messageDeduplicationId(String messageDeduplicationId);
 
 }
