@@ -170,6 +170,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 
 	@Override
 	public void afterSingletonsInstantiated() {
+		this.endpointRegistrar.setMessageListenerContainerRegistryBeanName(getMessageListenerContainerRegistryBeanName());
 		if (this.beanFactory instanceof ListableBeanFactory) {
 			((ListableBeanFactory) this.beanFactory).getBeansOfType(SqsListenerConfigurer.class).values()
 					.forEach(customizer -> customizer.configure(this.endpointRegistrar));
@@ -178,6 +179,8 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		initializeHandlerMethodFactory();
 		this.endpointRegistrar.afterSingletonsInstantiated();
 	}
+
+	protected abstract String getMessageListenerContainerRegistryBeanName();
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {

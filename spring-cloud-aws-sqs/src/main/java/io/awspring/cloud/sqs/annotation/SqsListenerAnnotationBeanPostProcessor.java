@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.annotation;
 
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
+import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
@@ -59,6 +60,11 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 	@Override
 	protected String getGeneratedIdPrefix() {
 		return GENERATED_ID_PREFIX;
+	}
+
+	@Override
+	protected String getMessageListenerContainerRegistryBeanName() {
+		return SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME;
 	}
 
 	@Override
