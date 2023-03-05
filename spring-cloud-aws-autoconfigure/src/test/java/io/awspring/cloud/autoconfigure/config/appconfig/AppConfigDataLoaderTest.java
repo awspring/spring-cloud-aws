@@ -19,12 +19,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.*;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
+
+import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -36,20 +41,52 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.FileCopyUtils;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.appconfig.AppConfigClient;
+import software.amazon.awssdk.services.appconfig.model.CreateApplicationRequest;
+import software.amazon.awssdk.services.appconfig.model.CreateEnvironmentRequest;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationRequest;
 import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationResponse;
 import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionRequest;
 import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionResponse;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
+@Testcontainers
 @ExtendWith(OutputCaptureExtension.class)
 class AppConfigDataLoaderTest {
 
 	static final AppConfigDataClient appConfigDataClient = Mockito.mock(AppConfigDataClient.class);
+
+	@Container
+	static LocalStackContainer localstack = new LocalStackContainer(
+		DockerImageName.parse("localstack/localstack:1.3.1")).withServices(LocalStackContainer.EnabledService.named("appconfig"), S3).withReuse(true)
+		.withEnv(Map.of("LOCALSTACK_API_KEY", System.getenv("LOCALSTACK_API_KEY"));
+
+	@BeforeAll
+	public static void createApplication() {
+		AppConfigClient appConfigClient = AppConfigClient.builder()
+			.endpointOverride(localstack.getEndpointOverride(DYNAMODB)).region(Region.of(localstack.getRegion()))
+			.credentialsProvider(StaticCredentialsProvider
+				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())))
+			.build();
+		String appId = appConfigClient.createApplication(CreateApplicationRequest.builder().name("app").description("desc").build()).id();
+		String envId = appConfigClient.createEnvironment(CreateEnvironmentRequest.builder().applicationId(appId).description("desc").name("env").build()).id();
+		appConfigClient.createDeploymentStrategy()
+
+	}
 
 	@BeforeEach
 	public void reset() {
