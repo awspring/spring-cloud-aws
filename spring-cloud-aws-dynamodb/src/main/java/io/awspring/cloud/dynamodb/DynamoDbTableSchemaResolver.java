@@ -42,6 +42,7 @@ public interface DynamoDbTableSchemaResolver {
 	 * @param tableSchema - the schema to be registered
 	 * @param tableName - the table name
 	 */
-	<T> void register(TableSchema<T> tableSchema, String tableName);
+	default <T> void register(TableSchema<T> tableSchema, String tableName) {
+	}
 
 }

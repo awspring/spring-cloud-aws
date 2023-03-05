@@ -292,11 +292,6 @@ class DynamoDbAutoConfigurationTest {
 			return null;
 		}
 
-		@Override
-		public <T> void register(TableSchema<T> tableSchema, String tableName) {
-
-		}
-
 	}
 
 	static class CustomDynamoDBDynamoDbTableNameResolver implements DynamoDbTableNameResolver {
