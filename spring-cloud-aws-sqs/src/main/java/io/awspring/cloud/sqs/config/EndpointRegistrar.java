@@ -185,7 +185,8 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	@Override
 	public void afterSingletonsInstantiated() {
 		if (this.listenerContainerRegistry == null) {
-			Assert.hasText(this.messageListenerContainerRegistryBeanName, "messageListenerContainerRegistryBeanName not set");
+			Assert.hasText(this.messageListenerContainerRegistryBeanName,
+					"messageListenerContainerRegistryBeanName not set");
 			this.listenerContainerRegistry = beanFactory.getBean(this.messageListenerContainerRegistryBeanName,
 					MessageListenerContainerRegistry.class);
 		}
