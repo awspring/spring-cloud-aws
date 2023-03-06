@@ -57,7 +57,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	private MessageListenerContainerRegistry listenerContainerRegistry;
 
-	private String messageListenerContainerRegistryBeanName = SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME;
+	private String messageListenerContainerRegistryBeanName;
 
 	private String defaultListenerContainerFactoryBeanName = DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME;
 
@@ -185,6 +185,8 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	@Override
 	public void afterSingletonsInstantiated() {
 		if (this.listenerContainerRegistry == null) {
+			Assert.hasText(this.messageListenerContainerRegistryBeanName,
+					"messageListenerContainerRegistryBeanName not set");
 			this.listenerContainerRegistry = beanFactory.getBean(this.messageListenerContainerRegistryBeanName,
 					MessageListenerContainerRegistry.class);
 		}
