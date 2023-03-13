@@ -44,6 +44,9 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Integration tests for {@link SnsTemplate}.
  *
@@ -81,6 +84,27 @@ class SnsTemplateIntegrationTest {
 	@AfterEach
 	public void purgeQueue() {
 		sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(queueUrl).build());
+	}
+
+	@Test
+	void send_validTextMessage_usesFifoChannel_send_arn_read_by_sqs() {
+		String topicName = "my_topic_name.fifo";
+		Map<String, String> topicAttributes = new HashMap<>();
+		topicAttributes.put("FifoTopic", String.valueOf(true));
+		String topicArn = snsClient.createTopic(CreateTopicRequest.builder()
+			.name(topicName)
+			.attributes(topicAttributes)
+			.build()).topicArn();
+		snsClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueUrl));
+
+		snsTemplate.convertAndSend(topicName, "message");
+
+		await().untilAsserted(() -> {
+			ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
+			assertThat(response.hasMessages()).isTrue();
+			JsonNode body = objectMapper.readTree(response.messages().get(0).body());
+			assertThat(body.get("Message").asText()).isEqualTo("message");
+		});
 	}
 
 	@Test
