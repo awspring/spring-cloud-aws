@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.sns.integration;
 
+import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER;
+import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_GROUP_ID_HEADER;
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
@@ -44,6 +46,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 
 /**
@@ -54,7 +57,6 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 @Testcontainers
 class SnsTemplateIntegrationTest {
 	private static final String TOPIC_NAME = "my_topic_name";
-	private static String queueUrl;
 	private static SnsTemplate snsTemplate;
 	private static SnsClient snsClient;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -62,7 +64,7 @@ class SnsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SNS).withServices(SQS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(SNS).withServices(SQS).withReuse(true);
 
 	@BeforeAll
 	public static void createSnsTemplate() {
@@ -77,64 +79,100 @@ class SnsTemplateIntegrationTest {
 		MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
 		mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
 		snsTemplate = new SnsTemplate(snsClient, mappingJackson2MessageConverter);
-		queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
 	}
 
-	@AfterEach
-	public void purgeQueue() {
-		sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(queueUrl).build());
+	@Nested
+	class FifoTopics {
+		private static String queueUrl;
+		private static String queueArn;
+
+		@BeforeAll
+		public static void init() {
+			queueUrl = sqsClient
+					.createQueue(
+							r -> r.queueName("my-queue.fifo").attributes(Map.of(QueueAttributeName.FIFO_QUEUE, "true")))
+					.queueUrl();
+			queueArn = sqsClient
+					.getQueueAttributes(r -> r.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN))
+					.attributes().get(QueueAttributeName.QUEUE_ARN);
+		}
+
+		@Test
+		void send_validTextMessage_usesFifoChannel_send_arn_read_by_sqs() {
+			String topicName = "my_topic_name.fifo";
+			Map<String, String> topicAttributes = new HashMap<>();
+			topicAttributes.put("FifoTopic", String.valueOf(true));
+			String topicArn = snsClient
+					.createTopic(CreateTopicRequest.builder().name(topicName).attributes(topicAttributes).build())
+					.topicArn();
+			snsClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueArn));
+
+			snsTemplate.convertAndSend(topicName, "message",
+					Map.of(MESSAGE_GROUP_ID_HEADER, "group-id", MESSAGE_DEDUPLICATION_ID_HEADER, "deduplication-id"));
+
+			await().untilAsserted(() -> {
+				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
+				assertThat(response.hasMessages()).isTrue();
+				JsonNode body = objectMapper.readTree(response.messages().get(0).body());
+				assertThat(body.get("Message").asText()).isEqualTo("message");
+			});
+		}
+
+		@AfterEach
+		public void purgeQueue() {
+			sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(queueUrl).build());
+		}
 	}
 
-	@Test
-	void send_validTextMessage_usesFifoChannel_send_arn_read_by_sqs() {
-		String topicName = "my_topic_name.fifo";
-		Map<String, String> topicAttributes = new HashMap<>();
-		topicAttributes.put("FifoTopic", String.valueOf(true));
-		String topicArn = snsClient
-				.createTopic(CreateTopicRequest.builder().name(topicName).attributes(topicAttributes).build())
-				.topicArn();
-		snsClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueUrl));
+	@Nested
+	class NonFifoTopics {
+		private static String queueUrl;
+		private static String queueArn;
 
-		snsTemplate.convertAndSend(topicName, "message");
+		@BeforeAll
+		public static void init() {
+			queueUrl = sqsClient.createQueue(r -> r.queueName("my-queue")).queueUrl();
+			queueArn = sqsClient
+					.getQueueAttributes(r -> r.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN))
+					.attributes().get(QueueAttributeName.QUEUE_ARN);
+		}
 
-		await().untilAsserted(() -> {
-			ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
-			assertThat(response.hasMessages()).isTrue();
-			JsonNode body = objectMapper.readTree(response.messages().get(0).body());
-			assertThat(body.get("Message").asText()).isEqualTo("message");
-		});
-	}
+		@Test
+		void send_validTextMessage_usesTopicChannel_send_arn_read_by_sqs() {
+			String topicArn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
+			snsClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueArn));
 
-	@Test
-	void send_validTextMessage_usesTopicChannel_send_arn_read_by_sqs() {
-		String topicArn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
-		snsClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueUrl));
+			snsTemplate.convertAndSend(topicArn, "message");
 
-		snsTemplate.convertAndSend(topicArn, "message");
+			await().untilAsserted(() -> {
+				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
+				assertThat(response.hasMessages()).isTrue();
+				JsonNode body = objectMapper.readTree(response.messages().get(0).body());
+				assertThat(body.get("Message").asText()).isEqualTo("message");
+			});
+		}
 
-		await().untilAsserted(() -> {
-			ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
-			assertThat(response.hasMessages()).isTrue();
-			JsonNode body = objectMapper.readTree(response.messages().get(0).body());
-			assertThat(body.get("Message").asText()).isEqualTo("message");
-		});
-	}
+		@Test
+		void send_validPersonObject_usesTopicChannel_send_arn_read_sqs() {
+			String topic_arn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
 
-	@Test
-	void send_validPersonObject_usesTopicChannel_send_arn_read_sqs() {
-		String topic_arn = snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build()).topicArn();
+			snsClient.subscribe(r -> r.topicArn(topic_arn).protocol("sqs").endpoint(queueArn));
 
-		snsClient.subscribe(r -> r.topicArn(topic_arn).protocol("sqs").endpoint(queueUrl));
+			snsTemplate.convertAndSend(topic_arn, new Person("foo"));
 
-		snsTemplate.convertAndSend(topic_arn, new Person("foo"));
+			await().untilAsserted(() -> {
+				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
+				assertThat(response.hasMessages()).isTrue();
+				Person person = objectMapper.readValue(
+						objectMapper.readTree(response.messages().get(0).body()).get("Message").asText(), Person.class);
+				assertThat(person.getName()).isEqualTo("foo");
+			});
+		}
 
-		await().untilAsserted(() -> {
-			ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
-			assertThat(response.hasMessages()).isTrue();
-			Person person = objectMapper.readValue(
-					objectMapper.readTree(response.messages().get(0).body()).get("Message").asText(), Person.class);
-			assertThat(person.getName()).isEqualTo("foo");
-		});
+		@AfterEach
+		public void purgeQueue() {
+			sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(queueUrl).build());
+		}
 	}
 
 	@Nested
