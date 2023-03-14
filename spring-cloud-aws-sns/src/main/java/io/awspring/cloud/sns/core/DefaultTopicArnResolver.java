@@ -15,13 +15,12 @@
  */
 package io.awspring.cloud.sns.core;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Default implementation of {@link TopicArnResolver} used to determine topic ARN by name.
@@ -46,18 +45,16 @@ public class DefaultTopicArnResolver implements TopicArnResolver {
 		Assert.notNull(topicName, "topicName must not be null");
 		if (topicName.toLowerCase().startsWith("arn:")) {
 			return Arn.fromString(topicName);
-		} else {
+		}
+		else {
 			// fix for https://github.com/awspring/spring-cloud-aws/issues/707
 			Map<String, String> topicAttributes = new HashMap<>();
 			topicAttributes.put("FifoTopic", String.valueOf(topicName.endsWith(".fifo")));
 
 			// if topic exists, createTopic returns successful response with topic arn
-			return Arn.fromString(
-				this.snsClient.createTopic(CreateTopicRequest
-					.builder()
-					.name(topicName)
-					.attributes(topicAttributes)
-					.build()).topicArn());
+			return Arn.fromString(this.snsClient
+					.createTopic(CreateTopicRequest.builder().name(topicName).attributes(topicAttributes).build())
+					.topicArn());
 		}
 	}
 

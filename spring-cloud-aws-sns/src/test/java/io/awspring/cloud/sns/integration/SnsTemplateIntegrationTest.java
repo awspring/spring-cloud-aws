@@ -24,6 +24,8 @@ import io.awspring.cloud.sns.Person;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicNotFoundException;
 import io.awspring.cloud.sns.core.TopicsListingTopicArnResolver;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -43,9 +45,6 @@ import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Integration tests for {@link SnsTemplate}.
@@ -91,10 +90,9 @@ class SnsTemplateIntegrationTest {
 		String topicName = "my_topic_name.fifo";
 		Map<String, String> topicAttributes = new HashMap<>();
 		topicAttributes.put("FifoTopic", String.valueOf(true));
-		String topicArn = snsClient.createTopic(CreateTopicRequest.builder()
-			.name(topicName)
-			.attributes(topicAttributes)
-			.build()).topicArn();
+		String topicArn = snsClient
+				.createTopic(CreateTopicRequest.builder().name(topicName).attributes(topicAttributes).build())
+				.topicArn();
 		snsClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueUrl));
 
 		snsTemplate.convertAndSend(topicName, "message");
