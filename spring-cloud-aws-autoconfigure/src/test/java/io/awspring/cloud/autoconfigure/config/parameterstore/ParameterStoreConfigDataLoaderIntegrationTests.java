@@ -54,6 +54,7 @@ import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
+import software.amazon.awssdk.services.ssm.model.ParameterType;
 
 /**
  * Integration tests for loading configuration properties from AWS Parameter Store.
@@ -68,7 +69,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SSM).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(SSM).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() {
@@ -239,8 +240,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 				// update parameter value
 				SsmClient ssmClient = context.getBean(SsmClient.class);
-				ssmClient
-						.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+				ssmClient.putParameter(r -> r.name("/config/spring/message").value("new value")
+						.type(ParameterType.STRING).overwrite(true).build());
 
 				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 					assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
@@ -264,8 +265,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 				// update parameter value
 				SsmClient ssmClient = context.getBean(SsmClient.class);
-				ssmClient
-						.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+				ssmClient.putParameter(r -> r.name("/config/spring/message").value("new value")
+						.type(ParameterType.STRING).overwrite(true).build());
 
 				await().during(Duration.ofSeconds(5)).untilAsserted(() -> {
 					assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
@@ -291,8 +292,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 				// update parameter value
 				SsmClient ssmClient = context.getBean(SsmClient.class);
-				ssmClient
-						.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+				ssmClient.putParameter(r -> r.name("/config/spring/message").value("new value")
+						.type(ParameterType.STRING).overwrite(true).build());
 
 				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 					assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
