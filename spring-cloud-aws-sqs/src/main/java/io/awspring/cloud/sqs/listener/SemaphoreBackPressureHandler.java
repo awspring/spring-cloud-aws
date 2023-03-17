@@ -154,6 +154,11 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 				this.semaphore.availablePermits());
 	}
 
+	@Override
+	public int getBatchSize() {
+		return this.batchSize;
+	}
+
 	private void maybeSwitchToLowThroughputMode() {
 		if (!BackPressureMode.FIXED_HIGH_THROUGHPUT.equals(this.backPressureConfiguration)
 				&& CurrentThroughputMode.HIGH.equals(this.currentThroughputMode)) {
