@@ -28,6 +28,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementPro
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -36,14 +37,12 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,13 +57,12 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * Integration tests for SQS interceptors.
  *
  * @author Tomaz Fernandes
+ * @author Mikhail Strokov
  */
 @SpringBootTest
 class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsInterceptorIntegrationTests.class);
-
-	private static final String TEST_SQS_ASYNC_CLIENT_BEAN_NAME = "testSqsAsyncClient";
 
 	static final String RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME = "receives_changed_message_on_components_test_queue";
 
@@ -87,33 +85,26 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 	LatchContainer latchContainer;
 
 	@Autowired
-	@Qualifier(TEST_SQS_ASYNC_CLIENT_BEAN_NAME)
-	SqsAsyncClient sqsAsyncClient;
+	SqsTemplate sqsTemplate;
 
 	@Autowired(required = false)
 	ReceivesChangedPayloadListener receivesChangedPayloadListener;
 
 	@Test
 	void shouldReceiveChangedMessageOnComponents() throws Exception {
-		sendMessageTo(RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
+		sqsTemplate.send(RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME,
+				SHOULD_CHANGE_PAYLOAD);
 		assertThat(latchContainer.receivesChangedMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(receivesChangedPayloadListener.receivedMessages).containsExactly(CHANGED_PAYLOAD);
 	}
 
 	@Test
 	void shouldReceiveChangedMessageOnComponentsWhenError() throws Exception {
-		sendMessageTo(RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
+		sqsTemplate.send(RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME,
+				SHOULD_CHANGE_PAYLOAD);
 		assertThat(latchContainer.receivesChangedMessageOnErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
-	}
-
-	private void sendMessageTo(String queueName, String messageBody) throws InterruptedException, ExecutionException {
-		String queueUrl = fetchQueueUrl(queueName);
-		sqsAsyncClient.sendMessage(req -> req.messageBody(messageBody).queueUrl(queueUrl).build()).get();
-		logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
-	}
-
-	private String fetchQueueUrl(String receivesMessageQueueName) throws InterruptedException, ExecutionException {
-		return sqsAsyncClient.getQueueUrl(req -> req.queueName(receivesMessageQueueName)).get().queueUrl();
 	}
 
 	static class ReceivesChangedPayloadListener {
@@ -199,9 +190,9 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 			return this.latchContainer;
 		}
 
-		@Bean(name = TEST_SQS_ASYNC_CLIENT_BEAN_NAME)
-		SqsAsyncClient sqsAsyncClientProducer() {
-			return BaseSqsIntegrationTest.createAsyncClient();
+		@Bean
+		SqsTemplate sqsTemplate() {
+			return SqsTemplate.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient()).build();
 		}
 
 		private AsyncMessageInterceptor<String> getMessageInterceptor() {
