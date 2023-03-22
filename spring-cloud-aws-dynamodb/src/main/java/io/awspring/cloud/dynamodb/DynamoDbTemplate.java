@@ -38,8 +38,8 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	private final DynamoDbTableNameResolver dynamoDbTableNameResolver;
 
 	public DynamoDbTemplate(Environment environment, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
-		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(),
-				new DefaultDynamoDbTableNameResolver(environment));
+		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(), new DefaultDynamoDbTableNameResolver(
+				environment.getProperty("spring.cloud.aws.dynamodb.table-prefix")));
 	}
 
 	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,

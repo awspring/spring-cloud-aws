@@ -16,7 +16,7 @@
 package io.awspring.cloud.dynamodb;
 
 import java.util.Locale;
-import org.springframework.core.env.Environment;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -29,19 +29,18 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolver {
 
-	private final Environment environment;
+	@Nullable
+	private final String tablePrefix;
 
-	public DefaultDynamoDbTableNameResolver(Environment environment) {
-		this.environment = environment;
+	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix) {
+		this.tablePrefix = tablePrefix;
 	}
 
 	@Override
 	public String resolve(Class clazz) {
 		Assert.notNull(clazz, "clazz is required");
 
-		String prefix = this.environment.getProperty("spring.cloud.aws.dynamodb.table-prefix");
-		String tablePrefix = StringUtils.hasText(prefix) ? prefix : "";
-
-		return tablePrefix.concat(clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT));
+		String prefix = StringUtils.hasText(tablePrefix) ? tablePrefix : "";
+		return prefix.concat(clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT));
 	}
 }

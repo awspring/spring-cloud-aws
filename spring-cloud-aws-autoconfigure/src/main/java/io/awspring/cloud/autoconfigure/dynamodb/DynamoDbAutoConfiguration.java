@@ -35,7 +35,6 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -118,14 +117,14 @@ public class DynamoDbAutoConfiguration {
 
 	@ConditionalOnMissingBean(DynamoDbOperations.class)
 	@Bean
-	public DynamoDbTemplate dynamoDBTemplate(Environment environment, DynamoDbEnhancedClient dynamoDbEnhancedClient,
-			Optional<DynamoDbTableSchemaResolver> tableSchemaResolver,
+	public DynamoDbTemplate dynamoDBTemplate(DynamoDbProperties properties,
+			DynamoDbEnhancedClient dynamoDbEnhancedClient, Optional<DynamoDbTableSchemaResolver> tableSchemaResolver,
 			Optional<DynamoDbTableNameResolver> tableNameResolver) {
 		DynamoDbTableSchemaResolver tableSchemaRes = tableSchemaResolver
 				.orElseGet(DefaultDynamoDbTableSchemaResolver::new);
 
 		DynamoDbTableNameResolver tableNameRes = tableNameResolver
-				.orElseGet(() -> new DefaultDynamoDbTableNameResolver(environment));
+				.orElseGet(() -> new DefaultDynamoDbTableNameResolver(properties.getTablePrefix()));
 		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaRes, tableNameRes);
 	}
 

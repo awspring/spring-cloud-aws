@@ -18,7 +18,6 @@ package io.awspring.cloud.dynamodb;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.env.MockEnvironment;
 
 /**
  * Tests for {@link DynamoDbTableNameResolver}.
@@ -29,10 +28,10 @@ import org.springframework.mock.env.MockEnvironment;
 class DynamoDbTableNameResolverTest {
 
 	private static final DefaultDynamoDbTableNameResolver tableNameResolver = new DefaultDynamoDbTableNameResolver(
-			new MockEnvironment());
+			null);
 
 	private static final DefaultDynamoDbTableNameResolver prefixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
-			new MockEnvironment().withProperty("spring.cloud.aws.dynamodb.table-prefix", "my_prefix_"));
+			"my_prefix_");
 
 	@Test
 	void resolveTableNameSuccessfully() {
