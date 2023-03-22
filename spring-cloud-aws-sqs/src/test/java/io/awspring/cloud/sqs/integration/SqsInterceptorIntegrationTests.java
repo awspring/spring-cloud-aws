@@ -28,6 +28,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementPro
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -66,6 +67,8 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final String TEST_SQS_ASYNC_CLIENT_BEAN_NAME = "testSqsAsyncClient";
 
+	private static final String TEST_SQS_TEMPLATE_BEAN_NAME = "testSqsTemplate";
+
 	static final String RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME = "receives_changed_message_on_components_test_queue";
 
 	static final String RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME = "receives_changed_message_on_error_test_queue";
@@ -87,8 +90,8 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 	LatchContainer latchContainer;
 
 	@Autowired
-	@Qualifier(TEST_SQS_ASYNC_CLIENT_BEAN_NAME)
-	SqsAsyncClient sqsAsyncClient;
+	@Qualifier(TEST_SQS_TEMPLATE_BEAN_NAME)
+	SqsTemplate sqsTemplate;
 
 	@Autowired(required = false)
 	ReceivesChangedPayloadListener receivesChangedPayloadListener;
@@ -107,13 +110,8 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	private void sendMessageTo(String queueName, String messageBody) throws InterruptedException, ExecutionException {
-		String queueUrl = fetchQueueUrl(queueName);
-		sqsAsyncClient.sendMessage(req -> req.messageBody(messageBody).queueUrl(queueUrl).build()).get();
+		sqsTemplate.sendAsync(queueName, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
-	}
-
-	private String fetchQueueUrl(String receivesMessageQueueName) throws InterruptedException, ExecutionException {
-		return sqsAsyncClient.getQueueUrl(req -> req.queueName(receivesMessageQueueName)).get().queueUrl();
 	}
 
 	static class ReceivesChangedPayloadListener {
@@ -202,6 +200,11 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean(name = TEST_SQS_ASYNC_CLIENT_BEAN_NAME)
 		SqsAsyncClient sqsAsyncClientProducer() {
 			return BaseSqsIntegrationTest.createAsyncClient();
+		}
+
+		@Bean(name = TEST_SQS_TEMPLATE_BEAN_NAME)
+		SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient) {
+			return SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient).build();
 		}
 
 		private AsyncMessageInterceptor<String> getMessageInterceptor() {

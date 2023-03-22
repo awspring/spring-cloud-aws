@@ -24,28 +24,30 @@ import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
@@ -64,12 +66,14 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	static final String RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME = "resolves_pojo_message_list_test_queue";
 	static final String RESOLVES_POJO_FROM_HEADER_QUEUE_NAME = "resolves_pojo_from_mapping_test_queue";
 	static final String RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME = "resolves_my_other_pojo_from_mapping_test_queue";
+	static final String TEST_SQS_TEMPLATE_BEAN_NAME = "testSqsTemplate";
 
 	@Autowired
 	LatchContainer latchContainer;
 
 	@Autowired
-	SqsAsyncClient sqsAsyncClient;
+	@Qualifier(TEST_SQS_TEMPLATE_BEAN_NAME)
+	SqsTemplate sqsTemplate;
 
 	@Autowired
 	ObjectMapper objectMapper;
@@ -123,9 +127,8 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.resolvesMyOtherPojoFromMappingLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
-	private Map<String, MessageAttributeValue> getHeaderMapping(Class<?> clazz) {
-		return Collections.singletonMap(SqsHeaders.SQS_DEFAULT_TYPE_HEADER,
-				MessageAttributeValue.builder().stringValue(clazz.getName()).dataType("String").build());
+	private Map<String, Object> getHeaderMapping(Class<?> clazz) {
+		return Collections.singletonMap(SqsHeaders.SQS_DEFAULT_TYPE_HEADER, clazz.getName());
 	}
 
 	static class ResolvesPojoListener {
@@ -308,25 +311,25 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		SqsAsyncClient sqsAsyncClientProducer() {
 			return BaseSqsIntegrationTest.createHighThroughputAsyncClient();
 		}
+
+		@Bean(name = TEST_SQS_TEMPLATE_BEAN_NAME)
+		SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient) {
+			return SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient).build();
+		}
+
 	}
 
-	private void sendMessageTo(String queueName, Object messageBody)
-			throws InterruptedException, ExecutionException, JsonProcessingException {
-		String queueUrl = sqsAsyncClient.getQueueUrl(req -> req.queueName(queueName)).get().queueUrl();
+	private void sendMessageTo(String queueName, Object messageBody) throws JsonProcessingException {
 		String payload = objectMapper.writeValueAsString(messageBody);
-		sqsAsyncClient.sendMessage(req -> req.messageBody(payload).queueUrl(queueUrl).build()).get();
+		sqsTemplate.sendAsync(queueName, payload);
 		logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
 	}
 
-	private void sendMessageTo(String queueName, Object messageBody,
-			Map<String, MessageAttributeValue> messageAttributes)
-			throws InterruptedException, ExecutionException, JsonProcessingException {
-		String queueUrl = sqsAsyncClient.getQueueUrl(req -> req.queueName(queueName)).get().queueUrl();
+	private void sendMessageTo(String queueName, Object messageBody, Map<String, Object> messageAttributes)
+			throws JsonProcessingException {
 		String payload = objectMapper.writeValueAsString(messageBody);
-		sqsAsyncClient
-				.sendMessage(
-						req -> req.messageBody(payload).queueUrl(queueUrl).messageAttributes(messageAttributes).build())
-				.get();
+		sqsTemplate.sendAsync(queueName,
+				MessageBuilder.createMessage(payload, new MessagingMessageHeaders(messageAttributes)));
 		logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
 	}
 

@@ -45,6 +45,7 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.AbstractSqsMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -73,13 +74,12 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 /**
  * Integration tests for SQS integration.
@@ -95,6 +95,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	private static final Logger logger = LoggerFactory.getLogger(SqsIntegrationTests.class);
 
 	private static final String TEST_SQS_ASYNC_CLIENT_BEAN_NAME = "testSqsAsyncClient";
+
+	private static final String TEST_SQS_TEMPLATE_BEAN_NAME = "testSqsTemplate";
 
 	static final String RECEIVES_MESSAGE_QUEUE_NAME = "receives_message_test_queue";
 
@@ -148,8 +150,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	LatchContainer latchContainer;
 
 	@Autowired
-	@Qualifier(TEST_SQS_ASYNC_CLIENT_BEAN_NAME)
-	SqsAsyncClient sqsAsyncClient;
+	@Qualifier(TEST_SQS_TEMPLATE_BEAN_NAME)
+	SqsTemplate sqsTemplate;
 
 	@Autowired
 	ObjectMapper objectMapper;
@@ -253,24 +255,14 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	private void sendMessageTo(String queueName, String messageBody) {
-		String queueUrl = fetchQueueUrl(queueName);
-		sqsAsyncClient.sendMessage(req -> req.messageBody(messageBody).queueUrl(queueUrl).build()).join();
+		sqsTemplate.sendAsync(queueName, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
 	}
 
 	private void sendMessageBatch(String queueName, Collection<String> messageBodies) {
-		String queueUrl = fetchQueueUrl(queueName);
-		sqsAsyncClient.sendMessageBatch(SendMessageBatchRequest.builder().queueUrl(queueUrl)
-				.entries(messageBodies.stream()
-						.map(payload -> SendMessageBatchRequestEntry.builder().messageBody(payload)
-								.id(UUID.randomUUID().toString()).build())
-						.collect(Collectors.toList()))
-				.build()).join();
+		sqsTemplate.sendManyAsync(queueName, messageBodies.stream()
+				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList()));
 		logger.debug("Sent messages to queue {} with messageBodies {}", queueName, messageBodies);
-	}
-
-	private String fetchQueueUrl(String receivesMessageQueueName) {
-		return sqsAsyncClient.getQueueUrl(req -> req.queueName(receivesMessageQueueName)).join().queueUrl();
 	}
 
 	static class ReceivesMessageListener {
@@ -635,6 +627,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean(name = TEST_SQS_ASYNC_CLIENT_BEAN_NAME)
 		SqsAsyncClient sqsAsyncClientProducer() {
 			return BaseSqsIntegrationTest.createHighThroughputAsyncClient();
+		}
+
+		@Bean(name = TEST_SQS_TEMPLATE_BEAN_NAME)
+		SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient) {
+			return SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient).build();
 		}
 
 		private AsyncMessageInterceptor<Object> testInterceptor() {
