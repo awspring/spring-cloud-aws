@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -46,6 +47,7 @@ import software.amazon.dax.ClusterDaxClient;
  * {@link EnableAutoConfiguration Auto-configuration} for DynamoDB integration.
  *
  * @author Matej Nedic
+ * @author Arun Patra
  * @since 3.0.0
  */
 @AutoConfiguration
@@ -116,12 +118,14 @@ public class DynamoDbAutoConfiguration {
 
 	@ConditionalOnMissingBean(DynamoDbOperations.class)
 	@Bean
-	public DynamoDbTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
+	public DynamoDbTemplate dynamoDBTemplate(Environment environment, DynamoDbEnhancedClient dynamoDbEnhancedClient,
 			Optional<DynamoDbTableSchemaResolver> tableSchemaResolver,
 			Optional<DynamoDbTableNameResolver> tableNameResolver) {
 		DynamoDbTableSchemaResolver tableSchemaRes = tableSchemaResolver
 				.orElseGet(DefaultDynamoDbTableSchemaResolver::new);
-		DynamoDbTableNameResolver tableNameRes = tableNameResolver.orElseGet(DefaultDynamoDbTableNameResolver::new);
+
+		DynamoDbTableNameResolver tableNameRes = tableNameResolver
+				.orElseGet(() -> new DefaultDynamoDbTableNameResolver(environment));
 		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaRes, tableNameRes);
 	}
 

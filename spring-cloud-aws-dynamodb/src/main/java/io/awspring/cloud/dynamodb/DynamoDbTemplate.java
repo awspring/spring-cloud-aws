@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.dynamodb;
 
+import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
  * Default implementation of {@link DynamoDbOperations}.
  *
  * @author Matej Nedic
+ * @author Arun Patra
  * @since 3.0
  */
 public class DynamoDbTemplate implements DynamoDbOperations {
@@ -35,8 +37,9 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	private final DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver;
 	private final DynamoDbTableNameResolver dynamoDbTableNameResolver;
 
-	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient) {
-		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(), new DefaultDynamoDbTableNameResolver());
+	public DynamoDbTemplate(Environment environment, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
+		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(),
+				new DefaultDynamoDbTableNameResolver(environment));
 	}
 
 	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
