@@ -463,17 +463,17 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	}
 
-	private void sendMessageTo(String queueUrl, List<String> messageBodies, String messageGroupId) {
+	private void sendMessageTo(String queueName, List<String> messageBodies, String messageGroupId) {
 		try {
 			if (useLocalStackClient) {
-				sendManyTo(queueUrl, messageBodies, messageGroupId).join();
+				sendManyTo(queueName, messageBodies, messageGroupId).join();
 			}
 			else {
-				sendManyTo(queueUrl, messageBodies, messageGroupId);
+				sendManyTo(queueName, messageBodies, messageGroupId);
 			}
 		}
 		catch (Exception e) {
-			logger.error("Error sending messages to queue {}", queueUrl, e);
+			logger.error("Error sending messages to queue {}", queueName, e);
 			throw (RuntimeException) e;
 		}
 	}

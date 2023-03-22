@@ -37,7 +37,6 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -98,20 +97,19 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldReceiveChangedMessageOnComponents() throws Exception {
-		sendMessageTo(RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
+		sqsTemplate.sendAsync(RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME,
+				SHOULD_CHANGE_PAYLOAD);
 		assertThat(latchContainer.receivesChangedMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(receivesChangedPayloadListener.receivedMessages).containsExactly(CHANGED_PAYLOAD);
 	}
 
 	@Test
 	void shouldReceiveChangedMessageOnComponentsWhenError() throws Exception {
-		sendMessageTo(RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
+		sqsTemplate.sendAsync(RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME,
+				SHOULD_CHANGE_PAYLOAD);
 		assertThat(latchContainer.receivesChangedMessageOnErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
-	}
-
-	private void sendMessageTo(String queueName, String messageBody) throws InterruptedException, ExecutionException {
-		sqsTemplate.sendAsync(queueName, messageBody);
-		logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
 	}
 
 	static class ReceivesChangedPayloadListener {

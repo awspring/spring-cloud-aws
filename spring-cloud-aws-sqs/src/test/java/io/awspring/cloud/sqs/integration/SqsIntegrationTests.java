@@ -158,7 +158,9 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void receivesMessage() throws Exception {
-		sendMessageTo(RECEIVES_MESSAGE_QUEUE_NAME, "receivesMessage-payload");
+		String messageBody = "receivesMessage-payload";
+		sqsTemplate.sendAsync(RECEIVES_MESSAGE_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.receivesMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.invocableHandlerMethodLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.acknowledgementCallbackSuccessLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -166,56 +168,74 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void receivesMessageBatch() throws Exception {
-		sendMessageTo(RECEIVES_MESSAGE_BATCH_QUEUE_NAME, "receivesMessageBatch-payload");
+		String messageBody = "receivesMessageBatch-payload";
+		sqsTemplate.sendAsync(RECEIVES_MESSAGE_BATCH_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_BATCH_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.receivesMessageBatchLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.acknowledgementCallbackBatchLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void receivesMessageAsync() throws Exception {
-		sendMessageTo(RECEIVES_MESSAGE_ASYNC_QUEUE_NAME, "receivesMessageAsync-payload");
+		String messageBody = "receivesMessageAsync-payload";
+		sqsTemplate.sendAsync(RECEIVES_MESSAGE_ASYNC_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_ASYNC_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.receivesMessageAsyncLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void doesNotAckOnError() throws Exception {
-		sendMessageTo(DOES_NOT_ACK_ON_ERROR_QUEUE_NAME, "doesNotAckOnError-payload");
+		String messageBody = "doesNotAckOnError-payload";
+		sqsTemplate.sendAsync(DOES_NOT_ACK_ON_ERROR_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", DOES_NOT_ACK_ON_ERROR_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.doesNotAckLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.acknowledgementCallbackErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void doesNotAckOnErrorAsync() throws Exception {
-		sendMessageTo(DOES_NOT_ACK_ON_ERROR_ASYNC_QUEUE_NAME, "doesNotAckOnErrorAsync-payload");
+		String messageBody = "doesNotAckOnErrorAsync-payload";
+		sqsTemplate.sendAsync(DOES_NOT_ACK_ON_ERROR_ASYNC_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", DOES_NOT_ACK_ON_ERROR_ASYNC_QUEUE_NAME,
+				messageBody);
 		assertThat(latchContainer.doesNotAckAsyncLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void doesNotAckOnErrorBatch() throws Exception {
-		List<String> values = IntStream.range(0, 10).mapToObj(index -> "doesNotAckOnErrorBatch-payload-" + index)
-				.collect(Collectors.toList());
-		sendMessageBatch(DOES_NOT_ACK_ON_ERROR_BATCH_QUEUE_NAME, values);
+		List<Message<String>> messages = IntStream.range(0, 10)
+				.mapToObj(index -> "doesNotAckOnErrorBatch-payload-" + index)
+				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
+		sqsTemplate.sendManyAsync(DOES_NOT_ACK_ON_ERROR_BATCH_QUEUE_NAME, messages);
+		logger.debug("Sent messages to queue {} with messages {}", DOES_NOT_ACK_ON_ERROR_BATCH_QUEUE_NAME, messages);
 		assertThat(latchContainer.doesNotAckBatchLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void doesNotAckOnErrorBatchAsync() throws Exception {
-		List<String> values = IntStream.range(0, 10).mapToObj(index -> "doesNotAckOnErrorBatchAsync-payload-" + index)
-				.collect(Collectors.toList());
-		sendMessageBatch(DOES_NOT_ACK_ON_ERROR_BATCH_ASYNC_QUEUE_NAME, values);
+		List<Message<String>> messages = IntStream.range(0, 10)
+				.mapToObj(index -> "doesNotAckOnErrorBatchAsync-payload-" + index)
+				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
+		sqsTemplate.sendManyAsync(DOES_NOT_ACK_ON_ERROR_BATCH_ASYNC_QUEUE_NAME, messages);
+		logger.debug("Sent messages to queue {} with messages {}", DOES_NOT_ACK_ON_ERROR_BATCH_ASYNC_QUEUE_NAME,
+				messages);
 		assertThat(latchContainer.doesNotAckBatchAsyncLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void resolvesManyParameterTypes() throws Exception {
-		sendMessageTo(RESOLVES_PARAMETER_TYPES_QUEUE_NAME, "many-parameter-types-payload");
+		String messageBody = "many-parameter-types-payload";
+		sqsTemplate.sendAsync(RESOLVES_PARAMETER_TYPES_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_PARAMETER_TYPES_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.manyParameterTypesLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.manyParameterTypesSecondLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void manuallyCreatesContainer() throws Exception {
-		sendMessageTo(MANUALLY_CREATE_CONTAINER_QUEUE_NAME, "Testing manually creates container");
+		String messageBody = "Testing manually creates container";
+		sqsTemplate.sendAsync(MANUALLY_CREATE_CONTAINER_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_CONTAINER_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.manuallyCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
@@ -232,7 +252,9 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 					.pollTimeout(Duration.ofSeconds(3)))
 			.build();
 		container.start();
-		sendMessageTo(MANUALLY_START_CONTAINER, "MyTest");
+		String messageBody1 = "MyTest";
+		sqsTemplate.sendAsync(MANUALLY_START_CONTAINER, messageBody1);
+		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_START_CONTAINER, messageBody1);
 		assertThat(latchContainer.manuallyStartedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		container.setMessageListener(msg -> latchContainer.manuallyStartedContainerLatch2.countDown());
@@ -240,7 +262,9 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		builder.acknowledgementMode(AcknowledgementMode.ALWAYS);
 		container.configure(options -> options.fromBuilder(builder));
 		container.start();
-		sendMessageTo(MANUALLY_START_CONTAINER, "MyTest2");
+		String messageBody2 = "MyTest2";
+		sqsTemplate.sendAsync(MANUALLY_START_CONTAINER, messageBody2);
+		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_START_CONTAINER, messageBody2);
 		assertThat(latchContainer.manuallyStartedContainerLatch2.await(10, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 	}
@@ -248,21 +272,12 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void manuallyCreatesFactory() throws Exception {
-		sendMessageTo(MANUALLY_CREATE_FACTORY_QUEUE_NAME, "Testing manually creates factory");
+		String messageBody = "Testing manually creates factory";
+		sqsTemplate.sendAsync(MANUALLY_CREATE_FACTORY_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_FACTORY_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.manuallyCreatedFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.manuallyCreatedFactorySourceFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.manuallyCreatedFactorySinkLatch.await(10, TimeUnit.SECONDS)).isTrue();
-	}
-
-	private void sendMessageTo(String queueName, String messageBody) {
-		sqsTemplate.sendAsync(queueName, messageBody);
-		logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
-	}
-
-	private void sendMessageBatch(String queueName, Collection<String> messageBodies) {
-		sqsTemplate.sendManyAsync(queueName, messageBodies.stream()
-				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList()));
-		logger.debug("Sent messages to queue {} with messageBodies {}", queueName, messageBodies);
 	}
 
 	static class ReceivesMessageListener {

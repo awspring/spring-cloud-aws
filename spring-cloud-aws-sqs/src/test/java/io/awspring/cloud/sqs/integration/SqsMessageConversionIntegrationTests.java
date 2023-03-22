@@ -17,7 +17,6 @@ package io.awspring.cloud.sqs.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
@@ -91,39 +90,53 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void resolvesPojoParameterTypes() throws Exception {
-		sendMessageTo(RESOLVES_POJO_TYPES_QUEUE_NAME, new MyPojo("pojoParameterType", "secondValue"));
+		String messageBody = objectMapper.writeValueAsString(new MyPojo("pojoParameterType", "secondValue"));
+		sqsTemplate.sendAsync(RESOLVES_POJO_TYPES_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_TYPES_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.resolvesPojoLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void resolvesPojoMessage() throws Exception {
-		sendMessageTo(RESOLVES_POJO_MESSAGE_QUEUE_NAME, new MyPojo("resolvesPojoMessage", "secondValue"));
+		String messageBody = objectMapper.writeValueAsString(new MyPojo("resolvesPojoMessage", "secondValue"));
+		sqsTemplate.sendAsync(RESOLVES_POJO_MESSAGE_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_MESSAGE_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.resolvesPojoMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void resolvesPojoList() throws Exception {
-		sendMessageTo(RESOLVES_POJO_LIST_QUEUE_NAME, new MyPojo("resolvesPojoList", "secondValue"));
+		String messageBody = objectMapper.writeValueAsString(new MyPojo("resolvesPojoList", "secondValue"));
+		sqsTemplate.sendAsync(RESOLVES_POJO_LIST_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_LIST_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.resolvesPojoListLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void resolvesPojoMessageList() throws Exception {
-		sendMessageTo(RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME, new MyPojo("resolvesPojoMessageList", "secondValue"));
+		String messageBody = objectMapper.writeValueAsString(new MyPojo("resolvesPojoMessageList", "secondValue"));
+		sqsTemplate.sendAsync(RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME,
+				messageBody);
 		assertThat(latchContainer.resolvesPojoMessageListLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void resolvesPojoFromHeader() throws Exception {
-		sendMessageTo(RESOLVES_POJO_FROM_HEADER_QUEUE_NAME, new MyPojo("pojoParameterType", "secondValue"),
-				getHeaderMapping(MyPojo.class));
+		String messageBody = objectMapper.writeValueAsString(new MyPojo("pojoParameterType", "secondValue"));
+		sqsTemplate.sendAsync(RESOLVES_POJO_FROM_HEADER_QUEUE_NAME,
+				MessageBuilder.createMessage(messageBody, new MessagingMessageHeaders(getHeaderMapping(MyPojo.class))));
+		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_FROM_HEADER_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.resolvesPojoFromMappingLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
 	void resolvesMyOtherPojoFromHeader() throws Exception {
-		sendMessageTo(RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME,
-				new MyOtherPojo("pojoParameterType", "secondValue"), getHeaderMapping(MyOtherPojo.class));
+		String messageBody = objectMapper.writeValueAsString(new MyOtherPojo("pojoParameterType", "secondValue"));
+		sqsTemplate.sendAsync(RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME, MessageBuilder.createMessage(messageBody,
+				new MessagingMessageHeaders(getHeaderMapping(MyOtherPojo.class))));
+		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME,
+				messageBody);
 		assertThat(latchContainer.resolvesMyOtherPojoFromMappingLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
@@ -319,19 +332,19 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 
 	}
 
-	private void sendMessageTo(String queueName, Object messageBody) throws JsonProcessingException {
-		String payload = objectMapper.writeValueAsString(messageBody);
-		sqsTemplate.sendAsync(queueName, payload);
-		logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
-	}
+	// private void sendMessageTo(String queueName, Object messageBody) throws JsonProcessingException {
+	// String payload = objectMapper.writeValueAsString(messageBody);
+	// sqsTemplate.sendAsync(queueName, payload);
+	// logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
+	// }
 
-	private void sendMessageTo(String queueName, Object messageBody, Map<String, Object> messageAttributes)
-			throws JsonProcessingException {
-		String payload = objectMapper.writeValueAsString(messageBody);
-		sqsTemplate.sendAsync(queueName,
-				MessageBuilder.createMessage(payload, new MessagingMessageHeaders(messageAttributes)));
-		logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
-	}
+	// private void sendMessageTo(String queueName, Object messageBody, Map<String, Object> messageAttributes)
+	// throws JsonProcessingException {
+	// String payload = objectMapper.writeValueAsString(messageBody);
+	// sqsTemplate.sendAsync(queueName,
+	// MessageBuilder.createMessage(payload, new MessagingMessageHeaders(messageAttributes)));
+	// logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
+	// }
 
 	static class MyPojo implements MyInterface {
 
