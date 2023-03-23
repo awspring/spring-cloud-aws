@@ -332,20 +332,6 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 
 	}
 
-	// private void sendMessageTo(String queueName, Object messageBody) throws JsonProcessingException {
-	// String payload = objectMapper.writeValueAsString(messageBody);
-	// sqsTemplate.sendAsync(queueName, payload);
-	// logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
-	// }
-
-	// private void sendMessageTo(String queueName, Object messageBody, Map<String, Object> messageAttributes)
-	// throws JsonProcessingException {
-	// String payload = objectMapper.writeValueAsString(messageBody);
-	// sqsTemplate.sendAsync(queueName,
-	// MessageBuilder.createMessage(payload, new MessagingMessageHeaders(messageAttributes)));
-	// logger.debug("Sent message to queue {} with messageBody {}", queueName, messageBody);
-	// }
-
 	static class MyPojo implements MyInterface {
 
 		String firstField;
