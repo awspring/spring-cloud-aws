@@ -26,7 +26,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.lang.Nullable;
-import org.springframework.mock.env.MockEnvironment;
 import org.springframework.util.StringUtils;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -72,14 +71,12 @@ public class DynamoDbTemplateIntegrationTest {
 				.build();
 		DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
 
-		dynamoDbTemplate = new DynamoDbTemplate(new MockEnvironment(), enhancedClient);
+		dynamoDbTemplate = new DynamoDbTemplate(enhancedClient);
 		dynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build().table("person_entity",
 				TableSchema.fromBean(PersonEntity.class));
 		describeAndCreateTable(dynamoDbClient, null);
 
-		prefixedDynamoDbTemplate = new DynamoDbTemplate(
-				new MockEnvironment().withProperty("spring.cloud.aws.dynamodb.table-prefix", "my_prefix_"),
-				enhancedClient);
+		prefixedDynamoDbTemplate = new DynamoDbTemplate("my_prefix_", enhancedClient);
 		prefixedDynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build()
 				.table("my_prefix_person_entity", TableSchema.fromBean(PersonEntity.class));
 		describeAndCreateTable(dynamoDbClient, "my_prefix_");

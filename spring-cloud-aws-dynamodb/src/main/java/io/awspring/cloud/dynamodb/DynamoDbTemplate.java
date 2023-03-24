@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.dynamodb;
 
-import org.springframework.core.env.Environment;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -37,9 +36,14 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	private final DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver;
 	private final DynamoDbTableNameResolver dynamoDbTableNameResolver;
 
-	public DynamoDbTemplate(Environment environment, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
-		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(), new DefaultDynamoDbTableNameResolver(
-				environment.getProperty("spring.cloud.aws.dynamodb.table-prefix")));
+	public DynamoDbTemplate(@Nullable String tablePrefix, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
+		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(),
+			new DefaultDynamoDbTableNameResolver(tablePrefix));
+	}
+
+	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient) {
+		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(),
+			new DefaultDynamoDbTableNameResolver(null));
 	}
 
 	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
