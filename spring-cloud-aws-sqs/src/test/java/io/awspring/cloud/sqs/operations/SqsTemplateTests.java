@@ -118,25 +118,24 @@ class SqsTemplateTests {
 				.sequenceNumber(sequenceNumber).build();
 		given(mockClient.sendMessage(any(SendMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(response));
-		UUID messageGroupId = UUID.randomUUID();
-		UUID messageDeduplicationId = UUID.randomUUID();
+		var messageGroupId = UUID.randomUUID().toString();
+		var messageDeduplicationId = UUID.randomUUID().toString();
 		SqsOperations template = SqsTemplate.newTemplate(mockClient);
 		String payload = "test-payload";
 		SendResult<String> result = template.send(to -> to.queue(queue).messageGroupId(messageGroupId)
 				.messageDeduplicationId(messageDeduplicationId).payload(payload));
 		assertThat(result.endpoint()).isEqualTo(queue);
-		assertThat(result.message().getHeaders())
-				.containsAllEntriesOf(Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER,
-						messageDeduplicationId.toString(),
-						SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, messageGroupId.toString()));
+		assertThat(result.message().getHeaders()).containsAllEntriesOf(
+				Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, messageDeduplicationId,
+						SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, messageGroupId));
 		assertThat(result.message().getPayload()).isEqualTo(payload);
 		ArgumentCaptor<SendMessageRequest> captor = ArgumentCaptor.forClass(SendMessageRequest.class);
 		then(mockClient).should().sendMessage(captor.capture());
 		SendMessageRequest capturedRequest = captor.getValue();
 		assertThat(capturedRequest.queueUrl()).isEqualTo(queue);
 		assertThat(capturedRequest.messageBody()).isEqualTo(payload);
-		assertThat(capturedRequest.messageGroupId()).isEqualTo(messageGroupId.toString());
-		assertThat(capturedRequest.messageDeduplicationId()).isEqualTo(messageDeduplicationId.toString());
+		assertThat(capturedRequest.messageGroupId()).isEqualTo(messageGroupId);
+		assertThat(capturedRequest.messageDeduplicationId()).isEqualTo(messageDeduplicationId);
 	}
 
 	@Test

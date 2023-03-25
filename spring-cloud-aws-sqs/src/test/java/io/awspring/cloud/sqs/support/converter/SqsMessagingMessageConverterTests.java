@@ -59,7 +59,8 @@ class SqsMessagingMessageConverterTests {
 		String payload = this.objectMapper.writeValueAsString(myPojo);
 		Message message = Message.builder()
 				.messageAttributes(Collections.singletonMap(typeHeader,
-						MessageAttributeValue.builder().stringValue(MyPojo.class.getName()).build()))
+						MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
+								.stringValue(MyPojo.class.getName()).build()))
 				.body(payload).messageId(UUID.randomUUID().toString()).build();
 		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
 		converter.setPayloadTypeHeader(typeHeader);
@@ -74,7 +75,8 @@ class SqsMessagingMessageConverterTests {
 		String payload = this.objectMapper.writeValueAsString(myPojo);
 		Message message = Message.builder()
 				.messageAttributes(Collections.singletonMap(typeHeader,
-						MessageAttributeValue.builder().stringValue(MyPojo.class.getName()).build()))
+						MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
+								.stringValue(MyPojo.class.getName()).build()))
 				.body(payload).messageId(UUID.randomUUID().toString()).build();
 		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
 		SqsMessageConversionContext context = new SqsMessageConversionContext();

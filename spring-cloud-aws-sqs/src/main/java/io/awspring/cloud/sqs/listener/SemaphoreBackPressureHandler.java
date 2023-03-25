@@ -120,7 +120,8 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 			logger.debug("Acquired full permits for {}. Permits left: {}", this.id, this.semaphore.availablePermits());
 			// We've acquired all permits - there's no other process currently processing messages
 			if (!this.hasAcquiredFullPermits.compareAndSet(false, true)) {
-				logger.warn("hasAcquiredFullPermits was already true");
+				logger.warn("hasAcquiredFullPermits was already true. Permits left: {}",
+						this.semaphore.availablePermits());
 			}
 			return this.batchSize;
 		}
@@ -151,6 +152,11 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 		this.semaphore.release(permitsToRelease);
 		logger.trace("Released {} permits for {}. Permits left: {}", permitsToRelease, this.id,
 				this.semaphore.availablePermits());
+	}
+
+	@Override
+	public int getBatchSize() {
+		return this.batchSize;
 	}
 
 	private void maybeSwitchToLowThroughputMode() {
