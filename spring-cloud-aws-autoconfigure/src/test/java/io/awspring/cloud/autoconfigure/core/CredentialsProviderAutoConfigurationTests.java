@@ -116,7 +116,7 @@ class CredentialsProviderAutoConfigurationTests {
 	@Test
 	void credentialsProvider_customCredentialsConfigured_customCredentialsAreUsed() {
 		// @checkstyle:on
-		this.contextRunner.run((context) -> {
+		this.contextRunner.withUserConfiguration(CustomCredentialsProviderConfiguration.class).run((context) -> {
 			AwsCredentialsProvider awsCredentialsProvider = context.getBean(AwsCredentialsProvider.class);
 			assertThat(awsCredentialsProvider).isNotNull().isInstanceOf(CustomAWSCredentialsProvider.class);
 		});
