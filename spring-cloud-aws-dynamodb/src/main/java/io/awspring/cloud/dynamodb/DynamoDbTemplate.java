@@ -38,12 +38,12 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 
 	public DynamoDbTemplate(@Nullable String tablePrefix, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
 		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(),
-			new DefaultDynamoDbTableNameResolver(tablePrefix));
+				new DefaultDynamoDbTableNameResolver(tablePrefix));
 	}
 
 	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient) {
 		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(),
-			new DefaultDynamoDbTableNameResolver(null));
+				new DefaultDynamoDbTableNameResolver(null));
 	}
 
 	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
