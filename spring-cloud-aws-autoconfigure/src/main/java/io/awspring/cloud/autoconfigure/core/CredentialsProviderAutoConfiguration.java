@@ -15,10 +15,12 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -35,6 +37,7 @@ import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvide
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
 
@@ -43,28 +46,36 @@ import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentia
  *
  * @author Maciej Walkowiak
  * @author Eddú Meléndez
+ * @author Eduan Bekker
  */
 @AutoConfiguration
 @ConditionalOnClass({ AwsCredentialsProvider.class, ProfileFile.class })
-@EnableConfigurationProperties(CredentialsProperties.class)
+@EnableConfigurationProperties({ CredentialsProperties.class, StsProperties.class })
 public class CredentialsProviderAutoConfiguration {
 
+	private static final Logger logger = LoggerFactory.getLogger(CredentialsProviderAutoConfiguration.class);
+
+	/**
+	 * The required class that has to be on the classpath to create StsWebIdentityTokenFileCredentialsProvider
+	 */
 	public static final String STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER = "software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider";
-	public static final String AWS_ROLE_ARN_ENV_VARIABLE = "AWS_ROLE_ARN";
-	public static final String AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE = "AWS_WEB_IDENTITY_TOKEN_FILE";
+
 	private final CredentialsProperties properties;
 
-	public CredentialsProviderAutoConfiguration(CredentialsProperties properties) {
+	private final StsProperties stsProperties;
+
+	public CredentialsProviderAutoConfiguration(CredentialsProperties properties, StsProperties stsProperties) {
 		this.properties = properties;
+		this.stsProperties = stsProperties;
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	public AwsCredentialsProvider credentialsProvider() {
-		return createCredentialsProvider(this.properties);
+		return createCredentialsProvider(this.properties, this.stsProperties);
 	}
 
-	public static AwsCredentialsProvider createCredentialsProvider(CredentialsProperties properties) {
+	public static AwsCredentialsProvider createCredentialsProvider(CredentialsProperties properties, StsProperties stsProperties) {
 		final List<AwsCredentialsProvider> providers = new ArrayList<>();
 
 		if (StringUtils.hasText(properties.getAccessKey()) && StringUtils.hasText(properties.getSecretKey())) {
@@ -80,8 +91,8 @@ public class CredentialsProviderAutoConfiguration {
 			providers.add(createProfileCredentialProvider(profile));
 		}
 
-		if (shouldCreateStsIdentityTokenCredentialsProvider()) {
-			providers.add(createStsCredentialsProvider());
+		if (shouldCreateStsIdentityTokenCredentialsProvider(stsProperties)) {
+			providers.add(createStsCredentialsProvider(stsProperties));
 		}
 
 		if (providers.isEmpty()) {
@@ -112,18 +123,26 @@ public class CredentialsProviderAutoConfiguration {
 		return ProfileCredentialsProvider.builder().profileName(profile.getName()).profileFile(profileFile).build();
 	}
 
-	private static boolean shouldCreateStsIdentityTokenCredentialsProvider() {
+	private static boolean shouldCreateStsIdentityTokenCredentialsProvider(StsProperties stsProperties) {
 		return ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)
-			&& StringUtils.hasText(System.getenv(AWS_ROLE_ARN_ENV_VARIABLE))
-			&& StringUtils.hasText(System.getenv(AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE));
+			&& stsProperties.isValid();
 	}
 
-	private static StsWebIdentityTokenFileCredentialsProvider createStsCredentialsProvider() {
-		return StsWebIdentityTokenFileCredentialsProvider.builder()
-			.stsClient(StsClient.builder().build())
-			.roleArn(System.getenv(AWS_ROLE_ARN_ENV_VARIABLE))
-			.webIdentityTokenFile(Path.of(System.getenv(AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE)))
-			.build();
+	private static StsWebIdentityTokenFileCredentialsProvider createStsCredentialsProvider(StsProperties stsProperties) {
+		logger.debug("Creating StsWebIdentityTokenFileCredentialsProvider");
+		StsWebIdentityTokenFileCredentialsProvider.Builder builder = StsWebIdentityTokenFileCredentialsProvider.builder()
+			.stsClient(StsClient.builder().region(Region.of(stsProperties.getRegion())).build())
+			.roleArn(stsProperties.getRoleArn())
+			.webIdentityTokenFile(stsProperties.getWebIdentityTokenFile());
+
+		if (stsProperties.isAsyncCredentialsUpdate() != null) {
+			builder.asyncCredentialUpdateEnabled(stsProperties.isAsyncCredentialsUpdate());
+		}
+
+		if (stsProperties.getRoleSessionName() != null) {
+			builder.roleSessionName(stsProperties.getRoleSessionName());
+		}
+		return builder.build();
 	}
 
 }
