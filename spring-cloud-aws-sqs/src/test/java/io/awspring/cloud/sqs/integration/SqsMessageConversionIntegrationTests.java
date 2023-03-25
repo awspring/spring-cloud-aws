@@ -91,7 +91,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void resolvesPojoParameterTypes() throws Exception {
 		String messageBody = objectMapper.writeValueAsString(new MyPojo("pojoParameterType", "secondValue"));
-		sqsTemplate.sendAsync(RESOLVES_POJO_TYPES_QUEUE_NAME, messageBody);
+		sqsTemplate.send(RESOLVES_POJO_TYPES_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_TYPES_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.resolvesPojoLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
@@ -99,7 +99,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void resolvesPojoMessage() throws Exception {
 		String messageBody = objectMapper.writeValueAsString(new MyPojo("resolvesPojoMessage", "secondValue"));
-		sqsTemplate.sendAsync(RESOLVES_POJO_MESSAGE_QUEUE_NAME, messageBody);
+		sqsTemplate.send(RESOLVES_POJO_MESSAGE_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_MESSAGE_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.resolvesPojoMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
@@ -107,7 +107,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void resolvesPojoList() throws Exception {
 		String messageBody = objectMapper.writeValueAsString(new MyPojo("resolvesPojoList", "secondValue"));
-		sqsTemplate.sendAsync(RESOLVES_POJO_LIST_QUEUE_NAME, messageBody);
+		sqsTemplate.send(RESOLVES_POJO_LIST_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_LIST_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.resolvesPojoListLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
@@ -115,7 +115,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void resolvesPojoMessageList() throws Exception {
 		String messageBody = objectMapper.writeValueAsString(new MyPojo("resolvesPojoMessageList", "secondValue"));
-		sqsTemplate.sendAsync(RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME, messageBody);
+		sqsTemplate.send(RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME,
 				messageBody);
 		assertThat(latchContainer.resolvesPojoMessageListLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -124,7 +124,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void resolvesPojoFromHeader() throws Exception {
 		String messageBody = objectMapper.writeValueAsString(new MyPojo("pojoParameterType", "secondValue"));
-		sqsTemplate.sendAsync(RESOLVES_POJO_FROM_HEADER_QUEUE_NAME,
+		sqsTemplate.send(RESOLVES_POJO_FROM_HEADER_QUEUE_NAME,
 				MessageBuilder.createMessage(messageBody, new MessagingMessageHeaders(getHeaderMapping(MyPojo.class))));
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_FROM_HEADER_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.resolvesPojoFromMappingLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -133,7 +133,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void resolvesMyOtherPojoFromHeader() throws Exception {
 		String messageBody = objectMapper.writeValueAsString(new MyOtherPojo("pojoParameterType", "secondValue"));
-		sqsTemplate.sendAsync(RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME, MessageBuilder.createMessage(messageBody,
+		sqsTemplate.send(RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME, MessageBuilder.createMessage(messageBody,
 				new MessagingMessageHeaders(getHeaderMapping(MyOtherPojo.class))));
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME,
 				messageBody);

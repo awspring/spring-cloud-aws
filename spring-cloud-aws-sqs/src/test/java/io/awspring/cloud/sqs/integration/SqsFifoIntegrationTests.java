@@ -187,7 +187,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		String messageGroupId = UUID.randomUUID().toString();
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
-		sendMessageTo(FIFO_RECEIVES_MESSAGES_IN_ORDER_QUEUE_NAME, values, messageGroupId);
+		sendManySyncTo(FIFO_RECEIVES_MESSAGES_IN_ORDER_QUEUE_NAME, values, messageGroupId);
 		assertThat(latchContainer.receivesMessageLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS)).isTrue();
 		assertThat(receivesMessageInOrderListener.receivedMessages).containsExactlyElementsOf(values);
 	}
@@ -207,7 +207,21 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		LoadSimulator loadSimulator = new LoadSimulator().setLoadEnabled(true).setRandom(true).setBound(20);
 		IntStream.range(0, messageGroups.size()).forEach(index -> {
 			if (this.settings.sendMessages) {
-				sendMessageTo(FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME, values, messageGroups.get(index));
+				try {
+					if (useLocalStackClient) {
+						sendManyAsyncTo(FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME, values,
+								messageGroups.get(index)).join();
+					}
+					else {
+						sendManyAsyncTo(FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME, values,
+								messageGroups.get(index));
+					}
+				}
+				catch (Exception e) {
+					logger.error("Error sending messages to queue {}",
+							FIFO_RECEIVES_MESSAGE_IN_ORDER_MANY_GROUPS_QUEUE_NAME, e);
+					throw (RuntimeException) e;
+				}
 			}
 			if (index % 10 == 0) {
 				loadSimulator.runLoad();
@@ -234,7 +248,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
 		String messageGroupId = UUID.randomUUID().toString();
-		sendMessageTo(FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME, values, messageGroupId);
+		sendManySyncTo(FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME, values, messageGroupId);
 		assertThat(latchContainer.stopsProcessingOnErrorLatch1.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
 				.isTrue();
 		logger.debug("receivedMessagesBeforeException: {}", stopsOnErrorListener.receivedMessagesBeforeException);
@@ -263,7 +277,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
 		String messageGroupId = UUID.randomUUID().toString();
-		sendMessageTo(FIFO_STOPS_PROCESSING_ON_ACK_ERROR_ERROR_QUEUE_NAME, values, messageGroupId);
+		sendManySyncTo(FIFO_STOPS_PROCESSING_ON_ACK_ERROR_ERROR_QUEUE_NAME, values, messageGroupId);
 		assertThat(latchContainer.stopsProcessingOnAckErrorLatch1.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
 				.isTrue();
 		logger.debug("Messages consumed before error: {}", messagesContainer.stopsProcessingOnAckErrorBeforeThrown);
@@ -288,9 +302,9 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		String messageGroupId1 = UUID.randomUUID().toString();
 		String messageGroupId2 = UUID.randomUUID().toString();
 		String messageGroupId3 = UUID.randomUUID().toString();
-		sendMessageTo(FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME, values, messageGroupId1);
-		sendMessageTo(FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME, values, messageGroupId2);
-		sendMessageTo(FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME, values, messageGroupId3);
+		sendManySyncTo(FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME, values, messageGroupId1);
+		sendManySyncTo(FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME, values, messageGroupId2);
+		sendManySyncTo(FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME, values, messageGroupId3);
 		assertThat(latchContainer.receivesBatchManyGroupsLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
 				.isTrue();
 		assertThat(receivesBatchesFromManyGroupsListener.receivedMessages.get(messageGroupId1))
@@ -305,7 +319,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	void manuallyCreatesContainer() throws Exception {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
-		sendMessageTo(FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME, values, UUID.randomUUID().toString());
+		sendManySyncTo(FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME, values, UUID.randomUUID().toString());
 		assertThat(latchContainer.manuallyCreatedContainerLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
 				.isTrue();
 		assertThat(messagesContainer.manuallyCreatedContainerMessages).containsExactlyElementsOf(values);
@@ -315,7 +329,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	void manuallyCreatesBatchContainer() throws Exception {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
-		sendMessageTo(FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME, values, UUID.randomUUID().toString());
+		sendManySyncTo(FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME, values, UUID.randomUUID().toString());
 		assertThat(
 				latchContainer.manuallyCreatedBatchContainerLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
 						.isTrue();
@@ -326,7 +340,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	void manuallyCreatesFactory() throws Exception {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
-		sendMessageTo(FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME, values, UUID.randomUUID().toString());
+		sendManySyncTo(FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME, values, UUID.randomUUID().toString());
 		assertThat(latchContainer.manuallyCreatedFactoryLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
 				.isTrue();
 		assertThat(messagesContainer.manuallyCreatedFactoryMessages).containsExactlyElementsOf(values);
@@ -336,7 +350,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	void manuallyCreatesBatchFactory() throws Exception {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
-		sendMessageTo(FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME, values, UUID.randomUUID().toString());
+		sendManySyncTo(FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME, values, UUID.randomUUID().toString());
 		assertThat(
 				latchContainer.manuallyCreatedBatchFactoryLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
 						.isTrue();
@@ -463,27 +477,20 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	}
 
-	private void sendMessageTo(String queueName, List<String> messageBodies, String messageGroupId) {
-		try {
-			if (useLocalStackClient) {
-				sendManyTo(queueName, messageBodies, messageGroupId).join();
-			}
-			else {
-				sendManyTo(queueName, messageBodies, messageGroupId);
-			}
-		}
-		catch (Exception e) {
-			logger.error("Error sending messages to queue {}", queueName, e);
-			throw (RuntimeException) e;
-		}
-	}
-
-	private CompletableFuture<Void> sendManyTo(String queueName, List<String> messageBodies, String messageGroupId) {
+	private CompletableFuture<Void> sendManyAsyncTo(String queueName, List<String> messageBodies,
+			String messageGroupId) {
 		return IntStream.range(0, (int) Math.ceil(messageBodies.size() / 10.))
 				.mapToObj(index -> messageBodies.subList(index * 10, Math.min((index + 1) * 10, messageBodies.size())))
 				.reduce(CompletableFuture.completedFuture(null), (previousFuture, messages) -> previousFuture
 						.thenCompose(theVoid -> doSendMessageTo(queueName, messages, messageGroupId).thenRun(() -> {
 						})), (a, b) -> a);
+	}
+
+	private void sendManySyncTo(String queueName, List<String> messageBodies, String messageGroupId) {
+		IntStream.range(0, (int) Math.ceil(messageBodies.size() / 10.))
+				.mapToObj(index -> messageBodies.subList(index * 10, Math.min((index + 1) * 10, messageBodies.size())))
+				.forEach(bodies -> sqsTemplate.sendMany(queueName, messageBodies.stream()
+						.map(payload -> createMessage(payload, messageGroupId)).collect(toList())));
 	}
 
 	AtomicInteger messagesSent = new AtomicInteger();

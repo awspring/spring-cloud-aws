@@ -97,7 +97,7 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldReceiveChangedMessageOnComponents() throws Exception {
-		sqsTemplate.sendAsync(RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
+		sqsTemplate.send(RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
 		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME,
 				SHOULD_CHANGE_PAYLOAD);
 		assertThat(latchContainer.receivesChangedMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
@@ -106,7 +106,7 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldReceiveChangedMessageOnComponentsWhenError() throws Exception {
-		sqsTemplate.sendAsync(RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
+		sqsTemplate.send(RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
 		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME,
 				SHOULD_CHANGE_PAYLOAD);
 		assertThat(latchContainer.receivesChangedMessageOnErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
