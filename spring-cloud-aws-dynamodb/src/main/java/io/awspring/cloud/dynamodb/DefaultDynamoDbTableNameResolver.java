@@ -36,6 +36,10 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 		this.tablePrefix = tablePrefix;
 	}
 
+	public DefaultDynamoDbTableNameResolver() {
+		this(null);
+	}
+
 	@Override
 	public String resolve(Class clazz) {
 		Assert.notNull(clazz, "clazz is required");
