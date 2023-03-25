@@ -24,6 +24,7 @@
 |spring.cloud.aws.dynamodb.enabled | `+++true+++` | Enables DynamoDb integration.
 |spring.cloud.aws.dynamodb.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.dynamodb.region |  | Overrides the default region.
+|spring.cloud.aws.dynamodb.table-prefix |  | The prefix used to resolve table names.
 |spring.cloud.aws.endpoint |  | Overrides the default endpoint for all auto-configured AWS clients.
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
 |spring.cloud.aws.parameterstore.endpoint |  | Overrides the default endpoint.
