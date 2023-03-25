@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.lang.Nullable;
 
 /**
  * Properties related to AWS DynamoDB.
  * @author Matej Nedic
+ * @author Arun Patra
  * @since 3.0.0
  */
 @ConfigurationProperties(prefix = DynamoDbProperties.PREFIX)
@@ -31,11 +33,26 @@ public class DynamoDbProperties extends AwsClientProperties {
 	 * The prefix used for AWS credentials related properties.
 	 */
 	public static final String PREFIX = "spring.cloud.aws.dynamodb";
+
+	/**
+	 * The prefix used to resolve table names.
+	 */
+	@Nullable
+	private String tablePrefix;
+
 	/**
 	 * Properties that are used to configure {@link software.amazon.dax.ClusterDaxClient}.
 	 */
 	@NestedConfigurationProperty
 	private DaxProperties dax = new DaxProperties();
+
+	public String getTablePrefix() {
+		return tablePrefix;
+	}
+
+	public void setTablePrefix(String tablePrefix) {
+		this.tablePrefix = tablePrefix;
+	}
 
 	public DaxProperties getDax() {
 		return dax;

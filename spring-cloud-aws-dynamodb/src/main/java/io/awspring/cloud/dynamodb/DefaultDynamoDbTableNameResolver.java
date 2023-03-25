@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,35 @@
 package io.awspring.cloud.dynamodb;
 
 import java.util.Locale;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Simple implementation of {@link DynamoDbTableNameResolver} that resolves class simple name to table name.
  *
  * @author Matej Nedic
+ * @author Arun Patra
  * @since 3.0
  */
 public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolver {
 
+	@Nullable
+	private final String tablePrefix;
+
+	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix) {
+		this.tablePrefix = tablePrefix;
+	}
+
+	public DefaultDynamoDbTableNameResolver() {
+		this(null);
+	}
+
 	@Override
 	public String resolve(Class clazz) {
 		Assert.notNull(clazz, "clazz is required");
-		return clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT);
+
+		String prefix = StringUtils.hasText(tablePrefix) ? tablePrefix : "";
+		return prefix.concat(clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT));
 	}
 }
