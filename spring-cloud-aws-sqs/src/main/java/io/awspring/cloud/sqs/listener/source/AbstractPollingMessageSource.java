@@ -226,7 +226,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 	protected abstract CompletableFuture<Collection<S>> doPollForMessages(int messagesToRequest);
 
 	public Collection<S> releaseUnusedPermits(int permits, Collection<S> msgs) {
-		if (msgs.isEmpty()) {
+		if (msgs.isEmpty() && permits == this.backPressureHandler.getBatchSize()) {
 			this.backPressureHandler.releaseBatch();
 			logger.trace("Released batch of unused permits for queue {}", this.pollingEndpointName);
 		}

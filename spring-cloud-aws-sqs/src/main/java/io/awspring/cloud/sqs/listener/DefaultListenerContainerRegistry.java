@@ -52,6 +52,7 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 
 	@Override
 	public void registerListenerContainer(MessageListenerContainer<?> listenerContainer) {
+		Assert.notNull(listenerContainer, "listenerContainer cannot be null");
 		Assert.isTrue(getContainerById(listenerContainer.getId()) == null,
 				() -> "Already registered container with id " + listenerContainer.getId());
 		logger.debug("Registering listener container {}", listenerContainer.getId());

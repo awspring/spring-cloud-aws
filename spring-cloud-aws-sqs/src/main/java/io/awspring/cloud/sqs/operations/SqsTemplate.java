@@ -153,11 +153,10 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		}
 		if (options.messageDeduplicationId != null) {
 			builder.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER,
-					options.messageDeduplicationId.toString());
+					options.messageDeduplicationId);
 		}
 		if (options.messageGroupId != null) {
-			builder.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER,
-					options.messageGroupId.toString());
+			builder.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, options.messageGroupId);
 		}
 		return builder.build();
 	}
@@ -673,10 +672,10 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		protected final Map<String, Object> headers = new HashMap<>();
 
 		@Nullable
-		private UUID messageGroupId;
+		private String messageGroupId;
 
 		@Nullable
-		private UUID messageDeduplicationId;
+		private String messageDeduplicationId;
 
 		@Nullable
 		protected String queue;
@@ -724,15 +723,15 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		}
 
 		@Override
-		public SqsSendOptions<T> messageGroupId(UUID messageGroupId) {
-			Assert.notNull(messageGroupId, "messageGroupId must not be null");
+		public SqsSendOptions<T> messageGroupId(String messageGroupId) {
+			Assert.hasText(messageGroupId, "messageGroupId must have text");
 			this.messageGroupId = messageGroupId;
 			return this;
 		}
 
 		@Override
-		public SqsSendOptions<T> messageDeduplicationId(UUID messageDeduplicationId) {
-			Assert.notNull(messageDeduplicationId, "messageDeduplicationId must not be null");
+		public SqsSendOptions<T> messageDeduplicationId(String messageDeduplicationId) {
+			Assert.hasText(messageDeduplicationId, "messageDeduplicationId must have text");
 			this.messageDeduplicationId = messageDeduplicationId;
 			return this;
 		}

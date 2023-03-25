@@ -38,4 +38,10 @@ public interface BatchAwareBackPressureHandler extends BackPressureHandler {
 	 */
 	void releaseBatch();
 
+	/**
+	 * Return the configured batch size for this handler.
+	 * @return the batch size.
+	 */
+	int getBatchSize();
+
 }
