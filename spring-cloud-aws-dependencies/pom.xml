@@ -206,6 +206,12 @@
 			</dependency>
 
 			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-test</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
 				<groupId>com.github.javaparser</groupId>
 				<artifactId>javaparser-symbol-solver-core</artifactId>
 				<version>${javaparser.version}</version>
