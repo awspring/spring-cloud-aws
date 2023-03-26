@@ -37,7 +37,6 @@ import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvide
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
@@ -128,8 +127,15 @@ public class CredentialsProviderAutoConfiguration {
 	}
 
 	private static boolean shouldCreateStsIdentityTokenCredentialsProvider(StsProperties stsProperties) {
-		return ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)
-			&& stsProperties.isValid();
+		if (!ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)) {
+			logger.debug("Unable to find class " + STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER + ". Consider adding the required dependency");
+			return false;
+		}
+		if (!stsProperties.isValid()) {
+			logger.debug("Sts properties aren't valid.");
+			return false;
+		}
+		return true;
 	}
 
 	private static StsWebIdentityTokenFileCredentialsProvider createStsCredentialsProvider(StsProperties stsProperties, AwsRegionProvider regionProvider) {

@@ -26,6 +26,18 @@ public interface AwsCredentialsProvider {
 }
 ----
 
+There are 3 ways in which the `AwsCredentialsProvider` in Spring Cloud AWS could be configured:
+
+1. DefaultCredentialsProvider
+2. StsWebIdentityTokenFileCredentialsProvider - Recommended for EKS
+3. Custom AwsCredentialsProvider
+
+If you are having problems with configuring credentials, consider enabling debug logging for more info:
+
+`logger.level.io.awspring.cloud=debug`
+
+==== DefaultCredentialsProvider
+
 By default, Spring Cloud AWS starter auto-configures a `DefaultCredentialsProvider`, which looks for AWS credentials in this order:
 
 1. Java System Properties - `aws.accessKeyId` and `aws.secretAccessKey`
@@ -63,6 +75,41 @@ If it does not serve your project needs, this behavior can be changed by setting
 |`~/.aws/credentials`
 |The file path where the profile configuration file is located. Defaults to `~/.aws/credentials` if value is not provided
 |===
+
+==== StsWebIdentityTokenFileCredentialsProvider
+
+The `StsWebIdentityTokenFileCredentialsProvider` allows your application to assume an AWS IAM Role using a web identity token file, which is especially useful in Kubernetes and AWS EKS environments.
+
+===== Prerequisites
+1. Create a role that you want to assume.
+2. Create a web identity token file for your application.
+
+In EKS, please follow this guide to setup service accounts https://docs.aws.amazon.com/eks/latest/userguide/pod-configuration.html
+
+The `StsWebIdentityTokenFileCredentialsProvider` support is optional, so you need to include the following Maven dependency:
+[source,xml,indent=0]
+----
+<dependency>
+	<groupId>software.amazon.awssdk</groupId>
+	<artifactId>sts</artifactId>
+	<optional>true</optional>
+</dependency>
+----
+
+===== Configuring
+In EKS no additional configuration is required as the service account already configures the correct environment variables, however, they can be overridden.
+
+If not using EKS the required properties can be configured in the following order:
+
+1. Java System Properties - `aws.roleArn` and `aws.webIdentityTokenFile`
+2. Environment Variables - `AWS_ROLE_ARN` and `AWS_WEB_IDENTITY_TOKEN_FILE`
+
+These optional additional properties are also available that will be passed on to the `StsWebIdentityTokenFileCredentialsProvider`:
+
+* `aws.roleSessionName` or `AWS_ROLE_SESSION_NAME`
+* `aws.isAsyncCredentialsUpdate` or `AWS_IS_ASYNC_CREDENTIALS_UPDATE`
+
+==== Custom AwsCredentialsProvider
 
 It is also possible to configure custom `AwsCredentialsProvider` bean which will prevent Spring Cloud AWS from auto-configuring credentials provider:
 

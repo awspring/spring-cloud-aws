@@ -25,23 +25,13 @@ public class StsProperties {
 	/**
 	 * The prefix used for AWS STS related properties.
 	 */
-	public static final String PREFIX = "spring.cloud.aws.sts";
-
-	/**
-	 * The default environment variable name in EKS.
-	 */
-	public static final String AWS_ROLE_ARN_ENV_VARIABLE = "AWS_ROLE_ARN";
-
-	/**
-	 * The default environment variable name in EKS.
-	 */
-	public static final String AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE = "AWS_WEB_IDENTITY_TOKEN_FILE";
+	public static final String PREFIX = "aws";
 
 	@Nullable
-	private String roleArn;
+	private final String roleArn;
 
 	@Nullable
-	private Path webIdentityTokenFile;
+	private final Path webIdentityTokenFile;
 
 	@Nullable
 	private final Boolean isAsyncCredentialsUpdate;
@@ -50,23 +40,11 @@ public class StsProperties {
 	private final String roleSessionName;
 
 	public StsProperties(@Nullable String roleArn, @Nullable Path webIdentityTokenFile, @Nullable Boolean isAsyncCredentialsUpdate, @Nullable String roleSessionName) {
+		this.roleArn = roleArn;
+		this.webIdentityTokenFile = webIdentityTokenFile;
+
 		this.isAsyncCredentialsUpdate = isAsyncCredentialsUpdate;
 		this.roleSessionName = roleSessionName;
-
-		this.roleArn = roleArn;
-		// If the spring.cloud.aws.sts.role-arn isn't configured, fall back to default in EKS
-		if (this.roleArn == null) {
-			this.roleArn = System.getenv(AWS_ROLE_ARN_ENV_VARIABLE);
-		}
-
-		// If the spring.cloud.aws.sts.aws-web-identity-token-file isn't configured, fall back to default in EKS
-		this.webIdentityTokenFile = webIdentityTokenFile;
-		if (this.webIdentityTokenFile == null) {
-			String tokenFileLocation = System.getenv(AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE);
-			if (StringUtils.hasText(tokenFileLocation)) {
-				this.webIdentityTokenFile = Path.of(System.getenv(AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE));
-			}
-		}
 	}
 
 	@Nullable
@@ -91,11 +69,15 @@ public class StsProperties {
 
 	public boolean isValid() {
 		if (!StringUtils.hasText(roleArn)) {
-			logger.debug("Role ARN not set. To configure use " + PREFIX + ".role-arn or " + AWS_ROLE_ARN_ENV_VARIABLE + " env variable");
+			logger.debug("Role ARN not set. To configure use " + PREFIX + ".roleArn");
 			return false;
 		}
-		if (Objects.isNull(webIdentityTokenFile) || !Files.exists(webIdentityTokenFile)) {
-			logger.debug("Web identity token not set or not found To configure use " + PREFIX + ".web-identity-token or " + AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE + " env variable");
+		if (Objects.isNull(webIdentityTokenFile)) {
+			logger.debug("Web identity token not set. To configure use " + PREFIX + ".webIdentityTokenFile");
+			return false;
+		}
+		if (!Files.exists(webIdentityTokenFile)) {
+			logger.debug("Web identity token not found. To configure use " + PREFIX + ".webIdentityTokenFile");
 			return false;
 		}
 		return true;
