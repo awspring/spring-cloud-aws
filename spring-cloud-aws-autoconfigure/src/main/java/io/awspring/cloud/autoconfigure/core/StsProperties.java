@@ -30,20 +30,12 @@ public class StsProperties {
 	/**
 	 * The default environment variable name in EKS.
 	 */
-	public static final String AWS_REGION_ENV_VARIABLE = "AWS_REGION";
-
-	/**
-	 * The default environment variable name in EKS.
-	 */
 	public static final String AWS_ROLE_ARN_ENV_VARIABLE = "AWS_ROLE_ARN";
 
 	/**
 	 * The default environment variable name in EKS.
 	 */
 	public static final String AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE = "AWS_WEB_IDENTITY_TOKEN_FILE";
-
-	@Nullable
-	private String region;
 
 	@Nullable
 	private String roleArn;
@@ -57,15 +49,9 @@ public class StsProperties {
 	@Nullable
 	private final String roleSessionName;
 
-	public StsProperties(@Nullable String region, @Nullable String roleArn, @Nullable Path webIdentityTokenFile, @Nullable Boolean isAsyncCredentialsUpdate, @Nullable String roleSessionName) {
+	public StsProperties(@Nullable String roleArn, @Nullable Path webIdentityTokenFile, @Nullable Boolean isAsyncCredentialsUpdate, @Nullable String roleSessionName) {
 		this.isAsyncCredentialsUpdate = isAsyncCredentialsUpdate;
 		this.roleSessionName = roleSessionName;
-
-		this.region = region;
-		// If the spring.cloud.aws.sts.region isn't configured, fall back to default in EKS
-		if (this.region == null) {
-			this.region = System.getenv(AWS_REGION_ENV_VARIABLE);
-		}
 
 		this.roleArn = roleArn;
 		// If the spring.cloud.aws.sts.role-arn isn't configured, fall back to default in EKS
@@ -81,11 +67,6 @@ public class StsProperties {
 				this.webIdentityTokenFile = Path.of(System.getenv(AWS_WEB_IDENTITY_TOKEN_FILE_ENV_VARIABLE));
 			}
 		}
-	}
-
-	@Nullable
-	public String getRegion() {
-		return region;
 	}
 
 	@Nullable
@@ -109,10 +90,6 @@ public class StsProperties {
 	}
 
 	public boolean isValid() {
-		if (!StringUtils.hasText(region)) {
-			logger.debug("Role ARN not set. To configure use " + PREFIX + ".region or " + AWS_REGION_ENV_VARIABLE + " env variable");
-			return false;
-		}
 		if (!StringUtils.hasText(roleArn)) {
 			logger.debug("Role ARN not set. To configure use " + PREFIX + ".role-arn or " + AWS_ROLE_ARN_ENV_VARIABLE + " env variable");
 			return false;

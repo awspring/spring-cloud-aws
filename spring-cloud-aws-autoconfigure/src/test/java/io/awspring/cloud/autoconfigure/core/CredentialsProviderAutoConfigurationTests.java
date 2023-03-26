@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentia
 class CredentialsProviderAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(CredentialsProviderAutoConfiguration.class));
+			.withConfiguration(AutoConfigurations.of(CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class));
 
 	@TempDir
 	static Path tokenTempDir;
@@ -102,7 +102,7 @@ class CredentialsProviderAutoConfigurationTests {
 		File tempFile = tokenTempDir.resolve("token-file.txt").toFile();
 		tempFile.createNewFile();
 
-		this.contextRunner.withPropertyValues("spring.cloud.aws.sts.region:af-south-1",
+		this.contextRunner.withPropertyValues("spring.cloud.aws.region.static:af-south-1",
 				"spring.cloud.aws.sts.role-arn:develop",
 			"spring.cloud.aws.sts.web-identity-token-file:" + tempFile.getAbsolutePath())
 				.run((context) -> {

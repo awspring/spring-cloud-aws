@@ -112,16 +112,6 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 
 	protected <T extends AwsClientBuilder<?, ?>> T configure(T builder, AwsClientProperties properties,
 			BootstrapContext context) {
-		AwsCredentialsProvider credentialsProvider;
-
-		try {
-			credentialsProvider = context.get(AwsCredentialsProvider.class);
-		}
-		catch (IllegalStateException e) {
-			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
-			StsProperties stsProperties = context.get(StsProperties.class);
-			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties, stsProperties);
-		}
 
 		AwsRegionProvider regionProvider;
 
@@ -131,6 +121,17 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		catch (IllegalStateException e) {
 			RegionProperties regionProperties = context.get(RegionProperties.class);
 			regionProvider = RegionProviderAutoConfiguration.createRegionProvider(regionProperties);
+		}
+
+		AwsCredentialsProvider credentialsProvider;
+
+		try {
+			credentialsProvider = context.get(AwsCredentialsProvider.class);
+		}
+		catch (IllegalStateException e) {
+			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
+			StsProperties stsProperties = context.get(StsProperties.class);
+			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties, stsProperties, regionProvider);
 		}
 
 		AwsProperties awsProperties = context.get(AwsProperties.class);

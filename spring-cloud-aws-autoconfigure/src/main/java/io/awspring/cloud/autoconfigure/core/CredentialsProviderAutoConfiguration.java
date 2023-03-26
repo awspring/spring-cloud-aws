@@ -38,6 +38,7 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
 
@@ -64,18 +65,21 @@ public class CredentialsProviderAutoConfiguration {
 
 	private final StsProperties stsProperties;
 
-	public CredentialsProviderAutoConfiguration(CredentialsProperties properties, StsProperties stsProperties) {
+	private final AwsRegionProvider regionProvider;
+
+	public CredentialsProviderAutoConfiguration(CredentialsProperties properties, StsProperties stsProperties, AwsRegionProvider regionProvider) {
 		this.properties = properties;
 		this.stsProperties = stsProperties;
+		this.regionProvider = regionProvider;
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	public AwsCredentialsProvider credentialsProvider() {
-		return createCredentialsProvider(this.properties, this.stsProperties);
+		return createCredentialsProvider(this.properties, this.stsProperties, this.regionProvider);
 	}
 
-	public static AwsCredentialsProvider createCredentialsProvider(CredentialsProperties properties, StsProperties stsProperties) {
+	public static AwsCredentialsProvider createCredentialsProvider(CredentialsProperties properties, StsProperties stsProperties, AwsRegionProvider regionProvider) {
 		final List<AwsCredentialsProvider> providers = new ArrayList<>();
 
 		if (StringUtils.hasText(properties.getAccessKey()) && StringUtils.hasText(properties.getSecretKey())) {
@@ -92,7 +96,7 @@ public class CredentialsProviderAutoConfiguration {
 		}
 
 		if (shouldCreateStsIdentityTokenCredentialsProvider(stsProperties)) {
-			providers.add(createStsCredentialsProvider(stsProperties));
+			providers.add(createStsCredentialsProvider(stsProperties, regionProvider));
 		}
 
 		if (providers.isEmpty()) {
@@ -128,10 +132,10 @@ public class CredentialsProviderAutoConfiguration {
 			&& stsProperties.isValid();
 	}
 
-	private static StsWebIdentityTokenFileCredentialsProvider createStsCredentialsProvider(StsProperties stsProperties) {
+	private static StsWebIdentityTokenFileCredentialsProvider createStsCredentialsProvider(StsProperties stsProperties, AwsRegionProvider regionProvider) {
 		logger.debug("Creating StsWebIdentityTokenFileCredentialsProvider");
 		StsWebIdentityTokenFileCredentialsProvider.Builder builder = StsWebIdentityTokenFileCredentialsProvider.builder()
-			.stsClient(StsClient.builder().region(Region.of(stsProperties.getRegion())).build())
+			.stsClient(StsClient.builder().region(regionProvider.getRegion()).build())
 			.roleArn(stsProperties.getRoleArn())
 			.webIdentityTokenFile(stsProperties.getWebIdentityTokenFile());
 
