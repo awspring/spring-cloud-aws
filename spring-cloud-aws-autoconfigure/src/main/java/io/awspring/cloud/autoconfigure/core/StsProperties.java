@@ -28,12 +28,6 @@ import org.springframework.lang.Nullable;
 public class StsProperties {
 
 	/**
-	 * Activate {@link software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider}
-	 * AutoConfiguration for {@link software.amazon.awssdk.crt.auth.credentials.CredentialsProvider}.
-	 */
-	private boolean enabled = false;
-
-	/**
 	 * The Amazon Resource Name (ARN) of the IAM role that is associated with the Sts. If not provided this will be read
 	 * from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 	 */
@@ -95,11 +89,4 @@ public class StsProperties {
 		this.roleSessionName = roleSessionName;
 	}
 
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
 }
