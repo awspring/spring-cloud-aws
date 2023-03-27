@@ -34,7 +34,6 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
 /**
  * {@link EnableAutoConfiguration} for {@link AwsCredentialsProvider}.
@@ -45,23 +44,36 @@ import software.amazon.awssdk.regions.providers.AwsRegionProvider;
  */
 @AutoConfiguration
 @ConditionalOnClass({AwsCredentialsProvider.class, ProfileFile.class})
-@EnableConfigurationProperties(CredentialsProperties.class)
 @ConditionalOnMissingBean(value = AwsCredentialsProvider.class)
+@EnableConfigurationProperties(CredentialsProperties.class)
 public class CredentialsProviderAutoConfiguration {
 
 	private final CredentialsProperties properties;
 
 
-	public CredentialsProviderAutoConfiguration(CredentialsProperties properties, AwsRegionProvider regionProvider) {
+	public CredentialsProviderAutoConfiguration(CredentialsProperties properties) {
 		this.properties = properties;
 	}
 
 	@Bean
 	public AwsCredentialsProvider credentialsProvider() {
-		return createCredentialsProvider(this.properties);
+		List<AwsCredentialsProvider> providers = createCredentialsProvider(this.properties);
+		return createProviderBasedOnListOfProviders(providers);
 	}
 
-	public static AwsCredentialsProvider createCredentialsProvider(CredentialsProperties properties) {
+	public static AwsCredentialsProvider createProviderBasedOnListOfProviders(List<AwsCredentialsProvider> providers) {
+		if (providers.isEmpty()) {
+			return DefaultCredentialsProvider.create();
+		}
+		else if (providers.size() == 1) {
+			return providers.get(0);
+		}
+		else {
+			return AwsCredentialsProviderChain.builder().credentialsProviders(providers).build();
+		}
+	}
+
+	public static List<AwsCredentialsProvider> createCredentialsProvider(CredentialsProperties properties) {
 		final List<AwsCredentialsProvider> providers = new ArrayList<>();
 
 		if (StringUtils.hasText(properties.getAccessKey()) && StringUtils.hasText(properties.getSecretKey())) {
@@ -76,15 +88,7 @@ public class CredentialsProviderAutoConfiguration {
 		if (profile != null && profile.getName() != null) {
 			providers.add(createProfileCredentialProvider(profile));
 		}
-		if (providers.isEmpty()) {
-			return DefaultCredentialsProvider.create();
-		}
-		else if (providers.size() == 1) {
-			return providers.get(0);
-		}
-		else {
-			return AwsCredentialsProviderChain.builder().credentialsProviders(providers).build();
-		}
+		return providers;
 	}
 
 	private static StaticCredentialsProvider createStaticCredentialsProvider(CredentialsProperties properties) {

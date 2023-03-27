@@ -18,7 +18,6 @@ package io.awspring.cloud.autoconfigure.config;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
-import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
@@ -42,6 +41,9 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+
+import static io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration.createCredentialsProvider;
+import static io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration.createProviderBasedOnListOfProviders;
 
 /**
  * Base class for AWS specific {@link ConfigDataLocationResolver}s.
@@ -124,7 +126,7 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		}
 		catch (IllegalStateException e) {
 			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
-			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties);
+			credentialsProvider = createProviderBasedOnListOfProviders(createCredentialsProvider(credentialsProperties));
 		}
 
 		AwsRegionProvider regionProvider;
