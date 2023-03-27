@@ -90,7 +90,12 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 		doConfigure(containerOptions);
 	}
 
-	protected abstract void doConfigure(ContainerOptions<?, ?> containerOptions);
+	/**
+	 * Override to configure subclasses.
+	 * @param containerOptions the {@link ContainerOptions} for this source.
+	 */
+	protected void doConfigure(ContainerOptions<?, ?> containerOptions) {
+	}
 
 	@Override
 	public void setId(String id) {
