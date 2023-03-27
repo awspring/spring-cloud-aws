@@ -130,8 +130,8 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		}
 		catch (IllegalStateException e) {
 			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
-			StsProperties stsProperties = context.get(StsProperties.class);
-			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties, stsProperties, regionProvider);
+			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties,
+					regionProvider);
 		}
 
 		AwsProperties awsProperties = context.get(AwsProperties.class);

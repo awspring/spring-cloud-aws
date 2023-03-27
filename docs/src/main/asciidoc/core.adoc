@@ -96,18 +96,22 @@ The `StsWebIdentityTokenFileCredentialsProvider` support is optional, so you nee
 </dependency>
 ----
 
+Also, you will need to enable STS AutoConfiguration by specifying `spring.cloud.aws.credentials.sts.enabled:true`.
+
 ===== Configuring
 In EKS no additional configuration is required as the service account already configures the correct environment variables; however, they can be overridden.
 
 If not using EKS the required properties can be configured in the following order:
 
-1. Java System Properties - `aws.roleArn` and `aws.webIdentityTokenFile`
-2. Environment Variables - `AWS_ROLE_ARN` and `AWS_WEB_IDENTITY_TOKEN_FILE`
+1. Defining inside of `application.properties` - `spring.cloud.aws.credentials.sts.roleArn` and `spring.cloud.aws.credentials.sts.webIdentityTokenFile`
+2. Java System Properties - `aws.roleArn` and `aws.webIdentityTokenFile`
+3. Environment Variables - `AWS_ROLE_ARN` and `AWS_WEB_IDENTITY_TOKEN_FILE`
 
 These optional additional properties are also available that will be passed on to the `StsWebIdentityTokenFileCredentialsProvider`:
 
-* `aws.roleSessionName` or `AWS_ROLE_SESSION_NAME`
-* `aws.isAsyncCredentialsUpdate` or `AWS_IS_ASYNC_CREDENTIALS_UPDATE`
+1. Defining inside of `application.properties` - `spring.cloud.aws.credentials.sts.roleSessionName` and `spring.cloud.aws.credentials.sts.isAsyncCredentialsUpdate`
+2. Java System Properties - `aws.roleSessionName` and `aws.isAsyncCredentialsUpdate`
+3. Environment Variables - `AWS_ROLE_SESSION_NAME` and `AWS_IS_ASYNC_CREDENTIALS_UPDATE`
 
 ==== Custom AwsCredentialsProvider
 

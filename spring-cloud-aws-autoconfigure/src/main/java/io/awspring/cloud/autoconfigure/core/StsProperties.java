@@ -1,54 +1,66 @@
+/*
+ * Copyright 2013-2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.awspring.cloud.autoconfigure.core;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.lang.Nullable;
-import org.springframework.util.StringUtils;
-
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
+import org.springframework.lang.Nullable;
 
 /**
- * Properties related to AWS Sts Credentials.
- * It the properties are not configured, it will default to the EKS values from:
- * <a href="https://docs.aws.amazon.com/eks/latest/userguide/pod-configuration.html">
+ * Properties related to AWS Sts Credentials. It the properties are not configured, it will default to the EKS values
+ * from: <a href="https://docs.aws.amazon.com/eks/latest/userguide/pod-configuration.html">
  *
  * @author Eduan Bekker
  * @since 3.0.0
  */
-@ConfigurationProperties(prefix = StsProperties.PREFIX)
 public class StsProperties {
-	private static final Logger logger = LoggerFactory.getLogger(StsProperties.class);
 
 	/**
-	 * The prefix used for AWS STS related properties.
+	 * Activate {@link software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider}
+	 * AutoConfiguration for {@link software.amazon.awssdk.crt.auth.credentials.CredentialsProvider}.
 	 */
-	public static final String PREFIX = "aws";
+	private boolean enabled = false;
 
+	/**
+	 * The Amazon Resource Name (ARN) of the IAM role that is associated with the Sts. If not provided this will be read
+	 * from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+	 */
 	@Nullable
-	private final String roleArn;
+	private String roleArn;
 
+	/**
+	 * Sets the absolute path to the web identity token file that should be used by this credentials provider. By
+	 * default this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+	 */
 	@Nullable
-	private final Path webIdentityTokenFile;
+	private Path webIdentityTokenFile;
 
+	/**
+	 * Configure whether the provider should fetch credentials asynchronously in the background. Defaults to synchronous
+	 * blocking if not specified otherwise.
+	 */
+	private boolean isAsyncCredentialsUpdate = false;
+
+	/**
+	 * Sets the role session name that should be used by this credentials provider. By default this is read from
+	 * {@link software.amazon.awssdk.core.SdkSystemSetting}.
+	 */
 	@Nullable
-	private final Boolean isAsyncCredentialsUpdate;
+	private String roleSessionName;
 
-	@Nullable
-	private final String roleSessionName;
-
-	public StsProperties(@Nullable String roleArn, @Nullable Path webIdentityTokenFile, @Nullable Boolean isAsyncCredentialsUpdate, @Nullable String roleSessionName) {
-		this.roleArn = roleArn;
-		this.webIdentityTokenFile = webIdentityTokenFile;
-
-		this.isAsyncCredentialsUpdate = isAsyncCredentialsUpdate;
-		this.roleSessionName = roleSessionName;
-	}
-
-	@Nullable
-	public Boolean isAsyncCredentialsUpdate() {
+	public boolean isAsyncCredentialsUpdate() {
 		return isAsyncCredentialsUpdate;
 	}
 
@@ -67,19 +79,27 @@ public class StsProperties {
 		return webIdentityTokenFile;
 	}
 
-	public boolean isValid() {
-		if (!StringUtils.hasText(roleArn)) {
-			logger.debug("Role ARN not set. To configure use " + PREFIX + ".roleArn");
-			return false;
-		}
-		if (Objects.isNull(webIdentityTokenFile)) {
-			logger.debug("Web identity token not set. To configure use " + PREFIX + ".webIdentityTokenFile");
-			return false;
-		}
-		if (!Files.exists(webIdentityTokenFile)) {
-			logger.debug("Web identity token not found. To configure use " + PREFIX + ".webIdentityTokenFile");
-			return false;
-		}
-		return true;
+	public void setRoleArn(@Nullable String roleArn) {
+		this.roleArn = roleArn;
+	}
+
+	public void setWebIdentityTokenFile(@Nullable Path webIdentityTokenFile) {
+		this.webIdentityTokenFile = webIdentityTokenFile;
+	}
+
+	public void setAsyncCredentialsUpdate(boolean asyncCredentialsUpdate) {
+		isAsyncCredentialsUpdate = asyncCredentialsUpdate;
+	}
+
+	public void setRoleSessionName(@Nullable String roleSessionName) {
+		this.roleSessionName = roleSessionName;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 }

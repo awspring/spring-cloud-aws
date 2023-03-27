@@ -18,7 +18,6 @@ package io.awspring.cloud.autoconfigure.core;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -26,6 +25,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -50,7 +50,7 @@ import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentia
  */
 @AutoConfiguration
 @ConditionalOnClass({ AwsCredentialsProvider.class, ProfileFile.class })
-@EnableConfigurationProperties({ CredentialsProperties.class, StsProperties.class })
+@EnableConfigurationProperties(CredentialsProperties.class)
 public class CredentialsProviderAutoConfiguration {
 
 	private static final Logger logger = LoggerFactory.getLogger(CredentialsProviderAutoConfiguration.class);
@@ -62,23 +62,21 @@ public class CredentialsProviderAutoConfiguration {
 
 	private final CredentialsProperties properties;
 
-	private final StsProperties stsProperties;
-
 	private final AwsRegionProvider regionProvider;
 
-	public CredentialsProviderAutoConfiguration(CredentialsProperties properties, StsProperties stsProperties, AwsRegionProvider regionProvider) {
+	public CredentialsProviderAutoConfiguration(CredentialsProperties properties, AwsRegionProvider regionProvider) {
 		this.properties = properties;
-		this.stsProperties = stsProperties;
 		this.regionProvider = regionProvider;
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	public AwsCredentialsProvider credentialsProvider() {
-		return createCredentialsProvider(this.properties, this.stsProperties, this.regionProvider);
+		return createCredentialsProvider(this.properties, this.regionProvider);
 	}
 
-	public static AwsCredentialsProvider createCredentialsProvider(CredentialsProperties properties, StsProperties stsProperties, AwsRegionProvider regionProvider) {
+	public static AwsCredentialsProvider createCredentialsProvider(CredentialsProperties properties,
+			AwsRegionProvider regionProvider) {
 		final List<AwsCredentialsProvider> providers = new ArrayList<>();
 
 		if (StringUtils.hasText(properties.getAccessKey()) && StringUtils.hasText(properties.getSecretKey())) {
@@ -94,8 +92,9 @@ public class CredentialsProviderAutoConfiguration {
 			providers.add(createProfileCredentialProvider(profile));
 		}
 
-		if (shouldCreateStsIdentityTokenCredentialsProvider(stsProperties)) {
-			providers.add(createStsCredentialsProvider(stsProperties, regionProvider));
+		if (properties.getSts() != null && shouldCreateStsIdentityTokenCredentialsProvider()
+				&& properties.getSts().isEnabled()) {
+			providers.add(createStsCredentialsProvider(properties.getSts(), regionProvider));
 		}
 
 		if (providers.isEmpty()) {
@@ -126,32 +125,25 @@ public class CredentialsProviderAutoConfiguration {
 		return ProfileCredentialsProvider.builder().profileName(profile.getName()).profileFile(profileFile).build();
 	}
 
-	private static boolean shouldCreateStsIdentityTokenCredentialsProvider(StsProperties stsProperties) {
+	private static boolean shouldCreateStsIdentityTokenCredentialsProvider() {
 		if (!ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)) {
-			logger.debug("Unable to find class " + STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER + ". Consider adding the required dependency");
-			return false;
-		}
-		if (!stsProperties.isValid()) {
-			logger.debug("Sts properties aren't valid.");
+			logger.debug("Unable to find class " + STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER
+					+ ". Consider adding the required dependency");
 			return false;
 		}
 		return true;
 	}
 
-	private static StsWebIdentityTokenFileCredentialsProvider createStsCredentialsProvider(StsProperties stsProperties, AwsRegionProvider regionProvider) {
+	private static StsWebIdentityTokenFileCredentialsProvider createStsCredentialsProvider(StsProperties stsProperties,
+			AwsRegionProvider regionProvider) {
 		logger.debug("Creating StsWebIdentityTokenFileCredentialsProvider");
-		StsWebIdentityTokenFileCredentialsProvider.Builder builder = StsWebIdentityTokenFileCredentialsProvider.builder()
-			.stsClient(StsClient.builder().region(regionProvider.getRegion()).build())
-			.roleArn(stsProperties.getRoleArn())
-			.webIdentityTokenFile(stsProperties.getWebIdentityTokenFile());
-
-		if (stsProperties.isAsyncCredentialsUpdate() != null) {
-			builder.asyncCredentialUpdateEnabled(stsProperties.isAsyncCredentialsUpdate());
-		}
-
-		if (stsProperties.getRoleSessionName() != null) {
-			builder.roleSessionName(stsProperties.getRoleSessionName());
-		}
+		PropertyMapper propertyMapper = PropertyMapper.get();
+		StsWebIdentityTokenFileCredentialsProvider.Builder builder = StsWebIdentityTokenFileCredentialsProvider
+				.builder().stsClient(StsClient.builder().region(regionProvider.getRegion()).build())
+				.asyncCredentialUpdateEnabled(stsProperties.isAsyncCredentialsUpdate());
+		propertyMapper.from(stsProperties::getRoleArn).whenNonNull().to(builder::roleArn);
+		propertyMapper.from(stsProperties::getWebIdentityTokenFile).whenNonNull().to(builder::webIdentityTokenFile);
+		propertyMapper.from(stsProperties::getRoleSessionName).whenNonNull().to(builder::roleSessionName);
 		return builder.build();
 	}
 
