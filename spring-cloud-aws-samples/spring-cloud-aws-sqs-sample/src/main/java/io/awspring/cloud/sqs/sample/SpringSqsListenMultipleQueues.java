@@ -17,17 +17,14 @@ package io.awspring.cloud.sqs.sample;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
-import io.awspring.cloud.sqs.operations.TemplateAcknowledgementMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
+
 import java.util.UUID;
 
 @SpringBootApplication
@@ -42,23 +39,6 @@ public class SpringSqsListenMultipleQueues {
 		SpringApplication.run(SpringSqsListenMultipleQueues.class, args);
 	}
 
-	// application.properties
-	// spring.cloud.aws.credentials.access-key=${AWS_ACCESS_KEY}
-	// spring.cloud.aws.credentials.secret-key==${AWS_SECRET_KEY}
-	@Bean
-	public SqsTemplate sqsTemplate(AwsCredentialsProvider credentialsProvider) {
-		SqsAsyncClient client = SqsAsyncClient.builder()
-			.region(Region.US_EAST_1)
-			.credentialsProvider(credentialsProvider)
-			.build();
-
-		return SqsTemplate.builder()
-			.sqsAsyncClient(client)
-			.configure(options -> options
-				.acknowledgementMode(TemplateAcknowledgementMode.ACKNOWLEDGE))
-			.build();
-	}
-
 	@SqsListener(queueNames = {ORDER_QUEUE, WITHDRAWAL_QUEUE})
 	void listen(Message message) {
 		LOGGER.info("Received message {}", message);
@@ -68,21 +48,21 @@ public class SpringSqsListenMultipleQueues {
 	public ApplicationRunner sendMessageToQueues(SqsTemplate sqsTemplate) {
 		return args -> {
 			sqsTemplate.sendAsync(ORDER_QUEUE, new OrderMessage(
-				UUID.randomUUID().toString(),
+				UUID.randomUUID(),
 				"john@awsspringcloud.com"
 			));
 
 			sqsTemplate.sendAsync(WITHDRAWAL_QUEUE, new WithdrawalMessage(
-				UUID.randomUUID().toString(),
+				UUID.randomUUID(),
 				"Mary",
 				"mary@awsspringcloud.com"
 			));
 		};
 	}
 
-	private record WithdrawalMessage(String transaction, String customerName, String customerEmail) {
+	private record WithdrawalMessage(UUID transaction, String customerName, String customerEmail) {
 	}
 
-	private record OrderMessage(String orderId, String customerEmail) {
+	private record OrderMessage(UUID orderId, String customerEmail) {
 	}
 }
