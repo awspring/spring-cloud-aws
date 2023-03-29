@@ -52,6 +52,7 @@ import software.amazon.awssdk.regions.providers.AwsRegionProvider;
  *
  * @param <T> - the location type
  * @author Maciej Walkowiak
+ * @author Eduan Bekker
  * @since 3.0
  */
 public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigDataResource>
