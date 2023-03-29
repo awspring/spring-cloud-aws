@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
-import java.nio.file.Path;
 import org.springframework.lang.Nullable;
 
 /**
@@ -44,7 +43,7 @@ public class StsProperties {
 	 * default this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 	 */
 	@Nullable
-	private Path webIdentityTokenFile;
+	private String webIdentityTokenFile;
 
 	/**
 	 * Configure whether the provider should fetch credentials asynchronously in the background. Defaults to synchronous
@@ -74,7 +73,7 @@ public class StsProperties {
 	}
 
 	@Nullable
-	public Path getWebIdentityTokenFile() {
+	public String getWebIdentityTokenFile() {
 		return webIdentityTokenFile;
 	}
 
@@ -82,7 +81,7 @@ public class StsProperties {
 		this.roleArn = roleArn;
 	}
 
-	public void setWebIdentityTokenFile(@Nullable Path webIdentityTokenFile) {
+	public void setWebIdentityTokenFile(@Nullable String webIdentityTokenFile) {
 		this.webIdentityTokenFile = webIdentityTokenFile;
 	}
 

@@ -15,11 +15,15 @@
  */
 package io.awspring.cloud.autoconfigure.config;
 
+import static io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration.createCredentialsProvider;
+import static io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration.createProviderBasedOnListOfProviders;
+
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.StsCredentialsProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,14 +40,12 @@ import org.springframework.boot.context.config.ConfigDataResourceNotFoundExcepti
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
-
-import static io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration.createCredentialsProvider;
-import static io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration.createProviderBasedOnListOfProviders;
 
 /**
  * Base class for AWS specific {@link ConfigDataLocationResolver}s.
@@ -54,6 +56,8 @@ import static io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfig
  */
 public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigDataResource>
 		implements ConfigDataLocationResolver<T> {
+
+	private static final String STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER = "software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider";
 
 	protected abstract String getPrefix();
 
@@ -119,16 +123,6 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 	protected <T extends AwsClientBuilder<?, ?>> T configure(T builder, AwsClientProperties properties,
 			BootstrapContext context) {
 
-		AwsCredentialsProvider credentialsProvider;
-
-		try {
-			credentialsProvider = context.get(AwsCredentialsProvider.class);
-		}
-		catch (IllegalStateException e) {
-			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
-			credentialsProvider = createProviderBasedOnListOfProviders(createCredentialsProvider(credentialsProperties));
-		}
-
 		AwsRegionProvider regionProvider;
 
 		try {
@@ -139,6 +133,23 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 			regionProvider = RegionProviderAutoConfiguration.createRegionProvider(regionProperties);
 		}
 
+		AwsCredentialsProvider credentialsProvider;
+
+		try {
+			credentialsProvider = context.get(AwsCredentialsProvider.class);
+		}
+		catch (IllegalStateException e) {
+			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
+			if (ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)
+					&& credentialsProperties.getSts() != null) {
+				credentialsProvider = StsCredentialsProviderAutoConfiguration.createProvider(credentialsProperties,
+						regionProvider);
+			}
+			else {
+				credentialsProvider = createProviderBasedOnListOfProviders(
+						createCredentialsProvider(credentialsProperties));
+			}
+		}
 
 		AwsProperties awsProperties = context.get(AwsProperties.class);
 
