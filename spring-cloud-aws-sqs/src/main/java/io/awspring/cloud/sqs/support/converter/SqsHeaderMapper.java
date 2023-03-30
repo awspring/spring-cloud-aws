@@ -181,11 +181,16 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		MessageAttributeValue value = entry.getValue();
 		String dataType = value.dataType();
 		Assert.notNull(dataType, "dataType must not be null");
-		return MessageAttributeDataTypes.STRING.equals(dataType)
-			? value.stringValue()
-			: MessageAttributeDataTypes.BINARY.equals(dataType)
-				? value.binaryValue()
-				: getNumberValue(value);
+
+		if (dataType.contains(".")) {
+			dataType = dataType.substring(0, dataType.indexOf('.'));
+		}
+
+		return switch (dataType) {
+			case MessageAttributeDataTypes.NUMBER -> getNumberValue(value);
+			case MessageAttributeDataTypes.BINARY -> value.binaryValue();
+			default -> value.stringValue();
+		};
 	}
 
 	private Map<String, String> getMessageSystemAttributesAsHeaders(Message source) {
