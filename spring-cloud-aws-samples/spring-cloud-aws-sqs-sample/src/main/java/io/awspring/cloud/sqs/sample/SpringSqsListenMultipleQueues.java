@@ -27,7 +27,8 @@ import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.UUID;
 
-@SpringBootApplication public class SpringSqsListenMultipleQueues {
+@SpringBootApplication
+public class SpringSqsListenMultipleQueues {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpringSqsListenMultipleQueues.class);
 
@@ -38,11 +39,13 @@ import java.util.UUID;
 		SpringApplication.run(SpringSqsListenMultipleQueues.class, args);
 	}
 
-	@SqsListener(queueNames = { ORDER_QUEUE, WITHDRAWAL_QUEUE }) void listen(Message message) {
+	@SqsListener(queueNames = { ORDER_QUEUE, WITHDRAWAL_QUEUE })
+	void listen(Message message) {
 		LOGGER.info("Received message {}", message);
 	}
 
-	@Bean public ApplicationRunner sendMessageToQueues(SqsTemplate sqsTemplate) {
+	@Bean
+	public ApplicationRunner sendMessageToQueues(SqsTemplate sqsTemplate) {
 		return args -> {
 			sqsTemplate.sendAsync(ORDER_QUEUE, new OrderMessage(UUID.randomUUID(), "john@awsspringcloud.com"));
 
@@ -56,4 +59,5 @@ import java.util.UUID;
 
 	private record OrderMessage(UUID orderId, String customerEmail) {
 	}
+
 }
