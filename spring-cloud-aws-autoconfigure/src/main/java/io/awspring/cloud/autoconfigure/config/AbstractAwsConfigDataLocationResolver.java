@@ -40,8 +40,11 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+
+import static io.awspring.cloud.core.SpringCloudClientConfiguration.applyUserAgent;
 
 /**
  * Base class for AWS specific {@link ConfigDataLocationResolver}s.
@@ -151,7 +154,8 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 			builder.endpointOverride(awsProperties.getEndpoint());
 		}
 		builder.credentialsProvider(credentialsProvider);
-		builder.overrideConfiguration(new SpringCloudClientConfiguration().clientOverrideConfiguration());
+		ClientOverrideConfiguration.Builder configurationBuilder = applyUserAgent(ClientOverrideConfiguration.builder());
+		builder.overrideConfiguration(configurationBuilder.build());
 		return builder;
 	}
 

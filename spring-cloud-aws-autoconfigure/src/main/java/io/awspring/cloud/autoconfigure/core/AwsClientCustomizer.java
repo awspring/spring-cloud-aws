@@ -23,6 +23,8 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 
+import static io.awspring.cloud.core.SpringCloudClientConfiguration.applyUserAgent;
+
 /**
  * @author Matej Nedić
  * @since 3.0.0
@@ -31,6 +33,11 @@ public interface AwsClientCustomizer<T> {
 
 	@Nullable
 	default ClientOverrideConfiguration overrideConfiguration() {
+		return null;
+	}
+
+	@Nullable
+	default ClientOverrideConfiguration.Builder overrideConfigurationBuilder() {
 		return null;
 	}
 
@@ -55,8 +62,14 @@ public interface AwsClientCustomizer<T> {
 	}
 
 	static <V extends AwsClientBuilder<?, ?>> void apply(AwsClientCustomizer<V> configurer, V builder) {
-		if (configurer.overrideConfiguration() != null) {
+		if (configurer.overrideConfigurationBuilder() != null) {
+			applyUserAgent(configurer.overrideConfigurationBuilder());
+			builder.overrideConfiguration();
+		} else if(configurer.overrideConfiguration() != null) {
 			builder.overrideConfiguration(configurer.overrideConfiguration());
+		} else {
+			ClientOverrideConfiguration.Builder configurationBuilder = applyUserAgent(ClientOverrideConfiguration.builder());
+			builder.overrideConfiguration(configurationBuilder.build());
 		}
 
 		if (builder instanceof AwsSyncClientBuilder) {
