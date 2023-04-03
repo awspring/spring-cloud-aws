@@ -18,6 +18,7 @@ package io.awspring.cloud.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.S3Client;
 
@@ -41,6 +42,17 @@ class S3ResourceTests {
 		S3Resource resource = new S3Resource("bucket", "", mock(S3Client.class), mock(S3OutputStreamProvider.class));
 		S3Resource result = resource.createRelative("foo");
 		assertThat(result.getLocation()).isEqualTo(Location.of("bucket", "foo"));
+	}
+
+	@Test
+	void s3ResourceGetFileNameShouldNotThrowException() {
+		S3Resource resourceOne = new S3Resource("bucket", "objectOne", mock(S3Client.class),
+				mock(S3OutputStreamProvider.class));
+		S3Resource resourceTwo = new S3Resource("bucket", "objectTwo", mock(S3Client.class),
+				mock(S3OutputStreamProvider.class));
+		Assertions.assertEquals("objectOne", resourceOne.getFilename());
+		Assertions.assertEquals("objectTwo", resourceTwo.getFilename());
+		Assertions.assertDoesNotThrow(() -> resourceOne.getFilename().compareTo(resourceTwo.getFilename()));
 	}
 
 }
