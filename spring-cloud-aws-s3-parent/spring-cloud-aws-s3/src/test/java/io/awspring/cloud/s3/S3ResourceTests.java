@@ -16,9 +16,9 @@
 package io.awspring.cloud.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.S3Client;
 
@@ -45,14 +45,14 @@ class S3ResourceTests {
 	}
 
 	@Test
-	void s3ResourceGetFileNameShouldNotThrowException() {
+	void getFileNameDoesNotThrowException() {
 		S3Resource resourceOne = new S3Resource("bucket", "objectOne", mock(S3Client.class),
 				mock(S3OutputStreamProvider.class));
 		S3Resource resourceTwo = new S3Resource("bucket", "objectTwo", mock(S3Client.class),
 				mock(S3OutputStreamProvider.class));
-		Assertions.assertEquals("objectOne", resourceOne.getFilename());
-		Assertions.assertEquals("objectTwo", resourceTwo.getFilename());
-		Assertions.assertDoesNotThrow(() -> resourceOne.getFilename().compareTo(resourceTwo.getFilename()));
+		assertThat(resourceOne.getFilename()).isEqualTo("objectOne");
+		assertThat(resourceTwo.getFilename()).isEqualTo("objectTwo");
+		assertThatNoException().isThrownBy(() -> resourceOne.getFilename().compareTo(resourceTwo.getFilename()));
 	}
 
 }
