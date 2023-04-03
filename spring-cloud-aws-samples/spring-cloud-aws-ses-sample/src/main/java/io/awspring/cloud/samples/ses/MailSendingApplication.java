@@ -133,7 +133,7 @@ public class MailSendingApplication {
 		sesClient.verifyEmailAddress(VerifyEmailAddressRequest.builder().emailAddress(SENDER).build());
 
 		// A JavaMailSender is needed. Spring Cloud AWS SES automatically configures a JavaMailSender when it finds
-		// the Java Mail API in the classpath. At runtime, an implementation of teh Java Mail API must also be
+		// the Java Mail API in the classpath. At runtime, an implementation of the Java Mail API must also be
 		// available.
 		JavaMailSender javaMailSender = (JavaMailSender) mailSender;
 		javaMailSender.send(mimeMessage -> {
