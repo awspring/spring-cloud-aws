@@ -43,7 +43,7 @@ class SnsSmsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:2.0.0")).withServices(SNS).withEnv("DEBUG", "1");
+			DockerImageName.parse("localstack/localstack:2.0.0")).withEnv("DEBUG", "1");
 
 	@BeforeAll
 	public static void createSnsTemplate() {
