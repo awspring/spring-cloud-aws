@@ -41,7 +41,7 @@ class S3PathMatchingResourcePatternResolverTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(LocalStackContainer.Service.S3)
+			DockerImageName.parse("localstack/localstack:2.0.0")).withServices(LocalStackContainer.Service.S3)
 					.withReuse(true);
 
 	private static ResourcePatternResolver resourceLoader;

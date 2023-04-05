@@ -51,11 +51,6 @@
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- AWS SDK v1 is required by testcontainers-localstack -->
-		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-core</artifactId>
-			<scope>test</scope>
-		</dependency>
+
 	</dependencies>
 </project>
