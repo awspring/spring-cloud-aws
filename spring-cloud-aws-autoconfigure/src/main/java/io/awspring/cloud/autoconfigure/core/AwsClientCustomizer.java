@@ -64,7 +64,7 @@ public interface AwsClientCustomizer<T> {
 	static <V extends AwsClientBuilder<?, ?>> void apply(AwsClientCustomizer<V> configurer, V builder) {
 		if (configurer.overrideConfigurationBuilder() != null) {
 			applyUserAgent(configurer.overrideConfigurationBuilder());
-			builder.overrideConfiguration();
+			builder.overrideConfiguration(configurer.overrideConfigurationBuilder().build());
 		} else if(configurer.overrideConfiguration() != null) {
 			builder.overrideConfiguration(configurer.overrideConfiguration());
 		} else {

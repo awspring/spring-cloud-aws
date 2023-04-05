@@ -113,6 +113,18 @@ class SnsAutoConfigurationTest {
 	}
 
 	@Test
+	void customSnsClientConfigurerBuilder() {
+		this.contextRunner.withUserConfiguration(CustomAwsClientConfigBuilder.class).run(context -> {
+			SnsClient snsClient = context.getBean(SnsClient.class);
+
+			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
+				ReflectionTestUtils.getField(snsClient, "clientConfiguration"), "attributes"), "attributes");
+			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(1999));
+			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
+		});
+	}
+
+	@Test
 	void doesNotConfigureArgumentResolversWhenSpringWebNotOnTheClasspath() {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(WebMvcConfigurer.class)).run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
@@ -168,6 +180,31 @@ class SnsAutoConfigurationTest {
 			@Nullable
 			public ClientOverrideConfiguration overrideConfiguration() {
 				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1999)).build();
+			}
+
+			@Override
+			@Nullable
+			public SdkHttpClient httpClient() {
+				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
+			}
+		}
+	}
+
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomAwsClientConfigBuilder {
+
+		@Bean
+		AwsClientCustomizer<SnsClientBuilder> snsClientBuilderAwsClientConfigurer() {
+			return new CustomAwsClientConfigBuilder.SnsAwsClientConfigurerBuilder();
+		}
+
+		static class SnsAwsClientConfigurerBuilder implements AwsClientCustomizer<SnsClientBuilder> {
+
+			@Override
+			@Nullable
+			public ClientOverrideConfiguration.Builder overrideConfigurationBuilder() {
+				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1999));
 			}
 
 			@Override
