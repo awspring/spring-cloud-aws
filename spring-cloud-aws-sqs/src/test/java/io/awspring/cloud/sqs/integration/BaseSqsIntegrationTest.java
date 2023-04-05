@@ -50,8 +50,7 @@ abstract class BaseSqsIntegrationTest {
 
 	private static final String LOCAL_STACK_VERSION = "localstack/localstack:2.0.0";
 
-	static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse(LOCAL_STACK_VERSION))
-			.withServices(SQS);
+	static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse(LOCAL_STACK_VERSION));
 
 	static StaticCredentialsProvider credentialsProvider;
 
