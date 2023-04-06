@@ -41,7 +41,7 @@ class TopicsListingTopicArnResolverTest {
 
 	/**
 	 * SNS topic ARN should be resolved by full topic name rather by just a substring. i.e. "topic1" should not be
-	 * resolved to arn:aws:sns:eu-west-1:123456789012:topic11 but rather to arn:aws:sns:eu-west-1:123456789012:topic11
+	 * resolved to arn:aws:sns:eu-west-1:123456789012:topic11 but rather to arn:aws:sns:eu-west-1:123456789012:topic1
 	 */
 	@Test
 	void shouldResolveArnBasedOnTopicName() {
