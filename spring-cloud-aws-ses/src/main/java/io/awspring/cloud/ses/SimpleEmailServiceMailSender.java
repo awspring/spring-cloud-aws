@@ -20,6 +20,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.lang.Nullable;
 import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.MailSender;
@@ -50,8 +51,16 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 
 	private final SesClient sesClient;
 
+	@Nullable
+	private final String sourceArn;
+
 	public SimpleEmailServiceMailSender(SesClient sesClient) {
+		this(sesClient, null);
+	}
+
+	public SimpleEmailServiceMailSender(SesClient sesClient, @Nullable String sourceArn) {
 		this.sesClient = sesClient;
+		this.sourceArn = sourceArn;
 	}
 
 	@Override
@@ -94,6 +103,11 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 		return this.sesClient;
 	}
 
+	@Nullable
+	protected String getSourceArn() {
+		return sourceArn;
+	}
+
 	private SendEmailRequest prepareMessage(SimpleMailMessage simpleMailMessage) {
 		Assert.notNull(simpleMailMessage, "simpleMailMessage are required");
 		Destination.Builder destinationBuilder = Destination.builder();
@@ -112,7 +126,8 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 		Message message = Message.builder().body(body).subject(subject).build();
 
 		SendEmailRequest.Builder emailRequestBuilder = SendEmailRequest.builder()
-				.destination(destinationBuilder.build()).source(simpleMailMessage.getFrom()).message(message);
+				.destination(destinationBuilder.build()).source(simpleMailMessage.getFrom()).sourceArn(getSourceArn())
+				.message(message);
 
 		if (StringUtils.hasText(simpleMailMessage.getReplyTo())) {
 			emailRequestBuilder.replyToAddresses(simpleMailMessage.getReplyTo());
