@@ -26,15 +26,18 @@ public interface AwsCredentialsProvider {
 }
 ----
 
-There are 3 ways in which the `AwsCredentialsProvider` in Spring Cloud AWS could be configured:
+There are 3 ways in which the `AwsCredentialsProvider` in Spring Cloud AWS can be configured:
 
-1. DefaultCredentialsProvider
-2. StsWebIdentityTokenFileCredentialsProvider - Recommended for EKS
-3. Custom AwsCredentialsProvider
+1. `DefaultCredentialsProvider`
+2. `StsWebIdentityTokenFileCredentialsProvider` - recommended for EKS
+3. Custom `AwsCredentialsProvider`
 
 If you are having problems with configuring credentials, consider enabling debug logging for more info:
 
-`logging.level.io.awspring.cloud=debug`
+[source,properties]
+----
+logging.level.io.awspring.cloud=debug
+----
 
 ==== DefaultCredentialsProvider
 
@@ -92,11 +95,8 @@ The `StsWebIdentityTokenFileCredentialsProvider` support is optional, so you nee
 <dependency>
 	<groupId>software.amazon.awssdk</groupId>
 	<artifactId>sts</artifactId>
-	<optional>true</optional>
 </dependency>
 ----
-
-Also, you will need to enable STS AutoConfiguration by specifying `spring.cloud.aws.credentials.sts.enabled:true`.
 
 ===== Configuring
 In EKS no additional configuration is required as the service account already configures the correct environment variables; however, they can be overridden.

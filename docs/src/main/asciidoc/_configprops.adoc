@@ -7,6 +7,11 @@
 |spring.cloud.aws.credentials.instance-profile | `+++false+++` | Configures an instance profile credentials provider with no further configuration.
 |spring.cloud.aws.credentials.profile |  | The AWS profile.
 |spring.cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
+|spring.cloud.aws.credentials.sts.async-credentials-update |  | 
+|spring.cloud.aws.credentials.sts.enabled | `+++false+++` | Enables {@link StsCredentialsProviderAutoConfiguration}.
+|spring.cloud.aws.credentials.sts.role-arn |  | The Amazon Resource Name (ARN) of the IAM role that is associated with the Sts. If not provided this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+|spring.cloud.aws.credentials.sts.role-session-name |  | Sets the role session name that should be used by this credentials provider. By default this is read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+|spring.cloud.aws.credentials.sts.web-identity-token-file |  | Sets the absolute path to the web identity token file that should be used by this credentials provider. By default this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 |spring.cloud.aws.defaults-mode |  | Sets the {@link DefaultsMode} that will be used to determine how certain default configuration options are resolved in the SDK. <a href= "https://aws.amazon.com/blogs/developer/introducing-smart-configuration-defaults-in-the-aws-sdk-for-java-v2/">Introducing Smart Configuration Defaults in the AWS SDK for Java v2</a>
 |spring.cloud.aws.dualstack-enabled |  | Configure whether the SDK should use the AWS dualstack endpoint.
 |spring.cloud.aws.dynamodb.dax.cluster-update-interval-millis |  | Interval between polling of cluster members for membership changes.
