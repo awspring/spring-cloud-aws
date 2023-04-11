@@ -338,6 +338,12 @@ public class DynamoDbTemplateIntegrationTest {
 						.writeCapacityUnits((long) 1).build())
 				.attributeDefinitions(attributeDefinitions).keySchema(tableKeySchema)
 				.globalSecondaryIndexes(precipIndex).build();
-		dynamoDbClient.createTable(createTableRequest);
+
+		try {
+			dynamoDbClient.createTable(createTableRequest);
+		}
+		catch (ResourceInUseException e) {
+			// table already exists, do nothing
+		}
 	}
 }
