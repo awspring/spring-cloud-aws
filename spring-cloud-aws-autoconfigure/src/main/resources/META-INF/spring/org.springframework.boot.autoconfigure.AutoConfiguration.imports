@@ -1,6 +1,5 @@
 io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration
 io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
-io.awspring.cloud.autoconfigure.core.StsCredentialsProviderAutoConfiguration
 io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration
 io.awspring.cloud.autoconfigure.metrics.CloudWatchExportAutoConfiguration
 io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration

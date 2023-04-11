@@ -39,9 +39,8 @@ import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentia
 
 class CredentialsProviderAutoConfigurationTests {
 
-	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(CredentialsProviderAutoConfiguration.class,
-					RegionProviderAutoConfiguration.class, StsCredentialsProviderAutoConfiguration.class));
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner().withConfiguration(
+			AutoConfigurations.of(CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class));
 
 	@TempDir
 	static Path tokenTempDir;

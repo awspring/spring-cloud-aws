@@ -20,12 +20,6 @@
 		},
 		{
 			"defaultValue": true,
-			"name": "spring.cloud.aws.credentials.sts.enabled",
-			"description": "Enables STS credentials provider autoconfiguration.",
-			"type": "java.lang.Boolean"
-		},
-		{
-			"defaultValue": true,
 			"name": "spring.cloud.aws.dynamodb.enabled",
 			"description": "Enables DynamoDb integration.",
 			"type": "java.lang.Boolean"
