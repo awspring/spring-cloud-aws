@@ -66,10 +66,11 @@ import software.amazon.awssdk.services.ssm.model.ParameterType;
 class ParameterStoreConfigDataLoaderIntegrationTests {
 
 	private static final String REGION = "us-east-1";
+	private static final String NEW_LINE_CHAR = System.lineSeparator();
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(SSM).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.0.0")).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() {
@@ -116,8 +117,10 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			assertThat(e).isInstanceOf(ParameterStoreKeysMissingException.class);
 			// ensure that failure analyzer catches the exception and provides meaningful
 			// error message
-			assertThat(output.getOut())
-					.contains("Description:\n" + "\n" + "Could not import properties from AWS Parameter Store");
+			// Ensure that new line character should be platform independent
+			String errorMessage = "Description:%1$s%1$sCould not import properties from AWS Parameter Store"
+					.formatted(NEW_LINE_CHAR);
+			assertThat(output.getOut()).contains(errorMessage);
 		}
 	}
 

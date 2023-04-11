@@ -58,9 +58,39 @@ class SqsHeaderMapperTests {
 		String headerName = "stringAttribute";
 		String headerValue = "myString";
 		Message message = Message.builder().body("payload")
+			.messageAttributes(
+				Map.of(headerName,
+					MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
+						.stringValue(headerValue).build()))
+			.messageId(UUID.randomUUID().toString()).build();
+		MessageHeaders headers = mapper.toHeaders(message);
+		assertThat(headers.get(headerName)).isEqualTo(headerValue);
+	}
+
+	@Test
+	void shouldAddStringCustomMessageAttributes() {
+		SqsHeaderMapper mapper = new SqsHeaderMapper();
+		String headerName = "stringAttribute";
+		String headerValue = "myString";
+		Message message = Message.builder().body("payload")
+			.messageAttributes(
+				Map.of(headerName,
+					MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING + ".Array")
+						.stringValue(headerValue).build()))
+			.messageId(UUID.randomUUID().toString()).build();
+		MessageHeaders headers = mapper.toHeaders(message);
+		assertThat(headers.get(headerName)).isEqualTo(headerValue);
+	}
+
+	@Test
+	void shouldDefaultToStringIfDataTypeUnknownMessageAttributes() {
+		SqsHeaderMapper mapper = new SqsHeaderMapper();
+		String headerName = "stringAttribute";
+		String headerValue = "myString";
+		Message message = Message.builder().body("payload")
 				.messageAttributes(
 						Map.of(headerName,
-								MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
+								MessageAttributeValue.builder().dataType("invalid data type")
 										.stringValue(headerValue).build()))
 				.messageId(UUID.randomUUID().toString()).build();
 		MessageHeaders headers = mapper.toHeaders(message);
@@ -73,9 +103,24 @@ class SqsHeaderMapperTests {
 		String headerName = "stringAttribute";
 		SdkBytes headerValue = SdkBytes.fromUtf8String("myString");
 		Message message = Message.builder().body("payload")
+			.messageAttributes(
+				Map.of(headerName,
+					MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.BINARY)
+						.binaryValue(headerValue).build()))
+			.messageId(UUID.randomUUID().toString()).build();
+		MessageHeaders headers = mapper.toHeaders(message);
+		assertThat(headers.get(headerName)).isEqualTo(headerValue);
+	}
+
+	@Test
+	void shouldAddBinaryCustomMessageAttributes() {
+		SqsHeaderMapper mapper = new SqsHeaderMapper();
+		String headerName = "stringAttribute";
+		SdkBytes headerValue = SdkBytes.fromUtf8String("myString");
+		Message message = Message.builder().body("payload")
 				.messageAttributes(
 						Map.of(headerName,
-								MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.BINARY)
+								MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.BINARY + ".protobuf")
 										.binaryValue(headerValue).build()))
 				.messageId(UUID.randomUUID().toString()).build();
 		MessageHeaders headers = mapper.toHeaders(message);

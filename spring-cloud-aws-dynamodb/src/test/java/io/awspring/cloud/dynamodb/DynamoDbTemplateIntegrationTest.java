@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -38,17 +42,25 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
+/**
+ * Tests for {@link DynamoDbTemplate}.
+ *
+ * @author Matej Nedic
+ * @author Arun Patra
+ */
 @Testcontainers
 public class DynamoDbTemplateIntegrationTest {
 
 	private static DynamoDbTable<PersonEntity> dynamoDbTable;
+	private static DynamoDbTable<PersonEntity> prefixedDynamoDbTable;
 	private static DynamoDbTemplate dynamoDbTemplate;
+	private static DynamoDbTemplate prefixedDynamoDbTemplate;
 	private static final String indexName = "gsiPersonEntityTable";
 	private static final String nameOfGSPK = "gsPk";
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(DYNAMODB).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.0.0")).withServices(DYNAMODB).withReuse(true);
 
 	@BeforeAll
 	public static void createTable() {
@@ -58,14 +70,22 @@ public class DynamoDbTemplateIntegrationTest {
 						.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())))
 				.build();
 		DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
+
 		dynamoDbTemplate = new DynamoDbTemplate(enhancedClient);
 		dynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build().table("person_entity",
 				TableSchema.fromBean(PersonEntity.class));
-		describeAndCreateTable(dynamoDbClient);
+		describeAndCreateTable(dynamoDbClient, null);
+
+		prefixedDynamoDbTemplate = new DynamoDbTemplate("my_prefix_", enhancedClient);
+		prefixedDynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build()
+				.table("my_prefix_person_entity", TableSchema.fromBean(PersonEntity.class));
+		describeAndCreateTable(dynamoDbClient, "my_prefix_");
 	}
 
-	@Test
-	void dynamoDbTemplate_saveAndRead_entitySuccessful() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_saveAndRead_entitySuccessful(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
@@ -73,18 +93,22 @@ public class DynamoDbTemplateIntegrationTest {
 				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
 		assertThat(personEntity1).isEqualTo(personEntity);
 
-		cleanUp(personEntity.getUuid());
+		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
 
-	@Test
-	void dynamoDbTemplate_read_entitySuccessful_returnsNull() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_read_entitySuccessful_returnsNull(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity1 = dynamoDbTemplate
 				.load(Key.builder().partitionValue(UUID.randomUUID().toString()).build(), PersonEntity.class);
 		assertThat(personEntity1).isNull();
 	}
 
-	@Test
-	void dynamoDbTemplate_saveUpdateAndRead_entitySuccessful() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_saveUpdateAndRead_entitySuccessful(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
@@ -96,11 +120,13 @@ public class DynamoDbTemplateIntegrationTest {
 		assertThat(personEntity1).isEqualTo(personEntity);
 
 		// clean up
-		cleanUp(personEntity.getUuid());
+		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
 
-	@Test
-	void dynamoDbTemplate_saveAndDelete_entitySuccessful() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_saveAndDelete_entitySuccessful(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
@@ -108,11 +134,13 @@ public class DynamoDbTemplateIntegrationTest {
 		PersonEntity personEntity1 = dynamoDbTemplate
 				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
 		assertThat(personEntity1).isEqualTo(null);
-		cleanUp(personEntity.getUuid());
+		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
 
-	@Test
-	void dynamoDbTemplate_saveAndDelete_entitySuccessful_forKey() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_saveAndDelete_entitySuccessful_forKey(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
@@ -122,16 +150,20 @@ public class DynamoDbTemplateIntegrationTest {
 		PersonEntity personEntity1 = dynamoDbTemplate
 				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
 		assertThat(personEntity1).isEqualTo(null);
-		cleanUp(personEntity.getUuid());
+		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
 
-	@Test
-	void dynamoDbTemplate_delete_entitySuccessful_forNotEntityInTable() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_delete_entitySuccessful_forNotEntityInTable(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		dynamoDbTemplate.delete(Key.builder().partitionValue(UUID.randomUUID().toString()).build(), PersonEntity.class);
 	}
 
-	@Test
-	void dynamoDbTemplate_queryIndex_returns_singlePagePerson() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_queryIndex_returns_singlePagePerson(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withGpk1("thisIsMyKey").withUuid(UUID.randomUUID()).build();
 		dynamoDbTemplate.save(personEntity);
@@ -147,11 +179,13 @@ public class DynamoDbTemplateIntegrationTest {
 		assertThat(persons.items().stream()).hasSize(1);
 		// page size
 		assertThat(persons.stream()).hasSize(1);
-		cleanUp(personEntity.getUuid());
+		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
 
-	@Test
-	void dynamoDbTemplate_query_returns_singlePagePerson() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_query_returns_singlePagePerson(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
@@ -164,11 +198,13 @@ public class DynamoDbTemplateIntegrationTest {
 		assertThat(persons.items().stream()).hasSize(1);
 		// page size
 		assertThat(persons.stream()).hasSize(1);
-		cleanUp(personEntity.getUuid());
+		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
 
-	@Test
-	void dynamoDbTemplate_query_returns_empty() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_query_returns_empty(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder()
 				.queryConditional(
 						QueryConditional.keyEqualTo(Key.builder().partitionValue(UUID.randomUUID().toString()).build()))
@@ -181,19 +217,23 @@ public class DynamoDbTemplateIntegrationTest {
 		assertThat(persons.stream()).hasSize(1);
 	}
 
-	@Test
-	void dynamoDbTemplate_saveAndScanAll_entitySuccessful() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_saveAndScanAll_entitySuccessful(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
 		assertThat(persons.items().iterator().next()).isEqualTo(personEntity);
 
-		cleanUp(personEntity.getUuid());
+		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
 
-	@Test
-	void dynamoDbTemplate_saveAndScanAll_index_entitySuccessful() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_saveAndScanAll_index_entitySuccessful(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withGpk1("partition_key").withUuid(UUID.randomUUID()).build();
 		dynamoDbTemplate.save(personEntity);
@@ -201,29 +241,35 @@ public class DynamoDbTemplateIntegrationTest {
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class, indexName);
 		assertThat(persons.items().iterator().next()).isEqualTo(personEntity);
 
-		cleanUp(personEntity.getUuid());
+		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
 
-	@Test
-	void dynamoDbTemplate_scanAll_returnsEmpty() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_scanAll_returnsEmpty(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
 		assertThat(persons.items().stream()).isEmpty();
 	}
 
-	@Test
-	void dynamoDbTemplate_saveAndScanAllReturnsMultiplePersons_entitySuccessful() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_saveAndScanAllReturnsMultiplePersons_entitySuccessful(
+			DynamoDbTable<PersonEntity> dynamoDbTable, DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity1 = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		PersonEntity personEntity2 = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity1);
 		dynamoDbTemplate.save(personEntity2);
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scanAll(PersonEntity.class);
 		assertThat(persons.items().stream()).hasSize(2);
-		cleanUp(personEntity1.getUuid());
-		cleanUp(personEntity2.getUuid());
+		cleanUp(dynamoDbTable, personEntity1.getUuid());
+		cleanUp(dynamoDbTable, personEntity2.getUuid());
 	}
 
-	@Test
-	void dynamoDbTemplate_saveAndScanForParticular_entitySuccessful() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_saveAndScanForParticular_entitySuccessful(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity1 = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		PersonEntity personEntity2 = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity1);
@@ -237,12 +283,14 @@ public class DynamoDbTemplateIntegrationTest {
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scan(scanEnhancedRequest, PersonEntity.class);
 		assertThat(persons.items().stream()).hasSize(1);
 		assertThat(persons.items().iterator().next()).isEqualTo(personEntity1);
-		cleanUp(personEntity1.getUuid());
-		cleanUp(personEntity2.getUuid());
+		cleanUp(dynamoDbTable, personEntity1.getUuid());
+		cleanUp(dynamoDbTable, personEntity2.getUuid());
 	}
 
-	@Test
-	void dynamoDbTemplate_saveAndScanForParticularIndex_entitySuccessful() {
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_saveAndScanForParticularIndex_entitySuccessful(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity1 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
 				.withGpk1("my_random_key").withUuid(UUID.randomUUID()).build();
 		PersonEntity personEntity2 = PersonEntity.Builder.person().withName("foo").withLastName("bar")
@@ -257,15 +305,20 @@ public class DynamoDbTemplateIntegrationTest {
 		PageIterable<PersonEntity> persons = dynamoDbTemplate.scan(scanEnhancedRequest, PersonEntity.class, indexName);
 		assertThat(persons.items().stream()).hasSize(1);
 		assertThat(persons.items().iterator().next()).isEqualTo(personEntity1);
-		cleanUp(personEntity1.getUuid());
-		cleanUp(personEntity2.getUuid());
+		cleanUp(dynamoDbTable, personEntity1.getUuid());
+		cleanUp(dynamoDbTable, personEntity2.getUuid());
 	}
 
-	public static void cleanUp(UUID uuid) {
+	public static void cleanUp(DynamoDbTable<PersonEntity> dynamoDbTable, UUID uuid) {
 		dynamoDbTable.deleteItem(Key.builder().partitionValue(uuid.toString()).build());
 	}
 
-	private static void describeAndCreateTable(DynamoDbClient dynamoDbClient) {
+	private static java.util.stream.Stream<Arguments> argumentSource() {
+		return java.util.stream.Stream.of(Arguments.of(dynamoDbTable, dynamoDbTemplate),
+				Arguments.of(prefixedDynamoDbTable, prefixedDynamoDbTemplate));
+	}
+
+	private static void describeAndCreateTable(DynamoDbClient dynamoDbClient, @Nullable String tablePrefix) {
 		ArrayList<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
 		attributeDefinitions.add(AttributeDefinition.builder().attributeName("uuid").attributeType("S").build());
 		attributeDefinitions.add(AttributeDefinition.builder().attributeName(nameOfGSPK).attributeType("S").build());
@@ -279,8 +332,8 @@ public class DynamoDbTemplateIntegrationTest {
 						.writeCapacityUnits((long) 1).build())
 				.projection(Projection.builder().projectionType(ProjectionType.ALL).build()).keySchema(indexKeySchema)
 				.build();
-
-		CreateTableRequest createTableRequest = CreateTableRequest.builder().tableName("person_entity")
+		String tableName = StringUtils.hasText(tablePrefix) ? tablePrefix.concat("person_entity") : "person_entity";
+		CreateTableRequest createTableRequest = CreateTableRequest.builder().tableName(tableName)
 				.provisionedThroughput(ProvisionedThroughput.builder().readCapacityUnits((long) 10)
 						.writeCapacityUnits((long) 1).build())
 				.attributeDefinitions(attributeDefinitions).keySchema(tableKeySchema)

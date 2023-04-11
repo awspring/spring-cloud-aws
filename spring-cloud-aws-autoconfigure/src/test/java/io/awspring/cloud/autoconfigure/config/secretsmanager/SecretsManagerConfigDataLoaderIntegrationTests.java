@@ -72,10 +72,11 @@ import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentia
 class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	private static final String REGION = "us-east-1";
+	private static final String NEW_LINE_CHAR = System.lineSeparator();
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(SECRETSMANAGER).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.0.0")).withReuse(true);
 
 	@TempDir
 	static Path tokenTempDir;
@@ -196,8 +197,10 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			assertThat(e).isInstanceOf(SecretsManagerKeysMissingException.class);
 			// ensure that failure analyzer catches the exception and provides meaningful
 			// error message
-			assertThat(output.getOut())
-					.contains("Description:\n" + "\n" + "Could not import properties from AWS Secrets Manager");
+			// Ensure that new line character should be platform independent
+			String errorMessage = "Description:%1$s%1$sCould not import properties from AWS Secrets Manager"
+					.formatted(NEW_LINE_CHAR);
+			assertThat(output.getOut()).contains(errorMessage);
 		}
 	}
 
