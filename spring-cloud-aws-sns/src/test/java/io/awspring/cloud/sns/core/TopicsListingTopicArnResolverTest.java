@@ -17,27 +17,20 @@ package io.awspring.cloud.sns.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ListTopicsResponse;
 import software.amazon.awssdk.services.sns.model.Topic;
 
-@ExtendWith(MockitoExtension.class)
 class TopicsListingTopicArnResolverTest {
-	@Mock
-	private SnsClient snsClient;
+	private final SnsClient snsClient = mock(SnsClient.class);
 
-	@InjectMocks
-	private TopicsListingTopicArnResolver resolver;
+	private final TopicsListingTopicArnResolver resolver = new TopicsListingTopicArnResolver(snsClient);
 
 	/**
 	 * SNS topic ARN should be resolved by full topic name rather by just a substring. i.e. "topic1" should not be
@@ -45,23 +38,19 @@ class TopicsListingTopicArnResolverTest {
 	 */
 	@Test
 	void shouldResolveArnBasedOnTopicName() {
-		// given
 		given(snsClient.listTopics()).willReturn(aResponseContainingArnsForTopicNames("topic11", "topic1"));
 
-		// when
 		Arn arn = resolver.resolveTopicArn("topic1");
 
-		// then
 		assertThat(arn.toString()).isEqualTo("arn:aws:sns:eu-west-1:123456789012:topic1");
 	}
 
 	private ListTopicsResponse aResponseContainingArnsForTopicNames(String... topicNames) {
-
 		return ListTopicsResponse.builder().topics(stubTopics(topicNames)).build();
 	}
 
 	private List<Topic> stubTopics(String... topicNames) {
-		return Arrays.stream(topicNames).map(name -> createTopic(name)).collect(Collectors.toList());
+		return Arrays.stream(topicNames).map(this::createTopic).toList();
 	}
 
 	private Topic createTopic(String name) {
