@@ -27,32 +27,27 @@ import org.springframework.lang.Nullable;
 public class StsProperties {
 
 	/**
-	 * Enables {@link StsCredentialsProviderAutoConfiguration}.
-	 */
-	private boolean enabled = false;
-
-	/**
-	 * The Amazon Resource Name (ARN) of the IAM role that is associated with the Sts. If not provided this will be read
+	 * ARN of IAM role associated with STS. If not provided this will be read
 	 * from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 	 */
 	@Nullable
 	private String roleArn;
 
 	/**
-	 * Sets the absolute path to the web identity token file that should be used by this credentials provider. By
+	 * Absolute path to the web identity token file that will be used by credentials provider. By
 	 * default this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 	 */
 	@Nullable
 	private String webIdentityTokenFile;
 
 	/**
-	 * Configure whether the provider should fetch credentials asynchronously in the background. Defaults to synchronous
+	 * Enables provider to asynchronously fetch credentials in the background. Defaults to synchronous
 	 * blocking if not specified otherwise.
 	 */
 	private boolean isAsyncCredentialsUpdate = false;
 
 	/**
-	 * Sets the role session name that should be used by this credentials provider. By default this is read from
+	 * Role session name that will be used by credentials provider. By default this is read from
 	 * {@link software.amazon.awssdk.core.SdkSystemSetting}.
 	 */
 	@Nullable
@@ -91,13 +86,5 @@ public class StsProperties {
 
 	public void setRoleSessionName(@Nullable String roleSessionName) {
 		this.roleSessionName = roleSessionName;
-	}
-
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
 	}
 }

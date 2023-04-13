@@ -98,6 +98,18 @@ The `StsWebIdentityTokenFileCredentialsProvider` support is optional, so you nee
 </dependency>
 ----
 
+STS credentials configuration supports following properties:
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.credentials.roleArn` | ARN of IAM role associated with STS. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.credentials.webIdentityTokenFile` | Absolute path to the web identity token file that will be used by credentials provider. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.credentials.isAsyncCredentialsUpdate` | Enables provider to asynchronously fetch credentials in the background. | No | `false`
+| `spring.cloud.aws.credentials.roleSessionName` | Role session name that will be used by credentials provider. | No | `null` (falls back to SDK default)
+|===
+
+
 ===== Configuring
 In EKS no additional configuration is required as the service account already configures the correct environment variables; however, they can be overridden.
 
