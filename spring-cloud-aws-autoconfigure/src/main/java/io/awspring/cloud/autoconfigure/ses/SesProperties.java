@@ -33,6 +33,9 @@ public class SesProperties extends AwsClientProperties {
 	 */
 	public static final String PREFIX = "spring.cloud.aws.ses";
 
+	/**
+	 * Configures source ARN. Used only for sending authorization.
+	 */
 	@Nullable
 	private String sourceArn;
 
