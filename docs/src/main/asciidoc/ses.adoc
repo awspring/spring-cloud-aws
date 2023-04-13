@@ -141,9 +141,8 @@ service will produce an error while using the mail service. Therefore, the regio
 sender configuration. The example below shows a typical combination of a region (`EU-CENTRAL-1`) that does not provide
 an SES service where the client is overridden to use a valid region (`EU-WEST-1`).
 
-`sourceArn` is the ARN of the identity that is associated with the sending authorization policy that permits you to send
-for the email address specified in the Source parameter. For information about when to use this parameter, see the
-description of SendRawEmail in this guide, or see the https://docs.aws.amazon.com/ses/latest/dg/sending-authorization-delegate-sender-tasks-email.html[Amazon SES Developer Guide].
+`sourceArn` is the ARN of the identity that is associated with the sending authorization policy. For information about when to use this parameter, see the
+description see https://docs.aws.amazon.com/ses/latest/dg/sending-authorization-delegate-sender-tasks-email.html[Amazon SES Developer Guide].
 
 [source,properties,indent=0]
 ----
