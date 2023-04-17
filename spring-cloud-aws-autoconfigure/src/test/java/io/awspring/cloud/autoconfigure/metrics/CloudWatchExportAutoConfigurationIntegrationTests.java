@@ -55,7 +55,7 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:2.0.0"));
+			DockerImageName.parse("localstack/localstack:1.4.0"));
 
 	@DynamicPropertySource
 	static void registerProperties(DynamicPropertyRegistry registry) {
