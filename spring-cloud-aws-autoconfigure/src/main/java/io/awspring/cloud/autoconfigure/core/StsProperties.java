@@ -27,22 +27,22 @@ import org.springframework.lang.Nullable;
 public class StsProperties {
 
 	/**
-	 * ARN of IAM role associated with STS. If not provided this will be read
-	 * from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+	 * ARN of IAM role associated with STS. If not provided this will be read from
+	 * {@link software.amazon.awssdk.core.SdkSystemSetting}.
 	 */
 	@Nullable
 	private String roleArn;
 
 	/**
-	 * Absolute path to the web identity token file that will be used by credentials provider. By
-	 * default this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+	 * Absolute path to the web identity token file that will be used by credentials provider. By default this will be
+	 * read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 	 */
 	@Nullable
 	private String webIdentityTokenFile;
 
 	/**
-	 * Enables provider to asynchronously fetch credentials in the background. Defaults to synchronous
-	 * blocking if not specified otherwise.
+	 * Enables provider to asynchronously fetch credentials in the background. Defaults to synchronous blocking if not
+	 * specified otherwise.
 	 */
 	private boolean isAsyncCredentialsUpdate = false;
 

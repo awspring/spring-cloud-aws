@@ -4,14 +4,13 @@
 |spring.cloud.aws.cloudwatch.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.cloudwatch.region |  | Overrides the default region.
 |spring.cloud.aws.credentials.access-key |  | The access key to be used with a static provider.
-|spring.cloud.aws.credentials.instance-profile | `+++false+++` | Configures an instance profile credentials provider with no further configuration.
+|spring.cloud.aws.credentials.instance-profile |  | Configures an instance profile credentials provider with no further configuration.
 |spring.cloud.aws.credentials.profile |  | The AWS profile.
 |spring.cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
 |spring.cloud.aws.credentials.sts.async-credentials-update |  | 
-|spring.cloud.aws.credentials.sts.enabled | `+++false+++` | Enables {@link StsCredentialsProviderAutoConfiguration}.
-|spring.cloud.aws.credentials.sts.role-arn |  | The Amazon Resource Name (ARN) of the IAM role that is associated with the Sts. If not provided this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
-|spring.cloud.aws.credentials.sts.role-session-name |  | Sets the role session name that should be used by this credentials provider. By default this is read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
-|spring.cloud.aws.credentials.sts.web-identity-token-file |  | Sets the absolute path to the web identity token file that should be used by this credentials provider. By default this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+|spring.cloud.aws.credentials.sts.role-arn |  | ARN of IAM role associated with STS. If not provided this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+|spring.cloud.aws.credentials.sts.role-session-name |  | Role session name that will be used by credentials provider. By default this is read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+|spring.cloud.aws.credentials.sts.web-identity-token-file |  | Absolute path to the web identity token file that will be used by credentials provider. By default this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 |spring.cloud.aws.defaults-mode |  | Sets the {@link DefaultsMode} that will be used to determine how certain default configuration options are resolved in the SDK. <a href= "https://aws.amazon.com/blogs/developer/introducing-smart-configuration-defaults-in-the-aws-sdk-for-java-v2/">Introducing Smart Configuration Defaults in the AWS SDK for Java v2</a>
 |spring.cloud.aws.dualstack-enabled |  | Configure whether the SDK should use the AWS dualstack endpoint.
 |spring.cloud.aws.dynamodb.dax.cluster-update-interval-millis |  | Interval between polling of cluster members for membership changes.
@@ -34,10 +33,10 @@
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
 |spring.cloud.aws.parameterstore.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.parameterstore.region |  | Overrides the default region.
-|spring.cloud.aws.parameterstore.reload.max-wait-for-restart | `+++2s+++` | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
-|spring.cloud.aws.parameterstore.reload.period | `+++1m+++` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
+|spring.cloud.aws.parameterstore.reload.max-wait-for-restart |  | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
+|spring.cloud.aws.parameterstore.reload.period |  | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
 |spring.cloud.aws.parameterstore.reload.strategy |  | Reload strategy to run when properties change.
-|spring.cloud.aws.region.instance-profile | `+++false+++` | Configures an instance profile region provider with no further configuration.
+|spring.cloud.aws.region.instance-profile |  | Configures an instance profile region provider with no further configuration.
 |spring.cloud.aws.region.profile |  | The AWS profile.
 |spring.cloud.aws.region.static |  | 
 |spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
@@ -56,8 +55,8 @@
 |spring.cloud.aws.s3.use-arn-region-enabled |  | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown.
 |spring.cloud.aws.secretsmanager.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.secretsmanager.region |  | Overrides the default region.
-|spring.cloud.aws.secretsmanager.reload.max-wait-for-restart | `+++2s+++` | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
-|spring.cloud.aws.secretsmanager.reload.period | `+++1m+++` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
+|spring.cloud.aws.secretsmanager.reload.max-wait-for-restart |  | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
+|spring.cloud.aws.secretsmanager.reload.period |  | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
 |spring.cloud.aws.secretsmanager.reload.strategy |  | Reload strategy to run when properties change.
 |spring.cloud.aws.ses.enabled | `+++true+++` | Enables Simple Email Service integration.
 |spring.cloud.aws.ses.endpoint |  | Overrides the default endpoint.
