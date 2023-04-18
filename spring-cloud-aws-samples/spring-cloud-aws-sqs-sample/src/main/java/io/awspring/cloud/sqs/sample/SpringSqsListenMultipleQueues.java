@@ -21,10 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.UUID;
 
+@Configuration
 public class SpringSqsListenMultipleQueues {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpringSqsListenMultipleQueues.class);
