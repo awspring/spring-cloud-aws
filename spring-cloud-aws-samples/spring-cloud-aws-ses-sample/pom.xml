@@ -17,6 +17,18 @@
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-starter-ses</artifactId>
 		</dependency>
+		<!-- This is needed only if you wish to send HTML emails or emails with attachments. This is the Java Mail API
+		-->
+		<dependency>
+			<groupId>jakarta.mail</groupId>
+			<artifactId>jakarta.mail-api</artifactId>
+		</dependency>
+		<!-- This is needed only if you wish to send HTML emails or emails with attachments. This is an implementation
+		of the Java Mail API-->
+		<dependency>
+			<groupId>org.eclipse.angus</groupId>
+			<artifactId>jakarta.mail</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

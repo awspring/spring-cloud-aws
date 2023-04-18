@@ -45,7 +45,8 @@ class SimpleEmailServiceMailSenderTest {
 	@Test
 	void testSendSimpleMailWithMinimalProperties() {
 		SesClient emailService = mock(SesClient.class);
-		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService,
+				"arn:aws:ses:us-east-1:00000000:identity/domain.com");
 
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
 
@@ -63,6 +64,7 @@ class SimpleEmailServiceMailSenderTest {
 		assertThat(sendEmailRequest.message().body().text().data()).isEqualTo(simpleMailMessage.getText());
 		assertThat(sendEmailRequest.destination().ccAddresses().size()).isEqualTo(0);
 		assertThat(sendEmailRequest.destination().bccAddresses().size()).isEqualTo(0);
+		assertThat(sendEmailRequest.sourceArn()).isEqualTo("arn:aws:ses:us-east-1:00000000:identity/domain.com");
 	}
 
 	@Test

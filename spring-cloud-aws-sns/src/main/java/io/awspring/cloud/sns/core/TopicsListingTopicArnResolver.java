@@ -71,7 +71,7 @@ public class TopicsListingTopicArnResolver implements TopicArnResolver {
 
 	private Arn checkIfArnIsInList(String topicName, ListTopicsResponse listTopicsResponse) {
 		Optional<String> arn = listTopicsResponse.topics().stream().map(Topic::topicArn)
-				.filter(ta -> ta.contains(topicName)).findFirst();
+				.filter(ta -> ta.endsWith(":" + topicName)).findFirst();
 		if (arn.isPresent()) {
 			return Arn.fromString(arn.get());
 		}

@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  ses-sample-localstack:
+    container_name: localstack
+    environment:
+      - DEBUG=1
+      - LOCALSTACK_HOSTNAME=localhost
+      - TEST_AWS_ACCOUNT_ID=000000000000
+      - AWS_DEFAULT_REGION=us-east-1
+      - SERVICES=ses
+      - S3_MOUNT=/tmp
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
