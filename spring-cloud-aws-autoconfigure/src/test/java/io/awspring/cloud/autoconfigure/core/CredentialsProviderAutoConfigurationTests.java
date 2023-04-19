@@ -120,9 +120,7 @@ class CredentialsProviderAutoConfigurationTests {
 		File tempFile = tokenTempDir.resolve("token-file.txt").toFile();
 		tempFile.createNewFile();
 
-		this.contextRunner
-				.withPropertyValues("spring.cloud.aws.region.static:af-south-1",
-						"spring.cloud.aws.credentials.sts.enabled:true")
+		this.contextRunner.withPropertyValues("spring.cloud.aws.region.static:af-south-1")
 				.withSystemProperties("aws.roleArn=develop", "aws.webIdentityTokenFile=" + tempFile.getAbsolutePath())
 				.run((context) -> {
 					AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
