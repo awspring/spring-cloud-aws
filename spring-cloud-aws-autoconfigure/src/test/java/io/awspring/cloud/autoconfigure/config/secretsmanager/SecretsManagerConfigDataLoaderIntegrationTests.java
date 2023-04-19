@@ -25,15 +25,18 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
@@ -49,6 +52,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -56,6 +60,7 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
 
 /**
  * Integration tests for loading configuration properties from AWS Secrets Manager.
@@ -72,6 +77,9 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:1.4.0")).withReuse(true);
+
+	@TempDir
+	static Path tokenTempDir;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -271,6 +279,25 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+			assertThat(context.getBean(AwsCredentialsProvider.class)).isInstanceOf(StaticCredentialsProvider.class);
+		}
+	}
+
+	@Test
+	void secretsManagerClientUsesStsCredentials() throws IOException {
+		File tempFile = tokenTempDir.resolve("token-file.txt").toFile();
+		tempFile.createNewFile();
+		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=optional:aws-secretsmanager:/config/spring;/config/second",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--spring.cloud.aws.region.static=" + REGION, "--spring.cloud.aws.credentials.sts.role-arn=develop",
+				"--spring.cloud.aws.credentials.sts.enabled=true",
+				"--spring.cloud.aws.credentials.sts.web-identity-token-file=" + tempFile.getAbsolutePath())) {
+			assertThat(context.getBean(AwsCredentialsProvider.class))
+					.isInstanceOf(StsWebIdentityTokenFileCredentialsProvider.class);
 		}
 	}
 

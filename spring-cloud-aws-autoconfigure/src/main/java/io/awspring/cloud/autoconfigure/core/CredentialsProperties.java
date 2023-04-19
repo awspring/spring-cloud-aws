@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.core;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.lang.Nullable;
 
 /**
@@ -55,6 +56,14 @@ public class CredentialsProperties {
 	@Nullable
 	private Profile profile;
 
+	/**
+	 * Properties used to configure STS
+	 * {@link software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider}.
+	 */
+	@NestedConfigurationProperty
+	@Nullable
+	private StsProperties sts;
+
 	@Nullable
 	public String getAccessKey() {
 		return this.accessKey;
@@ -90,4 +99,12 @@ public class CredentialsProperties {
 		this.profile = profile;
 	}
 
+	@Nullable
+	public StsProperties getSts() {
+		return sts;
+	}
+
+	public void setSts(@Nullable StsProperties sts) {
+		this.sts = sts;
+	}
 }
