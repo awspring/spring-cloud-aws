@@ -39,8 +39,10 @@ import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentia
 
 class CredentialsProviderAutoConfigurationTests {
 
-	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner().withConfiguration(
-			AutoConfigurations.of(CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class));
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withConfiguration(AutoConfigurations.of(CredentialsProviderAutoConfiguration.class,
+					RegionProviderAutoConfiguration.class))
+			.withPropertyValues("spring.cloud.aws.region.static=eu-west-1");
 
 	@TempDir
 	static Path tokenTempDir;
