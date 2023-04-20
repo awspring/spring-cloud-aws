@@ -17,14 +17,13 @@ package io.awspring.cloud.sqs.sample;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.services.sqs.model.Message;
-
-import java.util.UUID;
 
 @Configuration
 public class SpringSqsListenMultipleQueues {
@@ -45,7 +44,7 @@ public class SpringSqsListenMultipleQueues {
 			sqsTemplate.sendAsync(ORDER_QUEUE, new OrderMessage(UUID.randomUUID(), "john@awsspringcloud.com"));
 
 			sqsTemplate.sendAsync(WITHDRAWAL_QUEUE,
-				new WithdrawalMessage(UUID.randomUUID(), "Mary", "mary@awsspringcloud.com"));
+					new WithdrawalMessage(UUID.randomUUID(), "Mary", "mary@awsspringcloud.com"));
 		};
 	}
 
