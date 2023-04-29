@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.sqs;
 
+import org.springframework.lang.Nullable;
+
 /**
  * A {@link Thread} implementation for processing messages.
  * @author Tomaz Fernandes
@@ -30,7 +32,7 @@ public class MessageExecutionThread extends Thread {
 	 * @param runnable see {@link Thread} javadoc.
 	 * @param nextThreadName see {@link Thread} javadoc.
 	 */
-	public MessageExecutionThread(ThreadGroup threadGroup, Runnable runnable, String nextThreadName) {
+	public MessageExecutionThread(@Nullable ThreadGroup threadGroup, Runnable runnable, String nextThreadName) {
 		super(threadGroup, runnable, nextThreadName);
 	}
 

@@ -29,6 +29,21 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
  */
 public class MessageExecutionThreadFactory extends CustomizableThreadFactory {
 
+	/**
+	 * Create a new MessageExecutionThreadFactory with default thread name prefix.
+	 */
+	public MessageExecutionThreadFactory() {
+		super();
+	}
+
+	/**
+	 * Create a new MessageExecutionThreadFactory with the given thread name prefix.
+	 * @param threadNamePrefix the prefix to use for the names of newly created threads
+	 */
+	public MessageExecutionThreadFactory(String threadNamePrefix) {
+		super(threadNamePrefix);
+	}
+
 	@Override
 	public Thread createThread(Runnable runnable) {
 		MessageExecutionThread thread = new MessageExecutionThread(getThreadGroup(), runnable, nextThreadName());
