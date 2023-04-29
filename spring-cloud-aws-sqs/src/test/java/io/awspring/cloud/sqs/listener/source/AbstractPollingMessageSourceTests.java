@@ -37,6 +37,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -53,9 +54,8 @@ class AbstractPollingMessageSourceTests {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractPollingMessageSourceTests.class);
 
-	// @RepeatedTest(400)
 	@Test
-	void shouldAcquireAndReleaseFullPermits() throws Exception {
+	void shouldAcquireAndReleaseFullPermits() {
 		String testName = "shouldAcquireAndReleaseFullPermits";
 
 		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
@@ -73,36 +73,47 @@ class AbstractPollingMessageSourceTests {
 
 			@Override
 			protected CompletableFuture<Collection<Message>> doPollForMessages(int messagesToRequest) {
-				doSleep(100);
-				// Since BackPressureMode.ALWAYS_POLL_MAX_MESSAGES, should always be 10.
-				assertThat(messagesToRequest).isEqualTo(10);
-				assertAvailablePermits(backPressureHandler, 0);
-				boolean firstPoll = hasReceived.compareAndSet(false, true);
-				if (firstPoll) {
-					// No permits released yet, should be TM low
-					assertThroughputMode(backPressureHandler, "low");
-				}
-				else if (hasMadeSecondPoll.compareAndSet(false, true)) {
-					// Permits returned, should be high
-					assertThroughputMode(backPressureHandler, "high");
-				}
-				else {
-					// Already returned full permits, should be low
-					assertThroughputMode(backPressureHandler, "low");
-				}
-				return CompletableFuture
-						.supplyAsync(() -> firstPoll
+				return CompletableFuture.supplyAsync(() -> {
+					try {
+						// Since BackPressureMode.ALWAYS_POLL_MAX_MESSAGES, should always be 10.
+						assertThat(messagesToRequest).isEqualTo(10);
+						assertAvailablePermits(backPressureHandler, 0);
+						boolean firstPoll = hasReceived.compareAndSet(false, true);
+						if (firstPoll) {
+							logger.debug("First poll");
+							// No permits released yet, should be TM low
+							assertThroughputMode(backPressureHandler, "low");
+						}
+						else if (hasMadeSecondPoll.compareAndSet(false, true)) {
+							logger.debug("Second poll");
+							// Permits returned, should be high
+							assertThroughputMode(backPressureHandler, "high");
+						}
+						else {
+							logger.debug("Third poll");
+							// Already returned full permits, should be low
+							assertThroughputMode(backPressureHandler, "low");
+						}
+						return firstPoll
 								? (Collection<Message>) List.of(Message.builder()
 										.messageId(UUID.randomUUID().toString()).body("message").build())
-								: Collections.<Message> emptyList(), threadPool)
-						.whenComplete((v, t) -> pollingCounter.countDown());
+								: Collections.<Message> emptyList();
+					}
+					catch (Throwable t) {
+						logger.error("Error", t);
+						throw new RuntimeException(t);
+					}
+				}, threadPool).whenComplete((v, t) -> {
+					if (t == null) {
+						pollingCounter.countDown();
+					}
+				});
 			}
 		};
 
 		source.setBackPressureHandler(backPressureHandler);
 		source.setMessageSink((msgs, context) -> {
 			assertAvailablePermits(backPressureHandler, 9);
-			doSleep(500); // Longer than acquire timout + polling sleep
 			msgs.forEach(msg -> context.runBackPressureReleaseCallback());
 			return CompletableFuture.runAsync(processingCounter::countDown);
 		});
@@ -112,20 +123,23 @@ class AbstractPollingMessageSourceTests {
 		source.setTaskExecutor(createTaskExecutor(testName));
 		source.setAcknowledgementProcessor(getAcknowledgementProcessor());
 		source.start();
-		assertThat(pollingCounter.await(2, TimeUnit.SECONDS)).isTrue();
-		assertThat(processingCounter.await(2, TimeUnit.SECONDS)).isTrue();
+		assertThat(doAwait(pollingCounter)).isTrue();
+		assertThat(doAwait(processingCounter)).isTrue();
 	}
 
-	// @RepeatedTest(400)
+	private static final AtomicInteger testCounter = new AtomicInteger();
+
 	@Test
-	void shouldAcquireAndReleasePartialPermits() throws Exception {
+	void shouldAcquireAndReleasePartialPermits() {
 		String testName = "shouldAcquireAndReleasePartialPermits";
 		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
-				.acquireTimeout(Duration.ofMillis(200)).batchSize(10).totalPermits(10)
+				.acquireTimeout(Duration.ofMillis(150)).batchSize(10).totalPermits(10)
 				.throughputConfiguration(BackPressureMode.AUTO).build();
-		ExecutorService threadPool = Executors.newCachedThreadPool();
+		ExecutorService threadPool = Executors
+				.newCachedThreadPool(new MessageExecutionThreadFactory("test " + testCounter.incrementAndGet()));
 		CountDownLatch pollingCounter = new CountDownLatch(4);
 		CountDownLatch processingCounter = new CountDownLatch(1);
+		CountDownLatch processingLatch = new CountDownLatch(1);
 		AtomicBoolean hasThrownError = new AtomicBoolean(false);
 
 		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
@@ -138,44 +152,45 @@ class AbstractPollingMessageSourceTests {
 
 			@Override
 			protected CompletableFuture<Collection<Message>> doPollForMessages(int messagesToRequest) {
-				try {
-					// Give it some time between returning empty and polling again
-					doSleep(100);
+				return CompletableFuture.supplyAsync(() -> {
+					try {
+						// Give it some time between returning empty and polling again
+						// doSleep(100);
 
-					// Will only be true the first time it sets hasReceived to true
-					boolean shouldReturnMessage = hasReceived.compareAndSet(false, true);
-					if (shouldReturnMessage) {
-						// First poll, should have 10
-						logger.debug("First poll - should request 10 messages");
-						assertThat(messagesToRequest).isEqualTo(10);
-						assertAvailablePermits(backPressureHandler, 0);
-						// No permits have been released yet
-						assertThroughputMode(backPressureHandler, "low");
-					}
-					else if (hasAcquired9.compareAndSet(false, true)) {
-						// Second poll, should have 9
-						logger.debug("Second poll - should request 9 messages");
-						assertThat(messagesToRequest).isEqualTo(9);
-						assertAvailablePermitsLessThanOrEqualTo(backPressureHandler, 1);
-						// Has released 9 permits, should be TM HIGH
-						assertThroughputMode(backPressureHandler, "high");
-					}
-					else {
-						boolean thirdPoll = hasMadeThirdPoll.compareAndSet(false, true);
-						// Third poll or later, should have 10 again
-						logger.debug("Third poll - should request 10 messages");
-						assertThat(messagesToRequest).isEqualTo(10);
-						assertAvailablePermits(backPressureHandler, 0);
-						if (thirdPoll) {
-							// Hasn't yet returned a full batch, should be TM High
-							assertThroughputMode(backPressureHandler, "high");
-						}
-						else {
-							// Has returned all permits in third poll
+						// Will only be true the first time it sets hasReceived to true
+						boolean shouldReturnMessage = hasReceived.compareAndSet(false, true);
+						if (shouldReturnMessage) {
+							// First poll, should have 10
+							logger.debug("First poll - should request 10 messages");
+							assertThat(messagesToRequest).isEqualTo(10);
+							assertAvailablePermits(backPressureHandler, 0);
+							// No permits have been released yet
 							assertThroughputMode(backPressureHandler, "low");
 						}
-					}
-					return CompletableFuture.supplyAsync(() -> {
+						else if (hasAcquired9.compareAndSet(false, true)) {
+							// Second poll, should have 9
+							logger.debug("Second poll - should request 9 messages");
+							assertThat(messagesToRequest).isEqualTo(9);
+							assertAvailablePermitsLessThanOrEqualTo(backPressureHandler, 1);
+							// Has released 9 permits, should be TM HIGH
+							assertThroughputMode(backPressureHandler, "high");
+							processingLatch.countDown(); // Release processing now
+						}
+						else {
+							boolean thirdPoll = hasMadeThirdPoll.compareAndSet(false, true);
+							// Third poll or later, should have 10 again
+							logger.debug("Third poll - should request 10 messages");
+							assertThat(messagesToRequest).isEqualTo(10);
+							assertAvailablePermits(backPressureHandler, 0);
+							if (thirdPoll) {
+								// Hasn't yet returned a full batch, should be TM High
+								assertThroughputMode(backPressureHandler, "high");
+							}
+							else {
+								// Has returned all permits in third poll
+								assertThroughputMode(backPressureHandler, "low");
+							}
+						}
 						if (shouldReturnMessage) {
 							logger.debug("shouldReturnMessage, returning one message");
 							return (Collection<Message>) List.of(
@@ -183,19 +198,21 @@ class AbstractPollingMessageSourceTests {
 						}
 						logger.debug("should not return message, returning empty list");
 						return Collections.<Message> emptyList();
-					}, threadPool).whenComplete((v, t) -> pollingCounter.countDown());
-				}
-				catch (Error e) {
-					hasThrownError.set(true);
-					return CompletableFuture.failedFuture(new RuntimeException(e));
-				}
+					}
+					catch (Error e) {
+						hasThrownError.set(true);
+						throw new RuntimeException("Error polling for messages", e);
+					}
+				}, threadPool).whenComplete((v, t) -> pollingCounter.countDown());
 			}
 		};
 
 		source.setBackPressureHandler(backPressureHandler);
 		source.setMessageSink((msgs, context) -> {
+			logger.debug("Processing {} messages", msgs.size());
 			assertAvailablePermits(backPressureHandler, 9);
-			doSleep(500); // Longer than acquire timout + polling sleep
+			assertThat(doAwait(processingLatch)).isTrue();
+			logger.debug("Finished processing {} messages", msgs.size());
 			msgs.forEach(msg -> context.runBackPressureReleaseCallback());
 			return CompletableFuture.completedFuture(null).thenRun(processingCounter::countDown);
 		});
@@ -204,10 +221,20 @@ class AbstractPollingMessageSourceTests {
 		source.setTaskExecutor(createTaskExecutor(testName));
 		source.setAcknowledgementProcessor(getAcknowledgementProcessor());
 		source.start();
-		assertThat(processingCounter.await(2, TimeUnit.SECONDS)).isTrue();
-		assertThat(pollingCounter.await(2, TimeUnit.SECONDS)).isTrue();
+		assertThat(doAwait(processingCounter)).isTrue();
+		assertThat(doAwait(pollingCounter)).isTrue();
 		source.stop();
 		assertThat(hasThrownError.get()).isFalse();
+	}
+
+	private static boolean doAwait(CountDownLatch processingLatch) {
+		try {
+			return processingLatch.await(4, TimeUnit.SECONDS);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException("Interrupted while waiting for latch", e);
+		}
 	}
 
 	private void assertThroughputMode(SemaphoreBackPressureHandler backPressureHandler, String expectedThroughputMode) {
@@ -243,7 +270,6 @@ class AbstractPollingMessageSourceTests {
 		int poolSize = 10;
 		executor.setMaxPoolSize(poolSize);
 		executor.setCorePoolSize(10);
-		// Necessary due to a small racing condition between releasing the permit and releasing the thread.
 		executor.setQueueCapacity(poolSize);
 		executor.setAllowCoreThreadTimeOut(true);
 		executor.setThreadFactory(createThreadFactory(testName));
