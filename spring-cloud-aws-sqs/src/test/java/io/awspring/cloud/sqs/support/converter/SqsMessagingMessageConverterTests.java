@@ -29,6 +29,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
@@ -112,6 +113,26 @@ class SqsMessagingMessageConverterTests {
 		converter.setPayloadTypeMapper(msg -> MyPojo.class);
 		org.springframework.messaging.Message<?> resultMessage = converter.toMessagingMessage(message);
 		assertThat(resultMessage.getPayload()).isEqualTo(myPojo);
+	}
+
+	@Test
+	void shouldUseHeadersFromPayloadConverter() {
+		MessageConverter payloadConverter = mock(MessageConverter.class);
+		org.springframework.messaging.Message convertedMessageWithContentType = MessageBuilder.withPayload("example")
+				.setHeader("contentType", "application/json").build();
+		when(payloadConverter.toMessage(any(MyPojo.class), any())).thenReturn(convertedMessageWithContentType);
+
+		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		converter.setPayloadMessageConverter(payloadConverter);
+		converter.setPayloadTypeMapper(msg -> MyPojo.class);
+
+		org.springframework.messaging.Message<MyPojo> message = MessageBuilder.createMessage(new MyPojo(),
+				new MessageHeaders(null));
+		Message resultMessage = converter.fromMessagingMessage(message);
+
+		assertThat(resultMessage.messageId()).isEqualTo(message.getHeaders().getId().toString());
+		assertThat(resultMessage.messageAttributes()).containsEntry("contentType",
+				MessageAttributeValue.builder().stringValue("application/json").dataType("String").build());
 	}
 
 	static class MyPojo {
