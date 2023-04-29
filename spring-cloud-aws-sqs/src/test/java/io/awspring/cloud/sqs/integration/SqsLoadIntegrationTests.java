@@ -18,7 +18,6 @@ package io.awspring.cloud.sqs.integration;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
@@ -88,9 +87,6 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Autowired
 	SqsTemplate sqsTemplate;
-
-	@Autowired
-	ObjectMapper objectMapper;
 
 	@Autowired
 	Settings settings;
@@ -202,11 +198,11 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		if (!settings.sendMessages) {
 			return;
 		}
-		Collection<Message<String>> messages = getMessages();
+		Collection<Message<Object>> messages = getMessages();
 		doSendMessageBatch(queueName, messages);
 	}
 
-	private void doSendMessageBatch(String queueName, Collection<Message<String>> messages) {
+	private void doSendMessageBatch(String queueName, Collection<Message<Object>> messages) {
 		sqsTemplate.sendManyAsync(queueName, messages).thenRun(this::logSend).exceptionally(t -> {
 			logger.error("Error sending messages - retrying", t);
 			doSendMessageBatch(queueName, messages);
@@ -221,22 +217,16 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
-	private Collection<Message<String>> getMessages() {
+	private Collection<Message<Object>> getMessages() {
 		return IntStream.range(0, Math.min(settings.totalMessages / 2, 10)).mapToObj(index -> {
-			Message<String> message = MessageBuilder.withPayload(getBody()).build();
+			Message<Object> message = MessageBuilder.withPayload(getBody()).build();
 			logger.trace("Sending message with id {}", message.getHeaders().get("id"));
 			return message;
 		}).collect(Collectors.toList());
 	}
 
-	private String getBody() {
-		try {
-			return this.objectMapper.writeValueAsString(
-					new MyPojo("MyPojo - " + bodyInteger.incrementAndGet(), "MyPojo - secondValue"));
-		}
-		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
+	private Object getBody() {
+		return new MyPojo("MyPojo - " + bodyInteger.incrementAndGet(), "MyPojo - secondValue");
 	}
 
 	static class MessageContainer {
@@ -266,7 +256,7 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 
 		@SqsListener(queueNames = { RECEIVE_FROM_MANY_1_QUEUE_NAME,
 				RECEIVE_FROM_MANY_2_QUEUE_NAME }, factory = HIGH_THROUGHPUT_FACTORY_NAME, id = "many-from-two-queues")
-		void listen(Message<String> message) throws Exception {
+		void listen(Message<MyPojo> message) throws Exception {
 			logger.trace("Started processing {}", MessageHeaderUtils.getId(message));
 			if (this.messageContainer.receivedByListener.contains(MessageHeaderUtils.getId(message))) {
 				logger.warn("Received duplicated message: {}", message);

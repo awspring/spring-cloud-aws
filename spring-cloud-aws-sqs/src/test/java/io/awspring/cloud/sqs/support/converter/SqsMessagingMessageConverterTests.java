@@ -119,7 +119,7 @@ class SqsMessagingMessageConverterTests {
 	void shouldUseHeadersFromPayloadConverter() {
 		MessageConverter payloadConverter = mock(MessageConverter.class);
 		org.springframework.messaging.Message convertedMessageWithContentType = MessageBuilder.withPayload("example")
-			.setHeader("contentType", "application/json").build();
+				.setHeader("contentType", "application/json").build();
 		when(payloadConverter.toMessage(any(MyPojo.class), any())).thenReturn(convertedMessageWithContentType);
 
 		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
@@ -127,9 +127,10 @@ class SqsMessagingMessageConverterTests {
 		converter.setPayloadTypeMapper(msg -> MyPojo.class);
 
 		org.springframework.messaging.Message<MyPojo> message = MessageBuilder.createMessage(new MyPojo(),
-			new MessageHeaders(null));
+				new MessageHeaders(null));
 		Message resultMessage = converter.fromMessagingMessage(message);
 
+		assertThat(resultMessage.messageId()).isEqualTo(message.getHeaders().getId().toString());
 		assertThat(resultMessage.messageAttributes()).containsEntry("contentType",
 				MessageAttributeValue.builder().stringValue("application/json").dataType("String").build());
 	}
