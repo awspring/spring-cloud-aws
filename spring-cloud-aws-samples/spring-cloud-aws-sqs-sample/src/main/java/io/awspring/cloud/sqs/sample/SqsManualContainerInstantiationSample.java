@@ -49,7 +49,7 @@ public class SqsManualContainerInstantiationSample {
 	}
 
 	@Bean
-	public SqsTemplate sqsOperations(SqsAsyncClient sqsAsyncClient) {
+	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient) {
 		return SqsTemplate.builder()
 			.sqsAsyncClient(sqsAsyncClient)
 			.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
