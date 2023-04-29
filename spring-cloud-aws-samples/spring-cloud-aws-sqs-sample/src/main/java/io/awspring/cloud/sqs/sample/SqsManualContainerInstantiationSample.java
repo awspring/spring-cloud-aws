@@ -33,21 +33,19 @@ import java.util.Collection;
 import java.util.UUID;
 
 @Configuration
-public class SpringSQSManualAck {
+public class SqsManualContainerInstantiationSample {
+
 
 	public static final String NEW_USER_QUEUE = "new-user-queue";
 
-	// Change to 'true' if you want to not ack.
-	private static final Boolean ACK = false;
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(SpringSQSManualAck.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SqsManualContainerInstantiationSample.class);
 
 	@Bean
 	public ApplicationRunner sendMessageToQueue(SqsTemplate sqsTemplate) {
 		LOGGER.info("Sending message");
-		return args -> sqsTemplate.sendAsync(to -> to.queue(NEW_USER_QUEUE)
+		return args -> sqsTemplate.send(to -> to.queue(NEW_USER_QUEUE)
 			.payload(new User(UUID.randomUUID(), "John"))
-		).thenAccept(result -> LOGGER.info("Message sent"));
+		);
 	}
 
 	@Bean
@@ -63,11 +61,7 @@ public class SpringSQSManualAck {
 		SqsMessageListenerContainer<User> container = new SqsMessageListenerContainer<>(sqsAsyncClient);
 		container.setMessageListener((message) -> {
 			LOGGER.info("Received message {}", message);
-			if (ACK) {
-				Acknowledgement.acknowledge(message);
-			} else {
-				throw new IllegalArgumentException("Ack is not allowed");
-			}
+			Acknowledgement.acknowledge(message);
 		});
 		container.setQueueNames(NEW_USER_QUEUE);
 		container.setAcknowledgementResultCallback(new AckResultCallback());
@@ -77,17 +71,15 @@ public class SpringSQSManualAck {
 		return container;
 	}
 
-	class AckResultCallback implements AcknowledgementResultCallback<User> {
+	static class AckResultCallback implements AcknowledgementResultCallback<User> {
 		@Override
 		public void onSuccess(Collection<Message<User>> messages) {
 			LOGGER.info("Ack with success");
-			AcknowledgementResultCallback.super.onSuccess(messages);
 		}
 
 		@Override
 		public void onFailure(Collection<Message<User>> messages, Throwable t) {
 			LOGGER.error("Ack with fail", t);
-			AcknowledgementResultCallback.super.onFailure(messages, t);
 		}
 	}
 
