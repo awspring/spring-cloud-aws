@@ -41,7 +41,7 @@ public class SqsManualContainerInstantiationSample {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SqsManualContainerInstantiationSample.class);
 
 	@Bean
-	public ApplicationRunner sendMessageToQueue(SqsTemplate sqsTemplate) {
+	public ApplicationRunner sendMessageToQueueManualContainerInstantiation(SqsTemplate sqsTemplate) {
 		LOGGER.info("Sending message");
 		return args -> sqsTemplate.send(to -> to.queue(NEW_USER_QUEUE)
 			.payload(new User(UUID.randomUUID(), "John"))
@@ -49,7 +49,7 @@ public class SqsManualContainerInstantiationSample {
 	}
 
 	@Bean
-	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient) {
+	public SqsTemplate sqsTemplateManualContainerInstantiation(SqsAsyncClient sqsAsyncClient) {
 		return SqsTemplate.builder()
 			.sqsAsyncClient(sqsAsyncClient)
 			.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
