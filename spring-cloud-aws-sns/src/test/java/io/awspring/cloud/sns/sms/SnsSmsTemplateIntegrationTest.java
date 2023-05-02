@@ -43,7 +43,7 @@ class SnsSmsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SNS).withEnv("DEBUG", "1");
+			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(SNS).withEnv("DEBUG", "1");
 
 	@BeforeAll
 	public static void createSnsTemplate() {
@@ -56,26 +56,23 @@ class SnsSmsTemplateIntegrationTest {
 
 	@Test
 	void sendValidMessage_ToPhoneNumber() {
-		Assertions
-				.assertDoesNotThrow(() -> snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!"));
+		Assertions.assertDoesNotThrow(() -> snsSmsTemplate.send("+385000000000", "Spring Cloud AWS got you covered!"));
 
 		await().untilAsserted(() -> {
 			String logs = localstack.getLogs(OutputFrame.OutputType.STDOUT, OutputFrame.OutputType.STDERR);
-			assertThat(logs)
-					.contains("Publishing message to TopicArn: None | Message: Spring Cloud AWS got you covered!");
+			assertThat(logs).contains("Delivering SMS message to +385000000000: Spring Cloud AWS got you covered!");
 		});
 	}
 
 	@Test
 	void sendValidMessage_ToPhoneNumber_WithAttributes() {
 		Assertions.assertDoesNotThrow(
-				() -> snsSmsTemplate.send("+385 00 000 0000", "Spring Cloud AWS got you covered!", SmsMessageAttributes
+				() -> snsSmsTemplate.send("+385000000000", "Spring Cloud AWS got you covered!", SmsMessageAttributes
 						.builder().smsType(SmsType.PROMOTIONAL).senderID("AWSPRING").maxPrice("1.00").build()));
 
 		await().untilAsserted(() -> {
 			String logs = localstack.getLogs(OutputFrame.OutputType.STDOUT, OutputFrame.OutputType.STDERR);
-			assertThat(logs)
-					.contains("Publishing message to TopicArn: None | Message: Spring Cloud AWS got you covered!");
+			assertThat(logs).contains("Delivering SMS message to +385000000000: Spring Cloud AWS got you covered!");
 		});
 	}
 

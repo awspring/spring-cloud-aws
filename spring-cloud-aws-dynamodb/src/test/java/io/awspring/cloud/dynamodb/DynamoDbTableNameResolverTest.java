@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,15 @@ import org.junit.jupiter.api.Test;
  * Tests for {@link DynamoDbTableNameResolver}.
  *
  * @author Matej Nedic
+ * @author Arun Patra
  */
 class DynamoDbTableNameResolverTest {
 
-	private static final DefaultDynamoDbTableNameResolver tableNameResolver = new DefaultDynamoDbTableNameResolver();
+	private static final DefaultDynamoDbTableNameResolver tableNameResolver = new DefaultDynamoDbTableNameResolver(
+			null);
+
+	private static final DefaultDynamoDbTableNameResolver prefixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
+			"my_prefix_");
 
 	@Test
 	void resolveTableNameSuccessfully() {
@@ -35,8 +40,20 @@ class DynamoDbTableNameResolverTest {
 	}
 
 	@Test
+	void resolvePrefixedTableNameSuccessfully() {
+		assertThat(prefixedTableNameResolver.resolve(MoreComplexPerson.class))
+				.isEqualTo("my_prefix_more_complex_person");
+		assertThat(prefixedTableNameResolver.resolve(Person.class)).isEqualTo("my_prefix_person");
+	}
+
+	@Test
 	void resolvesTableNameFromRecord() {
 		assertThat(tableNameResolver.resolve(PersonRecord.class)).isEqualTo("person_record");
+	}
+
+	@Test
+	void resolvesPrefixedTableNameFromRecord() {
+		assertThat(prefixedTableNameResolver.resolve(PersonRecord.class)).isEqualTo("my_prefix_person_record");
 	}
 
 	record PersonRecord(String name) {

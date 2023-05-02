@@ -90,7 +90,12 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 		doConfigure(containerOptions);
 	}
 
-	protected abstract void doConfigure(ContainerOptions<?, ?> containerOptions);
+	/**
+	 * Override to configure subclasses.
+	 * @param containerOptions the {@link ContainerOptions} for this source.
+	 */
+	protected void doConfigure(ContainerOptions<?, ?> containerOptions) {
+	}
 
 	@Override
 	public void setId(String id) {
@@ -226,7 +231,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 	protected abstract CompletableFuture<Collection<S>> doPollForMessages(int messagesToRequest);
 
 	public Collection<S> releaseUnusedPermits(int permits, Collection<S> msgs) {
-		if (msgs.isEmpty()) {
+		if (msgs.isEmpty() && permits == this.backPressureHandler.getBatchSize()) {
 			this.backPressureHandler.releaseBatch();
 			logger.trace("Released batch of unused permits for queue {}", this.pollingEndpointName);
 		}

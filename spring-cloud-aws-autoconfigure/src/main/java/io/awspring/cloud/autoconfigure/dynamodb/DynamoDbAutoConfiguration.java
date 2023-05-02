@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import software.amazon.dax.ClusterDaxClient;
  * {@link EnableAutoConfiguration Auto-configuration} for DynamoDB integration.
  *
  * @author Matej Nedic
+ * @author Arun Patra
  * @since 3.0.0
  */
 @AutoConfiguration
@@ -116,12 +117,14 @@ public class DynamoDbAutoConfiguration {
 
 	@ConditionalOnMissingBean(DynamoDbOperations.class)
 	@Bean
-	public DynamoDbTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
-			Optional<DynamoDbTableSchemaResolver> tableSchemaResolver,
+	public DynamoDbTemplate dynamoDBTemplate(DynamoDbProperties properties,
+			DynamoDbEnhancedClient dynamoDbEnhancedClient, Optional<DynamoDbTableSchemaResolver> tableSchemaResolver,
 			Optional<DynamoDbTableNameResolver> tableNameResolver) {
 		DynamoDbTableSchemaResolver tableSchemaRes = tableSchemaResolver
 				.orElseGet(DefaultDynamoDbTableSchemaResolver::new);
-		DynamoDbTableNameResolver tableNameRes = tableNameResolver.orElseGet(DefaultDynamoDbTableNameResolver::new);
+
+		DynamoDbTableNameResolver tableNameRes = tableNameResolver
+				.orElseGet(() -> new DefaultDynamoDbTableNameResolver(properties.getTablePrefix()));
 		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaRes, tableNameRes);
 	}
 

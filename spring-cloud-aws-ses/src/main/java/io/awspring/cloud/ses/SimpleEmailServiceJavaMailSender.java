@@ -75,7 +75,11 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 	private FileTypeMap defaultFileTypeMap;
 
 	public SimpleEmailServiceJavaMailSender(SesClient sesClient) {
-		super(sesClient);
+		this(sesClient, null);
+	}
+
+	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn) {
+		super(sesClient, sourceArn);
 	}
 
 	/**
@@ -202,8 +206,8 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 			try {
 				RawMessage rawMessage = createRawMessage(mimeMessage);
 
-				SendRawEmailResponse sendRawEmailResponse = getEmailService()
-						.sendRawEmail(SendRawEmailRequest.builder().rawMessage(rawMessage).build());
+				SendRawEmailResponse sendRawEmailResponse = getEmailService().sendRawEmail(
+						SendRawEmailRequest.builder().sourceArn(getSourceArn()).rawMessage(rawMessage).build());
 
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Message with id: {} successfully sent", sendRawEmailResponse.messageId());

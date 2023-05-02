@@ -17,8 +17,11 @@ package io.awspring.cloud.autoconfigure.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -32,11 +35,17 @@ import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvide
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
 
 class CredentialsProviderAutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withConfiguration(AutoConfigurations.of(CredentialsProviderAutoConfiguration.class));
+			.withConfiguration(AutoConfigurations.of(CredentialsProviderAutoConfiguration.class,
+					RegionProviderAutoConfiguration.class))
+			.withPropertyValues("spring.cloud.aws.region.static=eu-west-1");
+
+	@TempDir
+	static Path tokenTempDir;
 
 	// @checkstyle:off
 	@Test
@@ -86,6 +95,40 @@ class CredentialsProviderAutoConfigurationTests {
 					assertThat(awsCredentialsProvider.resolveCredentials().accessKeyId()).isEqualTo("testAccessKey");
 					assertThat(awsCredentialsProvider.resolveCredentials().secretAccessKey())
 							.isEqualTo("testSecretKey");
+				});
+	}
+
+	@Test
+	void credentialsProvider_stsPropertiesConfigured_configuresStsWebIdentityTokenFileCredentialsProvider()
+			throws IOException {
+		File tempFile = tokenTempDir.resolve("token-file.txt").toFile();
+		tempFile.createNewFile();
+
+		this.contextRunner
+				.withPropertyValues("spring.cloud.aws.region.static:af-south-1",
+						"spring.cloud.aws.credentials.sts.role-arn:develop",
+						"spring.cloud.aws.credentials.sts.web-identity-token-file:" + tempFile.getAbsolutePath())
+				.run((context) -> {
+					AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
+							AwsCredentialsProvider.class);
+					assertThat(awsCredentialsProvider).isNotNull()
+							.isInstanceOf(StsWebIdentityTokenFileCredentialsProvider.class);
+				});
+	}
+
+	@Test
+	void credentialsProvider_stsSystemPropertiesDefault_configuresStsWebIdentityTokenFileCredentialsProvider()
+			throws IOException {
+		File tempFile = tokenTempDir.resolve("token-file.txt").toFile();
+		tempFile.createNewFile();
+
+		this.contextRunner.withPropertyValues("spring.cloud.aws.region.static:af-south-1")
+				.withSystemProperties("aws.roleArn=develop", "aws.webIdentityTokenFile=" + tempFile.getAbsolutePath())
+				.run((context) -> {
+					AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
+							AwsCredentialsProvider.class);
+					assertThat(awsCredentialsProvider).isNotNull()
+							.isInstanceOf(StsWebIdentityTokenFileCredentialsProvider.class);
 				});
 	}
 

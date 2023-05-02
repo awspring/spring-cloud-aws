@@ -205,13 +205,14 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	@Override
 	public S fromMessagingMessage(Message<?> message, @Nullable MessageConversionContext context) {
+		// We must make sure the message id stays consistent throughout this process
 		MessageHeaders headers = getMessageHeaders(message);
-		S messageWithHeaders = this.headerMapper.fromHeaders(headers);
-		Object payload = Objects
-				.requireNonNull(this.payloadMessageConverter.toMessage(message.getPayload(), message.getHeaders()),
-						() -> "payloadMessageConverter returned null message for message " + message)
-				.getPayload();
-		return doConvertMessage(messageWithHeaders, payload);
+		Message<?> convertedMessage = Objects.requireNonNull(
+				this.payloadMessageConverter.toMessage(message.getPayload(), message.getHeaders()),
+				() -> "payloadMessageConverter returned null message for message " + message);
+		MessageHeaders completeHeaders = MessageHeaderUtils.addHeadersIfAbsent(headers, convertedMessage.getHeaders());
+		S messageWithHeaders = this.headerMapper.fromHeaders(completeHeaders);
+		return doConvertMessage(messageWithHeaders, convertedMessage.getPayload());
 	}
 
 	private MessageHeaders getMessageHeaders(Message<?> message) {

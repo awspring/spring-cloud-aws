@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>io.awspring.cloud</groupId>
 		<artifactId>spring-cloud-aws</artifactId>
-		<version>3.0.0-SNAPSHOT</version>
+		<version>3.0.1-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>spring-cloud-aws-autoconfigure</artifactId>
@@ -21,20 +21,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-actuator-autoconfigure</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-commons</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-context</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-aop</artifactId>
 			<optional>true</optional>
 		</dependency>
 
@@ -170,18 +156,10 @@
 			<artifactId>spring-boot-starter-aop</artifactId>
 			<optional>true</optional>
 		</dependency>
-
-		<!-- AWS SDK v1 is required by testcontainers-localstack -->
-		<dependency>
-			<groupId>com.amazonaws</groupId>
-			<artifactId>aws-java-sdk-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>appconfig</artifactId>
-			<scope>test</scope>
+			<artifactId>sts</artifactId>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 </project>

@@ -149,7 +149,8 @@ class SimpleEmailServiceJavaMailSenderTest {
 	void testSendMimeMessage() throws MessagingException {
 		SesClient emailService = mock(SesClient.class);
 
-		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService,
+				"arn:aws:ses:us-east-1:00000001:identity/domain.com");
 
 		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
 		when(emailService.sendRawEmail(request.capture()))
@@ -158,6 +159,7 @@ class SimpleEmailServiceJavaMailSenderTest {
 		MimeMessage mimeMessage = createMimeMessage();
 		mailSender.send(mimeMessage);
 		assertThat(mimeMessage.getMessageID()).isEqualTo("123");
+		assertThat(request.getValue().sourceArn()).isEqualTo("arn:aws:ses:us-east-1:00000001:identity/domain.com");
 	}
 
 	@Test

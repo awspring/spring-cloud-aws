@@ -15,10 +15,11 @@
  */
 package io.awspring.cloud.autoconfigure.config;
 
+import static io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration.createCredentialsProvider;
+
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
-import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.regions.providers.AwsRegionProvider;
  *
  * @param <T> - the location type
  * @author Maciej Walkowiak
+ * @author Eduan Bekker
  * @since 3.0
  */
 public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigDataResource>
@@ -116,15 +118,6 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 
 	protected <T extends AwsClientBuilder<?, ?>> T configure(T builder, AwsClientProperties properties,
 			BootstrapContext context) {
-		AwsCredentialsProvider credentialsProvider;
-
-		try {
-			credentialsProvider = context.get(AwsCredentialsProvider.class);
-		}
-		catch (IllegalStateException e) {
-			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
-			credentialsProvider = CredentialsProviderAutoConfiguration.createCredentialsProvider(credentialsProperties);
-		}
 
 		AwsRegionProvider regionProvider;
 
@@ -134,6 +127,16 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 		catch (IllegalStateException e) {
 			RegionProperties regionProperties = context.get(RegionProperties.class);
 			regionProvider = RegionProviderAutoConfiguration.createRegionProvider(regionProperties);
+		}
+
+		AwsCredentialsProvider credentialsProvider;
+
+		try {
+			credentialsProvider = context.get(AwsCredentialsProvider.class);
+		}
+		catch (IllegalStateException e) {
+			CredentialsProperties credentialsProperties = context.get(CredentialsProperties.class);
+			credentialsProvider = createCredentialsProvider(credentialsProperties, regionProvider);
 		}
 
 		AwsProperties awsProperties = context.get(AwsProperties.class);

@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.ses;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.lang.Nullable;
 
 /**
  * Properties related to AWS Simple Email Service.
@@ -32,4 +33,18 @@ public class SesProperties extends AwsClientProperties {
 	 */
 	public static final String PREFIX = "spring.cloud.aws.ses";
 
+	/**
+	 * Configures source ARN. Used only for sending authorization.
+	 */
+	@Nullable
+	private String sourceArn;
+
+	@Nullable
+	public String getSourceArn() {
+		return sourceArn;
+	}
+
+	public void setSourceArn(@Nullable String sourceArn) {
+		this.sourceArn = sourceArn;
+	}
 }

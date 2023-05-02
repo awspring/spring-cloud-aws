@@ -171,6 +171,11 @@ public class S3Resource extends AbstractResource implements WritableResource {
 		return s3OutputStreamProvider.create(location.getBucket(), location.getObject(), objectMetadata);
 	}
 
+	@Override
+	public String getFilename() {
+		return this.location.getObject();
+	}
+
 	public Location getLocation() {
 		return location;
 	}

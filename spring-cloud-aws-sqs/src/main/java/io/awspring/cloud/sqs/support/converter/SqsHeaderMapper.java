@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
@@ -49,6 +50,7 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
  * @author Tomaz Fernandes
  * @author Alain Sahli
  * @author Maciej Walkowiak
+ *
  * @since 3.0
  * @see SqsMessagingMessageConverter
  */
@@ -71,11 +73,11 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		Map<MessageSystemAttributeName, String> attributes = new HashMap<>();
 		if (headers.containsKey(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER)) {
 			attributes.put(MessageSystemAttributeName.MESSAGE_GROUP_ID,
-					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER).toString());
+					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, String.class));
 		}
 		if (headers.containsKey(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER)) {
 			attributes.put(MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID,
-					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER).toString());
+					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, String.class));
 		}
 		Map<String, MessageAttributeValue> messageAttributes = headers.entrySet().stream()
 				.filter(entry -> !isSkipHeader(entry.getKey())).collect(Collectors.toMap(Map.Entry::getKey,
@@ -142,6 +144,7 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 
 	@Override
 	public MessageHeaders toHeaders(Message source) {
+		Assert.notNull(source.messageId(), "messageId must not be null");
 		logger.trace("Mapping headers for message {}", source.messageId());
 		MessageHeaderAccessor accessor = new MessageHeaderAccessor();
 		accessor.copyHeadersIfAbsent(getMessageSystemAttributesAsHeaders(source));
@@ -166,12 +169,28 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 	}
 
 	// @formatter:off
-	private Map<String, String> getMessageAttributesAsHeaders(Message source) {
+	private Map<String, Object> getMessageAttributesAsHeaders(Message source) {
 		return source
 			.messageAttributes()
 			.entrySet()
 			.stream()
-			.collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().stringValue()));
+			.collect(Collectors.toMap(Map.Entry::getKey, this::getValue));
+	}
+
+	private Object getValue(Map.Entry<String, MessageAttributeValue> entry) {
+		MessageAttributeValue value = entry.getValue();
+		String dataType = value.dataType();
+		Assert.notNull(dataType, "dataType must not be null");
+
+		if (dataType.contains(".")) {
+			dataType = dataType.substring(0, dataType.indexOf('.'));
+		}
+
+		return switch (dataType) {
+			case MessageAttributeDataTypes.NUMBER -> getNumberValue(value);
+			case MessageAttributeDataTypes.BINARY -> value.binaryValue();
+			default -> value.stringValue();
+		};
 	}
 
 	private Map<String, String> getMessageSystemAttributesAsHeaders(Message source) {
@@ -179,7 +198,8 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 			.attributes()
 			.entrySet()
 			.stream()
-			.collect(Collectors.toMap(entry -> SqsHeaders.MessageSystemAttributes.SQS_MSA_HEADER_PREFIX + entry.getKey(), Map.Entry::getValue));
+			.collect(Collectors.toMap(entry -> SqsHeaders.MessageSystemAttributes.SQS_MSA_HEADER_PREFIX + entry.getKey(),
+				Map.Entry::getValue));
 	}
 	// @formatter:on
 
@@ -214,6 +234,49 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 			MessageHeaderAccessor accessor) {
 		ConfigUtils.INSTANCE.acceptIfNotNull(sqsContext.getAcknowledgementCallback(),
 				callback -> accessor.setHeader(MessagingHeaders.ACKNOWLEDGMENT_CALLBACK_HEADER, callback));
+	}
+
+	private Object getNumberValue(String attributeValue, String attributeType) {
+		try {
+			return NumberParser.parseNumber(attributeValue, attributeType);
+		}
+		catch (ClassNotFoundException e) {
+			throw new MessagingException(
+					String.format(
+							"Message attribute with value '%s' and data type '%s' could not be converted "
+									+ "into a Number because target class was not found.",
+							attributeValue, attributeType),
+					e);
+		}
+	}
+
+	private Object getNumberValue(MessageAttributeValue value) {
+		return getNumberValue(value.stringValue(), value.dataType());
+	}
+
+	private static class NumberParser {
+
+		private static final Map<String, Class<? extends Number>> PRIMITIVE_TO_WRAPPED = Map.of(byte.class.getName(),
+				Byte.class, short.class.getName(), Short.class, int.class.getName(), Integer.class,
+				long.class.getName(), Long.class, float.class.getName(), Float.class, double.class.getName(),
+				Double.class);
+
+		private static Object parseNumber(String value, String type) throws ClassNotFoundException {
+			if (MessageAttributeDataTypes.NUMBER.equals(type)) {
+				return NumberUtils.parseNumber(value, Number.class);
+			}
+			else {
+				String javaType = type.substring(MessageAttributeDataTypes.NUMBER.length() + 1);
+				if (PRIMITIVE_TO_WRAPPED.containsKey(javaType.toLowerCase())) {
+					return NumberUtils.parseNumber(value, PRIMITIVE_TO_WRAPPED.get(javaType.toLowerCase()));
+				}
+				else {
+					Class<? extends Number> numberTypeClass = Class.forName(javaType).asSubclass(Number.class);
+					return NumberUtils.parseNumber(value, numberTypeClass);
+				}
+			}
+		}
+
 	}
 
 }

@@ -55,19 +55,22 @@ class MailSendingService {
 ----
 
 
-=== Sending attachments
+=== Sending attachments and/or HTML e-mails
 
-Sending attachments with e-mail requires MIME messages to be created and sent. In order to create MIME messages,
-the Java Mail dependency is required and has to be included in the classpath. Spring Cloud AWS will detect the
+Sending attachments with e-mail or HTML e-mails requires MIME messages to be created and sent. In order to create MIME messages,
+the Java Mail API dependency and an implementation need to be in the classpath. Spring Cloud AWS will detect the
 dependency and create a `org.springframework.mail.javamail.JavaMailSender` implementation that allows to create and
-build MIME messages and send them. A dependency configuration for the Java Mail API is the only change in the configuration
-which is shown below.
+build MIME messages and send them. Dependencies for the Java Mail API and an implementation are the only needed configuration changes as shown below.
 
 [source,xml,indent=0]
 ----
 <dependency>
-	<groupId>javax.mail</groupId>
-	<artifactId>mailapi</artifactId>
+	<groupId>jakarta.mail</groupId>
+	<artifactId>jakarta.mail-api</artifactId>
+</dependency>
+<dependency>
+	<groupId>org.eclipse.angus</groupId>
+	<artifactId>jakarta.mail</artifactId>
 </dependency>
 ----
 
@@ -132,6 +135,7 @@ The Spring Boot Starter for SES provides the following configuration options:
 | `spring.cloud.aws.ses.enabled` | Enables the SES integration. | No | `true`
 | `spring.cloud.aws.ses.endpoint` | Configures endpoint used by `SesClient`. | No |
 | `spring.cloud.aws.ses.region` | Configures region used by `SesClient`. | No |
+| `spring.cloud.aws.ses.sourceArn` | Configures source ARN, used only for sending authorization. | No |
 |===
 
 Amazon SES is not available in all https://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html[regions] of the
@@ -140,9 +144,13 @@ service will produce an error while using the mail service. Therefore, the regio
 sender configuration. The example below shows a typical combination of a region (`EU-CENTRAL-1`) that does not provide
 an SES service where the client is overridden to use a valid region (`EU-WEST-1`).
 
+`sourceArn` is the ARN of the identity that is associated with the sending authorization policy. For information about when to use this parameter, see the
+description see https://docs.aws.amazon.com/ses/latest/dg/sending-authorization-delegate-sender-tasks-email.html[Amazon SES Developer Guide].
+
 [source,properties,indent=0]
 ----
 spring.cloud.aws.ses.region=eu-west-1
+spring.cloud.aws.ses.sourceArn=arn:aws:ses:eu-west-1:123456789012:identity/example.com
 ----
 
 === IAM Permissions

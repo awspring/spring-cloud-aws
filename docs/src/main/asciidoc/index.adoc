@@ -34,9 +34,9 @@ This section describes how to get up to speed with Spring Cloud AWS libraries.
 
 === Bill of Materials
 
-The Spring Cloud AWS Bill of Materials (BOM) contains the versions of all the dependencies it uses.
+The Spring Cloud AWS Bill of Materials (BOM) declares the recommended versions of all the dependencies used by a given release of Spring Cloud AWS. Using the BOM from your application's build script avoids the need for you to specify and maintain the dependency versions yourself. Instead, the version of the BOM you’re using determines the utilised dependency versions. It also ensures that you're using supported and tested versions of the dependencies by default, unless you choose to override them.
 
-If you’re a Maven user, adding the following to your `pom.xml` file will allow you omit any Spring Cloud AWS dependency version numbers from your configuration. Instead, the version of the BOM you’re using determines the versions of the used dependencies.
+If you’re a Maven user, you can use the BOM by adding the following to your `pom.xml` file -
 
 [source,xml,indent=0]
 ----
@@ -53,7 +53,16 @@ If you’re a Maven user, adding the following to your `pom.xml` file will allow
 </dependencyManagement>
 ----
 
-Gradle users can achieve the same kind of BOM experience using Spring’s https://github.com/spring-gradle-plugins/dependency-management-plugin[dependency-management-plugin] Gradle plugin. For simplicity, the Gradle dependency snippets in the remainder of this document will also omit their versions.
+Gradle users can also use the Spring Cloud AWS BOM by leveraging Gradle (5.0+) native support for declaring dependency constraints using a Maven BOM. This is implemented by  adding a 'platform' dependency handler method to the dependencies section of your Gradle build script. As shown in the snippet below this can then be followed by version-less declarations of the <<starter-dependencies>> for the one or more framework modules you wish to use, e.g. SQS.
+
+[source,groovy,indent=0,options="nowrap"]
+----
+dependencies {
+  implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}")
+  // Replace the following with the starter dependencies of specific modules you wish to use
+  implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs'
+}
+----
 
 === Starter Dependencies
 
