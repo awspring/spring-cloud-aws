@@ -31,6 +31,7 @@ import org.springframework.core.io.WritableResource;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
@@ -85,12 +86,11 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 	@Override
 	public URL getURL() throws IOException {
-		List<String> splits = new ArrayList<>();
-		for (String split : location.getObject().split("/")) {
-			splits.add(URLEncoder.encode(split, StandardCharsets.UTF_8.toString()));
-		}
-		String encodedObjectName = String.join("/", splits);
-		return new URL("https", location.getBucket() + ".s3.amazonaws.com", "/" + encodedObjectName);
+		GetUrlRequest getUrlRequest = GetUrlRequest.builder()
+			.bucket(this.getLocation().getBucket())
+			.key(this.location.getObject())
+			.versionId(this.location.getVersion()).build();
+		return s3Client.utilities().getUrl(getUrlRequest);
 	}
 
 	@Override
