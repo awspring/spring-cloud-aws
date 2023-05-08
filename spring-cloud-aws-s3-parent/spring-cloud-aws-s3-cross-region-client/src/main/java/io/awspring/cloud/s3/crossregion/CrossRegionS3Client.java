@@ -26,7 +26,9 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.waiters.S3Waiter;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class CrossRegionS3Client extends AbstractCrossRegionS3Client {
@@ -153,5 +155,25 @@ public class CrossRegionS3Client extends AbstractCrossRegionS3Client {
 	@Override
 	public ListObjectsResponse listObjects(ListObjectsRequest request) throws AwsServiceException, SdkClientException {
 		return executeInBucketRegion(request.bucket(), c -> c.listObjects(request), false);
+	}
+
+	/**
+	 * Returns {@link S3Utilities} that use the default S3 client.
+	 *
+	 * @return the S3 utilities
+	 */
+	@Override
+	public S3Utilities utilities() {
+		return executeInDefaultRegion(S3Client::utilities);
+	}
+
+	/**
+	 * Returns {@link S3Waiter} that use the default S3 client.
+	 *
+	 * @return the S3 waiter
+	 */
+	@Override
+	public S3Waiter waiter() {
+		return executeInDefaultRegion(S3Client::waiter);
 	}
 }
