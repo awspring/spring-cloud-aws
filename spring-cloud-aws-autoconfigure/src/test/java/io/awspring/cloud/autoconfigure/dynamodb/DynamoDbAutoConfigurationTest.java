@@ -40,8 +40,10 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
+import software.amazon.dax.ClusterDaxAsyncClient;
 import software.amazon.dax.ClusterDaxClient;
 
 /**
@@ -96,6 +98,7 @@ class DynamoDbAutoConfigurationTest {
 			contextRunner.withPropertyValues("spring.cloud.aws.dynamodb.endpoint:http://localhost:8090")
 					.run(context -> {
 						assertThat(context).hasSingleBean(DynamoDbClient.class);
+						assertThat(context).hasSingleBean(DynamoDbAsyncClient.class);
 						assertThat(context).hasSingleBean(DynamoDbTemplate.class);
 						assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
 
@@ -109,6 +112,7 @@ class DynamoDbAutoConfigurationTest {
 		void dynamoDbClientConfiguredSinceNoUrl() {
 			contextRunner.run(context -> {
 				assertThat(context).hasSingleBean(DynamoDbClient.class);
+				assertThat(context).hasSingleBean(DynamoDbAsyncClient.class);
 				assertThat(context).hasSingleBean(DynamoDbTemplate.class);
 				assertThat(context).hasSingleBean(DynamoDbEnhancedClient.class);
 				assertThat(context).doesNotHaveBean(ClusterDaxClient.class);
@@ -170,6 +174,7 @@ class DynamoDbAutoConfigurationTest {
 					.run(context -> {
 						ConfiguredDaxClient daxClient = new ConfiguredDaxClient(
 								context.getBean(ClusterDaxClient.class));
+						assertThat(context).hasSingleBean(ClusterDaxAsyncClient.class);
 						assertThat(daxClient.getUrl())
 								.isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
 						assertThat(daxClient.getWriteRetries()).isEqualTo(2);
@@ -211,6 +216,7 @@ class DynamoDbAutoConfigurationTest {
 					.run(context -> {
 						ConfiguredDaxClient daxClient = new ConfiguredDaxClient(
 								context.getBean(ClusterDaxClient.class));
+						assertThat(context).hasSingleBean(ClusterDaxAsyncClient.class);
 						assertThat(daxClient.getUrl())
 								.isEqualTo("dax://something.dax-clusters.us-east-1.amazonaws.com");
 						assertThat(daxClient.getWriteRetries()).isEqualTo(2);
@@ -237,6 +243,7 @@ class DynamoDbAutoConfigurationTest {
 						assertThat(dynamoDBDynamoDbTableNameResolver)
 								.isInstanceOf(CustomDynamoDBDynamoDbTableNameResolver.class);
 
+						assertThat(context).hasSingleBean(ClusterDaxAsyncClient.class);
 					});
 		}
 
