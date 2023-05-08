@@ -40,11 +40,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
@@ -71,11 +69,14 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
  * @author Tomaz Fernandes
  */
 @SuppressWarnings("unchecked")
-@ExtendWith(MockitoExtension.class)
 class SqsTemplateTests {
 
-	@Mock
 	SqsAsyncClient mockClient;
+
+	@BeforeEach
+	void beforeEach() {
+		mockClient = mock(SqsAsyncClient.class);
+	}
 
 	@Test
 	void shouldSendWithOptions() {
@@ -774,7 +775,7 @@ class SqsTemplateTests {
 		GetQueueAttributesRequest.Builder getAttributesBuilder = GetQueueAttributesRequest.builder();
 		queueAttributesCaptor.getValue().accept(getAttributesBuilder);
 		GetQueueAttributesRequest attributesRequest = getAttributesBuilder.build();
-		assertThat(attributesRequest.attributeNamesAsStrings()).hasSize(2).contains(queueAttribute.toString());
+		assertThat(attributesRequest.attributeNamesAsStrings()).hasSize(1).first().isEqualTo(queueAttribute.toString());
 		assertThat(attributesRequest.queueUrl()).isEqualTo(queue);
 
 	}

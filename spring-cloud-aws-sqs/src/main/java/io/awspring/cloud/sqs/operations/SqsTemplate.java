@@ -15,8 +15,6 @@
  */
 package io.awspring.cloud.sqs.operations;
 
-import static java.text.MessageFormat.format;
-
 import io.awspring.cloud.sqs.FifoUtils;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.QueueAttributesResolver;
@@ -42,7 +40,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -264,18 +261,10 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private <T> org.springframework.messaging.Message<T> addMissingFifoSendHeaders(String endpointName,
 			org.springframework.messaging.Message<T> message) {
 
-		String contentBasedDedupQueueAttribute;
-		try {
-			contentBasedDedupQueueAttribute = getQueueAttributes(endpointName).get()
-					.getQueueAttribute(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw new IllegalStateException(format("Failed to get {0} queue attributes", endpointName), e);
-		}
-		catch (ExecutionException e) {
-			throw new IllegalStateException(format("Failed to get {0} queue attributes", endpointName), e);
-		}
+		Set<QueueAttributeName> additionalAttributes = Set.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
+		String contentBasedDedupQueueAttribute = getQueueAttributes(endpointName, additionalAttributes).join()
+				.getQueueAttribute(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
+
 		boolean isContentBasedDedup = Boolean.parseBoolean(contentBasedDedupQueueAttribute);
 		Map<String, Object> defaultHeaders;
 		if (isContentBasedDedup) {
@@ -434,10 +423,17 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	}
 
 	private CompletableFuture<QueueAttributes> getQueueAttributes(String endpointName) {
+		return getQueueAttributes(endpointName, Collections.emptySet());
+	}
+
+	private CompletableFuture<QueueAttributes> getQueueAttributes(String endpointName,
+			Set<QueueAttributeName> additionalAttributes) {
 		return this.queueAttributesCache.computeIfAbsent(endpointName, newName -> {
 			// ensure we have the content based dedupe config to determine default fifo send headers
 			Set<QueueAttributeName> namesToRequest = new HashSet<>(queueAttributeNames);
-			namesToRequest.add(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
+			if (additionalAttributes != null && !additionalAttributes.isEmpty()) {
+				namesToRequest.addAll(additionalAttributes);
+			}
 			return QueueAttributesResolver.builder().sqsAsyncClient(this.sqsAsyncClient).queueName(newName)
 					.queueNotFoundStrategy(this.queueNotFoundStrategy).queueAttributeNames(namesToRequest).build()
 					.resolveQueueAttributes();
