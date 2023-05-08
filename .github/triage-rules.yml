@@ -1,0 +1,36 @@
+rules:
+
+- valueFor: '**Component**'
+  contains: 'CloudWatch'
+  addLabels: ['component: cloudwatch']
+- valueFor: '**Component**'
+  contains: 'ElastiCache'
+  addLabels: ['component: elasticache']
+- valueFor: '**Component**'
+  contains: 'Parameter Store'
+  addLabels: ['component: parameter-store']
+- valueFor: '**Component**'
+  contains: 'RDS'
+  addLabels: ['component: rds']
+- valueFor: '**Component**'
+  contains: 'S3'
+  addLabels: ['component: s3']
+- valueFor: '**Component**'
+  contains: 'Secrets Manager'
+  addLabels: ['component: secrets-manager']
+- valueFor: '**Component**'
+  contains: 'SES'
+  addLabels: ['component: ses']
+- valueFor: '**Component**'
+  contains: 'SNS'
+  addLabels: ['component: sns']
+- valueFor: '**Component**'
+  contains: 'SQS'
+  addLabels: ['component: sqs']
+
+- valueFor: '**Type**'
+  contains: Feature
+  addLabels: ['type: enhancement']
+- valueFor: '**Type**'
+  contains: Bug
+  addLabels: ['type: bug']

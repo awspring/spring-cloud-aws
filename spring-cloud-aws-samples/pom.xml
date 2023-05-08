@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>spring-cloud-aws</artifactId>
+		<groupId>io.awspring.cloud</groupId>
+		<version>3.0.1-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>spring-cloud-aws-samples</artifactId>
+	<name>Spring Cloud AWS Samples</name>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>infrastructure</module>
+		<module>spring-cloud-aws-dynamodb-sample</module>
+		<module>spring-cloud-aws-parameter-store-sample</module>
+		<module>spring-cloud-aws-s3-sample</module>
+		<module>spring-cloud-aws-secrets-manager-sample</module>
+		<module>spring-cloud-aws-ses-sample</module>
+		<module>spring-cloud-aws-sns-sample</module>
+		<module>spring-cloud-aws-sqs-sample</module>
+    </modules>
+
+	<properties>
+		<cdk.version>2.17.0</cdk.version>
+		<constructs.version>[10.0.0,11.0.0)</constructs.version>
+	</properties>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>exec-maven-plugin</artifactId>
+					<version>3.0.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencyManagement>
+		<dependencies>
+			<!-- AWS Cloud Development Kit -->
+			<dependency>
+				<groupId>software.amazon.awscdk</groupId>
+				<artifactId>aws-cdk-lib</artifactId>
+				<version>${cdk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>software.constructs</groupId>
+				<artifactId>constructs</artifactId>
+				<version>${constructs.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+</project>

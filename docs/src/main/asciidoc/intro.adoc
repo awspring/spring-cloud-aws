@@ -1,0 +1,1 @@
+Spring Cloud AWS simplifies using AWS managed services in a Spring and Spring Boot applications. It offers a convenient way to interact with AWS provided services using well-known Spring idioms and APIs.

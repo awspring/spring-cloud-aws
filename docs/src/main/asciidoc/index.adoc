@@ -1,0 +1,157 @@
+= Spring Cloud AWS
+include::_attributes.adoc[]
+
+include::intro.adoc[]
+
+*{project-version}*
+
+include::contributing.adoc[]
+
+== Using Amazon Web Services
+
+AWS provides a https://aws.amazon.com/sdk-for-java/[Java SDK] to issue requests for the all services provided by the
+https://aws.amazon.com[Amazon Web Service] platform. While the SDK offers all functionality available on AWS, there is a considerable amount of low level code needed to use it in Spring idiomatic way.
+Spring Cloud AWS provides application developers already integrated Spring-based modules to consume the most popular AWS services and avoid low level code as much as possible.
+
+Thanks to Spring Cloud AWS modularity you can include only dependencies relevant to the particular AWS service you want to integrate with.
+
+It also simplifies creating any non-integrated AWS SDK client by auto-configuring region and credentials providers.
+
+That being said, it is perfectly valid option to use AWS SDK without using Spring Cloud AWS.
+
+[TIP]
+====
+Note, that Spring provides support for other AWS services in following projects:
+
+* https://github.com/spring-cloud/spring-cloud-stream-binder-aws-kinesis[Spring Cloud Stream Binder AWS Kinesis]
+* https://github.com/spring-cloud/spring-cloud-config[Spring Cloud Config Server] supports AWS Parameter Store and Secrets Manager
+* https://github.com/spring-projects/spring-integration-aws[Spring Integration for AWS]
+====
+
+== Getting Started
+
+This section describes how to get up to speed with Spring Cloud AWS libraries.
+
+=== Bill of Materials
+
+The Spring Cloud AWS Bill of Materials (BOM) declares the recommended versions of all the dependencies used by a given release of Spring Cloud AWS. Using the BOM from your application's build script avoids the need for you to specify and maintain the dependency versions yourself. Instead, the version of the BOM you’re using determines the utilised dependency versions. It also ensures that you're using supported and tested versions of the dependencies by default, unless you choose to override them.
+
+If you’re a Maven user, you can use the BOM by adding the following to your `pom.xml` file -
+
+[source,xml,indent=0]
+----
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-dependencies</artifactId>
+			<version>{project-version}</version>
+			<type>pom</type>
+			<scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+----
+
+Gradle users can also use the Spring Cloud AWS BOM by leveraging Gradle (5.0+) native support for declaring dependency constraints using a Maven BOM. This is implemented by  adding a 'platform' dependency handler method to the dependencies section of your Gradle build script. As shown in the snippet below this can then be followed by version-less declarations of the <<starter-dependencies>> for the one or more framework modules you wish to use, e.g. SQS.
+
+[source,groovy,indent=0,options="nowrap"]
+----
+dependencies {
+  implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:${springCloudAwsVersion}")
+  // Replace the following with the starter dependencies of specific modules you wish to use
+  implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs'
+}
+----
+
+=== Starter Dependencies
+
+Spring Cloud AWS offers https://github.com/awspring/spring-cloud-aws/tree/main/spring-cloud-aws-starters[starter dependencies] through Maven to easily depend on different modules of the library.
+Each starter contains all the dependencies and transitive dependencies needed to begin using their corresponding Spring Cloud AWS module.
+
+For example, if you wish to write a Spring application with S3, you would include the `spring-cloud-aws-starter-s3` dependency in your project.
+You do *not* need to include the underlying `spring-cloud-aws-s3` dependency, because the `starter` dependency includes it.
+
+A summary of these artifacts are provided below.
+
+|===
+| Spring Cloud AWS Starter | Description | Maven Artifact Name
+
+| Core
+| Automatically configure authentication and region selection
+| io.awspring.cloud:spring-cloud-aws-starter
+
+| DynamoDB
+| Provides integrations with DynamoDB
+| io.awspring.cloud:spring-cloud-aws-starter-dynamodb
+
+| S3
+| Provides integrations with S3
+| io.awspring.cloud:spring-cloud-aws-starter-s3
+
+| SES
+| Provides integrations with SES
+| io.awspring.cloud:spring-cloud-aws-starter-ses
+
+| SNS
+| Provides integrations with SNS
+| io.awspring.cloud:spring-cloud-aws-starter-sns
+
+| SQS
+| Provides integrations with SQS
+| io.awspring.cloud:spring-cloud-aws-starter-sqs
+
+| Parameter Store
+| Provides integrations with AWS Parameter Store
+| io.awspring.cloud:spring-cloud-aws-starter-parameter-store
+
+| Secrets Manager
+| Provides integrations with AWS Secrets manager
+| io.awspring.cloud:spring-cloud-aws-starter-secrets-manager
+
+|===
+
+=== Choosing AWS SDK version
+
+The AWS SDK is released more frequently than Spring Cloud AWS. If you need to use a  newer version of the SDK than
+the one configured by Spring Cloud AWS, add the SDK BOM to the dependency management section making sure it is declared
+before any other BOM dependency that configures AWS SDK dependencies.
+
+[source,xml,indent=0]
+----
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bom</artifactId>
+            <version>${aws-java-sdk.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+----
+
+include::core.adoc[]
+
+include::dynamodb.adoc[]
+
+include::s3.adoc[]
+
+include::ses.adoc[]
+
+include::sns.adoc[]
+
+include::sqs.adoc[]
+
+include::secrets-manager.adoc[]
+
+include::parameter-store.adoc[]
+
+include::cloudwatch.adoc[]
+
+include::migration.adoc[]
+
+== Configuration properties
+
+To see the list of all Spring Cloud AWS related configuration properties please check link:appendix.html[the Appendix page].

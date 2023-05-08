@@ -1,0 +1,322 @@
+[#spring-cloud-aws-s3]
+== S3 Integration
+
+https://aws.amazon.com/s3/[S3] allows storing files in a cloud.
+A Spring Boot starter is provided to auto-configure the various S3 integration related components.
+
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter-s3</artifactId>
+</dependency>
+----
+
+=== Using S3 client
+
+The starter automatically configures and registers a `S3Client` bean in the Spring application context. The `S3Client` bean can be used to perform operations on S3 buckets and objects.
+
+[source,java]
+----
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
+import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
+
+@Component
+class S3ClientSample {
+	private final S3Client s3Client;
+
+	S3ClientSample(S3Client s3Client) {
+		this.s3Client = s3Client;
+	}
+
+	void readFile() throws IOException {
+		ResponseInputStream<GetObjectResponse> response = s3Client.getObject(
+			request -> request.bucket("bucket-name").key("file-name.txt"));
+
+		String fileContent = StreamUtils.copyToString(response, StandardCharsets.UTF_8);
+
+		System.out.println(fileContent);
+	}
+}
+----
+=== Using S3TransferManager and CRT-based S3 Client
+
+AWS https://aws.amazon.com/blogs/developer/introducing-crt-based-s3-client-and-the-s3-transfer-manager-in-the-aws-sdk-for-java-2-x/[launched] a high level file transfer utility, called Transfer Manager and a CRT based S3 client.
+
+The starter automatically configures and registers a `software.amazon.awssdk.transfer.s3.S3TransferManager` bean if the following dependency is added to the project:
+
+[source,xml]
+----
+<dependency>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>s3-transfer-manager</artifactId>
+</dependency>
+----
+
+Transfer Manager works the best with CRT S3 Client. To auto-configure CRT based `S3AsyncClient` add following dependency to your project:
+
+[source,xml]
+----
+<dependency>
+  <groupId>software.amazon.awssdk.crt</groupId>
+  <artifactId>aws-crt</artifactId>
+</dependency>
+----
+
+When no `S3AsyncClient` bean is created, the default `S3AsyncClient` created through AWS SDK is used. To benefit from maximum throughput, multipart upload/download and resumable file upload consider using CRT based `S3AsyncClient`.
+
+=== Using Cross-Region S3 client
+
+`S3Client` implementation provided in AWS SDK is region specific - meaning it can be used only to operate on buckets and objects stored in region for which the client has been configured to use.
+
+For example, assuming that `DefaultAwsRegionProviderChain` resolves a region `us-east-1`, running any S3 operation that uses a bucket created in another region would result in an exception:
+
+[source]
+----
+software.amazon.awssdk.services.s3.model.S3Exception: The bucket you are attempting to access must be addressed using the specified endpoint. Please send all future requests to this endpoint. (Service: S3, Status Code: 301, Request ID: ..., Extended Request ID: ...)
+----
+
+Spring Cloud AWS provides a `CrossRegionS3Client` that solves this problem by maintaining an internal dictionary of `S3Client` objects per region. If you need to customize these clients, you can create a custom `S3ClientBuilder` bean that acts as a template to create region-specific S3 clients in `CrossRegionS3Client`.
+There is no extra work needed to use cross-region S3 client - it is the `S3Client` auto-configured by Spring Cloud AWS.
+
+To disable `CrossRegionS3Client` creation and use instead a regular region-specific `S3Client`, you can either create a custom `S3Client` bean, or exclude `spring-cloud-aws-s3-cross-region-client` dependency:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter-s3</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>io.awspring.cloud</groupId>
+            <artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+----
+
+=== S3 Objects as Spring Resources
+
+https://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html[Spring Resources] are an abstraction for a number of low-level resources, such as file system files, classpath files, servlet context-relative files, etc.
+Spring Cloud AWS adds a new resource type: a `S3Resource` object.
+
+The Spring Resource Abstraction for S3 allows S3 objects to be accessed by their S3 URL using the `@Value` annotation:
+
+[source,java]
+----
+@Value("s3://[S3_BUCKET_NAME]/[FILE_NAME]")
+private Resource s3Resource;
+----
+
+...or the Spring application context
+
+[source,java]
+----
+SpringApplication.run(...).getResource("s3://[S3_BUCKET_NAME]/[FILE_NAME]");
+----
+
+
+This creates a `Resource` object that can be used to read the file, among https://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html#resources-resource[other possible operations].
+
+It is also possible to write to a `Resource`, although a `WriteableResource` is required.
+
+[source,java]
+----
+@Value("s3://[S3_BUCKET_NAME]/[FILE_NAME]")
+private Resource s3Resource;
+...
+try (OutputStream os = ((WritableResource) s3Resource).getOutputStream()) {
+  os.write("content".getBytes());
+}
+----
+
+To work with the `Resource` as a S3 resource, cast it to `io.awspring.cloud.s3.S3Resource`.
+Using `S3Resource` directly lets you set the https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html[S3 object metadata].
+
+[source,java]
+----
+@Value("s3://[S3_BUCKET_NAME]/[FILE_NAME]")
+private Resource s3Resource;
+...
+ObjectMetadata objectMetadata = ObjectMetadata.builder()
+    .contentType("application/json")
+    .serverSideEncryption(ServerSideEncryption.AES256)
+    .build();
+s3Resource.setObjectMetadata(objectMetadata);
+try (OutputStream outputStream = s3Resource.getOutputStream()) {
+    outputStream.write("content".getBytes(StandardCharsets.UTF_8));
+}
+----
+
+==== S3 Output Stream
+
+Under the hood by default `S3Resource` uses a `io.awspring.cloud.s3.InMemoryBufferingS3OutputStream`. When data is written to the resource, is gets sent to S3 using multipart upload.
+If a network error occurs during upload, `S3Client` has a built-in retry mechanism that will retry each failed part. If the upload fails after retries, multipart upload gets aborted and `S3Resource` throws `io.awspring.cloud.s3.S3Exception`.
+
+If `InMemoryBufferingS3OutputStream` behavior does not fit your needs, you can use `io.awspring.cloud.s3.DiskBufferingS3OutputStream` by defining a bean of type `DiskBufferingS3OutputStreamProvider` which will override the default output stream provider.
+With `DiskBufferingS3OutputStream` when data is written to the resource, first it is stored on the disk in a `tmp` directory in the OS. Once the stream gets closed, the file gets uploaded with https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html#putObject-java.util.function.Consumer-java.nio.file.Path-[S3Client#putObject] method.
+If a network error occurs during upload, `S3Client` has a built-in retry mechanism. If the upload fails after retries, `S3Resource` throws `io.awspring.cloud.s3.UploadFailed` exception containing a file location in a temporary directory in a file system.
+
+[source,java]
+----
+try (OutputStream outputStream = s3Resource.getOutputStream()) {
+    outputStream.write("content".getBytes(StandardCharsets.UTF_8));
+} catch (UploadFailedException e) {
+    // e.getPath contains a file location in temporary folder
+}
+----
+
+If you are using the `S3TransferManager`, the default implementation will switch to `io.awspring.cloud.s3.TransferManagerS3OutputStream`. This OutputStream also uses a temporary file to write it on disk before uploading it to S3, but it may be faster as it uses a multi-part upload under the hood.
+
+==== Searching resources
+
+The Spring resource loader also supports collecting resources based on an Ant-style path specification. Spring Cloud AWS
+offers the same support to resolve resources within a bucket and even throughout buckets. The actual resource loader needs
+to be wrapped with the Spring Cloud AWS one in order to search for S3 buckets, in case of non S3 bucket the resource loader
+will fall back to the original one. The next example shows the resource resolution by using different patterns.
+
+[source,java,indent=0]
+----
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.io.Resource;
+
+import io.awspring.cloud.s3.S3PathMatchingResourcePatternResolver;
+
+import software.amazon.awssdk.services.s3.S3Client;
+
+public class SimpleResourceLoadingBean {
+
+	private final ResourcePatternResolver resourcePatternResolver;
+
+	@Autowired
+	public void setupResolver(S3Client s3Client, ApplicationContext applicationContext) {
+		this.resourcePatternResolver = new S3PathMatchingResourcePatternResolver(s3Client, applicationContext);
+	}
+
+ 	public void resolveAndLoad() throws IOException {
+ 		Resource[] allTxtFilesInFolder =  this.resourcePatternResolver.getResources("s3://bucket/name/*.txt");
+ 		Resource[] allTxtFilesInBucket =  this.resourcePatternResolver.getResources("s3://bucket/**/*.txt");
+ 		Resource[] allTxtFilesGlobally =  this.resourcePatternResolver.getResources("s3://**/*.txt");
+ 	}
+}
+----
+
+[WARNING]
+====
+Resolving resources throughout all buckets can be very time consuming depending on the number of buckets a user owns.
+====
+
+=== Using S3Template
+
+Spring Cloud AWS provides a higher abstraction on the top of `S3Client` providing methods for the most common use cases when working with S3.
+
+On the top of self-explanatory methods for creating and deleting buckets, `S3Template` provides a simple methods for uploading and downloading files:
+
+[source,java]
+----
+@Autowired
+private S3Template s3Template;
+
+InputStream is = ...
+// uploading file without metadata
+s3Template.upload(BUCKET, "file.txt", is);
+
+// uploading file with metadata
+s3Template.upload(BUCKET, "file.txt", is, ObjectMetadata.builder().contentType("text/plain").build());
+----
+
+Another feature of `S3Template` is the ability to generate signed URLs for getting/putting S3 objects in a single method call.
+[source,java]
+----
+URL signedGetUrl = s3Template.createSignedGetUrl("bucket_name", "file.txt", Duration.ofMinutes(5));
+----
+
+`S3Template` also allows storing & retrieving Java objects.
+
+[source,java]
+----
+Person p = new Person("John", "Doe");
+s3Template.store(BUCKET, "person.json", p);
+
+Person loadedPerson = s3Template.read(BUCKET, "person.json", Person.class);
+----
+
+By default, if Jackson is on the classpath, `S3Template` uses `ObjectMapper` based `Jackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
+This behavior can be overwritten by providing custom bean of type `S3ObjectConverter`.
+
+=== Determining S3 Objects Content Type
+
+All S3 objects stored in S3 through `S3Template`, `S3Resource` or `S3OutputStream` automatically get set a `contentType` property on the S3 object metadata, based on the S3 object key (file name).
+
+By default, `PropertiesS3ObjectContentTypeResolver` - a component supporting over 800 file extensions is responsible for content type resolution.
+If this content type resolution does not meet your needs, you can provide a custom bean of type `S3ObjectContentTypeResolver` which will be automatically used in all components responsible for uploading files.
+
+=== Configuration
+
+The Spring Boot Starter for S3 provides the following configuration options:
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.s3.enabled` | Enables the S3 integration. | No | `true`
+| `spring.cloud.aws.s3.endpoint` | Configures endpoint used by `S3Client`. | No | `http://localhost:4566`
+| `spring.cloud.aws.s3.region` | Configures region used by `S3Client`. | No | `eu-west-1`
+| `spring.cloud.aws.s3.accelerate-mode-enabled` | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.checksum-validation-enabled` | Option to disable doing a validation of the checksum of an object stored in S3. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.chunked-encoding-enabled` | Option to enable using chunked encoding when signing the request payload for `PutObjectRequest` and `UploadPartRequest`. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.path-style-access-enabled` | Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access is preferred as it will result in better load balancing when accessing S3. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.use-arn-region-enabled` | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.crt.minimum-part-size-in-bytes` | Sets the minimum part size for transfer parts. Decreasing the minimum part size causes multipart transfer to be split into a larger number of smaller parts. Setting this value too low has a negative effect on transfer speeds, causing extra latency and network communication for each part. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.crt.initial-read-buffer-size-in-bytes` | Configure the starting buffer size the client will use to buffer the parts downloaded from S3. Maintain a larger window to keep up a high download throughput; parts cannot download in parallel unless the window is large enough to hold multiple parts. Maintain a smaller window to limit the amount of data buffered in memory. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.crt.target-throughput-in-gbps` | The target throughput for transfer requests. Higher value means more S3 connections will be opened. Whether the transfer manager can achieve the configured target throughput depends on various factors such as the network bandwidth of the environment and the configured `max-concurrency` | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.crt.max-concurrency` | Specifies the maximum number of S3 connections that should be established during transfer | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.transfer-manager.max-depth` | Specifies the maximum number of levels of directories to visit in `S3TransferManager#uploadDirectory` operation | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.s3.transfer-manager.follow-symbolic-links` | Specifies whether to follow symbolic links when traversing the file tree in `S3TransferManager#uploadDirectory` operation | No | `null` (falls back to SDK default)
+|===
+
+=== IAM Permissions
+
+Following IAM permissions are required by Spring Cloud AWS:
+
+[cols="2,1"]
+|===
+| Downloading files | `s3:GetObject`
+| Searching files | `s3:ListObjects`
+| Uploading files | `s3:PutObject`
+|===
+
+Sample IAM policy granting access to `spring-cloud-aws-demo` bucket:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::spring-cloud-aws-demo"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::spring-cloud-aws-demo/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::spring-cloud-aws-demo/*"
+        }
+    ]
+}
+----

@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v2.3.*
+      - v2.4.*
+      - v3.0.*
+
+env:
+  # https://github.com/actions/checkout/issues/440#issuecomment-854240996
+  AWS_EC2_METADATA_DISABLED: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: "Release"
+    strategy:
+      matrix:
+        version: [ 17.0.1-tem ]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache local Maven repository
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+      - name: Download ${{ matrix.version }}
+        uses: sdkman/sdkman-action@master
+        id: sdkman
+        with:
+          candidate: java
+          version: ${{ matrix.version }}
+      - name: Set up ${{ matrix.version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+          jdkFile: ${{ steps.sdkman.outputs.file }}
+          server-id: ossrh-awspring
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+      - name: Run tests
+        run: ./mvnw -V verify javadoc:aggregate -Pspring,docs
+      - name: Deploy to Sonatype
+        run: ./mvnw -V -Prelease,spring deploy -DskipTests
+        env:
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_KEY }}
+        run: |
+          aws s3 sync --acl public-read docs/target/generated-docs/ s3://awspring-docs/spring-cloud-aws/docs/
+          aws s3 sync --acl public-read target/site/ s3://awspring-docs/spring-cloud-aws/docs/
+          aws cloudfront create-invalidation --distribution-id EA7LER7CI960A --paths "/*"
