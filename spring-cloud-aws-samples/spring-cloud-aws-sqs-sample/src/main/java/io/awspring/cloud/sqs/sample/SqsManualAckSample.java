@@ -3,6 +3,7 @@ package io.awspring.cloud.sqs.sample;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import org.springframework.messaging.Message;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.UUID;
 
 @Configuration
@@ -41,7 +43,6 @@ public class SqsManualAckSample {
 	@SqsListener(NEW_USER_QUEUE)
 	public void listen(Message<User> message) {
 		Acknowledgement.acknowledge(message);
-		LOGGER.info("Message {} acknowledged", message.getPayload());
 	}
 
 	@Bean
@@ -53,10 +54,23 @@ public class SqsManualAckSample {
 				.acknowledgementInterval(Duration.ZERO) // Set to Duration.ZERO along with
 				.acknowledgementThreshold(0)            // acknowledgementThreshold to zero to enable immediate acknowledgement.
 			)
+			.acknowledgementResultCallback(new AckResultCallback())
 			.sqsAsyncClient(sqsAsyncClient)
 			.build();
 	}
 
 	public record User(UUID id, String name) {
+	}
+
+	static class AckResultCallback implements AcknowledgementResultCallback<Object> {
+		@Override
+		public void onSuccess(Collection<Message<Object>> messages) {
+			LOGGER.info("Ack with success");
+		}
+
+		@Override
+		public void onFailure(Collection<Message<Object>> messages, Throwable t) {
+			LOGGER.error("Ack with fail", t);
+		}
 	}
 }
