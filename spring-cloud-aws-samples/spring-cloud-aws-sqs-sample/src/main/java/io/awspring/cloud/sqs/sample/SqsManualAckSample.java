@@ -42,14 +42,13 @@ public class SqsManualAckSample {
     public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient) {
         return SqsTemplate.builder()
                 .sqsAsyncClient(sqsAsyncClient)
-                .configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
                 .build();
     }
 
     @SqsListener(NEW_USER_QUEUE)
     public void listen(Message<User> message) {
-        LOGGER.info("Received message {}", message.getPayload());
         Acknowledgement.acknowledge(message);
+		LOGGER.info("Message {} acknowledged", message.getPayload());
     }
 
     @Bean
@@ -58,9 +57,8 @@ public class SqsManualAckSample {
                 .builder()
                 .configure(options -> options
                         .acknowledgementMode(AcknowledgementMode.MANUAL)
-                        .acknowledgementInterval(Duration.ofSeconds(3))
-                        .acknowledgementThreshold(5)
-                        .acknowledgementOrdering(AcknowledgementOrdering.ORDERED)
+                        .acknowledgementInterval(Duration.ZERO) // Set to Duration.ZERO along with
+                        .acknowledgementThreshold(0) 			// acknowledgementThreshold to zero to enable immediate acknowledgement.
                 )
                 .sqsAsyncClient(sqsAsyncClient)
                 .build();
