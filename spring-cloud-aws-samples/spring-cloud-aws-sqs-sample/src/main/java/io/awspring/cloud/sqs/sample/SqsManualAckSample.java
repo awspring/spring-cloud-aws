@@ -15,6 +15,7 @@ import org.springframework.messaging.Message;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -42,6 +43,7 @@ public class SqsManualAckSample {
 
 	@SqsListener(NEW_USER_QUEUE)
 	public void listen(Message<User> message) {
+		LOGGER.info("Message received on listen method at {}", OffsetDateTime.now());
 		Acknowledgement.acknowledge(message);
 	}
 
@@ -51,8 +53,8 @@ public class SqsManualAckSample {
 			.builder()
 			.configure(options -> options
 				.acknowledgementMode(AcknowledgementMode.MANUAL)
-				.acknowledgementInterval(Duration.ZERO) // Set to Duration.ZERO along with
-				.acknowledgementThreshold(0)            // acknowledgementThreshold to zero to enable immediate acknowledgement.
+				.acknowledgementInterval(Duration.ofSeconds(3)) // NOTE: With acknowledgementInterval 3 seconds, we can batch and ack async.
+				.acknowledgementThreshold(0)
 			)
 			.acknowledgementResultCallback(new AckResultCallback())
 			.sqsAsyncClient(sqsAsyncClient)
@@ -65,8 +67,7 @@ public class SqsManualAckSample {
 	static class AckResultCallback implements AcknowledgementResultCallback<Object> {
 		@Override
 		public void onSuccess(Collection<Message<Object>> messages) {
-			LOGGER.info("Ack with success");
-		}
+			LOGGER.info("Ack with success at {}", OffsetDateTime.now());		}
 
 		@Override
 		public void onFailure(Collection<Message<Object>> messages, Throwable t) {
