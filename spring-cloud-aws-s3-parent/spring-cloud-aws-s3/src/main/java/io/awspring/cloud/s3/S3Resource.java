@@ -20,11 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
@@ -86,10 +82,8 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 	@Override
 	public URL getURL() throws IOException {
-		GetUrlRequest getUrlRequest = GetUrlRequest.builder()
-			.bucket(this.getLocation().getBucket())
-			.key(this.location.getObject())
-			.versionId(this.location.getVersion()).build();
+		GetUrlRequest getUrlRequest = GetUrlRequest.builder().bucket(this.getLocation().getBucket())
+				.key(this.location.getObject()).versionId(this.location.getVersion()).build();
 		return s3Client.utilities().getUrl(getUrlRequest);
 	}
 
