@@ -227,7 +227,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		}
 
 		@Test
-		void reloadsProperties() {
+		void reloadsPropertiesWhenPropertyValueChanges() {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
 
@@ -248,6 +248,32 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 					assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
+				});
+			}
+		}
+
+		@Test
+		void reloadsPropertiesWhenNewPropertyIsAdded() {
+			SpringApplication application = new SpringApplication(App.class);
+			application.setWebApplicationType(WebApplicationType.NONE);
+
+			try (ConfigurableApplicationContext context = application.run(
+					"--spring.config.import=aws-parameterstore:/config/spring/",
+					"--spring.cloud.aws.parameterstore.reload.strategy=refresh",
+					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
+					"--spring.cloud.aws.parameterstore.region=" + REGION,
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+					"--spring.cloud.aws.region.static=eu-west-1")) {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+				// update parameter value
+				SsmClient ssmClient = context.getBean(SsmClient.class);
+				ssmClient.putParameter(r -> r.name("/config/spring/new-property").value("new value")
+						.type(ParameterType.STRING).overwrite(true).build());
+
+				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+					assertThat(context.getEnvironment().getProperty("new-property")).isEqualTo("new value");
 				});
 			}
 		}
