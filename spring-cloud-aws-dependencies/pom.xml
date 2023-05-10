@@ -31,7 +31,7 @@
 		<spring-cloud-commons.version>4.0.1</spring-cloud-commons.version>
 		<jakarta.mail.version>2.1.0</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
-		<aws-crt.version>0.21.12</aws-crt.version>
+		<aws-crt.version>0.21.14</aws-crt.version>
 		<mockito.version>5.3.1</mockito.version>
 	</properties>
 
