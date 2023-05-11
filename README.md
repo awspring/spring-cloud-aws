@@ -6,11 +6,11 @@ Simplifies using AWS managed services in a Spring and Spring Boot applications.
 
 For a deep dive into the project, refer to the Spring Cloud AWS documentation:
 
-| Version                | Reference Docs                                                                                   | API Docs                                                                                |
-|------------------------|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| Spring Cloud AWS 3.0.1 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.0.1/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.0.0/apidocs/index.html) | 
-| Spring Cloud AWS 2.4.4 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.4.4/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.4.4/apidocs/index.html)     | 
-| Spring Cloud AWS 2.3.5 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/apidocs/index.html)     |
+| Version                | Reference Docs                                                                                   | API Docs                                                                            |
+|------------------------|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| Spring Cloud AWS 3.0.1 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.0.1/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.0.1/apidocs/index.html) | 
+| Spring Cloud AWS 2.4.4 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.4.4/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.4.4/apidocs/index.html) | 
+| Spring Cloud AWS 2.3.5 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/2.3.5/apidocs/index.html) |
 
 ## Sponsors
 
