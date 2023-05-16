@@ -112,7 +112,6 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 		sessionToken = response.nextPollConfigurationToken();
 	}
 
-	// YAML is a superset of JSON, which means you can parse JSON with a YAML parser
 	private void resolveYamlOrJson(GetLatestConfigurationResponse response) {
 		YamlPropertiesFactoryBean bean = new YamlPropertiesFactoryBean();
 		bean.setResources(new InputStreamResource(response.configuration().asInputStream()));
