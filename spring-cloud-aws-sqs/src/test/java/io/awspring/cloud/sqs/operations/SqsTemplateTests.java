@@ -40,6 +40,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.Message;
@@ -70,13 +71,20 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 @SuppressWarnings("unchecked")
 class SqsTemplateTests {
 
+	SqsAsyncClient mockClient;
+
+	@BeforeEach
+	void beforeEach() {
+		mockClient = mock(SqsAsyncClient.class);
+	}
+
 	@Test
 	void shouldSendWithOptions() {
 		String queue = "test-queue";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		UUID uuid = UUID.randomUUID();
 		String sequenceNumber = "1234";
 		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
@@ -108,10 +116,10 @@ class SqsTemplateTests {
 	@Test
 	void shouldSendFifoWithOptions() {
 		String queue = "test-queue";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		UUID uuid = UUID.randomUUID();
 		String sequenceNumber = "1234";
 		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
@@ -141,7 +149,6 @@ class SqsTemplateTests {
 	@Test
 	void shouldAddFifoHeadersToSend() {
 		String queue = "test-queue.fifo";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
@@ -151,6 +158,7 @@ class SqsTemplateTests {
 				.sequenceNumber(sequenceNumber).build();
 		given(mockClient.sendMessage(any(SendMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(response));
+		mockQueueAttributes(mockClient, Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "false"));
 		SqsOperations template = SqsTemplate.newTemplate(mockClient);
 		String payload = "test-payload";
 		SendResult<String> result = template.send(queue, payload);
@@ -172,14 +180,58 @@ class SqsTemplateTests {
 		assertThat(capturedRequest.messageDeduplicationId()).isEqualTo(messageDeduplicationId);
 	}
 
+	private static void mockQueueAttributes(SqsAsyncClient mockClient, Map<QueueAttributeName, String> attributes) {
+		GetQueueAttributesResponse queueAttributesResponse = GetQueueAttributesResponse.builder().attributes(attributes)
+				.build();
+		given(mockClient.getQueueAttributes(any(Consumer.class)))
+				.willReturn(CompletableFuture.completedFuture(queueAttributesResponse));
+	}
+
+	@Test
+	void shouldAddFifoHeadersToSendWithContentBasedDeduplicationQueueConfig() {
+		String queue = "test-queue.fifo";
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		UUID uuid = UUID.randomUUID();
+		String sequenceNumber = "1234";
+		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
+				.sequenceNumber(sequenceNumber).build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(response));
+		mockQueueAttributes(mockClient, Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "true"));
+		SqsOperations template = SqsTemplate.newTemplate(mockClient);
+		String payload = "test-payload";
+		SendResult<String> result = template.send(queue, payload);
+		assertThat(result.endpoint()).isEqualTo(queue);
+		MessageHeaders resultHeaders = result.message().getHeaders();
+		assertThat(resultHeaders).containsKey(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER)
+				.doesNotContainKey(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER);
+		String messageDeduplicationId = resultHeaders
+				.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, String.class);
+		String messageGroupId = resultHeaders.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER,
+				String.class);
+		assertThat(result.message().getPayload()).isEqualTo(payload);
+		ArgumentCaptor<SendMessageRequest> captor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		then(mockClient).should().sendMessage(captor.capture());
+		SendMessageRequest capturedRequest = captor.getValue();
+		assertThat(capturedRequest.queueUrl()).isEqualTo(queue);
+		assertThat(capturedRequest.messageBody()).isEqualTo(payload);
+		assertThat(capturedRequest.messageGroupId()).isEqualTo(messageGroupId);
+		assertThat(capturedRequest.messageDeduplicationId()).isEqualTo(messageDeduplicationId);
+	}
+
 	@Test
 	void shouldSendWithDefaultEndpoint() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
 		UUID uuid = UUID.randomUUID();
 		String sequenceNumber = "1234";
 		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
@@ -200,10 +252,11 @@ class SqsTemplateTests {
 	void shouldWrapSendError() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		given(mockClient.sendMessage(any(SendMessageRequest.class)))
 				.willReturn(CompletableFuture.failedFuture(new RuntimeException("Expected send error")));
 		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient)
@@ -221,16 +274,17 @@ class SqsTemplateTests {
 	void shouldSendWithQueueAndPayload() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		UUID uuid = UUID.randomUUID();
 		String sequenceNumber = "1234";
 		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
 				.sequenceNumber(sequenceNumber).build();
 		given(mockClient.sendMessage(any(SendMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(response));
+
 		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
 		SendResult<String> result = template.send(queue, payload);
 		assertThat(result.endpoint()).isEqualTo(queue);
@@ -248,10 +302,11 @@ class SqsTemplateTests {
 		String headerName = "headerName";
 		String headerValue = "headerValue";
 		Message<String> message = MessageBuilder.withPayload(payload).setHeader(headerName, headerValue).build();
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		UUID uuid = UUID.randomUUID();
 		String sequenceNumber = "1234";
 		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
@@ -281,10 +336,12 @@ class SqsTemplateTests {
 		Message<String> message1 = MessageBuilder.withPayload(payload1).setHeader(headerName1, headerValue1).build();
 		Message<String> message2 = MessageBuilder.withPayload(payload2).setHeader(headerName2, headerValue2).build();
 		List<Message<String>> messages = List.of(message1, message2);
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
 		SendMessageBatchResponse response = SendMessageBatchResponse.builder().successful(
 				builder -> builder.id(message1.getHeaders().getId().toString()).messageId(UUID.randomUUID().toString()),
 				builder -> builder.id(message2.getHeaders().getId().toString()).messageId(UUID.randomUUID().toString()))
@@ -322,10 +379,11 @@ class SqsTemplateTests {
 		Message<String> message1 = MessageBuilder.withPayload(payload1).build();
 		Message<String> message2 = MessageBuilder.withPayload(payload2).build();
 		List<Message<String>> messages = List.of(message1, message2);
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		String testErrorMessage = "test error message";
 		String code = "BC01";
 		boolean senderFault = true;
@@ -362,10 +420,11 @@ class SqsTemplateTests {
 		Message<String> message1 = MessageBuilder.withPayload(payload1).build();
 		Message<String> message2 = MessageBuilder.withPayload(payload2).build();
 		List<Message<String>> messages = List.of(message1, message2);
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		String testErrorMessage = "test error message";
 		String code = "BC01";
 		boolean senderFault = true;
@@ -402,7 +461,8 @@ class SqsTemplateTests {
 	void shouldCreateByDefaultIfQueueNotFound() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
+		mockQueueAttributes(mockClient, Map.of());
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(CompletableFuture
 				.failedFuture(QueueDoesNotExistException.builder().message("test queue not found").build()));
 		given(mockClient.createQueue(any(Consumer.class)))
@@ -426,15 +486,10 @@ class SqsTemplateTests {
 	void shouldThrowIfQueueNotFound() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(CompletableFuture
 				.failedFuture(QueueDoesNotExistException.builder().message("test queue not found").build()));
-		UUID uuid = UUID.randomUUID();
-		String sequenceNumber = "1234";
-		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
-				.sequenceNumber(sequenceNumber).build();
-		given(mockClient.sendMessage(any(SendMessageRequest.class)))
-				.willReturn(CompletableFuture.completedFuture(response));
+
 		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient)
 				.configure(options -> options.queueNotFoundStrategy(QueueNotFoundStrategy.FAIL)).buildSyncTemplate();
 		assertThatThrownBy(() -> template.send(to -> to.queue(queue).payload(payload)))
@@ -446,10 +501,11 @@ class SqsTemplateTests {
 	@Test
 	void shouldReceiveEmpty() {
 		String queue = "test-queue";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder().build();
 		given(mockClient.receiveMessage(any(ReceiveMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(receiveMessageResponse));
@@ -463,10 +519,11 @@ class SqsTemplateTests {
 	void shouldReceiveFromDefaultEndpoint() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder().messages(builder -> builder
 				.messageId(UUID.randomUUID().toString()).receiptHandle("test-receipt-handle").body(payload).build())
 				.build();
@@ -488,10 +545,12 @@ class SqsTemplateTests {
 		String queue = "test-queue";
 		SampleRecord payload = new SampleRecord("first-prop", "second-prop");
 		String payloadString = new ObjectMapper().writeValueAsString(payload);
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
 				.messages(builder -> builder.messageId(UUID.randomUUID().toString())
 						.receiptHandle("test-receipt-handle").body(payloadString).build())
@@ -514,10 +573,11 @@ class SqsTemplateTests {
 		String queue = "test-queue";
 		SampleRecord payload = new SampleRecord("first-prop", "second-prop");
 		String payloadString = new ObjectMapper().writeValueAsString(payload);
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
 				.messages(builder -> builder.messageId(UUID.randomUUID().toString())
 						.receiptHandle("test-receipt-handle").body(payloadString).build())
@@ -547,10 +607,11 @@ class SqsTemplateTests {
 	void shouldUseCustomConverter() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		ContextAwareMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> converter = mock(
 				ContextAwareMessagingMessageConverter.class);
 		String receiptHandle = "test-receipt-handle";
@@ -578,10 +639,11 @@ class SqsTemplateTests {
 		String queue = "test-queue";
 		String payload = "test-payload";
 		String receiptHandle = "test-receipt-handle";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder().messages(builder -> builder
 				.messageId(UUID.randomUUID().toString()).receiptHandle(receiptHandle).body(payload).build()).build();
 		given(mockClient.receiveMessage(any(ReceiveMessageRequest.class)))
@@ -600,10 +662,11 @@ class SqsTemplateTests {
 	void shouldWrapFullAcknowledgementError() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder().messages(builder -> builder
 				.messageId(UUID.randomUUID().toString()).receiptHandle("test-receipt-handle").body(payload).build())
 				.build();
@@ -627,10 +690,11 @@ class SqsTemplateTests {
 		String queue = "test-queue";
 		String payload1 = "test-payload-1";
 		String payload2 = "test-payload-2";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		String messageId1 = UUID.randomUUID().toString();
 		String messageId2 = UUID.randomUUID().toString();
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder().messages(
@@ -663,7 +727,7 @@ class SqsTemplateTests {
 		String headerValue1 = "headerValue";
 		String headerName2 = "headerName2";
 		String headerValue2 = "headerValue2";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
@@ -672,10 +736,7 @@ class SqsTemplateTests {
 				.build();
 		given(mockClient.receiveMessage(any(ReceiveMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(receiveMessageResponse));
-		GetQueueAttributesResponse attributesResponse = GetQueueAttributesResponse.builder()
-				.attributes(Map.of(QueueAttributeName.QUEUE_ARN, "queue-arn")).build();
-		given(mockClient.getQueueAttributes(any(Consumer.class)))
-				.willReturn(CompletableFuture.completedFuture(attributesResponse));
+		mockQueueAttributes(mockClient, Map.of(QueueAttributeName.QUEUE_ARN, "queue-arn"));
 		DeleteMessageBatchResponse deleteResponse = DeleteMessageBatchResponse.builder()
 				.successful(builder -> builder.id(UUID.randomUUID().toString())).build();
 		given(mockClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
@@ -727,10 +788,12 @@ class SqsTemplateTests {
 		String headerValue1 = "headerValue";
 		String headerName2 = "headerName2";
 		String headerValue2 = "headerValue2";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder().messages(builder -> builder
 				.messageId(UUID.randomUUID().toString()).receiptHandle("test-receipt-handle").body(payload).build())
 				.build();
@@ -762,10 +825,11 @@ class SqsTemplateTests {
 	void shouldReceiveFifoWithGivenAttemptId() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		String messageGroupId = UUID.randomUUID().toString();
 		String deduplicationId = UUID.randomUUID().toString();
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
@@ -802,10 +866,11 @@ class SqsTemplateTests {
 	void shouldReceiveFifoWithRandomAttemptId() {
 		String queue = "test-queue.fifo";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "false"));
 		String messageGroupId = UUID.randomUUID().toString();
 		String deduplicationId = UUID.randomUUID().toString();
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
@@ -840,10 +905,11 @@ class SqsTemplateTests {
 	void shouldReceiveBatchWithDefaultValues() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
 				.messages(
 						builder -> builder.messageId(UUID.randomUUID().toString())
@@ -881,10 +947,12 @@ class SqsTemplateTests {
 	void shouldReceiveBatchWithQueueAndPayload() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
 				.messages(
 						builder -> builder.messageId(UUID.randomUUID().toString())
@@ -929,10 +997,11 @@ class SqsTemplateTests {
 	void shouldReceiveBatchWithOptions() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
 				.messages(
 						builder -> builder.messageId(UUID.randomUUID().toString()).receiptHandle("test-receipt-handle")
@@ -970,10 +1039,11 @@ class SqsTemplateTests {
 	void shouldReceiveBatchFifo() {
 		String queue = "test-queue";
 		String payload = "test-payload";
-		SqsAsyncClient mockClient = mock(SqsAsyncClient.class);
+
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
 		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
 				.messages(
 						builder -> builder.messageId(UUID.randomUUID().toString()).receiptHandle("test-receipt-handle")
