@@ -161,10 +161,5 @@
 			<artifactId>sts</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>appconfig</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 </project>
