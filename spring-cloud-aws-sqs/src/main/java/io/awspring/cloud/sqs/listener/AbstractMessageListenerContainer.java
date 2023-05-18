@@ -69,7 +69,7 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	private AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback = new AsyncAcknowledgementResultCallback<T>() {
 	};
 
-	private int phase;
+	private int phase = DEFAULT_PHASE;
 
 	/**
 	 * Create an instance with the provided {@link ContainerOptions}

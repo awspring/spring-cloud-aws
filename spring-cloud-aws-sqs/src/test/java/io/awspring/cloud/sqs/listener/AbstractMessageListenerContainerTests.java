@@ -27,6 +27,7 @@ import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.SmartLifecycle;
 
 /**
  * Tests for {@link AbstractMessageListenerContainer}.
@@ -73,6 +74,7 @@ class AbstractMessageListenerContainerTests {
 				.isInstanceOf(AsyncComponentAdapters.AbstractThreadingComponentAdapter.class)
 				.extracting("blockingMessageInterceptor").isEqualTo(interceptor);
 
+		assertThat(container.getPhase()).isEqualTo(SmartLifecycle.DEFAULT_PHASE);
 	}
 
 	@Test
@@ -101,6 +103,7 @@ class AbstractMessageListenerContainerTests {
 		assertThat(container.getAcknowledgementResultCallback()).isEqualTo(callback);
 		assertThat(container.getContainerComponentFactories()).containsExactlyElementsOf(componentFactories);
 		assertThat(container.getMessageInterceptors()).containsExactly(interceptor);
+		assertThat(container.getPhase()).isEqualTo(SmartLifecycle.DEFAULT_PHASE);
 
 	}
 

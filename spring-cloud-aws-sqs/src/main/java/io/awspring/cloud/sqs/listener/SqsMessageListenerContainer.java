@@ -271,7 +271,7 @@ public class SqsMessageListenerContainer<T>
 					.acceptIfNotNull(this.asyncAcknowledgementResultCallback, container::setAcknowledgementResultCallback)
 					.acceptIfNotNull(this.containerComponentFactories, container::setComponentFactories)
 					.acceptIfNotEmpty(this.queueNames, container::setQueueNames)
-					.acceptIfNotNullOrElse(container::setPhase, this.phase, SmartLifecycle.DEFAULT_PHASE);
+					.acceptIfNotNullOrElse(container::setPhase, this.phase, DEFAULT_PHASE);
 			this.messageInterceptors.forEach(container::addMessageInterceptor);
 			this.asyncMessageInterceptors.forEach(container::addMessageInterceptor);
 
