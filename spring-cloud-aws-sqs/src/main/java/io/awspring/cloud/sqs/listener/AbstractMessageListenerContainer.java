@@ -69,6 +69,8 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	private AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback = new AsyncAcknowledgementResultCallback<T>() {
 	};
 
+	private int phase;
+
 	/**
 	 * Create an instance with the provided {@link ContainerOptions}
 	 * @param containerOptions the options instance.
@@ -163,6 +165,14 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	}
 
 	/**
+	 * Set the phase for the SmartLifecycle for this container instance.
+	 * @param phase the phase.
+	 */
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
+
+	/**
 	 * Returns the {@link ContainerOptions} instance for this container. Changed options will take effect on container
 	 * restart.
 	 */
@@ -250,6 +260,11 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	@Override
 	public boolean isRunning() {
 		return this.isRunning;
+	}
+
+	@Override
+	public int getPhase() {
+		return this.phase;
 	}
 
 	@Override
