@@ -44,7 +44,9 @@
 		<module>spring-cloud-aws-sqs</module>
 		<module>spring-cloud-aws-dynamodb</module>
 		<module>spring-cloud-aws-s3-parent</module>
+		<module>spring-cloud-aws-cognito</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-cognito</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-dynamodb</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-metrics</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-parameter-store</module>
