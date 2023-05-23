@@ -50,6 +50,8 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 
 	private volatile boolean running = false;
 
+	private int phase = MessageListenerContainer.DEFAULT_PHASE;
+
 	@Override
 	public void registerListenerContainer(MessageListenerContainer<?> listenerContainer) {
 		Assert.notNull(listenerContainer, "listenerContainer cannot be null");
@@ -95,4 +97,12 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 		return this.running;
 	}
 
+	@Override
+	public int getPhase() {
+		return phase;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
 }
