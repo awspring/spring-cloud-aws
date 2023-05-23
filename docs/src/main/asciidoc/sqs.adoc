@@ -955,6 +955,8 @@ MessageListenerContainer<Object> listenerContainer(SqsAsyncClient sqsAsyncClient
 }
 ----
 
+NOTE: You can also specify the `SmartLifecycle.phase`, using `SqsMessageListenerContainer.builder()`, if you are interested on overriding the default value defined in `MessageListenerContainer.DEFAULT_PHASE`
+
 ===== Retrieving Containers from the Registry
 
 Containers can be retrieved by fetching the `MessageListenerContainer` bean from the container and using the `getListenerContainers` and `getContainerById` methods.

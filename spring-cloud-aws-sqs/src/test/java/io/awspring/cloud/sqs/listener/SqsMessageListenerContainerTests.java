@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
@@ -118,7 +117,7 @@ class SqsMessageListenerContainerTests {
 		assertThat(container.getErrorHandler()).isEqualTo(errorHandler);
 		assertThat(container.getAcknowledgementResultCallback()).isEqualTo(callback);
 		assertThat(container.getMessageInterceptors()).containsExactly(interceptor1, interceptor2);
-		assertThat(container.getPhase()).isEqualTo(SmartLifecycle.DEFAULT_PHASE);
+		assertThat(container.getPhase()).isEqualTo(MessageListenerContainer.DEFAULT_PHASE);
 	}
 
 	@Test
