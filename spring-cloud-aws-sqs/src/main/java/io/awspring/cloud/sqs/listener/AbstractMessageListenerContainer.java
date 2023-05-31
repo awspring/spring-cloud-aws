@@ -253,6 +253,11 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	}
 
 	@Override
+	public boolean isAutoStartup() {
+		return containerOptions.isAutoStartup();
+	}
+
+	@Override
 	public void start() {
 		if (this.isRunning) {
 			return;
