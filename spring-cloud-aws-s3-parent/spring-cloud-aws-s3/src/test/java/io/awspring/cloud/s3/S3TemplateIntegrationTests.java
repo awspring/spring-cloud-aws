@@ -26,6 +26,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -147,6 +149,25 @@ class S3TemplateIntegrationTests {
 				.isThrownBy(() -> client.headObject(r -> r.bucket(BUCKET_NAME).key("key.txt")));
 	}
 
+	@Test
+	void listObjects() throws IOException {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("hello-en.txt"), RequestBody.fromString("hello"));
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("hello-fr.txt"), RequestBody.fromString("bonjour"));
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("bye.txt"), RequestBody.fromString("bye"));
+		
+		List<S3Resource> resources = s3Template.listObjects(BUCKET_NAME, "hello");
+		assertThat(resources.size()).isEqualTo(2);
+		
+		// According to the S3Client doc : "Objects are returned sorted in an ascending order of the respective key names in the list."
+		try (InputStream is = resources.get(0).getInputStream(); InputStream is2 = resources.get(1).getInputStream()) {
+			String result = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
+			assertThat(result).isEqualTo("hello");
+			
+			String result2 = StreamUtils.copyToString(is2, StandardCharsets.UTF_8);
+			assertThat(result2).isEqualTo("bonjour");
+		}
+	}
+	
 	@Test
 	void storesObject() throws IOException {
 		S3Resource storedObject = s3Template.store(BUCKET_NAME, "person.json", new Person("John", "Doe"));

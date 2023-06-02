@@ -19,11 +19,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.time.Duration;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
@@ -84,7 +89,19 @@ public class S3Template implements S3Operations {
 		Location location = Location.of(s3Url);
 		this.deleteObject(location.getBucket(), location.getObject());
 	}
-
+	
+	@Override
+	public List<S3Resource> listObjects(String bucketName, String prefix) {
+		Assert.notNull(bucketName, "bucketName is required");
+		Assert.notNull(prefix, "prefix is required");
+		
+		final ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucketName).prefix(prefix).build();
+		final ListObjectsV2Response response = s3Client.listObjectsV2(request);
+		
+		return response.contents().stream()
+			.map(s3Object -> new S3Resource(bucketName, s3Object.key(), s3Client, s3OutputStreamProvider)).toList();
+	}
+	
 	@Override
 	public S3Resource store(String bucketName, String key, Object object) {
 		Assert.notNull(bucketName, "bucketName is required");
