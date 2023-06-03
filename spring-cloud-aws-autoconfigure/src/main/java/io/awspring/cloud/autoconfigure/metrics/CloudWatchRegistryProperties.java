@@ -27,7 +27,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author Eddú Meléndez
  * @since 2.0.0
  */
-@ConfigurationProperties(prefix = "management.metrics.export.cloudwatch")
+@ConfigurationProperties(prefix = "management.cloudwatch.metrics.export")
 public class CloudWatchRegistryProperties extends StepRegistryProperties {
 
 	private static final int DEFAULT_BATCH_SIZE = 20;

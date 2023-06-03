@@ -10,7 +10,7 @@ To send metrics to CloudWatch add a dependency to `micrometer-registry-cloudwatc
 </dependency>
 ----
 
-Additionally, CloudWatch integration requires a value provided for `management.metrics.export.cloudwatch.namespace` configuration property.
+Additionally, CloudWatch integration requires a value provided for `management.cloudwatch.metrics.export.namespace` configuration property.
 
 Following configuration properties are available to configure CloudWatch integration:
 
@@ -20,11 +20,11 @@ Following configuration properties are available to configure CloudWatch integra
 |default
 |description
 
-|management.metrics.export.cloudwatch.namespace
+|management.cloudwatch.metrics.export.namespace
 |
 |The namespace which will be used when sending metrics to CloudWatch. This property is needed and must not be null.
 
-|management.metrics.export.cloudwatch.step
+|management.cloudwatch.metrics.export.step
 |1m
 |The interval at which metrics are sent to CloudWatch. The default is 1 minute.
 

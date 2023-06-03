@@ -26,6 +26,9 @@ Properties that have changed from 2.x to 3.x are listed below:
 
 |`aws.secretsmanager.region`
 |`spring.cloud.aws.secretsmanager.region`
+
+|`management.metrics.export.cloudwatch.*`
+|`management.cloudwatch.metrics.export.*`
 |===
 
 Properties that have been removed in 3.x are listed below:
