@@ -28,7 +28,7 @@ import java.util.UUID;
 
 @Configuration
 public class SqsManualContainerInstantiationSample {
-	
+
 	public static final String NEW_USER_QUEUE = "new-user-queue";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SqsManualContainerInstantiationSample.class);
@@ -49,8 +49,8 @@ public class SqsManualContainerInstantiationSample {
 	}
 
 	@Bean
-	SqsMessageListenerContainer<Object> sqsMessageListenerContainer(SqsAsyncClient sqsAsyncClient) {
-		return SqsMessageListenerContainer.builder()
+	SqsMessageListenerContainer<User> sqsMessageListenerContainer(SqsAsyncClient sqsAsyncClient) {
+		return new SqsMessageListenerContainer.Builder<User>()
 			.sqsAsyncClient(sqsAsyncClient)
 			.queueNames(NEW_USER_QUEUE)
 			.messageListener((message) -> {
