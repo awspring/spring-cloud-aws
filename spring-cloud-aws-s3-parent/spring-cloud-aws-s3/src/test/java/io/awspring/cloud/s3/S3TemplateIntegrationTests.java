@@ -157,15 +157,10 @@ class S3TemplateIntegrationTests {
 		
 		List<S3Resource> resources = s3Template.listObjects(BUCKET_NAME, "hello");
 		assertThat(resources.size()).isEqualTo(2);
-		
+
 		// According to the S3Client doc : "Objects are returned sorted in an ascending order of the respective key names in the list."
-		try (InputStream is = resources.get(0).getInputStream(); InputStream is2 = resources.get(1).getInputStream()) {
-			String result = StreamUtils.copyToString(is, StandardCharsets.UTF_8);
-			assertThat(result).isEqualTo("hello");
-			
-			String result2 = StreamUtils.copyToString(is2, StandardCharsets.UTF_8);
-			assertThat(result2).isEqualTo("bonjour");
-		}
+		assertThat(resources).extracting(S3Resource::getInputStream).map(is -> new String(is.readAllBytes(), StandardCharsets.UTF_8))
+			.containsExactly("hello", "bonjour");
 	}
 	
 	@Test
