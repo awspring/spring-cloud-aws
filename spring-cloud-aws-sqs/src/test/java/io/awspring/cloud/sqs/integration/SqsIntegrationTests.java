@@ -283,7 +283,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void maxConcurrentMessages() {
-		List<Message<String>> messages = IntStream.range(0, 10)
+		List<Message<String>> messages = IntStream.range(0, 20)
 				.mapToObj(index -> "maxConcurrentMessages-payload-" + index)
 				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
 		sqsTemplate.sendManyAsync(MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages);
@@ -420,7 +420,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = MAX_CONCURRENT_MESSAGES_QUEUE_NAME, maxMessagesPerPoll = "1", maxConcurrentMessages = "10", id = "max-concurrent-messages")
+		@SqsListener(queueNames = MAX_CONCURRENT_MESSAGES_QUEUE_NAME, maxMessagesPerPoll = "10", maxConcurrentMessages = "20", id = "max-concurrent-messages")
 		void listen(String message) throws BrokenBarrierException, InterruptedException {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.maxConcurrentMessagesBarrier.await();
@@ -449,7 +449,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		final CountDownLatch acknowledgementCallbackSuccessLatch = new CountDownLatch(1);
 		final CountDownLatch acknowledgementCallbackBatchLatch = new CountDownLatch(1);
 		final CountDownLatch acknowledgementCallbackErrorLatch = new CountDownLatch(1);
-		final CyclicBarrier maxConcurrentMessagesBarrier = new CyclicBarrier(11);
+		final CyclicBarrier maxConcurrentMessagesBarrier = new CyclicBarrier(21);
 
 	}
 
