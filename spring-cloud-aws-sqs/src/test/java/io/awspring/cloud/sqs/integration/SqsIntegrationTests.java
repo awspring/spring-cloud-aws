@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.integration;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.CompletableFutures;
@@ -53,8 +54,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -119,6 +122,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String MANUALLY_CREATE_FACTORY_QUEUE_NAME = "manually_create_factory_test_queue";
 
+	static final String MAX_CONCURRENT_MESSAGES_QUEUE_NAME = "max_concurrent_messages_test_queue";
+
 	static final String LOW_RESOURCE_FACTORY = "lowResourceFactory";
 
 	static final String MANUAL_ACK_FACTORY = "manualAcknowledgementFactory";
@@ -143,7 +148,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "20")),
 				createQueue(client, MANUALLY_CREATE_CONTAINER_QUEUE_NAME),
 				createQueue(client, MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME),
-				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME)).join();
+				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME),
+				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME)).join();
 	}
 
 	@Autowired
@@ -294,6 +300,20 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.manuallyCreatedFactorySinkLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
+	@Test
+	void maxConcurrentMessages() {
+		List<Message<String>> messages1 = IntStream.range(0, 10)
+			.mapToObj(index -> "maxConcurrentMessages-payload-" + index)
+			.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
+		List<Message<String>> messages2 = IntStream.range(10, 20)
+			.mapToObj(index -> "maxConcurrentMessages-payload-" + index)
+			.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
+		sqsTemplate.sendManyAsync(MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages1);
+		sqsTemplate.sendManyAsync(MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages2);
+		logger.debug("Sent messages to queue {} with messages {} and {}", MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages1, messages2);
+		assertDoesNotThrow(() -> latchContainer.maxConcurrentMessagesBarrier.await(10, TimeUnit.SECONDS));
+	}
+
 	static class ReceivesMessageListener {
 
 		@Autowired
@@ -418,6 +438,18 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	static class MaxConcurrentMessagesListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@SqsListener(queueNames = MAX_CONCURRENT_MESSAGES_QUEUE_NAME, maxMessagesPerPoll = "10", maxConcurrentMessages = "20", id = "max-concurrent-messages")
+		void listen(String message) throws BrokenBarrierException, InterruptedException {
+			logger.debug("Received message in Listener Method: " + message);
+			latchContainer.maxConcurrentMessagesBarrier.await();
+		}
+	}
+
 	static class LatchContainer {
 
 		final CountDownLatch receivesMessageLatch = new CountDownLatch(1);
@@ -441,6 +473,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		final CountDownLatch acknowledgementCallbackBatchLatch = new CountDownLatch(1);
 		final CountDownLatch acknowledgementCallbackErrorLatch = new CountDownLatch(1);
 		final CountDownLatch manuallyInactiveCreatedContainerLatch = new CountDownLatch(1);
+		final CyclicBarrier maxConcurrentMessagesBarrier = new CyclicBarrier(21);
 
 	}
 
@@ -647,6 +680,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		ResolvesParameterTypesListener resolvesParameterTypesListener() {
 			return new ResolvesParameterTypesListener();
+		}
+
+		@Bean
+		MaxConcurrentMessagesListener maxConcurrentMessagesListener() {
+			return new MaxConcurrentMessagesListener();
 		}
 
 		@Bean
