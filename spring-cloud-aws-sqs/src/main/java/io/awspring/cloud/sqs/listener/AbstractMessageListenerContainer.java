@@ -264,6 +264,7 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 
 	public int getPhase() {
 		return this.phase;
+	}
 
 	@Override
 	public boolean isAutoStartup() {
