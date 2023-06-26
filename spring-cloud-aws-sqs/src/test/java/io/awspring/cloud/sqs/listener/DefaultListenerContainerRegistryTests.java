@@ -39,6 +39,7 @@ class DefaultListenerContainerRegistryTests {
 		given(container.getId()).willReturn(id);
 		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
 		registry.registerListenerContainer(container);
+		assertThat(registry.getPhase()).isEqualTo(MessageListenerContainer.DEFAULT_PHASE);
 	}
 
 	@Test
@@ -47,9 +48,11 @@ class DefaultListenerContainerRegistryTests {
 		String id = "test-container-id";
 		given(container.getId()).willReturn(id);
 		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.setPhase(2);
 		registry.registerListenerContainer(container);
 		MessageListenerContainer<?> containerFromRegistry = registry.getContainerById(id);
 		assertThat(containerFromRegistry).isEqualTo(container);
+		assertThat(registry.getPhase()).isEqualTo(2);
 	}
 
 	@Test
