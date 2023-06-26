@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 
 import org.junit.jupiter.api.Test;
 
@@ -81,8 +82,11 @@ class DefaultListenerContainerRegistryTests {
 		String id2 = "test-container-id-2";
 		String id3 = "test-container-id-3";
 		given(container1.getId()).willReturn(id1);
+		given(container1.isAutoStartup()).willReturn(true);
 		given(container2.getId()).willReturn(id2);
+		given(container2.isAutoStartup()).willReturn(true);
 		given(container3.getId()).willReturn(id3);
+		given(container3.isAutoStartup()).willReturn(true);
 		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
 		registry.registerListenerContainer(container1);
 		registry.registerListenerContainer(container2);
@@ -97,6 +101,21 @@ class DefaultListenerContainerRegistryTests {
 		then(container2).should().stop();
 		then(container3).should().start();
 		then(container3).should().stop();
+	}
+
+	@Test
+	void shouldNotStartContainerWithAutoStartupFalse() {
+		MessageListenerContainer<Object> container1 = mock(MessageListenerContainer.class);
+		String id1 = "test-container-id-1";
+		given(container1.getId()).willReturn(id1);
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.registerListenerContainer(container1);
+		registry.start();
+		assertThat(registry.isRunning()).isTrue();
+		registry.stop();
+		assertThat(registry.isRunning()).isFalse();
+		then(container1).should(times(0)).start();
+		then(container1).should().stop();
 	}
 
 	@Test

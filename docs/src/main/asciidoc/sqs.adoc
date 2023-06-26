@@ -803,6 +803,13 @@ See AWS documentation for more information.
 After that period, the framework will try to perform a partial acquire with the available permits, resulting in a poll for less than `maxMessagesPerPoll` messages, unless otherwise configured.
 See <<Message Processing Throughput>>.
 
+|`autoStartup`
+|true, false
+|true
+|Determines wherever container should start automatically. When set to false the
+container will not launch on startup, requiring manual intervention to start it.
+See <<Container Lifecycle>>.
+
 |`listenerShutdownTimeout`
 |0 - undefined
 |10 seconds

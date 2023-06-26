@@ -262,9 +262,12 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 		return this.isRunning;
 	}
 
-	@Override
 	public int getPhase() {
 		return this.phase;
+
+	@Override
+	public boolean isAutoStartup() {
+		return containerOptions.isAutoStartup();
 	}
 
 	@Override
