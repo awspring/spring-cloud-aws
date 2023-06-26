@@ -47,6 +47,15 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	B maxMessagesPerPoll(int maxMessagesPerPoll);
 
 	/**
+	 * Set whether the container should be started automatically or manually. By default, the container is set to start
+	 * automatically.
+	 *
+	 * @param autoStartup true if the container is set to start automatically, false if it should be started manually
+	 * @return this instance.
+	 */
+	B autoStartup(boolean autoStartup);
+
+	/**
 	 * Set the maximum time the polling thread should wait for a full batch of permits to be available before trying to
 	 * acquire a partial batch if so configured. A poll is only actually executed if at least one permit is available.
 	 * Default is 10 seconds.

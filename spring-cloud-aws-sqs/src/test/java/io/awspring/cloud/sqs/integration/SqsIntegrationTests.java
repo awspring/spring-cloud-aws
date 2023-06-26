@@ -67,6 +67,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -117,6 +118,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String MANUALLY_CREATE_CONTAINER_QUEUE_NAME = "manually_create_container_test_queue";
 
+	static final String MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME = "manually_create_inactive_container_test_queue";
+
 	static final String MANUALLY_CREATE_FACTORY_QUEUE_NAME = "manually_create_factory_test_queue";
 
 	static final String MAX_CONCURRENT_MESSAGES_QUEUE_NAME = "max_concurrent_messages_test_queue";
@@ -144,6 +147,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, RESOLVES_PARAMETER_TYPES_QUEUE_NAME,
 						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "20")),
 				createQueue(client, MANUALLY_CREATE_CONTAINER_QUEUE_NAME),
+				createQueue(client, MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME),
 				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME),
 				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME)).join();
 	}
@@ -156,6 +160,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Autowired
 	ObjectMapper objectMapper;
+
+	@Autowired
+	@Qualifier("inactiveContainer")
+	MessageListenerContainer<Object> inactiveMessageListenerContainer;
 
 	@Test
 	void receivesMessage() throws Exception {
@@ -238,6 +246,17 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(MANUALLY_CREATE_CONTAINER_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_CONTAINER_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.manuallyCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void manuallyCreatesInactiveContainer() throws Exception {
+		String messageBody = "Testing manually creates inactive container";
+		assertThat(inactiveMessageListenerContainer.isRunning()).isFalse();
+		sqsTemplate.send(MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME, messageBody);
+		inactiveMessageListenerContainer.start();
+		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME,
+				messageBody);
+		assertThat(latchContainer.manuallyInactiveCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	// @formatter:off
@@ -453,6 +472,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		final CountDownLatch acknowledgementCallbackSuccessLatch = new CountDownLatch(1);
 		final CountDownLatch acknowledgementCallbackBatchLatch = new CountDownLatch(1);
 		final CountDownLatch acknowledgementCallbackErrorLatch = new CountDownLatch(1);
+		final CountDownLatch manuallyInactiveCreatedContainerLatch = new CountDownLatch(1);
 		final CyclicBarrier maxConcurrentMessagesBarrier = new CyclicBarrier(21);
 
 	}
@@ -573,6 +593,23 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 					.maxDelayBetweenPolls(Duration.ofSeconds(1))
 					.pollTimeout(Duration.ofSeconds(3)))
 				.messageListener(msg -> latchContainer.manuallyCreatedContainerLatch.countDown())
+				.build();
+		}
+
+		@Bean("inactiveContainer")
+		public MessageListenerContainer<Object> manuallyCreatedInactiveContainer() throws Exception {
+			SqsAsyncClient client = BaseSqsIntegrationTest.createAsyncClient();
+			String queueUrl = client.getQueueUrl(req -> req.queueName(MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME)).get()
+				.queueUrl();
+			return SqsMessageListenerContainer
+				.builder()
+				.queueNames(queueUrl)
+				.sqsAsyncClient(client)
+				.configure(options -> options
+					.autoStartup(false)
+					.maxDelayBetweenPolls(Duration.ofSeconds(1))
+					.pollTimeout(Duration.ofSeconds(3)))
+				.messageListener(msg -> {latchContainer.manuallyInactiveCreatedContainerLatch.countDown();})
 				.build();
 		}
 
