@@ -30,6 +30,7 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
+import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -52,10 +53,10 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
  * @since 3.0
  */
 @AutoConfiguration
-@ConditionalOnClass({ SqsAsyncClient.class, SqsBootstrapConfiguration.class })
+@ConditionalOnClass({SqsAsyncClient.class, SqsBootstrapConfiguration.class})
 @EnableConfigurationProperties(SqsProperties.class)
 @Import(SqsBootstrapConfiguration.class)
-@AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
+@AutoConfigureAfter({CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class})
 @ConditionalOnProperty(name = "spring.cloud.aws.sqs.enabled", havingValue = "true", matchIfMissing = true)
 public class SqsAutoConfiguration {
 
@@ -68,9 +69,9 @@ public class SqsAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public SqsAsyncClient sqsAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SqsAsyncClientBuilder>> configurer) {
+										 ObjectProvider<AwsClientCustomizer<SqsAsyncClientBuilder>> configurer) {
 		return awsClientBuilderConfigurer
-				.configure(SqsAsyncClient.builder(), this.sqsProperties, configurer.getIfAvailable()).build();
+			.configure(SqsAsyncClient.builder(), this.sqsProperties, configurer.getIfAvailable()).build();
 	}
 
 	@ConditionalOnMissingBean
@@ -78,17 +79,18 @@ public class SqsAutoConfiguration {
 	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObjectProvider<ObjectMapper> objectMapperProvider) {
 		SqsTemplateBuilder builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
 		objectMapperProvider
-				.ifAvailable(om -> builder.configureDefaultConverter(converter -> converter.setObjectMapper(om)));
+			.ifAvailable(om -> builder.configureDefaultConverter(converter -> converter.setObjectMapper(om)));
 		return builder.build();
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(
-			ObjectProvider<SqsAsyncClient> sqsAsyncClient, ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
-			ObjectProvider<ErrorHandler<Object>> errorHandler,
-			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
-			ObjectProvider<MessageInterceptor<Object>> interceptors) {
+		ObjectProvider<SqsAsyncClient> sqsAsyncClient, ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
+		ObjectProvider<ErrorHandler<Object>> errorHandler,
+		ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
+		ObjectProvider<MessageInterceptor<Object>> interceptors,
+		ObjectProvider<ObjectMapper> objectMapperProvider) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
 		factory.configure(this::configureContainerOptions);
@@ -97,6 +99,11 @@ public class SqsAutoConfiguration {
 		errorHandler.ifAvailable(factory::setErrorHandler);
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
+		objectMapperProvider.ifAvailable(objectMapper -> {
+			var messageConverter = new SqsMessagingMessageConverter();
+			messageConverter.setObjectMapper(objectMapper);
+			factory.configure(options -> options.messageConverter(messageConverter));
+		});
 		return factory;
 	}
 
