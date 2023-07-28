@@ -17,15 +17,10 @@ package io.awspring.cloud.core;
 
 import java.io.IOException;
 import java.util.Properties;
-
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
-import io.awspring.cloud.core.SpringCloudClientConfiguration.SpringCloudClientConfigurationHints;
 
 /**
  * Utility class for creating {@link ClientOverrideConfiguration} containing "Spring Cloud AWS" user agent. When used,
@@ -34,7 +29,6 @@ import io.awspring.cloud.core.SpringCloudClientConfiguration.SpringCloudClientCo
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
  */
-@ImportRuntimeHints(SpringCloudClientConfigurationHints.class)
 public final class SpringCloudClientConfiguration {
 	private static final String PROPERTIES_FILE_LOCATION = "/io/awspring/cloud/core/SpringCloudClientConfiguration.properties";
 
@@ -71,14 +65,5 @@ public final class SpringCloudClientConfiguration {
 
 	private String getUserAgent() {
 		return NAME + "/" + version;
-	}
-
-
-	static class SpringCloudClientConfigurationHints implements RuntimeHintsRegistrar {
-
-		@Override
-		public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-			hints.resources().registerPattern("io/awspring/cloud/core/SpringCloudClientConfiguration.properties");
-		}
 	}
 }
