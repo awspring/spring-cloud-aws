@@ -241,7 +241,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		int poolSize = getContainerOptions().getMaxConcurrentMessages() * this.messageSources.size();
 		executor.setMaxPoolSize(poolSize);
-		executor.setCorePoolSize(getContainerOptions().getMaxMessagesPerPoll());
+		executor.setCorePoolSize(poolSize);
 		// Necessary due to a small racing condition between releasing the permit and releasing the thread.
 		executor.setQueueCapacity(poolSize);
 		executor.setAllowCoreThreadTimeOut(true);

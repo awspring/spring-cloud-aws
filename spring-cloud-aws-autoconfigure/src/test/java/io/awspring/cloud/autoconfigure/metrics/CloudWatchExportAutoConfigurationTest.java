@@ -62,7 +62,7 @@ class CloudWatchExportAutoConfigurationTest {
 
 	@Test
 	void enableAutoConfigurationSettingNamespace() {
-		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test").run(context -> {
+		this.contextRunner.withPropertyValues("management.cloudwatch.metrics.export.namespace:test").run(context -> {
 			assertThat(context).hasSingleBean(CloudWatchMeterRegistry.class);
 			assertThat(context).hasSingleBean(CloudWatchConfig.class);
 			assertThat(context).hasSingleBean(Clock.class);
@@ -74,7 +74,7 @@ class CloudWatchExportAutoConfigurationTest {
 
 	@Test
 	void enableAutoConfigurationWithSpecificRegion() {
-		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test",
+		this.contextRunner.withPropertyValues("management.cloudwatch.metrics.export.namespace:test",
 				"spring.cloud.aws.cloudwatch.region:us-east-1").run(context -> {
 					assertThat(context).hasSingleBean(CloudWatchMeterRegistry.class);
 					assertThat(context).hasSingleBean(Clock.class);
@@ -95,7 +95,7 @@ class CloudWatchExportAutoConfigurationTest {
 
 	@Test
 	void enableAutoConfigurationWithCustomEndpoint() {
-		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test",
+		this.contextRunner.withPropertyValues("management.cloudwatch.metrics.export.namespace:test",
 				"spring.cloud.aws.cloudwatch.endpoint:http://localhost:8090").run(context -> {
 					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(CloudWatchAsyncClient.class));
 					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
@@ -105,7 +105,7 @@ class CloudWatchExportAutoConfigurationTest {
 
 	@Test
 	void withCustomGlobalEndpoint() {
-		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test",
+		this.contextRunner.withPropertyValues("management.cloudwatch.metrics.export.namespace:test",
 				"spring.cloud.aws.endpoint:http://localhost:8090").run(context -> {
 					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(CloudWatchAsyncClient.class));
 					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
@@ -115,7 +115,7 @@ class CloudWatchExportAutoConfigurationTest {
 
 	@Test
 	void withCustomGlobalEndpointAndCloudWatchEndpoint() {
-		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test",
+		this.contextRunner.withPropertyValues("management.cloudwatch.metrics.export.namespace:test",
 				"spring.cloud.aws.endpoint:http://localhost:8090",
 				"spring.cloud.aws.cloudwatch.endpoint:http://localhost:9999").run(context -> {
 					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(CloudWatchAsyncClient.class));
@@ -126,7 +126,7 @@ class CloudWatchExportAutoConfigurationTest {
 
 	@Test
 	void useAwsConfigurerClient() {
-		this.contextRunner.withPropertyValues("management.metrics.export.cloudwatch.namespace:test")
+		this.contextRunner.withPropertyValues("management.cloudwatch.metrics.export.namespace:test")
 				.withUserConfiguration(CustomAwsConfigurerClient.class).run(context -> {
 					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(CloudWatchAsyncClient.class));
 					assertThat(client.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1542));

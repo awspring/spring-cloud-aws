@@ -60,7 +60,7 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:2.0.0")).withServices(DYNAMODB).withReuse(true);
+			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(DYNAMODB).withReuse(true);
 
 	@BeforeAll
 	public static void createTable() {
@@ -338,6 +338,12 @@ public class DynamoDbTemplateIntegrationTest {
 						.writeCapacityUnits((long) 1).build())
 				.attributeDefinitions(attributeDefinitions).keySchema(tableKeySchema)
 				.globalSecondaryIndexes(precipIndex).build();
-		dynamoDbClient.createTable(createTableRequest);
+
+		try {
+			dynamoDbClient.createTable(createTableRequest);
+		}
+		catch (ResourceInUseException e) {
+			// table already exists, do nothing
+		}
 	}
 }

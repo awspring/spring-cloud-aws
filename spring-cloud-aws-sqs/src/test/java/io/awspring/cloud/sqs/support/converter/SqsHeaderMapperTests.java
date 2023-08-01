@@ -58,11 +58,11 @@ class SqsHeaderMapperTests {
 		String headerName = "stringAttribute";
 		String headerValue = "myString";
 		Message message = Message.builder().body("payload")
-			.messageAttributes(
-				Map.of(headerName,
-					MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
-						.stringValue(headerValue).build()))
-			.messageId(UUID.randomUUID().toString()).build();
+				.messageAttributes(
+						Map.of(headerName,
+								MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
+										.stringValue(headerValue).build()))
+				.messageId(UUID.randomUUID().toString()).build();
 		MessageHeaders headers = mapper.toHeaders(message);
 		assertThat(headers.get(headerName)).isEqualTo(headerValue);
 	}
@@ -73,11 +73,11 @@ class SqsHeaderMapperTests {
 		String headerName = "stringAttribute";
 		String headerValue = "myString";
 		Message message = Message.builder().body("payload")
-			.messageAttributes(
-				Map.of(headerName,
-					MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING + ".Array")
-						.stringValue(headerValue).build()))
-			.messageId(UUID.randomUUID().toString()).build();
+				.messageAttributes(
+						Map.of(headerName,
+								MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING + ".Array")
+										.stringValue(headerValue).build()))
+				.messageId(UUID.randomUUID().toString()).build();
 		MessageHeaders headers = mapper.toHeaders(message);
 		assertThat(headers.get(headerName)).isEqualTo(headerValue);
 	}
@@ -88,10 +88,8 @@ class SqsHeaderMapperTests {
 		String headerName = "stringAttribute";
 		String headerValue = "myString";
 		Message message = Message.builder().body("payload")
-				.messageAttributes(
-						Map.of(headerName,
-								MessageAttributeValue.builder().dataType("invalid data type")
-										.stringValue(headerValue).build()))
+				.messageAttributes(Map.of(headerName,
+						MessageAttributeValue.builder().dataType("invalid data type").stringValue(headerValue).build()))
 				.messageId(UUID.randomUUID().toString()).build();
 		MessageHeaders headers = mapper.toHeaders(message);
 		assertThat(headers.get(headerName)).isEqualTo(headerValue);
@@ -103,11 +101,11 @@ class SqsHeaderMapperTests {
 		String headerName = "stringAttribute";
 		SdkBytes headerValue = SdkBytes.fromUtf8String("myString");
 		Message message = Message.builder().body("payload")
-			.messageAttributes(
-				Map.of(headerName,
-					MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.BINARY)
-						.binaryValue(headerValue).build()))
-			.messageId(UUID.randomUUID().toString()).build();
+				.messageAttributes(
+						Map.of(headerName,
+								MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.BINARY)
+										.binaryValue(headerValue).build()))
+				.messageId(UUID.randomUUID().toString()).build();
 		MessageHeaders headers = mapper.toHeaders(message);
 		assertThat(headers.get(headerName)).isEqualTo(headerValue);
 	}

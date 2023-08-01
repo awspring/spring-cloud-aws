@@ -356,7 +356,7 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	private <T> void logSendMessageResult(String endpointToUse, Message<T> message, @Nullable Throwable t) {
 		if (t == null) {
 			logger.trace("Message {} successfully sent to endpoint {} with id {}", message,
-					MessageHeaderUtils.getId(message), endpointToUse);
+				endpointToUse, MessageHeaderUtils.getId(message));
 		}
 		else {
 			logger.error("Error sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointToUse,
@@ -372,7 +372,7 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 			@Nullable Throwable t) {
 		if (t == null) {
 			logger.trace("Messages {} successfully sent to endpoint {} with id {}", messages,
-					MessageHeaderUtils.getId(messages), endpointToUse);
+				endpointToUse, MessageHeaderUtils.getId(messages));
 		}
 		else {
 			logger.error("Error sending messages {} to endpoint {}", MessageHeaderUtils.getId(messages), endpointToUse,

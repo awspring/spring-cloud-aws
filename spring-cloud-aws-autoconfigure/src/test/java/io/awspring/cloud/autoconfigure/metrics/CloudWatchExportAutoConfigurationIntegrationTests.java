@@ -55,7 +55,7 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:2.0.0"));
+			DockerImageName.parse("localstack/localstack:1.4.0"));
 
 	@DynamicPropertySource
 	static void registerProperties(DynamicPropertyRegistry registry) {
@@ -72,8 +72,8 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=us-east-1", "--management.metrics.export.cloudwatch.step=5s",
-				"--management.metrics.export.cloudwatch.namespace=awspring/spring-cloud-aws",
+				"--spring.cloud.aws.region.static=us-east-1", "--management.cloudwatch.metrics.export.step=5s",
+				"--management.cloudwatch.metrics.export.namespace=awspring/spring-cloud-aws",
 				"--management.metrics.enable.all=false", "--management.metrics.enable.test=true")) {
 
 			MeterRegistry meterRegistry = context.getBean(MeterRegistry.class);
