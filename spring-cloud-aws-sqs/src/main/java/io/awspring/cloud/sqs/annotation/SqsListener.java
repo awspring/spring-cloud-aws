@@ -80,7 +80,7 @@ import org.springframework.core.annotation.AliasFor;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Reflective
+@Reflective(processors = SqsListenerReflectiveProcessor.class)
 public @interface SqsListener {
 
 	/**
