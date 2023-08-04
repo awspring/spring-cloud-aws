@@ -99,7 +99,7 @@ public class NotificationMessageHandlerMethodArgumentResolver
 				"Error converting notification message with payload:" + messageContent, request);
 	}
 
-	private static final class ByteArrayHttpInputMessage implements HttpInputMessage {
+	public static final class ByteArrayHttpInputMessage implements HttpInputMessage {
 
 		private final String content;
 
