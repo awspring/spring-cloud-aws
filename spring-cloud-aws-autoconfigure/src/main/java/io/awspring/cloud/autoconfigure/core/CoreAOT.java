@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.s3;
+package io.awspring.cloud.autoconfigure.core;
 
+import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.TypeReference;
+import org.springframework.util.ClassUtils;
 
-public class S3AOT implements RuntimeHintsRegistrar {
+public class CoreAOT implements RuntimeHintsRegistrar {
+
+	private static final String STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER = "software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider";
+
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-		hints.resources().registerPattern("io/awspring/cloud/s3/S3ObjectContentTypeResolver.properties");
+		if (ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, classLoader)) {
+			hints.reflection().registerType(TypeReference.of(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER),
+					hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+							MemberCategory.INTROSPECT_DECLARED_METHODS, MemberCategory.DECLARED_FIELDS));
+		}
 	}
 }
