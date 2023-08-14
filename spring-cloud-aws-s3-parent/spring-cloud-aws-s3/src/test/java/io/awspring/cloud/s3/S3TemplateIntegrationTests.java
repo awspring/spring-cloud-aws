@@ -27,7 +27,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -154,15 +153,16 @@ class S3TemplateIntegrationTests {
 		client.putObject(r -> r.bucket(BUCKET_NAME).key("hello-en.txt"), RequestBody.fromString("hello"));
 		client.putObject(r -> r.bucket(BUCKET_NAME).key("hello-fr.txt"), RequestBody.fromString("bonjour"));
 		client.putObject(r -> r.bucket(BUCKET_NAME).key("bye.txt"), RequestBody.fromString("bye"));
-		
+
 		List<S3Resource> resources = s3Template.listObjects(BUCKET_NAME, "hello");
 		assertThat(resources.size()).isEqualTo(2);
 
-		// According to the S3Client doc : "Objects are returned sorted in an ascending order of the respective key names in the list."
-		assertThat(resources).extracting(S3Resource::getInputStream).map(is -> new String(is.readAllBytes(), StandardCharsets.UTF_8))
-			.containsExactly("hello", "bonjour");
+		// According to the S3Client doc : "Objects are returned sorted in an ascending order of the respective key
+		// names in the list."
+		assertThat(resources).extracting(S3Resource::getInputStream)
+				.map(is -> new String(is.readAllBytes(), StandardCharsets.UTF_8)).containsExactly("hello", "bonjour");
 	}
-	
+
 	@Test
 	void storesObject() throws IOException {
 		S3Resource storedObject = s3Template.store(BUCKET_NAME, "person.json", new Person("John", "Doe"));
