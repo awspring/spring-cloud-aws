@@ -185,7 +185,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private static final int DEFAULT_MAX_MESSAGES_PER_POLL = 10;
 
 		private static final boolean DEFAULT_AUTO_STARTUP = true;
-		
+
 		private static final Duration DEFAULT_POLL_TIMEOUT = Duration.ofSeconds(10);
 
 		private static final Duration DEFAULT_SEMAPHORE_TIMEOUT = Duration.ofSeconds(10);
