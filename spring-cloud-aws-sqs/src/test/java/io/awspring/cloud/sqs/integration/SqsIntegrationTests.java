@@ -15,11 +15,6 @@
  */
 package io.awspring.cloud.sqs.integration;
 
-import static java.util.Collections.singletonMap;
-import static java.util.Map.entry;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
@@ -49,17 +44,6 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.AbstractSqsMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
-import java.lang.reflect.Method;
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -81,6 +65,28 @@ import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+
+import java.lang.reflect.Method;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static java.util.Collections.singletonMap;
+import static java.util.Map.entry;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /**
  * Integration tests for SQS integration.
@@ -512,60 +518,76 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	static class AnnotationAlwaysAcknowledgeOnSuccessMessagesListener {
+
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = ANNOTATION_ALWAYS_ACK_SUCCESS_QUEUE_NAME, id = "annotation-always-ack-success", acknowledgmentMode = SqsListenerAcknowledgmentMode.ALWAYS)
+		@SqsListener(queueNames = ANNOTATION_ALWAYS_ACK_SUCCESS_QUEUE_NAME, id = "annotation-always-ack-success",
+				acknowledgmentMode = SqsListenerAcknowledgmentMode.ALWAYS)
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.annotationAlwaysAckSuccessLatch.countDown();
 		}
+
 	}
 
 	static class AnnotationAlwaysAcknowledgeOnErrorMessagesListener {
+
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = ANNOTATION_ALWAYS_ACK_ERROR_QUEUE_NAME, id = "annotation-always-ack-error", acknowledgmentMode = SqsListenerAcknowledgmentMode.ALWAYS)
+		@SqsListener(queueNames = ANNOTATION_ALWAYS_ACK_ERROR_QUEUE_NAME, id = "annotation-always-ack-error",
+				acknowledgmentMode = SqsListenerAcknowledgmentMode.ALWAYS)
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.annotationAlwaysAckErrorLatch.countDown();
 			throw new RuntimeException("Expected exception from annotation-ack-always-error");
 		}
+
 	}
 
 	static class AnnotationOnSuccessAcknowledgeOnSuccessMessagesListener {
+
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = ANNOTATION_ON_SUCCESS_ACK_SUCCESS_QUEUE_NAME, factory = ACK_AFTER_SECOND_ERROR_FACTORY, id = "annotation-onsuccess-ack-success", acknowledgmentMode = SqsListenerAcknowledgmentMode.ON_SUCCESS)
+		@SqsListener(queueNames = ANNOTATION_ON_SUCCESS_ACK_SUCCESS_QUEUE_NAME,
+				factory = ACK_AFTER_SECOND_ERROR_FACTORY, id = "annotation-onsuccess-ack-success",
+				acknowledgmentMode = SqsListenerAcknowledgmentMode.ON_SUCCESS)
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.annotationOnSuccessAckSuccessLatch.countDown();
 		}
+
 	}
 
 	static class AnnotationOnSuccessAcknowledgeOnErrorMessagesListener {
+
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = ANNOTATION_ON_SUCCESS_ACK_ERROR_QUEUE_NAME, factory = ACK_AFTER_SECOND_ERROR_FACTORY, id = "annotation-onsuccess-ack-error", acknowledgmentMode = SqsListenerAcknowledgmentMode.ON_SUCCESS)
+		@SqsListener(queueNames = ANNOTATION_ON_SUCCESS_ACK_ERROR_QUEUE_NAME, factory = ACK_AFTER_SECOND_ERROR_FACTORY,
+				id = "annotation-onsuccess-ack-error", acknowledgmentMode = SqsListenerAcknowledgmentMode.ON_SUCCESS)
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.annotationOnSuccessAckErrorLatch.countDown();
 			throw new RuntimeException("Expected exception from annotation-onsuccess-ack-error");
 		}
+
 	}
 
 	static class AnnotationManualAcknowledgeMessagesListener {
+
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = ANNOTATION_MANUAL_ACK_QUEUE_NAME, id = "annotation-manual-ack", acknowledgmentMode = SqsListenerAcknowledgmentMode.MANUAL)
+		@SqsListener(queueNames = ANNOTATION_MANUAL_ACK_QUEUE_NAME, id = "annotation-manual-ack",
+				acknowledgmentMode = SqsListenerAcknowledgmentMode.MANUAL)
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.annotationManualAckLatch.countDown();
 		}
+
 	}
 
 	// add message listners for manual ack modes
@@ -930,17 +952,17 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 							SqsHeaders.SQS_QUEUE_NAME_HEADER);
 
 					final Map<String, CountDownLatch> latches = Map.ofEntries(
-						entry(RECEIVES_MESSAGE_QUEUE_NAME, latchContainer.acknowledgementCallbackSuccessLatch),
-						entry(ANNOTATION_ALWAYS_ACK_SUCCESS_QUEUE_NAME, latchContainer.annotationAlwaysAckSuccessLatch),
-						entry(ANNOTATION_ALWAYS_ACK_ERROR_QUEUE_NAME, latchContainer.annotationAlwaysAckErrorLatch),
-						entry(ANNOTATION_ON_SUCCESS_ACK_SUCCESS_QUEUE_NAME, latchContainer.annotationOnSuccessAckSuccessLatch),
-						entry(ANNOTATION_MANUAL_ACK_QUEUE_NAME, latchContainer.annotationManualAckLatchCallback)
-					);
+							entry(RECEIVES_MESSAGE_QUEUE_NAME, latchContainer.acknowledgementCallbackSuccessLatch),
+							entry(ANNOTATION_ALWAYS_ACK_SUCCESS_QUEUE_NAME,
+									latchContainer.annotationAlwaysAckSuccessLatch),
+							entry(ANNOTATION_ALWAYS_ACK_ERROR_QUEUE_NAME, latchContainer.annotationAlwaysAckErrorLatch),
+							entry(ANNOTATION_ON_SUCCESS_ACK_SUCCESS_QUEUE_NAME,
+									latchContainer.annotationOnSuccessAckSuccessLatch),
+							entry(ANNOTATION_MANUAL_ACK_QUEUE_NAME, latchContainer.annotationManualAckLatchCallback));
 
 					if (latches.containsKey(queueName)) {
 						latches.get(queueName).countDown();
 					}
-
 
 				}
 
@@ -952,9 +974,9 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 							SqsHeaders.SQS_QUEUE_NAME_HEADER);
 
 					final Map<String, CountDownLatch> latches = Map.ofEntries(
-						entry(DOES_NOT_ACK_ON_ERROR_QUEUE_NAME, latchContainer.acknowledgementCallbackErrorLatch),
-						entry(ANNOTATION_ON_SUCCESS_ACK_ERROR_QUEUE_NAME, latchContainer.annotationOnSuccessAckErrorCallbackLatch)
-					);
+							entry(DOES_NOT_ACK_ON_ERROR_QUEUE_NAME, latchContainer.acknowledgementCallbackErrorLatch),
+							entry(ANNOTATION_ON_SUCCESS_ACK_ERROR_QUEUE_NAME,
+									latchContainer.annotationOnSuccessAckErrorCallbackLatch));
 
 					if (latches.containsKey(queueName)) {
 						latches.get(queueName).countDown();

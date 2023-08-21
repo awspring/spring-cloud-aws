@@ -31,6 +31,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.OnSuccessAcknowled
  * @see SqsListener
  */
 public enum SqsListenerAcknowledgmentMode {
+
 	/**
 	 * Use acknowledge mode defined by the container.
 	 */
@@ -42,7 +43,8 @@ public enum SqsListenerAcknowledgmentMode {
 	ON_SUCCESS,
 
 	/**
-	 * Messages will be acknowledged whether processing was completed successfully or with an error.
+	 * Messages will be acknowledged whether processing was completed successfully or with
+	 * an error.
 	 */
 	ALWAYS,
 
@@ -51,4 +53,5 @@ public enum SqsListenerAcknowledgmentMode {
 	 * @see io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement
 	 */
 	MANUAL,
+
 }
