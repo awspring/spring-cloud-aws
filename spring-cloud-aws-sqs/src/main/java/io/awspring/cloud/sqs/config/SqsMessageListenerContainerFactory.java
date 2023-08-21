@@ -161,7 +161,8 @@ public class SqsMessageListenerContainerFactory<T> extends
 		ConfigUtils.INSTANCE.acceptIfNotNull(sqsEndpoint.getMaxConcurrentMessages(), options::maxConcurrentMessages)
 				.acceptIfNotNull(sqsEndpoint.getMaxMessagesPerPoll(), options::maxMessagesPerPoll)
 				.acceptIfNotNull(sqsEndpoint.getPollTimeout(), options::pollTimeout)
-				.acceptIfNotNull(sqsEndpoint.getMessageVisibility(), options::messageVisibility);
+				.acceptIfNotNull(sqsEndpoint.getMessageVisibility(), options::messageVisibility)
+				.acceptIfNotNull(sqsEndpoint.getAcknowledgementMode(), options::acknowledgementMode);
 	}
 
 	/**

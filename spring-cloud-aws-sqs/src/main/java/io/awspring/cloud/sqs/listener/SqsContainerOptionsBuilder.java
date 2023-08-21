@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.listener;
 
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import java.time.Duration;
 import java.util.Collection;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
@@ -64,5 +65,12 @@ public interface SqsContainerOptionsBuilder
 	 * @return this instance.
 	 */
 	SqsContainerOptionsBuilder queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy);
+
+	/**
+	 * Set the {@link AcknowledgementMode} for the container.
+	 * @param acknowledgementMode the acknowledgement mode.
+	 * @return this instance.
+	 */
+	SqsContainerOptionsBuilder acknowledgementMode(AcknowledgementMode acknowledgementMode);
 
 }

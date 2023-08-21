@@ -22,6 +22,7 @@ import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.HandlerMethodEndpoint;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.resolver.AcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchAcknowledgmentArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
@@ -216,6 +217,16 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		}
 		catch (Exception e) {
 			throw new IllegalArgumentException("Cannot resolve " + propertyName + " as Integer");
+		}
+	}
+
+	@Nullable
+	protected AcknowledgementMode resolve(SqsListenerAcknowledgmentMode value) {
+		try {
+			return value == SqsListenerAcknowledgmentMode.INHERIT ? null : AcknowledgementMode.valueOf(value.name());
+		}
+		catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("Cannot resolve " + value + " as AcknowledgementMode", e);
 		}
 	}
 

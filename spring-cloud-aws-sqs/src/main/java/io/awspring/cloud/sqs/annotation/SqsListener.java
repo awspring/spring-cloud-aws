@@ -137,4 +137,10 @@ public @interface SqsListener {
 	 */
 	String messageVisibilitySeconds() default "";
 
+	/**
+	 * The acknowledgement mode to be used for the provided queues. If not specified, the acknowledgement mode defined
+	 * for the container factory will be used.
+	 */
+	SqsListenerAcknowledgmentMode acknowledgmentMode() default SqsListenerAcknowledgmentMode.INHERIT;
+
 }

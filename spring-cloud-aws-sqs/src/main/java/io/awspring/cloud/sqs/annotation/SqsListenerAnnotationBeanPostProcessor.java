@@ -51,7 +51,7 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 						resolveAsInteger(sqsListenerAnnotation.maxConcurrentMessages(), "maxConcurrentMessages"))
 				.messageVisibility(
 						resolveAsInteger(sqsListenerAnnotation.messageVisibilitySeconds(), "messageVisibility"))
-				.build();
+				.acknowledgementMode(resolve(sqsListenerAnnotation.acknowledgmentMode())).build();
 	}
 
 	@Override
