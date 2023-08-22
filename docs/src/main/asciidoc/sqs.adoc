@@ -636,6 +636,8 @@ Note that if there are messages available the call may return earlier than this 
 - `messageVisibilitySeconds` - Set the minimum visibility for the messages retrieved in a poll.
 Note that for `FIFO` single message listener methods, this visibility is applied to the whole batch before each message is sent to the listener.
 See <<FIFO Support>> for more information.
+- `acknowledgementMode` - Set the acknowledgement mode for the container. Default value is `SqsListenerAcknowledgementMode.INHERIT`,
+meaning that it will inherit the acknowledgement mode of the container factory. See <<Acknowledgement Mode>> for more information.
 
 
 ===== Listener Method Arguments
@@ -1325,6 +1327,8 @@ NOTE: All options are available for both `single message` and `batch` message li
 - `ON_SUCCESS` - Acknowledges a message or batch of messages after successful processing.
 - `ALWAYS` - Acknowledges a message or batch of messages after processing returns success or error.
 - `MANUAL` - The framework won't acknowledge messages automatically and `Acknowledgement` objects can be received in the listener method.
+
+The `Acknowledgement` strategy can be configured in the `SqsContainerOptions` or in the `@SqsListener` annotation.
 
 ==== Acknowledgement Batching
 
