@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
-import io.awspring.cloud.sqs.annotation.SqsListenerAcknowledgmentMode;
+import io.awspring.cloud.sqs.annotation.SqsListenerAcknowledgementMode;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
@@ -523,7 +523,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		LatchContainer latchContainer;
 
 		@SqsListener(queueNames = ANNOTATION_ALWAYS_ACK_SUCCESS_QUEUE_NAME, id = "annotation-always-ack-success",
-				acknowledgmentMode = SqsListenerAcknowledgmentMode.ALWAYS)
+				acknowledgmentMode = SqsListenerAcknowledgementMode.ALWAYS)
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.annotationAlwaysAckSuccessLatch.countDown();
@@ -537,7 +537,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		LatchContainer latchContainer;
 
 		@SqsListener(queueNames = ANNOTATION_ALWAYS_ACK_ERROR_QUEUE_NAME, id = "annotation-always-ack-error",
-				acknowledgmentMode = SqsListenerAcknowledgmentMode.ALWAYS)
+				acknowledgmentMode = SqsListenerAcknowledgementMode.ALWAYS)
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.annotationAlwaysAckErrorLatch.countDown();
@@ -553,7 +553,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 		@SqsListener(queueNames = ANNOTATION_ON_SUCCESS_ACK_SUCCESS_QUEUE_NAME,
 				factory = ACK_AFTER_SECOND_ERROR_FACTORY, id = "annotation-onsuccess-ack-success",
-				acknowledgmentMode = SqsListenerAcknowledgmentMode.ON_SUCCESS)
+				acknowledgmentMode = SqsListenerAcknowledgementMode.ON_SUCCESS)
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.annotationOnSuccessAckSuccessLatch.countDown();
@@ -567,7 +567,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		LatchContainer latchContainer;
 
 		@SqsListener(queueNames = ANNOTATION_ON_SUCCESS_ACK_ERROR_QUEUE_NAME, factory = ACK_AFTER_SECOND_ERROR_FACTORY,
-				id = "annotation-onsuccess-ack-error", acknowledgmentMode = SqsListenerAcknowledgmentMode.ON_SUCCESS)
+				id = "annotation-onsuccess-ack-error", acknowledgmentMode = SqsListenerAcknowledgementMode.ON_SUCCESS)
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.annotationOnSuccessAckErrorLatch.countDown();
@@ -582,7 +582,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		LatchContainer latchContainer;
 
 		@SqsListener(queueNames = ANNOTATION_MANUAL_ACK_QUEUE_NAME, id = "annotation-manual-ack",
-				acknowledgmentMode = SqsListenerAcknowledgmentMode.MANUAL)
+				acknowledgmentMode = SqsListenerAcknowledgementMode.MANUAL)
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.annotationManualAckLatch.countDown();

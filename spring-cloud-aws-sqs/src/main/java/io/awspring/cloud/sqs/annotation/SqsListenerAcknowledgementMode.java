@@ -30,7 +30,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.OnSuccessAcknowled
  * @see io.awspring.cloud.sqs.listener.ContainerOptions
  * @see SqsListener
  */
-public enum SqsListenerAcknowledgmentMode {
+public enum SqsListenerAcknowledgementMode {
 
 	/**
 	 * Use acknowledge mode defined by the container.
