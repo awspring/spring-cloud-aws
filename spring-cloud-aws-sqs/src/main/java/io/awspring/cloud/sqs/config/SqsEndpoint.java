@@ -96,6 +96,10 @@ public class SqsEndpoint extends AbstractEndpoint {
 		return this.messageVisibility != null ? Duration.ofSeconds(this.messageVisibility) : null;
 	}
 
+	/**
+	 * Returns the acknowledgement mode configured for this endpoint.
+	 * @return the acknowledgement mode.
+	 */
 	@Nullable
 	public AcknowledgementMode getAcknowledgementMode() {
 		return this.acknowledgementMode;
