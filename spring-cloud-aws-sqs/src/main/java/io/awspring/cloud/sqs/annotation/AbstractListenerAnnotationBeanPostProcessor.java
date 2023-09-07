@@ -221,9 +221,11 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	}
 
 	@Nullable
-	protected AcknowledgementMode resolve(SqsListenerAcknowledgementMode value) {
+	protected AcknowledgementMode resolveAcknowledgement(String value) {
 		try {
-			return value == SqsListenerAcknowledgementMode.INHERIT ? null : AcknowledgementMode.valueOf(value.name());
+			final String resolvedValue = resolveAsString(value, "acknowledgmentMode");
+			return resolvedValue.equals(SqsListenerAcknowledgementMode.DEFAULT) ? null
+					: AcknowledgementMode.valueOf(resolvedValue);
 		}
 		catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException("Cannot resolve " + value + " as AcknowledgementMode", e);

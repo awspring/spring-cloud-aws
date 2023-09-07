@@ -15,13 +15,12 @@
  */
 package io.awspring.cloud.sqs.annotation;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
-import org.junit.jupiter.api.Test;
+import java.lang.reflect.Field;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Tests for {@link SqsListenerAcknowledgementMode} enum values
@@ -32,10 +31,11 @@ class SqsListenerAcknowledgementModeTests {
 
 	@ParameterizedTest
 	@EnumSource(AcknowledgementMode.class)
-	void shouldHaveAllValuesOfAcknowledgementModeEnum(final AcknowledgementMode acknowledgementMode) {
-		final SqsListenerAcknowledgementMode correspondingValue = assertDoesNotThrow(() ->
-			SqsListenerAcknowledgementMode.valueOf(acknowledgementMode.name()));
-		assertEquals(acknowledgementMode.name(), correspondingValue.name());
+	void shouldHaveAllValuesOfAcknowledgementModeEnum(final AcknowledgementMode acknowledgementMode)
+			throws NoSuchFieldException, IllegalAccessException {
+		Class<SqsListenerAcknowledgementMode> clz = SqsListenerAcknowledgementMode.class;
+		Field correspondingValue = clz.getDeclaredField(acknowledgementMode.name());
+		assertEquals(acknowledgementMode.name(), correspondingValue.get(clz));
 	}
 
 }
