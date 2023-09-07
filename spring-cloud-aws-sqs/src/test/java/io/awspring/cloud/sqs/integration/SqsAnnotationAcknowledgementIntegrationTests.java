@@ -63,6 +63,11 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
+/**
+ * Integration tests for custom acknowledgement modes on SqsListener annotation
+ *
+ * @author Joao Calassio
+ */
 @SpringBootTest
 @TestPropertySource(properties = { "test.property.acknowledgement=ALWAYS" })
 public class SqsAnnotationAcknowledgementIntegrationTests extends BaseSqsIntegrationTest {

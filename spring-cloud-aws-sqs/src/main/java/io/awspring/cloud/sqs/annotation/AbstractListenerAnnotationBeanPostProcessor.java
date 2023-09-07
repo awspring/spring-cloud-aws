@@ -223,7 +223,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	@Nullable
 	protected AcknowledgementMode resolveAcknowledgement(String value) {
 		try {
-			final String resolvedValue = resolveAsString(value, "acknowledgmentMode");
+			final String resolvedValue = resolveAsString(value, "acknowledgementMode");
 			return resolvedValue.equals(SqsListenerAcknowledgementMode.DEFAULT) ? null
 					: AcknowledgementMode.valueOf(resolvedValue);
 		}

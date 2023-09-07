@@ -20,7 +20,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.NeverAcknowledgeme
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.OnSuccessAcknowledgementHandler;
 
 /**
- * Configures the acknowledgement behavior for the container.
+ * Acknowledgement strategies supported by the {@link SqsListener} annotation.
  *
  * @author Joao Calassio
  * @since 3.1
