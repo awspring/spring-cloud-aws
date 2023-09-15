@@ -27,6 +27,7 @@ import org.springframework.lang.Nullable;
  * Contains properties that should be mapped from {@link SqsListener @SqsListener} annotations.
  *
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 3.0
  */
 public class SqsEndpoint extends AbstractEndpoint {

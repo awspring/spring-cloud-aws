@@ -74,6 +74,7 @@ import org.springframework.core.annotation.AliasFor;
  * @author Alain Sahli
  * @author Matej Nedic
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 1.1
  */
 @Target(ElementType.METHOD)

@@ -122,6 +122,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *     used.
  *
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 3.0
  * @see SqsMessageListenerContainer
  * @see ContainerOptions

@@ -76,6 +76,7 @@ import java.util.stream.StreamSupport;
  * information to a {@link SqsEndpoint}, and registers it in the {@link EndpointRegistrar}.
  *
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 3.0
  */
 public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Annotation>
