@@ -33,11 +33,6 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.OnSuccessAcknowled
 public class SqsListenerAcknowledgementMode {
 
 	/**
-	 * Use acknowledge mode defined by the container.
-	 */
-	public static final String DEFAULT = "DEFAULT";
-
-	/**
 	 * Messages will be acknowledged when message processing is successful.
 	 */
 	public static final String ON_SUCCESS = "ON_SUCCESS";
