@@ -288,9 +288,9 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 				new BatchAcknowledgmentArgumentResolver(),
 				new HeaderMethodArgumentResolver(new DefaultConversionService(), getConfigurableBeanFactory()),
 				new HeadersMethodArgumentResolver(),
-				new BatchPayloadMethodArgumentResolver(messageConverter),
+				new BatchPayloadMethodArgumentResolver(messageConverter, this.endpointRegistrar.getValidator()),
 				new MessageMethodArgumentResolver(messageConverter),
-				new PayloadMethodArgumentResolver(messageConverter));
+				new PayloadMethodArgumentResolver(messageConverter,  this.endpointRegistrar.getValidator()));
 	}
 	// @formatter:on
 

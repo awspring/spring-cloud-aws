@@ -33,6 +33,7 @@ import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
+import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +51,7 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 import org.springframework.messaging.handler.annotation.support.PayloadMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.StringValueResolver;
+import org.springframework.validation.Validator;
 
 /**
  * Tests for {@link SqsListenerAnnotationBeanPostProcessor}.
@@ -71,6 +73,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		String factoryName = "otherFactory";
 		MessageConverter converter = mock(MessageConverter.class);
 		HandlerMethodArgumentResolver resolver = mock(HandlerMethodArgumentResolver.class);
+        Validator validator = mock(Validator.class);
 
 		SqsListenerConfigurer customizer = registrar -> {
 			registrar.setDefaultListenerContainerFactoryBeanName(factoryName);
@@ -79,6 +82,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 			registrar.setObjectMapper(objectMapper);
 			registrar.manageMessageConverters(converters -> converters.add(converter));
 			registrar.manageMethodArgumentResolvers(resolvers -> resolvers.add(resolver));
+            registrar.setValidator(validator);
 		};
 
 		when(beanFactory.getBeansOfType(SqsListenerConfigurer.class))
@@ -115,13 +119,15 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		assertThat(endpoint).extracting("handlerMethodFactory").extracting("delegate").isEqualTo(methodFactory)
 				.extracting("argumentResolvers").extracting("argumentResolvers")
 				.asInstanceOf(list(HandlerMethodArgumentResolver.class)).hasSizeGreaterThan(1).contains(resolver)
-				.filteredOn(thisResolver -> thisResolver instanceof PayloadMethodArgumentResolver).element(0)
-				.extracting("converter").asInstanceOf(type(CompositeMessageConverter.class))
-				.extracting(CompositeMessageConverter::getConverters).asInstanceOf(list(MessageConverter.class))
-				.contains(converter)
-				.filteredOn(thisConverter -> thisConverter instanceof MappingJackson2MessageConverter).element(0)
-				.extracting("objectMapper").isEqualTo(objectMapper);
-
+                .filteredOn(thisResolver -> thisResolver instanceof PayloadMethodArgumentResolver || thisResolver instanceof BatchPayloadMethodArgumentResolver)
+                .allSatisfy(thisResolver -> {
+						assertThat(thisResolver).extracting("validator").isEqualTo(validator);
+						assertThat(thisResolver).extracting("converter").asInstanceOf(type(CompositeMessageConverter.class))
+								.extracting(CompositeMessageConverter::getConverters).asInstanceOf(list(MessageConverter.class))
+								.contains(converter)
+								.filteredOn(thisConverter -> thisConverter instanceof MappingJackson2MessageConverter).element(0)
+								.extracting("objectMapper").isEqualTo(objectMapper);
+                });
 	}
 
 	@Test
