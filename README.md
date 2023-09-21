@@ -14,7 +14,7 @@ For a deep dive into the project, refer to the Spring Cloud AWS documentation:
 
 ## Sponsors
 
-Big thanks to [Localstack](https://localstack.cloud) for providing PRO licenses to the development team!
+Big thanks to [LocalStack](https://localstack.cloud) for providing PRO licenses to the development team!
 
 <a href="https://localstack.cloud"><img src="https://user-images.githubusercontent.com/47351025/215054012-f5af0761-0bd5-49c6-bd3e-c6b2a6844f53.png" height="100" /></a>
 

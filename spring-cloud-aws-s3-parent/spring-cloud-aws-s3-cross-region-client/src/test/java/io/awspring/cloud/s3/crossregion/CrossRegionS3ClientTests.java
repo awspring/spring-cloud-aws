@@ -45,7 +45,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.waiters.S3Waiter;
 
 /**
- * Unit tests for {@link CrossRegionS3Client}. Integration testing with Localstack is not possible due to:
+ * Unit tests for {@link CrossRegionS3Client}. Integration testing with LocalStack is not possible due to:
  * <a href="https://github.com/localstack/localstack/issues/5748">...</a>
  *
  * @author Maciej Walkowiak

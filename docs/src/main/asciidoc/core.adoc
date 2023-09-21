@@ -199,7 +199,7 @@ class CustomRegionProviderConfiguration {
 
 === Endpoint
 
-To simplify using services with AWS compatible APIs, or running applications against https://localstack.cloud/[Localstack], it is possible to configure an endpoint set on all auto-configured AWS clients:
+To simplify using services with AWS compatible APIs, or running applications against https://localstack.cloud/[LocalStack], it is possible to configure an endpoint set on all auto-configured AWS clients:
 
 [cols="3*", options="header"]
 |===
