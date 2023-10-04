@@ -1500,6 +1500,7 @@ The following attributes can be configured in the registrar:
 - `setMessageListenerContainerRegistryBeanName` - provide a different bean name to be used to retrieve the `MessageListenerContainerRegistry`
 - `setObjectMapper` - set the `ObjectMapper` instance that will be used to deserialize payloads in listener methods.
 See <<Message Conversion and Payload Deserialization>> for more information on where this is used.
+- `setValidator` - set the `Validator` instance that will be used for payload validation in listener methods.
 - `manageMessageConverters` - gives access to the list of message converters that will be used to convert messages.
 By default, `StringMessageConverter`, `SimpleMessageConverter` and `MappingJackson2MessageConverter` are used.
 
