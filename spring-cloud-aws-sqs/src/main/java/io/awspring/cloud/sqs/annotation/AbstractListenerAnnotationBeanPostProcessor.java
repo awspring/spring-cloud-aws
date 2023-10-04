@@ -226,7 +226,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	protected AcknowledgementMode resolveAcknowledgement(String value) {
 		try {
 			final String resolvedValue = resolveAsString(value, "acknowledgementMode");
-			return StringUtils.hasText(resolvedValue) ? null : AcknowledgementMode.valueOf(resolvedValue);
+			return StringUtils.hasText(resolvedValue) ? AcknowledgementMode.valueOf(resolvedValue) : null;
 		}
 		catch (IllegalArgumentException e) {
 			throw new IllegalArgumentException("Cannot resolve " + value + " as AcknowledgementMode", e);
