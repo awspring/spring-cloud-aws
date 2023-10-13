@@ -21,8 +21,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation that is used to map SNS notification value on an SQS Queue to a variable that is annotated.
- * Used in Controllers method for handling/receiving SQS notifications.
+ * Annotation that is used to map SNS notification value on an SQS Queue to a variable that is annotated. Used in
+ * Controllers method for handling/receiving SQS notifications.
  *
  * @author Michael Sosa
  */

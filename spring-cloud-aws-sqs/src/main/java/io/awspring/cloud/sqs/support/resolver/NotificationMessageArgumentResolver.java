@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sqs.support.resolver;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SnsNotificationMessage;
 import io.awspring.cloud.sqs.support.converter.NotificationRequestConverter;
 import org.springframework.core.MethodParameter;
@@ -30,8 +30,8 @@ public class NotificationMessageArgumentResolver implements HandlerMethodArgumen
 
 	private final MessageConverter converter;
 
-	public NotificationMessageArgumentResolver(MessageConverter converter) {
-		this.converter = new NotificationRequestConverter(converter);
+	public NotificationMessageArgumentResolver(MessageConverter converter, ObjectMapper jsonMapper) {
+		this.converter = new NotificationRequestConverter(converter, jsonMapper);
 	}
 
 	@Override

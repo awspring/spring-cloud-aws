@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sqs.support.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -30,13 +29,15 @@ import org.springframework.util.Assert;
  */
 public class NotificationRequestConverter implements MessageConverter {
 
-	private final ObjectMapper jsonMapper = new ObjectMapper();
+	private final ObjectMapper jsonMapper;
 
 	private final MessageConverter payloadConverter;
 
-	public NotificationRequestConverter(MessageConverter payloadConverter) {
+	public NotificationRequestConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
 		this.payloadConverter = payloadConverter;
+		this.jsonMapper = jsonMapper == null ? new ObjectMapper() :jsonMapper;
 	}
+
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
 		Assert.notNull(message, "message must not be null");
@@ -51,29 +52,29 @@ public class NotificationRequestConverter implements MessageConverter {
 		}
 		if (!jsonNode.has("Type")) {
 			throw new MessageConversionException(
-				"Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
+					"Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
 		}
 
 		if (!"Notification".equals(jsonNode.get("Type").asText())) {
 			throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification",
-				null);
+					null);
 		}
 
 		if (!jsonNode.has("Message")) {
 			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message",
-				null);
+					null);
 		}
 
 		String messagePayload = jsonNode.get("Message").asText();
 		GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload);
 		return new NotificationRequest(jsonNode.path("Subject").asText(),
-			this.payloadConverter.fromMessage(genericMessage, targetClass));
+				this.payloadConverter.fromMessage(genericMessage, targetClass));
 	}
 
 	@Override
 	public Message<?> toMessage(Object payload, MessageHeaders headers) {
 		throw new UnsupportedOperationException(
-			"This converter only supports reading a SNS notification and not writing them");
+				"This converter only supports reading a SNS notification and not writing them");
 	}
 
 	/**

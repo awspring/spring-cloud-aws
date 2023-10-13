@@ -26,7 +26,6 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMod
 import io.awspring.cloud.sqs.support.resolver.AcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchAcknowledgmentArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
-import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolver;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -275,14 +274,15 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		CompositeMessageConverter compositeMessageConverter = createCompositeMessageConverter();
 
 		List<HandlerMethodArgumentResolver> methodArgumentResolvers = new ArrayList<>(
-				createAdditionalArgumentResolvers());
+				createAdditionalArgumentResolvers(compositeMessageConverter, this.endpointRegistrar.getObjectMapper()));
 		methodArgumentResolvers.addAll(createArgumentResolvers(compositeMessageConverter));
 		this.endpointRegistrar.getMethodArgumentResolversConsumer().accept(methodArgumentResolvers);
 		handlerMethodFactory.setArgumentResolvers(methodArgumentResolvers);
 		handlerMethodFactory.afterPropertiesSet();
 	}
 
-	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers() {
+	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
+			MessageConverter messageConverter, ObjectMapper objectMapper) {
 		return Collections.emptyList();
 	}
 
@@ -304,7 +304,6 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 				new HeadersMethodArgumentResolver(),
 				new BatchPayloadMethodArgumentResolver(messageConverter, this.endpointRegistrar.getValidator()),
 				new MessageMethodArgumentResolver(messageConverter),
-				new NotificationMessageArgumentResolver(messageConverter),
 				new PayloadMethodArgumentResolver(messageConverter,  this.endpointRegistrar.getValidator()));
 	}
 	// @formatter:on
