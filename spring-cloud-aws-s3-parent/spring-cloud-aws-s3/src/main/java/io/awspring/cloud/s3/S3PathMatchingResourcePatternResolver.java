@@ -227,7 +227,7 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 						PATH_DELIMITER))
 				.findFirst();
 		ListObjectsV2Request.Builder listObjectsV2RequestBuilder = ListObjectsV2Request.builder().bucket(s3BucketName);
-		if (optionalPrefix.isPresent()) {
+		if (optionalPrefix.isPresent() && !"/".equals(optionalPrefix.get())) {
 			listObjectsV2RequestBuilder = listObjectsV2RequestBuilder.prefix(optionalPrefix.get());
 		}
 		return listObjectsV2RequestBuilder;
