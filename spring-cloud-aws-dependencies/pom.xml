@@ -33,6 +33,7 @@
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
 		<aws-crt.version>0.21.14</aws-crt.version>
 		<mockito.version>5.3.1</mockito.version>
+		<bytebuddy.version>1.14.9</bytebuddy.version>
 	</properties>
 
 	<dependencyManagement>
@@ -210,6 +211,18 @@
 				<groupId>org.eclipse.angus</groupId>
 				<artifactId>jakarta.mail</artifactId>
 				<version>${eclipse.jakarta.mail.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy-agent</artifactId>
+				<version>${bytebuddy.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy</artifactId>
+				<version>${bytebuddy.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
