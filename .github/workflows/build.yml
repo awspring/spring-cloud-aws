@@ -14,7 +14,7 @@ jobs:
     name: "Test with ${{ matrix.version }}"
     strategy:
       matrix:
-        version: [ 17.0.1-tem, 20-tem ]
+        version: [ 17.0.1-tem, 21-tem ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
