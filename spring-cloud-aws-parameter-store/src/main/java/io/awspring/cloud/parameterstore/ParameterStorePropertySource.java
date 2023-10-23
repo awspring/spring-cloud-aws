@@ -18,7 +18,6 @@ package io.awspring.cloud.parameterstore;
 import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
@@ -65,8 +64,7 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 
 	@Override
 	public String[] getPropertyNames() {
-		Set<String> strings = this.properties.keySet();
-		return strings.toArray(new String[strings.size()]);
+		return this.properties.keySet().stream().toArray(String[]::new);
 	}
 
 	@Override
@@ -78,7 +76,7 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	private void getParameters(GetParametersByPathRequest paramsRequest) {
 		GetParametersByPathResponse paramsResult = this.source.getParametersByPath(paramsRequest);
 		for (Parameter parameter : paramsResult.parameters()) {
-			String key = parameter.name().replace(this.context, "").replace('/', '.');
+			String key = parameter.name().replace(this.context, "").replace('/', '.').replaceAll("_(\\d)_", "[$1]");
 			LOG.debug("Populating property retrieved from AWS Parameter Store: " + key);
 			this.properties.put(key, parameter.value());
 		}
