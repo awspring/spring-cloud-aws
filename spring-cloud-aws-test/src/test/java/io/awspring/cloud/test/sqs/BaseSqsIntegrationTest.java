@@ -42,7 +42,7 @@ abstract class BaseSqsIntegrationTest {
 
 	@DynamicPropertySource
 	static void registerSqsProperties(DynamicPropertyRegistry registry) {
-		// overwrite SQS endpoint with one provided by Localstack
+		// overwrite SQS endpoint with one provided by LocalStack
 		registry.add("spring.cloud.aws.sqs.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
 	}
 
