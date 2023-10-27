@@ -76,6 +76,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	static void beforeAll() {
 		putParameter(localstack, "/config/spring/message", "value from tests", REGION);
 		putParameter(localstack, "/config/spring/another-parameter", "another parameter value", REGION);
+		putParameter(localstack, "/config/second/secondMessage", "second value from tests", REGION);
 	}
 
 	@Test
@@ -87,6 +88,22 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"aws-parameterstore:/config/spring/")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("another parameter value");
+			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
+		}
+	}
+
+	@Test
+	void resolvesPropertiesWithPrefixes() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-parameterstore:/config/spring/?prefix=first.;/config/second/?prefix=second.")) {
+			assertThat(context.getEnvironment().getProperty("first.message")).isEqualTo("value from tests");
+			assertThat(context.getEnvironment().getProperty("first.another-parameter"))
+					.isEqualTo("another parameter value");
+			assertThat(context.getEnvironment().getProperty("second.secondMessage"))
+					.isEqualTo("second value from tests");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
 		}
 	}
