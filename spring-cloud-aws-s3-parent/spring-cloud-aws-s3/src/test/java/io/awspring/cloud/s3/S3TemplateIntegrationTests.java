@@ -127,7 +127,7 @@ class S3TemplateIntegrationTests {
 
 	@Test
 	void whenBucketExistsShouldReturnTrue() {
-		final boolean existsBucket = s3Template.existsBucket(BUCKET_NAME);
+		final boolean existsBucket = s3Template.bucketExists(BUCKET_NAME);
 
 		assertThat(existsBucket).isTrue();
 		assertThat(client.listBuckets()).satisfies(r -> this.bucketExists(r, BUCKET_NAME));
@@ -137,7 +137,7 @@ class S3TemplateIntegrationTests {
 	void whenBucketNotExistsShouldReturnFalse() {
 		destroyBuckets();
 
-		final boolean existsBucket = s3Template.existsBucket(BUCKET_NAME);
+		final boolean existsBucket = s3Template.bucketExists(BUCKET_NAME);
 
 		assertThat(existsBucket).isFalse();
 	}

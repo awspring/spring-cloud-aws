@@ -76,7 +76,7 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
-	public boolean existsBucket(String bucketName) {
+	public boolean bucketExists(String bucketName) {
 		Assert.notNull(bucketName, "bucketName is required");
 		try {
 			s3Client.headBucket(request -> request.bucket(bucketName));
