@@ -53,11 +53,9 @@ public class SecretsManagerPropertySources {
 			return propertySource;
 		}
 		catch (Exception e) {
+			LOG.warn("Unable to load AWS secret from " + context + ". " + e.getMessage());
 			if (!optional) {
 				throw new AwsSecretsManagerPropertySourceNotFoundException(e);
-			}
-			else {
-				LOG.warn("Unable to load AWS secret from " + context + ". " + e.getMessage());
 			}
 		}
 		return null;

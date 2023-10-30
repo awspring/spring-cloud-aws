@@ -49,11 +49,9 @@ public class ParameterStorePropertySources {
 			return propertySource;
 		}
 		catch (Exception e) {
+			LOG.warn("Unable to load AWS parameter from " + context + ". " + e.getMessage());
 			if (!optional) {
 				throw new AwsParameterPropertySourceNotFoundException(e);
-			}
-			else {
-				LOG.warn("Unable to load AWS parameter from " + context + ". " + e.getMessage());
 			}
 		}
 		return null;
