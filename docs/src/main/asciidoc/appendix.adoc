@@ -1,4 +1,6 @@
 :numbered!:
+:index-link: index.html
+
 [appendix]
 [[common-application-properties]]
 == Common application properties
