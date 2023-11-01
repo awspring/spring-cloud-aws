@@ -126,6 +126,23 @@ class S3TemplateIntegrationTests {
 	}
 
 	@Test
+	void whenBucketExistsShouldReturnTrue() {
+		final boolean existsBucket = s3Template.bucketExists(BUCKET_NAME);
+
+		assertThat(existsBucket).isTrue();
+		assertThat(client.listBuckets()).satisfies(r -> this.bucketExists(r, BUCKET_NAME));
+	}
+
+	@Test
+	void whenBucketNotExistsShouldReturnFalse() {
+		destroyBuckets();
+
+		final boolean existsBucket = s3Template.bucketExists(BUCKET_NAME);
+
+		assertThat(existsBucket).isFalse();
+	}
+
+	@Test
 	void deletesObject() {
 		client.createBucket(r -> r.bucket(BUCKET_NAME));
 		client.putObject(r -> r.bucket(BUCKET_NAME).key("key.txt"), RequestBody.fromString("foo"));

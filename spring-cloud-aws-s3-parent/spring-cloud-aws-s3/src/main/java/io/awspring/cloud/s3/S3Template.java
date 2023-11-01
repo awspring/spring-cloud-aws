@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
@@ -72,6 +73,17 @@ public class S3Template implements S3Operations {
 	public void deleteBucket(String bucketName) {
 		Assert.notNull(bucketName, "bucketName is required");
 		s3Client.deleteBucket(request -> request.bucket(bucketName));
+	}
+
+	@Override
+	public boolean bucketExists(String bucketName) {
+		Assert.notNull(bucketName, "bucketName is required");
+		try {
+			s3Client.headBucket(request -> request.bucket(bucketName));
+		} catch (NoSuchBucketException e) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override

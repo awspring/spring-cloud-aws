@@ -48,6 +48,14 @@ public interface S3Operations {
 	void deleteBucket(String bucketName);
 
 	/**
+	 * Checks if an S3 bucket exists.
+	 *
+	 * @param bucketName - the bucket name
+	 * @return true if bucket exists; false otherwise
+	 */
+	boolean bucketExists(String bucketName);
+
+	/**
 	 * Deletes an object from S3 bucket.
 	 *
 	 * @param bucketName - the bucket name
