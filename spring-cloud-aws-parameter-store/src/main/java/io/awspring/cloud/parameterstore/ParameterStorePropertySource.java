@@ -47,7 +47,7 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 
 	/**
 	 * Prefix that gets added to resolved property keys. Useful when same property keys are returned by multiple
-	 * parameter paths. sources.
+	 * parameter paths.
 	 */
 	@Nullable
 	private final String prefix;
