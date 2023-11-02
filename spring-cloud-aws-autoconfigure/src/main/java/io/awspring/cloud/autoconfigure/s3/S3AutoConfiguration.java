@@ -90,7 +90,8 @@ public class S3AutoConfiguration {
 	S3Presigner s3Presigner(S3Properties properties, AwsProperties awsProperties,
 			AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
 		S3Presigner.Builder builder = S3Presigner.builder().serviceConfiguration(properties.toS3Configuration())
-				.credentialsProvider(credentialsProvider).region(regionProvider.getRegion());
+				.credentialsProvider(credentialsProvider)
+				.region(AwsClientBuilderConfigurer.resolveRegion(properties, regionProvider));
 
 		if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());

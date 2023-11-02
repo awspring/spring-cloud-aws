@@ -267,6 +267,22 @@ class S3AutoConfigurationTests {
 						assertThat(presigner.getRegion()).isEqualTo(Region.of("eu-west-1"));
 					});
 		}
+
+		@Test
+		void setsRegionFromProperties() {
+			contextRunner.withPropertyValues("spring.cloud.aws.s3.region:us-east-1").run(context -> {
+				ConfiguredAwsPresigner presigner = new ConfiguredAwsPresigner(context.getBean(S3Presigner.class));
+				assertThat(presigner.getRegion()).isEqualTo(Region.of("us-east-1"));
+			});
+		}
+
+		@Test
+		void setsRegionToDefault() {
+			contextRunner.run(context -> {
+				ConfiguredAwsPresigner presigner = new ConfiguredAwsPresigner(context.getBean(S3Presigner.class));
+				assertThat(presigner.getRegion()).isEqualTo(Region.of("eu-west-1"));
+			});
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)
