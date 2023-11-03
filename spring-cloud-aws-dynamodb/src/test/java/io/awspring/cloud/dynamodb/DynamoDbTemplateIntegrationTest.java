@@ -65,7 +65,7 @@ public class DynamoDbTemplateIntegrationTest {
 	@BeforeAll
 	public static void createTable() {
 		DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
-				.endpointOverride(localstack.getEndpointOverride(DYNAMODB)).region(Region.of(localstack.getRegion()))
+				.endpointOverride(localstack.getEndpoint()).region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider
 						.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())))
 				.build();

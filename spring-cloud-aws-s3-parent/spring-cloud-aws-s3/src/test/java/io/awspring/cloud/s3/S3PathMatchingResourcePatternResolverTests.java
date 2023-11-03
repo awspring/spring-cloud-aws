@@ -53,7 +53,7 @@ class S3PathMatchingResourcePatternResolverTests {
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		S3Client client = S3Client.builder().region(Region.of(localstack.getRegion()))
 				.credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
+				.endpointOverride(localstack.getEndpoint()).build();
 
 		// prepare buckets and objects for tests
 		client.createBucket(request -> request.bucket("my-bucket"));

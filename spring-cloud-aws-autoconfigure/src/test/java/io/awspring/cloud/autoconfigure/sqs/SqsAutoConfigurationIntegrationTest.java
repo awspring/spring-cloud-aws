@@ -52,7 +52,7 @@ class SqsAutoConfigurationIntegrationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.sqs.region=eu-west-1",
-					"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpointOverride(SQS).toString(),
+					"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpoint(),
 					"spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
 					"spring.cloud.aws.region.static=eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
