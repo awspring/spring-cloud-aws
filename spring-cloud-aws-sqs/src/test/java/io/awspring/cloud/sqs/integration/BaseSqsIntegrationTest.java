@@ -66,7 +66,7 @@ abstract class BaseSqsIntegrationTest {
 	@DynamicPropertySource
 	static void registerSqsProperties(DynamicPropertyRegistry registry) {
 		// overwrite SQS endpoint with one provided by LocalStack
-		registry.add("spring.cloud.aws.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
+		registry.add("spring.cloud.aws.endpoint", () -> localstack.getEndpoint());
 	}
 
 	protected static CompletableFuture<?> createQueue(SqsAsyncClient client, String queueName) {
@@ -130,7 +130,7 @@ abstract class BaseSqsIntegrationTest {
 
 	private static SqsAsyncClient createLocalStackClient() {
 		return SqsAsyncClient.builder().credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
+				.endpointOverride(localstack.getEndpoint()).region(Region.of(localstack.getRegion()))
 				.build();
 	}
 

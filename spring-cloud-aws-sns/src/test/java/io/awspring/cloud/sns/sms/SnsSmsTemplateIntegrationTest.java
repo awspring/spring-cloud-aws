@@ -47,7 +47,7 @@ class SnsSmsTemplateIntegrationTest {
 
 	@BeforeAll
 	public static void createSnsTemplate() {
-		SnsClient snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(SNS))
+		SnsClient snsClient = SnsClient.builder().endpointOverride(localstack.getEndpoint())
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();

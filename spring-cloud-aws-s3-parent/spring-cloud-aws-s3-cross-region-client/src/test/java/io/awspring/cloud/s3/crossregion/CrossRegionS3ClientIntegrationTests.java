@@ -57,7 +57,7 @@ class CrossRegionS3ClientIntegrationTests {
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		client = new CrossRegionS3Client(
 				S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-						.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)));
+						.endpointOverride(localstack.getEndpoint()));
 	}
 
 	@Test

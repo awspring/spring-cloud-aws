@@ -83,10 +83,10 @@ class S3TemplateIntegrationTests {
 		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
+				.endpointOverride(localstack.getEndpoint()).build();
 		presigner = S3Presigner.builder().region(Region.of(localstack.getRegion()))
 				.credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
+				.endpointOverride(localstack.getEndpoint()).build();
 	}
 
 	@BeforeEach

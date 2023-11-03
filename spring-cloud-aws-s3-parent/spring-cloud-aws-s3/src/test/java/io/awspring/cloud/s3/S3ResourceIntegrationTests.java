@@ -91,10 +91,10 @@ class S3ResourceIntegrationTests {
 		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		asyncClient = S3AsyncClient.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpointOverride(Service.S3))
+				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint())
 				.build();
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
+				.endpointOverride(localstack.getEndpoint()).build();
 		s3TransferManager = S3TransferManager.builder().s3Client(asyncClient).build();
 		client.createBucket(request -> request.bucket("first-bucket"));
 	}

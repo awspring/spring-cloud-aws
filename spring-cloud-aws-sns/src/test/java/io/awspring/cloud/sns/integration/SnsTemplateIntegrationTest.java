@@ -68,11 +68,11 @@ class SnsTemplateIntegrationTest {
 
 	@BeforeAll
 	public static void createSnsTemplate() {
-		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(SNS))
+		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpoint())
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
-		sqsClient = SqsClient.builder().endpointOverride(localstack.getEndpointOverride(SQS))
+		sqsClient = SqsClient.builder().endpointOverride(localstack.getEndpoint())
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();

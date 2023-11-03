@@ -212,7 +212,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"--spring.config.import=aws-parameterstore:/config/spring/",
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--spring.cloud.aws.endpoint=http://non-existing-host/",
-				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1",
 				"--logging.level.io.awspring.cloud.parameterstore=debug")) {
@@ -227,7 +227,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-parameterstore:/config/spring/",
-				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=" + REGION,
 				"--logging.level.io.awspring.cloud.parameterstore=debug")) {
@@ -280,7 +280,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					"--spring.cloud.aws.parameterstore.reload.strategy=refresh",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 					"--spring.cloud.aws.parameterstore.region=" + REGION,
-					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 					"--spring.cloud.aws.region.static=eu-west-1")) {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
@@ -306,7 +306,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					"--spring.cloud.aws.parameterstore.reload.strategy=refresh",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 					"--spring.cloud.aws.parameterstore.region=" + REGION,
-					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 					"--spring.cloud.aws.region.static=eu-west-1")) {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
@@ -331,7 +331,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					"--spring.config.import=aws-parameterstore:/config/spring/",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 					"--spring.cloud.aws.parameterstore.region=" + REGION,
-					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 					"--spring.cloud.aws.region.static=eu-west-1")) {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
@@ -357,7 +357,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					"--spring.cloud.aws.parameterstore.reload.strategy=restart_context",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 					"--spring.cloud.aws.parameterstore.region=" + REGION,
-					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 					"--management.endpoint.restart.enabled=true", "--management.endpoints.web.exposure.include=restart",
 					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 					"--spring.cloud.aws.region.static=eu-west-1")) {
@@ -379,7 +379,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			String endpointProperty) {
 		return application.run("--spring.config.import=" + springConfigImport,
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
-				"--" + endpointProperty + "=" + localstack.getEndpointOverride(SSM).toString(),
+				"--" + endpointProperty + "=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.parameterstore=debug");
 	}

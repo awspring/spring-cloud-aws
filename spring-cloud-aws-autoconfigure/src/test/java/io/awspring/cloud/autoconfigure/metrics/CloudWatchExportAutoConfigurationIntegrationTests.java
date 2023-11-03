@@ -60,7 +60,7 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 	@DynamicPropertySource
 	static void registerProperties(DynamicPropertyRegistry registry) {
 		registry.add("spring.cloud.aws.cloudwatch.endpoint",
-				() -> localstack.getEndpointOverride(CLOUDWATCH).toString());
+				() -> localstack.getEndpoint());
 	}
 
 	@Test
@@ -70,7 +70,7 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = application.run(
-				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=us-east-1", "--management.cloudwatch.metrics.export.step=5s",
 				"--management.cloudwatch.metrics.export.namespace=awspring/spring-cloud-aws",

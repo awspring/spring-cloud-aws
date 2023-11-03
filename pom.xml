@@ -30,7 +30,7 @@
 		<spotless.version>2.40.0</spotless.version>
 		<jacoco.version>0.8.8</jacoco.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<testcontainers.version>1.18.0</testcontainers.version>
+		<testcontainers.version>1.19.1</testcontainers.version>
 	</properties>
 
 	<modules>
