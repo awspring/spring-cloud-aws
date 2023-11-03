@@ -61,6 +61,33 @@ spring.config.import[1]=aws-parameterstore=/config/optional-params/
 If you add indexed parameter names such as `/config/application/cloud.aws.stack_0_.name`, `/config/application/cloud.aws.stack_1_.name`, ... to Parameter Store,
 these will become accessible as array properties `cloud.aws.stack[0].name`, `cloud.aws.stack[1].name`, ... in Spring.
 
+==== Adding prefix to property keys
+
+To avoid property key collisions it is possible to configure a property key prefix that gets added to each resolved parameter.
+
+As an example, assuming the following parameters are stored under path `/config/my-datasource`:
+
+|===
+| Parameter Name | Parameter Value
+
+| `/config/my-datasource/url` | `jdbc:mysql://localhost:3306`
+
+| `/config/my-datasource/username` | `db-user`
+
+|===
+
+By default, `url` and `username` properties will be added to the Spring environment. To add a prefix to property keys configure `spring.config.import` property with `?prefix=` added to the parameter path:
+
+[source,properties]
+----
+spring.config.import=aws-parameterstore:/config/my-datasource/?prefix=spring.datasource.
+----
+
+With such config, properties `spring.datasource.url` and `spring.datasource.username` are added to the Spring environment.
+
+NOTE: Prefixes are added as-is to all property names returned by Parameter Store. If you want key names to be separated with a dot between the prefix and key name, make sure to add a trailing dot to the prefix.
+
+
 === Using SsmClient
 
 The starter automatically configures and registers a `SsmClient` bean in the Spring application context. The `SsmClient` bean can be used to create or retrieve parameters from Parameter Store.

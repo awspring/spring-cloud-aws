@@ -90,4 +90,41 @@ class ParameterStorePropertySourceTest {
 			it.assertThat(propertySource.getProperty("key[1].nested[1].nestedValue")).isEqualTo("key_nestedValue2");
 		});
 	}
+
+	@Test
+	void resolvesPrefixAndParameterPathFromContext() {
+		ParameterStorePropertySource propertySource = new ParameterStorePropertySource("/config/myservice/?prefix=xxx",
+				ssmClient);
+		assertThat(propertySource.getName()).isEqualTo("aws-parameterstore:/config/myservice/?prefix=xxx");
+		assertThat(propertySource.getPrefix()).isEqualTo("xxx");
+		assertThat(propertySource.getContext()).isEqualTo("/config/myservice/?prefix=xxx");
+		assertThat(propertySource.getParameterPath()).isEqualTo("/config/myservice/");
+	}
+
+	@Test
+	void addsPrefixToParameter() {
+		ParameterStorePropertySource propertySource = new ParameterStorePropertySource("/config/myservice/?prefix=yyy.",
+				ssmClient);
+
+		Parameter parameter = Parameter.builder().name("key1").value("my parameter").build();
+		GetParametersByPathResponse parametersByPathResponse = GetParametersByPathResponse.builder()
+				.parameters(parameter).build();
+
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class))).thenReturn(parametersByPathResponse);
+
+		propertySource.init();
+
+		assertThat(propertySource.getPropertyNames()).containsExactly("yyy.key1");
+		assertThat(propertySource.getProperty("yyy.key1")).isEqualTo("my parameter");
+		assertThat(propertySource.getProperty("key1")).isNull();
+	}
+
+	@Test
+	void copyPreservesPrefix() {
+		ParameterStorePropertySource propertySource = new ParameterStorePropertySource("/config/myservice/?prefix=yyy",
+				ssmClient);
+		ParameterStorePropertySource copy = propertySource.copy();
+		assertThat(propertySource.getContext()).isEqualTo(copy.getContext());
+		assertThat(propertySource.getPrefix()).isEqualTo(copy.getPrefix());
+	}
 }
