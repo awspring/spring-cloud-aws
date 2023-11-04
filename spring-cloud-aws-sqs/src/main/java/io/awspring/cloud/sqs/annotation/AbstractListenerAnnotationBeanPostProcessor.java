@@ -22,22 +22,10 @@ import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.HandlerMethodEndpoint;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.resolver.AcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchAcknowledgmentArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -69,11 +57,26 @@ import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 /**
  * {@link BeanPostProcessor} implementation that scans beans for a {@link SqsListener @SqsListener} annotation, extracts
  * information to a {@link SqsEndpoint}, and registers it in the {@link EndpointRegistrar}.
  *
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 3.0
  */
 public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Annotation>
@@ -216,6 +219,17 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		}
 		catch (Exception e) {
 			throw new IllegalArgumentException("Cannot resolve " + propertyName + " as Integer");
+		}
+	}
+
+	@Nullable
+	protected AcknowledgementMode resolveAcknowledgement(String value) {
+		try {
+			final String resolvedValue = resolveAsString(value, "acknowledgementMode");
+			return StringUtils.hasText(resolvedValue) ? AcknowledgementMode.valueOf(resolvedValue) : null;
+		}
+		catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("Cannot resolve " + value + " as AcknowledgementMode", e);
 		}
 	}
 
