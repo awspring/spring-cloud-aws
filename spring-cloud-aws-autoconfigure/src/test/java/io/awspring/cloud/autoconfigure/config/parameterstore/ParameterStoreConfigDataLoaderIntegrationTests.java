@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
@@ -47,6 +46,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -163,20 +163,18 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 	@Test
 	void credentialsProviderCanBeOverwrittenInBootstrapConfig() {
-		AwsCredentialsProvider mockCredentialsProvider = mock(AwsCredentialsProvider.class);
-		when(mockCredentialsProvider.resolveCredentials())
-				.thenReturn(AwsBasicCredentials.create("mock-key", "mock-secret"));
+		AwsCredentialsProvider bootstrapCredentialsProvider = StaticCredentialsProvider
+				.create(AwsBasicCredentials.create("mock-key", "mock-secret"));
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 		application.addBootstrapRegistryInitializer(registry -> {
-			registry.register(AwsCredentialsProvider.class, ctx -> mockCredentialsProvider);
+			registry.register(AwsCredentialsProvider.class, ctx -> bootstrapCredentialsProvider);
 		});
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-parameterstore:/config/spring")) {
-			// perhaps there is a better way to verify that correct credentials provider
-			// is used by SSM client without using reflection?
-			verify(mockCredentialsProvider).resolveCredentials();
+			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SsmClient.class));
+			assertThat(ssmClient.getAwsCredentialsProvider()).isEqualTo(bootstrapCredentialsProvider);
 		}
 	}
 
@@ -248,17 +246,17 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		putParameter(localstack, "/config/myservice/key_1_.nested_1_.nestedValue", "key_nestedValue4", REGION);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-			"aws-parameterstore:/config/myservice/")) {
+				"aws-parameterstore:/config/myservice/")) {
 			assertThat(context.getEnvironment().getProperty("key[0].value")).isEqualTo("value1");
 			assertThat(context.getEnvironment().getProperty("key[0].nested[0].nestedValue"))
-				.isEqualTo("key_nestedValue1");
+					.isEqualTo("key_nestedValue1");
 			assertThat(context.getEnvironment().getProperty("key[0].nested[1].nestedValue"))
-				.isEqualTo("key_nestedValue2");
+					.isEqualTo("key_nestedValue2");
 			assertThat(context.getEnvironment().getProperty("key[1].value")).isEqualTo("value2");
 			assertThat(context.getEnvironment().getProperty("key[1].nested[0].nestedValue"))
-				.isEqualTo("key_nestedValue3");
+					.isEqualTo("key_nestedValue3");
 			assertThat(context.getEnvironment().getProperty("key[1].nested[1].nestedValue"))
-				.isEqualTo("key_nestedValue4");
+					.isEqualTo("key_nestedValue4");
 		}
 	}
 
