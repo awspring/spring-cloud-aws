@@ -450,10 +450,10 @@ class SqsTemplateTests {
 					assertThat(failedResult.message().getPayload()).isEqualTo(payload2);
 					assertThat(
 							failedResult.additionalInformation().get(SqsTemplateParameters.ERROR_CODE_PARAMETER_NAME))
-									.isEqualTo(code);
+							.isEqualTo(code);
 					assertThat(
 							failedResult.additionalInformation().get(SqsTemplateParameters.SENDER_FAULT_PARAMETER_NAME))
-									.isEqualTo(senderFault);
+							.isEqualTo(senderFault);
 				});
 	}
 

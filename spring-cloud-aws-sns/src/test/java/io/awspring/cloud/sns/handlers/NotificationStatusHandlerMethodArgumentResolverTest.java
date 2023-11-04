@@ -51,8 +51,8 @@ class NotificationStatusHandlerMethodArgumentResolverTest {
 		// Assert
 		assertThatThrownBy(
 				() -> resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null))
-						.isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining("NotificationStatus is only available");
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("NotificationStatus is only available");
 
 	}
 

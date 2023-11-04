@@ -196,7 +196,7 @@ class SnsTemplateIntegrationTest {
 			SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, topicsListingTopicArnResolver, null);
 			assertThatThrownBy(
 					() -> snsTemplateTestCache.sendNotification("Some_random_topic", "message content", "subject"))
-							.isInstanceOf(TopicNotFoundException.class);
+					.isInstanceOf(TopicNotFoundException.class);
 		}
 
 		private static void createTopics() {

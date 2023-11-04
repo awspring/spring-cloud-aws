@@ -334,7 +334,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				createMessagesFromValues(UUID.randomUUID().toString(), values));
 		assertThat(
 				latchContainer.manuallyCreatedBatchContainerLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
-						.isTrue();
+				.isTrue();
 		assertThat(messagesContainer.manuallyCreatedBatchContainerMessages).containsExactlyElementsOf(values);
 	}
 
@@ -357,7 +357,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				createMessagesFromValues(UUID.randomUUID().toString(), values));
 		assertThat(
 				latchContainer.manuallyCreatedBatchFactoryLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
-						.isTrue();
+				.isTrue();
 		assertThat(messagesContainer.manuallyCreatedBatchFactoryMessages).containsExactlyElementsOf(values);
 	}
 

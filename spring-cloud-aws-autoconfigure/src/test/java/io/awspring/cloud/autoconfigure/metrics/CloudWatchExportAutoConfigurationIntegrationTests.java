@@ -16,8 +16,6 @@
 package io.awspring.cloud.autoconfigure.metrics;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.CLOUDWATCH;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.micrometer.core.instrument.Counter;
@@ -59,8 +57,7 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 
 	@DynamicPropertySource
 	static void registerProperties(DynamicPropertyRegistry registry) {
-		registry.add("spring.cloud.aws.cloudwatch.endpoint",
-				() -> localstack.getEndpoint());
+		registry.add("spring.cloud.aws.cloudwatch.endpoint", () -> localstack.getEndpoint());
 	}
 
 	@Test

@@ -55,9 +55,8 @@ class CrossRegionS3ClientIntegrationTests {
 		// test work on environments without AWS cli configured
 		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
-		client = new CrossRegionS3Client(
-				S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-						.endpointOverride(localstack.getEndpoint()));
+		client = new CrossRegionS3Client(S3Client.builder().region(Region.of(localstack.getRegion()))
+				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint()));
 	}
 
 	@Test

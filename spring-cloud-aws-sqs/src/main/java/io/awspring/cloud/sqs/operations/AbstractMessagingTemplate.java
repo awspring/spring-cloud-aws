@@ -385,7 +385,7 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 			return future.join();
 		}
 		catch (CompletionException ex) {
-			if (ex.getCause()instanceof RuntimeException re) {
+			if (ex.getCause() instanceof RuntimeException re) {
 				throw re;
 			}
 			throw new RuntimeException("Unexpected exception", ex);

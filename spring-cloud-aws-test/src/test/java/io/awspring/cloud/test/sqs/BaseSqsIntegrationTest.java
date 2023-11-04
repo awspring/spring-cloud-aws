@@ -16,7 +16,6 @@
 package io.awspring.cloud.test.sqs;
 
 import static io.awspring.cloud.test.sqs.SqsSampleListener.QUEUE_NAME;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeAll;

@@ -121,7 +121,8 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	}
 
 	/**
-	 * Set the {@link Validator} instance used for payload validating in {@link HandlerMethodArgumentResolver} instances.
+	 * Set the {@link Validator} instance used for payload validating in {@link HandlerMethodArgumentResolver}
+	 * instances.
 	 * @param validator payload validator.
 	 */
 	public void setValidator(Validator validator) {
@@ -180,7 +181,8 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	}
 
 	/**
-	 * Return the {@link Validator} instance used for payload validating in {@link HandlerMethodArgumentResolver} instances.
+	 * Return the {@link Validator} instance used for payload validating in {@link HandlerMethodArgumentResolver}
+	 * instances.
 	 * @return the payload validator.
 	 */
 	public Validator getValidator() {
