@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SECRETSMANAGER;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
@@ -225,20 +224,19 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	@Test
 	void credentialsProviderCanBeOverwrittenInBootstrapConfig() {
-		AwsCredentialsProvider mockCredentialsProvider = mock(AwsCredentialsProvider.class);
-		when(mockCredentialsProvider.resolveCredentials())
-				.thenReturn(AwsBasicCredentials.create("mock-key", "mock-secret"));
+		AwsCredentialsProvider bootstrapCredentialsProvider = StaticCredentialsProvider
+				.create(AwsBasicCredentials.create("mock-key", "mock-secret"));
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 		application.addBootstrapRegistryInitializer(registry -> {
-			registry.register(AwsCredentialsProvider.class, ctx -> mockCredentialsProvider);
+			registry.register(AwsCredentialsProvider.class, ctx -> bootstrapCredentialsProvider);
 		});
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring")) {
-			// perhaps there is a better way to verify that correct credentials provider
-			// is used by SSM client without using reflection?
-			verify(mockCredentialsProvider).resolveCredentials();
+			ConfiguredAwsClient secretsManagerClient = new ConfiguredAwsClient(
+					context.getBean(SecretsManagerClient.class));
+			assertThat(secretsManagerClient.getAwsCredentialsProvider()).isEqualTo(bootstrapCredentialsProvider);
 		}
 	}
 
