@@ -85,8 +85,7 @@ class S3TemplateIntegrationTests {
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpoint()).build();
 		presigner = S3Presigner.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpoint()).build();
+				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint()).build();
 	}
 
 	@BeforeEach

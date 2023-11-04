@@ -66,7 +66,8 @@ class TopicMessageChannelTest {
 			assertThat(it.topicArn()).isEqualTo(TOPIC_ARN);
 			assertThat(it.message()).isEqualTo("Message content");
 			assertThat(it.messageAttributes()).containsKeys(MessageHeaders.ID, MessageHeaders.TIMESTAMP);
-			assertThat(it.messageAttributes().get(MessageHeaders.TIMESTAMP).dataType()).isEqualTo("Number.java.lang.Long");
+			assertThat(it.messageAttributes().get(MessageHeaders.TIMESTAMP).dataType())
+					.isEqualTo("Number.java.lang.Long");
 			assertThat(it.messageAttributes()).doesNotContainKey(NOTIFICATION_SUBJECT_HEADER);
 		}));
 		assertThat(sent).isTrue();

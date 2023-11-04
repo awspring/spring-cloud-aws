@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SECRETSMANAGER;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
@@ -272,8 +271,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 				"--spring.cloud.aws.secretsmanager.region=" + REGION,
 				"--spring.cloud.aws.endpoint=http://non-existing-host/",
-				"--spring.cloud.aws.secretsmanager.endpoint="
-						+ localstack.getEndpoint(),
+				"--spring.cloud.aws.secretsmanager.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
@@ -290,8 +288,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=optional:aws-secretsmanager:/config/spring;/config/second",
-				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
-				"--spring.cloud.aws.region.static=" + REGION, "--spring.cloud.aws.credentials.sts.role-arn=develop",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(), "--spring.cloud.aws.region.static=" + REGION,
+				"--spring.cloud.aws.credentials.sts.role-arn=develop",
 				"--spring.cloud.aws.credentials.sts.enabled=true",
 				"--spring.cloud.aws.credentials.sts.web-identity-token-file=" + tempFile.getAbsolutePath())) {
 			assertThat(context.getBean(AwsCredentialsProvider.class))

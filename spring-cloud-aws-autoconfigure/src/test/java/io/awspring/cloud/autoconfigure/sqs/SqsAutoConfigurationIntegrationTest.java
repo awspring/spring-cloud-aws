@@ -16,7 +16,6 @@
 package io.awspring.cloud.autoconfigure.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;

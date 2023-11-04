@@ -180,9 +180,9 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 		String s3KeyPattern = substringAfter(locationPattern, s3BucketNamePattern + "/");
 		LOGGER.debug("The s3 key pattern is {}", s3KeyPattern);
 		return (pathMatcher.isPattern(s3BucketNamePattern) ? findMatchingBuckets(s3BucketNamePattern)
-				: List.of(s3BucketNamePattern)).stream().flatMap(
-						s3BucketName -> findResourcesInBucketWithKeyPattern(s3BucketName, s3KeyPattern).stream())
-						.toArray(Resource[]::new);
+				: List.of(s3BucketNamePattern)).stream()
+				.flatMap(s3BucketName -> findResourcesInBucketWithKeyPattern(s3BucketName, s3KeyPattern).stream())
+				.toArray(Resource[]::new);
 	}
 
 	/**

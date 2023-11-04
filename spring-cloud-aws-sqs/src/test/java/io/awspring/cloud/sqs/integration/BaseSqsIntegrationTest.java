@@ -15,8 +15,6 @@
  */
 package io.awspring.cloud.sqs.integration;
 
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
-
 import io.awspring.cloud.sqs.CompletableFutures;
 import java.util.Collections;
 import java.util.HashMap;
@@ -130,8 +128,7 @@ abstract class BaseSqsIntegrationTest {
 
 	private static SqsAsyncClient createLocalStackClient() {
 		return SqsAsyncClient.builder().credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpoint()).region(Region.of(localstack.getRegion()))
-				.build();
+				.endpointOverride(localstack.getEndpoint()).region(Region.of(localstack.getRegion())).build();
 	}
 
 	protected static class LoadSimulator {

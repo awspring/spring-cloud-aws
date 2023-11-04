@@ -87,8 +87,8 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	private void getParameters(GetParametersByPathRequest paramsRequest) {
 		GetParametersByPathResponse paramsResult = this.source.getParametersByPath(paramsRequest);
 		for (Parameter parameter : paramsResult.parameters()) {
-			String key = parameter.name().replace(this.parameterPath, "").replace('/', '.')
-					.replaceAll("_(\\d)_", "[$1]");
+			String key = parameter.name().replace(this.parameterPath, "").replace('/', '.').replaceAll("_(\\d)_",
+					"[$1]");
 			LOG.debug("Populating property retrieved from AWS Parameter Store: " + key);
 			String propertyKey = prefix != null ? prefix + key : key;
 			this.properties.put(propertyKey, parameter.value());

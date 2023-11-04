@@ -260,12 +260,12 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			assertThat(receivedMessage.getHeaders().getId()).isEqualTo(result.messageId());
 			assertThat(
 					result.message().getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER))
-							.isEqualTo(receivedMessage.getHeaders()
-									.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
+					.isEqualTo(receivedMessage.getHeaders()
+							.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
 			assertThat(result.message().getHeaders()
 					.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER))
-							.isEqualTo(receivedMessage.getHeaders()
-									.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER));
+					.isEqualTo(receivedMessage.getHeaders()
+							.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER));
 			assertThat(result.additionalInformation().get(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME))
 					.isEqualTo(
 							receivedMessage.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_SEQUENCE_NUMBER));

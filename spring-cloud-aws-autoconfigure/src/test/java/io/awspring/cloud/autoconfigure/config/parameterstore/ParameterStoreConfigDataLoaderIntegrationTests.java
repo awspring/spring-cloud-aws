@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;

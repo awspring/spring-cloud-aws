@@ -41,7 +41,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.google.common.io.Files;
@@ -91,8 +90,7 @@ class S3ResourceIntegrationTests {
 		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		asyncClient = S3AsyncClient.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint())
-				.build();
+				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint()).build();
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
 				.endpointOverride(localstack.getEndpoint()).build();
 		s3TransferManager = S3TransferManager.builder().s3Client(asyncClient).build();
