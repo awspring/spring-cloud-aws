@@ -30,6 +30,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
  * {@link AbstractListenerAnnotationBeanPostProcessor} implementation for {@link SqsListener @SqsListener}.
  *
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 3.0
  */
 public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnnotationBeanPostProcessor<SqsListener> {
@@ -51,7 +52,7 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 						resolveAsInteger(sqsListenerAnnotation.maxConcurrentMessages(), "maxConcurrentMessages"))
 				.messageVisibility(
 						resolveAsInteger(sqsListenerAnnotation.messageVisibilitySeconds(), "messageVisibility"))
-				.build();
+				.acknowledgementMode(resolveAcknowledgement(sqsListenerAnnotation.acknowledgementMode())).build();
 	}
 
 	@Override
