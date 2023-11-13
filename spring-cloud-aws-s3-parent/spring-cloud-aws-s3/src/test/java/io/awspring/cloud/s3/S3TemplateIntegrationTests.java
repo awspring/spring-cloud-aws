@@ -69,7 +69,7 @@ class S3TemplateIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.3.2")).withReuse(true);
 
 	private static S3Client client;
 
