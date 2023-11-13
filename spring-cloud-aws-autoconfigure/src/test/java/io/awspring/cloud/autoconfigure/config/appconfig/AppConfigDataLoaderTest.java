@@ -17,66 +17,74 @@ package io.awspring.cloud.autoconfigure.config.appconfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.FileCopyUtils;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.services.appconfig.AppConfigClient;
+import software.amazon.awssdk.services.appconfig.model.*;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
-import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationRequest;
-import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationResponse;
-import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionRequest;
-import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionResponse;
+import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.model.GetParameterRequest;
 
 @ExtendWith(OutputCaptureExtension.class)
+@Testcontainers
 class AppConfigDataLoaderTest {
 
-	static final AppConfigDataClient appConfigDataClient = Mockito.mock(AppConfigDataClient.class);
+	private static final String YAML_TYPE = "application/x-yaml";
+	private static final String YAML_TYPE_ALTERNATIVE = "text/yaml";
+	private static final String TEXT_TYPE = "text/plain";
+	private static final String JSON_TYPE = "application/json";
+	
+	private static String parameterStoreArn;
+	private static String appId;
+	private static String configId;
+	private static String envId;
+
+	private static AppConfigClient appConfigClient;
 
 
-	@BeforeEach
-	public void reset() {
-		Mockito.reset(appConfigDataClient);
+	@Container
+	static LocalStackContainer localstack = new LocalStackContainer(
+		DockerImageName.parse("localstack/localstack-pro:latest")).withReuse(true).withEnv("LOCALSTACK_API_KEY", System.getenv("LOCALSTACK_API_KEY"));
+
+
+	@BeforeAll
+	public static void before() {
+		appConfigClient = AppConfigClient.builder().endpointOverride(localstack.getEndpoint()).build();
+
 	}
-
 	@Test
 	void resolvesYaml() throws IOException {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		application.addBootstrapRegistryInitializer(new AppConfigDataClientInitializer());
-
-		when(appConfigDataClient.startConfigurationSession(
-				StartConfigurationSessionRequest.builder().applicationIdentifier("MyApplication")
-						.configurationProfileIdentifier("yaml_configuration").environmentIdentifier("test").build()))
-								.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("20")
-										.build());
 		byte[] yamlFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader()
-				.getResourceAsStream("io.awspring.cloud.autoconfigure.config.appconfig/working-spring-dynamodb.yaml"));
-		when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-				.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(yamlFile))
-						.contentType("application/x-yaml").build());
-
+			.getResourceAsStream("io.awspring.cloud.autoconfigure.config.appconfig/working-spring-dynamodb.yaml"));
+		prepareEnv(yamlFile,"YamlApplication", "test", "yaml-profile", YAML_TYPE_ALTERNATIVE);
 		try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-appconfig:MyApplication___yaml_configuration___test")) {
+				"aws-appconfig:YamlApplication___yaml-profile___test")) {
 			Assertions.assertThat(context.getEnvironment().getProperty("spring.cloud.aws.dynamodb.enabled"))
 					.isEqualTo("true");
 			Assertions.assertThat(context.getEnvironment().getProperty("spring.cloud.aws.dynamodb.endpoint"))
@@ -88,21 +96,14 @@ class AppConfigDataLoaderTest {
 	void resolvesJson() throws IOException {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		application.addBootstrapRegistryInitializer(new AppConfigDataClientInitializer());
 
-		when(appConfigDataClient.startConfigurationSession(
-				StartConfigurationSessionRequest.builder().applicationIdentifier("MyApplication")
-						.configurationProfileIdentifier("json_configuration").environmentIdentifier("test").build()))
-								.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("20")
-										.build());
 		byte[] jsonFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader()
-				.getResourceAsStream("io.awspring.cloud.autoconfigure.config.appconfig/working-json-file.json"));
-		when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-				.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(jsonFile))
-						.contentType("application/json").build());
+			.getResourceAsStream("io.awspring.cloud.autoconfigure.config.appconfig/working-json-file.json"));
+
+		prepareEnv(jsonFile,"JsonApplication", "test", "json-profile", JSON_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-appconfig:MyApplication___json_configuration___test")) {
+				"aws-appconfig:JsonApplication___json-profile___test")) {
 			Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.enabled")).isEqualTo("true");
 			Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.region"))
 					.isEqualTo("eu-west-2");
@@ -116,21 +117,13 @@ class AppConfigDataLoaderTest {
 	void resolvesTextProperties() throws IOException {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		application.addBootstrapRegistryInitializer(new AppConfigDataClientInitializer());
 
-		when(appConfigDataClient.startConfigurationSession(
-				StartConfigurationSessionRequest.builder().applicationIdentifier("MyApplication")
-						.configurationProfileIdentifier("text_configuration").environmentIdentifier("test").build()))
-								.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("20")
-										.build());
 		byte[] textFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
-				"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
-		when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-				.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(textFile))
-						.contentType("text/plain").build());
+			"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
+		prepareEnv(textFile,"TextApplication", "test", "text_configuration", TEXT_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-appconfig:MyApplication___text_configuration___test")) {
+				"aws-appconfig:TextApplication___text_configuration___test")) {
 			Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled")).isEqualTo("false");
 			Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.region"))
 					.isEqualTo("eu-west-2");
@@ -145,7 +138,7 @@ class AppConfigDataLoaderTest {
 		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-				"optional:aws-appconfig:MyApplication___text_configuration___test")) {
+				"optional:aws-appconfig:RandApplication___rand-configuration___test")) {
 			ConfiguredAwsClient appConfigDataClient = new ConfiguredAwsClient(
 					context.getBean(AppConfigDataClient.class));
 			assertThat(appConfigDataClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
@@ -157,7 +150,6 @@ class AppConfigDataLoaderTest {
 	void resolveFail_NoKeysFound(CapturedOutput output) {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		application.addBootstrapRegistryInitializer(new AppConfigDataClientInitializer());
 
 		try (ConfigurableApplicationContext context = runApplication(application, "aws-appconfig:")) {
 			fail("Context without keys should fail to start");
@@ -174,29 +166,17 @@ class AppConfigDataLoaderTest {
 	@Nested
 	class ReloadConfigurationTests {
 
-		@BeforeEach
-		public void reset() {
-			Mockito.reset(appConfigDataClient);
-		}
-
 		@Test
 		void reloadsProperties() throws IOException {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
-			application.addBootstrapRegistryInitializer(new AppConfigDataClientInitializer());
 
-			when(appConfigDataClient.startConfigurationSession(StartConfigurationSessionRequest.builder()
-					.applicationIdentifier("MyApplication").configurationProfileIdentifier("text_configuration")
-					.environmentIdentifier("test").build())).thenReturn(
-							StartConfigurationSessionResponse.builder().initialConfigurationToken("20").build());
 			byte[] textFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
-					"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
-			when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-					.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(textFile))
-							.contentType("text/plain").build());
+				"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
+			prepareEnv(textFile,"my_app", "test", "reload-config", TEXT_TYPE);
 
 			try (ConfigurableApplicationContext context = runApplication(application,
-					"aws-appconfig:MyApplication___text_configuration___test")) {
+					"aws-appconfig:my_app___reload-config___test")) {
 				Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled")).isEqualTo("false");
 				Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.region"))
 						.isEqualTo("eu-west-2");
@@ -205,17 +185,19 @@ class AppConfigDataLoaderTest {
 				// update parameter value
 				byte[] newValues = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
 						"io.awspring.cloud.autoconfigure.config.appconfig/changed-value.properties"));
-				when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-						.thenReturn(GetLatestConfigurationResponse.builder()
-								.configuration(SdkBytes.fromByteArray(newValues)).contentType("text/plain").build());
+				putParameter(localstack, "test", new String(newValues, StandardCharsets.UTF_8));
+
+				appConfigClient.createHostedConfigurationVersion(CreateHostedConfigurationVersionRequest.builder().content(SdkBytes.fromByteArray(newValues)).contentType(TEXT_TYPE).configurationProfileId(configId).applicationId(appId).latestVersionNumber(2).build());
 
 				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled"))
 							.isEqualTo("true");
 					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.region"))
-							.isEqualTo("eu-central-1");
-					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.s3.enabled"))
+							.isEqualTo("eu-west-2");
+					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sns.enabled"))
 							.isEqualTo("true");
+					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.s3.enabled"))
+						.isNull();
 				});
 			}
 		}
@@ -224,23 +206,17 @@ class AppConfigDataLoaderTest {
 		void doesNotReloadTextPropertiesWhenReloadStrategyIsNotSet() throws IOException {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
-			application.addBootstrapRegistryInitializer(new AppConfigDataClientInitializer());
 
-			when(appConfigDataClient.startConfigurationSession(StartConfigurationSessionRequest.builder()
-					.applicationIdentifier("MyApplication").configurationProfileIdentifier("text_configuration")
-					.environmentIdentifier("test").build())).thenReturn(
-							StartConfigurationSessionResponse.builder().initialConfigurationToken("20").build());
 			byte[] textFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
 					"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
-			when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-					.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(textFile))
-							.contentType("text/plain").build());
+			prepareEnv(textFile,"MyApplication", "test", "text_configuration", TEXT_TYPE);
 
 			try (ConfigurableApplicationContext context = application.run(
-					"--spring.config.import=aws-appconfig:MyApplication___text_configuration___test",
-					"--spring.cloud.aws.appconfig.region=eu-central-1",
-					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-					"--spring.cloud.aws.region.static=eu-west-1")) {
+				"--spring.config.import=aws-appconfig:MyApplication___text_configuration___test",
+				"--spring.cloud.aws.appconfig.region=" + localstack.getRegion(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint()
+				)) {
 
 				await().during(Duration.ofSeconds(5)).untilAsserted(() -> {
 					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled"))
@@ -257,20 +233,14 @@ class AppConfigDataLoaderTest {
 		void reloadsPropertiesWithNewValues() throws IOException {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
-			application.addBootstrapRegistryInitializer(new AppConfigDataClientInitializer());
-
-			when(appConfigDataClient.startConfigurationSession(StartConfigurationSessionRequest.builder()
-					.applicationIdentifier("MyApplication").configurationProfileIdentifier("text_configuration")
-					.environmentIdentifier("test").build())).thenReturn(
-							StartConfigurationSessionResponse.builder().initialConfigurationToken("20").build());
+			
+			
 			byte[] textFile = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
 					"io.awspring.cloud.autoconfigure.config.appconfig/working-properties-file.properties"));
-			when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-					.thenReturn(GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromByteArray(textFile))
-							.contentType("text/plain").build());
+			prepareEnv(textFile,"testApp", "test", "config", TEXT_TYPE);
 
 			try (ConfigurableApplicationContext context = runApplication(application,
-					"aws-appconfig:MyApplication___text_configuration___test")) {
+					"aws-appconfig:testApp___config___test")) {
 				Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled")).isEqualTo("false");
 				Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.dynamodb.region"))
 						.isEqualTo("eu-west-2");
@@ -279,9 +249,7 @@ class AppConfigDataLoaderTest {
 				// update parameter value
 				byte[] newValues = FileCopyUtils.copyToByteArray(getClass().getClassLoader().getResourceAsStream(
 						"io.awspring.cloud.autoconfigure.config.appconfig/removed_values.properties"));
-				when(appConfigDataClient.getLatestConfiguration((GetLatestConfigurationRequest) any()))
-						.thenReturn(GetLatestConfigurationResponse.builder()
-								.configuration(SdkBytes.fromByteArray(newValues)).contentType("text/plain").build());
+				appConfigClient.createHostedConfigurationVersion(CreateHostedConfigurationVersionRequest.builder().content(SdkBytes.fromByteArray(newValues)).contentType(TEXT_TYPE).configurationProfileId(configId).applicationId(appId).latestVersionNumber(1).build());
 
 				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 					Assertions.assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled"))
@@ -300,26 +268,42 @@ class AppConfigDataLoaderTest {
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport) {
 		return application.run("--spring.config.import=" + springConfigImport,
-				"--spring.cloud.aws.appconfig.region=" + "eu-west-2",
 				"--spring.cloud.aws.appconfig.reload.strategy=refresh",
+			"--spring.cloud.aws.secretsmanager.region=" + localstack.getRegion(),
+			"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
+			"--spring.cloud.aws.appconfig.endpoint="
+				+ localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-2", "--logging.level.io.awspring.cloud.appconfig=debug",
+				"--spring.cloud.aws.region.static=" + localstack.getRegion(), "--logging.level.io.awspring.cloud.appconfig=debug",
 				"--spring.cloud.aws.appconfig.reload.period=PT1S", "--spring.cloud.aws.s3.enabled=false");
+	}
+
+
+	private static void prepareEnv(byte[] content, String appName, String envName, String configName, String contentType) {
+		AppConfigClient appConfigClient = AppConfigClient.builder().endpointOverride(localstack.getEndpoint()).build();
+		putParameter(localstack, "test", new String(content, StandardCharsets.UTF_8));
+		parameterStoreArn = SsmClient.builder().endpointOverride(localstack.getEndpoint()).build().getParameter(GetParameterRequest.builder().name("test").build()).parameter().arn();
+		appId = appConfigClient.createApplication(CreateApplicationRequest.builder().name(appName).build()).id();
+		envId = appConfigClient.createEnvironment(CreateEnvironmentRequest.builder().name(envName).applicationId(appId).build()).id();
+		configId = appConfigClient.createConfigurationProfile(CreateConfigurationProfileRequest.builder().applicationId(appId).name(configName).locationUri(parameterStoreArn).build()).id();
+		appConfigClient.createHostedConfigurationVersion(CreateHostedConfigurationVersionRequest.builder().content(SdkBytes.fromByteArray(content)).contentType(contentType).configurationProfileId(configId).applicationId(appId).latestVersionNumber(1).build());
+		var depResponse = appConfigClient.createDeploymentStrategy(CreateDeploymentStrategyRequest.builder().name("myDeployment").build());
+		appConfigClient.startDeployment(StartDeploymentRequest.builder().applicationId(appId).deploymentStrategyId(depResponse.id()).configurationProfileId(configId).environmentId(envId).build());
+	}
+	private static void putParameter(LocalStackContainer localstack, String parameterName, String parameterValue) {
+		try {
+			localstack.execInContainer("awslocal", "ssm", "put-parameter", "--name", parameterName, "--type", "String",
+				"--value", parameterValue, "--region", localstack.getRegion(), "--overwrite");
+		}
+		catch (IOException | InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class App {
 
-	}
-
-	static class AppConfigDataClientInitializer implements BootstrapRegistryInitializer {
-
-		@Override
-		public void initialize(BootstrapRegistry registry) {
-			registry.register(AppConfigDataClient.class, context -> appConfigDataClient);
-
-		}
 	}
 
 	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {

@@ -41,6 +41,7 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 	private static final Log LOG = LogFactory.getLog(AppConfigPropertySource.class);
 
 	private static final String YAML_TYPE = "application/x-yaml";
+	private static final String YAML_TYPE_ALTERNATIVE = "text/yaml";
 	private static final String TEXT_TYPE = "text/plain";
 	private static final String JSON_TYPE = "application/json";
 
@@ -70,7 +71,7 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 		if (sessionToken == null) {
 			StartConfigurationSessionRequest sessionRequest = StartConfigurationSessionRequest.builder()
 					.environmentIdentifier(this.environmentIdentifier).applicationIdentifier(this.applicationIdentifier)
-					.configurationProfileIdentifier(this.configurationProfileIdentifier).build();
+					.configurationProfileIdentifier(this.configurationProfileIdentifier).requiredMinimumPollIntervalInSeconds(1000).build();
 			StartConfigurationSessionResponse response = this.source.startConfigurationSession(sessionRequest);
 			sessionToken = response.initialConfigurationToken();
 		}
@@ -103,7 +104,7 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 	}
 
 	private void getParameters(GetLatestConfigurationResponse response) throws IOException {
-		if (response.contentType().equals(YAML_TYPE) || response.contentType().equals(JSON_TYPE)) {
+		if (response.contentType().equals(YAML_TYPE) || response.contentType().equals(YAML_TYPE_ALTERNATIVE) || response.contentType().equals(JSON_TYPE)) {
 			resolveYamlOrJson(response);
 		}
 		else if (response.contentType().equals(TEXT_TYPE)) {
