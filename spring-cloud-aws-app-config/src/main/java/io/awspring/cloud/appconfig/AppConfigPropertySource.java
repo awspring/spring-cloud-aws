@@ -71,7 +71,7 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 		if (sessionToken == null) {
 			StartConfigurationSessionRequest sessionRequest = StartConfigurationSessionRequest.builder()
 					.environmentIdentifier(this.environmentIdentifier).applicationIdentifier(this.applicationIdentifier)
-					.configurationProfileIdentifier(this.configurationProfileIdentifier).requiredMinimumPollIntervalInSeconds(1000).build();
+					.configurationProfileIdentifier(this.configurationProfileIdentifier).build();
 			StartConfigurationSessionResponse response = this.source.startConfigurationSession(sessionRequest);
 			sessionToken = response.initialConfigurationToken();
 		}
