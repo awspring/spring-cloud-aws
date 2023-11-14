@@ -37,8 +37,6 @@ jobs:
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Build with Maven
         run: ./mvnw -V -B verify -Pspring
-        env:
-          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
   sonar:
     name: "Run Sonar Analysis"
     runs-on: ubuntu-latest
