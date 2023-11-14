@@ -1,8 +1,8 @@
 # Spring Cloud AWS Samples
 
-Samples are prepared to run on Localstack - a local equivalent of AWS. 
+Samples are prepared to run on LocalStack - a local equivalent of AWS. 
 
-To start Localstack locally:
+To start LocalStack locally:
 
 ```
 $ docker-compose up
@@ -30,7 +30,7 @@ Samples are regular Spring Boot applications. The best way to run them is to run
 
 ## How to destroy infrastructure?
 
-Infrastructure is destroyed once Localstack container shuts down. If you want to destroy infrastructure manually, run:
+Infrastructure is destroyed once LocalStack container shuts down. If you want to destroy infrastructure manually, run:
 
 ```
 $ cdklocal destroy

@@ -15,8 +15,6 @@
  */
 package io.awspring.cloud.sqs.integration;
 
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
-
 import io.awspring.cloud.sqs.CompletableFutures;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +46,7 @@ abstract class BaseSqsIntegrationTest {
 
 	protected static final boolean purgeQueues = true;
 
-	private static final String LOCAL_STACK_VERSION = "localstack/localstack:1.4.0";
+	private static final String LOCAL_STACK_VERSION = "localstack/localstack:2.3.2";
 
 	static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse(LOCAL_STACK_VERSION));
 
@@ -65,8 +63,8 @@ abstract class BaseSqsIntegrationTest {
 
 	@DynamicPropertySource
 	static void registerSqsProperties(DynamicPropertyRegistry registry) {
-		// overwrite SQS endpoint with one provided by Localstack
-		registry.add("spring.cloud.aws.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
+		// overwrite SQS endpoint with one provided by LocalStack
+		registry.add("spring.cloud.aws.endpoint", () -> localstack.getEndpoint());
 	}
 
 	protected static CompletableFuture<?> createQueue(SqsAsyncClient client, String queueName) {
@@ -130,8 +128,7 @@ abstract class BaseSqsIntegrationTest {
 
 	private static SqsAsyncClient createLocalStackClient() {
 		return SqsAsyncClient.builder().credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
-				.build();
+				.endpointOverride(localstack.getEndpoint()).region(Region.of(localstack.getRegion())).build();
 	}
 
 	protected static class LoadSimulator {

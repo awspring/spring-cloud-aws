@@ -177,6 +177,8 @@ public class SqsMessageListenerContainer<T>
 
 		private AcknowledgementResultCallback<T> acknowledgementResultCallback;
 
+		private Integer phase;
+
 		public Builder<T> id(String id) {
 			this.id = id;
 			return this;
@@ -250,6 +252,11 @@ public class SqsMessageListenerContainer<T>
 			return this;
 		}
 
+		public Builder<T> phase(Integer phase) {
+			this.phase = phase;
+			return this;
+		}
+
 		// @formatter:off
 		public SqsMessageListenerContainer<T> build() {
 			SqsMessageListenerContainer<T> container = new SqsMessageListenerContainer<>(this.sqsAsyncClient);
@@ -262,9 +269,11 @@ public class SqsMessageListenerContainer<T>
 					.acceptIfNotNull(this.acknowledgementResultCallback, container::setAcknowledgementResultCallback)
 					.acceptIfNotNull(this.asyncAcknowledgementResultCallback, container::setAcknowledgementResultCallback)
 					.acceptIfNotNull(this.containerComponentFactories, container::setComponentFactories)
-					.acceptIfNotEmpty(this.queueNames, container::setQueueNames);
+					.acceptIfNotEmpty(this.queueNames, container::setQueueNames)
+					.acceptIfNotNullOrElse(container::setPhase, this.phase, DEFAULT_PHASE);
 			this.messageInterceptors.forEach(container::addMessageInterceptor);
 			this.asyncMessageInterceptors.forEach(container::addMessageInterceptor);
+
 			container.configure(this.optionsConsumer);
 			return container;
 		}

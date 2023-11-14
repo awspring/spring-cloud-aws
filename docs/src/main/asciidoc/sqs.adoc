@@ -636,7 +636,9 @@ Note that if there are messages available the call may return earlier than this 
 - `messageVisibilitySeconds` - Set the minimum visibility for the messages retrieved in a poll.
 Note that for `FIFO` single message listener methods, this visibility is applied to the whole batch before each message is sent to the listener.
 See <<FIFO Support>> for more information.
-
+- `acknowledgementMode` - Set the acknowledgement mode for the container.
+If any value is set, it will take precedence over the acknowledgement mode defined for the container factory options.
+See <<Acknowledgement Mode>> for more information.
 
 ===== Listener Method Arguments
 
@@ -803,6 +805,13 @@ See AWS documentation for more information.
 After that period, the framework will try to perform a partial acquire with the available permits, resulting in a poll for less than `maxMessagesPerPoll` messages, unless otherwise configured.
 See <<Message Processing Throughput>>.
 
+|`autoStartup`
+|true, false
+|true
+|Determines wherever container should start automatically. When set to false the
+container will not launch on startup, requiring manual intervention to start it.
+See <<Container Lifecycle>>.
+
 |`listenerShutdownTimeout`
 |0 - undefined
 |10 seconds
@@ -927,6 +936,8 @@ The `MessageListenerContainer` interface extends `SmartLifecycle`, which provide
 Containers created from `@SqsListener` annotations are registered in a `MessageListenerContainerRegistry` bean that is registered by the framework.
 The containers themselves are not Spring-managed beans, and the registry is responsible for managing these containers` lifecycle in application startup and shutdown.
 
+NOTE: The `DefaultListenerContainerRegistry ` implementation provided by the framework allows the phase value to be set through the `setPhase` method. The default value is `MessageListenerContainer.DEFAULT_PHASE`.
+
 At startup, the containers will make requests to `SQS` to retrieve the queues` urls for the provided queue names or ARNs, and for retrieving `QueueAttributes` if so configured.
 Providing queue urls instead of names and not requesting queue attributes can result in slightly better startup times since there's no need for such requests.
 
@@ -954,6 +965,8 @@ MessageListenerContainer<Object> listenerContainer(SqsAsyncClient sqsAsyncClient
             .build();
 }
 ----
+
+NOTE: The `SqsMessageListenerContainer.builder()` allows to specify the `SmartLifecycle.phase`, to override the default value defined in `MessageListenerContainer.DEFAULT_PHASE`
 
 ===== Retrieving Containers from the Registry
 
@@ -1315,6 +1328,8 @@ NOTE: All options are available for both `single message` and `batch` message li
 - `ALWAYS` - Acknowledges a message or batch of messages after processing returns success or error.
 - `MANUAL` - The framework won't acknowledge messages automatically and `Acknowledgement` objects can be received in the listener method.
 
+The `Acknowledgement` strategy can be configured in the `SqsContainerOptions` or in the `@SqsListener` annotation.
+
 ==== Acknowledgement Batching
 
 The `acknowledgementInterval` and `acknowledgementThreshold` options enable acknowledgement batching.
@@ -1489,6 +1504,7 @@ The following attributes can be configured in the registrar:
 - `setMessageListenerContainerRegistryBeanName` - provide a different bean name to be used to retrieve the `MessageListenerContainerRegistry`
 - `setObjectMapper` - set the `ObjectMapper` instance that will be used to deserialize payloads in listener methods.
 See <<Message Conversion and Payload Deserialization>> for more information on where this is used.
+- `setValidator` - set the `Validator` instance that will be used for payload validation in listener methods.
 - `manageMessageConverters` - gives access to the list of message converters that will be used to convert messages.
 By default, `StringMessageConverter`, `SimpleMessageConverter` and `MappingJackson2MessageConverter` are used.
 

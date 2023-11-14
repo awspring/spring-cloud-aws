@@ -18,6 +18,7 @@ package io.awspring.cloud.s3;
 import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
+import java.util.List;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
@@ -47,6 +48,14 @@ public interface S3Operations {
 	void deleteBucket(String bucketName);
 
 	/**
+	 * Checks if an S3 bucket exists.
+	 *
+	 * @param bucketName - the bucket name
+	 * @return true if bucket exists; false otherwise
+	 */
+	boolean bucketExists(String bucketName);
+
+	/**
 	 * Deletes an object from S3 bucket.
 	 *
 	 * @param bucketName - the bucket name
@@ -60,6 +69,16 @@ public interface S3Operations {
 	 * @param s3Url - the S3 url s3://bucket/key
 	 */
 	void deleteObject(String s3Url);
+
+	/**
+	 * Returns some or all (up to 1,000) of the objects in a bucket. Does not handle pagination. If you need pagination
+	 * you should use {@link S3PathMatchingResourcePatternResolver} or {@link S3Client}
+	 *
+	 * @param bucketName - the bucket name
+	 * @param prefix - objects prefix
+	 * @return list of {@link S3Resource}
+	 */
+	List<S3Resource> listObjects(String bucketName, String prefix);
 
 	/**
 	 * Stores a Java object in a S3 bucket. Uses {@link S3ObjectConverter} for serialization.

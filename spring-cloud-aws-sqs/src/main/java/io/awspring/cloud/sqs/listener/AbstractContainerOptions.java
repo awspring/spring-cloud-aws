@@ -37,6 +37,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	private final int maxMessagesPerPoll;
 
+	private final boolean autoStartup;
+
 	private final Duration pollTimeout;
 
 	private final Duration maxDelayBetweenPolls;
@@ -71,6 +73,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	protected AbstractContainerOptions(Builder<?, ?> builder) {
 		this.maxConcurrentMessages = builder.maxConcurrentMessages;
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
+		this.autoStartup = builder.autoStartup;
 		this.pollTimeout = builder.pollTimeout;
 		this.maxDelayBetweenPolls = builder.maxDelayBetweenPolls;
 		this.listenerShutdownTimeout = builder.listenerShutdownTimeout;
@@ -97,6 +100,11 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	@Override
 	public int getMaxMessagesPerPoll() {
 		return this.maxMessagesPerPoll;
+	}
+
+	@Override
+	public boolean isAutoStartup() {
+		return this.autoStartup;
 	}
 
 	@Override
@@ -176,6 +184,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final int DEFAULT_MAX_MESSAGES_PER_POLL = 10;
 
+		private static final boolean DEFAULT_AUTO_STARTUP = true;
+
 		private static final Duration DEFAULT_POLL_TIMEOUT = Duration.ofSeconds(10);
 
 		private static final Duration DEFAULT_SEMAPHORE_TIMEOUT = Duration.ofSeconds(10);
@@ -195,6 +205,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private int maxConcurrentMessages = DEFAULT_MAX_INFLIGHT_MSG_PER_QUEUE;
 
 		private int maxMessagesPerPoll = DEFAULT_MAX_MESSAGES_PER_POLL;
+
+		private boolean autoStartup = DEFAULT_AUTO_STARTUP;
 
 		private Duration pollTimeout = DEFAULT_POLL_TIMEOUT;
 
@@ -233,6 +245,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		protected Builder(AbstractContainerOptions<?, ?> options) {
 			this.maxConcurrentMessages = options.maxConcurrentMessages;
 			this.maxMessagesPerPoll = options.maxMessagesPerPoll;
+			this.autoStartup = options.autoStartup;
 			this.pollTimeout = options.pollTimeout;
 			this.maxDelayBetweenPolls = options.maxDelayBetweenPolls;
 			this.listenerShutdownTimeout = options.listenerShutdownTimeout;
@@ -258,6 +271,12 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		@Override
 		public B maxMessagesPerPoll(int maxMessagesPerPoll) {
 			this.maxMessagesPerPoll = maxMessagesPerPoll;
+			return self();
+		}
+
+		@Override
+		public B autoStartup(boolean autoStartup) {
+			this.autoStartup = autoStartup;
 			return self();
 		}
 

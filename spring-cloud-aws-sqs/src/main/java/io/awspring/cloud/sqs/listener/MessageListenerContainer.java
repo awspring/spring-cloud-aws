@@ -28,6 +28,8 @@ import org.springframework.messaging.Message;
  */
 public interface MessageListenerContainer<T> extends SmartLifecycle {
 
+	int DEFAULT_PHASE = Integer.MAX_VALUE;
+
 	/**
 	 * Get the container id.
 	 * @return the id.

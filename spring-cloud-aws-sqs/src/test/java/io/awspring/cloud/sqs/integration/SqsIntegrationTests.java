@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.integration;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.CompletableFutures;
@@ -53,8 +54,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -64,6 +67,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -114,7 +118,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String MANUALLY_CREATE_CONTAINER_QUEUE_NAME = "manually_create_container_test_queue";
 
+	static final String MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME = "manually_create_inactive_container_test_queue";
+
 	static final String MANUALLY_CREATE_FACTORY_QUEUE_NAME = "manually_create_factory_test_queue";
+
+	static final String MAX_CONCURRENT_MESSAGES_QUEUE_NAME = "max_concurrent_messages_test_queue";
 
 	static final String LOW_RESOURCE_FACTORY = "lowResourceFactory";
 
@@ -139,7 +147,9 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, RESOLVES_PARAMETER_TYPES_QUEUE_NAME,
 						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "20")),
 				createQueue(client, MANUALLY_CREATE_CONTAINER_QUEUE_NAME),
-				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME)).join();
+				createQueue(client, MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME),
+				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME),
+				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME)).join();
 	}
 
 	@Autowired
@@ -150,6 +160,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Autowired
 	ObjectMapper objectMapper;
+
+	@Autowired
+	@Qualifier("inactiveContainer")
+	MessageListenerContainer<Object> inactiveMessageListenerContainer;
 
 	@Test
 	void receivesMessage() throws Exception {
@@ -234,6 +248,17 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.manuallyCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
+	@Test
+	void manuallyCreatesInactiveContainer() throws Exception {
+		String messageBody = "Testing manually creates inactive container";
+		assertThat(inactiveMessageListenerContainer.isRunning()).isFalse();
+		sqsTemplate.send(MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME, messageBody);
+		inactiveMessageListenerContainer.start();
+		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME,
+				messageBody);
+		assertThat(latchContainer.manuallyInactiveCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
 	// @formatter:off
 	@Test
 	void manuallyStartsContainerAndChangesComponent() throws Exception {
@@ -273,6 +298,21 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.manuallyCreatedFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.manuallyCreatedFactorySourceFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.manuallyCreatedFactorySinkLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void maxConcurrentMessages() {
+		List<Message<String>> messages1 = IntStream.range(0, 10)
+				.mapToObj(index -> "maxConcurrentMessages-payload-" + index)
+				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
+		List<Message<String>> messages2 = IntStream.range(10, 20)
+				.mapToObj(index -> "maxConcurrentMessages-payload-" + index)
+				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
+		sqsTemplate.sendManyAsync(MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages1);
+		sqsTemplate.sendManyAsync(MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages2);
+		logger.debug("Sent messages to queue {} with messages {} and {}", MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages1,
+				messages2);
+		assertDoesNotThrow(() -> latchContainer.maxConcurrentMessagesBarrier.await(10, TimeUnit.SECONDS));
 	}
 
 	static class ReceivesMessageListener {
@@ -399,6 +439,18 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	static class MaxConcurrentMessagesListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@SqsListener(queueNames = MAX_CONCURRENT_MESSAGES_QUEUE_NAME, maxMessagesPerPoll = "10", maxConcurrentMessages = "20", id = "max-concurrent-messages")
+		void listen(String message) throws BrokenBarrierException, InterruptedException {
+			logger.debug("Received message in Listener Method: " + message);
+			latchContainer.maxConcurrentMessagesBarrier.await();
+		}
+	}
+
 	static class LatchContainer {
 
 		final CountDownLatch receivesMessageLatch = new CountDownLatch(1);
@@ -421,6 +473,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		final CountDownLatch acknowledgementCallbackSuccessLatch = new CountDownLatch(1);
 		final CountDownLatch acknowledgementCallbackBatchLatch = new CountDownLatch(1);
 		final CountDownLatch acknowledgementCallbackErrorLatch = new CountDownLatch(1);
+		final CountDownLatch manuallyInactiveCreatedContainerLatch = new CountDownLatch(1);
+		final CyclicBarrier maxConcurrentMessagesBarrier = new CyclicBarrier(21);
 
 	}
 
@@ -543,6 +597,23 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				.build();
 		}
 
+		@Bean("inactiveContainer")
+		public MessageListenerContainer<Object> manuallyCreatedInactiveContainer() throws Exception {
+			SqsAsyncClient client = BaseSqsIntegrationTest.createAsyncClient();
+			String queueUrl = client.getQueueUrl(req -> req.queueName(MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME)).get()
+				.queueUrl();
+			return SqsMessageListenerContainer
+				.builder()
+				.queueNames(queueUrl)
+				.sqsAsyncClient(client)
+				.configure(options -> options
+					.autoStartup(false)
+					.maxDelayBetweenPolls(Duration.ofSeconds(1))
+					.pollTimeout(Duration.ofSeconds(3)))
+				.messageListener(msg -> {latchContainer.manuallyInactiveCreatedContainerLatch.countDown();})
+				.build();
+		}
+
 		@Bean
 		public SqsMessageListenerContainer<String> manuallyCreatedFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
@@ -610,6 +681,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		ResolvesParameterTypesListener resolvesParameterTypesListener() {
 			return new ResolvesParameterTypesListener();
+		}
+
+		@Bean
+		MaxConcurrentMessagesListener maxConcurrentMessagesListener() {
+			return new MaxConcurrentMessagesListener();
 		}
 
 		@Bean

@@ -73,7 +73,7 @@ public interface AwsClientCustomizer<T> {
 			if (configurer.asyncHttpClient() != null) {
 				asyncClientBuilder.httpClient(configurer.asyncHttpClient());
 			}
-			if (configurer.httpClientBuilder() != null) {
+			if (configurer.asyncHttpClientBuilder() != null) {
 				asyncClientBuilder.httpClientBuilder(configurer.asyncHttpClientBuilder());
 			}
 		}
