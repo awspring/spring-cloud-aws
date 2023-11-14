@@ -37,6 +37,8 @@ jobs:
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Build with Maven
         run: ./mvnw -V -B verify -Pspring
+        env:
+          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
   sonar:
     name: "Run Sonar Analysis"
     runs-on: ubuntu-latest
@@ -71,5 +73,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
         run: ./mvnw -V -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage,spring
