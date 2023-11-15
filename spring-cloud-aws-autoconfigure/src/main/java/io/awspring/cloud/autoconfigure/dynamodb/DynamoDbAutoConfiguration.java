@@ -22,7 +22,6 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.dynamodb.*;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -48,6 +47,7 @@ import software.amazon.dax.ClusterDaxClient;
  * {@link EnableAutoConfiguration Auto-configuration} for DynamoDB integration.
  *
  * @author Matej Nedic
+ * @author Maciej Walkowiak
  * @since 3.0.0
  */
 @AutoConfiguration
@@ -116,27 +116,24 @@ public class DynamoDbAutoConfiguration {
 		return DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
 	}
 
+	@ConditionalOnMissingBean(DynamoDbTableNameResolver.class)
+	@Bean
+	public DefaultDynamoDbTableResolver dynamoDbTableSchemaResolver(
+			DefaultDynamoDbTableNameResolver dynamoDbTableNameResolver, List<TableSchema<?>> tableSchemas) {
+		return new DefaultDynamoDbTableResolver(dynamoDbTableNameResolver, tableSchemas);
+	}
+
+	@ConditionalOnMissingBean(DynamoDbTableNameResolver.class)
+	@Bean
+	public DefaultDynamoDbTableNameResolver dynamoDbTableNameResolver() {
+		return new DefaultDynamoDbTableNameResolver();
+	}
+
 	@ConditionalOnMissingBean(DynamoDbOperations.class)
 	@Bean
 	public DynamoDbTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
-			Optional<DynamoDbTableSchemaResolver> tableSchemaResolver,
-			Optional<DynamoDbTableNameResolver> tableNameResolver, List<TableSchema<?>> tableSchemas) {
-		DynamoDbTableNameResolver tableNameRes = tableNameResolver.orElseGet(DefaultDynamoDbTableNameResolver::new);
-
-		DynamoDbTableSchemaResolver tableSchemaRes = tableSchemaResolver
-				.orElseGet(DefaultDynamoDbTableSchemaResolver::new);
-
-		registerTableSchemas(tableSchemas, tableNameRes, tableSchemaRes);
-
-		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaRes, tableNameRes);
-	}
-
-	private void registerTableSchemas(List<TableSchema<?>> tableSchemas, DynamoDbTableNameResolver tableNameRes,
-			DynamoDbTableSchemaResolver tableSchemaRes) {
-		tableSchemas.forEach(schema -> {
-			var tableName = tableNameRes.resolve(schema.itemType().rawClass());
-			tableSchemaRes.register(schema, tableName);
-		});
+			DynamoDbTableResolver tableSchemaResolver) {
+		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaResolver);
 	}
 
 	static class MissingDaxUrlCondition extends NoneNestedConditions {
