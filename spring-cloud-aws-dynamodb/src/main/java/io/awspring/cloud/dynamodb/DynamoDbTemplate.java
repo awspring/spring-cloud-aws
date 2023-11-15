@@ -37,6 +37,11 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
 	private final DynamoDbTableResolver dynamoDbTableResolver;
 
+	public DynamoDbTemplate(@Nullable String tablePrefix, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
+		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableResolver(new DefaultDynamoDbTableNameResolver(tablePrefix),
+				Collections.emptyList()));
+	}
+
 	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient) {
 		this(dynamoDbEnhancedClient,
 				new DefaultDynamoDbTableResolver(new DefaultDynamoDbTableNameResolver(), Collections.emptyList()));

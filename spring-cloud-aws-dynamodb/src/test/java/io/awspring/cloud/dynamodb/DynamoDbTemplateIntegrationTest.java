@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
@@ -77,8 +76,7 @@ public class DynamoDbTemplateIntegrationTest {
 				TableSchema.fromBean(PersonEntity.class));
 		describeAndCreateTable(dynamoDbClient, null);
 
-		prefixedDynamoDbTemplate = new DynamoDbTemplate(enhancedClient, new DefaultDynamoDbTableResolver(
-				new DefaultDynamoDbTableNameResolver("my_prefix_"), Collections.emptyList()));
+		prefixedDynamoDbTemplate = new DynamoDbTemplate("my_prefix_", enhancedClient);
 		prefixedDynamoDbTable = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build()
 				.table("my_prefix_person_entity", TableSchema.fromBean(PersonEntity.class));
 		describeAndCreateTable(dynamoDbClient, "my_prefix_");
