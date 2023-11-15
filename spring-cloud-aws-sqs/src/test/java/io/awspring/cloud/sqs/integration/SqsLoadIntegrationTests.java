@@ -18,7 +18,6 @@ package io.awspring.cloud.sqs.integration;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
@@ -32,12 +31,12 @@ import io.awspring.cloud.sqs.listener.StandardSqsComponentFactory;
 import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
 import io.awspring.cloud.sqs.listener.source.AbstractSqsMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -51,22 +50,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 /**
  * Load test for SQS integration.
  *
  * @author Tomaz Fernandes
+ * @author Mikhail Strokov
  */
 @SpringBootTest
 class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
@@ -81,19 +80,13 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final String RECEIVE_BATCH_2_QUEUE_NAME = "receive_batch_test_queue_2";
 
-	private static final String TEST_SQS_ASYNC_CLIENT_BEAN_NAME = "testSqsAsyncClient";
-
 	private static final String HIGH_THROUGHPUT_FACTORY_NAME = "highThroughputFactory";
 
 	@Autowired
 	LatchContainer latchContainer;
 
 	@Autowired
-	@Qualifier(TEST_SQS_ASYNC_CLIENT_BEAN_NAME)
-	SqsAsyncClient sqsAsyncClient;
-
-	@Autowired
-	ObjectMapper objectMapper;
+	SqsTemplate sqsTemplate;
 
 	@Autowired
 	Settings settings;
@@ -164,16 +157,14 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 			CountDownLatch listenerLatch, CountDownLatch acknowledgementLatch)
 			throws InterruptedException, ExecutionException {
 		Assert.isTrue(settings.totalMessages >= 20, "Minimum of 20 messages");
-		String queueUrl1 = fetchQueueUrl(queue1);
-		String queueUrl2 = fetchQueueUrl(queue2);
 		LoadSimulator sendLoadSimulator = new LoadSimulator();
 		sendLoadSimulator.setLoadEnabled(settings.totalMessages > 1000);
 		logger.debug("Starting watch");
 		StopWatch watch = new StopWatch();
 		watch.start();
 		IntStream.range(0, Math.max(settings.totalMessages / 20, 1)).forEach(index -> {
-			sendMessageBatchAsync(queueUrl1);
-			sendMessageBatchAsync(queueUrl2);
+			sendMessageBatchAsync(queue1);
+			sendMessageBatchAsync(queue2);
 			if (index % 20 == 0) {
 				sendLoadSimulator.runLoad(50);
 			}
@@ -203,21 +194,20 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 
 	AtomicInteger bodyInteger = new AtomicInteger();
 
-	private void sendMessageBatchAsync(String queueUrl) {
+	private void sendMessageBatchAsync(String queueName) {
 		if (!settings.sendMessages) {
 			return;
 		}
-		Collection<SendMessageBatchRequestEntry> batchEntries = getBatchEntries();
-		doSendMessageBatch(queueUrl, batchEntries);
+		Collection<Message<Object>> messages = getMessages();
+		doSendMessageBatch(queueName, messages);
 	}
 
-	private void doSendMessageBatch(String queueUrl, Collection<SendMessageBatchRequestEntry> batchEntries) {
-		sqsAsyncClient.sendMessageBatch(req -> req.entries(batchEntries).queueUrl(queueUrl).build())
-				.thenRun(this::logSend).exceptionally(t -> {
-					logger.error("Error sending messages - retrying", t);
-					doSendMessageBatch(queueUrl, batchEntries);
-					return null;
-				});
+	private void doSendMessageBatch(String queueName, Collection<Message<Object>> messages) {
+		sqsTemplate.sendManyAsync(queueName, messages).thenRun(this::logSend).exceptionally(t -> {
+			logger.error("Error sending messages - retrying", t);
+			doSendMessageBatch(queueName, messages);
+			return null;
+		});
 	}
 
 	private void logSend() {
@@ -227,26 +217,16 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
-	private Collection<SendMessageBatchRequestEntry> getBatchEntries() {
+	private Collection<Message<Object>> getMessages() {
 		return IntStream.range(0, Math.min(settings.totalMessages / 2, 10)).mapToObj(index -> {
-			String id = UUID.randomUUID().toString();
-			logger.trace("Sending message with id {}", id);
-			return SendMessageBatchRequestEntry.builder().id(id).messageBody(getBody()).build();
+			Message<Object> message = MessageBuilder.withPayload(getBody()).build();
+			logger.trace("Sending message with id {}", message.getHeaders().get("id"));
+			return message;
 		}).collect(Collectors.toList());
 	}
 
-	private String getBody() {
-		try {
-			return this.objectMapper.writeValueAsString(
-					new MyPojo("MyPojo - " + bodyInteger.incrementAndGet(), "MyPojo - secondValue"));
-		}
-		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private String fetchQueueUrl(String receivesMessageQueueName) throws InterruptedException, ExecutionException {
-		return sqsAsyncClient.getQueueUrl(req -> req.queueName(receivesMessageQueueName)).get().queueUrl();
+	private Object getBody() {
+		return new MyPojo("MyPojo - " + bodyInteger.incrementAndGet(), "MyPojo - secondValue");
 	}
 
 	static class MessageContainer {
@@ -276,7 +256,7 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 
 		@SqsListener(queueNames = { RECEIVE_FROM_MANY_1_QUEUE_NAME,
 				RECEIVE_FROM_MANY_2_QUEUE_NAME }, factory = HIGH_THROUGHPUT_FACTORY_NAME, id = "many-from-two-queues")
-		void listen(Message<String> message) throws Exception {
+		void listen(Message<MyPojo> message) throws Exception {
 			logger.trace("Started processing {}", MessageHeaderUtils.getId(message));
 			if (this.messageContainer.receivedByListener.contains(MessageHeaderUtils.getId(message))) {
 				logger.warn("Received duplicated message: {}", message);
@@ -404,9 +384,10 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 			return new ObjectMapper();
 		}
 
-		@Bean(name = TEST_SQS_ASYNC_CLIENT_BEAN_NAME)
-		SqsAsyncClient sqsAsyncClientProducer() {
-			return BaseSqsIntegrationTest.createHighThroughputAsyncClient();
+		@Bean
+		SqsTemplate sqsTemplate() {
+			return SqsTemplate.builder().sqsAsyncClient(BaseSqsIntegrationTest.createHighThroughputAsyncClient())
+					.build();
 		}
 
 		private final AtomicInteger acks = new AtomicInteger();

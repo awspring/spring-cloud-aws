@@ -31,9 +31,21 @@ public class ConfiguredTransferManager {
 	private final S3AsyncClient client;
 
 	ConfiguredTransferManager(S3TransferManager s3TransferManager) {
-		this.transferConfiguration = (TransferManagerConfiguration) ReflectionTestUtils.getField(s3TransferManager,
-				"transferConfiguration");
-		this.client = (S3AsyncClient) ReflectionTestUtils.getField(s3TransferManager, "s3AsyncClient");
+		// todo: this is getting too hacky
+		if (s3TransferManager.getClass().getName()
+				.equals("software.amazon.awssdk.transfer.s3.internal.CrtS3TransferManager")) {
+			S3TransferManager delegate = (S3TransferManager) ReflectionTestUtils.getField(s3TransferManager,
+					"delegate");
+			this.transferConfiguration = (TransferManagerConfiguration) ReflectionTestUtils.getField(delegate,
+					"transferConfiguration");
+			this.client = (S3AsyncClient) ReflectionTestUtils.getField(s3TransferManager, "s3AsyncClient");
+		}
+		else {
+			this.transferConfiguration = (TransferManagerConfiguration) ReflectionTestUtils.getField(s3TransferManager,
+					"transferConfiguration");
+			this.client = (S3AsyncClient) ReflectionTestUtils.getField(s3TransferManager, "s3AsyncClient");
+		}
+
 	}
 
 	boolean getUploadDirectoryFileVisitOption() {

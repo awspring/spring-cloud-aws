@@ -41,8 +41,7 @@ class S3PathMatchingResourcePatternResolverTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(LocalStackContainer.Service.S3)
-					.withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.3.2")).withReuse(true);
 
 	private static ResourcePatternResolver resourceLoader;
 
@@ -53,8 +52,7 @@ class S3PathMatchingResourcePatternResolverTests {
 		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		S3Client client = S3Client.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
+				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint()).build();
 
 		// prepare buckets and objects for tests
 		client.createBucket(request -> request.bucket("my-bucket"));

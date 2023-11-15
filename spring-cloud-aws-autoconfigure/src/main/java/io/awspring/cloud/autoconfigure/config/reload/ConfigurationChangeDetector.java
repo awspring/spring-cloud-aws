@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.reload;
 
 import io.awspring.cloud.core.config.AwsPropertySource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -68,6 +69,13 @@ public abstract class ConfigurationChangeDetector<T extends AwsPropertySource<?,
 		if (left == right) {
 			return false;
 		}
+
+		// check if a new property is added
+		if (!Arrays.equals(left.getPropertyNames(), right.getPropertyNames())) {
+			return true;
+		}
+
+		// check if a value of existing property changed
 		for (String property : left.getPropertyNames()) {
 			if (!Objects.equals(left.getProperty(property), right.getProperty(property))) {
 				return true;

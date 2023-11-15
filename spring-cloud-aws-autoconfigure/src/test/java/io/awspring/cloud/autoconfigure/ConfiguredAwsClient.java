@@ -19,6 +19,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.SdkClient;
@@ -83,6 +84,10 @@ public class ConfiguredAwsClient {
 
 	public SdkAsyncHttpClient getAsyncHttpClient() {
 		return clientConfigurationAttributes.get(SdkClientOption.ASYNC_HTTP_CLIENT);
+	}
+
+	public AwsCredentialsProvider getAwsCredentialsProvider() {
+		return clientConfigurationAttributes.get(AwsClientOption.CREDENTIALS_PROVIDER);
 	}
 
 }

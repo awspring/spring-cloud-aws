@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,15 +28,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.MessageListenerContainerFactory;
+import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
+import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.expression.StandardBeanExpressionResolver;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
@@ -44,6 +51,7 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 import org.springframework.messaging.handler.annotation.support.PayloadMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.StringValueResolver;
+import org.springframework.validation.Validator;
 
 /**
  * Tests for {@link SqsListenerAnnotationBeanPostProcessor}.
@@ -65,6 +73,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		String factoryName = "otherFactory";
 		MessageConverter converter = mock(MessageConverter.class);
 		HandlerMethodArgumentResolver resolver = mock(HandlerMethodArgumentResolver.class);
+		Validator validator = mock(Validator.class);
 
 		SqsListenerConfigurer customizer = registrar -> {
 			registrar.setDefaultListenerContainerFactoryBeanName(factoryName);
@@ -73,6 +82,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 			registrar.setObjectMapper(objectMapper);
 			registrar.manageMessageConverters(converters -> converters.add(converter));
 			registrar.manageMethodArgumentResolvers(resolvers -> resolvers.add(resolver));
+			registrar.setValidator(validator);
 		};
 
 		when(beanFactory.getBeansOfType(SqsListenerConfigurer.class))
@@ -101,7 +111,6 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		processor.setBeanFactory(beanFactory);
 		StringValueResolver valueResolver = mock(StringValueResolver.class);
 		given(valueResolver.resolveStringValue("queueNames")).willReturn("queueNames");
-		processor.setEmbeddedValueResolver(valueResolver);
 		Listener bean = new Listener();
 		processor.postProcessAfterInitialization(bean, "listener");
 		processor.afterSingletonsInstantiated();
@@ -110,13 +119,16 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		assertThat(endpoint).extracting("handlerMethodFactory").extracting("delegate").isEqualTo(methodFactory)
 				.extracting("argumentResolvers").extracting("argumentResolvers")
 				.asInstanceOf(list(HandlerMethodArgumentResolver.class)).hasSizeGreaterThan(1).contains(resolver)
-				.filteredOn(thisResolver -> thisResolver instanceof PayloadMethodArgumentResolver).element(0)
-				.extracting("converter").asInstanceOf(type(CompositeMessageConverter.class))
-				.extracting(CompositeMessageConverter::getConverters).asInstanceOf(list(MessageConverter.class))
-				.contains(converter)
-				.filteredOn(thisConverter -> thisConverter instanceof MappingJackson2MessageConverter).element(0)
-				.extracting("objectMapper").isEqualTo(objectMapper);
-
+				.filteredOn(thisResolver -> thisResolver instanceof PayloadMethodArgumentResolver
+						|| thisResolver instanceof BatchPayloadMethodArgumentResolver)
+				.allSatisfy(thisResolver -> {
+					assertThat(thisResolver).extracting("validator").isEqualTo(validator);
+					assertThat(thisResolver).extracting("converter").asInstanceOf(type(CompositeMessageConverter.class))
+							.extracting(CompositeMessageConverter::getConverters)
+							.asInstanceOf(list(MessageConverter.class)).contains(converter)
+							.filteredOn(thisConverter -> thisConverter instanceof MappingJackson2MessageConverter)
+							.element(0).extracting("objectMapper").isEqualTo(objectMapper);
+				});
 	}
 
 	@Test
@@ -149,7 +161,6 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		processor.setBeanFactory(beanFactory);
 		StringValueResolver valueResolver = mock(StringValueResolver.class);
 		given(valueResolver.resolveStringValue("queueNames")).willReturn("queueNames");
-		processor.setEmbeddedValueResolver(valueResolver);
 		processor.postProcessAfterInitialization(bean, "listener");
 		processor.afterSingletonsInstantiated();
 
@@ -177,10 +188,37 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		Listener bean = new Listener();
 		StringValueResolver valueResolver = mock(StringValueResolver.class);
 		given(valueResolver.resolveStringValue("queueNames")).willReturn("queueNames");
-		processor.setEmbeddedValueResolver(valueResolver);
 		processor.setBeanFactory(beanFactory);
 		processor.postProcessAfterInitialization(bean, "listener");
 		assertThatThrownBy(processor::afterSingletonsInstantiated).isInstanceOf(IllegalArgumentException.class);
+
+	}
+
+	@Test
+	void shouldResolveListOfQueuesFromSPEL() {
+		ConfigurableListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver());
+		MessageListenerContainerRegistry registry = mock(MessageListenerContainerRegistry.class);
+		MessageListenerContainerFactory<?> factory = mock(MessageListenerContainerFactory.class);
+
+		beanFactory.registerSingleton(SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME, registry);
+		beanFactory.registerSingleton(EndpointRegistrar.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME, factory);
+		SqsQueueNameReader sqsQueueNameReader = new SqsQueueNameReader();
+		beanFactory.registerSingleton("sqsQueueNameReader", sqsQueueNameReader);
+
+		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor();
+
+		ManyQueuesListener bean = new ManyQueuesListener(sqsQueueNameReader);
+		processor.setBeanFactory(beanFactory);
+		processor.postProcessAfterInitialization(bean, "listener");
+		processor.afterSingletonsInstantiated();
+
+		ArgumentCaptor<Endpoint> captor = ArgumentCaptor.forClass(Endpoint.class);
+
+		then(factory).should().createContainer(captor.capture());
+		Endpoint endpoint = captor.getValue();
+		assertThat(endpoint.getLogicalNames()).containsExactly(SqsQueueNameReader.QUEUE_NAME_1,
+				SqsQueueNameReader.QUEUE_NAME_2);
 
 	}
 
@@ -190,6 +228,31 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		void listen(String message) {
 		}
 
+	}
+
+	static class ManyQueuesListener {
+
+		private final SqsQueueNameReader sqsQueueNameReader;
+
+		ManyQueuesListener(SqsQueueNameReader sqsQueueNameReader) {
+			this.sqsQueueNameReader = sqsQueueNameReader;
+		}
+
+		@SqsListener("#{ sqsQueueNameReader.listQueueNames() }")
+		void listen(String message) {
+		}
+
+	}
+
+	static class SqsQueueNameReader {
+
+		static final String QUEUE_NAME_1 = "queueName1";
+
+		static final String QUEUE_NAME_2 = "queueName2";
+
+		public String[] listQueueNames() {
+			return new String[] { QUEUE_NAME_1, QUEUE_NAME_2 };
+		}
 	}
 
 }

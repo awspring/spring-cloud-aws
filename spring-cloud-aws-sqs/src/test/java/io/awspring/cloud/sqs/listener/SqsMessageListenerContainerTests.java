@@ -61,11 +61,12 @@ class SqsMessageListenerContainerTests {
 		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
 				.singletonList(componentFactory);
 		List<String> queueNames = Arrays.asList("test-queue-name-1", "test-queue-name-2");
+		Integer phase = 2;
 
 		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder().messageListener(listener)
 				.sqsAsyncClient(client).errorHandler(errorHandler).componentFactories(componentFactories)
 				.acknowledgementResultCallback(callback).messageInterceptor(interceptor1)
-				.messageInterceptor(interceptor2).queueNames(queueNames).build();
+				.messageInterceptor(interceptor2).queueNames(queueNames).phase(phase).build();
 
 		assertThat(container.getMessageListener())
 				.isInstanceOf(AsyncComponentAdapters.AbstractThreadingComponentAdapter.class)
@@ -90,6 +91,8 @@ class SqsMessageListenerContainerTests {
 		assertThat(container).extracting("sqsAsyncClient").isEqualTo(client);
 
 		assertThat(container.getQueueNames()).containsExactlyElementsOf(queueNames);
+
+		assertThat(container.getPhase()).isEqualTo(phase);
 	}
 
 	@Test
@@ -114,6 +117,7 @@ class SqsMessageListenerContainerTests {
 		assertThat(container.getErrorHandler()).isEqualTo(errorHandler);
 		assertThat(container.getAcknowledgementResultCallback()).isEqualTo(callback);
 		assertThat(container.getMessageInterceptors()).containsExactly(interceptor1, interceptor2);
+		assertThat(container.getPhase()).isEqualTo(MessageListenerContainer.DEFAULT_PHASE);
 	}
 
 	@Test

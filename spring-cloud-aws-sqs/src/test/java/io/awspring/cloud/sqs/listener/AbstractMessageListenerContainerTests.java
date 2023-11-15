@@ -73,6 +73,7 @@ class AbstractMessageListenerContainerTests {
 				.isInstanceOf(AsyncComponentAdapters.AbstractThreadingComponentAdapter.class)
 				.extracting("blockingMessageInterceptor").isEqualTo(interceptor);
 
+		assertThat(container.getPhase()).isEqualTo(MessageListenerContainer.DEFAULT_PHASE);
 	}
 
 	@Test
@@ -101,6 +102,7 @@ class AbstractMessageListenerContainerTests {
 		assertThat(container.getAcknowledgementResultCallback()).isEqualTo(callback);
 		assertThat(container.getContainerComponentFactories()).containsExactlyElementsOf(componentFactories);
 		assertThat(container.getMessageInterceptors()).containsExactly(interceptor);
+		assertThat(container.getPhase()).isEqualTo(MessageListenerContainer.DEFAULT_PHASE);
 
 	}
 

@@ -22,30 +22,21 @@ import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.HandlerMethodEndpoint;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.resolver.AcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchAcknowledgmentArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.config.BeanExpressionContext;
+import org.springframework.beans.factory.config.BeanExpressionResolver;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.EmbeddedValueResolverAware;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -65,17 +56,31 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.util.StringValueResolver;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * {@link BeanPostProcessor} implementation that scans beans for a {@link SqsListener @SqsListener} annotation, extracts
  * information to a {@link SqsEndpoint}, and registers it in the {@link EndpointRegistrar}.
  *
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 3.0
  */
 public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Annotation>
-		implements BeanPostProcessor, BeanFactoryAware, SmartInitializingSingleton, EmbeddedValueResolverAware {
+		implements BeanPostProcessor, BeanFactoryAware, SmartInitializingSingleton {
 
 	private final AtomicInteger counter = new AtomicInteger();
 
@@ -87,7 +92,11 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 
 	private BeanFactory beanFactory;
 
-	private StringValueResolver resolver;
+	@Nullable
+	private BeanExpressionResolver expressionResolver;
+
+	@Nullable
+	private BeanExpressionContext expressionContext;
 
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
@@ -134,27 +143,94 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 
 	protected abstract Endpoint createEndpoint(A sqsListenerAnnotation);
 
+	protected Collection<String> resolveEndpointNames(String[] endpointNames) {
+		return Arrays.stream(endpointNames).map(this::resolveExpression)
+				.flatMap(resolvedName -> resolveAsStrings(resolvedName).stream()).collect(Collectors.toList());
+	}
+
+	@Nullable
+	private Object resolveExpression(String value) {
+		return getExpressionResolver() != null
+				? getExpressionResolver().evaluate(resolve(value), getExpressionContext())
+				: value;
+	}
+
+	@Nullable
+	protected BeanExpressionResolver getExpressionResolver() {
+		if (this.expressionResolver == null && this.beanFactory instanceof ConfigurableListableBeanFactory clbf) {
+			this.expressionResolver = clbf.getBeanExpressionResolver();
+		}
+		return this.expressionResolver;
+	}
+
+	@Nullable
+	private BeanExpressionContext getExpressionContext() {
+		if (this.expressionContext == null && this.beanFactory instanceof ConfigurableBeanFactory clbf) {
+			this.expressionContext = new BeanExpressionContext(clbf, null);
+		}
+		return this.expressionContext;
+	}
+
+	@Nullable
+	private String resolve(String value) {
+		if (this.beanFactory instanceof ConfigurableBeanFactory cbf) {
+			return cbf.resolveEmbeddedValue(value);
+		}
+		return value;
+	}
+
 	protected String resolveAsString(String value, String propertyName) {
 		try {
-			return getValueResolver().resolveStringValue(value);
+			Collection<String> resolvedStrings = resolveAsStrings(resolve(value));
+			return resolvedStrings.isEmpty() ? value : resolvedStrings.iterator().next();
 		}
 		catch (Exception e) {
-			throw new IllegalArgumentException("Error resolving property " + propertyName, e);
+			throw new IllegalArgumentException("Could not resolve property " + propertyName, e);
 		}
 	}
 
-	protected StringValueResolver getValueResolver() {
-		return this.resolver;
+	private Collection<String> resolveAsStrings(@Nullable Object resolvedValue) {
+		if (resolvedValue instanceof String[] strArr) {
+			return resolveFromStream(Arrays.stream(strArr));
+		}
+		else if (resolvedValue instanceof Iterable<?> itr) {
+			return resolveFromStream(StreamSupport.stream(itr.spliterator(), false));
+		}
+		else if (resolvedValue instanceof String str) {
+			return Collections.singletonList(str);
+		}
+		else {
+			throw new IllegalArgumentException("Cannot resolve " + resolvedValue + " as String");
+		}
 	}
 
+	private List<String> resolveFromStream(Stream<?> stream) {
+		return stream.flatMap(str -> resolveAsStrings(str).stream()).collect(Collectors.toList());
+	}
+
+	@Nullable
 	protected Integer resolveAsInteger(String value, String propertyName) {
-		String resolvedValue = resolveAsString(value, propertyName);
-		return StringUtils.hasText(resolvedValue) ? Integer.parseInt(resolvedValue) : null;
+		try {
+			Object resolvedValue = resolveExpression(value);
+			return resolvedValue instanceof Number numberValue ? Integer.valueOf(numberValue.intValue())
+					: resolvedValue instanceof String stringValue && StringUtils.hasText(stringValue)
+							? Integer.parseInt(stringValue)
+							: null;
+		}
+		catch (Exception e) {
+			throw new IllegalArgumentException("Cannot resolve " + propertyName + " as Integer");
+		}
 	}
 
-	protected Set<String> resolveStringArray(String[] destinationNames, String propertyName) {
-		return Arrays.stream(destinationNames).map(destinationName -> resolveAsString(destinationName, propertyName))
-				.collect(Collectors.toSet());
+	@Nullable
+	protected AcknowledgementMode resolveAcknowledgement(String value) {
+		try {
+			final String resolvedValue = resolveAsString(value, "acknowledgementMode");
+			return StringUtils.hasText(resolvedValue) ? AcknowledgementMode.valueOf(resolvedValue) : null;
+		}
+		catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("Cannot resolve " + value + " as AcknowledgementMode", e);
+		}
 	}
 
 	protected String getEndpointId(String id) {
@@ -170,14 +246,18 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 
 	@Override
 	public void afterSingletonsInstantiated() {
-		if (this.beanFactory instanceof ListableBeanFactory) {
-			((ListableBeanFactory) this.beanFactory).getBeansOfType(SqsListenerConfigurer.class).values()
+		this.endpointRegistrar
+				.setMessageListenerContainerRegistryBeanName(getMessageListenerContainerRegistryBeanName());
+		if (this.beanFactory instanceof ListableBeanFactory lbf) {
+			lbf.getBeansOfType(SqsListenerConfigurer.class).values()
 					.forEach(customizer -> customizer.configure(this.endpointRegistrar));
 		}
 		this.endpointRegistrar.setBeanFactory(getBeanFactory());
 		initializeHandlerMethodFactory();
 		this.endpointRegistrar.afterSingletonsInstantiated();
 	}
+
+	protected abstract String getMessageListenerContainerRegistryBeanName();
 
 	@Override
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -222,9 +302,9 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 				new BatchAcknowledgmentArgumentResolver(),
 				new HeaderMethodArgumentResolver(new DefaultConversionService(), getConfigurableBeanFactory()),
 				new HeadersMethodArgumentResolver(),
-				new BatchPayloadMethodArgumentResolver(messageConverter),
+				new BatchPayloadMethodArgumentResolver(messageConverter, this.endpointRegistrar.getValidator()),
 				new MessageMethodArgumentResolver(messageConverter),
-				new PayloadMethodArgumentResolver(messageConverter));
+				new PayloadMethodArgumentResolver(messageConverter,  this.endpointRegistrar.getValidator()));
 	}
 	// @formatter:on
 
@@ -240,11 +320,6 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 
 	protected EndpointRegistrar createEndpointRegistrar() {
 		return new EndpointRegistrar();
-	}
-
-	@Override
-	public void setEmbeddedValueResolver(StringValueResolver resolver) {
-		this.resolver = resolver;
 	}
 
 	private static class DelegatingMessageHandlerMethodFactory implements MessageHandlerMethodFactory {

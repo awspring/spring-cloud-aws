@@ -21,7 +21,7 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.dynamodb.*;
 import java.io.IOException;
-import java.util.List;
+import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -37,7 +37,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
@@ -47,6 +46,7 @@ import software.amazon.dax.ClusterDaxClient;
  * {@link EnableAutoConfiguration Auto-configuration} for DynamoDB integration.
  *
  * @author Matej Nedic
+ * @author Arun Patra
  * @author Maciej Walkowiak
  * @since 3.0.0
  */
@@ -125,14 +125,14 @@ public class DynamoDbAutoConfiguration {
 
 	@ConditionalOnMissingBean(DynamoDbTableNameResolver.class)
 	@Bean
-	public DefaultDynamoDbTableNameResolver dynamoDbTableNameResolver() {
-		return new DefaultDynamoDbTableNameResolver();
+	public DefaultDynamoDbTableNameResolver dynamoDbTableNameResolver(DynamoDbProperties properties) {
+		return new DefaultDynamoDbTableNameResolver(properties.getTablePrefix());
 	}
 
 	@ConditionalOnMissingBean(DynamoDbOperations.class)
 	@Bean
 	public DynamoDbTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
-			DynamoDbTableResolver tableSchemaResolver) {
+		DynamoDbTableResolver tableSchemaResolver) {
 		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaResolver);
 	}
 

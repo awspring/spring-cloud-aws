@@ -18,10 +18,13 @@ package io.awspring.cloud.sqs.listener;
 import io.awspring.cloud.sqs.LifecycleHandler;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -50,8 +53,11 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 
 	private volatile boolean running = false;
 
+	private int phase = MessageListenerContainer.DEFAULT_PHASE;
+
 	@Override
 	public void registerListenerContainer(MessageListenerContainer<?> listenerContainer) {
+		Assert.notNull(listenerContainer, "listenerContainer cannot be null");
 		Assert.isTrue(getContainerById(listenerContainer.getId()) == null,
 				() -> "Already registered container with id " + listenerContainer.getId());
 		logger.debug("Registering listener container {}", listenerContainer.getId());
@@ -74,7 +80,9 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			logger.debug("Starting {}", getClass().getSimpleName());
-			LifecycleHandler.get().start(this.listenerContainers.values());
+			List<MessageListenerContainer<?>> containersToStart = this.listenerContainers.values().stream()
+					.filter(SmartLifecycle::isAutoStartup).collect(Collectors.toList());
+			LifecycleHandler.get().start(containersToStart);
 			this.running = true;
 			logger.debug("{} started", getClass().getSimpleName());
 		}
@@ -94,4 +102,12 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 		return this.running;
 	}
 
+	@Override
+	public int getPhase() {
+		return phase;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
+	}
 }

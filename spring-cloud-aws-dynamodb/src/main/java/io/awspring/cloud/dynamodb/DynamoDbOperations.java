@@ -31,6 +31,7 @@ public interface DynamoDbOperations {
 
 	/**
 	 * Saves Entity to DynamoDB table.
+	 *
 	 * @param entity - Entity to be saved.
 	 * @param <T> Type of Entity object.
 	 */
@@ -38,6 +39,7 @@ public interface DynamoDbOperations {
 
 	/**
 	 * Updated Entity to DynamoDB table.
+	 *
 	 * @param entity - Entity to be saved.
 	 * @param <T> Type of Entity object.
 	 */
@@ -45,6 +47,7 @@ public interface DynamoDbOperations {
 
 	/**
 	 * Deletes a record for a given Key.
+	 *
 	 * @param key to determine record in DynamoDB table.
 	 * @param clazz Class of entity being deleted so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
 	 *     generated.
@@ -53,12 +56,14 @@ public interface DynamoDbOperations {
 
 	/**
 	 * Deletes a record for a given Entity.
+	 *
 	 * @param entity Entity object for deletion.
 	 */
 	<T> void delete(T entity);
 
 	/**
 	 * Loads entity for a given Key.
+	 *
 	 * @param key to determine record in DynamoDB table.
 	 * @param clazz Class of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
 	 *     generated.
@@ -69,6 +74,7 @@ public interface DynamoDbOperations {
 
 	/**
 	 * Queries a data for a given request.
+	 *
 	 * @param queryEnhancedRequest Request that is used by
 	 *     {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient} to execute query request.
 	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
@@ -90,13 +96,50 @@ public interface DynamoDbOperations {
 
 	/**
 	 * Scans Table using given request.
+	 *
 	 * @param scanEnhancedRequest request used by
 	 *     {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient} to execute scan request.
 	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
 	 *     generated.
-	 *
 	 * @param <T> type of Entity object.
 	 * @return Iterable object which can be used to iterate pages and items.
 	 */
 	<T> PageIterable<T> scan(ScanEnhancedRequest scanEnhancedRequest, Class<T> clazz);
+
+	/**
+	 * Scans GlobalSecondaryIndex using given indexName and request.
+	 *
+	 * @param scanEnhancedRequest request used by
+	 *     {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient} to execute scan request.
+	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
+	 *     generated.
+	 * @param <T> type of Entity object.
+	 * @param indexName name of index that will be used with ScanEnhancedRequest.
+	 * @return Iterable object which can be used to iterate pages and items.
+	 */
+	<T> PageIterable<T> scan(ScanEnhancedRequest scanEnhancedRequest, Class<T> clazz, String indexName);
+
+	/**
+	 * Scans whole GlobalSecondaryIndex for given indexName.
+	 *
+	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
+	 *     generated.
+	 * @param indexName name of index that will be used when scanning.
+	 * @param <T> type of Entity object.
+	 * @return Iterable object which can be used to iterate pages and items.
+	 */
+	<T> PageIterable<T> scanAll(Class<T> clazz, String indexName);
+
+	/**
+	 * Queries a GlobalSecondaryIndex for a given request and given indexName.
+	 *
+	 * @param queryEnhancedRequest Request that is used by
+	 *     {@link software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient} to execute query request.
+	 * @param clazz of entity being fetched so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
+	 *     generated.
+	 * @param indexName name of index that will be used with QueryEnhancedRequest.
+	 * @param <T> type of Entity object.
+	 * @return Iterable object which can be used to iterate pages and items.
+	 */
+	<T> PageIterable<T> query(QueryEnhancedRequest queryEnhancedRequest, Class<T> clazz, String indexName);
 }

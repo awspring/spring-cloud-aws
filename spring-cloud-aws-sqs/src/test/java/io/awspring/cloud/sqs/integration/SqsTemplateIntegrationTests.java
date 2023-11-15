@@ -54,6 +54,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final String SENDS_AND_RECEIVES_RECORD_QUEUE_NAME = "send-receive-record-queue";
 
+	private static final String SENDS_AND_RECEIVES_RECORD_WITH_DELAY_QUEUE_NAME = "send-receive-record-delay-queue";
+
 	private static final String SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME = "send-receive-with-headers-queue";
 
 	private static final String SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME = "send-receive-manual-ack-record-queue";
@@ -80,6 +82,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SqsAsyncClient client = createAsyncClient();
 		CompletableFuture.allOf(createQueue(client, SENDS_AND_RECEIVES_MESSAGE_QUEUE_NAME),
 				createQueue(client, SENDS_AND_RECEIVES_RECORD_QUEUE_NAME),
+				createQueue(client, SENDS_AND_RECEIVES_RECORD_WITH_DELAY_QUEUE_NAME),
 				createQueue(client, SENDS_AND_RECEIVES_BATCH_QUEUE_NAME),
 				createQueue(client, SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME),
 				createQueue(client, RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME),
@@ -105,7 +108,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveRecordMessageAndAcknowledge() {
 		SqsTemplate template = SqsTemplate.newTemplate(this.asyncClient);
-		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
+		SampleRecord testRecord = new SampleRecord("Hello world!",
+				"From shouldSendAndReceiveRecordMessageAndAcknowledge!");
 		SendResult<SampleRecord> result = template.send(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME, testRecord);
 		assertThat(result).isNotNull();
 		Optional<Message<SampleRecord>> receivedMessage = template
@@ -120,14 +124,14 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendMessageWithDelay() {
 		SqsOperations template = SqsTemplate.newSyncTemplate(this.asyncClient);
-		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
+		SampleRecord testRecord = new SampleRecord("Hello world!", "From shouldSendMessageWithDelay!");
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
 		int delaySeconds = 1;
-		SendResult<SampleRecord> result = template.send(
-				to -> to.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME).delaySeconds(delaySeconds).payload(testRecord));
+		SendResult<SampleRecord> result = template.send(to -> to.queue(SENDS_AND_RECEIVES_RECORD_WITH_DELAY_QUEUE_NAME)
+				.delaySeconds(delaySeconds).payload(testRecord));
 		Optional<Message<SampleRecord>> receivedMessage = template
-				.receive(from -> from.queue(SENDS_AND_RECEIVES_RECORD_QUEUE_NAME), SampleRecord.class);
+				.receive(from -> from.queue(SENDS_AND_RECEIVES_RECORD_WITH_DELAY_QUEUE_NAME), SampleRecord.class);
 		stopWatch.stop();
 		assertThat(stopWatch.getTotalTimeSeconds()).isGreaterThanOrEqualTo(1.0);
 		assertThat(result.message().getHeaders().get(SqsHeaders.SQS_DELAY_HEADER)).isEqualTo(delaySeconds);
@@ -136,7 +140,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveMessageWithHeaders() {
 		SqsOperations template = SqsTemplate.newTemplate(this.asyncClient);
-		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
+		SampleRecord testRecord = new SampleRecord("Hello world!", "From shouldSendAndReceiveMessageWithHeaders!");
 		String myCustomHeader = "MyCustomHeader";
 		String myCustomValue = "MyCustomValue";
 		String myCustomHeader2 = "MyCustomHeader2";
@@ -160,7 +164,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 				.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL)
 						.defaultQueue(SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME))
 				.build();
-		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
+		SampleRecord testRecord = new SampleRecord("Hello world!",
+				"From shouldSendAndReceiveWithManualAcknowledgement!");
 		template.send(to -> to.payload(testRecord));
 		Optional<Message<SampleRecord>> receivedMessage = template
 				.receive(from -> from.visibilityTimeout(Duration.ofSeconds(1)), SampleRecord.class);
@@ -181,7 +186,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 				.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
 				.buildSyncTemplate();
 		List<Message<SampleRecord>> messagesToSend = IntStream.range(0, 5)
-				.mapToObj(index -> new SampleRecord("Hello world - " + index, "From SQS!"))
+				.mapToObj(index -> new SampleRecord("Hello world - " + index, "From shouldSendAndReceiveBatch!"))
 				.map(record -> MessageBuilder.withPayload(record).build()).toList();
 		SendResult.Batch<SampleRecord> response = template.sendMany(SENDS_AND_RECEIVES_BATCH_QUEUE_NAME,
 				messagesToSend);
@@ -225,7 +230,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		int batchSize = 5;
 		SqsTemplate template = SqsTemplate.newTemplate(this.asyncClient);
 		List<Message<SampleRecord>> messagesToSend = IntStream.range(0, batchSize)
-				.mapToObj(index -> new SampleRecord("Hello world - " + index, "From SQS!"))
+				.mapToObj(index -> new SampleRecord("Hello world - " + index, "From shouldSendAndReceiveBatchFifo!"))
 				.map(record -> MessageBuilder.withPayload(record).build()).toList();
 		SendResult.Batch<SampleRecord> batchSendResult = template.sendMany(SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME,
 				messagesToSend);
@@ -255,12 +260,12 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			assertThat(receivedMessage.getHeaders().getId()).isEqualTo(result.messageId());
 			assertThat(
 					result.message().getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER))
-							.isEqualTo(receivedMessage.getHeaders()
-									.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
+					.isEqualTo(receivedMessage.getHeaders()
+							.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
 			assertThat(result.message().getHeaders()
 					.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER))
-							.isEqualTo(receivedMessage.getHeaders()
-									.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER));
+					.isEqualTo(receivedMessage.getHeaders()
+							.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER));
 			assertThat(result.additionalInformation().get(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME))
 					.isEqualTo(
 							receivedMessage.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_SEQUENCE_NUMBER));
@@ -273,7 +278,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SqsTemplate template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
 				.configureDefaultConverter(converter -> converter.setPayloadTypeHeaderValueFunction(msg -> null))
 				.build();
-		SampleRecord testRecord = new SampleRecord("Hello world!", "From SQS!");
+		SampleRecord testRecord = new SampleRecord("Hello world!",
+				"From shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader!");
 		SendResult<SampleRecord> result = template.send(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME, testRecord);
 		assertThat(result).isNotNull();
 		Optional<Message<SampleRecord>> receivedMessage = template

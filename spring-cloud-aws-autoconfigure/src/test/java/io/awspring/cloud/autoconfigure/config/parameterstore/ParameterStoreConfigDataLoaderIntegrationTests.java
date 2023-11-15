@@ -19,9 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SSM;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
@@ -47,6 +45,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -54,6 +53,7 @@ import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
 import software.amazon.awssdk.services.ssm.model.Parameter;
+import software.amazon.awssdk.services.ssm.model.ParameterType;
 
 /**
  * Integration tests for loading configuration properties from AWS Parameter Store.
@@ -65,15 +65,17 @@ import software.amazon.awssdk.services.ssm.model.Parameter;
 class ParameterStoreConfigDataLoaderIntegrationTests {
 
 	private static final String REGION = "us-east-1";
+	private static final String NEW_LINE_CHAR = System.lineSeparator();
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SSM).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.3.2")).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() {
 		putParameter(localstack, "/config/spring/message", "value from tests", REGION);
 		putParameter(localstack, "/config/spring/another-parameter", "another parameter value", REGION);
+		putParameter(localstack, "/config/second/secondMessage", "second value from tests", REGION);
 	}
 
 	@Test
@@ -85,6 +87,22 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"aws-parameterstore:/config/spring/")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("another parameter value");
+			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
+		}
+	}
+
+	@Test
+	void resolvesPropertiesWithPrefixes() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-parameterstore:/config/spring/?prefix=first.;/config/second/?prefix=second.")) {
+			assertThat(context.getEnvironment().getProperty("first.message")).isEqualTo("value from tests");
+			assertThat(context.getEnvironment().getProperty("first.another-parameter"))
+					.isEqualTo("another parameter value");
+			assertThat(context.getEnvironment().getProperty("second.secondMessage"))
+					.isEqualTo("second value from tests");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
 		}
 	}
@@ -115,8 +133,10 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			assertThat(e).isInstanceOf(ParameterStoreKeysMissingException.class);
 			// ensure that failure analyzer catches the exception and provides meaningful
 			// error message
-			assertThat(output.getOut())
-					.contains("Description:\n" + "\n" + "Could not import properties from AWS Parameter Store");
+			// Ensure that new line character should be platform independent
+			String errorMessage = "Description:%1$s%1$sCould not import properties from AWS Parameter Store"
+					.formatted(NEW_LINE_CHAR);
+			assertThat(output.getOut()).contains(errorMessage);
 		}
 	}
 
@@ -142,20 +162,18 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 	@Test
 	void credentialsProviderCanBeOverwrittenInBootstrapConfig() {
-		AwsCredentialsProvider mockCredentialsProvider = mock(AwsCredentialsProvider.class);
-		when(mockCredentialsProvider.resolveCredentials())
-				.thenReturn(AwsBasicCredentials.create("mock-key", "mock-secret"));
+		AwsCredentialsProvider bootstrapCredentialsProvider = StaticCredentialsProvider
+				.create(AwsBasicCredentials.create("mock-key", "mock-secret"));
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 		application.addBootstrapRegistryInitializer(registry -> {
-			registry.register(AwsCredentialsProvider.class, ctx -> mockCredentialsProvider);
+			registry.register(AwsCredentialsProvider.class, ctx -> bootstrapCredentialsProvider);
 		});
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-parameterstore:/config/spring")) {
-			// perhaps there is a better way to verify that correct credentials provider
-			// is used by SSM client without using reflection?
-			verify(mockCredentialsProvider).resolveCredentials();
+			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SsmClient.class));
+			assertThat(ssmClient.getAwsCredentialsProvider()).isEqualTo(bootstrapCredentialsProvider);
 		}
 	}
 
@@ -191,7 +209,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"--spring.config.import=aws-parameterstore:/config/spring/",
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--spring.cloud.aws.endpoint=http://non-existing-host/",
-				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.parameterstore.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1",
 				"--logging.level.io.awspring.cloud.parameterstore=debug")) {
@@ -206,11 +224,38 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-parameterstore:/config/spring/",
-				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=" + REGION,
 				"--logging.level.io.awspring.cloud.parameterstore=debug")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+		}
+	}
+
+	@Test
+	void arrayParameterNames() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		putParameter(localstack, "/config/myservice/key_0_.value", "value1", REGION);
+		putParameter(localstack, "/config/myservice/key_0_.nested_0_.nestedValue", "key_nestedValue1", REGION);
+		putParameter(localstack, "/config/myservice/key_0_.nested_1_.nestedValue", "key_nestedValue2", REGION);
+		putParameter(localstack, "/config/myservice/key_1_.value", "value2", REGION);
+		putParameter(localstack, "/config/myservice/key_1_.nested_0_.nestedValue", "key_nestedValue3", REGION);
+		putParameter(localstack, "/config/myservice/key_1_.nested_1_.nestedValue", "key_nestedValue4", REGION);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-parameterstore:/config/myservice/")) {
+			assertThat(context.getEnvironment().getProperty("key[0].value")).isEqualTo("value1");
+			assertThat(context.getEnvironment().getProperty("key[0].nested[0].nestedValue"))
+					.isEqualTo("key_nestedValue1");
+			assertThat(context.getEnvironment().getProperty("key[0].nested[1].nestedValue"))
+					.isEqualTo("key_nestedValue2");
+			assertThat(context.getEnvironment().getProperty("key[1].value")).isEqualTo("value2");
+			assertThat(context.getEnvironment().getProperty("key[1].nested[0].nestedValue"))
+					.isEqualTo("key_nestedValue3");
+			assertThat(context.getEnvironment().getProperty("key[1].nested[1].nestedValue"))
+					.isEqualTo("key_nestedValue4");
 		}
 	}
 
@@ -223,7 +268,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		}
 
 		@Test
-		void reloadsProperties() {
+		void reloadsPropertiesWhenPropertyValueChanges() {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
 
@@ -232,18 +277,44 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					"--spring.cloud.aws.parameterstore.reload.strategy=refresh",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 					"--spring.cloud.aws.parameterstore.region=" + REGION,
-					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 					"--spring.cloud.aws.region.static=eu-west-1")) {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 
 				// update parameter value
 				SsmClient ssmClient = context.getBean(SsmClient.class);
-				ssmClient
-						.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+				ssmClient.putParameter(r -> r.name("/config/spring/message").value("new value")
+						.type(ParameterType.STRING).overwrite(true).build());
 
 				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 					assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
+				});
+			}
+		}
+
+		@Test
+		void reloadsPropertiesWhenNewPropertyIsAdded() {
+			SpringApplication application = new SpringApplication(App.class);
+			application.setWebApplicationType(WebApplicationType.NONE);
+
+			try (ConfigurableApplicationContext context = application.run(
+					"--spring.config.import=aws-parameterstore:/config/spring/",
+					"--spring.cloud.aws.parameterstore.reload.strategy=refresh",
+					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
+					"--spring.cloud.aws.parameterstore.region=" + REGION,
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
+					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+					"--spring.cloud.aws.region.static=eu-west-1")) {
+				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+
+				// update parameter value
+				SsmClient ssmClient = context.getBean(SsmClient.class);
+				ssmClient.putParameter(r -> r.name("/config/spring/new-property").value("new value")
+						.type(ParameterType.STRING).overwrite(true).build());
+
+				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+					assertThat(context.getEnvironment().getProperty("new-property")).isEqualTo("new value");
 				});
 			}
 		}
@@ -257,15 +328,15 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					"--spring.config.import=aws-parameterstore:/config/spring/",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 					"--spring.cloud.aws.parameterstore.region=" + REGION,
-					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 					"--spring.cloud.aws.region.static=eu-west-1")) {
 				assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 
 				// update parameter value
 				SsmClient ssmClient = context.getBean(SsmClient.class);
-				ssmClient
-						.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+				ssmClient.putParameter(r -> r.name("/config/spring/message").value("new value")
+						.type(ParameterType.STRING).overwrite(true).build());
 
 				await().during(Duration.ofSeconds(5)).untilAsserted(() -> {
 					assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
@@ -283,7 +354,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					"--spring.cloud.aws.parameterstore.reload.strategy=restart_context",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 					"--spring.cloud.aws.parameterstore.region=" + REGION,
-					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SSM).toString(),
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 					"--management.endpoint.restart.enabled=true", "--management.endpoints.web.exposure.include=restart",
 					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 					"--spring.cloud.aws.region.static=eu-west-1")) {
@@ -291,8 +362,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 				// update parameter value
 				SsmClient ssmClient = context.getBean(SsmClient.class);
-				ssmClient
-						.putParameter(r -> r.name("/config/spring/message").value("new value").overwrite(true).build());
+				ssmClient.putParameter(r -> r.name("/config/spring/message").value("new value")
+						.type(ParameterType.STRING).overwrite(true).build());
 
 				await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
 					assertThat(context.getEnvironment().getProperty("message")).isEqualTo("new value");
@@ -305,7 +376,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			String endpointProperty) {
 		return application.run("--spring.config.import=" + springConfigImport,
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
-				"--" + endpointProperty + "=" + localstack.getEndpointOverride(SSM).toString(),
+				"--" + endpointProperty + "=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.parameterstore=debug");
 	}

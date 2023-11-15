@@ -122,6 +122,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *     used.
  *
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 3.0
  * @see SqsMessageListenerContainer
  * @see ContainerOptions
@@ -161,7 +162,8 @@ public class SqsMessageListenerContainerFactory<T> extends
 		ConfigUtils.INSTANCE.acceptIfNotNull(sqsEndpoint.getMaxConcurrentMessages(), options::maxConcurrentMessages)
 				.acceptIfNotNull(sqsEndpoint.getMaxMessagesPerPoll(), options::maxMessagesPerPoll)
 				.acceptIfNotNull(sqsEndpoint.getPollTimeout(), options::pollTimeout)
-				.acceptIfNotNull(sqsEndpoint.getMessageVisibility(), options::messageVisibility);
+				.acceptIfNotNull(sqsEndpoint.getMessageVisibility(), options::messageVisibility)
+				.acceptIfNotNull(sqsEndpoint.getAcknowledgementMode(), options::acknowledgementMode);
 	}
 
 	/**

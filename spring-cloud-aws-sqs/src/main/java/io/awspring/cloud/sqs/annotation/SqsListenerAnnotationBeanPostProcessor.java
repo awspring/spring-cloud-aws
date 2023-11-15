@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.annotation;
 
 import io.awspring.cloud.sqs.config.Endpoint;
-import io.awspring.cloud.sqs.config.EndpointRegistrar;
+import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
@@ -24,14 +24,13 @@ import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.VisibilityHandlerMethodArgumentResolver;
 import java.util.Arrays;
 import java.util.Collection;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**
- * {@link BeanPostProcessor} implementation that scans beans for a {@link SqsListener @SqsListener} annotation, extracts
- * information to a {@link SqsEndpoint}, and registers it in the {@link EndpointRegistrar}.
+ * {@link AbstractListenerAnnotationBeanPostProcessor} implementation for {@link SqsListener @SqsListener}.
  *
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 3.0
  */
 public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnnotationBeanPostProcessor<SqsListener> {
@@ -44,7 +43,7 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 	}
 
 	protected Endpoint createEndpoint(SqsListener sqsListenerAnnotation) {
-		return SqsEndpoint.builder().queueNames(resolveStringArray(sqsListenerAnnotation.value(), "queueNames"))
+		return SqsEndpoint.builder().queueNames(resolveEndpointNames(sqsListenerAnnotation.value()))
 				.factoryBeanName(resolveAsString(sqsListenerAnnotation.factory(), "factory"))
 				.id(getEndpointId(sqsListenerAnnotation.id()))
 				.pollTimeoutSeconds(resolveAsInteger(sqsListenerAnnotation.pollTimeoutSeconds(), "pollTimeoutSeconds"))
@@ -53,12 +52,17 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 						resolveAsInteger(sqsListenerAnnotation.maxConcurrentMessages(), "maxConcurrentMessages"))
 				.messageVisibility(
 						resolveAsInteger(sqsListenerAnnotation.messageVisibilitySeconds(), "messageVisibility"))
-				.build();
+				.acknowledgementMode(resolveAcknowledgement(sqsListenerAnnotation.acknowledgementMode())).build();
 	}
 
 	@Override
 	protected String getGeneratedIdPrefix() {
 		return GENERATED_ID_PREFIX;
+	}
+
+	@Override
+	protected String getMessageListenerContainerRegistryBeanName() {
+		return SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME;
 	}
 
 	@Override

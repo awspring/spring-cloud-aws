@@ -355,8 +355,8 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 
 	private <T> void logSendMessageResult(String endpointToUse, Message<T> message, @Nullable Throwable t) {
 		if (t == null) {
-			logger.trace("Message {} successfully sent to endpoint {} with id {}", message,
-					MessageHeaderUtils.getId(message), endpointToUse);
+			logger.trace("Message {} successfully sent to endpoint {} with id {}", message, endpointToUse,
+					MessageHeaderUtils.getId(message));
 		}
 		else {
 			logger.error("Error sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointToUse,
@@ -371,8 +371,8 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	private <T> void logSendMessageBatchResult(String endpointToUse, Collection<Message<T>> messages,
 			@Nullable Throwable t) {
 		if (t == null) {
-			logger.trace("Messages {} successfully sent to endpoint {} with id {}", messages,
-					MessageHeaderUtils.getId(messages), endpointToUse);
+			logger.trace("Messages {} successfully sent to endpoint {} with id {}", messages, endpointToUse,
+					MessageHeaderUtils.getId(messages));
 		}
 		else {
 			logger.error("Error sending messages {} to endpoint {}", MessageHeaderUtils.getId(messages), endpointToUse,
@@ -385,7 +385,7 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 			return future.join();
 		}
 		catch (CompletionException ex) {
-			if (ex.getCause()instanceof RuntimeException re) {
+			if (ex.getCause() instanceof RuntimeException re) {
 				throw re;
 			}
 			throw new RuntimeException("Unexpected exception", ex);

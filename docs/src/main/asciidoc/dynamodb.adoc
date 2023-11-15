@@ -62,8 +62,9 @@ dynamoDbTemplate.save(person);
 
 ==== Resolving Table Name
 
-To resolve a table name for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableNameResolver`. The default implementation turns an entity class name into its snake case representation.
-To use custom implementation, declare a bean of type `DynamoDbTableNameResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
+To resolve a table name for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableNameResolver`. The default implementation turns an entity class name into its snake case representation with the possibility of using a table name prefix (optional). Specify the `spring.cloud.aws.dynamodb.table-prefix` to provide a table name prefix. The prefix is prepended to the table name. For example, if `spring.cloud.aws.dynamodb.table-prefix` is configured as `foo_` and the entity class is `Person`, then the default implementation resolves the table name as `foo_person`. However if you do not specify `spring.cloud.aws.dynamodb.table-prefix`, the table name will be resolved as `person`.
+
+To use a custom implementation, declare a bean of type `DynamoDbTableNameResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
 
 ==== Resolving Table Schema
 
@@ -132,6 +133,7 @@ The Spring Boot Starter for DynamoDb provides the following configuration option
 | `spring.cloud.aws.dynamodb.enabled` | Enables the DynamoDb integration. | No | `true`
 | `spring.cloud.aws.dynamodb.endpoint` | Configures endpoint used by `DynamoDbClient`. | No |
 | `spring.cloud.aws.dynamodb.region` | Configures region used by `DynamoDbClient`. | No |
+| `spring.cloud.aws.dynamodb.table-prefix` | Table name prefix used by the default `DynamoDbTableNameResolver` implementation. | No |
 
 | `spring.cloud.aws.dynamodb.dax.idle-timeout-millis` |Timeout for idle connections with the DAX cluster. | No | `30000`
 | `spring.cloud.aws.dynamodb.dax.url` | DAX cluster endpoint. | Yes |

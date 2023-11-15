@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
  * Default implementation of {@link DynamoDbOperations}.
  *
  * @author Matej Nedic
+ * @author Arun Patra
  * @author Maciej Walkowiak
  * @since 3.0
  */
@@ -80,6 +81,18 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 		Assert.notNull(scanEnhancedRequest, "scanEnhancedRequest is required");
 		Assert.notNull(clazz, "clazz is required");
 		return prepareTable(clazz).scan(scanEnhancedRequest);
+	}
+
+	public <T> PageIterable<T> scan(ScanEnhancedRequest scanEnhancedRequest, Class<T> clazz, String indexName) {
+		return PageIterable.create(prepareTable(clazz).index(indexName).scan(scanEnhancedRequest));
+	}
+
+	public <T> PageIterable<T> scanAll(Class<T> clazz, String indexName) {
+		return PageIterable.create(prepareTable(clazz).index(indexName).scan());
+	}
+
+	public <T> PageIterable<T> query(QueryEnhancedRequest queryEnhancedRequest, Class<T> clazz, String indexName) {
+		return PageIterable.create(prepareTable(clazz).index(indexName).query(queryEnhancedRequest));
 	}
 
 	public <T> PageIterable<T> scanAll(Class<T> clazz) {

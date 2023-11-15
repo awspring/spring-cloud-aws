@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
-		<version>4.0.1</version>
+		<version>4.0.3</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -19,21 +19,21 @@
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws-dependencies</artifactId>
 	<name>Spring Cloud AWS Dependencies</name>
-	<version>3.0.0-SNAPSHOT</version>
+	<version>3.0.4-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
 		<javaparser.version>3.24.10</javaparser.version>
 		<spotless.version>2.31.0</spotless.version>
-		<awssdk-v2.version>2.19.25</awssdk-v2.version>
-		<awssdk-v1.version>1.12.394</awssdk-v1.version>
-		<amazon.dax.version>2.0.3</amazon.dax.version>
+		<awssdk-v2.version>2.21.12</awssdk-v2.version>
+		<amazon.dax.version>2.0.4</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<spring-cloud-commons.version>4.0.1</spring-cloud-commons.version>
-		<testcontainers.version>1.17.6</testcontainers.version>
+		<spring-cloud-commons.version>4.0.4</spring-cloud-commons.version>
 		<jakarta.mail.version>2.1.0</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
-		<aws-crt.version>0.21.3</aws-crt.version>
+		<aws-crt.version>0.28.3</aws-crt.version>
+		<mockito.version>5.3.1</mockito.version>
+		<bytebuddy.version>1.14.9</bytebuddy.version>
 	</properties>
 
 	<dependencyManagement>
@@ -47,25 +47,9 @@
 			</dependency>
 
 			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-bom</artifactId>
-				<version>${awssdk-v1.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-
-			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-commons-dependencies</artifactId>
 				<version>${spring-cloud-commons.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>testcontainers-bom</artifactId>
-				<version>${testcontainers.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -206,6 +190,12 @@
 			</dependency>
 
 			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-test</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
 				<groupId>com.github.javaparser</groupId>
 				<artifactId>javaparser-symbol-solver-core</artifactId>
 				<version>${javaparser.version}</version>
@@ -221,6 +211,18 @@
 				<groupId>org.eclipse.angus</groupId>
 				<artifactId>jakarta.mail</artifactId>
 				<version>${eclipse.jakarta.mail.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy-agent</artifactId>
+				<version>${bytebuddy.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>net.bytebuddy</groupId>
+				<artifactId>byte-buddy</artifactId>
+				<version>${bytebuddy.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -266,14 +268,6 @@
 						<enabled>false</enabled>
 					</snapshots>
 				</repository>
-				<repository>
-					<id>spring-releases</id>
-					<name>Spring Releases</name>
-					<url>https://repo.spring.io/release</url>
-					<snapshots>
-						<enabled>false</enabled>
-					</snapshots>
-				</repository>
 			</repositories>
 			<pluginRepositories>
 				<pluginRepository>
@@ -291,14 +285,6 @@
 					<id>spring-milestones</id>
 					<name>Spring Milestones</name>
 					<url>https://repo.spring.io/libs-milestone-local</url>
-					<snapshots>
-						<enabled>false</enabled>
-					</snapshots>
-				</pluginRepository>
-				<pluginRepository>
-					<id>spring-releases</id>
-					<name>Spring Releases</name>
-					<url>https://repo.spring.io/libs-release-local</url>
 					<snapshots>
 						<enabled>false</enabled>
 					</snapshots>

@@ -27,8 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.internal.crt.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration;
 
 /**
@@ -93,8 +93,9 @@ class S3CrtAsyncClientAutoConfigurationTests {
 	}
 
 	private static S3NativeClientConfiguration s3NativeClientConfiguration(S3AsyncClient client) {
-		CopyObjectHelper copyObjectHelper = (CopyObjectHelper) ReflectionTestUtils.getField(client, "copyObjectHelper");
-		return (S3NativeClientConfiguration) ReflectionTestUtils.getField(copyObjectHelper,
+		ConfiguredAwsClient configuredClient = new ConfiguredAwsClient(client);
+		SdkAsyncHttpClient sdkAsyncHttpClient = configuredClient.getAsyncHttpClient();
+		return (S3NativeClientConfiguration) ReflectionTestUtils.getField(sdkAsyncHttpClient,
 				"s3NativeClientConfiguration");
 	}
 

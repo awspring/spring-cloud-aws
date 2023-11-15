@@ -18,7 +18,12 @@ package io.awspring.cloud.s3.crossregion;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,13 +37,15 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.waiters.S3Waiter;
 
 /**
- * Unit tests for {@link CrossRegionS3Client}. Integration testing with Localstack is not possible due to:
+ * Unit tests for {@link CrossRegionS3Client}. Integration testing with LocalStack is not possible due to:
  * <a href="https://github.com/localstack/localstack/issues/5748">...</a>
  *
  * @author Maciej Walkowiak
@@ -157,6 +164,22 @@ class CrossRegionS3ClientTests {
 		crossRegionS3Client.createBucket(r -> r.bucket("first-bucket"));
 		verify(defaultClient, times(1)).headBucket(HeadBucketRequest.builder().bucket("first-bucket").build());
 		verify(defaultClient, times(1)).createBucket(CreateBucketRequest.builder().bucket("first-bucket").build());
+	}
+
+	@Test
+	void utilitiesUsesDefaultClient() {
+		S3Utilities utilities = mock(S3Utilities.class);
+		when(defaultClient.utilities()).thenReturn(utilities);
+		crossRegionS3Client.utilities().getUrl(r -> r.bucket("first-bucket"));
+		verify(defaultClient).utilities();
+	}
+
+	@Test
+	void waiterUsesDefaultClient() {
+		S3Waiter waiter = mock(S3Waiter.class);
+		when(defaultClient.waiter()).thenReturn(waiter);
+		crossRegionS3Client.waiter().waitUntilBucketExists(r -> r.bucket("first-bucket"));
+		verify(defaultClient).waiter();
 	}
 
 	@SuppressWarnings("unchecked")

@@ -22,6 +22,7 @@ import io.awspring.cloud.sqs.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.listener.SqsHeaders.MessageSystemAttributes;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.support.converter.MessageAttributeDataTypes;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
@@ -32,8 +33,10 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -153,11 +156,10 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		}
 		if (options.messageDeduplicationId != null) {
 			builder.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER,
-					options.messageDeduplicationId.toString());
+					options.messageDeduplicationId);
 		}
 		if (options.messageGroupId != null) {
-			builder.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER,
-					options.messageGroupId.toString());
+			builder.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, options.messageGroupId);
 		}
 		return builder.build();
 	}
@@ -245,23 +247,35 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	@Override
 	protected <T> org.springframework.messaging.Message<T> preProcessMessageForSend(String endpointToUse,
 			org.springframework.messaging.Message<T> message) {
-		return FifoUtils.isFifo(endpointToUse) ? addMissingFifoSendHeaders(message) : message;
+		return FifoUtils.isFifo(endpointToUse) ? addMissingFifoSendHeaders(endpointToUse, message) : message;
 	}
 
 	@Override
 	protected <T> Collection<org.springframework.messaging.Message<T>> preProcessMessagesForSend(String endpointToUse,
 			Collection<org.springframework.messaging.Message<T>> messages) {
 		return FifoUtils.isFifo(endpointToUse)
-				? messages.stream().map(this::addMissingFifoSendHeaders).collect(Collectors.toList())
+				? messages.stream().map(message -> addMissingFifoSendHeaders(endpointToUse, message)).toList()
 				: messages;
 	}
 
-	private <T> org.springframework.messaging.Message<T> addMissingFifoSendHeaders(
+	private <T> org.springframework.messaging.Message<T> addMissingFifoSendHeaders(String endpointName,
 			org.springframework.messaging.Message<T> message) {
-		return MessageHeaderUtils.addHeadersIfAbsent(message,
-				Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString(),
-						SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER,
-						UUID.randomUUID().toString()));
+
+		Set<QueueAttributeName> additionalAttributes = Set.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
+		String contentBasedDedupQueueAttribute = getQueueAttributes(endpointName, additionalAttributes).join()
+				.getQueueAttribute(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
+
+		boolean isContentBasedDedup = Boolean.parseBoolean(contentBasedDedupQueueAttribute);
+		Map<String, Object> defaultHeaders;
+		if (isContentBasedDedup) {
+			defaultHeaders = Map.of(MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString());
+		}
+		else {
+			defaultHeaders = Map.of(MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString(),
+					MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, UUID.randomUUID().toString());
+		}
+
+		return MessageHeaderUtils.addHeadersIfAbsent(message, defaultHeaders);
 	}
 
 	@Override
@@ -409,10 +423,21 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	}
 
 	private CompletableFuture<QueueAttributes> getQueueAttributes(String endpointName) {
-		return this.queueAttributesCache.computeIfAbsent(endpointName,
-				newName -> QueueAttributesResolver.builder().sqsAsyncClient(this.sqsAsyncClient).queueName(newName)
-						.queueNotFoundStrategy(this.queueNotFoundStrategy).queueAttributeNames(this.queueAttributeNames)
-						.build().resolveQueueAttributes());
+		return getQueueAttributes(endpointName, Collections.emptySet());
+	}
+
+	private CompletableFuture<QueueAttributes> getQueueAttributes(String endpointName,
+			Set<QueueAttributeName> additionalAttributes) {
+		return this.queueAttributesCache.computeIfAbsent(endpointName, newName -> {
+			// ensure we have the content based dedupe config to determine default fifo send headers
+			Set<QueueAttributeName> namesToRequest = new HashSet<>(queueAttributeNames);
+			if (additionalAttributes != null && !additionalAttributes.isEmpty()) {
+				namesToRequest.addAll(additionalAttributes);
+			}
+			return QueueAttributesResolver.builder().sqsAsyncClient(this.sqsAsyncClient).queueName(newName)
+					.queueNotFoundStrategy(this.queueNotFoundStrategy).queueAttributeNames(namesToRequest).build()
+					.resolveQueueAttributes();
+		});
 	}
 
 	@Override
@@ -673,10 +698,10 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		protected final Map<String, Object> headers = new HashMap<>();
 
 		@Nullable
-		private UUID messageGroupId;
+		private String messageGroupId;
 
 		@Nullable
-		private UUID messageDeduplicationId;
+		private String messageDeduplicationId;
 
 		@Nullable
 		protected String queue;
@@ -724,15 +749,15 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		}
 
 		@Override
-		public SqsSendOptions<T> messageGroupId(UUID messageGroupId) {
-			Assert.notNull(messageGroupId, "messageGroupId must not be null");
+		public SqsSendOptions<T> messageGroupId(String messageGroupId) {
+			Assert.hasText(messageGroupId, "messageGroupId must have text");
 			this.messageGroupId = messageGroupId;
 			return this;
 		}
 
 		@Override
-		public SqsSendOptions<T> messageDeduplicationId(UUID messageDeduplicationId) {
-			Assert.notNull(messageDeduplicationId, "messageDeduplicationId must not be null");
+		public SqsSendOptions<T> messageDeduplicationId(String messageDeduplicationId) {
+			Assert.hasText(messageDeduplicationId, "messageDeduplicationId must have text");
 			this.messageDeduplicationId = messageDeduplicationId;
 			return this;
 		}

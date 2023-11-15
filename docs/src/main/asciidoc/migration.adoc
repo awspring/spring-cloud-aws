@@ -21,17 +21,14 @@ Properties that have changed from 2.x to 3.x are listed below:
 |`cloud.aws.region.static`
 |`spring.cloud.aws.region.static`
 
-|`aws.paramstore.enabled`
-|`spring.cloud.aws.parameterstore.enabled`
-
 |`aws.paramstore.region`
 |`spring.cloud.aws.parameterstore.region`
 
-|`aws.secretsmanager.enabled`
-|`spring.cloud.aws.secretsmanager.enabled`
-
 |`aws.secretsmanager.region`
 |`spring.cloud.aws.secretsmanager.region`
+
+|`management.metrics.export.cloudwatch.*`
+|`management.cloudwatch.metrics.export.*`
 |===
 
 Properties that have been removed in 3.x are listed below:

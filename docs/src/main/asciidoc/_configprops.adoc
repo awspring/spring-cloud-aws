@@ -7,6 +7,10 @@
 |spring.cloud.aws.credentials.instance-profile | `+++false+++` | Configures an instance profile credentials provider with no further configuration.
 |spring.cloud.aws.credentials.profile |  | The AWS profile.
 |spring.cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
+|spring.cloud.aws.credentials.sts.async-credentials-update |  | 
+|spring.cloud.aws.credentials.sts.role-arn |  | ARN of IAM role associated with STS. If not provided this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+|spring.cloud.aws.credentials.sts.role-session-name |  | Role session name that will be used by credentials provider. By default this is read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
+|spring.cloud.aws.credentials.sts.web-identity-token-file |  | Absolute path to the web identity token file that will be used by credentials provider. By default this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 |spring.cloud.aws.defaults-mode |  | Sets the {@link DefaultsMode} that will be used to determine how certain default configuration options are resolved in the SDK. <a href= "https://aws.amazon.com/blogs/developer/introducing-smart-configuration-defaults-in-the-aws-sdk-for-java-v2/">Introducing Smart Configuration Defaults in the AWS SDK for Java v2</a>
 |spring.cloud.aws.dualstack-enabled |  | Configure whether the SDK should use the AWS dualstack endpoint.
 |spring.cloud.aws.dynamodb.dax.cluster-update-interval-millis |  | Interval between polling of cluster members for membership changes.
@@ -24,6 +28,7 @@
 |spring.cloud.aws.dynamodb.enabled | `+++true+++` | Enables DynamoDb integration.
 |spring.cloud.aws.dynamodb.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.dynamodb.region |  | Overrides the default region.
+|spring.cloud.aws.dynamodb.table-prefix |  | The prefix used to resolve table names.
 |spring.cloud.aws.endpoint |  | Overrides the default endpoint for all auto-configured AWS clients.
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
 |spring.cloud.aws.parameterstore.endpoint |  | Overrides the default endpoint.
@@ -56,6 +61,7 @@
 |spring.cloud.aws.ses.enabled | `+++true+++` | Enables Simple Email Service integration.
 |spring.cloud.aws.ses.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.ses.region |  | Overrides the default region.
+|spring.cloud.aws.ses.source-arn |  | Configures source ARN. Used only for sending authorization.
 |spring.cloud.aws.sns.enabled | `+++true+++` | Enables SNS integration.
 |spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sns.region |  | Overrides the default region.

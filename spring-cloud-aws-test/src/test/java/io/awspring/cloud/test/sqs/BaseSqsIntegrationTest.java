@@ -16,7 +16,6 @@
 package io.awspring.cloud.test.sqs;
 
 import static io.awspring.cloud.test.sqs.SqsSampleListener.QUEUE_NAME;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,7 +31,7 @@ abstract class BaseSqsIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SQS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.3.2")).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() throws IOException, InterruptedException {
@@ -42,8 +41,8 @@ abstract class BaseSqsIntegrationTest {
 
 	@DynamicPropertySource
 	static void registerSqsProperties(DynamicPropertyRegistry registry) {
-		// overwrite SQS endpoint with one provided by Localstack
-		registry.add("spring.cloud.aws.sqs.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
+		// overwrite SQS endpoint with one provided by LocalStack
+		registry.add("spring.cloud.aws.sqs.endpoint", () -> localstack.getEndpoint());
 	}
 
 }

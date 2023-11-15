@@ -19,21 +19,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SECRETSMANAGER;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
@@ -49,6 +50,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
+import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
 
 /**
  * Integration tests for loading configuration properties from AWS Secrets Manager.
@@ -67,10 +70,14 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	private static final String REGION = "us-east-1";
+	private static final String NEW_LINE_CHAR = System.lineSeparator();
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(SECRETSMANAGER).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.3.2")).withReuse(true);
+
+	@TempDir
+	static Path tokenTempDir;
 
 	@BeforeAll
 	static void beforeAll() {
@@ -188,8 +195,10 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			assertThat(e).isInstanceOf(SecretsManagerKeysMissingException.class);
 			// ensure that failure analyzer catches the exception and provides meaningful
 			// error message
-			assertThat(output.getOut())
-					.contains("Description:\n" + "\n" + "Could not import properties from AWS Secrets Manager");
+			// Ensure that new line character should be platform independent
+			String errorMessage = "Description:%1$s%1$sCould not import properties from AWS Secrets Manager"
+					.formatted(NEW_LINE_CHAR);
+			assertThat(output.getOut()).contains(errorMessage);
 		}
 	}
 
@@ -214,20 +223,19 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	@Test
 	void credentialsProviderCanBeOverwrittenInBootstrapConfig() {
-		AwsCredentialsProvider mockCredentialsProvider = mock(AwsCredentialsProvider.class);
-		when(mockCredentialsProvider.resolveCredentials())
-				.thenReturn(AwsBasicCredentials.create("mock-key", "mock-secret"));
+		AwsCredentialsProvider bootstrapCredentialsProvider = StaticCredentialsProvider
+				.create(AwsBasicCredentials.create("mock-key", "mock-secret"));
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 		application.addBootstrapRegistryInitializer(registry -> {
-			registry.register(AwsCredentialsProvider.class, ctx -> mockCredentialsProvider);
+			registry.register(AwsCredentialsProvider.class, ctx -> bootstrapCredentialsProvider);
 		});
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring")) {
-			// perhaps there is a better way to verify that correct credentials provider
-			// is used by SSM client without using reflection?
-			verify(mockCredentialsProvider).resolveCredentials();
+			ConfiguredAwsClient secretsManagerClient = new ConfiguredAwsClient(
+					context.getBean(SecretsManagerClient.class));
+			assertThat(secretsManagerClient.getAwsCredentialsProvider()).isEqualTo(bootstrapCredentialsProvider);
 		}
 	}
 
@@ -263,11 +271,29 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 				"--spring.cloud.aws.secretsmanager.region=" + REGION,
 				"--spring.cloud.aws.endpoint=http://non-existing-host/",
-				"--spring.cloud.aws.secretsmanager.endpoint="
-						+ localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--spring.cloud.aws.secretsmanager.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+			assertThat(context.getBean(AwsCredentialsProvider.class)).isInstanceOf(StaticCredentialsProvider.class);
+		}
+	}
+
+	@Test
+	void secretsManagerClientUsesStsCredentials() throws IOException {
+		File tempFile = tokenTempDir.resolve("token-file.txt").toFile();
+		tempFile.createNewFile();
+		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=optional:aws-secretsmanager:/config/spring;/config/second",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(), "--spring.cloud.aws.region.static=" + REGION,
+				"--spring.cloud.aws.credentials.sts.role-arn=develop",
+				"--spring.cloud.aws.credentials.sts.enabled=true",
+				"--spring.cloud.aws.credentials.sts.web-identity-token-file=" + tempFile.getAbsolutePath())) {
+			assertThat(context.getBean(AwsCredentialsProvider.class))
+					.isInstanceOf(StsWebIdentityTokenFileCredentialsProvider.class);
 		}
 	}
 
@@ -278,7 +304,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
-				"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=" + REGION)) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
@@ -304,7 +330,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 					"--spring.cloud.aws.secretsmanager.region=" + REGION,
 					"--spring.cloud.aws.secretsmanager.reload.strategy=refresh",
 					"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
-					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 					"--spring.cloud.aws.region.static=eu-west-1",
 					"--logging.level.io.awspring.cloud.secretsmanager=debug")) {
@@ -330,7 +356,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 					"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 					"--spring.cloud.aws.secretsmanager.region=" + REGION,
 					"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
-					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 					"--spring.cloud.aws.region.static=eu-west-1",
 					"--logging.level.io.awspring.cloud.secretsmanager=debug")) {
@@ -359,7 +385,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 					"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
 					"--spring.cloud.aws.secretsmanager.reload.max-wait-for-restart=PT1S",
 					"--management.endpoint.restart.enabled=true", "--management.endpoints.web.exposure.include=restart",
-					"--spring.cloud.aws.endpoint=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+					"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 					"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 					"--spring.cloud.aws.region.static=eu-west-1",
 					"--logging.level.io.awspring.cloud.secretsmanager=debug")) {
@@ -385,7 +411,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			String endpointProperty) {
 		return application.run("--spring.config.import=" + springConfigImport,
 				"--spring.cloud.aws.secretsmanager.region=" + REGION,
-				"--" + endpointProperty + "=" + localstack.getEndpointOverride(SECRETSMANAGER).toString(),
+				"--" + endpointProperty + "=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug");
 	}

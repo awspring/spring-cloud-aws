@@ -41,7 +41,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.google.common.io.Files;
@@ -70,7 +69,7 @@ class S3ResourceIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.3.1")).withServices(Service.S3).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.3.2")).withReuse(true);
 
 	private static S3Client client;
 	private static S3AsyncClient asyncClient;
@@ -91,10 +90,9 @@ class S3ResourceIntegrationTests {
 		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		asyncClient = S3AsyncClient.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpointOverride(Service.S3))
-				.build();
+				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint()).build();
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(Service.S3)).build();
+				.endpointOverride(localstack.getEndpoint()).build();
 		s3TransferManager = S3TransferManager.builder().s3Client(asyncClient).build();
 		client.createBucket(request -> request.bucket("first-bucket"));
 	}
@@ -150,16 +148,18 @@ class S3ResourceIntegrationTests {
 	@TestAvailableOutputStreamProviders
 	void returnsResourceUrl(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		S3Resource resource = s3Resource("s3://first-bucket/a-file.txt", s3OutputStreamProvider);
-		assertThat(resource.getURL().toString()).isEqualTo("https://first-bucket.s3.amazonaws.com/a-file.txt");
+		assertThat(resource.getURL().toString())
+				.isEqualTo("http://127.0.0.1:" + localstack.getFirstMappedPort() + "/first-bucket/a-file.txt");
 	}
 
 	@TestAvailableOutputStreamProviders
 	void returnsEncodedResourceUrlAndUri(S3OutputStreamProvider s3OutputStreamProvider)
 			throws IOException, URISyntaxException {
 		S3Resource resource = s3Resource("s3://first-bucket/some/[objectName]", s3OutputStreamProvider);
-		assertThat(resource.getURL().toString())
-				.isEqualTo("https://first-bucket.s3.amazonaws.com/some/%5BobjectName%5D");
-		assertThat(resource.getURI()).isEqualTo(new URI("https://first-bucket.s3.amazonaws.com/some/%5BobjectName%5D"));
+		assertThat(resource.getURL().toString()).isEqualTo(
+				"http://127.0.0.1:" + localstack.getFirstMappedPort() + "/first-bucket/some/%5BobjectName%5D");
+		assertThat(resource.getURI()).isEqualTo(
+				new URI("http://127.0.0.1:" + localstack.getFirstMappedPort() + "/first-bucket/some/%5BobjectName%5D"));
 	}
 
 	@TestAvailableOutputStreamProviders
