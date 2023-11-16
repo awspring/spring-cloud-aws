@@ -101,6 +101,10 @@ A summary of these artifacts are provided below.
 | Provides integrations with SQS
 | io.awspring.cloud:spring-cloud-aws-starter-sqs
 
+| IMDS
+| Automatically loads EC2 instance metadata when running within an EC2-based environment
+| io.awspring.cloud:spring-cloud-aws-starter-imds
+
 | Parameter Store
 | Provides integrations with AWS Parameter Store
 | io.awspring.cloud:spring-cloud-aws-starter-parameter-store
@@ -143,6 +147,8 @@ include::ses.adoc[]
 include::sns.adoc[]
 
 include::sqs.adoc[]
+
+include::imds.adoc[]
 
 include::secrets-manager.adoc[]
 
