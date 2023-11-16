@@ -66,6 +66,7 @@ public class S3CrtAsyncClientAutoConfiguration {
 				.region(this.awsClientBuilderConfigurer.resolveRegion(this.properties));
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
 
 		if (this.properties.getCrt() != null) {
 			S3CrtClientProperties crt = this.properties.getCrt();

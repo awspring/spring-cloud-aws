@@ -73,6 +73,9 @@ public class S3AutoConfiguration {
 			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer) {
 		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(), this.properties,
 				configurer.getIfAvailable());
+
+		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
+
 		builder.serviceConfiguration(this.properties.toS3Configuration());
 		return builder;
 	}
