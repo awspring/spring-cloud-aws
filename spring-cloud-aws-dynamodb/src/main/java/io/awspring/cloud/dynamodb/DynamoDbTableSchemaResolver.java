@@ -24,7 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  * @author Maciej Walkowiak
  * @since 3.0
  */
-public interface DynamoDbTableResolver {
+public interface DynamoDbTableSchemaResolver {
 
 	/**
 	 * Resolving {@link TableSchema} from {@link Class}.
@@ -33,13 +33,5 @@ public interface DynamoDbTableResolver {
 	 * @return table schema
 	 * @param <T> - type
 	 */
-	<T> TableSchema<T> resolveTableSchema(Class<T> clazz);
-
-	/**
-	 * Resolves table name from {@link Class}.
-	 *
-	 * @param clazz - a class
-	 * @return a table name
-	 */
-	String resolveTableName(Class<?> clazz);
+	<T> TableSchema<T> resolve(Class<T> clazz);
 }

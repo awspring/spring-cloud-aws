@@ -22,9 +22,9 @@ import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.dynamodb.DefaultDynamoDbTableResolver;
+import io.awspring.cloud.dynamodb.DefaultDynamoDbTableSchemaResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTableNameResolver;
-import io.awspring.cloud.dynamodb.DynamoDbTableResolver;
+import io.awspring.cloud.dynamodb.DynamoDbTableSchemaResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 import java.net.URI;
 import java.time.Duration;
@@ -71,14 +71,15 @@ class DynamoDbAutoConfigurationTest {
 		@Test
 		void customTableResolverResolverCanBeConfigured() {
 			contextRunner.withUserConfiguration(CustomDynamoDbConfiguration.class).run(context -> {
-				DynamoDbTableResolver dynamoDbTableResolver = context.getBean(DynamoDbTableResolver.class);
+				DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver = context
+						.getBean(DynamoDbTableSchemaResolver.class);
 				DynamoDbTableNameResolver dynamoDBDynamoDbTableNameResolver = context
 						.getBean(DynamoDbTableNameResolver.class);
 
-				assertThat(dynamoDbTableResolver).isNotNull();
+				assertThat(dynamoDbTableSchemaResolver).isNotNull();
 				assertThat(dynamoDBDynamoDbTableNameResolver).isNotNull();
 
-				assertThat(dynamoDbTableResolver).isInstanceOf(CustomDynamoDBDynamoDbTableResolver.class);
+				assertThat(dynamoDbTableSchemaResolver).isInstanceOf(CustomDynamoDBDynamoDbTableSchemaResolver.class);
 				assertThat(dynamoDBDynamoDbTableNameResolver)
 						.isInstanceOf(CustomDynamoDBDynamoDbTableNameResolver.class);
 
@@ -132,10 +133,10 @@ class DynamoDbAutoConfigurationTest {
 		void tableSchemaBeansRegistered() {
 			contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.TableSchemaConfiguration.class)
 					.run(context -> {
-						DefaultDynamoDbTableResolver schemaResolver = context
-								.getBean(DefaultDynamoDbTableResolver.class);
+						DefaultDynamoDbTableSchemaResolver schemaResolver = context
+								.getBean(DefaultDynamoDbTableSchemaResolver.class);
 						TableSchema<TableSchemaConfiguration.Person> personTableSchema = schemaResolver
-								.resolveTableSchema(TableSchemaConfiguration.Person.class);
+								.resolve(TableSchemaConfiguration.Person.class);
 						assertThat(context.getBean("personTableSchema")).isEqualTo(personTableSchema);
 					});
 		}
@@ -238,14 +239,16 @@ class DynamoDbAutoConfigurationTest {
 					.withPropertyValues(
 							"spring.cloud.aws.dynamodb.dax.url:dax://something.dax-clusters.us-east-1.amazonaws.com")
 					.withUserConfiguration(CustomDynamoDbConfiguration.class).run(context -> {
-						DynamoDbTableResolver dynamoDbTableResolver = context.getBean(DynamoDbTableResolver.class);
+						DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver = context
+								.getBean(DynamoDbTableSchemaResolver.class);
 						DynamoDbTableNameResolver dynamoDBDynamoDbTableNameResolver = context
 								.getBean(DynamoDbTableNameResolver.class);
 
-						assertThat(dynamoDbTableResolver).isNotNull();
+						assertThat(dynamoDbTableSchemaResolver).isNotNull();
 						assertThat(dynamoDBDynamoDbTableNameResolver).isNotNull();
 
-						assertThat(dynamoDbTableResolver).isInstanceOf(CustomDynamoDBDynamoDbTableResolver.class);
+						assertThat(dynamoDbTableSchemaResolver)
+								.isInstanceOf(CustomDynamoDBDynamoDbTableSchemaResolver.class);
 						assertThat(dynamoDBDynamoDbTableNameResolver)
 								.isInstanceOf(CustomDynamoDBDynamoDbTableNameResolver.class);
 
@@ -258,8 +261,8 @@ class DynamoDbAutoConfigurationTest {
 	static class CustomDynamoDbConfiguration {
 
 		@Bean
-		DynamoDbTableResolver tableSchemaResolver() {
-			return new CustomDynamoDBDynamoDbTableResolver();
+		DynamoDbTableSchemaResolver tableSchemaResolver() {
+			return new CustomDynamoDBDynamoDbTableSchemaResolver();
 		}
 
 		@Bean
@@ -269,18 +272,12 @@ class DynamoDbAutoConfigurationTest {
 
 	}
 
-	static class CustomDynamoDBDynamoDbTableResolver implements DynamoDbTableResolver {
+	static class CustomDynamoDBDynamoDbTableSchemaResolver implements DynamoDbTableSchemaResolver {
 
 		@Override
-		public <T> TableSchema resolveTableSchema(Class<T> clazz) {
+		public <T> TableSchema resolve(Class<T> clazz) {
 			return null;
 		}
-
-		@Override
-		public String resolveTableName(Class<?> aClass) {
-			return null;
-		}
-
 	}
 
 	static class CustomDynamoDBDynamoDbTableNameResolver implements DynamoDbTableNameResolver {

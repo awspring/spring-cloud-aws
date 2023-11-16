@@ -24,22 +24,22 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 /**
- * Tests for {@link DefaultDynamoDbTableResolver}.
+ * Tests for {@link DefaultDynamoDbTableSchemaResolver}.
  *
  * @author Matej Nedic
  * @author Maciej Walkowiak
  */
-class DynamoDbTableResolverTest {
+class DynamoDbTableSchemaResolverTest {
 
 	@Test
 	void tableSchemaResolved_successfully() {
 		// given
-		DefaultDynamoDbTableResolver defaultTableSchemaResolver = new DefaultDynamoDbTableResolver();
+		DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
 		// when
-		TableSchema<Person> tableSchema = defaultTableSchemaResolver.resolveTableSchema(Person.class);
+		TableSchema<Person> tableSchema = defaultTableSchemaResolver.resolve(Person.class);
 
 		// Call one more time to see if cache is being filled properly.
-		defaultTableSchemaResolver.resolveTableSchema(Person.class);
+		defaultTableSchemaResolver.resolve(Person.class);
 
 		// then
 		assertThat(tableSchema).isNotNull();
@@ -49,11 +49,11 @@ class DynamoDbTableResolverTest {
 	@Test
 	void tableSchemaResolved_whenSchemaPassedThroughConstructor() {
 		StaticTableSchema<Library> librarySchema = StaticTableSchema.builder(Library.class).build();
-		DefaultDynamoDbTableResolver defaultTableSchemaResolver = new DefaultDynamoDbTableResolver(
-				new DefaultDynamoDbTableNameResolver(), List.of(librarySchema));
+		DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver(
+				List.of(librarySchema));
 
 		// when
-		TableSchema<Library> tableSchema = defaultTableSchemaResolver.resolveTableSchema(Library.class);
+		TableSchema<Library> tableSchema = defaultTableSchemaResolver.resolve(Library.class);
 
 		// then
 		assertThat(tableSchema).isNotNull().isEqualTo(librarySchema);
@@ -63,11 +63,11 @@ class DynamoDbTableResolverTest {
 	@Test
 	void tableSchemaResolved_successfully_for_multiple_tables() {
 		// given
-		DefaultDynamoDbTableResolver defaultTableSchemaResolver = new DefaultDynamoDbTableResolver();
+		DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
 
 		// when
-		TableSchema<Person> person = defaultTableSchemaResolver.resolveTableSchema(Person.class);
-		TableSchema<Book> bookTableSchema = defaultTableSchemaResolver.resolveTableSchema(Book.class);
+		TableSchema<Person> person = defaultTableSchemaResolver.resolve(Person.class);
+		TableSchema<Book> bookTableSchema = defaultTableSchemaResolver.resolve(Book.class);
 
 		// then
 		assertThat(person).isNotNull();
@@ -77,9 +77,9 @@ class DynamoDbTableResolverTest {
 
 	@Test
 	void tableSchemaResolver_fail_entity_not_annotated() {
-		DefaultDynamoDbTableResolver defaultTableSchemaResolver = new DefaultDynamoDbTableResolver();
+		DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
 
-		assertThatThrownBy(() -> defaultTableSchemaResolver.resolveTableSchema(FakePerson.class))
+		assertThatThrownBy(() -> defaultTableSchemaResolver.resolve(FakePerson.class))
 				.isInstanceOf(IllegalArgumentException.class);
 
 	}

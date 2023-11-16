@@ -119,9 +119,8 @@ public class DynamoDbAutoConfiguration {
 
 	@ConditionalOnMissingBean(DynamoDbTableNameResolver.class)
 	@Bean
-	public DefaultDynamoDbTableResolver dynamoDbTableSchemaResolver(
-			DefaultDynamoDbTableNameResolver dynamoDbTableNameResolver, List<TableSchema<?>> tableSchemas) {
-		return new DefaultDynamoDbTableResolver(dynamoDbTableNameResolver, tableSchemas);
+	public DefaultDynamoDbTableSchemaResolver dynamoDbTableSchemaResolver(List<TableSchema<?>> tableSchemas) {
+		return new DefaultDynamoDbTableSchemaResolver(tableSchemas);
 	}
 
 	@ConditionalOnMissingBean(DynamoDbTableNameResolver.class)
@@ -133,8 +132,8 @@ public class DynamoDbAutoConfiguration {
 	@ConditionalOnMissingBean(DynamoDbOperations.class)
 	@Bean
 	public DynamoDbTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
-			DynamoDbTableResolver tableSchemaResolver) {
-		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaResolver);
+			DynamoDbTableSchemaResolver tableSchemaResolver, DynamoDbTableNameResolver dynamoDbTableNameResolver) {
+		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaResolver, dynamoDbTableNameResolver);
 	}
 
 	static class MissingDaxUrlCondition extends NoneNestedConditions {
