@@ -35,7 +35,7 @@ import software.amazon.awssdk.imds.Ec2MetadataResponse;
  * Works with either IMDS v1 or v2.
  *
  * @author Ken Krueger
- * @since 3.0.4
+ * @since 3.1.0
  */
 public class ImdsUtils {
 

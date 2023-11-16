@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
  * exceptions or missing keys should be logged at debug level and ignored.
  *
  * @author Ken Krueger
- * @since 3.0.4
+ * @since 3.1.0
  */
 public class ImdsPropertySourceTest {
 

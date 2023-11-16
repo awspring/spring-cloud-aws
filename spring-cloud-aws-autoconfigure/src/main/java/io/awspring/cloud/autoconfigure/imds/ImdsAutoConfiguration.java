@@ -27,7 +27,7 @@ import software.amazon.awssdk.imds.Ec2MetadataClient;
  * Configuration for managing Instance Meta Data Service metadata.
  *
  * @author Ken Krueger
- * @since 3.0.4
+ * @since 3.1.0
  */
 
 @AutoConfiguration

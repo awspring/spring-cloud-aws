@@ -26,7 +26,7 @@ import software.amazon.awssdk.imds.Ec2MetadataClient;
  * Test for the {@link ImdsAutoConfiguration}.
  *
  * @author Ken Krueger
- * @since 3.0.4
+ * @since 3.1.0
  */
 public class ImdsAutoConfigurationTest {
 

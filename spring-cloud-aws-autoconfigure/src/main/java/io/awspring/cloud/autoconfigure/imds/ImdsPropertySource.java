@@ -24,7 +24,7 @@ import org.springframework.lang.Nullable;
  * Adds properties from the EC2 Instance MetaData Service (IDMS) when it is available.
  *
  * @author Ken Krueger
- * @since 3.0.4
+ * @since 3.1.0
  */
 public class ImdsPropertySource extends AwsPropertySource<ImdsPropertySource, ImdsUtils> {
 

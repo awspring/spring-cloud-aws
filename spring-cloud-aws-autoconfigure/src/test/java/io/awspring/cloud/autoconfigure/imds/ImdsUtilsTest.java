@@ -39,7 +39,7 @@ import software.amazon.awssdk.imds.Ec2MetadataResponse;
  * when instance metadata is unavailable.
  *
  * @author Ken Krueger
- * @since 3.0.4
+ * @since 3.1.0
  */
 public class ImdsUtilsTest {
 
