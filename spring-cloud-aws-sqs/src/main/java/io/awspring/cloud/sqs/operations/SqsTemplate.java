@@ -86,6 +86,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private final Collection<String> messageSystemAttributeNames;
 
+	private final ContentBasedDeduplication contentBasedDeduplication;
+
 	private SqsTemplate(SqsTemplateBuilderImpl builder) {
 		super(builder.messageConverter, builder.options);
 		SqsTemplateOptionsImpl options = builder.options;
@@ -94,6 +96,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		this.queueAttributeNames = options.queueAttributeNames;
 		this.queueNotFoundStrategy = options.queueNotFoundStrategy;
 		this.messageSystemAttributeNames = options.messageSystemAttributeNames;
+		this.contentBasedDeduplication = options.contentBasedDeduplication;
 	}
 
 	/**
@@ -260,22 +263,27 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private <T> org.springframework.messaging.Message<T> addMissingFifoSendHeaders(String endpointName,
 			org.springframework.messaging.Message<T> message) {
-
-		Set<QueueAttributeName> additionalAttributes = Set.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
-		String contentBasedDedupQueueAttribute = getQueueAttributes(endpointName, additionalAttributes).join()
-				.getQueueAttribute(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
-
-		boolean isContentBasedDedup = Boolean.parseBoolean(contentBasedDedupQueueAttribute);
 		Map<String, Object> defaultHeaders;
-		if (isContentBasedDedup) {
+		if (endpointHasContentBasedDeduplicationEnabled(endpointName)) {
 			defaultHeaders = Map.of(MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString());
 		}
 		else {
 			defaultHeaders = Map.of(MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString(),
 					MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, UUID.randomUUID().toString());
 		}
-
 		return MessageHeaderUtils.addHeadersIfAbsent(message, defaultHeaders);
+	}
+
+	private boolean endpointHasContentBasedDeduplicationEnabled(String endpointName) {
+		if (ContentBasedDeduplication.AUTO.equals(this.contentBasedDeduplication)) {
+			Set<QueueAttributeName> additionalAttributes = Set.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
+			String contentBasedDedupQueueAttribute = getQueueAttributes(endpointName, additionalAttributes).join()
+					.getQueueAttribute(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
+			return Boolean.parseBoolean(contentBasedDedupQueueAttribute);
+		}
+		else {
+			return contentBasedDeduplication.equals(ContentBasedDeduplication.ENABLED);
+		}
 	}
 
 	@Override
@@ -591,6 +599,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 		private Collection<String> messageSystemAttributeNames = Collections.singletonList("All");
 
+		private ContentBasedDeduplication contentBasedDeduplication = ContentBasedDeduplication.AUTO;
+
 		@Override
 		public SqsTemplateOptions queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notEmpty(queueAttributeNames, "queueAttributeNames cannot be null or empty");
@@ -622,6 +632,12 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 				Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
 			this.messageSystemAttributeNames = messageSystemAttributeNames.stream()
 					.map(MessageSystemAttributeName::name).toList();
+			return this;
+		}
+
+		@Override
+		public SqsTemplateOptions contentBasedDeduplication(ContentBasedDeduplication contentBasedDeduplication) {
+			this.contentBasedDeduplication = contentBasedDeduplication;
 			return this;
 		}
 

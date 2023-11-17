@@ -69,4 +69,12 @@ public interface SqsTemplateOptions extends MessagingTemplateOptions<SqsTemplate
 	 */
 	SqsTemplateOptions messageSystemAttributeNames(Collection<MessageSystemAttributeName> messageSystemAttributeNames);
 
+	/**
+	 * Set the ContentBasedDeduplication queue attribute value of the queues the template is sending messages to. By
+	 * default, this is set to AUTO and the queue attribute value will be resolved automatically.
+	 *
+	 * @param contentBasedDeduplication the ContentBasedDeduplication value.
+	 * @return the options instance.
+	 */
+	SqsTemplateOptions contentBasedDeduplication(ContentBasedDeduplication contentBasedDeduplication);
 }
