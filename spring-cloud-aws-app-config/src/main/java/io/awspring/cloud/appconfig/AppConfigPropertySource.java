@@ -79,7 +79,10 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 				.build();
 		GetLatestConfigurationResponse response = this.source.getLatestConfiguration(request);
 		try {
-			getParameters(response);
+			//This may be empty if the client already has the latest version of configuration.
+			if (response.configuration() != null && response.configuration().asByteArray().length > 0) {
+				getParameters(response);
+			}
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
