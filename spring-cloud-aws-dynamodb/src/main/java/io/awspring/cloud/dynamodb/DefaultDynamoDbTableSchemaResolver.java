@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.dynamodb;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -23,12 +25,27 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  * Default implementation with simple cache for {@link TableSchema}.
  *
  * @author Matej Nedic
+ * @author Maciej Walkowiak
  */
 public class DefaultDynamoDbTableSchemaResolver implements DynamoDbTableSchemaResolver {
-	private final Map<String, TableSchema> tableSchemaCache = new ConcurrentHashMap<>();
+	private final Map<Class<?>, TableSchema> tableSchemaCache = new ConcurrentHashMap<>();
+
+	public DefaultDynamoDbTableSchemaResolver() {
+		this(Collections.emptyList());
+	}
+
+	public DefaultDynamoDbTableSchemaResolver(List<TableSchema<?>> tableSchemas) {
+		for (TableSchema<?> tableSchema : tableSchemas) {
+			tableSchemaCache.put(tableSchema.itemType().rawClass(), tableSchema);
+		}
+	}
 
 	@Override
-	public <T> TableSchema<T> resolve(Class<T> clazz, String tableName) {
-		return tableSchemaCache.computeIfAbsent(tableName, entityClassName -> TableSchema.fromBean(clazz));
+	public <T> TableSchema<T> resolve(Class<T> clazz) {
+		return tableSchemaCache.computeIfAbsent(clazz, TableSchema::fromBean);
+	}
+
+	Map<Class<?>, TableSchema> getTableSchemaCache() {
+		return tableSchemaCache;
 	}
 }
