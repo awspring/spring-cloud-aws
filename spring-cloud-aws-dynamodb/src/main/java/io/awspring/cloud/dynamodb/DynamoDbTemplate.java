@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.dynamodb;
 
+import java.util.Collections;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -29,29 +30,29 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
  *
  * @author Matej Nedic
  * @author Arun Patra
+ * @author Maciej Walkowiak
  * @since 3.0
  */
 public class DynamoDbTemplate implements DynamoDbOperations {
 	private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
 	private final DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver;
-	private final DynamoDbTableNameResolver dynamoDbTableNameResolver;
+	private final DynamoDbTableNameResolver tableNameResolver;
 
 	public DynamoDbTemplate(@Nullable String tablePrefix, DynamoDbEnhancedClient dynamoDbEnhancedClient) {
-		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(),
+		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(Collections.emptyList()),
 				new DefaultDynamoDbTableNameResolver(tablePrefix));
 	}
 
 	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient) {
-		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(),
-				new DefaultDynamoDbTableNameResolver(null));
+		this(dynamoDbEnhancedClient, new DefaultDynamoDbTableSchemaResolver(Collections.emptyList()),
+				new DefaultDynamoDbTableNameResolver());
 	}
 
 	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
-			DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver,
-			DynamoDbTableNameResolver dynamoDbTableNameResolver) {
+			DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver, DynamoDbTableNameResolver tableNameResolver) {
 		this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
 		this.dynamoDbTableSchemaResolver = dynamoDbTableSchemaResolver;
-		this.dynamoDbTableNameResolver = dynamoDbTableNameResolver;
+		this.tableNameResolver = tableNameResolver;
 	}
 
 	public <T> T save(T entity) {
@@ -114,15 +115,15 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 
 	private <T> DynamoDbTable<T> prepareTable(T entity) {
 		Assert.notNull(entity, "entity is required");
-		String tableName = dynamoDbTableNameResolver.resolve(entity.getClass());
-		return dynamoDbEnhancedClient.table(tableName,
-				dynamoDbTableSchemaResolver.resolve(entity.getClass(), tableName));
+		String tableName = tableNameResolver.resolve(entity.getClass());
+		return (DynamoDbTable<T>) dynamoDbEnhancedClient.table(tableName,
+				dynamoDbTableSchemaResolver.resolve(entity.getClass()));
 	}
 
 	private <T> DynamoDbTable<T> prepareTable(Class<T> clazz) {
 		Assert.notNull(clazz, "clazz is required");
-		String tableName = dynamoDbTableNameResolver.resolve(clazz);
-		return dynamoDbEnhancedClient.table(tableName, dynamoDbTableSchemaResolver.resolve(clazz, tableName));
+		String tableName = tableNameResolver.resolve(clazz);
+		return dynamoDbEnhancedClient.table(tableName, dynamoDbTableSchemaResolver.resolve(clazz));
 	}
 
 }
