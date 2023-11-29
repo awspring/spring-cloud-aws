@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,33 @@ package io.awspring.cloud.dynamodb;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 /**
- * Resolving Class and TableName to {@link TableSchema} class. Should be cached since creating {@link TableSchema} is
- * expensive.
+ * Resolving table schema and table name from a class.
  *
  * @author Matej Nedic
+ * @author Maciej Walkowiak
  * @since 3.0
  */
 public interface DynamoDbTableSchemaResolver {
 
 	/**
-	 * Resolving Class and TableName to {@link TableSchema} class.
+	 * Resolves {@link TableSchema} from {@link Class}.
+	 *
+	 * @param clazz - the class from which table schema is resolved
+	 * @return table schema
+	 * @param <T> - type
+	 */
+	<T> TableSchema<T> resolve(Class<T> clazz);
+
+	/**
+	 * Resolves {@link TableSchema} from {@link Class}.
 	 *
 	 * @param clazz - the class from which table schema is resolved
 	 * @param tableName - the table name
 	 * @return table schema
 	 * @param <T> - type
 	 */
-	<T> TableSchema resolve(Class<T> clazz, String tableName);
+	@Deprecated
+	default <T> TableSchema resolve(Class<T> clazz, String tableName) {
+		return resolve(clazz);
+	}
 }
