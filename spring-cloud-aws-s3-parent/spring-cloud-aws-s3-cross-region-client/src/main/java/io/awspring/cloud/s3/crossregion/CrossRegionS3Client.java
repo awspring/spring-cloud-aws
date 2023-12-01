@@ -31,6 +31,11 @@ import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.waiters.S3Waiter;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
+/**
+ * @deprecated use cross-region client included in SDK: <a href=
+ * "https://aws.amazon.com/blogs/developer/introducing-s3-cross-region-support-in-the-aws-sdk-for-java-2-x/">...</a>
+ */
+@Deprecated
 public class CrossRegionS3Client extends AbstractCrossRegionS3Client {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger("io.awspring.cloud.s3.CrossRegionS3Client");
