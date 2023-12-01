@@ -44,6 +44,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.PropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -166,6 +168,17 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:fn_certificate")) {
 			assertThat(context.getEnvironment().getProperty("fn_certificate")).isEqualTo("=== my cert should be here");
+		}
+	}
+
+	@Test
+	void respectsImportOrder() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+			"classpath:config.properties")) {
+			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("from properties file");
 		}
 	}
 
