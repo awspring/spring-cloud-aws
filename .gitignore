@@ -4,6 +4,11 @@ target/
 /.idea
 /out
 
+docs/node
+docs/node_modules
+docs/package-lock.json
+docs/package.json
+
 # Do not ignore them
 !.idea/copyright
 !.idea/inspectionProfiles

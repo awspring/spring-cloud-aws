@@ -1,4 +1,4 @@
-== Migration from 2.x to 3.x
+= Migration from 2.x to 3.x
 
 [WARNING]
 ====

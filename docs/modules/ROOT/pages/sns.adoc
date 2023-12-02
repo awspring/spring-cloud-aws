@@ -1,5 +1,4 @@
-[#spring-cloud-aws-sns]
-== SNS Integration
+= SNS Integration
 
 https://aws.amazon.com/sns/[SNS] is a pub/sub messaging service that allows clients to publish notifications to a particuluar topic.
 A Spring Boot starter is provided to auto-configure SNS integration beans.
@@ -14,9 +13,9 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-=== Sending Notifications
+== Sending Notifications
 
-==== SNS Template
+=== SNS Template
 
 The starter automatically configures and registers a `SnsTemplate` bean providing higher level abstractions for sending SNS notifications.
 `SnsTemplate` implements Spring Messaging abstractions making it easy to combine with other messaging technologies compatible with Spring Messaging.
@@ -85,7 +84,7 @@ public class TopicArnResolverConfiguration {
 
 ----
 
-==== SNS Operations
+=== SNS Operations
 
 Because of Spring Messaging compatibility, `SnsTemplate` exposes many methods that you may not need if you don't need Spring Messaging abstractions.
 In such case, we recommend using `SnsOperations` - an interface implemented by `SnsTemplate`, that exposes a convenient method for sending SNS notification, including support for FIFO topics.
@@ -113,8 +112,7 @@ class NotificationService {
 }
 ----
 
-
-=== Sending SMS Messages
+== Sending SMS Messages
 
 The starter automatically configures and registers a `SnsSmsTemplate` bean providing higher level abstractions for sending SMS messages to SNS topic or directly to a phone number.
 
@@ -144,7 +142,7 @@ class NotificationService {
 }
 ----
 
-=== Using SNS Client
+== Using SNS Client
 
 To have access to all lower level SNS operations, we recommend using `SnsClient` from AWS SDK. `SnsClient` bean is autoconfigured by `SnsAutoConfiguration`.
 
@@ -167,7 +165,7 @@ class NotificationService {
 }
 ----
 
-=== Annotation-driven HTTP notification endpoint
+== Annotation-driven HTTP notification endpoint
 
 SNS supports multiple endpoint types (SQS, Email, HTTP, HTTPS), Spring Cloud AWS provides support for HTTP(S) endpoints.
 SNS sends three type of requests to an HTTP topic listener endpoint, for each of them annotations are provided:
@@ -214,7 +212,7 @@ public class NotificationTestController {
 }
 ----
 
-=== Configuration
+== Configuration
 
 The Spring Boot Starter for SNS provides the following configuration options:
 
@@ -226,7 +224,7 @@ The Spring Boot Starter for SNS provides the following configuration options:
 | `spring.cloud.aws.sns.region` | Configures region used by `SnsClient`. | No | `eu-west-1`
 |===
 
-=== IAM Permissions
+== IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2,1"]

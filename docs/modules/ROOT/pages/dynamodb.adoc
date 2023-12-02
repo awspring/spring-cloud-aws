@@ -1,7 +1,6 @@
-[#spring-cloud-aws-dynamoDb]
-== DynamoDb Integration
+= DynamoDB Integration
 
-https://aws.amazon.com/dynamodb/[DynamoDb] is a fully managed serverless key/value Nosql database designed for high performance.
+https://aws.amazon.com/dynamodb/[DynamoDB] is a fully managed serverless key/value Nosql database designed for high performance.
 A Spring Boot starter is provided to auto-configure DynamoDb integration beans.
 
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
@@ -14,9 +13,9 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-DynamoDb integration will only provide autoconfiguration and simple `DynamoDbOperations` which can be used to communicate with DynamoDb, build repositories and so on...
+DynamoDB integration will only provide autoconfiguration and simple `DynamoDbOperations` which can be used to communicate with DynamoDb, build repositories and so on...
 
-=== DynamoDbOperations
+== DynamoDbOperations
 
 The starter automatically configures and registers a `DynamoDbOperations` bean providing higher level abstractions for working with DynamoDb.
 `DynamoDbTemplate` - a default `DynamoDbOperations` implementation - being built on top of `DynamoDbEnhancedClient` uses annotations provided by AWS.
@@ -60,13 +59,13 @@ Person person = new Person(...)
 dynamoDbTemplate.save(person);
 ----
 
-==== Resolving Table Name
+=== Resolving Table Name
 
 To resolve a table name for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableNameResolver`. The default implementation turns an entity class name into its snake case representation with the possibility of using a table name prefix (optional). Specify the `spring.cloud.aws.dynamodb.table-prefix` to provide a table name prefix. The prefix is prepended to the table name. For example, if `spring.cloud.aws.dynamodb.table-prefix` is configured as `foo_` and the entity class is `Person`, then the default implementation resolves the table name as `foo_person`. However if you do not specify `spring.cloud.aws.dynamodb.table-prefix`, the table name will be resolved as `person`.
 
 To use a custom implementation, declare a bean of type `DynamoDbTableNameResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
 
-==== Resolving Table Schema
+=== Resolving Table Schema
 
 To resolve a table schema for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableSchemaResolver`. The default implementation caches `TableSchema` objects in internal map.
 To use custom implementation, declare a bean of type `DynamoDbTableSchemaResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
@@ -85,7 +84,7 @@ public class MyTableSchemaConfiguration {
 
 IMPORTANT: Because of classloader related https://github.com/aws/aws-sdk-java-v2/issues/2604[issue] in AWS SDK DynamoDB Enhanced client, to use Spring Cloud AWS DynamoDB module together with Spring Boot DevTools you must create a custom table schema resolver and define schema using `StaticTableSchema`.
 
-=== Using DynamoDb Client
+== Using DynamoDb Client
 
 Autoconfiguration automatically configures `DynamoDbClient` which can be used for low level api calls and `DynamoDbEnhancedClient` if `DynamoDbOperations` are not enough.
 
@@ -111,7 +110,7 @@ public class DynamoDbService {
 }
 ----
 
-=== Using DynamoDB Accelerator
+== Using DynamoDB Accelerator
 
 The starter automatically configures and registers an `software.amazon.dax.ClusterDaxClient` bean if it finds the following is added to the project:
 
@@ -123,7 +122,7 @@ The starter automatically configures and registers an `software.amazon.dax.Clust
 </dependency>
 ----
 
-=== Configuration
+== Configuration
 
 The Spring Boot Starter for DynamoDb provides the following configuration options:
 
@@ -149,7 +148,7 @@ The Spring Boot Starter for DynamoDb provides the following configuration option
 | `spring.cloud.aws.dynamodb.dax.skip-host-name-verification` | Skips hostname verification in url. | No |
 |===
 
-=== IAM Permissions
+== IAM Permissions
 
 Since it depends on how you will use DynamoDb integration providing a list of IAM policies would be pointless since least privilege model should be used.
 To check what IAM policies DynamoDb uses and see which ones you should use please check https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/using-identity-based-policies.html[IAM policies]

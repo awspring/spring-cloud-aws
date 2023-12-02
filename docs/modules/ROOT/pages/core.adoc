@@ -1,11 +1,10 @@
-[#spring-cloud-aws-core]
-== Spring Cloud AWS Core
+= Spring Cloud AWS Core
 
 Each Spring Cloud AWS module uses `AwsCredentialsProvider` and `AwsRegionProvider` to get the AWS region and access credentials.
 
 Spring Cloud AWS provides a Spring Boot starter to auto-configure the core components.
 
-Maven coordinates, using <<getting-started.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
+Maven coordinates, using Spring Cloud AWS BOM:
 
 [source,xml]
 ----
@@ -15,7 +14,7 @@ Maven coordinates, using <<getting-started.adoc#bill-of-materials, Spring Cloud 
 </dependency>
 ----
 
-=== Credentials
+== Credentials
 
 `software.amazon.awssdk.auth.credentials.AwsCredentialsProvider` is a functional interface that returns the credentials to authenticate and authorize calls to AWS services.
 
@@ -39,7 +38,7 @@ If you are having problems with configuring credentials, consider enabling debug
 logging.level.io.awspring.cloud=debug
 ----
 
-==== DefaultCredentialsProvider
+=== DefaultCredentialsProvider
 
 By default, Spring Cloud AWS starter auto-configures a `DefaultCredentialsProvider`, which looks for AWS credentials in this order:
 
@@ -79,11 +78,11 @@ If it does not serve your project needs, this behavior can be changed by setting
 |The file path where the profile configuration file is located. Defaults to `~/.aws/credentials` if a value is not provided
 |===
 
-==== StsWebIdentityTokenFileCredentialsProvider
+=== StsWebIdentityTokenFileCredentialsProvider
 
 The `StsWebIdentityTokenFileCredentialsProvider` allows your application to assume an AWS IAM Role using a web identity token file, which is especially useful in Kubernetes and AWS EKS environments.
 
-===== Prerequisites
+==== Prerequisites
 1. Create a role that you want to assume.
 2. Create a web identity token file for your application.
 
@@ -99,7 +98,7 @@ The `StsWebIdentityTokenFileCredentialsProvider` support is optional, so you nee
 ----
 
 
-===== Configuring
+==== Configuring
 In EKS no additional configuration is required as the service account already configures the correct environment variables; however, they can be overridden.
 
 STS credentials configuration supports following properties:
@@ -114,7 +113,7 @@ STS credentials configuration supports following properties:
 |===
 
 
-==== Custom AwsCredentialsProvider
+=== Custom AwsCredentialsProvider
 
 It is also possible to configure custom `AwsCredentialsProvider` bean which will prevent Spring Cloud AWS from auto-configuring credentials provider:
 
@@ -135,7 +134,7 @@ class CustomCredentialsProviderConfiguration {
 }
 ----
 
-=== Region
+== Region
 
 `software.amazon.awssdk.regions.providers.AwsRegionProvider` is a functional interface that returns the region AWS clients issue requests to.
 
@@ -197,7 +196,7 @@ class CustomRegionProviderConfiguration {
 }
 ----
 
-=== Endpoint
+== Endpoint
 
 To simplify using services with AWS compatible APIs, or running applications against https://localstack.cloud/[LocalStack], it is possible to configure an endpoint set on all auto-configured AWS clients:
 
@@ -212,7 +211,7 @@ To simplify using services with AWS compatible APIs, or running applications aga
 |endpoint url applied to auto-configured AWS clients
 |===
 
-=== Customizing AWS Clients
+== Customizing AWS Clients
 
 To configure an AWS client with custom HTTP client or `ClientOverrideConfiguration`, define a bean of type `AwsClientConfigurer` with a type parameter indicating configured client builder.
 

@@ -1,9 +1,7 @@
+[[introduction]]
 = Spring Cloud AWS
-include::_attributes.adoc[]
 
 include::intro.adoc[]
-
-*{project-version}*
 
 include::contributing.adoc[]
 
@@ -32,6 +30,7 @@ Note, that Spring provides support for other AWS services in following projects:
 
 This section describes how to get up to speed with Spring Cloud AWS libraries.
 
+[[bill-of-materials]]
 === Bill of Materials
 
 The Spring Cloud AWS Bill of Materials (BOM) declares the recommended versions of all the dependencies used by a given release of Spring Cloud AWS. Using the BOM from your application's build script avoids the need for you to specify and maintain the dependency versions yourself. Instead, the version of the BOM you’re using determines the utilised dependency versions. It also ensures that you're using supported and tested versions of the dependencies by default, unless you choose to override them.
@@ -131,27 +130,3 @@ before any other BOM dependency that configures AWS SDK dependencies.
 	</dependencies>
 </dependencyManagement>
 ----
-
-include::core.adoc[]
-
-include::dynamodb.adoc[]
-
-include::s3.adoc[]
-
-include::ses.adoc[]
-
-include::sns.adoc[]
-
-include::sqs.adoc[]
-
-include::secrets-manager.adoc[]
-
-include::parameter-store.adoc[]
-
-include::cloudwatch.adoc[]
-
-include::migration.adoc[]
-
-== Configuration properties
-
-To see the list of all Spring Cloud AWS related configuration properties please check link:appendix.html[the Appendix page].

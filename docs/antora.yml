@@ -1,0 +1,14 @@
+name: cloud-aws
+# other spring cloud projects use version: true and that's enough to read version from pom.xml
+# for some reason, if we set version: true it reads it from git branch and fails on regex unless version looks like v3.0.1 etc.
+version: v3.1.0
+title: Spring Cloud AWS
+nav:
+  - modules/ROOT/nav.adoc
+ext:
+  collector:
+    run:
+      command: ./mvnw --no-transfer-progress -B process-resources -Pdocs -pl docs -Dantora-maven-plugin.phase=none -Dgenerate-docs.phase=none -Dgenerate-readme.phase=none -Dgenerate-cloud-resources.phase=none -Dmaven-dependency-plugin-for-docs.phase=none -Dmaven-dependency-plugin-for-docs-classes.phase=none -DskipTests
+      local: true
+    scan:
+      dir: ./target/classes/antora-resources/

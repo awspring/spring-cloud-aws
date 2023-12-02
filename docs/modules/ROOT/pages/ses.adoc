@@ -1,5 +1,4 @@
-[#spring-cloud-aws-ses]
-== SES Integration
+= SES Integration
 Spring has a built-in support to send e-mails based on the https://www.oracle.com/technetwork/java/javamail/index.html[Java Mail API]
 to avoid any static method calls while using the Java Mail API and thus supporting the testability of an application.
 Spring Cloud AWS supports the https://aws.amazon.com/de/ses/[Amazon SES] as an implementation of the Spring Mail abstraction.
@@ -26,7 +25,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-=== Sending simple mails
+== Sending simple mails
 Application developers can inject the `MailSender` into their application code and directly send simple text based e-mail
 messages. The sample below demonstrates the creation of a simple mail message.
 
@@ -54,8 +53,7 @@ class MailSendingService {
 }
 ----
 
-
-=== Sending attachments and/or HTML e-mails
+== Sending attachments and/or HTML e-mails
 
 Sending attachments with e-mail or HTML e-mails requires MIME messages to be created and sent. In order to create MIME messages,
 the Java Mail API dependency and an implementation need to be in the classpath. Spring Cloud AWS will detect the
@@ -116,7 +114,7 @@ class MailSendingService {
 }
 ----
 
-=== Authenticating e-mails
+== Authenticating e-mails
 
 To avoid any spam attacks on the Amazon SES mail service, applications without production access must
 https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html[verify] each
@@ -125,7 +123,7 @@ e-mail receiver otherwise the mail sender will throw a `software.amazon.awssdk.s
 https://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html[Production access] can be requested
 and will disable the need for mail address verification.
 
-=== Configuration
+== Configuration
 
 The Spring Boot Starter for SES provides the following configuration options:
 
@@ -153,7 +151,7 @@ spring.cloud.aws.ses.region=eu-west-1
 spring.cloud.aws.ses.sourceArn=arn:aws:ses:eu-west-1:123456789012:identity/example.com
 ----
 
-=== IAM Permissions
+== IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2"]

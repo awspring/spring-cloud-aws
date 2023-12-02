@@ -1,5 +1,4 @@
-[#spring-cloud-aws-parameter-store]
-== Parameter Store Integration
+= Parameter Store Integration
 
 Spring Cloud AWS adds support for loading configuration properties from Parameter Store through Spring Boot https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-files-importing[config import feature].
 
@@ -13,7 +12,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-=== Loading External Configuration
+== Loading External Configuration
 
 To fetch parameters from Parameter Store and add them to Spring's environment properties, add `spring.config.import` property to `application.properties`:
 
@@ -61,7 +60,7 @@ spring.config.import[1]=aws-parameterstore=/config/optional-params/
 If you add indexed parameter names such as `/config/application/cloud.aws.stack_0_.name`, `/config/application/cloud.aws.stack_1_.name`, ... to Parameter Store,
 these will become accessible as array properties `cloud.aws.stack[0].name`, `cloud.aws.stack[1].name`, ... in Spring.
 
-==== Adding prefix to property keys
+=== Adding prefix to property keys
 
 To avoid property key collisions it is possible to configure a property key prefix that gets added to each resolved parameter.
 
@@ -87,8 +86,7 @@ With such config, properties `spring.datasource.url` and `spring.datasource.user
 
 NOTE: Prefixes are added as-is to all property names returned by Parameter Store. If you want key names to be separated with a dot between the prefix and key name, make sure to add a trailing dot to the prefix.
 
-
-=== Using SsmClient
+== Using SsmClient
 
 The starter automatically configures and registers a `SsmClient` bean in the Spring application context. The `SsmClient` bean can be used to create or retrieve parameters from Parameter Store.
 
@@ -103,7 +101,7 @@ private SsmClient ssmClient;
 ssmClient.getParametersByPath(request -> request.path("/config/spring/")).parameters();
 ----
 
-=== Customizing SsmClient
+== Customizing SsmClient
 
 To use custom `SsmClient` in `spring.config.import`, provide an implementation of `BootstrapRegistryInitializer`. For example:
 
@@ -177,7 +175,7 @@ class ParameterStoreBootstrapConfiguration implements BootstrapRegistryInitializ
 }
 ----
 
-=== `PropertySource` Reload
+== `PropertySource` Reload
 
 Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
 The reload feature of Spring Cloud AWS Parameter Store integration is able to trigger an application reload when a related parameter value changes.
@@ -244,7 +242,7 @@ public class MyBean {
 The reload feature periodically re-creates the configuration from config maps and secrets to see if it has changed.
 You can configure the polling period by using the `spring.cloud.aws.parameter.reload.period` (default value is 1 minute).
 
-=== Configuration
+== Configuration
 
 The Spring Boot Starter for Parameter Store provides the following configuration options:
 
@@ -259,7 +257,7 @@ The Spring Boot Starter for Parameter Store provides the following configuration
 | `spring.cloud.aws.parameterstore.reload.max-wait-time-for-restart` | `Duration`| `2s` | The maximum time between the detection of changes in property source and the application context restart when `restart_context` strategy is used.
 |===
 
-=== IAM Permissions
+== IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2"]

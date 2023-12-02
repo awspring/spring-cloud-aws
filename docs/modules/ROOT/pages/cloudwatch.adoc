@@ -1,4 +1,5 @@
-== CloudWatch Metrics
+= CloudWatch Metrics
+
 Spring Cloud AWS provides Spring Boot auto-configuration for Micrometer CloudWatch integration.
 To send metrics to CloudWatch add a dependency to `micrometer-registry-cloudwatch` module:
 
