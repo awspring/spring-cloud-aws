@@ -10,4 +10,4 @@ clean:
 	mvnd clean
 
 docs:
-	mvnd verify -Pdocs -DskipTests=true
+	mvnd verify -Pdocs-classic -DskipTests=true
