@@ -193,7 +193,7 @@ public class S3Template implements S3Operations {
 
 		PutObjectRequest.Builder putObjectRequestBuilder = PutObjectRequest.builder().bucket(bucketName).key(key);
 		if (metadata != null) {
-			putObjectRequestBuilder.metadata(metadata.getMetadata());
+			metadata.apply(putObjectRequestBuilder);
 		}
 		if (contentType != null) {
 			putObjectRequestBuilder.contentType(contentType);

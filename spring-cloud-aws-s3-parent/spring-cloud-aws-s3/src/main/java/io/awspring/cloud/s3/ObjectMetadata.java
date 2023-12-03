@@ -45,6 +45,9 @@ public class ObjectMetadata {
 	private final String contentLanguage;
 
 	@Nullable
+	private final Long contentLength;
+
+	@Nullable
 	private final String contentType;
 
 	@Nullable
@@ -119,21 +122,22 @@ public class ObjectMetadata {
 
 	ObjectMetadata(@Nullable String acl, @Nullable String cacheControl, @Nullable String contentDisposition,
 			@Nullable String contentEncoding, @Nullable String contentLanguage, @Nullable String contentType,
-			@Nullable Instant expires, @Nullable String grantFullControl, @Nullable String grantRead,
-			@Nullable String grantReadACP, @Nullable String grantWriteACP, @Nullable Map<String, String> metadata,
-			@Nullable String serverSideEncryption, @Nullable String storageClass,
-			@Nullable String websiteRedirectLocation, @Nullable String sseCustomerAlgorithm,
-			@Nullable String sseCustomerKey, @Nullable String sseCustomerKeyMD5, @Nullable String ssekmsKeyId,
-			@Nullable String ssekmsEncryptionContext, @Nullable Boolean bucketKeyEnabled, @Nullable String requestPayer,
-			@Nullable String tagging, @Nullable String objectLockMode, @Nullable Instant objectLockRetainUntilDate,
-			@Nullable String objectLockLegalHoldStatus, @Nullable String expectedBucketOwner,
-			@Nullable String checksumAlgorithm) {
+			@Nullable Long contentLength, @Nullable Instant expires, @Nullable String grantFullControl,
+			@Nullable String grantRead, @Nullable String grantReadACP, @Nullable String grantWriteACP,
+			@Nullable Map<String, String> metadata, @Nullable String serverSideEncryption,
+			@Nullable String storageClass, @Nullable String websiteRedirectLocation,
+			@Nullable String sseCustomerAlgorithm, @Nullable String sseCustomerKey, @Nullable String sseCustomerKeyMD5,
+			@Nullable String ssekmsKeyId, @Nullable String ssekmsEncryptionContext, @Nullable Boolean bucketKeyEnabled,
+			@Nullable String requestPayer, @Nullable String tagging, @Nullable String objectLockMode,
+			@Nullable Instant objectLockRetainUntilDate, @Nullable String objectLockLegalHoldStatus,
+			@Nullable String expectedBucketOwner, @Nullable String checksumAlgorithm) {
 		this.acl = acl;
 		this.cacheControl = cacheControl;
 		this.contentDisposition = contentDisposition;
 		this.contentEncoding = contentEncoding;
 		this.contentLanguage = contentLanguage;
 		this.contentType = contentType;
+		this.contentLength = contentLength;
 		this.expires = expires;
 		this.grantFullControl = grantFullControl;
 		this.grantRead = grantRead;
@@ -176,6 +180,9 @@ public class ObjectMetadata {
 		}
 		if (contentType != null) {
 			builder.contentType(contentType);
+		}
+		if (contentLength != null) {
+			builder.contentLength(contentLength);
 		}
 		if (expires != null) {
 			builder.expires(expires);
@@ -333,6 +340,9 @@ public class ObjectMetadata {
 	}
 
 	void apply(UploadPartRequest.Builder builder) {
+		if (contentLength != null) {
+			builder.contentLength(contentLength);
+		}
 		if (sseCustomerAlgorithm != null) {
 			builder.sseCustomerAlgorithm(sseCustomerAlgorithm);
 		}
@@ -399,6 +409,11 @@ public class ObjectMetadata {
 	@Nullable
 	public String getContentType() {
 		return contentType;
+	}
+
+	@Nullable
+	public Long getContentLength() {
+		return contentLength;
 	}
 
 	@Nullable
@@ -534,6 +549,9 @@ public class ObjectMetadata {
 		private String contentType;
 
 		@Nullable
+		private Long contentLength;
+
+		@Nullable
 		private Instant expires;
 
 		@Nullable
@@ -627,6 +645,11 @@ public class ObjectMetadata {
 
 		public Builder contentType(@Nullable String contentType) {
 			this.contentType = contentType;
+			return this;
+		}
+
+		public Builder contentLength(@Nullable Long contentLength) {
+			this.contentLength = contentLength;
 			return this;
 		}
 
@@ -767,11 +790,11 @@ public class ObjectMetadata {
 
 		public ObjectMetadata build() {
 			return new ObjectMetadata(acl, cacheControl, contentDisposition, contentEncoding, contentLanguage,
-					contentType, expires, grantFullControl, grantRead, grantReadACP, grantWriteACP, metadata,
-					serverSideEncryption, storageClass, websiteRedirectLocation, sseCustomerAlgorithm, sseCustomerKey,
-					sseCustomerKeyMD5, ssekmsKeyId, ssekmsEncryptionContext, bucketKeyEnabled, requestPayer, tagging,
-					objectLockMode, objectLockRetainUntilDate, objectLockLegalHoldStatus, expectedBucketOwner,
-					checksumAlgorithm);
+					contentType, contentLength, expires, grantFullControl, grantRead, grantReadACP, grantWriteACP,
+					metadata, serverSideEncryption, storageClass, websiteRedirectLocation, sseCustomerAlgorithm,
+					sseCustomerKey, sseCustomerKeyMD5, ssekmsKeyId, ssekmsEncryptionContext, bucketKeyEnabled,
+					requestPayer, tagging, objectLockMode, objectLockRetainUntilDate, objectLockLegalHoldStatus,
+					expectedBucketOwner, checksumAlgorithm);
 		}
 
 	}
