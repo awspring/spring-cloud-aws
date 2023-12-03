@@ -7,7 +7,6 @@
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
 		<version>4.1.0-RC1</version>
-<!--		<version>4.1.0-RC1</version>-->
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
