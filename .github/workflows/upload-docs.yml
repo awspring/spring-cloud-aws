@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: macos-12
 
     steps:
       - uses: actions/checkout@v2
@@ -41,7 +41,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Build docs
-        run: ./mvnw clean package -Pdocs-classic,spring -DskipTests=true -e
+        run: ./mvnw clean asciidoctor:process-asciidoc -Pdocs-classic,spring -DskipTests=true -e
       - name: Upload to S3
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY }}
