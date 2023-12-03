@@ -244,7 +244,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>docs</id>
+			<id>docs-classic</id>
 			<build>
 				<plugins>
 					<plugin>
