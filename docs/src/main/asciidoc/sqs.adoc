@@ -640,6 +640,8 @@ See <<FIFO Support>> for more information.
 If any value is set, it will take precedence over the acknowledgement mode defined for the container factory options.
 See <<Acknowledgement Mode>> for more information.
 
+NOTE: When using `acknowledgementMode`, if you are also defining any custom `SqsMessageListenerContainerFactory` bean, it is necessary to update the default bean name for `SqsMessageListenerContainerFactory` to the bean name of your custom factory. This will allow this annotation to override the acknowledgement mode in your factory. This can be achieved by creating and configuring a `SqsListenerConfigurer` bean. Refer to section <<Global Configuration for @SqsListeners>> for more information, and see <<Specifying a MessageListenerContainerFactory>> for more details about this bean naming caveat.
+
 ===== Listener Method Arguments
 
 A number of possible argument types are allowed in the listener method's signature.
