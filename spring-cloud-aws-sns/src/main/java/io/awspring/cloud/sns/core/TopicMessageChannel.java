@@ -103,7 +103,7 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 				messageAttributes.put(messageHeaderName, getStringMessageAttribute(messageHeaderValue.toString()));
 			}
 			else if (MessageHeaders.TIMESTAMP.equals(messageHeaderName) && messageHeaderValue != null) {
-				messageAttributes.put(messageHeaderName, getNumberMessageAttribute(messageHeaderValue));
+				messageAttributes.put(messageHeaderName, getDetailedNumberMessageAttribute(messageHeaderValue));
 			}
 			else if (messageHeaderValue instanceof String) {
 				messageAttributes.put(messageHeaderName, getStringMessageAttribute((String) messageHeaderValue));

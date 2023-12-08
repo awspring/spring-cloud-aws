@@ -70,6 +70,18 @@ To use a custom implementation, declare a bean of type `DynamoDbTableNameResolve
 
 To resolve a table schema for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableSchemaResolver`. The default implementation caches `TableSchema` objects in internal map.
 To use custom implementation, declare a bean of type `DynamoDbTableSchemaResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
+To register a custom table schema for a DynamoDB entity a bean of type `TableSchema`  should be created:
+[source, java]
+----
+@Configuration
+public class MyTableSchemaConfiguration {
+
+    @Bean
+    public TableSchema<MyEntity> myEntityTableSchema() {
+        // create and return a TableSchema object for the MyEntity class
+    }
+}
+----
 
 IMPORTANT: Because of classloader related https://github.com/aws/aws-sdk-java-v2/issues/2604[issue] in AWS SDK DynamoDB Enhanced client, to use Spring Cloud AWS DynamoDB module together with Spring Boot DevTools you must create a custom table schema resolver and define schema using `StaticTableSchema`.
 

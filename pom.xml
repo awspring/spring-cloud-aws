@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>4.0.5</version>
+		<version>4.1.0-RC1</version>
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>3.0.2</version>
+	<version>3.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 
@@ -27,10 +27,10 @@
 	</scm>
 
 	<properties>
-		<spotless.version>2.31.0</spotless.version>
+		<spotless.version>2.40.0</spotless.version>
 		<jacoco.version>0.8.8</jacoco.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<testcontainers.version>1.18.0</testcontainers.version>
+		<testcontainers.version>1.19.1</testcontainers.version>
 	</properties>
 
 	<modules>
@@ -244,7 +244,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>docs</id>
+			<id>docs-classic</id>
 			<build>
 				<plugins>
 					<plugin>

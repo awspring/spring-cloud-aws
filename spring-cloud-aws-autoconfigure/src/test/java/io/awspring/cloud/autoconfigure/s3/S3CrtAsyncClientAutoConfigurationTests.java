@@ -25,6 +25,7 @@ import java.net.URI;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -105,6 +106,14 @@ class S3CrtAsyncClientAutoConfigurationTests {
 					assertThat(s3NativeClientConfiguration.targetThroughputInGbps()).isEqualTo(100);
 					assertThat(s3NativeClientConfiguration.maxConcurrency()).isEqualTo(20);
 				});
+	}
+
+	@Test
+	void handlesMissingS3AsyncClient() {
+		contextRunner.withClassLoader(new FilteredClassLoader(S3AsyncClient.class)).run(context -> {
+			assertThat(context).hasNotFailed();
+			assertThat(context).doesNotHaveBean(S3AsyncClient.class);
+		});
 	}
 
 	private static S3NativeClientConfiguration s3NativeClientConfiguration(S3AsyncClient client) {

@@ -43,11 +43,11 @@ class SnsSmsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(SNS).withEnv("DEBUG", "1");
+			DockerImageName.parse("localstack/localstack:2.3.2")).withServices(SNS).withEnv("DEBUG", "1");
 
 	@BeforeAll
 	public static void createSnsTemplate() {
-		SnsClient snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(SNS))
+		SnsClient snsClient = SnsClient.builder().endpointOverride(localstack.getEndpoint())
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();

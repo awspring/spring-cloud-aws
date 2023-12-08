@@ -64,15 +64,15 @@ class SnsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(SNS).withServices(SQS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.3.2")).withServices(SNS).withServices(SQS).withReuse(true);
 
 	@BeforeAll
 	public static void createSnsTemplate() {
-		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(SNS))
+		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpoint())
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
-		sqsClient = SqsClient.builder().endpointOverride(localstack.getEndpointOverride(SQS))
+		sqsClient = SqsClient.builder().endpointOverride(localstack.getEndpoint())
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
@@ -196,7 +196,7 @@ class SnsTemplateIntegrationTest {
 			SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, topicsListingTopicArnResolver, null);
 			assertThatThrownBy(
 					() -> snsTemplateTestCache.sendNotification("Some_random_topic", "message content", "subject"))
-							.isInstanceOf(TopicNotFoundException.class);
+					.isInstanceOf(TopicNotFoundException.class);
 		}
 
 		private static void createTopics() {

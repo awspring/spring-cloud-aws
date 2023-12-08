@@ -35,6 +35,7 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.Validator;
 
 /**
  * Processes the registered {@link Endpoint} instances using the appropriate {@link MessageListenerContainerFactory}.
@@ -70,6 +71,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	};
 
 	private ObjectMapper objectMapper;
+	private Validator validator;
 
 	/**
 	 * Set a custom {@link MessageHandlerMethodFactory} implementation.
@@ -116,6 +118,15 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	public void setObjectMapper(ObjectMapper objectMapper) {
 		Assert.notNull(objectMapper, "objectMapper cannot be null.");
 		this.objectMapper = objectMapper;
+	}
+
+	/**
+	 * Set the {@link Validator} instance used for payload validating in {@link HandlerMethodArgumentResolver}
+	 * instances.
+	 * @param validator payload validator.
+	 */
+	public void setValidator(Validator validator) {
+		this.validator = validator;
 	}
 
 	/**
@@ -167,6 +178,15 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 */
 	public MessageHandlerMethodFactory getMessageHandlerMethodFactory() {
 		return this.messageHandlerMethodFactory;
+	}
+
+	/**
+	 * Return the {@link Validator} instance used for payload validating in {@link HandlerMethodArgumentResolver}
+	 * instances.
+	 * @return the payload validator.
+	 */
+	public Validator getValidator() {
+		return this.validator;
 	}
 
 	@Override

@@ -44,8 +44,8 @@ class NotificationMessageHandlerMethodArgumentResolverTest {
 		// Assert
 		assertThatThrownBy(
 				() -> resolver.resolveArgument(methodParameter, null, new ServletWebRequest(servletRequest), null))
-						.isInstanceOf(IllegalArgumentException.class)
-						.hasMessageContaining("@NotificationMessage annotated parameters are only allowed");
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("@NotificationMessage annotated parameters are only allowed");
 	}
 
 	@Test
