@@ -87,7 +87,8 @@ class S3CrtAsyncClientAutoConfigurationTests {
 		contextRunner.withPropertyValues("spring.cloud.aws.s3.path-style-access-enabled:true").run(context -> {
 			S3AsyncClient client = context.getBean(S3AsyncClient.class);
 			S3AsyncClient delegate = (S3AsyncClient) ReflectionTestUtils.getField(client, "delegate");
-			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(delegate, "clientConfiguration");
+			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(delegate,
+					"clientConfiguration");
 			AttributeMap contextParams = clientConfiguration.option(SdkClientOption.CLIENT_CONTEXT_PARAMS);
 			assertThat(contextParams.get(S3ClientContextParams.FORCE_PATH_STYLE)).isTrue();
 		});
