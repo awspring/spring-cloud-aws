@@ -28,9 +28,13 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Tests for {@link S3CrtAsyncClientAutoConfiguration}.
@@ -76,6 +80,17 @@ class S3CrtAsyncClientAutoConfigurationTests {
 						assertThat(configuredClient.isEndpointOverridden()).isTrue();
 					});
 		}
+	}
+
+	@Test
+	void withPathStyleAccessEnabled() {
+		contextRunner.withPropertyValues("spring.cloud.aws.s3.path-style-access-enabled:true").run(context -> {
+			S3AsyncClient client = context.getBean(S3AsyncClient.class);
+			S3AsyncClient delegate = (S3AsyncClient) ReflectionTestUtils.getField(client, "delegate");
+			SdkClientConfiguration clientConfiguration = (SdkClientConfiguration) ReflectionTestUtils.getField(delegate, "clientConfiguration");
+			AttributeMap contextParams = clientConfiguration.option(SdkClientOption.CLIENT_CONTEXT_PARAMS);
+			assertThat(contextParams.get(S3ClientContextParams.FORCE_PATH_STYLE)).isTrue();
+		});
 	}
 
 	@Test
