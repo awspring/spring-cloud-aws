@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
-		<version>4.1.0-RC1</version>
+		<version>4.1.0</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -28,7 +28,7 @@
 		<awssdk-v2.version>2.21.12</awssdk-v2.version>
 		<amazon.dax.version>2.0.4</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<spring-cloud-commons.version>4.1.0-RC1</spring-cloud-commons.version>
+		<spring-cloud-commons.version>4.1.0</spring-cloud-commons.version>
 		<jakarta.mail.version>2.1.0</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
 		<aws-crt.version>0.28.3</aws-crt.version>
