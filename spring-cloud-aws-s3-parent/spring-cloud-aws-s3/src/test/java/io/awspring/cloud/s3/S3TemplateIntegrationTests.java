@@ -61,6 +61,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
  *
  * @author Maciej Walkowiak
  * @author Yuki Yoshida
+ * @author Ziemowit Stolarczyk
  */
 @Testcontainers
 class S3TemplateIntegrationTests {
@@ -162,6 +163,26 @@ class S3TemplateIntegrationTests {
 
 		assertThatExceptionOfType(NoSuchKeyException.class)
 				.isThrownBy(() -> client.headObject(r -> r.bucket(BUCKET_NAME).key("key.txt")));
+	}
+
+	@Test
+	void whenObjectExistsShouldReturnTrue() {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("key.txt"), RequestBody.fromString("hello"));
+
+		final boolean existsObject = s3Template.objectExists(BUCKET_NAME, "key.txt");
+
+		assertThat(existsObject).isTrue();
+	}
+
+	@Test
+	void whenObjectNotExistsShouldReturnFalse() {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("key.txt"), RequestBody.fromString("hello"));
+
+		final boolean existsObject1 = s3Template.objectExists(BUCKET_NAME, "other-key.txt");
+		final boolean existsObject2 = s3Template.objectExists("other-bucket", "key.txt");
+
+		assertThat(existsObject1).isFalse();
+		assertThat(existsObject2).isFalse();
 	}
 
 	@Test
