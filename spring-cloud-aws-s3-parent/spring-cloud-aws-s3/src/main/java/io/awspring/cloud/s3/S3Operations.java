@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
  * {@link S3Template}.
  *
  * @author Maciej Walkowiak
+ * @author Ziemowit Stolarczyk
  * @since 3.0
  */
 public interface S3Operations {
@@ -69,6 +70,15 @@ public interface S3Operations {
 	 * @param s3Url - the S3 url s3://bucket/key
 	 */
 	void deleteObject(String s3Url);
+
+	/**
+	 * Checks if an S3 object exists.
+	 *
+	 * @param bucketName - the bucket name
+	 * @param key - the object key
+	 * @return true if object exists; false otherwise
+	 */
+	boolean objectExists(String bucketName, String key);
 
 	/**
 	 * Returns some or all (up to 1,000) of the objects in a bucket. Does not handle pagination. If you need pagination
