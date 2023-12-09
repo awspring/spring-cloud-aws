@@ -1,0 +1,51 @@
+[#spring-cloud-aws-imds]
+== Instance Metadata Service Integration
+
+Spring Cloud AWS applications can use the Instance MetaData Service (IMDS) to acquire EC2 instance metadata when running within an EC2-based compute environment.  This metadata can be used for a wide variety of reasons, including detecting the availability zone, public IP address, MAC address, and so on.  When available, properties can be referenced using the @Value annotation:
+
+[source,java]
+----
+@Value("placement/availability-zone") String availabilityZone;
+@Value("public-ipv4") String publicIPAddress;
+@Value("mac") String macAddress;
+----
+
+A full list of instance metadata tags is available in the AWS reference documentation at link:https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-categories.html[AWS EC2 User Guide - Instance Metadata Categories]. Spring Cloud AWS always retrieves the "latest" categories of metadata and removes the prefix so that "/latest/meta-data/instance-id" is available as "instance-id".  The "spring.cloud.aws" prefix is also omitted. 
+
+=== Enabling
+
+To enable instance metadata, add the spring-cloud-aws-starter-imds starter.  
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter-imds</artifactId>
+</dependency>
+----
+
+This adds the software.amazon.awssdk/imds dependency to the classpath which is used to query the IMDS.  Depending on resources, metadata loading can add a half-second delay to application start time.  Loading can be explicitly disabled by setting spring.cloud.aws.imds.enabled propery:  
+
+[source,properties]
+----
+spring.cloud.aws.imds.enabled=false
+----
+
+Instance metadata is generally available on any EC2-based compute environment, which includes EC2, Elastic Beanstalk, Elastic Container Service (ECS), Elastic Kubernetes Service (EKS), etc.  It is not available in non-EC2 environments such as Lambda or Fargate.  Even within EC2-based compute environments instance metadata may be disabled or may be subject to an internal firewall which prohibits it.  Whenever instance metadata is unavailable, including when running on a local environment, the autoconfiguration process silently ignores its absence.
+
+=== Considerations
+
+Instance metadata is retrieved on a best effort basis and not all keys are always available.  For example, the "ipv6" key would only be present if IPv6 addresses were being used, "public-hostname" would only be available for instances running in public subnets with DNS hostnames enabled.
+
+Instance metadata is retrieved at application start time and is not updated as the application runs.  Both IDMS v1 and v2 are supported.  Certain keys / ranges are not retrieved, including "block-device-mapping/\*", "events/\*", "iam/security-credentials/\*", "network/interfaces/\*", "public-keys/\*", "spot/\*" for various reasons including security.  For example, Some keys such as "spot/termination-time" are only reliable if polled on an interval; presenting their static values obtained at startup time would be deceptive.  If you have such a requirement, consider polling the key yourself using the Ec2MetadataClient from the SDK: 
+
+[source,java]
+----
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.imds.Ec2MetadataClient;
+import software.amazon.awssdk.imds.Ec2MetadataResponse;
+...
+@Autowired Ec2MetadataClient client;
+client.get("/latest/meta-data/spot/termination-time");
+----
+
