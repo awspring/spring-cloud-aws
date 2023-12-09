@@ -99,12 +99,15 @@ public class SqsAutoConfiguration {
 		errorHandler.ifAvailable(factory::setErrorHandler);
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
-		objectMapperProvider.ifAvailable(objectMapper -> {
-			var messageConverter = new SqsMessagingMessageConverter();
-			messageConverter.setObjectMapper(objectMapper);
-			factory.configure(options -> options.messageConverter(messageConverter));
-		});
+		objectMapperProvider.ifAvailable(objectMapper -> setObjectMapper(factory, objectMapper));
 		return factory;
+	}
+
+	private void setObjectMapper(SqsMessageListenerContainerFactory<Object> factory, ObjectMapper objectMapper) {
+		// Object Mapper for early deserialization in MessageSource
+		var messageConverter = new SqsMessagingMessageConverter();
+		messageConverter.setObjectMapper(objectMapper);
+		factory.configure(options -> options.messageConverter(messageConverter));
 	}
 
 	private void configureContainerOptions(ContainerOptionsBuilder<?, ?> options) {
@@ -118,6 +121,7 @@ public class SqsAutoConfiguration {
 	public SqsListenerConfigurer objectMapperCustomizer(ObjectProvider<ObjectMapper> objectMapperProvider) {
 		ObjectMapper objectMapper = objectMapperProvider.getIfUnique();
 		return registrar -> {
+			// Object Mapper for SqsListener annotations handler method
 			if (registrar.getObjectMapper() == null && objectMapper != null) {
 				registrar.setObjectMapper(objectMapper);
 			}
