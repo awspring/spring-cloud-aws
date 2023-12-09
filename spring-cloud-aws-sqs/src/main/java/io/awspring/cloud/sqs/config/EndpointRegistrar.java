@@ -28,6 +28,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
@@ -58,6 +59,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	private MessageListenerContainerRegistry listenerContainerRegistry;
 
+	@Nullable
 	private String messageListenerContainerRegistryBeanName;
 
 	private String defaultListenerContainerFactoryBeanName = DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME;
@@ -70,7 +72,10 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	private Consumer<List<HandlerMethodArgumentResolver>> methodArgumentResolversConsumer = resolvers -> {
 	};
 
+	@Nullable
 	private ObjectMapper objectMapper;
+
+	@Nullable
 	private Validator validator;
 
 	/**
@@ -167,6 +172,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 * Get the object mapper used to deserialize payloads.
 	 * @return the object mapper instance.
 	 */
+	@Nullable
 	public ObjectMapper getObjectMapper() {
 		return this.objectMapper;
 	}
@@ -185,6 +191,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 * instances.
 	 * @return the payload validator.
 	 */
+	@Nullable
 	public Validator getValidator() {
 		return this.validator;
 	}
