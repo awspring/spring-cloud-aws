@@ -210,6 +210,13 @@ Such attributes are available as `MessageHeaders` in received messages.
 |All
 |Set the message system attribute names that will be retrieved with messages on receive operations.
 Such attributes are available as `MessageHeaders` in received messages.
+
+|`contentBasedDeduplication`
+|ContentBasedDeduplication
+|ContentBasedDeduplication
+#AUTO
+|Set the ContentBasedDeduplication queue attribute value of the queues the template is sending messages to.
+With `ContentBasedDeduplication#AUTO`, the queue attribute value will be resolved automatically.
 |===
 
 ==== Sending Messages
