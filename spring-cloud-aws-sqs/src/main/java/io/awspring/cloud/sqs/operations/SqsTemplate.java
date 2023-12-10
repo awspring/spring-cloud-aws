@@ -291,7 +291,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private <T> org.springframework.messaging.Message<T> addMissingFifoSendHeaders(
 			org.springframework.messaging.Message<T> message, Map<String, Object> additionalHeaders) {
 		return MessageHeaderUtils.addHeadersIfAbsent(message,
-				Stream.concat(additionalHeaders.entrySet().stream(), getRandomMessageGroupIdHeader().entrySet().stream())
+				Stream.concat(additionalHeaders.entrySet().stream(),
+						getRandomMessageGroupIdHeader().entrySet().stream())
 						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 	}
 
