@@ -39,6 +39,9 @@ import org.springframework.util.Assert;
 /**
  * Base class for {@link MessagingOperations}
  * @param <S> the source message type for conversion
+ *
+ * @author Tomaz Fernandes
+ * @since 3.0
  */
 public abstract class AbstractMessagingTemplate<S> implements MessagingOperations, AsyncMessagingOperations {
 
@@ -275,34 +278,43 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	@Override
 	public <T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, Message<T> message) {
 		String endpointToUse = getEndpointName(endpointName);
-		Message<T> messageToUse = preProcessMessageForSend(endpointToUse, message);
 		logger.trace("Sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointName);
-		return doSendAsync(endpointToUse, convertMessageToSend(messageToUse), messageToUse)
-				.exceptionallyCompose(
-						t -> CompletableFuture
-								.failedFuture(new MessagingOperationFailedException(
+		return preProcessMessageForSendAsync(endpointToUse, message).thenCompose(
+				messageToUse -> doSendAsync(endpointToUse, convertMessageToSend(messageToUse), messageToUse)
+						.exceptionallyCompose(
+								t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
 										"Message send operation failed for message %s to endpoint %s"
 												.formatted(MessageHeaderUtils.getId(message), endpointToUse),
 										endpointToUse, message, t)))
-				.whenComplete((v, t) -> logSendMessageResult(endpointToUse, message, t));
+						.whenComplete((v, t) -> logSendMessageResult(endpointToUse, message, t)));
 	}
 
 	protected abstract <T> Message<T> preProcessMessageForSend(String endpointToUse, Message<T> message);
+
+	protected <T> CompletableFuture<Message<T>> preProcessMessageForSendAsync(String endpointToUse,
+			Message<T> message) {
+		return CompletableFuture.completedFuture(preProcessMessageForSend(endpointToUse, message));
+	}
 
 	@Override
 	public <T> CompletableFuture<SendResult.Batch<T>> sendManyAsync(@Nullable String endpointName,
 			Collection<Message<T>> messages) {
 		logger.trace("Sending messages {} to endpoint {}", MessageHeaderUtils.getId(messages), endpointName);
 		String endpointToUse = getEndpointName(endpointName);
-		Collection<Message<T>> messagesToUse = preProcessMessagesForSend(endpointToUse, messages);
-		return doSendBatchAsync(endpointToUse, convertMessagesToSend(messagesToUse), messagesToUse)
-				.exceptionallyCompose(t -> wrapSendException(messagesToUse, endpointToUse, t))
-				.thenCompose(result -> handleFailedMessages(endpointToUse, result))
-				.whenComplete((v, t) -> logSendMessageBatchResult(endpointToUse, messagesToUse, t));
+		return preProcessMessagesForSendAsync(endpointToUse, messages).thenCompose(
+				messagesToUse -> doSendBatchAsync(endpointToUse, convertMessagesToSend(messagesToUse), messagesToUse)
+						.exceptionallyCompose(t -> wrapSendException(messagesToUse, endpointToUse, t))
+						.thenCompose(result -> handleFailedMessages(endpointToUse, result))
+						.whenComplete((v, t) -> logSendMessageBatchResult(endpointToUse, messagesToUse, t)));
 	}
 
 	protected abstract <T> Collection<Message<T>> preProcessMessagesForSend(String endpointToUse,
 			Collection<Message<T>> messages);
+
+	protected <T> CompletableFuture<Collection<Message<T>>> preProcessMessagesForSendAsync(String endpointToUse,
+			Collection<Message<T>> messages) {
+		return CompletableFuture.completedFuture(preProcessMessagesForSend(endpointToUse, messages));
+	}
 
 	private <T> CompletableFuture<SendResult.Batch<T>> handleFailedMessages(String endpointToUse,
 			SendResult.Batch<T> result) {
