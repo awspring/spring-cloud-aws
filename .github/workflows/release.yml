@@ -47,7 +47,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Run tests
-        run: ./mvnw -V verify javadoc:aggregate -Pspring,docs
+        run: ./mvnw -V verify javadoc:aggregate -Pspring,docs-classic
       - name: Deploy to Sonatype
         run: ./mvnw -V -Prelease,spring deploy -DskipTests
         env:
