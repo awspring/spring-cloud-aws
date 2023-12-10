@@ -24,7 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.logging.Log;
 import org.springframework.boot.BootstrapContext;
-import org.springframework.boot.context.config.*;
+import org.springframework.boot.context.config.ConfigDataLocation;
+import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
+import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
+import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLogFactory;
@@ -59,9 +62,9 @@ public class SecretsManagerConfigDataLocationResolver
 	}
 
 	@Override
-	public List<SecretsManagerConfigDataResource> resolve(ConfigDataLocationResolverContext resolverContext,
-			ConfigDataLocation location)
-			throws ConfigDataLocationNotFoundException, ConfigDataResourceNotFoundException {
+	public List<SecretsManagerConfigDataResource> resolveProfileSpecific(
+			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
+			throws ConfigDataLocationNotFoundException {
 		registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, SecretsManagerProperties.class, loadProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, CredentialsProperties.class,

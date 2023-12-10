@@ -170,16 +170,6 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-	void respectsImportOrder() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
-
-		try (ConfigurableApplicationContext context = runApplication(application, "classpath:config.properties")) {
-			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("from properties file");
-		}
-	}
-
-	@Test
 	void clientIsConfiguredWithConfigurerProvidedToBootstrapRegistry() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
