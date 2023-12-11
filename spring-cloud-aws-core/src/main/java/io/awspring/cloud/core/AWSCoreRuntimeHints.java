@@ -18,7 +18,7 @@ package io.awspring.cloud.core;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 
-public class SpringCloudClientAOT implements RuntimeHintsRegistrar {
+public class AWSCoreRuntimeHints implements RuntimeHintsRegistrar {
 
 	@Override
 	public void registerHints(RuntimeHints hints, ClassLoader classLoader) {

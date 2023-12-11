@@ -1,3 +1,2 @@
 org.springframework.aot.hint.RuntimeHintsRegistrar=\
-io.awspring.cloud.autoconfigure.config.ConfigStoreAOT\
-io.awspring.cloud.autoconfigure.core.CoreAOT
+io.awspring.cloud.autoconfigure.config.ConfigStoreRuntimeHints

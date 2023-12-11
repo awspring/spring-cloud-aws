@@ -1,1 +1,1 @@
-org.springframework.aot.hint.RuntimeHintsRegistrar=io.awspring.cloud.core.SpringCloudClientAOT
+org.springframework.aot.hint.RuntimeHintsRegistrar=io.awspring.cloud.core.AWSCoreRuntimeHints
