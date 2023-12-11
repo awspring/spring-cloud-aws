@@ -132,6 +132,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.wiremock</groupId>
+			<artifactId>wiremock-standalone</artifactId>
+			<version>3.3.1</version>
+			<scope>test</scope>
+		</dependency>		
+		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-cloudwatch2</artifactId>
 			<optional>true</optional>
