@@ -71,6 +71,29 @@ class QueueAttributesResolverIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	// @formatter:off
+	@Test
+	void shouldCreateFifoQueue() {
+		String queueName = "testQueueName-" + UUID.randomUUID() + ".fifo";
+		SqsAsyncClient client = createAsyncClient();
+		QueueAttributesResolver resolver = QueueAttributesResolver
+			.builder()
+			.queueAttributeNames(Collections.emptyList())
+			.sqsAsyncClient(client)
+			.queueName(queueName)
+			.queueNotFoundStrategy(QueueNotFoundStrategy.CREATE)
+			.build();
+		try {
+			QueueAttributes attributes = resolver.resolveQueueAttributes().join();
+			assertThat(attributes.getQueueName()).isEqualTo(queueName);
+			assertThat(attributes.getQueueAttribute(QueueAttributeName.QUEUE_ARN)).isNull();
+		}
+		finally {
+			String queueUrl = client.getQueueUrl(GetQueueUrlRequest.builder().queueName(queueName).build()).join().queueUrl();
+			client.deleteQueue(DeleteQueueRequest.builder().queueUrl(queueUrl).build()).join();
+		}
+	}
+
 	@Test
 	void shouldNotCreateQueue() {
 		String queueName = "testQueueName-" + UUID.randomUUID();
