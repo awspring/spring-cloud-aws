@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - name: Set up JDK 17
         uses: sdkman/sdkman-action@master
         id: sdkman
         with:
