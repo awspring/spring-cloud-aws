@@ -14,6 +14,7 @@
 	<properties>
 		<docs.main>spring-cloud-aws</docs.main>
 		<main.basedir>${basedir}/..</main.basedir>
+		<configprops.path>${project.basedir}/src/main/asciidoc/_configprops.adoc</configprops.path>
 		<configprops.inclusionPattern>spring.cloud.aws.*</configprops.inclusionPattern>
 		<upload-docs-zip.phase>deploy</upload-docs-zip.phase>
 		<generated-docs-multipage-output.dir>${project.build.directory}/generated-docs/${project.version}/reference/html</generated-docs-multipage-output.dir>
@@ -60,17 +61,13 @@
 									<configuration>
 										<artifactItems>
 											<artifactItem>
-												<groupId>org.springframework.cloud
-												</groupId>
-												<artifactId>spring-cloud-build-docs
-												</artifactId>
-												<version>${spring-cloud-build.version}
-												</version>
+												<groupId>org.springframework.cloud</groupId>
+												<artifactId>spring-cloud-build-docs</artifactId>
+												<version>${spring-cloud-build.version}</version>
 												<classifier>sources</classifier>
 												<type>jar</type>
 												<overWrite>true</overWrite>
-												<outputDirectory>${docs.resources.dir}
-												</outputDirectory>
+												<outputDirectory>${docs.resources.dir}</outputDirectory>
 											</artifactItem>
 										</artifactItems>
 									</configuration>
@@ -84,17 +81,13 @@
 									<configuration>
 										<artifactItems>
 											<artifactItem>
-												<groupId>org.springframework.cloud
-												</groupId>
-												<artifactId>spring-cloud-build-docs
-												</artifactId>
-												<version>${spring-cloud-build.version}
-												</version>
+												<groupId>org.springframework.cloud</groupId>
+												<artifactId>spring-cloud-build-docs</artifactId>
+												<version>${spring-cloud-build.version}</version>
 												<classifier>jar-with-dependencies</classifier>
 												<type>jar</type>
 												<overWrite>true</overWrite>
-												<outputDirectory>${docs.classes.dir}
-												</outputDirectory>
+												<outputDirectory>${docs.classes.dir}</outputDirectory>
 											</artifactItem>
 										</artifactItems>
 									</configuration>
@@ -140,12 +133,9 @@
 							</executions>
 							<dependencies>
 								<dependency>
-									<groupId>org.springframework.cloud
-									</groupId>
-									<artifactId>spring-cloud-build-docs
-									</artifactId>
-									<version>${spring-cloud-build.version}
-									</version>
+									<groupId>org.springframework.cloud</groupId>
+									<artifactId>spring-cloud-build-docs</artifactId>
+									<version>${spring-cloud-build.version}</version>
 									<classifier>${spring-cloud-build-docs-classifier}</classifier>
 									<type>jar</type>
 								</dependency>
@@ -213,12 +203,10 @@
 									<github-raw>
 										https://raw.githubusercontent.com/spring-cloud/${docs.main}/${github-tag}@
 									</github-raw>
-									<github-code>https://github.com/spring-cloud/${docs.main}/tree/${github-tag}@
-									</github-code>
+									<github-code>https://github.com/spring-cloud/${docs.main}/tree/${github-tag}@</github-code>
 									<github-issues>https://github.com/spring-cloud/${docs.main}/issues/@</github-issues>
 									<github-wiki>https://github.com/spring-cloud/${docs.main}/wiki@</github-wiki>
-									<github-master-code>https://github.com/spring-cloud/${docs.main}/tree/master@
-									</github-master-code>
+									<github-master-code>https://github.com/spring-cloud/${docs.main}/tree/master@</github-master-code>
 									<index-link>${index-link}@</index-link>
 
 									<!-- Spring Cloud specific -->
