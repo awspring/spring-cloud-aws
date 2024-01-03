@@ -94,7 +94,7 @@ public class SecretsManagerConfigDataResource extends ConfigDataResource {
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append("context", context).append("optional", optional)
-				.append("skipped", enabled).toString();
+				.append("enabled", enabled).toString();
 
 	}
 
