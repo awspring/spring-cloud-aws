@@ -17,6 +17,10 @@ package io.awspring.cloud.sqs.listener.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 
 import io.awspring.cloud.sqs.MessageExecutionThreadFactory;
 import io.awspring.cloud.sqs.listener.BackPressureMode;
@@ -43,6 +47,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.retry.backoff.BackOffContext;
+import org.springframework.retry.backoff.BackOffPolicy;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -225,6 +231,60 @@ class AbstractPollingMessageSourceTests {
 		assertThat(doAwait(pollingCounter)).isTrue();
 		source.stop();
 		assertThat(hasThrownError.get()).isFalse();
+	}
+
+	@Test
+	void shouldBackOffIfPollingThrowsAnError() {
+
+		var testName = "shouldBackOffIfPollingThrowsAnError";
+
+		var backPressureHandler = SemaphoreBackPressureHandler.builder().acquireTimeout(Duration.ofMillis(200))
+				.batchSize(10).totalPermits(40).throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
+				.build();
+		var currentPoll = new AtomicInteger(0);
+		var waitThirdPollLatch = new CountDownLatch(4);
+
+		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
+			@Override
+			protected CompletableFuture<Collection<Message>> doPollForMessages(int messagesToRequest) {
+				waitThirdPollLatch.countDown();
+				if (currentPoll.compareAndSet(0, 1)) {
+					logger.debug("First poll - returning empty list");
+					return CompletableFuture.completedFuture(List.of());
+				}
+				else if (currentPoll.compareAndSet(1, 2)) {
+					logger.debug("Second poll - returning error");
+					return CompletableFuture.failedFuture(new RuntimeException("Expected exception on second poll"));
+				}
+				else if (currentPoll.compareAndSet(2, 3)) {
+					logger.debug("Third poll - returning error");
+					return CompletableFuture.failedFuture(new RuntimeException("Expected exception on third poll"));
+				}
+				else {
+					logger.debug("Fourth poll - returning empty list");
+					return CompletableFuture.completedFuture(List.of());
+				}
+			}
+		};
+
+		var policy = mock(BackOffPolicy.class);
+		var backOffContext = mock(BackOffContext.class);
+		given(policy.start(null)).willReturn(backOffContext);
+
+		source.setBackPressureHandler(backPressureHandler);
+		source.setMessageSink((msgs, context) -> CompletableFuture.completedFuture(null));
+		source.setId(testName + " source");
+		source.configure(SqsContainerOptions.builder().pollBackOffPolicy(policy).build());
+
+		source.setTaskExecutor(createTaskExecutor(testName));
+		source.setAcknowledgementProcessor(getAcknowledgementProcessor());
+		source.start();
+
+		doAwait(waitThirdPollLatch);
+
+		then(policy).should().start(null);
+		then(policy).should(times(2)).backOff(backOffContext);
+
 	}
 
 	private static boolean doAwait(CountDownLatch processingLatch) {
