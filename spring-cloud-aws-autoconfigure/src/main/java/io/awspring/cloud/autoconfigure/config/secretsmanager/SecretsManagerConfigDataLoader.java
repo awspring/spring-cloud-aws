@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.config.BootstrapLoggingHelper;
+import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
 import java.util.Collections;
 import java.util.Map;
 import org.springframework.boot.context.config.ConfigData;
@@ -25,8 +26,6 @@ import org.springframework.boot.context.config.ConfigDataResourceNotFoundExcepti
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.lang.Nullable;
-
-import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 /**
