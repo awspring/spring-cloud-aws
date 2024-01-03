@@ -32,13 +32,24 @@ public class SecretsManagerConfigDataResource extends ConfigDataResource {
 
 	private final boolean optional;
 
+	/**
+	 * If resource should be resolved. This flag has the same value as {@link SecretsManagerProperties#isEnabled()}.
+	 */
+	private final boolean enabled;
+
 	private final SecretsManagerPropertySources propertySources;
 
-	public SecretsManagerConfigDataResource(String context, boolean optional,
+	public SecretsManagerConfigDataResource(String context, boolean optional, boolean enabled,
 			SecretsManagerPropertySources propertySources) {
 		this.context = context;
 		this.optional = optional;
+		this.enabled = enabled;
 		this.propertySources = propertySources;
+	}
+
+	public SecretsManagerConfigDataResource(String context, boolean optional,
+			SecretsManagerPropertySources propertySources) {
+		this(context, optional, true, propertySources);
 	}
 
 	/**
@@ -57,30 +68,33 @@ public class SecretsManagerConfigDataResource extends ConfigDataResource {
 		return this.optional;
 	}
 
+	boolean isEnabled() {
+		return enabled;
+	}
+
 	public SecretsManagerPropertySources getPropertySources() {
 		return this.propertySources;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
+		if (this == o)
 			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
+		if (o == null || getClass() != o.getClass())
 			return false;
-		}
 		SecretsManagerConfigDataResource that = (SecretsManagerConfigDataResource) o;
-		return this.optional == that.optional && this.context.equals(that.context);
+		return optional == that.optional && enabled == that.enabled && Objects.equals(context, that.context);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.optional, this.context);
+		return Objects.hash(context, optional, enabled);
 	}
 
 	@Override
 	public String toString() {
-		return new ToStringCreator(this).append("context", context).append("optional", optional).toString();
+		return new ToStringCreator(this).append("context", context).append("optional", optional)
+				.append("skipped", enabled).toString();
 
 	}
 

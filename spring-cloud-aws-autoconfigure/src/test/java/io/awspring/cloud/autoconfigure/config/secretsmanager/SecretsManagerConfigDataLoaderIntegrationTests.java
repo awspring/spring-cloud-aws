@@ -273,6 +273,20 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
+	void propertyIsNotResolvedWhenIntegrationIsDisabled() {
+		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+				"--spring.cloud.aws.secretsmanager.enabled=false",
+				"--spring.cloud.aws.credentials.secret-key=noop")) {
+			assertThat(context.getEnvironment().getProperty("message")).isNull();
+			assertThat(context.getBeanProvider(SecretsManagerClient.class).getIfAvailable()).isNull();
+		}
+	}
+
+	@Test
 	void serviceSpecificEndpointTakesPrecedenceOverGlobalAwsRegion() {
 		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
