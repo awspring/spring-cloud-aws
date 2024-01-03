@@ -278,8 +278,11 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = application.run(
-				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
-				"--spring.cloud.aws.secretsmanager.enabled=false", "--spring.cloud.aws.credentials.secret-key=noop")) {
+			"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+			"--spring.cloud.aws.secretsmanager.enabled=false", "--spring.cloud.aws.credentials.secret-key=noop",
+			"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
+			"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+			"--spring.cloud.aws.region.static=eu-west-1")) {
 			assertThat(context.getEnvironment().getProperty("message")).isNull();
 			assertThat(context.getBeanProvider(SecretsManagerClient.class).getIfAvailable()).isNull();
 		}
