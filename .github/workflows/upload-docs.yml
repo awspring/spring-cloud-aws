@@ -21,15 +21,15 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 1.8
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
         uses: sdkman/sdkman-action@master
         id: sdkman
         with:
           candidate: java
           version: '17.0.1-tem'
       - name: Set up 8.0.332-tem
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v4
         with:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}
