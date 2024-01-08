@@ -62,25 +62,35 @@ public class SecretsManagerConfigDataLocationResolver
 	public List<SecretsManagerConfigDataResource> resolve(ConfigDataLocationResolverContext resolverContext,
 			ConfigDataLocation location)
 			throws ConfigDataLocationNotFoundException, ConfigDataResourceNotFoundException {
-		registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
-		registerBean(resolverContext, SecretsManagerProperties.class, loadProperties(resolverContext.getBinder()));
-		registerBean(resolverContext, CredentialsProperties.class,
-				loadCredentialsProperties(resolverContext.getBinder()));
-		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
-
-		registerAndPromoteBean(resolverContext, SecretsManagerClient.class, this::createAwsSecretsManagerClient);
-
-		SecretsManagerPropertySources propertySources = new SecretsManagerPropertySources();
+		SecretsManagerProperties secretsManagerProperties = loadProperties(resolverContext.getBinder());
 
 		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));
-
 		List<SecretsManagerConfigDataResource> locations = new ArrayList<>();
-		contexts.forEach(propertySourceContext -> locations.add(
-				new SecretsManagerConfigDataResource(propertySourceContext, location.isOptional(), propertySources)));
+		SecretsManagerPropertySources propertySources = new SecretsManagerPropertySources();
 
-		if (!location.isOptional() && locations.isEmpty()) {
-			throw new SecretsManagerKeysMissingException(
-					"No Secrets Manager keys provided in `spring.config.import=aws-secretsmanager:` configuration.");
+		if (secretsManagerProperties.isEnabled()) {
+			registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
+			registerBean(resolverContext, SecretsManagerProperties.class, secretsManagerProperties);
+			registerBean(resolverContext, CredentialsProperties.class,
+					loadCredentialsProperties(resolverContext.getBinder()));
+			registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
+			registerAndPromoteBean(resolverContext, SecretsManagerClient.class, this::createAwsSecretsManagerClient);
+
+			contexts.forEach(
+					propertySourceContext -> locations.add(new SecretsManagerConfigDataResource(propertySourceContext,
+							location.isOptional(), propertySources)));
+
+			if (!location.isOptional() && locations.isEmpty()) {
+				throw new SecretsManagerKeysMissingException(
+						"No Secrets Manager keys provided in `spring.config.import=aws-secretsmanager:` configuration.");
+			}
+		}
+		else {
+			// create dummy resources with enabled flag set to false,
+			// because returned locations cannot be empty
+			contexts.forEach(
+					propertySourceContext -> locations.add(new SecretsManagerConfigDataResource(propertySourceContext,
+							location.isOptional(), false, propertySources)));
 		}
 
 		return locations;
