@@ -122,7 +122,7 @@ public class SqsAcknowledgementExecutor<T>
 		watch.stop();
 		long totalTimeMillis = watch.getTotalTimeMillis();
 		if (totalTimeMillis > 10000) {
-			logger.warn("Acknowledgement operation took {} seconds to finish in queue {} for messages {}",
+			logger.warn("Acknowledgement operation took {}ms to finish in queue {} for messages {}",
 					totalTimeMillis, this.queueName, MessageHeaderUtils.getId(messagesToAck));
 		}
 		if (t != null) {
