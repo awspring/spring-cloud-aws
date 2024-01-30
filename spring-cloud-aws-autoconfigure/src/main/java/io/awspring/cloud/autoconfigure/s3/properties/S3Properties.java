@@ -23,11 +23,13 @@ import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.encryption.s3.S3EncryptionClient;
 
 /**
  * Properties related to AWS S3.
  *
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  */
 @ConfigurationProperties(prefix = S3Properties.PREFIX)
 public class S3Properties extends AwsClientProperties {
@@ -92,6 +94,21 @@ public class S3Properties extends AwsClientProperties {
 	@Nullable
 	@NestedConfigurationProperty
 	private S3CrtClientProperties crt;
+
+	/**
+	 * Configuration properties for {@link S3EncryptionClient} integration
+	 */
+	@Nullable
+	@NestedConfigurationProperty
+	private S3EncryptionProperties encryption;
+
+	public S3EncryptionProperties getEncryption() {
+		return encryption;
+	}
+
+	public void setEncryption(S3EncryptionProperties encryption) {
+		this.encryption = encryption;
+	}
 
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {

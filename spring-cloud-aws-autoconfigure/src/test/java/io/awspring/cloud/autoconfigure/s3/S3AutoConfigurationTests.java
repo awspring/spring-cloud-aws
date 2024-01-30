@@ -56,11 +56,13 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.encryption.s3.S3EncryptionClient;
 
 /**
  * Tests for {@link S3AutoConfiguration}.
  *
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  */
 class S3AutoConfigurationTests {
 
@@ -118,10 +120,22 @@ class S3AutoConfigurationTests {
 
 		@Test
 		void createsStandardClientWhenCrossRegionModuleIsNotInClasspath() {
-			contextRunner.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
-				assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
-				assertThat(context).hasSingleBean(S3Client.class);
-			});
+			contextRunner.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class, S3EncryptionClient.class))
+					.run(context -> {
+						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+						assertThat(context).hasSingleBean(S3Client.class);
+					});
+		}
+
+		@Test
+		void createsEncryptionClientWhenCrossRegionModuleIsNotInClasspath() {
+			contextRunner
+					.withPropertyValues("spring.cloud.aws.s3.encryption.type:RSA",
+							"spring.cloud.aws.s3.encryption.autoGenerateKey:true")
+					.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
+						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+						assertThat(context).hasSingleBean(S3EncryptionClient.class);
+					});
 		}
 	}
 

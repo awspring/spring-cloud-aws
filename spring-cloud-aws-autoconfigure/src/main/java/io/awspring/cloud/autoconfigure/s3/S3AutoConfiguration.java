@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
+import io.awspring.cloud.autoconfigure.s3.properties.S3EncryptionProperties;
+import io.awspring.cloud.autoconfigure.s3.properties.S3EncryptionType;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.Jackson2JsonS3ObjectConverter;
@@ -30,7 +32,10 @@ import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
+import javax.crypto.KeyGenerator;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -40,19 +45,23 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.util.ClassUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.encryption.s3.S3EncryptionClient;
 
 /**
  * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
  *
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  */
 @AutoConfiguration
 @ConditionalOnClass({ S3Client.class, S3OutputStreamProvider.class })
@@ -125,8 +134,46 @@ public class S3AutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
+		S3Client s3Client(S3Properties properties, S3ClientBuilder s3ClientBuilder) throws NoSuchAlgorithmException {
+			if (ClassUtils.isPresent("software.amazon.encryption.s3.S3EncryptionClient", null)) {
+				return s3EncClient(properties, s3ClientBuilder);
+			}
 			return s3ClientBuilder.build();
+		}
+
+		S3Client s3EncClient(S3Properties properties, S3ClientBuilder s3ClientBuilder) throws NoSuchAlgorithmException {
+			PropertyMapper propertyMapper = PropertyMapper.get();
+			S3EncryptionProperties encryptionProperties = properties.getEncryption();
+			S3EncryptionClient.Builder s3EncryptionBuilder = S3EncryptionClient.builder();
+
+			s3EncryptionBuilder.wrappedClient(s3ClientBuilder.build());
+			propertyMapper.from(encryptionProperties::isEnableDelayedAuthenticationMode)
+					.to(s3EncryptionBuilder::enableDelayedAuthenticationMode);
+			propertyMapper.from(encryptionProperties::isEnableLegacyUnauthenticatedModes)
+					.to(s3EncryptionBuilder::enableLegacyUnauthenticatedModes);
+			propertyMapper.from(encryptionProperties::isEnableMultipartPutObject)
+					.to(s3EncryptionBuilder::enableMultipartPutObject);
+
+			if (!encryptionProperties.getType().getType().equals(S3EncryptionType.KMS_ID.getType())
+					&& encryptionProperties.isAutoGenerateKey()) {
+				if (encryptionProperties.getType().equals(S3EncryptionType.AES)) {
+					KeyGenerator keyGenerator = KeyGenerator.getInstance(encryptionProperties.getType().getType());
+					keyGenerator
+							.init(encryptionProperties.getKeyLength() > 0 ? encryptionProperties.getKeyLength() : 256);
+					s3EncryptionBuilder.aesKey(keyGenerator.generateKey());
+				}
+				else {
+					KeyPairGenerator keyPairGenerator = KeyPairGenerator
+							.getInstance(encryptionProperties.getType().getType());
+					keyPairGenerator.initialize(
+							encryptionProperties.getKeyLength() > 0 ? encryptionProperties.getKeyLength() : 2048);
+					s3EncryptionBuilder.rsaKeyPair(keyPairGenerator.generateKeyPair());
+
+				}
+				return s3EncryptionBuilder.build();
+			}
+			propertyMapper.from(encryptionProperties::getKmsId).to(s3EncryptionBuilder::kmsKeyId);
+			return s3EncryptionBuilder.build();
 		}
 
 	}

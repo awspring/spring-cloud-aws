@@ -27,6 +27,7 @@
 		<spotless.version>2.31.0</spotless.version>
 		<awssdk-v2.version>2.21.12</awssdk-v2.version>
 		<amazon.dax.version>2.0.4</amazon.dax.version>
+		<amazon.encryption.s3>3.0.1</amazon.encryption.s3>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<spring-cloud-commons.version>4.1.0</spring-cloud-commons.version>
 		<jakarta.mail.version>2.1.0</jakarta.mail.version>
@@ -52,6 +53,13 @@
 				<version>${spring-cloud-commons.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>software.amazon.encryption.s3</groupId>
+				<artifactId>amazon-s3-encryption-client-java</artifactId>
+				<version>${amazon.encryption.s3}</version>
+				<optional>true</optional>
 			</dependency>
 
 			<dependency>
