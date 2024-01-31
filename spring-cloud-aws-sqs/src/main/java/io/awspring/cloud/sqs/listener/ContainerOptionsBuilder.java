@@ -109,7 +109,7 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 
 	/**
 	 * Set the maximum amount of time that the container should wait for tasks to finish before shutting down. Default
-	 * is 10 seconds.
+	 * is 20 seconds.
 	 *
 	 * @param shutdownTimeout the timeout.
 	 * @return this instance.
@@ -117,9 +117,11 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	B listenerShutdownTimeout(Duration shutdownTimeout);
 
 	/**
-	 * Set the maximum amount of time that the container should wait for batched acknowledgements to finish before *
-	 * shutting down. Note that this timeout starts counting after listener processing is done or timed out. Default *
-	 * is 20 seconds. * @param acknowledgementShutdownTimeout the timeout.
+	 * Set the maximum amount of time that the container should wait for batched acknowledgements to finish before
+	 * shutting down. Note that this timeout starts counting after listener processing is done or timed out. Default is
+	 * 20 seconds.
+	 *
+	 * @param acknowledgementShutdownTimeout the timeout.
 	 * @return this instance.
 	 */
 	B acknowledgementShutdownTimeout(Duration acknowledgementShutdownTimeout);

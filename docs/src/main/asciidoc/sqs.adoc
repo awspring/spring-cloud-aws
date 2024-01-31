@@ -821,13 +821,13 @@ See <<Container Lifecycle>>.
 
 |`listenerShutdownTimeout`
 |0 - undefined
-|10 seconds
+|20 seconds
 |The amount of time the container will wait for a queue to complete message processing before attempting to forcefully shutdown.
 See <<Container Lifecycle>>.
 
 |`acknowledgementShutdownTimeout`
 |0 - undefined
-|10 seconds
+|20 seconds
 |The amount of time the container will wait for acknowledgements to complete for a queue after message processing has ended.
 See <<Container Lifecycle>>.
 
