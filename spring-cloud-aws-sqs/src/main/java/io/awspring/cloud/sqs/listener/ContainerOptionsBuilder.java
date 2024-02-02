@@ -20,6 +20,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMod
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import java.time.Duration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.retry.backoff.BackOffPolicy;
 
 /**
  * A builder for creating a {@link ContainerOptions} instance.
@@ -73,6 +74,16 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	 * @return this instance.
 	 */
 	B pollTimeout(Duration pollTimeout);
+
+	/**
+	 * Set the {@link BackOffPolicy} to use when polling throws an exception.
+	 * @param pollBackOffPolicy the back off policy.
+	 * @return this instance.
+	 * @since 3.2
+	 */
+	default B pollBackOffPolicy(BackOffPolicy pollBackOffPolicy) {
+		throw new UnsupportedOperationException("Poll back off not supported by this container options builder");
+	}
 
 	/**
 	 * Set the {@link ListenerMode} mode for this container. Default is {@link ListenerMode#SINGLE_MESSAGE}
