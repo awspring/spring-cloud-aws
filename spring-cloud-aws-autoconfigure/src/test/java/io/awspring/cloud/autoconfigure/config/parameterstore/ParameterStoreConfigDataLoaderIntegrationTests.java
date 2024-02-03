@@ -98,15 +98,16 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		application.setWebApplicationType(WebApplicationType.NONE);
 
 		try (ConfigurableApplicationContext context = application.run(
-			"--spring.config.import=aws-parameterstore:/config/spring/",
-			"--spring.cloud.aws.parameterstore.enabled=false", "--spring.cloud.aws.credentials.secret-key=noop",
-			"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
-			"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-			"--spring.cloud.aws.region.static=eu-west-1")) {
+				"--spring.config.import=aws-parameterstore:/config/spring/",
+				"--spring.cloud.aws.parameterstore.enabled=false", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1")) {
 			assertThat(context.getEnvironment().getProperty("message")).isNull();
 			assertThat(context.getBeanProvider(SsmClient.class).getIfAvailable()).isNull();
 		}
 	}
+
 	@Test
 	void resolvesPropertiesWithPrefixes() {
 		SpringApplication application = new SpringApplication(App.class);

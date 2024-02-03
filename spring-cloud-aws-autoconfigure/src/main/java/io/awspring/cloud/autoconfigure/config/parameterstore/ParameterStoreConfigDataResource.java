@@ -40,7 +40,7 @@ public class ParameterStoreConfigDataResource extends ConfigDataResource {
 	private final ParameterStorePropertySources propertySources;
 
 	public ParameterStoreConfigDataResource(String context, boolean optional, boolean enabled,
-											ParameterStorePropertySources propertySources) {
+			ParameterStorePropertySources propertySources) {
 		this.context = context;
 		this.optional = optional;
 		this.enabled = enabled;

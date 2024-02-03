@@ -19,7 +19,6 @@ import io.awspring.cloud.autoconfigure.config.BootstrapLoggingHelper;
 import io.awspring.cloud.parameterstore.ParameterStorePropertySource;
 import java.util.Collections;
 import java.util.Map;
-
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
@@ -52,19 +51,20 @@ public class ParameterStoreConfigDataLoader implements ConfigDataLoader<Paramete
 			// resource is disabled if parameter store integration is disabled via
 			// spring.cloud.aws.parameterstore.enabled=false
 			if (resource.isEnabled()) {
-			SsmClient ssm = context.getBootstrapContext().get(SsmClient.class);
-			ParameterStorePropertySource propertySource = resource.getPropertySources()
-					.createPropertySource(resource.getContext(), resource.isOptional(), ssm);
-			if (propertySource != null) {
-				return new ConfigData(Collections.singletonList(propertySource));
+				SsmClient ssm = context.getBootstrapContext().get(SsmClient.class);
+				ParameterStorePropertySource propertySource = resource.getPropertySources()
+						.createPropertySource(resource.getContext(), resource.isOptional(), ssm);
+				if (propertySource != null) {
+					return new ConfigData(Collections.singletonList(propertySource));
+				}
+				else {
+					return null;
+				}
 			}
 			else {
-				return null;
-			}
-		} else {
 				// create dummy empty config data
 				return new ConfigData(
-					Collections.singletonList(new MapPropertySource("aws-parameterstore:" + context, Map.of())));
+						Collections.singletonList(new MapPropertySource("aws-parameterstore:" + context, Map.of())));
 			}
 		}
 		catch (Exception e) {

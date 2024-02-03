@@ -71,24 +71,24 @@ public class ParameterStoreConfigDataLocationResolver
 			registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
 			registerBean(resolverContext, ParameterStoreProperties.class, properties);
 			registerBean(resolverContext, CredentialsProperties.class,
-				loadCredentialsProperties(resolverContext.getBinder()));
+					loadCredentialsProperties(resolverContext.getBinder()));
 			registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
 
 			registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
 			contexts.forEach(propertySourceContext -> locations
-				.add(new ParameterStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
+					.add(new ParameterStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
 
 			if (!location.isOptional() && locations.isEmpty()) {
 				throw new ParameterStoreKeysMissingException(
-					"No Parameter Store keys provided in `spring.config.import=aws-parameterstore:` configuration.");
+						"No Parameter Store keys provided in `spring.config.import=aws-parameterstore:` configuration.");
 			}
 		}
 		else {
 			// create dummy resources with enabled flag set to false,
 			// because returned locations cannot be empty
 			contexts.forEach(
-				propertySourceContext -> locations.add(new ParameterStoreConfigDataResource(propertySourceContext,
-					location.isOptional(), false, sources)));
+					propertySourceContext -> locations.add(new ParameterStoreConfigDataResource(propertySourceContext,
+							location.isOptional(), false, sources)));
 		}
 		return locations;
 	}
