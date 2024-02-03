@@ -191,8 +191,7 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 				try {
 					Message<T> polledMessage = this.acks.poll(1, TimeUnit.SECONDS);
 					if (polledMessage != null) {
-						this.acksBuffer.computeIfAbsent(this.messageGroupingFunction.apply(polledMessage),
-								newGroup -> new LinkedBlockingQueue<>()).add(polledMessage);
+						addMessageToBuffer(polledMessage);
 						this.thresholdAcknowledgementExecution.checkAndExecute();
 					}
 				}
@@ -201,6 +200,17 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 				}
 			}
 			logger.debug("Acknowledgement processor thread stopped");
+		}
+
+		private void addMessageToBuffer(Message<T> polledMessage) {
+			this.context.lock();
+			try {
+				this.acksBuffer.computeIfAbsent(this.messageGroupingFunction.apply(polledMessage),
+					newGroup -> new LinkedBlockingQueue<>()).add(polledMessage);
+			}
+			finally {
+				this.context.unlock();
+			}
 		}
 
 		public void waitAcknowledgementsToFinish() {
@@ -330,16 +340,11 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 		}
 
 		private void purgeEmptyBuffers() {
-			lock();
-			try {
-				List<String> emptyAcks = this.acksBuffer.entrySet().stream().filter(entry -> entry.getValue().isEmpty())
-						.map(Map.Entry::getKey).collect(Collectors.toList());
-				logger.trace("Removing groups {} from buffer in {}", emptyAcks, this.id);
-				emptyAcks.forEach(this.acksBuffer::remove);
-			}
-			finally {
-				unlock();
-			}
+			verifyLock();
+			List<String> emptyAcks = this.acksBuffer.entrySet().stream().filter(entry -> entry.getValue().isEmpty())
+					.map(Map.Entry::getKey).collect(Collectors.toList());
+			logger.trace("Removing groups {} from buffer in {}", emptyAcks, this.id);
+			emptyAcks.forEach(this.acksBuffer::remove);
 		}
 
 		private void lock() {
