@@ -43,6 +43,19 @@ public class ParameterStoreProperties extends AwsClientProperties {
 	@NestedConfigurationProperty
 	private ReloadProperties reload = new ReloadProperties();
 
+	/**
+	 * Enables ParameterStore integration.
+	 */
+	private boolean enabled = true;
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
 	public ReloadProperties getReload() {
 		return reload;
 	}

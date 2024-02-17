@@ -23,6 +23,7 @@ import org.springframework.core.style.ToStringCreator;
  * Config data resource for AWS System Manager Management integration.
  *
  * @author Eddú Meléndez
+ * @author Matej Nedic
  * @since 2.3.0
  */
 public class ParameterStoreConfigDataResource extends ConfigDataResource {
@@ -31,17 +32,28 @@ public class ParameterStoreConfigDataResource extends ConfigDataResource {
 
 	private final boolean optional;
 
+	/**
+	 * If resource should be resolved. This flag has the same value as {@link ParameterStoreProperties#isEnabled()}.
+	 */
+	private final boolean enabled;
+
 	private final ParameterStorePropertySources propertySources;
 
-	public ParameterStoreConfigDataResource(String context, boolean optional,
+	public ParameterStoreConfigDataResource(String context, boolean optional, boolean enabled,
 			ParameterStorePropertySources propertySources) {
 		this.context = context;
 		this.optional = optional;
+		this.enabled = enabled;
 		this.propertySources = propertySources;
 	}
 
+	public ParameterStoreConfigDataResource(String context, boolean optional,
+			ParameterStorePropertySources propertySources) {
+		this(context, optional, true, propertySources);
+	}
+
 	/**
-	 * Returns context which is equal to Secret Manager secret name.
+	 * Returns context which is equal to Parameter Store parameter name.
 	 * @return the context
 	 */
 	public String getContext() {
@@ -49,11 +61,15 @@ public class ParameterStoreConfigDataResource extends ConfigDataResource {
 	}
 
 	/**
-	 * If application startup should fail when secret cannot be loaded or does not exist.
+	 * If application startup should fail when parameter cannot be loaded or does not exist.
 	 * @return is optional
 	 */
 	public boolean isOptional() {
 		return this.optional;
+	}
+
+	boolean isEnabled() {
+		return enabled;
 	}
 
 	public ParameterStorePropertySources getPropertySources() {
