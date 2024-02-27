@@ -27,15 +27,15 @@ import org.springframework.util.Assert;
 /**
  * @author Michael Sosa
  */
-public class NotificationRequestConverter implements MessageConverter {
+public class SnsMessageConverter implements MessageConverter {
 
 	private final ObjectMapper jsonMapper;
 
 	private final MessageConverter payloadConverter;
 
-	public NotificationRequestConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
+	public SnsMessageConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
 		this.payloadConverter = payloadConverter;
-		this.jsonMapper = jsonMapper == null ? new ObjectMapper() :jsonMapper;
+		this.jsonMapper = jsonMapper;
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class NotificationRequestConverter implements MessageConverter {
 
 		String messagePayload = jsonNode.get("Message").asText();
 		GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload);
-		return new NotificationRequest(jsonNode.path("Subject").asText(),
+		return new SnsMessage(jsonNode.path("Subject").asText(),
 				this.payloadConverter.fromMessage(genericMessage, targetClass));
 	}
 
@@ -80,25 +80,7 @@ public class NotificationRequestConverter implements MessageConverter {
 	/**
 	 * Notification request wrapper.
 	 */
-	public static class NotificationRequest {
-
-		private final String subject;
-
-		private final Object message;
-
-		public NotificationRequest(String subject, Object message) {
-			this.subject = subject;
-			this.message = message;
-		}
-
-		public String getSubject() {
-			return this.subject;
-		}
-
-		public Object getMessage() {
-			return this.message;
-		}
-
+	public record SnsMessage(String subject, Object message) {
 	}
 
 }

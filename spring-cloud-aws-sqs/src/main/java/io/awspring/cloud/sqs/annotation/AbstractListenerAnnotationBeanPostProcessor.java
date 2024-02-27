@@ -285,6 +285,9 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 			MessageConverter messageConverter, ObjectMapper objectMapper) {
 		return Collections.emptyList();
 	}
+	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers() {
+		return createAdditionalArgumentResolvers(null, null);
+	}
 
 	protected CompositeMessageConverter createCompositeMessageConverter() {
 		List<MessageConverter> messageConverters = new ArrayList<>();

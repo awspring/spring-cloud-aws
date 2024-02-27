@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SnsNotificationMessage;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
+import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
@@ -299,6 +300,13 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 				}
 			});
 			return factory;
+		}
+
+		@Bean
+		SqsListenerConfigurer customizer(ObjectMapper objectMapper) {
+			return registrar -> {
+				registrar.setObjectMapper(objectMapper);
+			};
 		}
 		// @formatter:on
 

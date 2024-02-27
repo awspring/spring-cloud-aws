@@ -24,6 +24,7 @@ import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolve
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.VisibilityHandlerMethodArgumentResolver;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import org.springframework.messaging.converter.MessageConverter;
@@ -71,9 +72,13 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
 			MessageConverter messageConverter, ObjectMapper objectMapper) {
-		return Arrays.asList(new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
-				new SqsMessageMethodArgumentResolver(), new QueueAttributesMethodArgumentResolver(),
-				new NotificationMessageArgumentResolver(messageConverter, objectMapper));
+		var additionalArgumentResolvers = Arrays.asList(new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
+				new SqsMessageMethodArgumentResolver(), new QueueAttributesMethodArgumentResolver());
+		if (messageConverter != null && objectMapper != null) {
+			additionalArgumentResolvers = new ArrayList<>(additionalArgumentResolvers);
+			additionalArgumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
+		}
+		return additionalArgumentResolvers;
 	}
 
 }

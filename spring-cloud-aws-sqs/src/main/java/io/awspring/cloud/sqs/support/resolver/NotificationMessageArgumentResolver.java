@@ -17,11 +17,12 @@ package io.awspring.cloud.sqs.support.resolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SnsNotificationMessage;
-import io.awspring.cloud.sqs.support.converter.NotificationRequestConverter;
+import io.awspring.cloud.sqs.support.converter.SnsMessageConverter;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.util.Assert;
 
 /**
  * @author Michael Sosa
@@ -31,7 +32,7 @@ public class NotificationMessageArgumentResolver implements HandlerMethodArgumen
 	private final MessageConverter converter;
 
 	public NotificationMessageArgumentResolver(MessageConverter converter, ObjectMapper jsonMapper) {
-		this.converter = new NotificationRequestConverter(converter, jsonMapper);
+		this.converter = new SnsMessageConverter(converter, jsonMapper);
 	}
 
 	@Override
@@ -42,8 +43,9 @@ public class NotificationMessageArgumentResolver implements HandlerMethodArgumen
 	@Override
 	public Object resolveArgument(MethodParameter par, Message<?> msg) throws Exception {
 		Object object = this.converter.fromMessage(msg, par.getParameterType());
-		NotificationRequestConverter.NotificationRequest nr = (NotificationRequestConverter.NotificationRequest) object;
-		return nr.getMessage();
+		Assert.isInstanceOf(SnsMessageConverter.SnsMessage.class, object);
+		SnsMessageConverter.SnsMessage nr = (SnsMessageConverter.SnsMessage) object;
+		return nr.message();
 	}
 
 }
