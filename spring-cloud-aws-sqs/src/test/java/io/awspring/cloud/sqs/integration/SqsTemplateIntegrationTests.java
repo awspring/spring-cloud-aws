@@ -305,7 +305,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader() {
 		SqsTemplate template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
-				.configureDefaultConverter(converter -> converter.setPayloadTypeHeaderValueFunction(msg -> null))
+				.configureDefaultConverter(converter -> converter.doNotSendTypeHeader())
 				.build();
 		SampleRecord testRecord = new SampleRecord("Hello world!",
 				"From shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader!");
