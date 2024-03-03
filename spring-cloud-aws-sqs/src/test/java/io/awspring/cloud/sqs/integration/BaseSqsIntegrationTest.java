@@ -95,14 +95,13 @@ abstract class BaseSqsIntegrationTest {
 			if (purgeQueues) {
 				String queueUrl = v.queueUrl();
 				logger.debug("Purging queue {}", queueName);
-				return client.purgeQueue(req -> req.queueUrl(queueUrl).build())
-					.thenRun(() -> {
-						if (waitForPurge) {
-							logger.info("Waiting 30000 seconds to start sending.");
-							sleep(30000);
-							logger.info("Done waiting.");
-						}
-					});
+				return client.purgeQueue(req -> req.queueUrl(queueUrl).build()).thenRun(() -> {
+					if (waitForPurge) {
+						logger.info("Waiting 30000 seconds to start sending.");
+						sleep(30000);
+						logger.info("Done waiting.");
+					}
+				});
 			}
 			else {
 				logger.debug("Skipping purge for queue {}", queueName);
@@ -117,10 +116,11 @@ abstract class BaseSqsIntegrationTest {
 		});
 	}
 
-	private static void sleep(int time)  {
+	private static void sleep(int time) {
 		try {
 			Thread.sleep(time);
-		} catch (InterruptedException e) {
+		}
+		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new RuntimeException("Interrupted while sleeping");
 		}
