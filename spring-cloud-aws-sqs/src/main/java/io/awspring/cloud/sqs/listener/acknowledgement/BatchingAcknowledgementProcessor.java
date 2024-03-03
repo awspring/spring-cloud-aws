@@ -206,7 +206,7 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 			this.context.lock();
 			try {
 				this.acksBuffer.computeIfAbsent(this.messageGroupingFunction.apply(polledMessage),
-					newGroup -> new LinkedBlockingQueue<>()).add(polledMessage);
+						newGroup -> new LinkedBlockingQueue<>()).add(polledMessage);
 			}
 			finally {
 				this.context.unlock();
