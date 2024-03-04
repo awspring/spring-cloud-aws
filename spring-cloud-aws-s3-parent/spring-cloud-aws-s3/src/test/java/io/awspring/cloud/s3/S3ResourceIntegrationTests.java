@@ -69,7 +69,7 @@ class S3ResourceIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:2.3.2")).withReuse(true);
+			DockerImageName.parse("localstack/localstack:3.2.0"));
 
 	private static S3Client client;
 	private static S3AsyncClient asyncClient;
@@ -194,7 +194,8 @@ class S3ResourceIntegrationTests {
 
 	@TestAvailableOutputStreamProviders
 	void contentTypeCanBeResolvedForLargeFiles(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
-		S3Resource resource = s3Resource("s3://first-bucket/new-file.txt", s3OutputStreamProvider);
+		int i = new Random().nextInt();
+		S3Resource resource = s3Resource("s3://first-bucket/new-file" + i + ".txt", s3OutputStreamProvider);
 
 		// create file larger than single part size in multipart upload to make sure that file can be successfully
 		// uploaded in parts
@@ -207,7 +208,7 @@ class S3ResourceIntegrationTests {
 			outputStream.write(Files.toByteArray(file));
 		}
 		GetObjectResponse result = client
-				.getObject(request -> request.bucket("first-bucket").key("new-file.txt").build()).response();
+				.getObject(request -> request.bucket("first-bucket").key("new-file" + i + ".txt").build()).response();
 		assertThat(result.contentType()).isEqualTo("text/plain");
 	}
 

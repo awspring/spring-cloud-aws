@@ -36,7 +36,6 @@ import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
-import java.util.Map;
 import java.util.Objects;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -56,6 +55,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Tests for {@link S3AutoConfiguration}.
@@ -208,8 +208,8 @@ class S3AutoConfigurationTests {
 			contextRunner.withUserConfiguration(CustomAwsConfigurerClient.class).run(context -> {
 				S3ClientBuilder s3ClientBuilder = context.getBean(S3ClientBuilder.class);
 				assertThat(s3ClientBuilder.overrideConfiguration().apiCallTimeout()).contains(Duration.ofMillis(1542));
-				Map attributeMap = resolveAttributeMap(s3ClientBuilder);
-				assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
+				AttributeMap.Builder attributeMap = resolveAttributeMap(s3ClientBuilder);
+				assertThat(attributeMap.get(SdkClientOption.CONFIGURED_SYNC_HTTP_CLIENT)).isNotNull();
 			});
 		}
 
@@ -354,9 +354,9 @@ class S3AutoConfigurationTests {
 
 	}
 
-	private static Map resolveAttributeMap(S3ClientBuilder s3ClientBuilder) {
-		Map attributes = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
-				ReflectionTestUtils.getField(s3ClientBuilder, "clientConfiguration"), "attributes"), "configuration");
+	private static AttributeMap.Builder resolveAttributeMap(S3ClientBuilder s3ClientBuilder) {
+		AttributeMap.Builder attributes = (AttributeMap.Builder) ReflectionTestUtils
+				.getField(ReflectionTestUtils.getField(s3ClientBuilder, "clientConfiguration"), "attributes");
 		return Objects.requireNonNull(attributes);
 	}
 }
