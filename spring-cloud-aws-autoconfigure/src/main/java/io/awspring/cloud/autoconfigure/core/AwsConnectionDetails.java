@@ -46,4 +46,22 @@ public interface AwsConnectionDetails extends ConnectionDetails {
 	default String getRegion() {
 		return null;
 	}
+
+	/**
+	 * Credentials Access Key.
+	 *
+	 * @return the access key
+	 */
+	default String getAccessKey() {
+		return null;
+	}
+
+	/**
+	 * Credentials Secret Key
+	 *
+	 * @return the secret key
+	 */
+	default String getSecretKey() {
+		return null;
+	}
 }

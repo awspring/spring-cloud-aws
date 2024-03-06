@@ -77,7 +77,8 @@ public class AwsClientBuilderConfigurer {
 		return builder;
 	}
 
-	public Region resolveRegion(@Nullable AwsClientProperties clientProperties, @Nullable AwsConnectionDetails connectionDetails) {
+	public Region resolveRegion(@Nullable AwsClientProperties clientProperties,
+			@Nullable AwsConnectionDetails connectionDetails) {
 		return resolveRegion(clientProperties, connectionDetails, this.regionProvider);
 	}
 

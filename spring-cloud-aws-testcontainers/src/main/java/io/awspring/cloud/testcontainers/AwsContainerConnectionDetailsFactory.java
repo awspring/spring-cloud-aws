@@ -53,5 +53,15 @@ public class AwsContainerConnectionDetailsFactory
 		public String getRegion() {
 			return getContainer().getRegion();
 		}
+
+		@Override
+		public String getAccessKey() {
+			return getContainer().getAccessKey();
+		}
+
+		@Override
+		public String getSecretKey() {
+			return getContainer().getSecretKey();
+		}
 	}
 }
