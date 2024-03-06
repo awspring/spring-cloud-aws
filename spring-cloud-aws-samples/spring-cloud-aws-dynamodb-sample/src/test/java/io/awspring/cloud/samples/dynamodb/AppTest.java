@@ -39,7 +39,6 @@ class AppTest {
 		LocalStackContainer localStackContainer() {
 			return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.2.0"));
 		}
-
 	}
 
 	@Test

@@ -60,7 +60,7 @@ public class AwsClientBuilderConfigurer {
 			@Nullable AwsConnectionDetails connectionDetails, @Nullable AwsClientCustomizer<T> customizer) {
 		Assert.notNull(builder, "builder is required");
 
-		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties))
+		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties, connectionDetails))
 				.overrideConfiguration(this.clientOverrideConfiguration);
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(clientProperties).map(AwsClientProperties::getEndpoint)
@@ -77,8 +77,8 @@ public class AwsClientBuilderConfigurer {
 		return builder;
 	}
 
-	public Region resolveRegion(@Nullable AwsClientProperties clientProperties) {
-		return resolveRegion(clientProperties, null, this.regionProvider);
+	public Region resolveRegion(@Nullable AwsClientProperties clientProperties, @Nullable AwsConnectionDetails connectionDetails) {
+		return resolveRegion(clientProperties, connectionDetails, this.regionProvider);
 	}
 
 	public static Region resolveRegion(@Nullable AwsClientProperties clientProperties,
