@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Matej Nedic
  * @author Arun Patra
+ * @author Volodymyr Ivakhnenko
  */
 class DynamoDbTableNameResolverTest {
 
@@ -32,6 +33,9 @@ class DynamoDbTableNameResolverTest {
 
 	private static final DefaultDynamoDbTableNameResolver prefixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
 			"my_prefix_");
+
+	private static final DefaultDynamoDbTableNameResolver prefixedAndSuffixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
+			"my_prefix_", "_my_suffix");
 
 	@Test
 	void resolveTableNameSuccessfully() {
@@ -44,6 +48,13 @@ class DynamoDbTableNameResolverTest {
 		assertThat(prefixedTableNameResolver.resolve(MoreComplexPerson.class))
 				.isEqualTo("my_prefix_more_complex_person");
 		assertThat(prefixedTableNameResolver.resolve(Person.class)).isEqualTo("my_prefix_person");
+	}
+
+	@Test
+	void resolvePrefixedAndSuffixedTableNameSuccessfully() {
+		assertThat(prefixedAndSuffixedTableNameResolver.resolve(MoreComplexPerson.class))
+				.isEqualTo("my_prefix_more_complex_person_my_suffix");
+		assertThat(prefixedAndSuffixedTableNameResolver.resolve(Person.class)).isEqualTo("my_prefix_person_my_suffix");
 	}
 
 	@Test
