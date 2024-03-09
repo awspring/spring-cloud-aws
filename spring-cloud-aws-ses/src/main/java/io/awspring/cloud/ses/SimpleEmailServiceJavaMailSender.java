@@ -79,7 +79,12 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 	}
 
 	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn) {
-		super(sesClient, sourceArn);
+		this(sesClient, sourceArn, null);
+	}
+
+	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn,
+			@Nullable String configurationSetName) {
+		super(sesClient, sourceArn, configurationSetName);
 	}
 
 	/**
@@ -206,8 +211,9 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 			try {
 				RawMessage rawMessage = createRawMessage(mimeMessage);
 
-				SendRawEmailResponse sendRawEmailResponse = getEmailService().sendRawEmail(
-						SendRawEmailRequest.builder().sourceArn(getSourceArn()).rawMessage(rawMessage).build());
+				SendRawEmailResponse sendRawEmailResponse = getEmailService()
+						.sendRawEmail(SendRawEmailRequest.builder().sourceArn(getSourceArn())
+								.configurationSetName(getConfigurationSetName()).rawMessage(rawMessage).build());
 
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Message with id: {} successfully sent", sendRawEmailResponse.messageId());

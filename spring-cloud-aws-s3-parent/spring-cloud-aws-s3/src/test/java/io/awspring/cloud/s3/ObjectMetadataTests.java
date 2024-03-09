@@ -39,7 +39,7 @@ class ObjectMetadataTests {
 		Instant now = Instant.now();
 		ObjectMetadata objectMetadata = ObjectMetadata.builder().acl("acl").cacheControl("cacheControl")
 				.contentDisposition("contentDisposition").contentEncoding("contentEncoding")
-				.contentLanguage("contentLanguage").contentType("contentType").expires(now)
+				.contentLanguage("contentLanguage").contentType("contentType").contentLength(0L).expires(now)
 				.grantFullControl("grantFullControl").grantRead("grantRead").grantReadACP("grantReadACP")
 				.grantWriteACP("grantWriteACP").metadata("key1", "value1").metadata("key2", "value2")
 				.serverSideEncryption("serverSideEncryption").storageClass("storageClass")

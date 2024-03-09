@@ -33,16 +33,15 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -68,6 +67,14 @@ import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageBatchResultEntry;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
+/**
+ * Sqs-specific implementation of {@link AbstractMessagingTemplate}
+ *
+ * @author Tomaz Fernandes
+ * @author Zhong Xi Lu
+ *
+ * @since 3.0
+ */
 public class SqsTemplate extends AbstractMessagingTemplate<Message> implements SqsOperations, SqsAsyncOperations {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsTemplate.class);
@@ -86,6 +93,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private final Collection<String> messageSystemAttributeNames;
 
+	private final TemplateContentBasedDeduplication contentBasedDeduplication;
+
 	private SqsTemplate(SqsTemplateBuilderImpl builder) {
 		super(builder.messageConverter, builder.options);
 		SqsTemplateOptionsImpl options = builder.options;
@@ -94,6 +103,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		this.queueAttributeNames = options.queueAttributeNames;
 		this.queueNotFoundStrategy = options.queueNotFoundStrategy;
 		this.messageSystemAttributeNames = options.messageSystemAttributeNames;
+		this.contentBasedDeduplication = options.contentBasedDeduplication;
 	}
 
 	/**
@@ -127,6 +137,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	/**
 	 * Create a new {@link SqsTemplate} instance with the provided {@link SqsAsyncClient}, only exposing the async
 	 * methods contained in {@link SqsAsyncOperations}.
+	 *
 	 * @param sqsAsyncClient the client.
 	 * @return the new template instance.
 	 */
@@ -247,35 +258,62 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	@Override
 	protected <T> org.springframework.messaging.Message<T> preProcessMessageForSend(String endpointToUse,
 			org.springframework.messaging.Message<T> message) {
-		return FifoUtils.isFifo(endpointToUse) ? addMissingFifoSendHeaders(endpointToUse, message) : message;
+		return message;
 	}
 
 	@Override
 	protected <T> Collection<org.springframework.messaging.Message<T>> preProcessMessagesForSend(String endpointToUse,
 			Collection<org.springframework.messaging.Message<T>> messages) {
-		return FifoUtils.isFifo(endpointToUse)
-				? messages.stream().map(message -> addMissingFifoSendHeaders(endpointToUse, message)).toList()
-				: messages;
+		return messages;
 	}
 
-	private <T> org.springframework.messaging.Message<T> addMissingFifoSendHeaders(String endpointName,
-			org.springframework.messaging.Message<T> message) {
+	@Override
+	protected <T> CompletableFuture<org.springframework.messaging.Message<T>> preProcessMessageForSendAsync(
+			String endpointToUse, org.springframework.messaging.Message<T> message) {
+		return FifoUtils.isFifo(endpointToUse)
+				? endpointHasContentBasedDeduplicationEnabled(endpointToUse)
+						.thenApply(enabled -> enabled ? addMissingFifoSendHeaders(message, Map.of())
+								: addMissingFifoSendHeaders(message, getRandomDeduplicationIdHeader()))
+				: CompletableFuture.completedFuture(message);
+	}
 
-		Set<QueueAttributeName> additionalAttributes = Set.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
-		String contentBasedDedupQueueAttribute = getQueueAttributes(endpointName, additionalAttributes).join()
-				.getQueueAttribute(QueueAttributeName.CONTENT_BASED_DEDUPLICATION);
+	@Override
+	protected <T> CompletableFuture<Collection<org.springframework.messaging.Message<T>>> preProcessMessagesForSendAsync(
+			String endpointToUse, Collection<org.springframework.messaging.Message<T>> messages) {
+		return FifoUtils.isFifo(endpointToUse)
+				? endpointHasContentBasedDeduplicationEnabled(endpointToUse).thenApply(enabled -> messages.stream()
+						.map(message -> enabled ? addMissingFifoSendHeaders(message, Map.of())
+								: addMissingFifoSendHeaders(message, getRandomDeduplicationIdHeader()))
+						.toList())
+				: CompletableFuture.completedFuture(messages);
+	}
 
-		boolean isContentBasedDedup = Boolean.parseBoolean(contentBasedDedupQueueAttribute);
-		Map<String, Object> defaultHeaders;
-		if (isContentBasedDedup) {
-			defaultHeaders = Map.of(MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString());
-		}
-		else {
-			defaultHeaders = Map.of(MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString(),
-					MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, UUID.randomUUID().toString());
-		}
+	private <T> org.springframework.messaging.Message<T> addMissingFifoSendHeaders(
+			org.springframework.messaging.Message<T> message, Map<String, Object> additionalHeaders) {
+		return MessageHeaderUtils.addHeadersIfAbsent(message,
+				Stream.concat(additionalHeaders.entrySet().stream(),
+						getRandomMessageGroupIdHeader().entrySet().stream())
+						.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+	}
 
-		return MessageHeaderUtils.addHeadersIfAbsent(message, defaultHeaders);
+	private Map<String, String> getRandomMessageGroupIdHeader() {
+		return Map.of(MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, UUID.randomUUID().toString());
+	}
+
+	private Map<String, Object> getRandomDeduplicationIdHeader() {
+		return Map.of(MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, UUID.randomUUID().toString());
+	}
+
+	private CompletableFuture<Boolean> endpointHasContentBasedDeduplicationEnabled(String endpointName) {
+		return TemplateContentBasedDeduplication.AUTO.equals(this.contentBasedDeduplication)
+				? handleAutoDeduplication(endpointName)
+				: CompletableFuture
+						.completedFuture(contentBasedDeduplication.equals(TemplateContentBasedDeduplication.ENABLED));
+	}
+
+	private CompletableFuture<Boolean> handleAutoDeduplication(String endpointName) {
+		return getQueueAttributes(endpointName).thenApply(attributes -> Boolean
+				.parseBoolean(attributes.getQueueAttribute(QueueAttributeName.CONTENT_BASED_DEDUPLICATION)));
 	}
 
 	@Override
@@ -363,14 +401,18 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		SqsMessageConversionContext conversionContext = new SqsMessageConversionContext();
 		conversionContext.setSqsAsyncClient(this.sqsAsyncClient);
 		// At this point we'll already have retrieved and cached the queue attributes
-		CompletableFuture<QueueAttributes> queueAttributes = getQueueAttributes(newEndpoint);
-		Assert.isTrue(queueAttributes.isDone(), () -> "Queue attributes not done for " + newEndpoint);
-		conversionContext.setQueueAttributes(queueAttributes.join());
+		conversionContext.setQueueAttributes(getAttributesImmediately(newEndpoint));
 		if (payloadClass != null) {
 			conversionContext.setPayloadClass(payloadClass);
 		}
 		conversionContext.setAcknowledgementCallback(new TemplateAcknowledgementCallback<T>());
 		return conversionContext;
+	}
+
+	private QueueAttributes getAttributesImmediately(String newEndpoint) {
+		CompletableFuture<QueueAttributes> queueAttributes = getQueueAttributes(newEndpoint);
+		Assert.isTrue(queueAttributes.isDone(), () -> "Queue attributes not done for " + newEndpoint);
+		return queueAttributes.join();
 	}
 
 	private CompletableFuture<SendMessageBatchRequest> createSendMessageBatchRequest(String endpointName,
@@ -423,21 +465,23 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	}
 
 	private CompletableFuture<QueueAttributes> getQueueAttributes(String endpointName) {
-		return getQueueAttributes(endpointName, Collections.emptySet());
+		return this.queueAttributesCache.computeIfAbsent(endpointName,
+				newName -> doGetQueueAttributes(endpointName, newName));
 	}
 
-	private CompletableFuture<QueueAttributes> getQueueAttributes(String endpointName,
-			Set<QueueAttributeName> additionalAttributes) {
-		return this.queueAttributesCache.computeIfAbsent(endpointName, newName -> {
-			// ensure we have the content based dedupe config to determine default fifo send headers
-			Set<QueueAttributeName> namesToRequest = new HashSet<>(queueAttributeNames);
-			if (additionalAttributes != null && !additionalAttributes.isEmpty()) {
-				namesToRequest.addAll(additionalAttributes);
-			}
-			return QueueAttributesResolver.builder().sqsAsyncClient(this.sqsAsyncClient).queueName(newName)
-					.queueNotFoundStrategy(this.queueNotFoundStrategy).queueAttributeNames(namesToRequest).build()
-					.resolveQueueAttributes();
-		});
+	private CompletableFuture<QueueAttributes> doGetQueueAttributes(String endpointName, String newName) {
+		return QueueAttributesResolver.builder().sqsAsyncClient(this.sqsAsyncClient).queueName(newName)
+				.queueNotFoundStrategy(this.queueNotFoundStrategy)
+				.queueAttributeNames(maybeAddContentBasedDeduplicationAttribute(endpointName)).build()
+				.resolveQueueAttributes();
+	}
+
+	private Collection<QueueAttributeName> maybeAddContentBasedDeduplicationAttribute(String endpointName) {
+		return FifoUtils.isFifo(endpointName)
+				&& TemplateContentBasedDeduplication.AUTO.equals(this.contentBasedDeduplication)
+						? Stream.concat(queueAttributeNames.stream(),
+								Stream.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION)).toList()
+						: queueAttributeNames;
 	}
 
 	@Override
@@ -591,6 +635,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 		private Collection<String> messageSystemAttributeNames = Collections.singletonList("All");
 
+		private TemplateContentBasedDeduplication contentBasedDeduplication = TemplateContentBasedDeduplication.AUTO;
+
 		@Override
 		public SqsTemplateOptions queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notEmpty(queueAttributeNames, "queueAttributeNames cannot be null or empty");
@@ -622,6 +668,13 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 				Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
 			this.messageSystemAttributeNames = messageSystemAttributeNames.stream()
 					.map(MessageSystemAttributeName::name).toList();
+			return this;
+		}
+
+		@Override
+		public SqsTemplateOptions contentBasedDeduplication(
+				TemplateContentBasedDeduplication contentBasedDeduplication) {
+			this.contentBasedDeduplication = contentBasedDeduplication;
 			return this;
 		}
 

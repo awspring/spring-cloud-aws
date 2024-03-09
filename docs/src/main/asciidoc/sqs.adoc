@@ -210,6 +210,13 @@ Such attributes are available as `MessageHeaders` in received messages.
 |All
 |Set the message system attribute names that will be retrieved with messages on receive operations.
 Such attributes are available as `MessageHeaders` in received messages.
+
+|`contentBasedDeduplication`
+|ContentBasedDeduplication
+|ContentBasedDeduplication
+#AUTO
+|Set the ContentBasedDeduplication queue attribute value of the queues the template is sending messages to.
+With `ContentBasedDeduplication#AUTO`, the queue attribute value will be resolved automatically.
 |===
 
 ==== Sending Messages
@@ -636,7 +643,9 @@ Note that if there are messages available the call may return earlier than this 
 - `messageVisibilitySeconds` - Set the minimum visibility for the messages retrieved in a poll.
 Note that for `FIFO` single message listener methods, this visibility is applied to the whole batch before each message is sent to the listener.
 See <<FIFO Support>> for more information.
-
+- `acknowledgementMode` - Set the acknowledgement mode for the container.
+If any value is set, it will take precedence over the acknowledgement mode defined for the container factory options.
+See <<Acknowledgement Mode>> for more information.
 
 ===== Listener Method Arguments
 
@@ -803,6 +812,11 @@ See AWS documentation for more information.
 After that period, the framework will try to perform a partial acquire with the available permits, resulting in a poll for less than `maxMessagesPerPoll` messages, unless otherwise configured.
 See <<Message Processing Throughput>>.
 
+|<<pollBackOffPolicy>>
+|Any valid `BackOffPolicy` implementation
+|`ExponentialBackOffPolicy`
+|The back off policy to be applied when a polling thread throws an error. The default is an exponential policy with a delay of `1s`, a multiplier of `2.0`, and a maximum of `10s`.
+
 |`autoStartup`
 |true, false
 |true
@@ -812,13 +826,13 @@ See <<Container Lifecycle>>.
 
 |`listenerShutdownTimeout`
 |0 - undefined
-|10 seconds
+|20 seconds
 |The amount of time the container will wait for a queue to complete message processing before attempting to forcefully shutdown.
 See <<Container Lifecycle>>.
 
 |`acknowledgementShutdownTimeout`
 |0 - undefined
-|10 seconds
+|20 seconds
 |The amount of time the container will wait for acknowledgements to complete for a queue after message processing has ended.
 See <<Container Lifecycle>>.
 
@@ -1326,6 +1340,8 @@ NOTE: All options are available for both `single message` and `batch` message li
 - `ALWAYS` - Acknowledges a message or batch of messages after processing returns success or error.
 - `MANUAL` - The framework won't acknowledge messages automatically and `Acknowledgement` objects can be received in the listener method.
 
+The `Acknowledgement` strategy can be configured in the `SqsContainerOptions` or in the `@SqsListener` annotation.
+
 ==== Acknowledgement Batching
 
 The `acknowledgementInterval` and `acknowledgementThreshold` options enable acknowledgement batching.
@@ -1500,6 +1516,7 @@ The following attributes can be configured in the registrar:
 - `setMessageListenerContainerRegistryBeanName` - provide a different bean name to be used to retrieve the `MessageListenerContainerRegistry`
 - `setObjectMapper` - set the `ObjectMapper` instance that will be used to deserialize payloads in listener methods.
 See <<Message Conversion and Payload Deserialization>> for more information on where this is used.
+- `setValidator` - set the `Validator` instance that will be used for payload validation in listener methods.
 - `manageMessageConverters` - gives access to the list of message converters that will be used to convert messages.
 By default, `StringMessageConverter`, `SimpleMessageConverter` and `MappingJackson2MessageConverter` are used.
 
@@ -1556,6 +1573,11 @@ Set in `SqsContainerOptions`.
 Represents the maximum amount of time the container will wait for `maxMessagesPerPoll` permits to be available before trying to acquire a partial batch if so configured.
 This wait is applied per queue and one queue has no interference in another in this regard.
 Defaults to 10 seconds.
+
+===== pollBackOffPolicy
+Since 3.2 it's possible to specify a `BackOffPolicy` which will be applied when a polling thread throws an exception.
+The default policy is an exponential back off with a delay of 1000ms, a 2.0 multiplier, and a 10000ms maximum delay.
+Note that in highly concurrent environments with many polling threads it may happen that a successful poll cancels the next scheduled backoff before it happens, and as such no back offs need to be executed.
 
 ==== Default Polling Behavior
 By default, the framework starts all queues in `low throughput mode`, where it will perform one poll for messages at a time.

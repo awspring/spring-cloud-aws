@@ -19,7 +19,6 @@ import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEA
 import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_GROUP_ID_HEADER;
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SNS;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.sns.Person;
@@ -64,15 +63,15 @@ class SnsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(SNS).withServices(SQS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.3.2")).withServices(SQS).withReuse(true);
 
 	@BeforeAll
 	public static void createSnsTemplate() {
-		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpointOverride(SNS))
+		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpoint())
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
-		sqsClient = SqsClient.builder().endpointOverride(localstack.getEndpointOverride(SQS))
+		sqsClient = SqsClient.builder().endpointOverride(localstack.getEndpoint())
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
@@ -196,7 +195,7 @@ class SnsTemplateIntegrationTest {
 			SnsTemplate snsTemplateTestCache = new SnsTemplate(snsClient, topicsListingTopicArnResolver, null);
 			assertThatThrownBy(
 					() -> snsTemplateTestCache.sendNotification("Some_random_topic", "message content", "subject"))
-							.isInstanceOf(TopicNotFoundException.class);
+					.isInstanceOf(TopicNotFoundException.class);
 		}
 
 		private static void createTopics() {

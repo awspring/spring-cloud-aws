@@ -43,6 +43,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
  * @author Tomaz Fernandes
@@ -74,6 +75,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final String SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME = "send-receive-message-queue.fifo";
 
+	private static final String HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME = "handles-content-deduplication-queue.fifo";
+
 	@Autowired
 	private SqsAsyncClient asyncClient;
 
@@ -90,7 +93,10 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, THROWS_ON_PARTIAL_BATCH_QUEUE_NAME),
 				createQueue(client, SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME), createQueue(client, EMPTY_QUEUE_NAME),
 				createFifoQueue(client, SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME),
-				createFifoQueue(client, SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME)).join();
+				createFifoQueue(client, SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME),
+				createFifoQueue(client, HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME,
+						Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "true")))
+				.join();
 	}
 
 	@Test
@@ -226,6 +232,29 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
+	void shouldHandleContentBasedDeduplication() {
+		String testBody = "Hello world!";
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient).build();
+		SendResult<Object> result = template
+				.send(to -> to.queue(HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME).payload(testBody));
+		Optional<Message<?>> receivedMessage = template
+				.receive(from -> from.queue(HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME));
+		assertThat(result.message().getHeaders()
+				.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER)).isNull();
+		assertThat(receivedMessage).isPresent().get().isInstanceOfSatisfying(Message.class, message -> {
+			assertThat(message.getPayload()).isEqualTo(testBody);
+			assertThat(result.additionalInformation().get(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME))
+					.isEqualTo(message.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_SEQUENCE_NUMBER));
+			assertThat(message.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER))
+					.isEqualTo(result.message().getHeaders()
+							.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
+			assertThat(message.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER))
+					.isNotNull();
+			assertThat(result.messageId()).isEqualTo(message.getHeaders().getId());
+		});
+	}
+
+	@Test
 	void shouldSendAndReceiveBatchFifo() {
 		int batchSize = 5;
 		SqsTemplate template = SqsTemplate.newTemplate(this.asyncClient);
@@ -260,12 +289,12 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			assertThat(receivedMessage.getHeaders().getId()).isEqualTo(result.messageId());
 			assertThat(
 					result.message().getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER))
-							.isEqualTo(receivedMessage.getHeaders()
-									.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
+					.isEqualTo(receivedMessage.getHeaders()
+							.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
 			assertThat(result.message().getHeaders()
 					.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER))
-							.isEqualTo(receivedMessage.getHeaders()
-									.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER));
+					.isEqualTo(receivedMessage.getHeaders()
+							.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER));
 			assertThat(result.additionalInformation().get(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME))
 					.isEqualTo(
 							receivedMessage.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_SEQUENCE_NUMBER));

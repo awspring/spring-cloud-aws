@@ -15,8 +15,6 @@
  */
 package io.awspring.cloud.sqs.integration;
 
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
-
 import io.awspring.cloud.sqs.CompletableFutures;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,9 +44,11 @@ abstract class BaseSqsIntegrationTest {
 
 	protected static final boolean useLocalStackClient = true;
 
-	protected static final boolean purgeQueues = true;
+	protected static boolean purgeQueues = true;
 
-	private static final String LOCAL_STACK_VERSION = "localstack/localstack:1.4.0";
+	protected static boolean waitForPurge = true;
+
+	private static final String LOCAL_STACK_VERSION = "localstack/localstack:2.3.2";
 
 	static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse(LOCAL_STACK_VERSION));
 
@@ -65,8 +65,8 @@ abstract class BaseSqsIntegrationTest {
 
 	@DynamicPropertySource
 	static void registerSqsProperties(DynamicPropertyRegistry registry) {
-		// overwrite SQS endpoint with one provided by Localstack
-		registry.add("spring.cloud.aws.endpoint", () -> localstack.getEndpointOverride(SQS).toString());
+		// overwrite SQS endpoint with one provided by LocalStack
+		registry.add("spring.cloud.aws.endpoint", () -> localstack.getEndpoint());
 	}
 
 	protected static CompletableFuture<?> createQueue(SqsAsyncClient client, String queueName) {
@@ -95,7 +95,13 @@ abstract class BaseSqsIntegrationTest {
 			if (purgeQueues) {
 				String queueUrl = v.queueUrl();
 				logger.debug("Purging queue {}", queueName);
-				return client.purgeQueue(req -> req.queueUrl(queueUrl).build());
+				return client.purgeQueue(req -> req.queueUrl(queueUrl).build()).thenRun(() -> {
+					if (waitForPurge) {
+						logger.info("Waiting 30000 seconds to start sending.");
+						sleep(30000);
+						logger.info("Done waiting.");
+					}
+				});
 			}
 			else {
 				logger.debug("Skipping purge for queue {}", queueName);
@@ -108,6 +114,16 @@ abstract class BaseSqsIntegrationTest {
 			}
 			logger.debug("Done purging queue {}", queueName);
 		});
+	}
+
+	private static void sleep(int time) {
+		try {
+			Thread.sleep(time);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException("Interrupted while sleeping");
+		}
 	}
 
 	private static CreateQueueRequest getCreateQueueRequest(String queueName,
@@ -130,8 +146,7 @@ abstract class BaseSqsIntegrationTest {
 
 	private static SqsAsyncClient createLocalStackClient() {
 		return SqsAsyncClient.builder().credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(SQS)).region(Region.of(localstack.getRegion()))
-				.build();
+				.endpointOverride(localstack.getEndpoint()).region(Region.of(localstack.getRegion())).build();
 	}
 
 	protected static class LoadSimulator {

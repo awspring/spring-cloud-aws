@@ -16,7 +16,6 @@
 package io.awspring.cloud.autoconfigure.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -52,7 +51,7 @@ class SqsAutoConfigurationIntegrationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.sqs.region=eu-west-1",
-					"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpointOverride(SQS).toString(),
+					"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpoint(),
 					"spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
 					"spring.cloud.aws.region.static=eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
@@ -61,7 +60,7 @@ class SqsAutoConfigurationIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0"));
+			DockerImageName.parse("localstack/localstack:2.3.2"));
 
 	@SuppressWarnings("unchecked")
 	@Test

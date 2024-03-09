@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import java.time.Duration;
 import java.util.Collection;
 import org.springframework.lang.Nullable;
@@ -26,6 +27,7 @@ import org.springframework.lang.Nullable;
  * Contains properties that should be mapped from {@link SqsListener @SqsListener} annotations.
  *
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 3.0
  */
 public class SqsEndpoint extends AbstractEndpoint {
@@ -38,12 +40,16 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 	private final Integer maxMessagesPerPoll;
 
+	@Nullable
+	private final AcknowledgementMode acknowledgementMode;
+
 	protected SqsEndpoint(SqsEndpointBuilder builder) {
 		super(builder.queueNames, builder.factoryName, builder.id);
 		this.maxConcurrentMessages = builder.maxConcurrentMessages;
 		this.pollTimeoutSeconds = builder.pollTimeoutSeconds;
 		this.messageVisibility = builder.messageVisibility;
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
+		this.acknowledgementMode = builder.acknowledgementMode;
 	}
 
 	/**
@@ -91,6 +97,15 @@ public class SqsEndpoint extends AbstractEndpoint {
 		return this.messageVisibility != null ? Duration.ofSeconds(this.messageVisibility) : null;
 	}
 
+	/**
+	 * Returns the acknowledgement mode configured for this endpoint.
+	 * @return the acknowledgement mode.
+	 */
+	@Nullable
+	public AcknowledgementMode getAcknowledgementMode() {
+		return this.acknowledgementMode;
+	}
+
 	public static class SqsEndpointBuilder {
 
 		private Collection<String> queueNames;
@@ -106,6 +121,9 @@ public class SqsEndpoint extends AbstractEndpoint {
 		private String id;
 
 		private Integer maxMessagesPerPoll;
+
+		@Nullable
+		private AcknowledgementMode acknowledgementMode;
 
 		public SqsEndpointBuilder queueNames(Collection<String> queueNames) {
 			this.queueNames = queueNames;
@@ -139,6 +157,11 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 		public SqsEndpointBuilder id(String id) {
 			this.id = id;
+			return this;
+		}
+
+		public SqsEndpointBuilder acknowledgementMode(@Nullable AcknowledgementMode acknowledgementMode) {
+			this.acknowledgementMode = acknowledgementMode;
 			return this;
 		}
 

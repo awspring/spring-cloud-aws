@@ -303,14 +303,15 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void maxConcurrentMessages() {
 		List<Message<String>> messages1 = IntStream.range(0, 10)
-			.mapToObj(index -> "maxConcurrentMessages-payload-" + index)
-			.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
+				.mapToObj(index -> "maxConcurrentMessages-payload-" + index)
+				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
 		List<Message<String>> messages2 = IntStream.range(10, 20)
-			.mapToObj(index -> "maxConcurrentMessages-payload-" + index)
-			.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
+				.mapToObj(index -> "maxConcurrentMessages-payload-" + index)
+				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
 		sqsTemplate.sendManyAsync(MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages1);
 		sqsTemplate.sendManyAsync(MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages2);
-		logger.debug("Sent messages to queue {} with messages {} and {}", MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages1, messages2);
+		logger.debug("Sent messages to queue {} with messages {} and {}", MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages1,
+				messages2);
 		assertDoesNotThrow(() -> latchContainer.maxConcurrentMessagesBarrier.await(10, TimeUnit.SECONDS));
 	}
 

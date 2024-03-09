@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.dynamodb.DefaultDynamoDbTableSchemaResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTableNameResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTableSchemaResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTemplate;
@@ -38,6 +39,7 @@ import org.springframework.lang.Nullable;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -48,6 +50,7 @@ import software.amazon.dax.ClusterDaxClient;
  * Tests for {@link DynamoDbAutoConfiguration}.
  *
  * @author Matej Nedic
+ * @author Maciej Walkowiak
  */
 class DynamoDbAutoConfigurationTest {
 
@@ -123,6 +126,18 @@ class DynamoDbAutoConfigurationTest {
 								context.getBean(DynamoDbClient.class));
 						assertThat(dynamoDbClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1999));
 						assertThat(dynamoDbClient.getSyncHttpClient()).isNotNull();
+					});
+		}
+
+		@Test
+		void tableSchemaBeansRegistered() {
+			contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.TableSchemaConfiguration.class)
+					.run(context -> {
+						DefaultDynamoDbTableSchemaResolver schemaResolver = context
+								.getBean(DefaultDynamoDbTableSchemaResolver.class);
+						TableSchema<TableSchemaConfiguration.Person> personTableSchema = schemaResolver
+								.resolve(TableSchemaConfiguration.Person.class);
+						assertThat(context.getBean("personTableSchema")).isEqualTo(personTableSchema);
 					});
 		}
 	}
@@ -254,15 +269,15 @@ class DynamoDbAutoConfigurationTest {
 		DynamoDbTableNameResolver tableNameResolver() {
 			return new CustomDynamoDBDynamoDbTableNameResolver();
 		}
+
 	}
 
 	static class CustomDynamoDBDynamoDbTableSchemaResolver implements DynamoDbTableSchemaResolver {
 
 		@Override
-		public <T> TableSchema resolve(Class<T> clazz, String tableName) {
+		public <T> TableSchema resolve(Class<T> clazz) {
 			return null;
 		}
-
 	}
 
 	static class CustomDynamoDBDynamoDbTableNameResolver implements DynamoDbTableNameResolver {
@@ -295,6 +310,18 @@ class DynamoDbAutoConfigurationTest {
 			}
 		}
 
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class TableSchemaConfiguration {
+
+		@Bean
+		TableSchema<Person> personTableSchema() {
+			return StaticTableSchema.builder(Person.class).build();
+		}
+
+		static class Person {
+		}
 	}
 
 }

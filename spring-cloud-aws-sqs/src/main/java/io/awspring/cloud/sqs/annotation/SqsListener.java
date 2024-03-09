@@ -74,6 +74,7 @@ import org.springframework.core.annotation.AliasFor;
  * @author Alain Sahli
  * @author Matej Nedic
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 1.1
  */
 @Target(ElementType.METHOD)
@@ -136,5 +137,11 @@ public @interface SqsListener {
 	 * before each remaining message from the same message group is processed.
 	 */
 	String messageVisibilitySeconds() default "";
+
+	/**
+	 * The acknowledgement mode to be used for the provided queues. If not specified, the acknowledgement mode defined
+	 * for the container factory will be used.
+	 */
+	String acknowledgementMode() default "";
 
 }
