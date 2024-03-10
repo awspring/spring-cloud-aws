@@ -22,6 +22,8 @@ import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import java.time.Duration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
+import org.springframework.retry.backoff.BackOffPolicy;
+import org.springframework.retry.backoff.BackOffPolicyBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -40,6 +42,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	private final boolean autoStartup;
 
 	private final Duration pollTimeout;
+
+	private final BackOffPolicy pollBackOffPolicy;
 
 	private final Duration maxDelayBetweenPolls;
 
@@ -75,6 +79,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
 		this.autoStartup = builder.autoStartup;
 		this.pollTimeout = builder.pollTimeout;
+		this.pollBackOffPolicy = builder.pollBackOffPolicy;
 		this.maxDelayBetweenPolls = builder.maxDelayBetweenPolls;
 		this.listenerShutdownTimeout = builder.listenerShutdownTimeout;
 		this.acknowledgementShutdownTimeout = builder.acknowledgementShutdownTimeout;
@@ -110,6 +115,11 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	@Override
 	public Duration getPollTimeout() {
 		return this.pollTimeout;
+	}
+
+	@Override
+	public BackOffPolicy getPollBackOffPolicy() {
+		return this.pollBackOffPolicy;
 	}
 
 	@Override
@@ -188,6 +198,14 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final Duration DEFAULT_POLL_TIMEOUT = Duration.ofSeconds(10);
 
+		private static final double DEFAULT_BACK_OFF_MULTIPLIER = 2.0;
+
+		private static final int DEFAULT_BACK_OFF_DELAY = 1000;
+
+		private static final int DEFAULT_BACK_OFF_MAX_DELAY = 10000;
+
+		private static final BackOffPolicy DEFAULT_POLL_BACK_OFF_POLICY = buildDefaultBackOffPolicy();
+
 		private static final Duration DEFAULT_SEMAPHORE_TIMEOUT = Duration.ofSeconds(10);
 
 		private static final Duration DEFAULT_LISTENER_SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
@@ -209,6 +227,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private boolean autoStartup = DEFAULT_AUTO_STARTUP;
 
 		private Duration pollTimeout = DEFAULT_POLL_TIMEOUT;
+
+		private BackOffPolicy pollBackOffPolicy = DEFAULT_POLL_BACK_OFF_POLICY;
 
 		private Duration maxDelayBetweenPolls = DEFAULT_SEMAPHORE_TIMEOUT;
 
@@ -247,6 +267,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.maxMessagesPerPoll = options.maxMessagesPerPoll;
 			this.autoStartup = options.autoStartup;
 			this.pollTimeout = options.pollTimeout;
+			this.pollBackOffPolicy = options.pollBackOffPolicy;
 			this.maxDelayBetweenPolls = options.maxDelayBetweenPolls;
 			this.listenerShutdownTimeout = options.listenerShutdownTimeout;
 			this.acknowledgementShutdownTimeout = options.acknowledgementShutdownTimeout;
@@ -284,6 +305,13 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		public B pollTimeout(Duration pollTimeout) {
 			Assert.notNull(pollTimeout, "pollTimeout cannot be null");
 			this.pollTimeout = pollTimeout;
+			return self();
+		}
+
+		@Override
+		public B pollBackOffPolicy(BackOffPolicy pollBackOffPolicy) {
+			Assert.notNull(pollBackOffPolicy, "pollBackOffPolicy cannot be null");
+			this.pollBackOffPolicy = pollBackOffPolicy;
 			return self();
 		}
 
@@ -377,6 +405,10 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			return (B) this;
 		}
 
+		private static BackOffPolicy buildDefaultBackOffPolicy() {
+			return BackOffPolicyBuilder.newBuilder().multiplier(DEFAULT_BACK_OFF_MULTIPLIER)
+					.delay(DEFAULT_BACK_OFF_DELAY).maxDelay(DEFAULT_BACK_OFF_MAX_DELAY).build();
+		}
 	}
 
 }

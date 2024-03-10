@@ -62,13 +62,15 @@ public class SesAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingClass("jakarta.mail.Session")
 	public MailSender simpleMailSender(SesClient sesClient, SesProperties properties) {
-		return new SimpleEmailServiceMailSender(sesClient, properties.getSourceArn(), properties.getConfigurationSetName());
+		return new SimpleEmailServiceMailSender(sesClient, properties.getSourceArn(),
+				properties.getConfigurationSetName());
 	}
 
 	@Bean
 	@ConditionalOnClass(name = "jakarta.mail.Session")
 	public JavaMailSender javaMailSender(SesClient sesClient, SesProperties properties) {
-		return new SimpleEmailServiceJavaMailSender(sesClient, properties.getSourceArn(), properties.getConfigurationSetName());
+		return new SimpleEmailServiceJavaMailSender(sesClient, properties.getSourceArn(),
+				properties.getConfigurationSetName());
 	}
 
 }

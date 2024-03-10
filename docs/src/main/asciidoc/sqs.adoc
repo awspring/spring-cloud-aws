@@ -812,6 +812,11 @@ See AWS documentation for more information.
 After that period, the framework will try to perform a partial acquire with the available permits, resulting in a poll for less than `maxMessagesPerPoll` messages, unless otherwise configured.
 See <<Message Processing Throughput>>.
 
+|<<pollBackOffPolicy>>
+|Any valid `BackOffPolicy` implementation
+|`ExponentialBackOffPolicy`
+|The back off policy to be applied when a polling thread throws an error. The default is an exponential policy with a delay of `1s`, a multiplier of `2.0`, and a maximum of `10s`.
+
 |`autoStartup`
 |true, false
 |true
@@ -821,13 +826,13 @@ See <<Container Lifecycle>>.
 
 |`listenerShutdownTimeout`
 |0 - undefined
-|10 seconds
+|20 seconds
 |The amount of time the container will wait for a queue to complete message processing before attempting to forcefully shutdown.
 See <<Container Lifecycle>>.
 
 |`acknowledgementShutdownTimeout`
 |0 - undefined
-|10 seconds
+|20 seconds
 |The amount of time the container will wait for acknowledgements to complete for a queue after message processing has ended.
 See <<Container Lifecycle>>.
 
@@ -1568,6 +1573,11 @@ Set in `SqsContainerOptions`.
 Represents the maximum amount of time the container will wait for `maxMessagesPerPoll` permits to be available before trying to acquire a partial batch if so configured.
 This wait is applied per queue and one queue has no interference in another in this regard.
 Defaults to 10 seconds.
+
+===== pollBackOffPolicy
+Since 3.2 it's possible to specify a `BackOffPolicy` which will be applied when a polling thread throws an exception.
+The default policy is an exponential back off with a delay of 1000ms, a 2.0 multiplier, and a 10000ms maximum delay.
+Note that in highly concurrent environments with many polling threads it may happen that a successful poll cancels the next scheduled backoff before it happens, and as such no back offs need to be executed.
 
 ==== Default Polling Behavior
 By default, the framework starts all queues in `low throughput mode`, where it will perform one poll for messages at a time.

@@ -59,6 +59,7 @@ import software.amazon.awssdk.services.ssm.model.ParameterType;
  * Integration tests for loading configuration properties from AWS Parameter Store.
  *
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  */
 @Testcontainers
 @ExtendWith(OutputCaptureExtension.class)
@@ -88,6 +89,22 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
 			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("another parameter value");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
+		}
+	}
+
+	@Test
+	void propertyIsNotResolvedWhenIntegrationIsDisabled() {
+		SpringApplication application = new SpringApplication(ParameterStoreConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-parameterstore:/config/spring/",
+				"--spring.cloud.aws.parameterstore.enabled=false", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1")) {
+			assertThat(context.getEnvironment().getProperty("message")).isNull();
+			assertThat(context.getBeanProvider(SsmClient.class).getIfAvailable()).isNull();
 		}
 	}
 

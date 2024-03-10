@@ -85,7 +85,8 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 		this(sesClient, sourceArn, null);
 	}
 
-	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn, @Nullable String configurationSetName) {
+	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn,
+			@Nullable String configurationSetName) {
 		super(sesClient, sourceArn, configurationSetName);
 	}
 
