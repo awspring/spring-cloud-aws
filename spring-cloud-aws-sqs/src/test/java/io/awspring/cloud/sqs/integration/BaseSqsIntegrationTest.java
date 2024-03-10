@@ -44,9 +44,9 @@ abstract class BaseSqsIntegrationTest {
 
 	protected static final boolean useLocalStackClient = true;
 
-	protected static boolean purgeQueues = true;
+	protected static boolean purgeQueues = false;
 
-	protected static boolean waitForPurge = true;
+	protected static boolean waitForPurge = false;
 
 	private static final String LOCAL_STACK_VERSION = "localstack/localstack:2.3.2";
 

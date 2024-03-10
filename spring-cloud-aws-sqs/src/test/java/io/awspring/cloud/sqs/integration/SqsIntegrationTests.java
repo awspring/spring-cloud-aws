@@ -122,6 +122,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String MANUALLY_CREATE_FACTORY_QUEUE_NAME = "manually_create_factory_test_queue";
 
+	static final String CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME = "consumes_one_message_test_queue";
+
 	static final String MAX_CONCURRENT_MESSAGES_QUEUE_NAME = "max_concurrent_messages_test_queue";
 
 	static final String LOW_RESOURCE_FACTORY = "lowResourceFactory";
@@ -149,6 +151,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, MANUALLY_CREATE_CONTAINER_QUEUE_NAME),
 				createQueue(client, MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME),
 				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME),
+				createQueue(client, CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME),
 				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME)).join();
 	}
 
@@ -298,6 +301,28 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.manuallyCreatedFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.manuallyCreatedFactorySourceFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.manuallyCreatedFactorySinkLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void consumesOneMessageAtATime() throws Exception {
+		IntStream.range(0, 10).forEach(index -> {
+			List<Message<String>> messages = create10Messages("consumesOneMessageAtATime");
+			sqsTemplate.sendMany(CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME, messages);
+		});
+		logger.debug("Sent 10 messages to queue {}", CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME);
+		var latch = new CountDownLatch(100);
+		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
+				.queueNames(CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME).configure(options -> options
+						.pollTimeout(Duration.ofSeconds(1)).maxConcurrentMessages(1).maxMessagesPerPoll(1))
+				.messageListener(msg -> latch.countDown()).build();
+		container.start();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		container.stop();
+	}
+
+	private List<Message<String>> create10Messages(String testName) {
+		return IntStream.range(0, 10).mapToObj(index -> testName + "-payload-" + index)
+				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
 	}
 
 	@Test
