@@ -17,7 +17,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
 To fetch parameters from Parameter Store and add them to Spring's environment properties, add `spring.config.import` property to `application.properties`:
 
-For example, assuming that the parameters in Parameter Store are stored under path `/config/spring`:
+For example, assuming that the parameters in Parameter Store are stored under path `/config/spring/`:
 
 |===
 | Parameter Name | Parameter Value
@@ -31,7 +31,7 @@ Once `spring.config.import` statement is added:
 
 [source,properties]
 ----
-spring.config.import=aws-parameterstore:/config/spring
+spring.config.import=aws-parameterstore:/config/spring/
 ----
 
 Two parameters are added to environment: `message` and `httpUrl`.
@@ -40,21 +40,21 @@ If a given path in Parameter Store does not exist, application will fail to star
 
 [source,properties]
 ----
-spring.config.import=optional:aws-parameterstore:/config/spring
+spring.config.import=optional:aws-parameterstore:/config/spring/
 ----
 
 To load parameters from multiple paths, separate their names with `;`:
 
 [source,properties]
 ----
-spring.config.import=aws-parameterstore:/config/spring;/config/app
+spring.config.import=aws-parameterstore:/config/spring/;/config/app/
 ----
 
 If some parameters are required, and other ones are optional, list them as separate entries in `spring.config.import` property:
 
 [source,properties]
 ----
-spring.config.import[0]=optional:aws-parameterstore=/config/spring
+spring.config.import[0]=optional:aws-parameterstore=/config/spring/
 spring.config.import[1]=aws-parameterstore=/config/optional-params/
 ----
 
@@ -65,7 +65,7 @@ these will become accessible as array properties `cloud.aws.stack[0].name`, `clo
 
 To avoid property key collisions it is possible to configure a property key prefix that gets added to each resolved parameter.
 
-As an example, assuming the following parameters are stored under path `/config/my-datasource`:
+As an example, assuming the following parameters are stored under path `/config/my-datasource/`:
 
 |===
 | Parameter Name | Parameter Value
