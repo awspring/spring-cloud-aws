@@ -107,7 +107,7 @@ class SnsAutoConfigurationTest {
 
 			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
 					ReflectionTestUtils.getField(snsClient, "clientConfiguration"), "attributes"), "attributes");
-			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(1999));
+			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT).toString()).isEqualTo("Value(PT1.999S)");
 			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
 		});
 	}
