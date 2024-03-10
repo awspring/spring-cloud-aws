@@ -179,10 +179,11 @@ class SimpleEmailServiceJavaMailSenderTest {
 	@Test
 	void testSendMimeMessageWithFromArnSet() throws MessagingException {
 		SesClient emailService = mock(SesClient.class);
-		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService, null, null, "eu-west-1:123456789012:identity/example.com");
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService, null, null,
+				"eu-west-1:123456789012:identity/example.com");
 		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
 		when(emailService.sendRawEmail(request.capture()))
-			.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
+				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
 		MimeMessage mimeMessage = createMimeMessage();
 
 		mailSender.send(mimeMessage);
