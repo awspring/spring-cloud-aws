@@ -30,8 +30,8 @@ class SpringCloudClientConfigurationTests {
 
 	@Test
 	void returnsClientConfigurationWithVersion() {
-		ClientOverrideConfiguration clientOverrideConfiguration = new SpringCloudClientConfiguration()
-				.clientOverrideConfiguration();
+		ClientOverrideConfiguration clientOverrideConfiguration =SpringCloudClientConfiguration.applyUserAgent(
+			ClientOverrideConfiguration.builder()).build();
 
 		assertThat(clientOverrideConfiguration.advancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX)).isPresent()
 				.hasValueSatisfying(value -> {
