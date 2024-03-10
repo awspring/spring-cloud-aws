@@ -43,8 +43,8 @@ public class NotificationMessageArgumentResolver implements HandlerMethodArgumen
 	@Override
 	public Object resolveArgument(MethodParameter par, Message<?> msg) throws Exception {
 		Object object = this.converter.fromMessage(msg, par.getParameterType());
-		Assert.isInstanceOf(SnsMessageConverter.SnsMessage.class, object);
-		SnsMessageConverter.SnsMessage nr = (SnsMessageConverter.SnsMessage) object;
+		Assert.isInstanceOf(SnsMessageConverter.SnsMessageWrapper.class, object);
+		SnsMessageConverter.SnsMessageWrapper nr = (SnsMessageConverter.SnsMessageWrapper) object;
 		return nr.message();
 	}
 

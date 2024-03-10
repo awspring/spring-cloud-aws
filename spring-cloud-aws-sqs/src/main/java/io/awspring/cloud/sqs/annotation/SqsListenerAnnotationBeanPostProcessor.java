@@ -27,6 +27,7 @@ import io.awspring.cloud.sqs.support.resolver.VisibilityHandlerMethodArgumentRes
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
@@ -70,15 +71,17 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 	}
 
 	@Override
+	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers() {
+		return Arrays.asList(new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
+			new SqsMessageMethodArgumentResolver(), new QueueAttributesMethodArgumentResolver());
+	}
+
+	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
 			MessageConverter messageConverter, ObjectMapper objectMapper) {
-		var additionalArgumentResolvers = Arrays.asList(new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
-				new SqsMessageMethodArgumentResolver(), new QueueAttributesMethodArgumentResolver());
-		if (messageConverter != null && objectMapper != null) {
-			additionalArgumentResolvers = new ArrayList<>(additionalArgumentResolvers);
-			additionalArgumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
-		}
-		return additionalArgumentResolvers;
+		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
+		argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
+		return argumentResolvers;
 	}
 
 }

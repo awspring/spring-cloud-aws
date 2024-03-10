@@ -283,10 +283,10 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
 			MessageConverter messageConverter, ObjectMapper objectMapper) {
-		return Collections.emptyList();
+		return createAdditionalArgumentResolvers();
 	}
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers() {
-		return createAdditionalArgumentResolvers(null, null);
+		return Collections.emptyList();
 	}
 
 	protected CompositeMessageConverter createCompositeMessageConverter() {

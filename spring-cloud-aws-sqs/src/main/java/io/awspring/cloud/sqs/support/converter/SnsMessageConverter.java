@@ -34,6 +34,8 @@ public class SnsMessageConverter implements MessageConverter {
 	private final MessageConverter payloadConverter;
 
 	public SnsMessageConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
+		Assert.notNull(payloadConverter, "payloadConverter must not be null");
+		Assert.notNull(jsonMapper, "jsonMapper must not be null");
 		this.payloadConverter = payloadConverter;
 		this.jsonMapper = jsonMapper;
 	}
@@ -67,7 +69,7 @@ public class SnsMessageConverter implements MessageConverter {
 
 		String messagePayload = jsonNode.get("Message").asText();
 		GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload);
-		return new SnsMessage(jsonNode.path("Subject").asText(),
+		return new SnsMessageWrapper(jsonNode.path("Subject").asText(),
 				this.payloadConverter.fromMessage(genericMessage, targetClass));
 	}
 
@@ -78,9 +80,9 @@ public class SnsMessageConverter implements MessageConverter {
 	}
 
 	/**
-	 * Notification request wrapper.
+	 * SNS Message wrapper.
 	 */
-	public record SnsMessage(String subject, Object message) {
+	public record SnsMessageWrapper(String subject, Object message) {
 	}
 
 }
