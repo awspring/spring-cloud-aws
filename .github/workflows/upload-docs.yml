@@ -8,6 +8,7 @@ on:
       - 2.4.x
       - 2.3.x
       - 2.2.x
+      - fix-build-docs
 
 env:
   # https://github.com/actions/checkout/issues/440#issuecomment-854240996
@@ -28,11 +29,12 @@ jobs:
         with:
           candidate: java
           version: '17.0.1-tem'
-      - name: Set up JDK 8
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: 8
-          distribution: 'adopt'
+          java-version: 17
+          distribution: 'jdkfile'
+          jdkFile: ${{ steps.sdkman.outputs.file }}
           cache: 'maven'
       - uses: actions/cache@v1
         with:
