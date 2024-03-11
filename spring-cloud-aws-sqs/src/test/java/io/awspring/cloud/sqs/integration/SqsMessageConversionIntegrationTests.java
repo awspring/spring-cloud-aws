@@ -241,9 +241,10 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		LatchContainer latchContainer;
 
 		@SqsListener(queueNames = RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME, id = "resolves-pojo-with-notification-message", factory = "defaultSqsListenerContainerFactory")
-		void listen(@SnsNotificationMessage MyPojo myPojo) {
-			Assert.notNull((myPojo).firstField, "Received null message");
-			logger.debug("Received message {} from queue {}", myPojo, RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME);
+		void listen(@SnsNotificationMessage MyEnvelope<MyPojo> myPojo) {
+			Assert.notNull((myPojo).data.firstField, "Received null message");
+			logger.debug("Received message {} from queue {}", myPojo,
+					RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME);
 			latchContainer.resolvesPojoNotificationMessageLatch.countDown();
 		}
 	}
@@ -341,6 +342,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		ResolvesMyOtherPojoWithMappingListener resolvesMyOtherPojoWithMappingListener() {
 			return new ResolvesMyOtherPojoWithMappingListener();
 		}
+
 		@Bean
 		ResolvesPojoWithNotificationAnnotationListener resolvesPojoWithNotificationAnnotationListener() {
 			return new ResolvesPojoWithNotificationAnnotationListener();
@@ -361,6 +363,27 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 			return SqsTemplate.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient()).build();
 		}
 
+	}
+
+	static class MyEnvelope<T> {
+		String specversion;
+		T data;
+
+		public String getSpecversion() {
+			return specversion;
+		}
+
+		public void setSpecversion(String specversion) {
+			this.specversion = specversion;
+		}
+
+		public T getData() {
+			return data;
+		}
+
+		public void setData(T data) {
+			this.data = data;
+		}
 	}
 
 	static class MyPojo implements MyInterface {
