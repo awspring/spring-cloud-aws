@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Matej Nedic
  * @author Arun Patra
+ * @author Volodymyr Ivakhnenko
  * @since 3.0
  */
 public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolver {
@@ -32,12 +33,20 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 	@Nullable
 	private final String tablePrefix;
 
+	@Nullable
+	private final String tableSuffix;
+
 	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix) {
-		this.tablePrefix = tablePrefix;
+		this(tablePrefix, null);
 	}
 
 	public DefaultDynamoDbTableNameResolver() {
-		this(null);
+		this(null, null);
+	}
+
+	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix) {
+		this.tablePrefix = tablePrefix;
+		this.tableSuffix = tableSuffix;
 	}
 
 	@Override
@@ -45,6 +54,10 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 		Assert.notNull(clazz, "clazz is required");
 
 		String prefix = StringUtils.hasText(tablePrefix) ? tablePrefix : "";
-		return prefix.concat(clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT));
+		String suffix = StringUtils.hasText(tableSuffix) ? tableSuffix : "";
+
+		return prefix.concat(clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT))
+				.concat(suffix);
 	}
+
 }
