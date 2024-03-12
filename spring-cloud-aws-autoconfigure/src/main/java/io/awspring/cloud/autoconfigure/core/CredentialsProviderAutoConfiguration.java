@@ -37,6 +37,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -134,7 +135,8 @@ public class CredentialsProviderAutoConfiguration {
 				AwsRegionProvider regionProvider) {
 			PropertyMapper propertyMapper = PropertyMapper.get();
 			StsWebIdentityTokenFileCredentialsProvider.Builder builder = StsWebIdentityTokenFileCredentialsProvider
-					.builder().stsClient(StsClient.builder().region(regionProvider.getRegion()).build());
+					.builder().stsClient(StsClient.builder().credentialsProvider(AnonymousCredentialsProvider.create())
+							.region(regionProvider.getRegion()).build());
 
 			if (stsProperties != null) {
 				builder.asyncCredentialUpdateEnabled(stsProperties.isAsyncCredentialsUpdate());
