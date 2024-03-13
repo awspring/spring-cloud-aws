@@ -2,7 +2,7 @@
 	"Type": "Notification",
 	"MessageId": "f2c15fec-c617-5b08-b54d-13c4099fec60",
 	"TopicArn": "arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
-	"Message": "{\"firstField\":\"pojoNotificationMessage\",\"secondField\":\"secondValue\"}",
+	"Message": "{\"specversion\": \"1.0.2\", \"data\": {\"firstField\":\"pojoNotificationMessage\",\"secondField\":\"secondValue\"}}",
 	"Timestamp": "2014-06-28T14:12:24.418Z",
 	"SignatureVersion": "1",
 	"Signature": "XDvKSAnhxECrAmyIrs0Dsfbp/tnKD1IvoOOYTU28FtbUoxr/CgziuW87yZwTuSNNbHJbdD3BEjHS0vKewm0xBeQ0PToDkgtoORXo5RWnmShDQ2nhkthFhZnNulKtmFtRogjBtCwbz8sPnbOCSk21ruyXNdV2RUbdDalndAW002CWEQmYMxFSN6OXUtMueuT610aX+tqeYP4Z6+8WTWLWjAuVyy7rOI6KHYBcVDhKtskvTOPZ4tiVohtQdQbO2Gjuh1vblRzzwMkfaoFTSWImd4pFXxEsv/fq9aGIlqq9xEryJ0w2huFwI5gxyhvGt0RnTd9YvmAEC+WzdJDOqaDNxg==",

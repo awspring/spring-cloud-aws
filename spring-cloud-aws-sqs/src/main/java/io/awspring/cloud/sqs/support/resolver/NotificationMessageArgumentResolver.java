@@ -21,6 +21,7 @@ import io.awspring.cloud.sqs.support.converter.SnsMessageConverter;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.Assert;
 
@@ -29,7 +30,7 @@ import org.springframework.util.Assert;
  */
 public class NotificationMessageArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private final MessageConverter converter;
+	private final SmartMessageConverter converter;
 
 	public NotificationMessageArgumentResolver(MessageConverter converter, ObjectMapper jsonMapper) {
 		this.converter = new SnsMessageConverter(converter, jsonMapper);
@@ -41,8 +42,8 @@ public class NotificationMessageArgumentResolver implements HandlerMethodArgumen
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter par, Message<?> msg) throws Exception {
-		Object object = this.converter.fromMessage(msg, par.getParameterType());
+	public Object resolveArgument(MethodParameter par, Message<?> msg) {
+		Object object = this.converter.fromMessage(msg, par.getParameterType(), par);
 		Assert.isInstanceOf(SnsMessageConverter.SnsMessageWrapper.class, object);
 		SnsMessageConverter.SnsMessageWrapper nr = (SnsMessageConverter.SnsMessageWrapper) object;
 		return nr.message();
