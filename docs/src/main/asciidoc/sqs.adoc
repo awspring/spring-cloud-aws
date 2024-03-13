@@ -622,8 +622,6 @@ public void listen(@SnsNotificationMessage Pojo pojo) {
 }
 ----
 
-NOTE: You will need to configure an `ObjectMapper` with `SqsListenerConfigurer` in order to utilize this annotation.
-
 ===== Specifying a MessageListenerContainerFactory
 A `MessageListenerContainerFactory` can be specified through the `factory` property.
 Such factory will then be used to create the container for the annotated method.
