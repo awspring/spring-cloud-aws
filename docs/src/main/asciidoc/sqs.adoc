@@ -1231,7 +1231,7 @@ public interface MessagingMessageConverter<S> {
 
 The default header-based type mapping can be configured to use a different header name by using the `setPayloadTypeHeader` method.
 
-Also is possible to not send `TypeHeader` by using the `doNotSendTypeHeader` method.
+It is also possible not include payload type information in the header by using `doNotSendPayloadTypeHeader` method.
 
 More complex mapping can be achieved by using the `setPayloadTypeMapper` method, which overrides the default header-based mapping.
 This method receives a `Function<Message<?>, Class<?>> payloadTypeMapper` that will be applied to incoming messages.
@@ -1252,7 +1252,7 @@ SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter
 messageConverter.setPayloadTypeHeader("myTypeHeader");
 
 // Not send Type Header
-messageConverter.doNotSendTypeHeader();
+messageConverter.doNotSendPayloadTypeHeader();
 
 // Configure Header Mapper
 SqsHeaderMapper headerMapper = new SqsHeaderMapper();
