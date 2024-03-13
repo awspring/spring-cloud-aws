@@ -611,6 +611,19 @@ Any number of `@SqsListener` annotations can be used in a bean class, and each a
 
 NOTE: Queues declared in the same annotation will share the container, though each will have separate throughput and acknowledgement controls.
 
+===== Annotation-driven SqsListener
+
+The default payload of `@SqsListener` includes all the attributes within the SQS Object; However if you only need the `Message` part of the payload, you can utilize the `@SnsNotificationMessage` annotation.
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(@SnsNotificationMessage Pojo pojo) {
+	System.out.println(pojo.field);
+}
+----
+
+NOTE: You will need to configure an `ObjectMapper` with `SqsListenerConfigurer` in order to utilize this annotation.
+
 ===== Specifying a MessageListenerContainerFactory
 A `MessageListenerContainerFactory` can be specified through the `factory` property.
 Such factory will then be used to create the container for the annotated method.

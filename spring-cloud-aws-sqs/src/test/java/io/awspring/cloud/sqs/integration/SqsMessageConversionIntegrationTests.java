@@ -302,12 +302,6 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 			return factory;
 		}
 
-		@Bean
-		SqsListenerConfigurer customizer(ObjectMapper objectMapper) {
-			return registrar -> {
-				registrar.setObjectMapper(objectMapper);
-			};
-		}
 		// @formatter:on
 
 		LatchContainer latchContainer = new LatchContainer();
@@ -354,6 +348,11 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		ObjectMapper objectMapper() {
 			return new ObjectMapper();
+		}
+
+		@Bean
+		SqsListenerConfigurer customizer(ObjectMapper objectMapper) {
+			return registrar -> registrar.setObjectMapper(objectMapper);
 		}
 
 		@Bean

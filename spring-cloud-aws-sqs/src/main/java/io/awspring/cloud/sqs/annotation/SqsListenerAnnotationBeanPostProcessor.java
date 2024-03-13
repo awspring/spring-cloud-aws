@@ -80,7 +80,9 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
 			MessageConverter messageConverter, ObjectMapper objectMapper) {
 		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
-		argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
+		if (objectMapper != null) {
+			argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
+		}
 		return argumentResolvers;
 	}
 
