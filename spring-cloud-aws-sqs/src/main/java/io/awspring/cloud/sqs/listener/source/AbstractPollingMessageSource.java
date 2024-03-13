@@ -221,8 +221,8 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 				managePollingFuture(doPollForMessages(acquiredPermits))
 					.thenApply(this::resetBackOffContext)
 					.exceptionally(this::handlePollingException)
-					.thenApply(msgs -> releaseUnusedPermits(acquiredPermits, msgs))
 					.thenApply(this::convertMessages)
+					.thenApply(msgs -> releaseUnusedPermits(acquiredPermits, msgs))
 					.thenCompose(this::emitMessagesToPipeline)
 					.exceptionally(this::handleSinkException);
 				// @formatter:on
@@ -251,7 +251,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 
 	protected abstract CompletableFuture<Collection<S>> doPollForMessages(int messagesToRequest);
 
-	public Collection<S> releaseUnusedPermits(int permits, Collection<S> msgs) {
+	public Collection<Message<T>> releaseUnusedPermits(int permits, Collection<Message<T>> msgs) {
 		if (msgs.isEmpty() && permits == this.backPressureHandler.getBatchSize()) {
 			this.backPressureHandler.releaseBatch();
 			logger.trace("Released batch of unused permits for queue {}", this.pollingEndpointName);
