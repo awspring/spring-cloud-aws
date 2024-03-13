@@ -67,13 +67,6 @@ abstract class AbstractCrossRegionS3Client implements S3Client {
 	}
 
 	@Override
-	public software.amazon.awssdk.services.s3.model.CreateSessionResponse createSession(
-			software.amazon.awssdk.services.s3.model.CreateSessionRequest p0)
-			throws AwsServiceException, SdkClientException {
-		return executeInBucketRegion(p0.bucket(), s3Client -> s3Client.createSession(p0));
-	}
-
-	@Override
 	public software.amazon.awssdk.services.s3.model.DeleteBucketResponse deleteBucket(
 			software.amazon.awssdk.services.s3.model.DeleteBucketRequest p0)
 			throws AwsServiceException, SdkClientException {
@@ -484,20 +477,6 @@ abstract class AbstractCrossRegionS3Client implements S3Client {
 			software.amazon.awssdk.services.s3.model.ListBucketsRequest p0)
 			throws AwsServiceException, SdkClientException {
 		return executeInDefaultRegion(s3Client -> s3Client.listBuckets(p0));
-	}
-
-	@Override
-	public software.amazon.awssdk.services.s3.model.ListDirectoryBucketsResponse listDirectoryBuckets(
-			software.amazon.awssdk.services.s3.model.ListDirectoryBucketsRequest p0)
-			throws AwsServiceException, SdkClientException {
-		return executeInDefaultRegion(s3Client -> s3Client.listDirectoryBuckets(p0));
-	}
-
-	@Override
-	public software.amazon.awssdk.services.s3.paginators.ListDirectoryBucketsIterable listDirectoryBucketsPaginator(
-			software.amazon.awssdk.services.s3.model.ListDirectoryBucketsRequest p0)
-			throws AwsServiceException, SdkClientException {
-		return executeInDefaultRegion(s3Client -> s3Client.listDirectoryBucketsPaginator(p0));
 	}
 
 	@Override

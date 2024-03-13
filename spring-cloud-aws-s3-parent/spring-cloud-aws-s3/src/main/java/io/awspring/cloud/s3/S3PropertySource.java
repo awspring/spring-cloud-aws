@@ -16,6 +16,7 @@
 package io.awspring.cloud.s3;
 
 import io.awspring.cloud.core.config.AwsPropertySource;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -34,6 +35,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
  * Retrieves property sources path from the AWS S3 using the provided S3 client.
  *
  * @author Kunal Varpe
+ * @author Matej Nedic
  */
 public class S3PropertySource extends AwsPropertySource<S3PropertySource, S3Client> {
 
@@ -83,17 +85,22 @@ public class S3PropertySource extends AwsPropertySource<S3PropertySource, S3Clie
 	}
 
 	private void readPropertySourcesFromS3(GetObjectRequest getObjectRequest) {
-		ResponseInputStream<GetObjectResponse> s3PropertyFileResponse = source.getObject(getObjectRequest);
-		if (s3PropertyFileResponse != null) {
-			String propertyFileName = getKey();
-			String extension = propertyFileName.substring(propertyFileName.lastIndexOf('.') + 1);
-			Properties props = switch (Extension.parse(extension)) {
-			case PROPERTIES -> readProperties(s3PropertyFileResponse);
-			case YAML, YML, JSON -> readYaml(s3PropertyFileResponse);
-			};
-			for (Map.Entry<Object, Object> entry : props.entrySet()) {
-				properties.put(String.valueOf(entry.getKey()), entry.getValue());
+		try (ResponseInputStream<GetObjectResponse> s3PropertyFileResponse = source.getObject(getObjectRequest)) {
+			if (s3PropertyFileResponse != null) {
+				String propertyFileName = this.key;
+				String extension = propertyFileName.substring(propertyFileName.lastIndexOf('.') + 1);
+				Properties props = switch (Extension.parse(extension)) {
+				case PROPERTIES -> readProperties(s3PropertyFileResponse);
+				case YAML, YML, JSON -> readYaml(s3PropertyFileResponse);
+				};
+				for (Map.Entry<Object, Object> entry : props.entrySet()) {
+					properties.put(String.valueOf(entry.getKey()), entry.getValue());
+				}
 			}
+		}
+		catch (IOException e) {
+			logger.error("Exception has happened while trying to close S3InputStream!", e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -119,18 +126,6 @@ public class S3PropertySource extends AwsPropertySource<S3PropertySource, S3Clie
 		}
 	}
 
-	String getContext() {
-		return context;
-	}
-
-	String getBucket() {
-		return bucket;
-	}
-
-	String getKey() {
-		return key;
-	}
-
 	@Nullable
 	private String resolveBucket(String context) {
 		int delimitedIndex = context.lastIndexOf("/");
@@ -144,7 +139,7 @@ public class S3PropertySource extends AwsPropertySource<S3PropertySource, S3Clie
 	private String resolveKey(String context) {
 		int delimitedIndex = context.lastIndexOf("/");
 		if (delimitedIndex != -1) {
-			return context.substring(delimitedIndex + 1);
+			return context.substring(delimitedIndex);
 		}
 		return null;
 	}

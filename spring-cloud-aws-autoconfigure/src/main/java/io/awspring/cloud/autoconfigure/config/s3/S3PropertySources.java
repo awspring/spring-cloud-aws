@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.s3;
+package io.awspring.cloud.autoconfigure.config.s3;
 
 import io.awspring.cloud.s3.S3PropertySource;
 import org.apache.commons.logging.Log;

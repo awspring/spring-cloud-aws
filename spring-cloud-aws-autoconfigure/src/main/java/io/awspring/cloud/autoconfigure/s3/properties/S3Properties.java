@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.s3.properties;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -92,6 +93,20 @@ public class S3Properties extends AwsClientProperties {
 	@Nullable
 	@NestedConfigurationProperty
 	private S3CrtClientProperties crt;
+
+	/**
+	 * Properties related to configuration reload.
+	 */
+	@NestedConfigurationProperty
+	private ReloadProperties reload = new ReloadProperties();
+
+	public ReloadProperties getReload() {
+		return reload;
+	}
+
+	public void setReload(ReloadProperties reload) {
+		this.reload = reload;
+	}
 
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {

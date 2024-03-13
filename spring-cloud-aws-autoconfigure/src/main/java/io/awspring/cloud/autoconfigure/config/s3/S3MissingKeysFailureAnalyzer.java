@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.s3;
+package io.awspring.cloud.autoconfigure.config.s3;
 
+import io.awspring.cloud.autoconfigure.s3.S3KeysMissingException;
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
