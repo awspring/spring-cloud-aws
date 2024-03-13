@@ -62,7 +62,6 @@ public class S3ConfigDataResource extends ConfigDataResource {
 		return this.optional;
 	}
 
-
 	public boolean isEnabled() {
 		return enabled;
 	}

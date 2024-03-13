@@ -19,7 +19,6 @@ import io.awspring.cloud.autoconfigure.config.BootstrapLoggingHelper;
 import io.awspring.cloud.s3.S3PropertySource;
 import java.util.Collections;
 import java.util.Map;
-
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
@@ -45,27 +44,28 @@ public class S3ConfigDataLoader implements ConfigDataLoader<S3ConfigDataResource
 	@Override
 	@Nullable
 	public ConfigData load(ConfigDataLoaderContext context, S3ConfigDataResource resource) {
-			try {
-				// resource is disabled if s3 integration is disabled via
-				// spring.cloud.aws.s3.enable_import=false
-				if (resource.isEnabled()) {
-					S3Client s3Client = context.getBootstrapContext().get(S3Client.class);
-					S3PropertySource propertySource = resource.getPropertySources().createPropertySource(resource.getContext(),
-						resource.isOptional(), s3Client);
-					if (propertySource != null) {
-						return new ConfigData(Collections.singletonList(propertySource));
-					} else {
-						return null;
-					}
-				} else {
-					// create dummy empty config data
-					return new ConfigData(
-						Collections.singletonList(new MapPropertySource("aws-s3:" + context, Map.of())));
+		try {
+			// resource is disabled if s3 integration is disabled via
+			// spring.cloud.aws.s3.enable_import=false
+			if (resource.isEnabled()) {
+				S3Client s3Client = context.getBootstrapContext().get(S3Client.class);
+				S3PropertySource propertySource = resource.getPropertySources()
+						.createPropertySource(resource.getContext(), resource.isOptional(), s3Client);
+				if (propertySource != null) {
+					return new ConfigData(Collections.singletonList(propertySource));
+				}
+				else {
+					return null;
 				}
 			}
-				catch (Exception e) {
-				throw new ConfigDataResourceNotFoundException(resource, e);
+			else {
+				// create dummy empty config data
+				return new ConfigData(Collections.singletonList(new MapPropertySource("aws-s3:" + context, Map.of())));
 			}
+		}
+		catch (Exception e) {
+			throw new ConfigDataResourceNotFoundException(resource, e);
+		}
 
 	}
 

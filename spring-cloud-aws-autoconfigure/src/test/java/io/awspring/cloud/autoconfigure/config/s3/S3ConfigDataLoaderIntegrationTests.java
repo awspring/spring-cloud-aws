@@ -32,6 +32,8 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -105,7 +107,10 @@ public class S3ConfigDataLoaderIntegrationTests {
 
 	private static void uploadFileToBucket(String content) {
 		S3Client s3Client = S3Client.builder().region(Region.of(localstack.getRegion()))
-				.endpointOverride(localstack.getEndpoint()).build();
+				.endpointOverride(localstack.getEndpoint())
+				.credentialsProvider(StaticCredentialsProvider
+						.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())))
+				.build();
 		s3Client.putObject(PutObjectRequest.builder().bucket(BUCKET).key(FILE_NAME).build(),
 				RequestBody.fromBytes(content.getBytes()));
 	}
@@ -116,7 +121,6 @@ public class S3ConfigDataLoaderIntegrationTests {
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,
 			String endpointProperty) {
-		System.out.println(localstack.getEndpointOverride(S3));
 		return application.run("--spring.config.import=" + springConfigImport,
 				"--spring.cloud.aws.s3.region=" + localstack.getRegion(),
 				"--" + endpointProperty + "=" + localstack.getEndpoint(),

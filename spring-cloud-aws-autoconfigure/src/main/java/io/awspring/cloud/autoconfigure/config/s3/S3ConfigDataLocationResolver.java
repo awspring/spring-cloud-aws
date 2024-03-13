@@ -83,8 +83,8 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));
 
 		List<S3ConfigDataResource> locations = new ArrayList<>();
-		contexts.forEach(propertySourceContext -> locations
-				.add(new S3ConfigDataResource(propertySourceContext, location.isOptional(), s3Properties.isEnableImport() ,propertySources)));
+		contexts.forEach(propertySourceContext -> locations.add(new S3ConfigDataResource(propertySourceContext,
+				location.isOptional(), s3Properties.isEnableImport(), propertySources)));
 
 		if (!location.isOptional() && locations.isEmpty()) {
 			throw new S3KeysMissingException("No S3 keys provided in `spring.config.import=aws-s3:` configuration.");
