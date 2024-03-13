@@ -29,14 +29,21 @@ public class S3ConfigDataResource extends ConfigDataResource {
 
 	private final String context;
 
+	private final boolean enabled;
+
 	private final boolean optional;
 
 	private final S3PropertySources propertySources;
 
 	public S3ConfigDataResource(String context, boolean optional, S3PropertySources propertySources) {
+		this(context, optional, true, propertySources);
+	}
+
+	public S3ConfigDataResource(String context, boolean optional, boolean enabled, S3PropertySources propertySources) {
 		this.context = context;
 		this.optional = optional;
 		this.propertySources = propertySources;
+		this.enabled = enabled;
 	}
 
 	/**
@@ -53,6 +60,11 @@ public class S3ConfigDataResource extends ConfigDataResource {
 	 */
 	public boolean isOptional() {
 		return this.optional;
+	}
+
+
+	public boolean isEnabled() {
+		return enabled;
 	}
 
 	public S3PropertySources getPropertySources() {

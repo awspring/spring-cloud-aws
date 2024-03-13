@@ -95,6 +95,11 @@ public class S3Properties extends AwsClientProperties {
 	private S3CrtClientProperties crt;
 
 	/**
+	 * Enables S3 integration for spring.config.import.
+	 */
+	private boolean enableImport = true;
+
+	/**
 	 * Properties related to configuration reload.
 	 */
 	@NestedConfigurationProperty
@@ -189,5 +194,13 @@ public class S3Properties extends AwsClientProperties {
 		propertyMapper.from(this::getPathStyleAccessEnabled).whenNonNull().to(config::pathStyleAccessEnabled);
 		propertyMapper.from(this::getUseArnRegionEnabled).whenNonNull().to(config::useArnRegionEnabled);
 		return config.build();
+	}
+
+	public boolean isEnableImport() {
+		return enableImport;
+	}
+
+	public void setEnableImport(boolean enableImport) {
+		this.enableImport = enableImport;
 	}
 }
