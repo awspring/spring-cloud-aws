@@ -27,6 +27,8 @@ import org.springframework.util.Assert;
 
 /**
  * @author Michael Sosa
+ * @author gustavomonarin
+ * @since 3.1.1
  */
 public class NotificationMessageArgumentResolver implements HandlerMethodArgumentResolver {
 

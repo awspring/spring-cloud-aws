@@ -613,7 +613,7 @@ NOTE: Queues declared in the same annotation will share the container, though ea
 
 ===== SNS Messages
 
-When receiving SNS messages through the `@SqsListener`, the message includes all attributes of the `SnsNotification`. To only receive need the `Message` part of the payload, you can utilize the `@SnsNotificationMessage` annotation.
+Since 3.1.1, when receiving SNS messages through the `@SqsListener`, the message includes all attributes of the `SnsNotification`. To only receive need the `Message` part of the payload, you can utilize the `@SnsNotificationMessage` annotation.
 [source, java]
 ----
 @SqsListener("my-queue")
