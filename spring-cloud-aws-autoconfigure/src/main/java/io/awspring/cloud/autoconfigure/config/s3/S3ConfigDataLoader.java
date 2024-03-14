@@ -16,7 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.s3;
 
 import io.awspring.cloud.autoconfigure.config.BootstrapLoggingHelper;
-import io.awspring.cloud.s3.S3PropertySource;
+import io.awspring.cloud.s3.config.S3PropertySource;
 import java.util.Collections;
 import java.util.Map;
 import org.springframework.boot.context.config.ConfigData;
@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 public class S3ConfigDataLoader implements ConfigDataLoader<S3ConfigDataResource> {
 
 	public S3ConfigDataLoader(DeferredLogFactory logFactory) {
-		BootstrapLoggingHelper.reconfigureLoggers(logFactory, "io.awspring.cloud.s3.S3PropertySource",
+		BootstrapLoggingHelper.reconfigureLoggers(logFactory, "io.awspring.cloud.S3PropertySource",
 				"io.awspring.cloud.autoconfigure.config.s3.S3PropertySources");
 	}
 

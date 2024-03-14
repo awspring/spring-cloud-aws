@@ -21,7 +21,7 @@ import static org.mockito.Mockito.mockingDetails;
 
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationUpdateStrategy;
 import io.awspring.cloud.autoconfigure.config.reload.PollingAwsPropertySourceChangeDetector;
-import io.awspring.cloud.s3.S3PropertySource;
+import io.awspring.cloud.s3.config.S3PropertySource;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;

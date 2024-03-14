@@ -21,6 +21,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
@@ -31,6 +32,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -48,9 +51,11 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Testcontainers
 public class S3ConfigDataLoaderIntegrationTests {
-
+	private static final String YAML_TYPE = "application/x-yaml";
+	private static final String YAML_TYPE_ALTERNATIVE = "text/yaml";
+	private static final String TEXT_TYPE = "text/plain";
+	private static final String JSON_TYPE = "application/json";
 	private static String BUCKET = "test-bucket";
-	private static String FILE_NAME = "/application.properties";
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(S3).withReuse(true);
@@ -64,7 +69,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void resolvesPropertyFromS3() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		uploadFileToBucket("key1=value1");
+		uploadFileToBucket("key1=value1", "/application.properties", TEXT_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-s3:test-bucket/application.properties")) {
@@ -73,13 +78,49 @@ public class S3ConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
+	void resolvesYamlFromS3() {
+		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		uploadFileToBucket("key1: value1", "/application.yaml", YAML_TYPE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-s3:test-bucket/application.yaml")) {
+			assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value1");
+		}
+	}
+
+	@Test
+	void resolvesYamlAlternative() {
+		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		uploadFileToBucket("key1: value1", "/test.yaml", YAML_TYPE_ALTERNATIVE);
+
+		try (ConfigurableApplicationContext context = runApplication(application, "aws-s3:test-bucket/test.yaml")) {
+			assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value1");
+		}
+	}
+
+	@Test
+	void resolveJson() throws JsonProcessingException {
+		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		uploadFileToBucket(new ObjectMapper().writeValueAsString(Map.of("key1", "value1")), "/application.json",
+				JSON_TYPE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-s3:test-bucket/application.json")) {
+			assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value1");
+		}
+	}
+
+	@Test
 	void reloadPropertiesFromS3() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		uploadFileToBucket("key1=value1");
+		uploadFileToBucket("key1=value1", "/reload.properties", TEXT_TYPE);
 
 		try (ConfigurableApplicationContext context = application.run(
-				"--spring.config.import=aws-s3:test-bucket/application.properties",
+				"--spring.config.import=aws-s3:test-bucket/reload.properties",
 				"--spring.cloud.aws.s3.reload.strategy=refresh", "--spring.cloud.aws.s3.reload.period=PT1S",
 				"--spring.cloud.aws.s3.region=" + localstack.getRegion(),
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
@@ -88,7 +129,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 
 			assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value1");
 
-			uploadFileToBucket("key1=value2");
+			uploadFileToBucket("key1=value2", "/reload.properties", TEXT_TYPE);
 
 			await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
 				assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value2");
@@ -105,13 +146,13 @@ public class S3ConfigDataLoaderIntegrationTests {
 		}
 	}
 
-	private static void uploadFileToBucket(String content) {
+	private static void uploadFileToBucket(String content, String key, String contentType) {
 		S3Client s3Client = S3Client.builder().region(Region.of(localstack.getRegion()))
 				.endpointOverride(localstack.getEndpoint())
 				.credentialsProvider(StaticCredentialsProvider
 						.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())))
 				.build();
-		s3Client.putObject(PutObjectRequest.builder().bucket(BUCKET).key(FILE_NAME).build(),
+		s3Client.putObject(PutObjectRequest.builder().bucket(BUCKET).contentType(contentType).key(key).build(),
 				RequestBody.fromBytes(content.getBytes()));
 	}
 

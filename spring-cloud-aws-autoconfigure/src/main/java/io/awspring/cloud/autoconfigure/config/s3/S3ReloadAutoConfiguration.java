@@ -19,7 +19,7 @@ import io.awspring.cloud.autoconfigure.config.reload.ConfigurationChangeDetector
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationUpdateStrategy;
 import io.awspring.cloud.autoconfigure.config.reload.PollingAwsPropertySourceChangeDetector;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
-import io.awspring.cloud.s3.S3PropertySource;
+import io.awspring.cloud.s3.config.S3PropertySource;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;

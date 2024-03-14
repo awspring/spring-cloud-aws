@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.s3;
+package io.awspring.cloud.s3.config;
 
 import io.awspring.cloud.core.config.AwsPropertySource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
@@ -38,6 +37,11 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
  * @author Matej Nedic
  */
 public class S3PropertySource extends AwsPropertySource<S3PropertySource, S3Client> {
+
+	private static final String YAML_TYPE = "application/x-yaml";
+	private static final String YAML_TYPE_ALTERNATIVE = "text/yaml";
+	private static final String TEXT_TYPE = "text/plain";
+	private static final String JSON_TYPE = "application/json";
 
 	/**
 	 * Path contains bucket name and properties files.
@@ -87,11 +91,11 @@ public class S3PropertySource extends AwsPropertySource<S3PropertySource, S3Clie
 	private void readPropertySourcesFromS3(GetObjectRequest getObjectRequest) {
 		try (ResponseInputStream<GetObjectResponse> s3PropertyFileResponse = source.getObject(getObjectRequest)) {
 			if (s3PropertyFileResponse != null) {
-				String propertyFileName = this.key;
-				String extension = propertyFileName.substring(propertyFileName.lastIndexOf('.') + 1);
-				Properties props = switch (Extension.parse(extension)) {
-				case PROPERTIES -> readProperties(s3PropertyFileResponse);
-				case YAML, YML, JSON -> readYaml(s3PropertyFileResponse);
+				Properties props = switch (s3PropertyFileResponse.response().contentType()) {
+				case TEXT_TYPE -> readProperties(s3PropertyFileResponse);
+				case YAML_TYPE, YAML_TYPE_ALTERNATIVE, JSON_TYPE -> readYaml(s3PropertyFileResponse);
+				default -> throw new IllegalStateException(
+						"Cannot parse unknown content type: " + s3PropertyFileResponse.response().contentType());
 				};
 				for (Map.Entry<Object, Object> entry : props.entrySet()) {
 					properties.put(String.valueOf(entry.getKey()), entry.getValue());
@@ -142,13 +146,5 @@ public class S3PropertySource extends AwsPropertySource<S3PropertySource, S3Clie
 			return context.substring(delimitedIndex);
 		}
 		return null;
-	}
-
-	enum Extension {
-		PROPERTIES, YAML, YML, JSON;
-
-		public static Extension parse(String ext) {
-			return Extension.valueOf(ext.toUpperCase(Locale.ROOT));
-		}
 	}
 }
