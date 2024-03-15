@@ -145,6 +145,14 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 		this.headerMapper = headerMapper;
 	}
 
+	/**
+	 * Configure the converter to not include payload type information in the
+	 * {@link software.amazon.awssdk.services.sqs.model.Message} headers.
+	 */
+	public void doNotSendPayloadTypeHeader() {
+		this.payloadTypeHeaderFunction = message -> null;
+	}
+
 	protected abstract HeaderMapper<S> createDefaultHeaderMapper();
 
 	@Override
