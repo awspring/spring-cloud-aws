@@ -24,6 +24,7 @@ import io.awspring.cloud.sqs.operations.SqsOperations;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateParameters;
 import io.awspring.cloud.sqs.operations.TemplateAcknowledgementMode;
+import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,8 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
-
-import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -307,8 +306,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader() {
 		SqsTemplate template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
-				.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader)
-				.build();
+				.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader).build();
 		SampleRecord testRecord = new SampleRecord("Hello world!",
 				"From shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader!");
 		SendResult<SampleRecord> result = template.send(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME, testRecord);
