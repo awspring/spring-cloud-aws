@@ -36,7 +36,6 @@ import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
-import java.util.Map;
 import java.util.Objects;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -357,7 +356,7 @@ class S3AutoConfigurationTests {
 
 	private static AttributeMap.Builder resolveAttributeMap(S3ClientBuilder s3ClientBuilder) {
 		AttributeMap.Builder attributes = (AttributeMap.Builder) ReflectionTestUtils
-			.getField(ReflectionTestUtils.getField(s3ClientBuilder, "clientConfiguration"), "attributes");
+				.getField(ReflectionTestUtils.getField(s3ClientBuilder, "clientConfiguration"), "attributes");
 		return Objects.requireNonNull(attributes);
 	}
 }

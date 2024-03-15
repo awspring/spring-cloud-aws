@@ -85,8 +85,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME),
 				createQueue(client, RESOLVES_POJO_FROM_HEADER_QUEUE_NAME),
 				createQueue(client, RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME),
-				createQueue(client, RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME)
-			).join();
+				createQueue(client, RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME)).join();
 	}
 
 	@Test
@@ -144,7 +143,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void resolvesMyPojoFromNotificationMessage() throws Exception {
 		byte[] notificationJsonContent = FileCopyUtils
-			.copyToByteArray(getClass().getClassLoader().getResourceAsStream("notificationMessage.json"));
+				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("notificationMessage.json"));
 		String payload = new String(notificationJsonContent);
 		sqsTemplate.send(RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME, payload);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME,
@@ -235,6 +234,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 			latchContainer.resolvesPojoMessageLatch.countDown();
 		}
 	}
+
 	static class ResolvesPojoWithNotificationAnnotationListener {
 
 		@Autowired
