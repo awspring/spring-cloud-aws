@@ -1251,7 +1251,7 @@ SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter
 // Configure Type Header
 messageConverter.setPayloadTypeHeader("myTypeHeader");
 
-// Not send Type Header
+// Do not send Type Header
 messageConverter.doNotSendPayloadTypeHeader();
 
 // Configure Header Mapper
