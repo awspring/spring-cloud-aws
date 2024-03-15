@@ -73,7 +73,7 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers() {
 		return Arrays.asList(new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
-			new SqsMessageMethodArgumentResolver(), new QueueAttributesMethodArgumentResolver());
+				new SqsMessageMethodArgumentResolver(), new QueueAttributesMethodArgumentResolver());
 	}
 
 	@Override

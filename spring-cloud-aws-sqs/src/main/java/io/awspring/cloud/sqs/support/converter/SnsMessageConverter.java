@@ -73,15 +73,16 @@ public class SnsMessageConverter implements SmartMessageConverter {
 
 		String messagePayload = jsonNode.get("Message").asText();
 		GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload);
-		Object convertedMessage = (payloadConverter instanceof SmartMessageConverter) ?
-			((SmartMessageConverter)this.payloadConverter).fromMessage(genericMessage, targetClass, conversionHint)
-			: this.payloadConverter.fromMessage(genericMessage, targetClass);
+		Object convertedMessage = (payloadConverter instanceof SmartMessageConverter)
+				? ((SmartMessageConverter) this.payloadConverter).fromMessage(genericMessage, targetClass,
+						conversionHint)
+				: this.payloadConverter.fromMessage(genericMessage, targetClass);
 		return new SnsMessageWrapper(jsonNode.path("Subject").asText(), convertedMessage);
 	}
 
 	@Override
 	public Object fromMessage(Message<?> message, Class<?> targetClass) {
-		return fromMessage( message, targetClass, null);
+		return fromMessage(message, targetClass, null);
 	}
 
 	@Override
@@ -93,7 +94,7 @@ public class SnsMessageConverter implements SmartMessageConverter {
 	@Override
 	public Message<?> toMessage(Object payload, MessageHeaders headers, Object conversionHint) {
 		throw new UnsupportedOperationException(
-			"This converter only supports reading a SNS notification and not writing them");
+				"This converter only supports reading a SNS notification and not writing them");
 	}
 
 	/**

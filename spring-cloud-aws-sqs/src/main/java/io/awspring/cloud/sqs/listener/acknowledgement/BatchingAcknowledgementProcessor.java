@@ -148,7 +148,8 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 	public void doStop() {
 		try {
 			this.acknowledgementProcessor.waitAcknowledgementsToFinish();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			logger.error("Error waiting for acknowledgements to finish. Proceeding with shutdown.", e);
 		}
 		LifecycleHandler.get().dispose(this.taskScheduler);
