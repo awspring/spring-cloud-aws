@@ -89,6 +89,8 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  *
  * @author Tomaz Fernandes
  * @author Mikhail Strokov
+ * @author Michael Sosa
+ * @author gustavomonarin
  */
 @SpringBootTest
 @TestPropertySource(properties = { "property.one=1", "property.five.seconds=5s",

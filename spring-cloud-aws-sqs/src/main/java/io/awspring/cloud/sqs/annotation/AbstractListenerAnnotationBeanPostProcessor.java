@@ -274,13 +274,17 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		CompositeMessageConverter compositeMessageConverter = createCompositeMessageConverter();
 
 		List<HandlerMethodArgumentResolver> methodArgumentResolvers = new ArrayList<>(
-				createAdditionalArgumentResolvers());
+				createAdditionalArgumentResolvers(compositeMessageConverter, this.endpointRegistrar.getObjectMapper()));
 		methodArgumentResolvers.addAll(createArgumentResolvers(compositeMessageConverter));
 		this.endpointRegistrar.getMethodArgumentResolversConsumer().accept(methodArgumentResolvers);
 		handlerMethodFactory.setArgumentResolvers(methodArgumentResolvers);
 		handlerMethodFactory.afterPropertiesSet();
 	}
 
+	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
+			MessageConverter messageConverter, ObjectMapper objectMapper) {
+		return createAdditionalArgumentResolvers();
+	}
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers() {
 		return Collections.emptyList();
 	}
