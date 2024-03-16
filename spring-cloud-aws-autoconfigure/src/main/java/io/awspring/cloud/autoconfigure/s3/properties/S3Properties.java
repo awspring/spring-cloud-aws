@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.s3.properties;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -92,6 +93,25 @@ public class S3Properties extends AwsClientProperties {
 	@Nullable
 	@NestedConfigurationProperty
 	private S3CrtClientProperties crt;
+
+	/**
+	 * Enables S3 integration for spring.config.import.
+	 */
+	private boolean enableImport = true;
+
+	/**
+	 * Properties related to configuration reload.
+	 */
+	@NestedConfigurationProperty
+	private ReloadProperties reload = new ReloadProperties();
+
+	public ReloadProperties getReload() {
+		return reload;
+	}
+
+	public void setReload(ReloadProperties reload) {
+		this.reload = reload;
+	}
 
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
@@ -174,5 +194,13 @@ public class S3Properties extends AwsClientProperties {
 		propertyMapper.from(this::getPathStyleAccessEnabled).whenNonNull().to(config::pathStyleAccessEnabled);
 		propertyMapper.from(this::getUseArnRegionEnabled).whenNonNull().to(config::useArnRegionEnabled);
 		return config.build();
+	}
+
+	public boolean isEnableImport() {
+		return enableImport;
+	}
+
+	public void setEnableImport(boolean enableImport) {
+		this.enableImport = enableImport;
 	}
 }
