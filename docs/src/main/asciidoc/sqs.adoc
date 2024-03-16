@@ -219,6 +219,7 @@ Such attributes are available as `MessageHeaders` in received messages.
 With `ContentBasedDeduplication#AUTO`, the queue attribute value will be resolved automatically.
 |===
 
+[[sqs-send-message]]
 ==== Sending Messages
 
 There are a number of available methods to send messages to SQS queues using the `SqsTemplate`.
@@ -240,6 +241,9 @@ SendResult<T> send(Consumer<SqsSendOptions> to);
 // Send a batch of Messages to the provided queue
 SendResult.Batch<T> sendMany(String queue, Collection<Message<T>> messages);
 ```
+
+NOTE: To send a collection of objects, it is recommended to use `sendMany(String queue, Collection<Message<T>> messages)` to optimize throughput.
+To send a collection of objects in a single message, the collection must be wrapped in an object.
 
 An example using the `options` variant follows:
 
@@ -676,6 +680,8 @@ AcknowledgementMode must be set to `MANUAL` (see <<Acknowledging Messages>>)
 - `QueueAttributes` - provides queue attributes for the queue that received the message.
 See <<Retrieving Attributes from SQS>> for how to specify the queue attributes that will be fetched from `SQS`
 - `software.amazon.awssdk.services.sqs.model.Message` - provides the original `Message` from `SQS`
+
+NOTE: To receive a collection of objects in a single message, the collection must be wrapped in an object. See <<Sending Messages>>.
 
 Here's a sample with many arguments:
 
