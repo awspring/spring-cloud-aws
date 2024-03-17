@@ -29,6 +29,7 @@
 |spring.cloud.aws.dynamodb.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.dynamodb.region |  | Overrides the default region.
 |spring.cloud.aws.dynamodb.table-prefix |  | The prefix used to resolve table names.
+|spring.cloud.aws.dynamodb.table-suffix |  | The suffix used to resolve table names.
 |spring.cloud.aws.endpoint |  | Overrides the default endpoint for all auto-configured AWS clients.
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
 |spring.cloud.aws.parameterstore.enabled | `+++true+++` | Enables ParameterStore integration.
@@ -39,7 +40,7 @@
 |spring.cloud.aws.parameterstore.reload.strategy |  | Reload strategy to run when properties change.
 |spring.cloud.aws.region.instance-profile | `+++false+++` | Configures an instance profile region provider with no further configuration.
 |spring.cloud.aws.region.profile |  | The AWS profile.
-|spring.cloud.aws.region.static |  | 
+|spring.cloud.aws.region.static |  |
 |spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
 |spring.cloud.aws.s3.checksum-validation-enabled |  | Option to disable doing a validation of the checksum of an object stored in S3.
 |spring.cloud.aws.s3.chunked-encoding-enabled |  | Option to enable using chunked encoding when signing the request payload for {@link software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link software.amazon.awssdk.services.s3.model.UploadPartRequest}.
@@ -66,6 +67,8 @@
 |spring.cloud.aws.ses.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.ses.region |  | Overrides the default region.
 |spring.cloud.aws.ses.source-arn |  | Configures source ARN. Used only for sending authorization.
+|spring.cloud.aws.ses.from-arn |  | Configures from ARN. Used only for sending authorization in the SendRawEmail operation.
+|spring.cloud.aws.ses.configuration-set-name | The configuration set name used for every message.
 |spring.cloud.aws.sns.enabled | `+++true+++` | Enables SNS integration.
 |spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sns.region |  | Overrides the default region.

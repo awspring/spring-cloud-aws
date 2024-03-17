@@ -94,7 +94,7 @@ class BatchingAcknowledgementProcessorTests {
 				.collect(Collectors.toList());
 		given(ackExecutor.execute(messages)).willReturn(CompletableFuture.completedFuture(null));
 		CountDownLatch ackLatch = new CountDownLatch(1);
-		BatchingAcknowledgementProcessor<String> processor = new BatchingAcknowledgementProcessor<String>() {
+		BatchingAcknowledgementProcessor<String> processor = new BatchingAcknowledgementProcessor<>() {
 			@Override
 			protected CompletableFuture<Void> sendToExecutor(Collection<Message<String>> messagesToAck) {
 				return super.sendToExecutor(messagesToAck).thenRun(ackLatch::countDown);
@@ -114,6 +114,79 @@ class BatchingAcknowledgementProcessorTests {
 		processor.stop();
 
 		then(ackExecutor).should().execute(messages);
+	}
+
+	@Test
+	void givenBatchingAcknowledgement_whenEnoughTimeout_shouldAcknowledgeAllMessages() throws Exception {
+		Duration acknowledgementShutdownTimeout = Duration.ofSeconds(10);
+		boolean shouldWaitAllAcks = true;
+		testAckOnShutdown(acknowledgementShutdownTimeout, shouldWaitAllAcks);
+	}
+
+	@Test
+	void givenBatchingAcknowledgement_whenNotEnoughTimeout_shouldStopBeforeAllMessages() throws Exception {
+		Duration acknowledgementShutdownTimeout = Duration.ofSeconds(2);
+		boolean shouldWaitAllAcks = false;
+		testAckOnShutdown(acknowledgementShutdownTimeout, shouldWaitAllAcks);
+	}
+
+	@Test
+	void givenBatchingAcknowledgement_whenNoTimeout_shouldStopBeforeAllMessages() throws Exception {
+		Duration acknowledgementShutdownTimeout = Duration.ZERO;
+		boolean shouldWaitAllAcks = false;
+		testAckOnShutdown(acknowledgementShutdownTimeout, shouldWaitAllAcks);
+	}
+
+	private static void testAckOnShutdown(Duration acknowledgementShutdownTimeout, boolean shouldWaitAllAcks)
+			throws InterruptedException {
+		TaskExecutor executor = new SimpleAsyncTaskExecutor();
+		List<Message<String>> messages = IntStream.range(0, 100)
+				.mapToObj(index -> MessageBuilder.withPayload(String.valueOf(index)).build())
+				.collect(Collectors.toList());
+
+		CountDownLatch ackLatch = new CountDownLatch(10);
+		var ackExecutor = new AcknowledgementExecutor<String>() {
+
+			@Override
+			public CompletableFuture<Void> execute(Collection<Message<String>> messages) {
+				return CompletableFuture.runAsync(() -> {
+					try {
+						int timeToSleep = Integer.parseInt(messages.iterator().next().getPayload()) * 100;
+						logger.info("Executing a list of {} messages in {} milliseconds..", messages.size(),
+								timeToSleep);
+						Thread.sleep(timeToSleep);
+						logger.info("Executed a list of {} messages. Counting down.", messages.size());
+						ackLatch.countDown();
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+						throw new RuntimeException(e);
+					}
+				}, executor);
+			}
+		};
+
+		BatchingAcknowledgementProcessor<String> processor = new BatchingAcknowledgementProcessor<>() {
+			@Override
+			protected CompletableFuture<Void> sendToExecutor(Collection<Message<String>> messagesToAck) {
+				return super.sendToExecutor(messagesToAck);
+			}
+		};
+		SqsContainerOptions options = SqsContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_ZERO)
+				.acknowledgementThreshold(ACK_THRESHOLD_TEN).acknowledgementOrdering(AcknowledgementOrdering.PARALLEL)
+				.acknowledgementShutdownTimeout(acknowledgementShutdownTimeout).build();
+		processor.configure(options);
+		processor.setTaskExecutor(executor);
+		processor.setAcknowledgementExecutor(ackExecutor);
+		processor.setMaxAcknowledgementsPerBatch(MAX_ACKNOWLEDGEMENTS_PER_BATCH_TEN);
+		processor.setId(ID);
+		processor.start();
+
+		processor.doOnAcknowledge(messages);
+
+		processor.stop();
+		logger.debug("Processor stopped, waiting on latch");
+		assertThat(ackLatch.await(1, TimeUnit.SECONDS)).isEqualTo(shouldWaitAllAcks);
 	}
 
 	@Test

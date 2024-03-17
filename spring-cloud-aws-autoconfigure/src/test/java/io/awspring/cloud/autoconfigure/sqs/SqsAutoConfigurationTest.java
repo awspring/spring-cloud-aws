@@ -121,8 +121,8 @@ class SqsAutoConfigurationTest {
 				.extracting("attributes")
 				.asInstanceOf(map(Object.class, Object.class))
 				.isInstanceOfSatisfying(Map.class, attributes -> {
-					assertThat(attributes.get(SdkClientOption.API_CALL_TIMEOUT))
-						.isEqualTo(Duration.ofMillis(1999));
+					assertThat(attributes.get(SdkClientOption.API_CALL_TIMEOUT).toString())
+						.isEqualTo("Value(PT1.999S)");
 					assertThat(attributes.get(SdkClientOption.ASYNC_HTTP_CLIENT))
 						.isNotNull();
 				});

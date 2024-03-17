@@ -19,20 +19,19 @@
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws-dependencies</artifactId>
 	<name>Spring Cloud AWS Dependencies</name>
-	<version>3.1.1-SNAPSHOT</version>
+	<version>3.2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
 		<javaparser.version>3.24.10</javaparser.version>
 		<spotless.version>2.31.0</spotless.version>
-		<awssdk-v2.version>2.21.12</awssdk-v2.version>
+		<awssdk-v2.version>2.21.46</awssdk-v2.version>
 		<amazon.dax.version>2.0.4</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<spring-cloud-commons.version>4.1.0</spring-cloud-commons.version>
 		<jakarta.mail.version>2.1.0</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
-		<aws-crt.version>0.28.3</aws-crt.version>
-		<mockito.version>5.3.1</mockito.version>
+		<aws-crt.version>0.28.13</aws-crt.version>
 		<bytebuddy.version>1.14.9</bytebuddy.version>
 		<spring-modulith.version>1.1.2</spring-modulith.version>
 	</properties>

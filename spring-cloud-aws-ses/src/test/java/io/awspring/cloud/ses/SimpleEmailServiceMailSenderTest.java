@@ -70,12 +70,12 @@ class SimpleEmailServiceMailSenderTest {
 	@Test
 	void testSendSimpleMailWithConfigurationSetNameSet() {
 		SesClient emailService = mock(SesClient.class);
-		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService,
-			null, "Configuration Set");
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService, null,
+				"Configuration Set");
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
 		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
 		when(emailService.sendEmail(request.capture()))
-			.thenReturn(SendEmailResponse.builder().messageId("123").build());
+				.thenReturn(SendEmailResponse.builder().messageId("123").build());
 
 		mailSender.send(simpleMailMessage);
 
