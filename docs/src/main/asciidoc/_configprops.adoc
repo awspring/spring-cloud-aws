@@ -7,7 +7,7 @@
 |spring.cloud.aws.credentials.instance-profile | `+++false+++` | Configures an instance profile credentials provider with no further configuration.
 |spring.cloud.aws.credentials.profile |  | The AWS profile.
 |spring.cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
-|spring.cloud.aws.credentials.sts.async-credentials-update |  |
+|spring.cloud.aws.credentials.sts.async-credentials-update | `+++false+++` | Enables provider to asynchronously fetch credentials in the background. Defaults to synchronous blocking if not specified otherwise.
 |spring.cloud.aws.credentials.sts.role-arn |  | ARN of IAM role associated with STS. If not provided this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 |spring.cloud.aws.credentials.sts.role-session-name |  | Role session name that will be used by credentials provider. By default this is read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 |spring.cloud.aws.credentials.sts.web-identity-token-file |  | Absolute path to the web identity token file that will be used by credentials provider. By default this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
@@ -32,6 +32,7 @@
 |spring.cloud.aws.dynamodb.table-suffix |  | The suffix used to resolve table names.
 |spring.cloud.aws.endpoint |  | Overrides the default endpoint for all auto-configured AWS clients.
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
+|spring.cloud.aws.parameterstore.enabled | `+++true+++` | Enables ParameterStore integration.
 |spring.cloud.aws.parameterstore.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.parameterstore.region |  | Overrides the default region.
 |spring.cloud.aws.parameterstore.reload.max-wait-for-restart | `+++2s+++` | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
@@ -39,7 +40,7 @@
 |spring.cloud.aws.parameterstore.reload.strategy |  | Reload strategy to run when properties change.
 |spring.cloud.aws.region.instance-profile | `+++false+++` | Configures an instance profile region provider with no further configuration.
 |spring.cloud.aws.region.profile |  | The AWS profile.
-|spring.cloud.aws.region.static |  |
+|spring.cloud.aws.region.static |  | 
 |spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
 |spring.cloud.aws.s3.checksum-validation-enabled |  | Option to disable doing a validation of the checksum of an object stored in S3.
 |spring.cloud.aws.s3.chunked-encoding-enabled |  | Option to enable using chunked encoding when signing the request payload for {@link software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link software.amazon.awssdk.services.s3.model.UploadPartRequest}.
@@ -55,17 +56,18 @@
 |spring.cloud.aws.s3.transfer-manager.follow-symbolic-links |  | Specifies whether to follow symbolic links when traversing the file tree in `S3TransferManager#uploadDirectory` operation.
 |spring.cloud.aws.s3.transfer-manager.max-depth |  | Specifies the maximum number of levels of directories to visit in `S3TransferManager#uploadDirectory` operation.
 |spring.cloud.aws.s3.use-arn-region-enabled |  | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown.
+|spring.cloud.aws.secretsmanager.enabled | `+++true+++` | Enables Secrets Manager integration.
 |spring.cloud.aws.secretsmanager.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.secretsmanager.region |  | Overrides the default region.
 |spring.cloud.aws.secretsmanager.reload.max-wait-for-restart | `+++2s+++` | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
 |spring.cloud.aws.secretsmanager.reload.period | `+++1m+++` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
 |spring.cloud.aws.secretsmanager.reload.strategy |  | Reload strategy to run when properties change.
+|spring.cloud.aws.ses.configuration-set-name |  | Configures configuration set name.
 |spring.cloud.aws.ses.enabled | `+++true+++` | Enables Simple Email Service integration.
 |spring.cloud.aws.ses.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.ses.from-arn |  | Configures from ARN. Only applies to SendRawEmail operation.
 |spring.cloud.aws.ses.region |  | Overrides the default region.
 |spring.cloud.aws.ses.source-arn |  | Configures source ARN. Used only for sending authorization.
-|spring.cloud.aws.ses.from-arn |  | Configures from ARN. Used only for sending authorization in the SendRawEmail operation.
-|spring.cloud.aws.ses.configuration-set-name | The configuration set name used for every message.
 |spring.cloud.aws.sns.enabled | `+++true+++` | Enables SNS integration.
 |spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sns.region |  | Overrides the default region.
