@@ -32,7 +32,6 @@ import io.awspring.cloud.s3.S3ObjectConverter;
 import io.awspring.cloud.s3.S3OutputStream;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3Template;
-import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
@@ -46,6 +45,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import org.mockito.internal.util.MockUtil;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -73,9 +74,6 @@ class S3AutoConfigurationTests {
 	void createsS3ClientBean() {
 		this.contextRunner.run(context -> {
 			assertThat(context).hasSingleBean(S3Client.class);
-			S3Client s3Client = context.getBean(S3Client.class);
-			assertThat(s3Client).isInstanceOf(CrossRegionS3Client.class);
-
 			assertThat(context).hasSingleBean(S3ClientBuilder.class);
 			assertThat(context).hasSingleBean(S3Properties.class);
 			assertThat(context).hasSingleBean(S3OutputStreamProvider.class);
@@ -100,29 +98,12 @@ class S3AutoConfigurationTests {
 		});
 	}
 
-	@Nested
-	class S3ClientTests {
-		@Test
-		void byDefaultCreatesCrossRegionS3Client() {
-			contextRunner.run(
-					context -> assertThat(context).getBean(S3Client.class).isInstanceOf(CrossRegionS3Client.class));
-		}
-
-		@Test
-		void s3ClientCanBeOverwritten() {
-			contextRunner.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
-				assertThat(context).hasSingleBean(S3Client.class);
-				assertThat(context).getBean(S3Client.class).isNotInstanceOf(CrossRegionS3Client.class);
-			});
-		}
-
-		@Test
-		void createsStandardClientWhenCrossRegionModuleIsNotInClasspath() {
-			contextRunner.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
-				assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
-				assertThat(context).hasSingleBean(S3Client.class);
-			});
-		}
+	@Test
+	void s3ClientCanBeOverwritten() {
+		contextRunner.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
+			assertThat(context).hasSingleBean(S3Client.class);
+			assertThat(MockUtil.isMock(context.getBean(S3Client.class))).isTrue();
+		});
 	}
 
 	@Nested
