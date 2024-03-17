@@ -95,11 +95,6 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>jakarta.mail</groupId>
 			<artifactId>jakarta.mail-api</artifactId>
 			<optional>true</optional>
