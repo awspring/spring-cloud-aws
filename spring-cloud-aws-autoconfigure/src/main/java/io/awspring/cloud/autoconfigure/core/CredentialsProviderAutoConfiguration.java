@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
@@ -134,7 +135,8 @@ public class CredentialsProviderAutoConfiguration {
 				AwsRegionProvider regionProvider) {
 			PropertyMapper propertyMapper = PropertyMapper.get();
 			StsWebIdentityTokenFileCredentialsProvider.Builder builder = StsWebIdentityTokenFileCredentialsProvider
-					.builder().stsClient(StsClient.builder().region(regionProvider.getRegion()).build());
+					.builder().stsClient(StsClient.builder().credentialsProvider(AnonymousCredentialsProvider.create())
+							.region(regionProvider.getRegion()).build());
 
 			if (stsProperties != null) {
 				builder.asyncCredentialUpdateEnabled(stsProperties.isAsyncCredentialsUpdate());

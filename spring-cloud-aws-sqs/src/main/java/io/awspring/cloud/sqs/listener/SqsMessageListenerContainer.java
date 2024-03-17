@@ -60,7 +60,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * manually and declared as beans will have their lifecycle managed by Spring Context.
  * <p>
  * Example using the builder:
- * 
+ *
  * <pre>
  * <code>
  * &#064;Bean
@@ -68,9 +68,11 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *     return SqsMessageListenerContainer
  *             .builder()
  *             .configure(options -> options
- *                     .messagesPerPoll(5)
+ *                     .maxMessagesPerPoll(5)
  *                     .pollTimeout(Duration.ofSeconds(10)))
  *             .sqsAsyncClient(sqsAsyncClient)
+ *             .messageListener(System.out::println)
+ *             .queueNames("myTestQueue")
  *             .build();
  * }
  * </code>
@@ -78,15 +80,17 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *
  * <p>
  * Example using the constructor:
- * 
+ *
  * <pre>
  * <code>
  * &#064;Bean
  * public SqsMessageListenerContainer<Object> myListenerContainer(SqsAsyncClient sqsAsyncClient) {
  *     SqsMessageListenerContainer<Object> container = new SqsMessageListenerContainer<>(sqsAsyncClient);
  *     container.configure(options -> options
- *             .messagesPerPoll(5)
+ *             .maxMessagesPerPoll(5)
  *             .pollTimeout(Duration.ofSeconds(10)));
+ *     container.setQueueNames("myTestQueue");
+ *     container.setMessageListener(System.out::println);
  *     return container;
  * }
  * </code>
