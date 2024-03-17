@@ -20,10 +20,6 @@
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-starter</artifactId>
 		</dependency>
 	</dependencies>
