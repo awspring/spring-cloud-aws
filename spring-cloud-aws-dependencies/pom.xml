@@ -23,7 +23,6 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<javaparser.version>3.24.10</javaparser.version>
 		<spotless.version>2.31.0</spotless.version>
 		<awssdk-v2.version>2.21.46</awssdk-v2.version>
 		<amazon.dax.version>2.0.4</amazon.dax.version>
@@ -139,12 +138,6 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -201,12 +194,6 @@
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-test</artifactId>
 				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.github.javaparser</groupId>
-				<artifactId>javaparser-symbol-solver-core</artifactId>
-				<version>${javaparser.version}</version>
 			</dependency>
 
 			<dependency>
