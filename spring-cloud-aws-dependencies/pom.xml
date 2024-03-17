@@ -32,6 +32,7 @@
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
 		<aws-crt.version>0.28.13</aws-crt.version>
 		<bytebuddy.version>1.14.9</bytebuddy.version>
+		<spring-modulith.version>1.1.2</spring-modulith.version>
 	</properties>
 
 	<dependencyManagement>
@@ -48,6 +49,14 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-commons-dependencies</artifactId>
 				<version>${spring-cloud-commons.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.modulith</groupId>
+				<artifactId>spring-modulith-bom</artifactId>
+				<version>${spring-modulith.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
