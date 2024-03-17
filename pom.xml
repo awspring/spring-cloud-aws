@@ -12,7 +12,7 @@
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>3.1.1-SNAPSHOT</version>
+	<version>3.2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 
@@ -43,7 +43,7 @@
 		<module>spring-cloud-aws-sns</module>
 		<module>spring-cloud-aws-sqs</module>
 		<module>spring-cloud-aws-dynamodb</module>
-		<module>spring-cloud-aws-s3-parent</module>
+		<module>spring-cloud-aws-s3</module>
 		<module>spring-cloud-aws-testcontainers</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-dynamodb</module>
@@ -56,6 +56,7 @@
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sqs</module>
 		<module>spring-cloud-aws-samples</module>
 		<module>spring-cloud-aws-test</module>
+		<module>spring-cloud-aws-modulith</module>
 		<module>docs</module>
 	</modules>
 

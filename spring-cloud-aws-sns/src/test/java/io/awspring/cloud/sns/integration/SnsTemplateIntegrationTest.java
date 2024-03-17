@@ -19,7 +19,6 @@ import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEA
 import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_GROUP_ID_HEADER;
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.sns.Person;
 import io.awspring.cloud.sns.core.SnsTemplate;
@@ -63,7 +62,7 @@ class SnsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:2.3.2")).withServices(SQS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:3.2.0")).withReuse(true);
 
 	@BeforeAll
 	public static void createSnsTemplate() {

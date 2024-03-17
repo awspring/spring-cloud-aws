@@ -28,6 +28,8 @@ import io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler;
 import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
+import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
+import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,11 +44,14 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.lang.Nullable;
 import org.springframework.retry.backoff.BackOffContext;
 import org.springframework.retry.backoff.BackOffPolicy;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -127,7 +132,7 @@ class AbstractPollingMessageSourceTests {
 		source.setId(testName + " source");
 		source.configure(SqsContainerOptions.builder().build());
 		source.setTaskExecutor(createTaskExecutor(testName));
-		source.setAcknowledgementProcessor(getAcknowledgementProcessor());
+		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
 		source.start();
 		assertThat(doAwait(pollingCounter)).isTrue();
 		assertThat(doAwait(processingCounter)).isTrue();
@@ -225,12 +230,73 @@ class AbstractPollingMessageSourceTests {
 		source.setId(testName + " source");
 		source.configure(SqsContainerOptions.builder().build());
 		source.setTaskExecutor(createTaskExecutor(testName));
-		source.setAcknowledgementProcessor(getAcknowledgementProcessor());
+		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
 		source.start();
 		assertThat(doAwait(processingCounter)).isTrue();
 		assertThat(doAwait(pollingCounter)).isTrue();
 		source.stop();
 		assertThat(hasThrownError.get()).isFalse();
+	}
+
+	@Test
+	void shouldReleasePermitsOnConversionErrors() {
+		String testName = "shouldReleasePermitsOnConversionErrors";
+		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
+				.acquireTimeout(Duration.ofMillis(150)).batchSize(10).totalPermits(10)
+				.throughputConfiguration(BackPressureMode.AUTO).build();
+
+		AtomicInteger convertedMessages = new AtomicInteger(0);
+		AtomicInteger messagesInSink = new AtomicInteger(0);
+		AtomicBoolean hasFailed = new AtomicBoolean(false);
+
+		var converter = new SqsMessagingMessageConverter() {
+			@Override
+			public org.springframework.messaging.Message<?> toMessagingMessage(Message source,
+					@Nullable MessageConversionContext context) {
+				var converted = convertedMessages.incrementAndGet();
+				logger.trace("Messages converted: {}", converted);
+				if (converted % 9 == 0) {
+					throw new RuntimeException("Expected error");
+				}
+				return super.toMessagingMessage(source, context);
+			}
+		};
+
+		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
+
+			@Override
+			protected CompletableFuture<Collection<Message>> doPollForMessages(int messagesToRequest) {
+				if (messagesToRequest != 10) {
+					logger.error("Expected 10 messages to requesst, received {}", messagesToRequest);
+					hasFailed.set(true);
+				}
+				return convertedMessages.get() < 30 ? CompletableFuture.completedFuture(create10Messages())
+						: CompletableFuture.completedFuture(List.of());
+			}
+
+			private Collection<Message> create10Messages() {
+				return IntStream.range(0, 10).mapToObj(
+						index -> Message.builder().messageId(UUID.randomUUID().toString()).body("test-message").build())
+						.toList();
+			}
+		};
+
+		source.setBackPressureHandler(backPressureHandler);
+		source.setMessageSink((msgs, context) -> {
+			msgs.forEach(message -> messagesInSink.incrementAndGet());
+			msgs.forEach(msg -> context.runBackPressureReleaseCallback());
+			return CompletableFuture.completedFuture(null);
+		});
+		source.setId(testName + " source");
+		source.configure(SqsContainerOptions.builder().messageConverter(converter).build());
+		source.setPollingEndpointName("shouldReleasePermitsOnConversionErrors-queue");
+		source.setTaskExecutor(createTaskExecutor(testName));
+		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
+		source.start();
+		Awaitility.waitAtMost(Duration.ofSeconds(10)).until(() -> convertedMessages.get() == 30);
+		assertThat(hasFailed).isFalse();
+		assertThat(messagesInSink).hasValue(27);
+		source.stop();
 	}
 
 	@Test
@@ -277,7 +343,7 @@ class AbstractPollingMessageSourceTests {
 		source.configure(SqsContainerOptions.builder().pollBackOffPolicy(policy).build());
 
 		source.setTaskExecutor(createTaskExecutor(testName));
-		source.setAcknowledgementProcessor(getAcknowledgementProcessor());
+		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
 		source.start();
 
 		doAwait(waitThirdPollLatch);
@@ -315,6 +381,7 @@ class AbstractPollingMessageSourceTests {
 				.isLessThanOrEqualTo(maxExpectedPermits);
 	}
 
+	// Used to slow down tests while developing
 	private void doSleep(int time) {
 		try {
 			Thread.sleep(time);
@@ -343,7 +410,7 @@ class AbstractPollingMessageSourceTests {
 		return threadFactory;
 	}
 
-	private AcknowledgementProcessor<Object> getAcknowledgementProcessor() {
+	private AcknowledgementProcessor<Object> getNoOpsAcknowledgementProcessor() {
 		return new AcknowledgementProcessor<>() {
 			@Override
 			public AcknowledgementCallback<Object> getAcknowledgementCallback() {
