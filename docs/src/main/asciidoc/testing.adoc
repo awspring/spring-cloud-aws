@@ -1,0 +1,27 @@
+[#testing]
+== Testing
+
+Spring Cloud AWS provides https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing.testcontainers.service-connections[@ServiceConnection] for https://java.testcontainers.org/modules/localstack/[LocalStack Container] that simplifies using Testcontainers LocalStack module with Spring Cloud AWS based projects.
+
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-testcontainers</artifactId>
+</dependency>
+----
+
+Once Spring Cloud AWS detects in application test code a `LocalStackContainer` bean annotated with `@ServiceConnection`, it will automatically configure `region` and `credentials` to point to a LocalStack container.
+
+[source,java]
+----
+@Bean
+@ServiceConnection
+LocalStackContainer localStackContainer() {
+	return new LocalStackContainer(DockerImageName.parse("localstack/localstack:<version>"));
+}
+----
+
+To understand in depth how service connection works, follow https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing.testcontainers.service-connections[Spring Boot Reference Guide] on this topic.

@@ -22,6 +22,12 @@
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-starter-dynamodb</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-testcontainers</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 </project>

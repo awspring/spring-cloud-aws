@@ -20,6 +20,8 @@ import java.time.LocalDate;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -33,22 +35,22 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SpringBootApplication
-public class SpringDynamoDbSample {
+public class App {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SpringDynamoDbSample.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
 	public static void main(String[] args) {
-		SpringApplication.run(SpringDynamoDbSample.class, args);
-
+		SpringApplication.run(App.class, args);
 	}
 
 	@Bean
-	ApplicationRunner applicationRunner(DynamoDbOperations dynamoDbOperations,
-			DynamoDbEnhancedClient dynamoDbEnhancedClient) {
-		return args -> {
-			// Create table on start up
-			dynamoDbEnhancedClient.table("department", TableSchema.fromBean(Department.class)).createTable();
+	TableInitializer tableInitializer(DynamoDbEnhancedClient dynamoDbEnhancedClient) {
+		return new TableInitializer(dynamoDbEnhancedClient);
+	}
 
+	@Bean
+	ApplicationRunner applicationRunner(DynamoDbOperations dynamoDbOperations) {
+		return args -> {
 			UUID departmentId = UUID.randomUUID();
 			UUID userId = UUID.randomUUID();
 			Department department = Department.Builder.aDepartment().withDepartmentId(departmentId).withUserId(userId)
@@ -69,13 +71,28 @@ public class SpringDynamoDbSample {
 							.build(),
 					Department.class);
 			// Print number of items queried.
-			LOGGER.info(String.valueOf(departmentPageIterable.items().stream().count()));
+			LOGGER.info("Queried {} items", String.valueOf(departmentPageIterable.items().stream().count()));
 
 			// Delete
 			dynamoDbOperations.delete(department);
-
-			// Delete table after it has been used
-			dynamoDbEnhancedClient.table("department", TableSchema.fromBean(Department.class)).deleteTable();
 		};
+	}
+
+	static class TableInitializer implements InitializingBean, DisposableBean {
+		private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
+
+		TableInitializer(DynamoDbEnhancedClient dynamoDbEnhancedClient) {
+			this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
+		}
+
+		@Override
+		public void afterPropertiesSet() throws Exception {
+			dynamoDbEnhancedClient.table("department", TableSchema.fromBean(Department.class)).createTable();
+		}
+
+		@Override
+		public void destroy() throws Exception {
+			dynamoDbEnhancedClient.table("department", TableSchema.fromBean(Department.class)).deleteTable();
+		}
 	}
 }
