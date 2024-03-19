@@ -41,6 +41,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -55,6 +56,7 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
  * @author Maciej Walkowiak
  * @author Manuel Wessner
  * @author Matej Nedic
+ * @author Mariusz Sondecki
  */
 @AutoConfiguration
 @ConditionalOnClass({ SnsClient.class, SnsTemplate.class })
@@ -75,12 +77,15 @@ public class SnsAutoConfiguration {
 	@ConditionalOnMissingBean(SnsOperations.class)
 	@Bean
 	public SnsTemplate snsTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper,
-			Optional<TopicArnResolver> topicArnResolver) {
+			Optional<TopicArnResolver> topicArnResolver, ObjectProvider<ChannelInterceptor> interceptors) {
 		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 		converter.setSerializedPayloadClass(String.class);
 		objectMapper.ifPresent(converter::setObjectMapper);
-		return topicArnResolver.map(it -> new SnsTemplate(snsClient, it, converter))
+		SnsTemplate snsTemplate = topicArnResolver.map(it -> new SnsTemplate(snsClient, it, converter))
 				.orElseGet(() -> new SnsTemplate(snsClient, converter));
+		interceptors.forEach(snsTemplate::addChannelInterceptor);
+
+		return snsTemplate;
 	}
 
 	@ConditionalOnMissingBean(SnsSmsOperations.class)
