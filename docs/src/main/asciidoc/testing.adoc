@@ -1,7 +1,7 @@
 [#testing]
 == Testing
 
-Spring Cloud AWS provides https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing.testcontainers.service-connections[@ServiceConnection] for https://java.testcontainers.org/modules/localstack/[LocalStack Container] that simplifies using Testcontainers LocalStack module with Spring Cloud AWS based projects.
+Spring Cloud AWS provides utilities for https://java.testcontainers.org/modules/localstack/[LocalStack Container] that simplify using Testcontainers LocalStack module with Spring Cloud AWS based projects.
 
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
@@ -12,6 +12,10 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
     <artifactId>spring-cloud-aws-testcontainers</artifactId>
 </dependency>
 ----
+
+== Service Connection
+
+https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing.testcontainers.service-connections[@ServiceConnection] for https://java.testcontainers.org/modules/localstack/[LocalStack Container] simplifies configuring Spring Cloud AWS based project to point to LocalStack instead of real AWS.
 
 Once Spring Cloud AWS detects in application test code a `LocalStackContainer` bean annotated with `@ServiceConnection`, it will automatically configure `region` and `credentials` to point to a LocalStack container.
 
@@ -25,3 +29,25 @@ LocalStackContainer localStackContainer() {
 ----
 
 To understand in depth how service connection works, follow https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing.testcontainers.service-connections[Spring Boot Reference Guide] on this topic.
+
+=== Using AWS Clients with LocalStack
+
+Spring Cloud AWS provides `LocalstackAwsClientFactory` that simplifies creating AWS clients pointing to LocalStack, when there is a need to configure an AWS client outside of Spring application context:
+
+[source,java]
+----
+@Testcontainers
+class LocalstackAwsClientFactoryTest {
+
+	@Container
+	private LocalStackContainer localStackContainer = new LocalStackContainer(
+			DockerImageName.parse("localstack/localstack:3.2.0"));
+
+	@Test
+	void aTest() {
+		LocalstackAwsClientFactory factory = new LocalstackAwsClientFactory(localStackContainer);
+		S3Client s3Client = factory.create(S3Client.builder());
+		// ...
+	}
+}
+----
