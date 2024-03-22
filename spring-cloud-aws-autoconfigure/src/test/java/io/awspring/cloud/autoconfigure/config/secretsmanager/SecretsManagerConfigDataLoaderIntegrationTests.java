@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
@@ -45,7 +44,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -99,13 +97,12 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
-		try (ConfigurableApplicationContext context = application.run(
-				"--spring.cloud.aws.secretsmanager.region=" + REGION,
-				"--spring.cloud.aws.secretsmanager.endpoint=" + localstack.getEndpoint(),
-				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-				"--spring.cloud.aws.region.static=eu-west-1",
-				"--logging.level.io.awspring.cloud.secretsmanager=debug")) {
-
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/config/spring;/config/second")) {
+			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("another parameter value");
+			assertThat(context.getEnvironment().getProperty("secondMessage")).isEqualTo("second value from tests");
+			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
 		}
 	}
 
@@ -481,15 +478,6 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class App {
-
-		@Bean
-		ApplicationRunner applicationRunner(SecretsManagerClient client) {
-			return args -> {
-				System.out.println(client.listSecrets().secretList());
-				System.out.println("FOOO!");
-			};
-		}
-
 	}
 
 	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
