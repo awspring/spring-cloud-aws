@@ -99,10 +99,12 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
-		try (ConfigurableApplicationContext context = application.run("--spring.cloud.aws.secretsmanager.region=" + REGION,
-			"--spring.cloud.aws.secretsmanager.endpoint=" + localstack.getEndpoint(),
-			"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
-			"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug")) {
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.secretsmanager.region=" + REGION,
+				"--spring.cloud.aws.secretsmanager.endpoint=" + localstack.getEndpoint(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1",
+				"--logging.level.io.awspring.cloud.secretsmanager=debug")) {
 
 		}
 	}
