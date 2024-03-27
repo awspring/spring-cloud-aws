@@ -30,6 +30,7 @@ import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.core.AbstractMessageSendingTemplate;
 import org.springframework.messaging.core.DestinationResolvingMessageSendingOperations;
 import org.springframework.messaging.core.MessagePostProcessor;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -40,6 +41,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
  *
  * @author Alain Sahli
  * @author Matej Nedic
+ * @author Mariusz Sondecki
  * @since 1.0
  */
 public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChannel>
@@ -47,6 +49,7 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 
 	private final SnsClient snsClient;
 	private final TopicArnResolver topicArnResolver;
+	private final List<ChannelInterceptor> channelInterceptors = new ArrayList<>();
 
 	public SnsTemplate(SnsClient snsClient) {
 		this(snsClient, null);
@@ -110,6 +113,7 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 	 * Convenience method that sends a notification with the given {@literal message} and {@literal subject} to the
 	 * {@literal destination}. The {@literal subject} is sent as header as defined in the
 	 * <a href="https://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message JSON formats</a>.
+	 *
 	 * @param destinationName The logical name of the destination
 	 * @param message The message to send
 	 * @param subject The subject to send
@@ -123,12 +127,24 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 	 * {@literal destination}. The {@literal subject} is sent as header as defined in the
 	 * <a href="https://docs.aws.amazon.com/sns/latest/dg/json-formats.html">SNS message JSON formats</a>. The
 	 * configured default destination will be used.
+	 *
 	 * @param message The message to send
 	 * @param subject The subject to send
 	 */
 	public void sendNotification(Object message, @Nullable String subject) {
 		this.convertAndSend(getRequiredDefaultDestination(), message,
 				Collections.singletonMap(NOTIFICATION_SUBJECT_HEADER, subject));
+	}
+
+	/**
+	 * Add a {@link ChannelInterceptor} to be used by {@link TopicMessageChannel} created with this template.
+	 * Interceptors will be applied just after TopicMessageChannel creation.
+	 *
+	 * @param channelInterceptor the message interceptor instance.
+	 */
+	public void addChannelInterceptor(ChannelInterceptor channelInterceptor) {
+		Assert.notNull(channelInterceptor, "channelInterceptor cannot be null");
+		this.channelInterceptors.add(channelInterceptor);
 	}
 
 	@Override
@@ -138,7 +154,9 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 
 	private TopicMessageChannel resolveMessageChannelByTopicName(String topicName) {
 		Arn topicArn = this.topicArnResolver.resolveTopicArn(topicName);
-		return new TopicMessageChannel(this.snsClient, topicArn);
+		TopicMessageChannel topicMessageChannel = new TopicMessageChannel(this.snsClient, topicArn);
+		channelInterceptors.forEach(topicMessageChannel::addInterceptor);
+		return topicMessageChannel;
 	}
 
 	private static CompositeMessageConverter initMessageConverter(@Nullable MessageConverter messageConverter) {

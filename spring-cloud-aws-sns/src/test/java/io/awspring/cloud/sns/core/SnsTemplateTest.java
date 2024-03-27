@@ -17,6 +17,8 @@ package io.awspring.cloud.sns.core;
 
 import static io.awspring.cloud.sns.Matchers.requestMatches;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -24,8 +26,12 @@ import static org.mockito.Mockito.when;
 import io.awspring.cloud.sns.Person;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.GenericMessage;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
@@ -35,6 +41,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
  * Tests for {@link SnsTemplate}.
  *
  * @author Alain Sahli
+ * @author Mariusz Sondecki
  */
 class SnsTemplateTest {
 	private static final String TOPIC_ARN = "arn:aws:sns:eu-west:123456789012:test";
@@ -137,4 +144,25 @@ class SnsTemplateTest {
 		}));
 	}
 
+	@Test
+	void sendsMessageProcessedByInterceptor() {
+		// given
+		ChannelInterceptor interceptor = mock(ChannelInterceptor.class);
+		String originalMessage = "message content";
+		String processedMessage = originalMessage + " modified by interceptor";
+		snsTemplate.addChannelInterceptor(interceptor);
+		when(interceptor.preSend(any(Message.class), any(MessageChannel.class))).thenAnswer(invocation -> {
+			Object[] args = invocation.getArguments();
+			Message message = (Message) args[0];
+			return new GenericMessage<>(processedMessage, message.getHeaders());
+		});
+
+		// when
+		snsTemplate.sendNotification("topic name", originalMessage, "subject");
+
+		// then
+		verify(snsClient).publish(requestMatches(r -> assertThat(r.message()).isEqualTo(processedMessage)));
+		verify(interceptor).preSend(any(), any());
+		verify(interceptor).postSend(any(), any(), anyBoolean());
+	}
 }
