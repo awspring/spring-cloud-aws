@@ -1,0 +1,1 @@
+{"cloud": {"aws": {"dynamodb": {"region": "eu-west-2", "enabled": true}, "s3": {"enabled": false, "region": "eu-west-2"}}},"server": {"port": 8089}}
