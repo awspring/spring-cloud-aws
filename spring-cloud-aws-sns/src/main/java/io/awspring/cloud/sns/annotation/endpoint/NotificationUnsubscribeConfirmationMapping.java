@@ -17,6 +17,7 @@ package io.awspring.cloud.sns.annotation.endpoint;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import org.springframework.aot.hint.annotation.Reflective;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Retention(RetentionPolicy.RUNTIME)
 @RequestMapping(headers = "x-amz-sns-message-type=UnsubscribeConfirmation", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.NO_CONTENT)
+@Reflective(processors = SnsControllerMappingReflectiveProcessor.class)
 public @interface NotificationUnsubscribeConfirmationMapping {
 
 	@AliasFor(annotation = RequestMapping.class, attribute = "path")
