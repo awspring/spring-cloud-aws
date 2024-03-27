@@ -185,4 +185,14 @@ class SqsMessageListenerContainerTests {
 		container.stop();
 	}
 
+	@Test
+	void shouldThrowIfMixedQueueTypes() {
+		SqsAsyncClient client = mock(SqsAsyncClient.class);
+		SqsMessageListenerContainer.Builder<Object> builder = SqsMessageListenerContainer.builder()
+				.sqsAsyncClient(client).queueNames("queue", "queue.fifo");
+
+		assertThatThrownBy(builder::build).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("must contain either all FIFO or all Standard queues");
+	}
+
 }
