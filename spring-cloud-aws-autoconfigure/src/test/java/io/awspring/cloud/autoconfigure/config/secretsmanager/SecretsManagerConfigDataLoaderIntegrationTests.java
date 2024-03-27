@@ -478,7 +478,6 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class App {
-
 	}
 
 	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
