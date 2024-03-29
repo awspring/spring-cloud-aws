@@ -20,13 +20,10 @@ import io.awspring.cloud.autoconfigure.core.*;
 import io.awspring.cloud.autoconfigure.s3.AwsS3ClientCustomizer;
 import io.awspring.cloud.autoconfigure.s3.S3KeysMissingException;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
-import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.apache.commons.logging.Log;
 import org.springframework.boot.BootstrapContext;
-import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
@@ -34,7 +31,6 @@ import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLogFactory;
-import org.springframework.util.ClassUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
@@ -75,8 +71,7 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 				loadCredentialsProperties(resolverContext.getBinder()));
 		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
 
-		registerAndPromoteBean(resolverContext, S3Client.class, BootstrapRegistry.InstanceSupplier.of(
-				S3ClientFactory.s3Client(createS3ClientBuilder(s3Properties, resolverContext.getBootstrapContext()))));
+		registerAndPromoteBean(resolverContext, S3Client.class, this::createSystemManagementClient);
 
 		S3PropertySources propertySources = new S3PropertySources();
 
@@ -93,12 +88,8 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 		return locations;
 	}
 
-	private S3ClientBuilder createS3ClientBuilder(S3Properties s3Properties, BootstrapContext context) {
-		S3ClientBuilder builder = S3Client.builder();
-		Optional.ofNullable(s3Properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
-		builder.serviceConfiguration(s3Properties.toS3Configuration());
-
-		builder = configure(builder, s3Properties, context);
+	private S3Client createSystemManagementClient(BootstrapContext context) {
+		S3ClientBuilder builder = configure(S3Client.builder(), context.get(S3Properties.class), context);
 
 		try {
 			AwsS3ClientCustomizer configurer = context.get(AwsS3ClientCustomizer.class);
@@ -107,25 +98,12 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 			}
 		}
 		catch (IllegalStateException e) {
-			log.debug("Bean of type AwsClientConfigurerParameterStore is not registered: " + e.getMessage());
+			log.debug("Bean of type AwsClientConfigurerS3 is not registered: " + e.getMessage());
 		}
-		return builder;
+		return builder.build();
 	}
 
 	protected S3Properties loadProperties(Binder binder) {
 		return binder.bind(S3Properties.PREFIX, Bindable.of(S3Properties.class)).orElseGet(S3Properties::new);
 	}
-
-	static class S3ClientFactory {
-
-		static S3Client s3Client(S3ClientBuilder builder) {
-			if (ClassUtils.isPresent("io.awspring.cloud.s3.crossregion.CrossRegionS3Client", null)) {
-				return new CrossRegionS3Client(builder);
-			}
-			else {
-				return builder.build();
-			}
-		}
-	}
-
 }

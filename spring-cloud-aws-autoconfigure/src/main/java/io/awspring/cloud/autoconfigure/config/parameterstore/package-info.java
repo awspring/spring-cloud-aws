@@ -15,7 +15,7 @@
  */
 
 /**
- * {@link org.springframework.boot.context.config.ConfigDataLoader} implementation for AWS Parameter Store.
+ * {@link org.springframework.boot.context.config.ConfigDataLoader} implementation for AWS S3.
  */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields

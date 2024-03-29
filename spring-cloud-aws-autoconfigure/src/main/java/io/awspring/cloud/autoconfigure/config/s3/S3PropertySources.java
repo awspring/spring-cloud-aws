@@ -50,11 +50,9 @@ public class S3PropertySources {
 			return propertySource;
 		}
 		catch (Exception e) {
+			LOG.warn("Unable to load AWS S3 object from " + context + ". " + e.getMessage());
 			if (!optional) {
 				throw new AwsS3PropertySourceNotFoundException(e);
-			}
-			else {
-				LOG.warn("Unable to load AWS S3 object from " + context + ". " + e.getMessage());
 			}
 		}
 		return null;
