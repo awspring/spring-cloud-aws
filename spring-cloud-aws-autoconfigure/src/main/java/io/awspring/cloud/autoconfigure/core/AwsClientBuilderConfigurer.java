@@ -39,7 +39,7 @@ public class AwsClientBuilderConfigurer {
 	private final AwsProperties awsProperties;
 	private final ClientOverrideConfiguration clientOverrideConfiguration;
 
-	AwsClientBuilderConfigurer(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider,
+	public AwsClientBuilderConfigurer(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider,
 			AwsProperties awsProperties) {
 		this.credentialsProvider = credentialsProvider;
 		this.regionProvider = regionProvider;
