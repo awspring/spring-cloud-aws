@@ -17,8 +17,6 @@ package io.awspring.cloud.autoconfigure.config.s3;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
 import io.awspring.cloud.autoconfigure.core.*;
-import io.awspring.cloud.autoconfigure.s3.AwsS3ClientCustomizer;
-import io.awspring.cloud.autoconfigure.s3.S3KeysMissingException;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +37,7 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
  *
  * @author Kunal Varpe
  * @author Matej Nedic
- * @since 3.1.0
+ * @since 3.2.0
  */
 public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationResolver<S3ConfigDataResource> {
 

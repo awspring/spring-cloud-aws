@@ -15,7 +15,7 @@
  */
 
 /**
- * Auto-configuration for S3 integrations.
+ * {@link org.springframework.boot.context.config.ConfigDataLoader} implementation for AWS S3.
  */
 @org.springframework.lang.NonNullApi
 @org.springframework.lang.NonNullFields

@@ -23,7 +23,7 @@ import org.springframework.core.style.ToStringCreator;
  * Config data resource for AWS S3 integration.
  *
  * @author Kunal Varpe
- * @since 3.0.0
+ * @since 3.2.0
  */
 public class S3ConfigDataResource extends ConfigDataResource {
 

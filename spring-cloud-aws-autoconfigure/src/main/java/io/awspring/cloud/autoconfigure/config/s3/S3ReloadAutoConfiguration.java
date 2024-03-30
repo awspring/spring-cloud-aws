@@ -46,6 +46,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * {@link EnableAutoConfiguration Auto-Configuration} for reloading properties from S3.
  *
  * @author Matej Nedic
+ * @since 3.2.0
  */
 @AutoConfiguration
 @EnableConfigurationProperties(S3Properties.class)

@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.s3;
+package io.awspring.cloud.autoconfigure.config.s3;
+
+import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
 /**
- * Thrown when configuration provided to ConfigDataLoader is missing S3 keys, for example
- * `spring.config.import=aws-s3:`.
- *
  * @author Kunal Varpe
- * @since 3.0.0
+ * @since 3.2.0
  */
-public class S3KeysMissingException extends RuntimeException {
-
-	public S3KeysMissingException(String message) {
-		super(message);
-	}
-
+public interface AwsS3ClientCustomizer extends AwsClientCustomizer<S3ClientBuilder> {
 }

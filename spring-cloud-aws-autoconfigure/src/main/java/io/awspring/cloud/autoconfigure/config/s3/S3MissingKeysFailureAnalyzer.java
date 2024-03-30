@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.autoconfigure.config.s3;
 
-import io.awspring.cloud.autoconfigure.s3.S3KeysMissingException;
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
@@ -24,7 +23,7 @@ import org.springframework.boot.diagnostics.FailureAnalysis;
  * key to `spring.config.import` property.
  *
  * @author Kunal Varpe
- * @since 3.0.0
+ * @since 3.2.0
  */
 public class S3MissingKeysFailureAnalyzer extends AbstractFailureAnalyzer<S3KeysMissingException> {
 
