@@ -98,9 +98,8 @@ public class S3Properties extends AwsClientProperties {
 	/**
 	 * Configuration properties for {@link S3EncryptionClient} integration
 	 */
-	@Nullable
 	@NestedConfigurationProperty
-	private S3EncryptionProperties encryption;
+	private S3EncryptionProperties encryption = new S3EncryptionProperties();
 
 	public S3EncryptionProperties getEncryption() {
 		return encryption;

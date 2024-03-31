@@ -26,6 +26,8 @@ import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
+import io.awspring.cloud.autoconfigure.s3.provider.MyAesProvider;
+import io.awspring.cloud.autoconfigure.s3.provider.MyRsaProvider;
 import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3ObjectConverter;
@@ -119,7 +121,7 @@ class S3AutoConfigurationTests {
 		}
 
 		@Test
-		void createsStandardClientWhenCrossRegionModuleIsNotInClasspath() {
+		void createsStandardClientWhenCrossRegionAndEncryptionModuleIsNotInClasspath() {
 			contextRunner.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class, S3EncryptionClient.class))
 					.run(context -> {
 						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
@@ -130,12 +132,36 @@ class S3AutoConfigurationTests {
 		@Test
 		void createsEncryptionClientWhenCrossRegionModuleIsNotInClasspath() {
 			contextRunner
-					.withPropertyValues("spring.cloud.aws.s3.encryption.type:RSA",
-							"spring.cloud.aws.s3.encryption.autoGenerateKey:true")
+					.withPropertyValues(
+						"spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab")
 					.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
 						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
 						assertThat(context).hasSingleBean(S3EncryptionClient.class);
 					});
+		}
+
+		@Test
+		void createsEncryptionClientBackedByRsa() {
+			contextRunner
+				.withPropertyValues()
+				.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class))
+				.withUserConfiguration(CustomRsaProvider.class).run(context -> {
+					assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+					assertThat(context).hasSingleBean(S3EncryptionClient.class);
+					assertThat(context).hasSingleBean(S3RsaProvider.class);
+				});
+		}
+
+		@Test
+		void createsEncryptionClientBackedByAes() {
+			contextRunner
+				.withPropertyValues()
+				.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class))
+				.withUserConfiguration(CustomAesProvider.class).run(context -> {
+					assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+					assertThat(context).hasSingleBean(S3EncryptionClient.class);
+					assertThat(context).hasSingleBean(S3AesProvider.class);
+				});
 		}
 	}
 
@@ -324,6 +350,22 @@ class S3AutoConfigurationTests {
 			return mock(S3Client.class);
 		}
 
+	}
+
+	@Configuration
+	static class CustomRsaProvider {
+		@Bean
+		S3RsaProvider rsaProvider() {
+			return new MyRsaProvider();
+		}
+	}
+
+	@Configuration
+	static class CustomAesProvider {
+		@Bean
+		S3AesProvider aesProvider() {
+			return new MyAesProvider();
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)

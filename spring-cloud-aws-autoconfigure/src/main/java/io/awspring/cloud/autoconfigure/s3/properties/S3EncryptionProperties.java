@@ -20,23 +20,18 @@ package io.awspring.cloud.autoconfigure.s3.properties;
  * @author Matej Nedic
  */
 public class S3EncryptionProperties {
-
-	private boolean autoGenerateKey = false;
-	private int keyLength;
 	private boolean enableLegacyUnauthenticatedModes = false;
 	private boolean enableDelayedAuthenticationMode = false;
 	private boolean enableMultipartPutObject = false;
-	private S3EncryptionType type;
+	private String keyId;
 
-	public String getKmsId() {
-		return kmsId;
+	public String getKeyId() {
+		return keyId;
 	}
 
-	public void setKmsId(String kmsId) {
-		this.kmsId = kmsId;
+	public void setKeyId(String keyId) {
+		this.keyId = keyId;
 	}
-
-	private String kmsId;
 
 	public boolean isEnableLegacyUnauthenticatedModes() {
 		return enableLegacyUnauthenticatedModes;
@@ -62,27 +57,4 @@ public class S3EncryptionProperties {
 		this.enableMultipartPutObject = enableMultipartPutObject;
 	}
 
-	public S3EncryptionType getType() {
-		return type;
-	}
-
-	public void setType(S3EncryptionType type) {
-		this.type = type;
-	}
-
-	public boolean isAutoGenerateKey() {
-		return autoGenerateKey;
-	}
-
-	public void setAutoGenerateKey(boolean autoGenerateKey) {
-		this.autoGenerateKey = autoGenerateKey;
-	}
-
-	public int getKeyLength() {
-		return keyLength;
-	}
-
-	public void setKeyLength(int keyLength) {
-		this.keyLength = keyLength;
-	}
 }
