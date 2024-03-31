@@ -131,9 +131,7 @@ class S3AutoConfigurationTests {
 
 		@Test
 		void createsEncryptionClientWhenCrossRegionModuleIsNotInClasspath() {
-			contextRunner
-					.withPropertyValues(
-						"spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab")
+			contextRunner.withPropertyValues("spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab")
 					.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
 						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
 						assertThat(context).hasSingleBean(S3EncryptionClient.class);
@@ -142,26 +140,22 @@ class S3AutoConfigurationTests {
 
 		@Test
 		void createsEncryptionClientBackedByRsa() {
-			contextRunner
-				.withPropertyValues()
-				.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class))
-				.withUserConfiguration(CustomRsaProvider.class).run(context -> {
-					assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
-					assertThat(context).hasSingleBean(S3EncryptionClient.class);
-					assertThat(context).hasSingleBean(S3RsaProvider.class);
-				});
+			contextRunner.withPropertyValues().withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class))
+					.withUserConfiguration(CustomRsaProvider.class).run(context -> {
+						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+						assertThat(context).hasSingleBean(S3EncryptionClient.class);
+						assertThat(context).hasSingleBean(S3RsaProvider.class);
+					});
 		}
 
 		@Test
 		void createsEncryptionClientBackedByAes() {
-			contextRunner
-				.withPropertyValues()
-				.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class))
-				.withUserConfiguration(CustomAesProvider.class).run(context -> {
-					assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
-					assertThat(context).hasSingleBean(S3EncryptionClient.class);
-					assertThat(context).hasSingleBean(S3AesProvider.class);
-				});
+			contextRunner.withPropertyValues().withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class))
+					.withUserConfiguration(CustomAesProvider.class).run(context -> {
+						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+						assertThat(context).hasSingleBean(S3EncryptionClient.class);
+						assertThat(context).hasSingleBean(S3AesProvider.class);
+					});
 		}
 	}
 

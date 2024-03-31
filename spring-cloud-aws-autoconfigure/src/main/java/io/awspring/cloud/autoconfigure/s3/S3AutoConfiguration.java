@@ -31,10 +31,8 @@ import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
 import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
-
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -134,16 +132,18 @@ public class S3AutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		S3Client s3Client(S3Properties properties, S3ClientBuilder s3ClientBuilder, ObjectProvider<S3RsaProvider> rsaProvider,
-						  ObjectProvider<S3AesProvider> aesProvider) throws NoSuchAlgorithmException {
+		S3Client s3Client(S3Properties properties, S3ClientBuilder s3ClientBuilder,
+				ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider)
+				throws NoSuchAlgorithmException {
 			if (ClassUtils.isPresent("software.amazon.encryption.s3.S3EncryptionClient", null)) {
 				return s3EncClient(properties, s3ClientBuilder, rsaProvider, aesProvider);
 			}
 			return s3ClientBuilder.build();
 		}
 
-		S3Client s3EncClient(S3Properties properties, S3ClientBuilder s3ClientBuilder, ObjectProvider<S3RsaProvider> rsaProvider,
-							 ObjectProvider<S3AesProvider> aesProvider) throws NoSuchAlgorithmException {
+		S3Client s3EncClient(S3Properties properties, S3ClientBuilder s3ClientBuilder,
+				ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider)
+				throws NoSuchAlgorithmException {
 			PropertyMapper propertyMapper = PropertyMapper.get();
 			S3EncryptionProperties encryptionProperties = properties.getEncryption();
 			S3EncryptionClient.Builder s3EncryptionBuilder = S3EncryptionClient.builder();

@@ -87,7 +87,6 @@ public class SnsAutoConfiguration {
 		return new SnsSmsTemplate(snsClient);
 	}
 
-
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(WebMvcConfigurer.class)
 	static class SnsWebConfiguration {
