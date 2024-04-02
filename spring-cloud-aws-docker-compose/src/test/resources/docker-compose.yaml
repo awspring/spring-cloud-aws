@@ -1,0 +1,9 @@
+services:
+  localstack:
+    image: localstack/localstack
+    environment:
+      AWS_ACCESS_KEY_ID: noop
+      AWS_SECRET_ACCESS_KEY: noop
+      AWS_DEFAULT_REGION: eu-central-1
+    ports:
+      - "4566:4566"
