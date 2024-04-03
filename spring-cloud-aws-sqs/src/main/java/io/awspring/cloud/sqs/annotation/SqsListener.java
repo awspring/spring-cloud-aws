@@ -124,7 +124,7 @@ public @interface SqsListener {
 	String pollTimeoutSeconds() default "";
 
 	/**
-	 * The maximum amount of time to wait for a poll to SQS. If a value greater than 10 is provided, the result of
+	 * The maximum number of messages to poll from SQS. If a value greater than 10 is provided, the result of
 	 * multiple polls will be combined, which can be useful for
 	 * {@link io.awspring.cloud.sqs.listener.ListenerMode#BATCH}
 	 * @return the maximum messages per poll.
