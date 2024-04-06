@@ -56,6 +56,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  *
  * @author Tomaz Fernandes
  * @author Mikhail Strokov
+ * @author Wei Jiang
  */
 @SpringBootTest
 class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
@@ -69,6 +70,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	static final String RESOLVES_POJO_FROM_HEADER_QUEUE_NAME = "resolves_pojo_from_mapping_test_queue";
 	static final String RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME = "resolves_my_other_pojo_from_mapping_test_queue";
 	static final String RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME = "resolves_pojo_from_notification_message_queue";
+	static final String RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME = "resolves_pojo_from_notification_message_list_test_queue";
 
 	@Autowired
 	LatchContainer latchContainer;
@@ -85,7 +87,8 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME),
 				createQueue(client, RESOLVES_POJO_FROM_HEADER_QUEUE_NAME),
 				createQueue(client, RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME),
-				createQueue(client, RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME)).join();
+				createQueue(client, RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME),
+				createQueue(client, RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME)).join();
 	}
 
 	@Test
@@ -149,6 +152,17 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME,
 				payload);
 		assertThat(latchContainer.resolvesPojoNotificationMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void resolvesMyPojoFromNotificationMessageList() throws Exception {
+		byte[] notificationJsonContent = FileCopyUtils
+				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("notificationMessage.json"));
+		String payload = new String(notificationJsonContent);
+		sqsTemplate.send(RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME, payload);
+		logger.debug("Sent message to queue {} with messageBody {}",
+				RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME, payload);
+		assertThat(latchContainer.resolvesPojoNotificationMessageListLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	private Map<String, Object> getHeaderMapping(Class<?> clazz) {
@@ -247,6 +261,14 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 					RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME);
 			latchContainer.resolvesPojoNotificationMessageLatch.countDown();
 		}
+
+		@SqsListener(queueNames = RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME, id = "resolves-pojo-with-notification-message-list", factory = "defaultSqsListenerContainerFactory")
+		void listen(@SnsNotificationMessage List<MyEnvelope<MyPojo>> myPojos) {
+			Assert.notEmpty(myPojos, "Received empty messages");
+			logger.debug("Received messages {} from queue {}", myPojos,
+					RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME);
+			latchContainer.resolvesPojoNotificationMessageListLatch.countDown();
+		}
 	}
 
 	static class LatchContainer {
@@ -258,6 +280,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		CountDownLatch resolvesPojoFromMappingLatch = new CountDownLatch(1);
 		CountDownLatch resolvesMyOtherPojoFromMappingLatch = new CountDownLatch(1);
 		CountDownLatch resolvesPojoNotificationMessageLatch = new CountDownLatch(1);
+		CountDownLatch resolvesPojoNotificationMessageListLatch = new CountDownLatch(1);
 
 	}
 
