@@ -59,6 +59,14 @@ public interface SqsContainerOptionsBuilder
 	SqsContainerOptionsBuilder messageVisibility(Duration messageVisibility);
 
 	/**
+	 * Set how the messages coming from FIFO queues should be grouped when container listener mode is
+	 * {@link ListenerMode#BATCH}. By default, messages are grouped by message group.
+	 * @param fifoBatchGroupingStrategy the strategy
+	 * @return this instance.
+	 */
+	SqsContainerOptionsBuilder fifoBatchGroupingStrategy(FifoBatchGroupingStrategy fifoBatchGroupingStrategy);
+
+	/**
 	 * Set the {@link QueueNotFoundStrategy} for the container.
 	 * @param queueNotFoundStrategy the strategy.
 	 * @return this instance.
