@@ -92,6 +92,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME = "fifo_receives_batches_many_groups.fifo";
 
+	static final String FIFO_RECEIVES_BATCHES_MANY_GROUPS_NO_MESSAGE_GROUPING_QUEUE_NAME = "fifo_receives_batches_many_groups_no_message_grouping.fifo";
+
 	static final String FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME = "fifo_manually_create_container_test_queue.fifo";
 
 	static final String FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME = "fifo_manually_create_factory_test_queue.fifo";
@@ -123,6 +125,9 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	@Autowired(required = false)
 	ReceivesBatchesFromManyGroupsListener receivesBatchesFromManyGroupsListener;
 
+	@Autowired(required = false)
+	ReceivesBatchesFromManyGroupsNoMessageGroupingListener receivesBatchesFromManyGroupsNoMessageGroupingListener;
+
 	@Autowired
 	LoadSimulator loadSimulator;
 
@@ -141,6 +146,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				createFifoQueue(client, FIFO_STOPS_PROCESSING_ON_ERROR_QUEUE_NAME, getVisibilityAttribute("2")),
 				createFifoQueue(client, FIFO_STOPS_PROCESSING_ON_ACK_ERROR_ERROR_QUEUE_NAME),
 				createFifoQueue(client, FIFO_RECEIVES_BATCHES_MANY_GROUPS_QUEUE_NAME),
+				createFifoQueue(client, FIFO_RECEIVES_BATCHES_MANY_GROUPS_NO_MESSAGE_GROUPING_QUEUE_NAME),
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME),
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME),
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME),
@@ -312,6 +318,26 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(receivesBatchesFromManyGroupsListener.receivedMessages.get(messageGroupId2))
 				.containsExactlyElementsOf(values);
 		assertThat(receivesBatchesFromManyGroupsListener.receivedMessages.get(messageGroupId3))
+				.containsExactlyElementsOf(values);
+	}
+
+	@Test
+	void receivesBatchesManyGroupsNoMessageGrouping() throws Exception {
+		latchContainer.receivesBatchManyGroupsNoMessageGroupingLatch = new CountDownLatch(
+				this.settings.messagesPerTest * 2);
+		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
+				.collect(toList());
+		String messageGroupId1 = UUID.randomUUID().toString();
+		String messageGroupId2 = UUID.randomUUID().toString();
+		List<Message<String>> messages = new ArrayList<>();
+		messages.addAll(createMessagesFromValues(messageGroupId1, values));
+		messages.addAll(createMessagesFromValues(messageGroupId2, values));
+		sqsTemplate.sendMany(FIFO_RECEIVES_BATCHES_MANY_GROUPS_NO_MESSAGE_GROUPING_QUEUE_NAME, messages);
+		assertThat(latchContainer.receivesBatchManyGroupsNoMessageGroupingLatch.await(settings.latchTimeoutSeconds,
+				TimeUnit.SECONDS)).isTrue();
+		assertThat(receivesBatchesFromManyGroupsNoMessageGroupingListener.receivedMessages.get(messageGroupId1))
+				.containsExactlyElementsOf(values);
+		assertThat(receivesBatchesFromManyGroupsNoMessageGroupingListener.receivedMessages.get(messageGroupId2))
 				.containsExactlyElementsOf(values);
 	}
 
@@ -493,6 +519,32 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	}
 
+	static class ReceivesBatchesFromManyGroupsNoMessageGroupingListener {
+
+		Map<String, List<String>> receivedMessages = new ConcurrentHashMap<>();
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@SqsListener(queueNames = FIFO_RECEIVES_BATCHES_MANY_GROUPS_NO_MESSAGE_GROUPING_QUEUE_NAME, messageGrouping = false)
+		void listen(List<Message<String>> messages) {
+			Assert.isTrue(MessageHeaderUtils
+					.getHeader(messages, SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, String.class)
+					.stream().distinct().count() != 1, "Only one message group returned in the same batch");
+			List<String> values = messages.stream().map(Message::getPayload).collect(toList());
+			logger.trace("Started processing messages {} from different groups", values);
+			messages.stream()
+					.forEach(message -> receivedMessages
+							.computeIfAbsent(message.getHeaders()
+									.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, String.class),
+									groupId -> Collections.synchronizedList(new ArrayList<>()))
+							.add(message.getPayload()));
+			messages.forEach(msg -> latchContainer.receivesBatchManyGroupsNoMessageGroupingLatch.countDown());
+			logger.trace("Finished processing messages {} from different groups", values);
+		}
+
+	}
+
 	static class LatchContainer {
 		Settings settings;
 
@@ -511,6 +563,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		CountDownLatch stopsProcessingOnAckErrorLatch2;
 		CountDownLatch stopsProcessingOnAckErrorHasThrown;
 		CountDownLatch receivesBatchManyGroupsLatch;
+		CountDownLatch receivesBatchManyGroupsNoMessageGroupingLatch;
 
 		LatchContainer(Settings settings) {
 			this.settings = settings;
@@ -528,6 +581,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			this.stopsProcessingOnAckErrorLatch1 = new CountDownLatch(1);
 			this.stopsProcessingOnAckErrorLatch2 = new CountDownLatch(1);
 			this.receivesBatchManyGroupsLatch = new CountDownLatch(1);
+			this.receivesBatchManyGroupsNoMessageGroupingLatch = new CountDownLatch(1);
 			this.stopsProcessingOnAckErrorHasThrown = new CountDownLatch(1);
 		}
 
@@ -748,6 +802,11 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		ReceivesBatchesFromManyGroupsListener receiveBatchesFromManyGroupsListener() {
 			return new ReceivesBatchesFromManyGroupsListener();
+		}
+
+		@Bean
+		ReceivesBatchesFromManyGroupsNoMessageGroupingListener receivesBatchesFromManyGroupsNoMessageGroupingListener() {
+			return new ReceivesBatchesFromManyGroupsNoMessageGroupingListener();
 		}
 
 		Settings settings = new Settings();

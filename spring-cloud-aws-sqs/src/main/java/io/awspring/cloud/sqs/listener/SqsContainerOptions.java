@@ -38,6 +38,8 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	@Nullable
 	private final Duration messageVisibility;
 
+	private final boolean messageGrouping;
+
 	private final Collection<QueueAttributeName> queueAttributeNames;
 
 	private final Collection<String> messageAttributeNames;
@@ -57,6 +59,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		this.messageSystemAttributeNames = builder.messageSystemAttributeNames;
 		this.messageVisibility = builder.messageVisibility;
 		this.queueNotFoundStrategy = builder.queueNotFoundStrategy;
+		this.messageGrouping = builder.messageGrouping;
 	}
 
 	/**
@@ -101,6 +104,15 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	}
 
 	/**
+	 * Get whether messages in FIFO queues should be grouped when retrieved by the container in listener mode
+	 * {@link ListenerMode#BATCH}. Default is true.
+	 * @return the message grouping.
+	 */
+	public boolean getMessageGrouping() {
+		return this.messageGrouping;
+	}
+
+	/**
 	 * Get the {@link QueueNotFoundStrategy} for the container.
 	 * @return the strategy.
 	 */
@@ -135,6 +147,8 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 
 		private QueueNotFoundStrategy queueNotFoundStrategy = DEFAULT_QUEUE_NOT_FOUND_STRATEGY;
 
+		private boolean messageGrouping = true;
+
 		@Nullable
 		private Duration messageVisibility;
 
@@ -148,6 +162,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 			this.messageAttributeNames = options.messageAttributeNames;
 			this.messageSystemAttributeNames = options.messageSystemAttributeNames;
 			this.messageVisibility = options.messageVisibility;
+			this.messageGrouping = options.messageGrouping;
 			this.queueNotFoundStrategy = options.queueNotFoundStrategy;
 		}
 
@@ -178,6 +193,13 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		public SqsContainerOptionsBuilder messageVisibility(Duration messageVisibility) {
 			Assert.notNull(messageVisibility, "messageVisibility cannot be null");
 			this.messageVisibility = messageVisibility;
+			return this;
+		}
+
+		@Override
+		public SqsContainerOptionsBuilder messageGrouping(boolean messageGrouping) {
+			Assert.notNull(messageGrouping, "messageGrouping cannot be null");
+			this.messageGrouping = messageGrouping;
 			return this;
 		}
 

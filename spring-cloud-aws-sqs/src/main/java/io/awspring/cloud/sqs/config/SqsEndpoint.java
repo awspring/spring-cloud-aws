@@ -40,6 +40,8 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 	private final Integer maxMessagesPerPoll;
 
+	private final boolean messageGrouping;
+
 	@Nullable
 	private final AcknowledgementMode acknowledgementMode;
 
@@ -50,6 +52,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 		this.messageVisibility = builder.messageVisibility;
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
 		this.acknowledgementMode = builder.acknowledgementMode;
+		this.messageGrouping = builder.messageGrouping;
 	}
 
 	/**
@@ -89,6 +92,15 @@ public class SqsEndpoint extends AbstractEndpoint {
 	}
 
 	/**
+	 * Return whether message should be grouped or not.
+	 * @return the message grouping.
+	 */
+	@Nullable
+	public Boolean getMessageGrouping() {
+		return this.messageGrouping;
+	}
+
+	/**
 	 * Return the message visibility for this endpoint.
 	 * @return the message visibility.
 	 */
@@ -122,6 +134,8 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 		private Integer maxMessagesPerPoll;
 
+		private boolean messageGrouping;
+
 		@Nullable
 		private AcknowledgementMode acknowledgementMode;
 
@@ -147,6 +161,11 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 		public SqsEndpointBuilder maxMessagesPerPoll(Integer maxMessagesPerPoll) {
 			this.maxMessagesPerPoll = maxMessagesPerPoll;
+			return this;
+		}
+
+		public SqsEndpointBuilder messageGrouping(boolean messageGrouping) {
+			this.messageGrouping = messageGrouping;
 			return this;
 		}
 

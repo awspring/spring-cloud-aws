@@ -658,6 +658,7 @@ Note that if there are messages available the call may return earlier than this 
 - `messageVisibilitySeconds` - Set the minimum visibility for the messages retrieved in a poll.
 Note that for `FIFO` single message listener methods, this visibility is applied to the whole batch before each message is sent to the listener.
 See <<FIFO Support>> for more information.
+- `messageGrouping` - Specifies whether messages from FIFO queues must be grouped by message group when listened to in batch mode. See <<FIFO Support>> for more information.
 - `acknowledgementMode` - Set the acknowledgement mode for the container.
 If any value is set, it will take precedence over the acknowledgement mode defined for the container factory options.
 See <<Acknowledgement Mode>> for more information.
@@ -884,6 +885,12 @@ See <<Retrieving Attributes from SQS>>.
 |Configures the `MessageSystemAttribute` that will be retrieved from SQS for each message.
 See <<Retrieving Attributes from SQS>>.
 
+|`messageGrouping`
+|true, false
+|true
+|Specifies whether messages coming from FIFO queues should be grouped when retrieved by the container in listener
+mode `batch`. See <<FIFO Support>>.
+
 |`messageConverter`
 |`MessagingMessageConverter`
 |`SqsMessagingMessageConverter`
@@ -1032,7 +1039,7 @@ NOTE: Spring-managed `MessageListenerContainer` beans' lifecycle actions are alw
 * If processing fails for a message, the following messages from the same message group are discarded so they will be served again after their `message visibility`
 expires.
 * Messages which were already successfully processed and acknowledged will not be served again.
-* If a `batch` listener is used, each message group from a poll will be served as a batch to the listener method.
+* If a `batch` listener is used, each message group from a poll will be served as a batch to the listener method. To receive messages from different groups in a `batch`, `message grouping` property must be set to false through `@SqsListener` or `SqsContainerOptions`.
 * `FIFO` queues also have different defaults for acknowledging messages, see <<Acknowledgement Defaults>> for more information.
 * If a `message visibility` is set through `@SqsListener` or `SqsContainerOptions`, visibility will be extended for all messages in the message group before each message is processed.
 
