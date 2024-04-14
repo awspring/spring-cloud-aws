@@ -34,6 +34,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
 
@@ -131,7 +132,37 @@ class CredentialsProviderAutoConfigurationTests {
 							.isInstanceOf(StsWebIdentityTokenFileCredentialsProvider.class);
 				});
 	}
+	@Test
+	void credentialsProvider_podIdentityPropertiesConfigured_configuresContainerCredentialsProvider() throws IOException{
+		File tempFile = tokenTempDir.resolve("token-file.txt").toFile();
+		tempFile.createNewFile();
 
+		this.contextRunner
+			.withPropertyValues("spring.cloud.aws.region.static:ap-northeast-2",
+				"spring.cloud.aws.credentials.podIdentity.container-credentials-full-uri:http://169.254.170.23/v1/credentials")
+						.withSystemProperties("aws.containerAuthorizationTokenFile=" + tempFile.getAbsolutePath())
+			.run((context) -> {
+				AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
+					AwsCredentialsProvider.class);
+				assertThat(awsCredentialsProvider).isNotNull()
+					.isInstanceOf(ContainerCredentialsProvider.class);
+			});
+	}
+	@Test
+	void credentialsProvider_podIdentitySystemPropertiesDefault_configuresContainerCredentialsProvider() throws IOException {
+		File tempFile = tokenTempDir.resolve("token-file.txt").toFile();
+		tempFile.createNewFile();
+
+		this.contextRunner.withPropertyValues("spring.cloud.aws.region.static:ap-northeast-2")
+			.withSystemProperties("aws.containerCredentialsFullUri=http://169.254.170.23/v1/credentials",
+				"aws.containerAuthorizationTokenFile=" + tempFile.getAbsolutePath())
+			.run((context) -> {
+				AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
+					AwsCredentialsProvider.class);
+				assertThat(awsCredentialsProvider).isNotNull()
+					.isInstanceOf(ContainerCredentialsProvider.class);
+			});
+	}
 	@Test
 	void credentialsProvider_customCredentialsConfigured_customCredentialsAreUsed() {
 		// @checkstyle:on

@@ -26,11 +26,12 @@ public interface AwsCredentialsProvider {
 }
 ----
 
-There are 3 ways in which the `AwsCredentialsProvider` in Spring Cloud AWS can be configured:
+There are 4 ways in which the `AwsCredentialsProvider` in Spring Cloud AWS can be configured:
 
 1. `DefaultCredentialsProvider`
 2. `StsWebIdentityTokenFileCredentialsProvider` - recommended for EKS
-3. Custom `AwsCredentialsProvider`
+3. 'ContainerCredentialsProvider' - recommended for EKS
+4. Custom `AwsCredentialsProvider`
 
 If you are having problems with configuring credentials, consider enabling debug logging for more info:
 
@@ -111,6 +112,39 @@ STS credentials configuration supports following properties:
 | `spring.cloud.aws.credentials.sts.web-identity-token-file` | Absolute path to the web identity token file that will be used by credentials provider. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.credentials.sts.async-credentials-update` | Enables provider to asynchronously fetch credentials in the background. | No | `false`
 | `spring.cloud.aws.credentials.sts.role-session-name` | Role session name that will be used by credentials provider. | No | `null` (falls back to SDK default)
+|===
+
+==== ContainerCredentialsProvider
+
+The `ContainerCredentialsProvider` allows your application to assume an AWS IAM Role using a container authorization token file and installed Pod Identity Agent, which is especially useful in Kubernetes and AWS EKS environments.
+
+===== Prerequisites
+1. Create Amazon EKS Pod Identity Agent into Target EKS Cluster.
+2. Create a role that you want to assume.
+3. Create a container authorization token file for your application.
+
+In EKS, please follow this guide to set up service accounts https://docs.aws.amazon.com/eks/latest/userguide/pod-id-configure-pods.html
+
+The `ContainerCredentialsProvider` support is optional, so you need to include the following Maven dependency:
+[source,xml,indent=0]
+----
+<dependency>
+	<groupId>software.amazon.awssdk</groupId>
+	<artifactId>sts</artifactId>
+</dependency>
+----
+
+
+===== Configuring
+In EKS no additional configuration is required as the service account already configures the correct environment variables; however, they can be overridden.
+
+STS credentials configuration supports following properties:
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.credentials.podIdentity.container-credentials-full-uri` | Full URI to be used by credentials provider. | No | `null` (falls back to SDK default)
+| `spring.cloud.aws.credentials.podIdentity.async-credentials-update` | Enables provider to asynchronously fetch credentials in the background. | No | `false`
 |===
 
 

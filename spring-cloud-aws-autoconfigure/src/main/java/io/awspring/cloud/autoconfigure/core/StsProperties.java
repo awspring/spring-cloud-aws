@@ -34,7 +34,7 @@ public class StsProperties {
 	private String roleArn;
 
 	/**
-	 * Absolute path to the web identity token file that will be used by credentials provider. By default this will be
+	 * Absolute path to the web identity token file that will be used by credentials provider. By default, this will be
 	 * read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 	 */
 	@Nullable
@@ -47,7 +47,7 @@ public class StsProperties {
 	private boolean asyncCredentialsUpdate = false;
 
 	/**
-	 * Role session name that will be used by credentials provider. By default this is read from
+	 * Role session name that will be used by credentials provider. By default, this is read from
 	 * {@link software.amazon.awssdk.core.SdkSystemSetting}.
 	 */
 	@Nullable

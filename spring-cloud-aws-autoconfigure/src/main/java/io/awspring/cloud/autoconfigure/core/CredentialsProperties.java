@@ -23,6 +23,7 @@ import org.springframework.lang.Nullable;
  * Properties related to AWS credentials.
  *
  * @author Tom Gianos
+ * @author YoungJin Jung
  * @since 2.0.2
  */
 @ConfigurationProperties(prefix = CredentialsProperties.PREFIX)
@@ -64,6 +65,10 @@ public class CredentialsProperties {
 	@NestedConfigurationProperty
 	@Nullable
 	private StsProperties sts;
+
+	@NestedConfigurationProperty
+	@Nullable
+	private PodIdentityProperties podIdentity;
 
 	@Nullable
 	public String getAccessKey() {
@@ -107,5 +112,12 @@ public class CredentialsProperties {
 
 	public void setSts(@Nullable StsProperties sts) {
 		this.sts = sts;
+	}
+
+	@Nullable
+	public PodIdentityProperties getPodIdentity() { return podIdentity; }
+
+	public void setPodIdentity(@Nullable PodIdentityProperties podIdentity) {
+		this.podIdentity = podIdentity;
 	}
 }

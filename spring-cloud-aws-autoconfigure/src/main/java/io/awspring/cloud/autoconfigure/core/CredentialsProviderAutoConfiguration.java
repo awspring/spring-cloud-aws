@@ -18,6 +18,8 @@ package io.awspring.cloud.autoconfigure.core;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -39,6 +41,8 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -50,6 +54,7 @@ import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentia
  * @author Maciej Walkowiak
  * @author Eddú Meléndez
  * @author Eduan Bekker
+ * @author YoungJin Jung
  */
 @AutoConfiguration
 @ConditionalOnClass({ AwsCredentialsProvider.class, ProfileFile.class })
@@ -58,6 +63,7 @@ import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentia
 public class CredentialsProviderAutoConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CredentialsProviderAutoConfiguration.class);
 	private static final String STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER = "software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider";
+	private static final String CONTAINER_CREDENTIALS_PROVIDER = "software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider";
 
 	private final CredentialsProperties properties;
 	private final AwsRegionProvider regionProvider;
@@ -113,6 +119,16 @@ public class CredentialsProviderAutoConfiguration {
 			}
 		}
 
+		PodIdentityProperties podIdentity = properties.getPodIdentity();
+		try {
+			if (StringUtils.hasText(SdkSystemSetting.AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE.getStringValue().orElseThrow())) {
+				providers.add(createContainerCredentialsProvider(podIdentity));
+			}
+		} catch (NoSuchElementException e) {
+			LOGGER.warn(
+				"Skipping creating `ContainerCredentialsProvider`. `software.amazon.awssdk:sts` is on the classpath, but neither `spring.cloud.aws.credentials.podIdentity` properties are configured nor `AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE` or `AWS_CONTAINER_CREDENTIALS_FULL_URI`, nor the java property `containerAuthorizationTokenFile` or `aws.containerCredentialsFullUri` is set");
+		}
+
 		if (providers.isEmpty()) {
 			return DefaultCredentialsProvider.create();
 		}
@@ -144,6 +160,17 @@ public class CredentialsProviderAutoConfiguration {
 			profileFile = ProfileFile.defaultProfileFile();
 		}
 		return ProfileCredentialsProvider.builder().profileName(profile.getName()).profileFile(profileFile).build();
+	}
+
+	private static ContainerCredentialsProvider createContainerCredentialsProvider(@Nullable PodIdentityProperties podIdentity) {
+		PropertyMapper propertyMapper = PropertyMapper.get();
+		ContainerCredentialsProvider.Builder builder = ContainerCredentialsProvider.builder();
+
+		if (podIdentity != null) {
+			builder.asyncCredentialUpdateEnabled(podIdentity.isAsyncCredentialsUpdate());
+			propertyMapper.from(podIdentity::getContainerCredentialsFullUri).whenNonNull().to(builder::endpoint);
+		}
+		return builder.build();
 	}
 
 	/**
