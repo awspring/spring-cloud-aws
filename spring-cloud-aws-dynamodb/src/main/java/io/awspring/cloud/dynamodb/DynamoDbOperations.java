@@ -38,7 +38,7 @@ public interface DynamoDbOperations {
 	<T> T save(T entity);
 
 	/**
-	 * Updated Entity to DynamoDB table.
+	 * Updates Entity to DynamoDB table.
 	 *
 	 * @param entity - Entity to be saved.
 	 * @param <T> Type of Entity object.
