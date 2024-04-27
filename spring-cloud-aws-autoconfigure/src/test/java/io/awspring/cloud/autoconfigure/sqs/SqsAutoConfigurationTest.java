@@ -15,10 +15,6 @@
  */
 package io.awspring.cloud.autoconfigure.sqs;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.map;
-import static org.assertj.core.api.InstanceOfAssertFactories.type;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
@@ -32,14 +28,11 @@ import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
+import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
-import java.net.URI;
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -55,6 +48,15 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
+
+import java.net.URI;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.map;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
 /**
  * Tests for {@link SqsAutoConfiguration}.
@@ -107,6 +109,16 @@ class SqsAutoConfigurationTest {
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SqsAsyncClient.class));
 			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
 			assertThat(client.isEndpointOverridden()).isTrue();
+		});
+	}
+
+	@Test
+	void withCustomQueueNotFoundStrategy() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.queueNotFoundStrategy:FAIL").run(context -> {
+			assertThat(context).hasSingleBean(SqsProperties.class);
+			SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
+			assertThat(sqsTemplate).extracting("queueNotFoundStrategy").asInstanceOf(type(QueueNotFoundStrategy.class))
+				.isEqualTo(QueueNotFoundStrategy.FAIL);
 		});
 	}
 

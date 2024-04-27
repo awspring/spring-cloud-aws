@@ -77,5 +77,6 @@
 |spring.cloud.aws.sqs.listener.max-messages-per-poll |  | The maximum number of messages to be retrieved in a single poll to SQS.
 |spring.cloud.aws.sqs.listener.poll-timeout |  | The maximum amount of time for a poll to SQS.
 |spring.cloud.aws.sqs.region |  | Overrides the default region.
+|spring.cloud.aws.sqs.queueNotFoundStrategy |  | Overrides the default QueueNotFoundStrategy.
 
 |===
