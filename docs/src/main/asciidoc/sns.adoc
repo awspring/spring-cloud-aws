@@ -85,6 +85,8 @@ public class TopicArnResolverConfiguration {
 
 ----
 
+However when using the topic ARN itself in your application, `SnsTemplate` exposes a method `topicExists` that can be used to validate the SNS topic's existence at application startup itself.
+
 ==== SNS Operations
 
 Because of Spring Messaging compatibility, `SnsTemplate` exposes many methods that you may not need if you don't need Spring Messaging abstractions.
