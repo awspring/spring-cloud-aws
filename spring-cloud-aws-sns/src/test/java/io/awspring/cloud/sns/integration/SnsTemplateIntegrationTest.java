@@ -53,6 +53,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
  * Integration tests for {@link SnsTemplate}.
  *
  * @author Matej Nedic
+ * @author Hardik Singh Behl
  */
 @Testcontainers
 class SnsTemplateIntegrationTest {

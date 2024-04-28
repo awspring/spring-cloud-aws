@@ -43,6 +43,7 @@ import software.amazon.awssdk.services.sns.model.NotFoundException;
  * @author Alain Sahli
  * @author Matej Nedic
  * @author Mariusz Sondecki
+ * @author Hardik Singh Behl
  * @since 1.0
  */
 public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChannel>
