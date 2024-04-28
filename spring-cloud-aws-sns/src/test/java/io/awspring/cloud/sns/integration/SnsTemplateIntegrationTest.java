@@ -24,6 +24,8 @@ import io.awspring.cloud.sns.Person;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicNotFoundException;
 import io.awspring.cloud.sns.core.TopicsListingTopicArnResolver;
+import net.bytebuddy.utility.RandomString;
+
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -202,6 +204,26 @@ class SnsTemplateIntegrationTest {
 				snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + i).build());
 			}
 		}
+	}
+	
+	@Test
+	void shouldReturnFalseForNonExistingTopic() {
+		String nonExistentTopicArn = String.format("arn:aws:sns:us-east-1:000000000000:%s", RandomString.make());
+		
+		boolean response = snsTemplate.topicExists(nonExistentTopicArn);
+		
+		assertThat(response).isFalse();
+	}
+	
+	@Test
+	void shouldReturnTrueForExistingTopic() {
+		String topicName = RandomString.make();
+		snsClient.createTopic(request -> request.name(topicName));
+		String topicArn = String.format("arn:aws:sns:us-east-1:000000000000:%s", topicName);
+		
+		boolean response = snsTemplate.topicExists(topicArn);
+		
+		assertThat(response).isTrue();
 	}
 
 }
