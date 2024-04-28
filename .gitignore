@@ -20,6 +20,7 @@ mail.properties
 .project
 .classpath
 .settings/
+.DS_Store
 
 .vscode/
 
