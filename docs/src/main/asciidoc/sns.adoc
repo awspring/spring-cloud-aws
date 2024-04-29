@@ -85,7 +85,7 @@ public class TopicArnResolverConfiguration {
 
 ----
 
-However when using the topic ARN itself in your application, `SnsTemplate` exposes a method `topicExists` that can be used to validate the SNS topic's existence at application startup itself.
+However, when using the topic ARN in your application, the `SnsTemplate` provides a `topicExists` method to validate the existence of the SNS topic at application startup itself.
 
 ==== SNS Operations
 
