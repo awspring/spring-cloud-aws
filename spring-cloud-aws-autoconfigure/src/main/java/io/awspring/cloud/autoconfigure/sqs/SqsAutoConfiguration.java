@@ -114,12 +114,11 @@ public class SqsAutoConfiguration {
 	}
 
 	private void setObjectMapper(SqsMessageListenerContainerFactory<Object> factory, ObjectMapper objectMapper, MessagingMessageConverter<?> messagingMessageConverter) {
-		if(messagingMessageConverter instanceof SqsMessagingMessageConverter sqsMessagingMessageConverter) {
-			sqsMessagingMessageConverter.setObjectMapper(objectMapper);
-			factory.configure(options -> options.messageConverter(sqsMessagingMessageConverter));
-		} else {
-			factory.configure(options -> options.messageConverter(messagingMessageConverter));
+		if (messagingMessageConverter instanceof SqsMessagingMessageConverter) {
+			((SqsMessagingMessageConverter)messagingMessageConverter).setObjectMapper(objectMapper);
 		}
+
+		factory.configure(options -> options.messageConverter(messagingMessageConverter));
 	}
 
 	private void configureContainerOptions(ContainerOptionsBuilder<?, ?> options) {
