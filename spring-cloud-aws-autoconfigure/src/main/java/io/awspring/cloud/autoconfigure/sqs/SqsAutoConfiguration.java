@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
  * @author Tomaz Fernandes
  * @author Maciej Walkowiak
  * @author Wei Jiang
+ * @author Dongha Kim
  * @since 3.0
  */
 @AutoConfiguration
@@ -97,7 +99,8 @@ public class SqsAutoConfiguration {
 			ObjectProvider<ErrorHandler<Object>> errorHandler,
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
 			ObjectProvider<MessageInterceptor<Object>> interceptors,
-			ObjectProvider<ObjectMapper> objectMapperProvider) {
+			ObjectProvider<ObjectMapper> objectMapperProvider,
+			MessagingMessageConverter<?> messagingMessageConverter) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
 		factory.configure(this::configureContainerOptions);
@@ -106,15 +109,21 @@ public class SqsAutoConfiguration {
 		errorHandler.ifAvailable(factory::setErrorHandler);
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
-		objectMapperProvider.ifAvailable(objectMapper -> setObjectMapper(factory, objectMapper));
+		objectMapperProvider.ifAvailable(objectMapper -> {
+			if (messagingMessageConverter instanceof SqsMessagingMessageConverter) {
+				((SqsMessagingMessageConverter) messagingMessageConverter).setObjectMapper(objectMapper);
+			}
+		});
+
+		factory.configure(options -> options.messageConverter(messagingMessageConverter));
+
 		return factory;
 	}
 
-	private void setObjectMapper(SqsMessageListenerContainerFactory<Object> factory, ObjectMapper objectMapper) {
-		// Object Mapper for early deserialization in MessageSource
-		var messageConverter = new SqsMessagingMessageConverter();
-		messageConverter.setObjectMapper(objectMapper);
-		factory.configure(options -> options.messageConverter(messageConverter));
+	@ConditionalOnMissingBean
+	@Bean
+	public MessagingMessageConverter<?> defaultMessageConverter() {
+		return new SqsMessagingMessageConverter();
 	}
 
 	private void configureContainerOptions(SqsContainerOptionsBuilder options) {
