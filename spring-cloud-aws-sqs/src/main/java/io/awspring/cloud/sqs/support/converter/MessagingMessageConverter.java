@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.messaging.Message;
 
 /**
