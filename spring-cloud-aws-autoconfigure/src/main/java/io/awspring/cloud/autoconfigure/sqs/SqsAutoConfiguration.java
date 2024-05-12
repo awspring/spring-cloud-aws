@@ -94,7 +94,7 @@ public class SqsAutoConfiguration {
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
 			ObjectProvider<MessageInterceptor<Object>> interceptors,
 			ObjectProvider<ObjectMapper> objectMapperProvider,
-			MessagingMessageConverter messagingMessageConverter) {
+			MessagingMessageConverter<?> messagingMessageConverter) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
 		factory.configure(this::configureContainerOptions);
@@ -109,12 +109,17 @@ public class SqsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public MessagingMessageConverter defaultMessageConverter() {
+	public MessagingMessageConverter<?> defaultMessageConverter() {
 		return new SqsMessagingMessageConverter();
 	}
 
-	private void setObjectMapper(SqsMessageListenerContainerFactory<Object> factory, ObjectMapper objectMapper, MessagingMessageConverter messagingMessageConverter) {
-		factory.configure(options -> options.messageConverter(messagingMessageConverter));
+	private void setObjectMapper(SqsMessageListenerContainerFactory<Object> factory, ObjectMapper objectMapper, MessagingMessageConverter<?> messagingMessageConverter) {
+		if(messagingMessageConverter instanceof SqsMessagingMessageConverter sqsMessagingMessageConverter) {
+			sqsMessagingMessageConverter.setObjectMapper(objectMapper);
+			factory.configure(options -> options.messageConverter(sqsMessagingMessageConverter));
+		} else {
+			factory.configure(options -> options.messageConverter(messagingMessageConverter));
+		}
 	}
 
 	private void configureContainerOptions(ContainerOptionsBuilder<?, ?> options) {

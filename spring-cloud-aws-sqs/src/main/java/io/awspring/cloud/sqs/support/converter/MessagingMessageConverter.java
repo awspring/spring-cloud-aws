@@ -39,6 +39,4 @@ public interface MessagingMessageConverter<S> {
 	 */
 	S fromMessagingMessage(Message<?> message);
 
-	void setObjectMapper(ObjectMapper objectMapper);
-
 }
