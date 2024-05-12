@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.messaging.Message;
 
 /**
@@ -37,5 +38,7 @@ public interface MessagingMessageConverter<S> {
 	 * @return the system specific message.
 	 */
 	S fromMessagingMessage(Message<?> message);
+
+	void setObjectMapper(ObjectMapper objectMapper);
 
 }

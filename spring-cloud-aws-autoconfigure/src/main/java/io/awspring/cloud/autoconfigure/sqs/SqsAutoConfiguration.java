@@ -31,6 +31,7 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -92,7 +93,8 @@ public class SqsAutoConfiguration {
 			ObjectProvider<ErrorHandler<Object>> errorHandler,
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
 			ObjectProvider<MessageInterceptor<Object>> interceptors,
-			ObjectProvider<ObjectMapper> objectMapperProvider) {
+			ObjectProvider<ObjectMapper> objectMapperProvider,
+			MessagingMessageConverter messagingMessageConverter) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
 		factory.configure(this::configureContainerOptions);
@@ -101,15 +103,18 @@ public class SqsAutoConfiguration {
 		errorHandler.ifAvailable(factory::setErrorHandler);
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
-		objectMapperProvider.ifAvailable(objectMapper -> setObjectMapper(factory, objectMapper));
+		objectMapperProvider.ifAvailable(objectMapper -> setObjectMapper(factory, objectMapper, messagingMessageConverter));
 		return factory;
 	}
 
-	private void setObjectMapper(SqsMessageListenerContainerFactory<Object> factory, ObjectMapper objectMapper) {
-		// Object Mapper for early deserialization in MessageSource
-		var messageConverter = new SqsMessagingMessageConverter();
-		messageConverter.setObjectMapper(objectMapper);
-		factory.configure(options -> options.messageConverter(messageConverter));
+	@ConditionalOnMissingBean
+	@Bean
+	public MessagingMessageConverter defaultMessageConverter() {
+		return new SqsMessagingMessageConverter();
+	}
+
+	private void setObjectMapper(SqsMessageListenerContainerFactory<Object> factory, ObjectMapper objectMapper, MessagingMessageConverter messagingMessageConverter) {
+		factory.configure(options -> options.messageConverter(messagingMessageConverter));
 	}
 
 	private void configureContainerOptions(ContainerOptionsBuilder<?, ?> options) {
