@@ -30,6 +30,7 @@ import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -62,11 +63,13 @@ class SqsMessageListenerContainerTests {
 				.singletonList(componentFactory);
 		List<String> queueNames = Arrays.asList("test-queue-name-1", "test-queue-name-2");
 		Integer phase = 2;
+		ObservationRegistry observationRegistry = mock(ObservationRegistry.class);
 
 		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder().messageListener(listener)
 				.sqsAsyncClient(client).errorHandler(errorHandler).componentFactories(componentFactories)
 				.acknowledgementResultCallback(callback).messageInterceptor(interceptor1)
-				.messageInterceptor(interceptor2).queueNames(queueNames).phase(phase).build();
+				.messageInterceptor(interceptor2).queueNames(queueNames).phase(phase)
+				.observationRegistry(observationRegistry).build();
 
 		assertThat(container.getMessageListener())
 				.isInstanceOf(AsyncComponentAdapters.AbstractThreadingComponentAdapter.class)
@@ -93,6 +96,8 @@ class SqsMessageListenerContainerTests {
 		assertThat(container.getQueueNames()).containsExactlyElementsOf(queueNames);
 
 		assertThat(container.getPhase()).isEqualTo(phase);
+
+		assertThat(container.getObservationRegistry()).isSameAs(observationRegistry);
 	}
 
 	@Test
@@ -106,18 +111,22 @@ class SqsMessageListenerContainerTests {
 		AsyncMessageInterceptor<Object> interceptor2 = mock(AsyncMessageInterceptor.class);
 		AsyncAcknowledgementResultCallback<Object> callback = mock(AsyncAcknowledgementResultCallback.class);
 		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = mock(ContainerComponentFactory.class);
+		ObservationRegistry observationRegistry = mock(ObservationRegistry.class);
+
 		List<ContainerComponentFactory<Object, SqsContainerOptions>> componentFactories = Collections
 				.singletonList(componentFactory);
 		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder()
 				.asyncMessageListener(listener).sqsAsyncClient(client).errorHandler(errorHandler)
 				.componentFactories(componentFactories).acknowledgementResultCallback(callback)
-				.messageInterceptor(interceptor1).messageInterceptor(interceptor2).queueNames(queueName).id(id).build();
+				.messageInterceptor(interceptor1).messageInterceptor(interceptor2).queueNames(queueName).id(id)
+				.observationRegistry(observationRegistry).build();
 
 		assertThat(container.getMessageListener()).isEqualTo(listener);
 		assertThat(container.getErrorHandler()).isEqualTo(errorHandler);
 		assertThat(container.getAcknowledgementResultCallback()).isEqualTo(callback);
 		assertThat(container.getMessageInterceptors()).containsExactly(interceptor1, interceptor2);
 		assertThat(container.getPhase()).isEqualTo(MessageListenerContainer.DEFAULT_PHASE);
+		assertThat(container.getObservationRegistry()).isSameAs(observationRegistry);
 	}
 
 	@Test

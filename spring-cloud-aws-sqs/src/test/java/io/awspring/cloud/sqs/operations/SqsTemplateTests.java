@@ -28,7 +28,13 @@ import io.awspring.cloud.sqs.QueueAttributesResolvingException;
 import io.awspring.cloud.sqs.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.observation.MessageObservationDocumentation;
+import io.awspring.cloud.sqs.observation.MessagingOperationType;
 import io.awspring.cloud.sqs.support.converter.ContextAwareMessagingMessageConverter;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.tck.ObservationContextAssert;
+import io.micrometer.observation.tck.TestObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,26 +53,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
-import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
-import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
-import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
-import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
-import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
-import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.services.sqs.model.*;
 
 /**
  * @author Tomaz Fernandes
+ * @author Mariusz Sondecki
  */
 @SuppressWarnings("unchecked")
 class SqsTemplateTests {
@@ -457,6 +448,42 @@ class SqsTemplateTests {
 	}
 
 	@Test
+	void shouldSendInNestedObservation() {
+		String queue = "test-queue";
+		String payload = "test-payload";
+		String parentSpanName = "Parent span";
+
+		TestObservationRegistry registry = TestObservationRegistry.create();
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
+		UUID uuid = UUID.randomUUID();
+		String sequenceNumber = "1234";
+		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
+				.sequenceNumber(sequenceNumber).build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(response));
+
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient).observationRegistry(registry)
+				.buildSyncTemplate();
+		Observation.createNotStarted(parentSpanName, registry)
+				.observe(() -> template.send(to -> to.queue(queue).payload(payload)));
+
+		TestObservationRegistryAssert.then(registry).hasNumberOfObservationsEqualTo(2)
+				.hasHandledContextsThatSatisfy(contexts -> ObservationContextAssert.then(contexts.get(1))
+						.hasNameEqualTo("sqs.single.message.publish")
+						.hasHighCardinalityKeyValueWithKey(
+								MessageObservationDocumentation.HighCardinalityKeyNames.MESSAGE_ID.asString())
+						.hasLowCardinalityKeyValue(
+								MessageObservationDocumentation.LowCardinalityKeyNames.OPERATION.asString(),
+								MessagingOperationType.SINGLE_PUBLISH.getValue())
+						.hasParentObservationContextMatching(
+								contextView -> contextView.getName().equals(parentSpanName)));
+	}
+
+	@Test
 	void shouldSendBatch() {
 		String queue = "test-queue";
 		String payload1 = "test-payload-1";
@@ -501,6 +528,54 @@ class SqsTemplateTests {
 		assertThat(firstEntry.messageAttributes().get(headerName1).stringValue()).isEqualTo(headerValue1);
 		assertThat(secondEntry.messageBody()).isEqualTo(payload2);
 		assertThat(secondEntry.messageAttributes().get(headerName2).stringValue()).isEqualTo(headerValue2);
+	}
+
+	@Test
+	void shouldSendBatchInNestedObservation() {
+		String queue = "test-queue";
+		String payload1 = "test-payload-1";
+		String payload2 = "test-payload-2";
+		String headerName1 = "headerName";
+		String headerValue1 = "headerValue";
+		String headerName2 = "headerName2";
+		String headerValue2 = "headerValue2";
+		String parentSpanName = "Parent span";
+
+		TestObservationRegistry registry = TestObservationRegistry.create();
+
+		Message<String> message1 = MessageBuilder.withPayload(payload1).setHeader(headerName1, headerValue1).build();
+		Message<String> message2 = MessageBuilder.withPayload(payload2).setHeader(headerName2, headerValue2).build();
+		List<Message<String>> messages = List.of(message1, message2);
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
+		SendMessageBatchResponse response = SendMessageBatchResponse.builder().successful(
+				builder -> builder.id(message1.getHeaders().getId().toString()).messageId(UUID.randomUUID().toString()),
+				builder -> builder.id(message2.getHeaders().getId().toString()).messageId(UUID.randomUUID().toString()))
+				.build();
+		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(response));
+
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient).observationRegistry(registry)
+				.buildSyncTemplate();
+		SendResult.Batch<String> results = Observation.createNotStarted(parentSpanName, registry)
+				.observe(() -> template.sendMany(queue, messages));
+
+		TestObservationRegistryAssert.then(registry).hasNumberOfObservationsEqualTo(2)
+				.hasHandledContextsThatSatisfy(contexts -> ObservationContextAssert.then(contexts.get(1))
+						.hasNameEqualTo("sqs.batch.message.publish")
+						.hasHighCardinalityKeyValueWithKey(
+								MessageObservationDocumentation.HighCardinalityKeyNames.MESSAGE_ID.asString())
+						.hasLowCardinalityKeyValue(
+								MessageObservationDocumentation.LowCardinalityKeyNames.OPERATION.asString(),
+								MessagingOperationType.BATCH_PUBLISH.getValue())
+						.hasParentObservationContextMatching(
+								contextView -> contextView.getName().equals(parentSpanName)));
+
+		assertThat(results.successful()).hasSize(2);
 	}
 
 	@Test
@@ -1034,6 +1109,46 @@ class SqsTemplateTests {
 	}
 
 	@Test
+	void shouldReceiveInNestedObservation() {
+		String queue = "test-queue";
+		String payload = "test-payload";
+		String parentSpanName = "Parent span";
+
+		TestObservationRegistry registry = TestObservationRegistry.create();
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder().messages(builder -> builder
+				.messageId(UUID.randomUUID().toString()).receiptHandle("test-receipt-handle").body(payload).build())
+				.build();
+		given(mockClient.receiveMessage(any(ReceiveMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(receiveMessageResponse));
+		DeleteMessageBatchResponse deleteResponse = DeleteMessageBatchResponse.builder()
+				.successful(builder -> builder.id(UUID.randomUUID().toString())).build();
+		given(mockClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(deleteResponse));
+
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient).observationRegistry(registry)
+				.configure(options -> options.defaultQueue(queue)).buildSyncTemplate();
+		Optional<Message<?>> receivedMessage = Observation.createNotStarted(parentSpanName, registry)
+				.observe(() -> template.receive());
+
+		TestObservationRegistryAssert.then(registry).hasNumberOfObservationsEqualTo(2)
+				.hasHandledContextsThatSatisfy(contexts -> ObservationContextAssert.then(contexts.get(1))
+						.hasNameEqualTo("sqs.single.message.manual.process")
+						.hasHighCardinalityKeyValueWithKey(
+								MessageObservationDocumentation.HighCardinalityKeyNames.MESSAGE_ID.asString())
+						.hasLowCardinalityKeyValue(
+								MessageObservationDocumentation.LowCardinalityKeyNames.OPERATION.asString(),
+								MessagingOperationType.SINGLE_MANUAL_PROCESS.getValue())
+						.hasParentObservationContextMatching(
+								contextView -> contextView.getName().equals(parentSpanName)));
+		assertThat(receivedMessage).isPresent()
+				.hasValueSatisfying(message -> assertThat(message.getPayload()).isEqualTo(payload));
+
+	}
+
+	@Test
 	void shouldReceiveBatchWithDefaultValues() {
 		String queue = "test-queue";
 		String payload = "test-payload";
@@ -1206,6 +1321,47 @@ class SqsTemplateTests {
 		assertThat(request.receiveRequestAttemptId()).isEqualTo(attemptId.toString());
 		assertThat(request.queueUrl()).isEqualTo(queue);
 
+	}
+
+	@Test
+	void shouldReceiveBatchInNestedObservation() {
+		String parentSpanName = "Parent span";
+
+		TestObservationRegistry registry = TestObservationRegistry.create();
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl("test-queue").build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
+				.messages(
+						builder -> builder.messageId(UUID.randomUUID().toString())
+								.receiptHandle("test-receipt-handle-1").body("test-payload").build(),
+						builder -> builder.messageId(UUID.randomUUID().toString())
+								.receiptHandle("test-receipt-handle-2").body("test-payload").build())
+				.build();
+		given(mockClient.receiveMessage(any(ReceiveMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(receiveMessageResponse));
+		DeleteMessageBatchResponse deleteResponse = DeleteMessageBatchResponse.builder()
+				.successful(builder -> builder.id(UUID.randomUUID().toString())).build();
+		given(mockClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(deleteResponse));
+
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient).observationRegistry(registry)
+				.configure(options -> options.defaultQueue("test-queue")).buildSyncTemplate();
+		Collection<Message<?>> receivedMessages = Observation.createNotStarted(parentSpanName, registry)
+				.observe(() -> template.receiveMany());
+
+		TestObservationRegistryAssert.then(registry).hasNumberOfObservationsEqualTo(2)
+				.hasHandledContextsThatSatisfy(contexts -> ObservationContextAssert.then(contexts.get(1))
+						.hasNameEqualTo("sqs.batch.message.manual.process")
+						.hasHighCardinalityKeyValueWithKey(
+								MessageObservationDocumentation.HighCardinalityKeyNames.MESSAGE_ID.asString())
+						.hasLowCardinalityKeyValue(
+								MessageObservationDocumentation.LowCardinalityKeyNames.OPERATION.asString(),
+								MessagingOperationType.BATCH_MANUAL_PROCESS.getValue())
+						.hasParentObservationContextMatching(
+								contextView -> contextView.getName().equals(parentSpanName)));
+		assertThat(receivedMessages).hasSize(2);
 	}
 
 }

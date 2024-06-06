@@ -48,6 +48,7 @@ import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
  * @author Tomaz Fernandes
  * @author Agim Emruli
  * @author Adrian Stoelken
+ * @author Mariusz Sondecki
  * @since 3.0
  * @see SqsContainerOptions#getQueueAttributeNames()
  * @see SqsContainerOptions#getQueueNotFoundStrategy()
@@ -77,10 +78,14 @@ public class QueueAttributesResolver {
 
 	// @formatter:off
 	public CompletableFuture<QueueAttributes> resolveQueueAttributes() {
+		return resolveQueueAttributes(null);
+	}
+
+	public CompletableFuture<QueueAttributes> resolveQueueAttributes(@Nullable ContextScopeManager scopeManager) {
 		logger.debug("Resolving attributes for queue {}", this.queueName);
-		return CompletableFutures.exceptionallyCompose(resolveQueueUrl()
-			.thenCompose(queueUrl -> getQueueAttributes(queueUrl)
-				.thenApply(queueAttributes -> new QueueAttributes(this.queueName, queueUrl, queueAttributes)))
+		return CompletableFutures.exceptionallyCompose(resolveQueueUrl(scopeManager)
+				.thenCompose(queueUrl -> getQueueAttributes(queueUrl, scopeManager)
+					.thenApply(queueAttributes -> new QueueAttributes(this.queueName, queueUrl, queueAttributes)))
 			, this::wrapException);
 	}
 
@@ -90,13 +95,13 @@ public class QueueAttributesResolver {
 			t instanceof CompletionException ? t.getCause() : t));
 	}
 
-	private CompletableFuture<String> resolveQueueUrl() {
+	private CompletableFuture<String> resolveQueueUrl(@Nullable ContextScopeManager scopeManager) {
 		return isValidQueueUrl(this.queueName)
 			? CompletableFuture.completedFuture(this.queueName)
-			: doResolveQueueUrl();
+			: doResolveQueueUrl(scopeManager);
 	}
 
-	private CompletableFuture<String> doResolveQueueUrl() {
+	private CompletableFuture<String> doResolveQueueUrl(@Nullable ContextScopeManager scopeManager) {
 		GetQueueUrlRequest.Builder getQueueUrlRequestBuilder = GetQueueUrlRequest.builder();
 		Arn arn = getQueueArnFromUrl();
 		if (arn != null) {
@@ -106,9 +111,19 @@ public class QueueAttributesResolver {
 		else {
 			getQueueUrlRequestBuilder.queueName(this.queueName);
 		}
-		return CompletableFutures.exceptionallyCompose(this.sqsAsyncClient
-				.getQueueUrl(getQueueUrlRequestBuilder.build()).thenApply(GetQueueUrlResponse::queueUrl),
-				this::handleException);
+
+		CompletableFuture<GetQueueUrlResponse> getQueueUrlResponse;
+		if (scopeManager != null) {
+			getQueueUrlResponse = scopeManager.manageContextWhileComposing(CompletableFuture.completedFuture(null),
+						unused -> this.sqsAsyncClient
+							.getQueueUrl(getQueueUrlRequestBuilder.build()));
+		} else {
+			getQueueUrlResponse = this.sqsAsyncClient
+				.getQueueUrl(getQueueUrlRequestBuilder.build());
+		}
+		return CompletableFutures.exceptionallyCompose(getQueueUrlResponse
+				.thenApply(GetQueueUrlResponse::queueUrl),
+			this::handleException);
 	}
 
 	private CompletableFuture<String> handleException(Throwable t) {
@@ -138,16 +153,25 @@ public class QueueAttributesResolver {
 		logger.debug("Created queue {} with url {}", this.queueName, v);
 	}
 
-	private CompletableFuture<Map<QueueAttributeName, String>> getQueueAttributes(String queueUrl) {
+	private CompletableFuture<Map<QueueAttributeName, String>> getQueueAttributes(String queueUrl, @Nullable ContextScopeManager scopeManager) {
 		return this.queueAttributeNames.isEmpty()
 			? CompletableFuture.completedFuture(Collections.emptyMap())
-			: doGetAttributes(queueUrl);
+			: doGetAttributes(queueUrl, scopeManager);
 	}
 
-	private CompletableFuture<Map<QueueAttributeName, String>> doGetAttributes(String queueUrl) {
+	private CompletableFuture<Map<QueueAttributeName, String>> doGetAttributes(String queueUrl, @Nullable ContextScopeManager scopeManager) {
 		logger.debug("Resolving attributes {} for queue {}", this.queueAttributeNames, this.queueName);
-		return this.sqsAsyncClient
-			.getQueueAttributes(req -> req.queueUrl(queueUrl).attributeNames(this.queueAttributeNames))
+		CompletableFuture<GetQueueAttributesResponse> queueAttributesResponse;
+		if (scopeManager != null) {
+			queueAttributesResponse = scopeManager.manageContextWhileComposing(CompletableFuture.completedFuture(null),
+				unused -> this.sqsAsyncClient
+					.getQueueAttributes(req -> req.queueUrl(queueUrl).attributeNames(this.queueAttributeNames)));
+		} else{
+			queueAttributesResponse = this.sqsAsyncClient
+				.getQueueAttributes(req -> req.queueUrl(queueUrl).attributeNames(this.queueAttributeNames));
+		}
+
+		return queueAttributesResponse
 			.thenApply(GetQueueAttributesResponse::attributes)
 			.whenComplete((v, t) -> logger.debug("Attributes for queue {} resolved", this.queueName));
 	}

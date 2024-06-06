@@ -15,17 +15,19 @@
  */
 package io.awspring.cloud.sqs.operations;
 
+import io.awspring.cloud.sqs.ContextScopeManager;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.observation.*;
 import io.awspring.cloud.sqs.support.converter.ContextAwareMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.micrometer.context.ContextRegistry;
+import io.micrometer.context.ContextSnapshot;
+import io.micrometer.context.ContextSnapshotFactory;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -41,6 +43,7 @@ import org.springframework.util.Assert;
  * @param <S> the source message type for conversion
  *
  * @author Tomaz Fernandes
+ * @author Mariusz Sondecki
  * @since 3.0
  */
 public abstract class AbstractMessagingTemplate<S> implements MessagingOperations, AsyncMessagingOperations {
@@ -59,6 +62,17 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 
 	private static final int MAX_ONE_MESSAGE = 1;
 
+	private static final SingleMessageManualProcessObservationConvention DEFAULT_SINGLE_MESSAGE_PROCESS_MANUAL_OBSERVATION_CONVENTION = new SingleMessageManualProcessObservationConvention();
+
+	private static final BatchMessageManualProcessObservationConvention DEFAULT_BATCH_MESSAGE_PROCESS_MANUAL_OBSERVATION_CONVENTION = new BatchMessageManualProcessObservationConvention();
+
+	private static final DefaultSingleMessagePublishObservationConvention DEFAULT_SINGLE_MESSAGE_PUBLISH_OBSERVATION_CONVENTION = new DefaultSingleMessagePublishObservationConvention();
+
+	private static final DefaultBatchMessagePublishObservationConvention DEFAULT_BATCH_MESSAGE_PUBLISH_OBSERVATION_CONVENTION = new DefaultBatchMessagePublishObservationConvention();
+
+	private final ContextSnapshotFactory snapshotFactory = ContextSnapshotFactory.builder()
+			.contextRegistry(ContextRegistry.getInstance()).build();
+
 	private final Map<String, Object> defaultAdditionalHeaders;
 
 	private final Duration defaultPollTimeout;
@@ -76,10 +90,13 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 
 	private final MessagingMessageConverter<S> messageConverter;
 
+	private final ObservationRegistry observationRegistry;
+
 	protected AbstractMessagingTemplate(MessagingMessageConverter<S> messageConverter,
-			AbstractMessagingTemplateOptions<?> options) {
+			AbstractMessagingTemplateOptions<?> options, ObservationRegistry observationRegistry) {
 		Assert.notNull(messageConverter, "messageConverter must not be null");
 		Assert.notNull(options, "options must not be null");
+		Assert.notNull(observationRegistry, "ObservationRegistry observationRegistry must not be null");
 		this.messageConverter = messageConverter;
 		this.defaultAdditionalHeaders = options.defaultAdditionalHeaders;
 		this.defaultMaxNumberOfMessages = options.defaultMaxNumberOfMessages;
@@ -88,6 +105,7 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 		this.defaultEndpointName = options.defaultEndpointName;
 		this.acknowledgementMode = options.acknowledgementMode;
 		this.sendBatchFailureHandlingStrategy = options.sendBatchFailureHandlingStrategy;
+		this.observationRegistry = observationRegistry;
 	}
 
 	@Override
@@ -154,23 +172,57 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	protected CompletableFuture<Collection<Message<?>>> receiveManyAsync(@Nullable String endpoint,
 			@Nullable Class<?> payloadClass, @Nullable Duration pollTimeout, @Nullable Integer maxNumberOfMessages,
 			@Nullable Map<String, Object> additionalHeaders) {
+		MessageManualProcessObservationContext observationContext = new MessageManualProcessObservationContext();
 		String endpointToUse = getEndpointName(endpoint);
-		logger.trace("Receiving messages from endpoint {}", endpointToUse);
 		Map<String, Object> headers = getAdditionalHeadersToReceive(endpointToUse, additionalHeaders);
 		Duration pollTimeoutToUse = getOrDefault(pollTimeout, this.defaultPollTimeout, "pollTimeout");
 		Integer maxNumberOfMessagesToUse = getOrDefault(maxNumberOfMessages, this.defaultMaxNumberOfMessages,
 				"defaultMaxNumberOfMessages");
-		return doReceiveAsync(endpointToUse, pollTimeoutToUse, maxNumberOfMessagesToUse, headers)
-				.thenApply(messages -> convertReceivedMessages(endpointToUse, payloadClass, messages, headers))
-				.thenCompose(messages -> handleAcknowledgement(endpointToUse, messages))
-				.exceptionallyCompose(t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
-						"Message receive operation failed for endpoint %s".formatted(endpointToUse), endpointToUse,
-						t instanceof CompletionException ? t.getCause() : t)))
-				.whenComplete((v, t) -> logReceiveMessageResult(endpointToUse, v, t));
+		Observation observation;
+		if (MAX_ONE_MESSAGE == maxNumberOfMessagesToUse) {
+			observation = MessageObservationDocumentation.SINGLE_MESSAGE_MANUAL_PROCESS
+					.observation(null, DEFAULT_SINGLE_MESSAGE_PROCESS_MANUAL_OBSERVATION_CONVENTION,
+							() -> observationContext, this.observationRegistry)
+					.start();
+		}
+		else {
+			observation = MessageObservationDocumentation.BATCH_MESSAGE_MANUAL_PROCESS
+					.observation(null, DEFAULT_BATCH_MESSAGE_PROCESS_MANUAL_OBSERVATION_CONVENTION,
+							() -> observationContext, this.observationRegistry)
+					.start();
+		}
+
+		ContextSnapshot contextSnapshot = snapshotFactory.captureAll();
+		try (Observation.Scope __ = observation.openScope()) {
+			ContextScopeManager scopeManager = new ContextScopeManager(snapshotFactory.captureAll(), contextSnapshot,
+					observationRegistry);
+			logger.trace("Receiving messages from endpoint {}", endpointToUse);
+			return doReceiveAsync(endpointToUse, pollTimeoutToUse, maxNumberOfMessagesToUse, headers, scopeManager)
+					.thenApply(messages -> convertReceivedMessages(endpointToUse, payloadClass, messages, headers,
+							scopeManager))
+					.thenApply(messages -> addHeadersToContext(messages, observationContext))
+					.thenCompose(messages -> handleAcknowledgement(endpointToUse, messages, scopeManager))
+					.exceptionallyCompose(t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
+							"Message receive operation failed for endpoint %s".formatted(endpointToUse), endpointToUse,
+							t instanceof CompletionException ? t.getCause() : t)))
+					.whenComplete((v, t) -> {
+						logReceiveMessageResult(endpointToUse, v, t);
+						scopeManager.restoreScope();
+						logger.trace("close observation {} of receiveManyAsync()", observation);
+						observation.stop();
+					});
+		}
 	}
 
 	protected abstract Map<String, Object> preProcessHeadersForReceive(String endpointToUse,
 			Map<String, Object> additionalHeaders);
+
+	private Collection<org.springframework.messaging.Message<?>> addHeadersToContext(
+			Collection<org.springframework.messaging.Message<?>> messages,
+			MessageManualProcessObservationContext observationContext) {
+		observationContext.setMessageHeaders(messages.stream().map(Message::getHeaders).toList());
+		return messages;
+	}
 
 	private Map<String, Object> getAdditionalHeadersToReceive(String endpointToUse,
 			@Nullable Map<String, Object> additionalHeaders) {
@@ -182,10 +234,11 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	}
 
 	private Collection<Message<?>> convertReceivedMessages(String endpoint, @Nullable Class<?> payloadClass,
-			Collection<S> messages, Map<String, Object> additionalHeaders) {
+			Collection<S> messages, Map<String, Object> additionalHeaders, ContextScopeManager scopeManager) {
+		logger.info("convertReceivedMessages {}", observationRegistry.getCurrentObservationScope() != null);
 		return messages.stream()
 				.map(message -> convertReceivedMessage(getEndpointName(endpoint), message,
-						payloadClass != null ? payloadClass : this.defaultPayloadClass))
+						payloadClass != null ? payloadClass : this.defaultPayloadClass, scopeManager))
 				.map(message -> addAdditionalHeaders(message, additionalHeaders)).collect(Collectors.toList());
 	}
 
@@ -197,14 +250,15 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	protected abstract Map<String, Object> handleAdditionalHeaders(Map<String, Object> additionalHeaders);
 
 	private CompletableFuture<Collection<Message<?>>> handleAcknowledgement(@Nullable String endpoint,
-			Collection<Message<?>> messages) {
+			Collection<Message<?>> messages, ContextScopeManager scopeManager) {
 		return TemplateAcknowledgementMode.ACKNOWLEDGE.equals(this.acknowledgementMode) && !messages.isEmpty()
-				? doAcknowledgeMessages(getEndpointName(endpoint), messages).thenApply(theVoid -> messages)
+				? doAcknowledgeMessages(getEndpointName(endpoint), messages, scopeManager)
+						.thenApply(theVoid -> messages)
 				: CompletableFuture.completedFuture(messages);
 	}
 
 	protected abstract CompletableFuture<Void> doAcknowledgeMessages(String endpointName,
-			Collection<Message<?>> messages);
+			Collection<Message<?>> messages, ContextScopeManager scopeManager);
 
 	private String getEndpointName(@Nullable String endpoint) {
 		String endpointName = getOrDefault(endpoint, this.defaultEndpointName, "endpointName");
@@ -217,10 +271,11 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 				valueName + " not set and no default value provided");
 	}
 
-	private Message<?> convertReceivedMessage(String endpoint, S message, @Nullable Class<?> payloadClass) {
+	private Message<?> convertReceivedMessage(String endpoint, S message, @Nullable Class<?> payloadClass,
+			ContextScopeManager scopeManager) {
 		return this.messageConverter instanceof ContextAwareMessagingMessageConverter<S> contextConverter
 				? contextConverter.toMessagingMessage(message,
-						getReceiveMessageConversionContext(endpoint, payloadClass))
+						getReceiveMessageConversionContext(endpoint, payloadClass, scopeManager))
 				: this.messageConverter.toMessagingMessage(message);
 	}
 
@@ -241,7 +296,7 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	}
 
 	protected abstract CompletableFuture<Collection<S>> doReceiveAsync(String endpointName, Duration pollTimeout,
-			Integer maxNumberOfMessages, Map<String, Object> additionalHeaders);
+			Integer maxNumberOfMessages, Map<String, Object> additionalHeaders, ContextScopeManager scopeManager);
 
 	@Override
 	public <T> SendResult<T> send(T payload) {
@@ -277,43 +332,92 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 
 	@Override
 	public <T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, Message<T> message) {
-		String endpointToUse = getEndpointName(endpointName);
-		logger.trace("Sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointName);
-		return preProcessMessageForSendAsync(endpointToUse, message).thenCompose(
-				messageToUse -> doSendAsync(endpointToUse, convertMessageToSend(messageToUse), messageToUse)
-						.exceptionallyCompose(
-								t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
-										"Message send operation failed for message %s to endpoint %s"
-												.formatted(MessageHeaderUtils.getId(message), endpointToUse),
-										endpointToUse, message, t)))
-						.whenComplete((v, t) -> logSendMessageResult(endpointToUse, message, t)));
+		SingleMessagePublishObservationContext observationContext = new SingleMessagePublishObservationContext();
+		ContextSnapshot contextSnapshot = snapshotFactory.captureAll();
+		Observation observation = MessageObservationDocumentation.SINGLE_MESSAGE_PUBLISH
+				.observation(null, DEFAULT_SINGLE_MESSAGE_PUBLISH_OBSERVATION_CONVENTION, () -> observationContext,
+						this.observationRegistry)
+				.start();
+		try (Observation.Scope __ = observation.openScope()) {
+			ContextScopeManager scopeManager = new ContextScopeManager(snapshotFactory.captureAll(), contextSnapshot,
+					observationRegistry);
+			String endpointToUse = getEndpointName(endpointName);
+			logger.trace("Sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointName);
+			return preProcessMessageForSendAsync(endpointToUse, message, scopeManager)
+					.thenApply(messageToUse -> maybeAddObservedSendHeaders(messageToUse, observationContext))
+					.thenCompose(messageToUse -> doSendAsync(endpointToUse, convertMessageToSend(messageToUse),
+							messageToUse, scopeManager)
+							.exceptionallyCompose(
+									t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
+											"Message send operation failed for message %s to endpoint %s"
+													.formatted(MessageHeaderUtils.getId(message), endpointToUse),
+											endpointToUse, message, t)))
+							.whenComplete((v, t) -> {
+								logSendMessageResult(endpointToUse, message, t);
+								scopeManager.restoreScope();
+								logger.trace("close observation {} of sendAsync()", observation);
+								observation.stop();
+							}));
+		}
 	}
 
-	protected abstract <T> Message<T> preProcessMessageForSend(String endpointToUse, Message<T> message);
+	protected abstract <T> Message<T> preProcessMessageForSend(String endpointToUse, Message<T> message,
+			ContextScopeManager scopeManager);
 
-	protected <T> CompletableFuture<Message<T>> preProcessMessageForSendAsync(String endpointToUse,
-			Message<T> message) {
-		return CompletableFuture.completedFuture(preProcessMessageForSend(endpointToUse, message));
+	protected <T> CompletableFuture<Message<T>> preProcessMessageForSendAsync(String endpointToUse, Message<T> message,
+			ContextScopeManager scopeManager) {
+		return CompletableFuture.completedFuture(preProcessMessageForSend(endpointToUse, message, scopeManager));
 	}
 
 	@Override
 	public <T> CompletableFuture<SendResult.Batch<T>> sendManyAsync(@Nullable String endpointName,
 			Collection<Message<T>> messages) {
-		logger.trace("Sending messages {} to endpoint {}", MessageHeaderUtils.getId(messages), endpointName);
-		String endpointToUse = getEndpointName(endpointName);
-		return preProcessMessagesForSendAsync(endpointToUse, messages).thenCompose(
-				messagesToUse -> doSendBatchAsync(endpointToUse, convertMessagesToSend(messagesToUse), messagesToUse)
-						.exceptionallyCompose(t -> wrapSendException(messagesToUse, endpointToUse, t))
-						.thenCompose(result -> handleFailedMessages(endpointToUse, result))
-						.whenComplete((v, t) -> logSendMessageBatchResult(endpointToUse, messagesToUse, t)));
+		BatchMessagePublishObservationContext observationContext = new BatchMessagePublishObservationContext();
+		ContextSnapshot contextSnapshot = snapshotFactory.captureAll();
+		Observation observation = MessageObservationDocumentation.BATCH_MESSAGE_PUBLISH
+				.observation(null, DEFAULT_BATCH_MESSAGE_PUBLISH_OBSERVATION_CONVENTION, () -> observationContext,
+						this.observationRegistry)
+				.start();
+		try (Observation.Scope __ = observation.openScope()) {
+			ContextScopeManager scopeManager = new ContextScopeManager(snapshotFactory.captureAll(), contextSnapshot,
+					observationRegistry);
+			logger.trace("Sending messages {} to endpoint {}", MessageHeaderUtils.getId(messages), endpointName);
+			String endpointToUse = getEndpointName(endpointName);
+			return preProcessMessagesForSendAsync(endpointToUse, messages, scopeManager)
+					.thenApply(messagesToUse -> maybeAddObservedSendHeaders(messagesToUse, observationContext))
+					.thenCompose(messagesToUse -> doSendBatchAsync(endpointToUse, convertMessagesToSend(messagesToUse),
+							messagesToUse, scopeManager)
+							.exceptionallyCompose(t -> wrapSendException(messagesToUse, endpointToUse, t))
+							.thenCompose(result -> handleFailedMessages(endpointToUse, result)).whenComplete((v, t) -> {
+								logSendMessageBatchResult(endpointToUse, messagesToUse, t);
+								scopeManager.restoreScope();
+								logger.trace("close observation {} of sendManyAsync()", observation);
+								observation.stop();
+							}));
+		}
 	}
 
 	protected abstract <T> Collection<Message<T>> preProcessMessagesForSend(String endpointToUse,
 			Collection<Message<T>> messages);
 
 	protected <T> CompletableFuture<Collection<Message<T>>> preProcessMessagesForSendAsync(String endpointToUse,
-			Collection<Message<T>> messages) {
+			Collection<Message<T>> messages, ContextScopeManager scopeManager) {
 		return CompletableFuture.completedFuture(preProcessMessagesForSend(endpointToUse, messages));
+	}
+
+	private <T> org.springframework.messaging.Message<T> maybeAddObservedSendHeaders(
+			org.springframework.messaging.Message<T> message,
+			SingleMessagePublishObservationContext observationContext) {
+		observationContext.setMessageHeaders(message.getHeaders());
+		return MessageHeaderUtils.addHeadersIfAbsent(message, Objects.requireNonNull(observationContext.getCarrier()));
+	}
+
+	private <T> Collection<org.springframework.messaging.Message<T>> maybeAddObservedSendHeaders(
+			Collection<org.springframework.messaging.Message<T>> messages,
+			BatchMessagePublishObservationContext observationContext) {
+		observationContext.setMessageHeaders(messages.stream().map(Message::getHeaders).toList());
+		return messages.stream().map(message -> MessageHeaderUtils.addHeadersIfAbsent(message,
+				Objects.requireNonNull(observationContext.getCarrier()))).toList();
 	}
 
 	private <T> CompletableFuture<SendResult.Batch<T>> handleFailedMessages(String endpointToUse,
@@ -347,14 +451,14 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	}
 
 	protected abstract <T> CompletableFuture<SendResult<T>> doSendAsync(String endpointName, S message,
-			Message<T> originalMessage);
+			Message<T> originalMessage, ContextScopeManager scopeManager);
 
 	protected abstract <T> CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName,
-			Collection<S> messages, Collection<Message<T>> originalMessages);
+			Collection<S> messages, Collection<Message<T>> originalMessages, ContextScopeManager scopeManager);
 
 	@Nullable
 	protected <T> MessageConversionContext getReceiveMessageConversionContext(String endpointName,
-			@Nullable Class<T> payloadClass) {
+			@Nullable Class<T> payloadClass, ContextScopeManager scopeManager) {
 		// Subclasses can override this method to return a context
 		return null;
 	}

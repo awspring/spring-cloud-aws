@@ -30,6 +30,7 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Consumer;
@@ -123,6 +124,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *
  * @author Tomaz Fernandes
  * @author Joao Calassio
+ * @author Mariusz Sondecki
  * @since 3.0
  * @see SqsMessageListenerContainer
  * @see ContainerOptions
@@ -135,6 +137,8 @@ public class SqsMessageListenerContainerFactory<T> extends
 
 	private Supplier<SqsAsyncClient> sqsAsyncClientSupplier;
 
+	private ObservationRegistry observationRegistry;
+
 	public SqsMessageListenerContainerFactory() {
 		super(SqsContainerOptions.builder().build());
 	}
@@ -146,7 +150,9 @@ public class SqsMessageListenerContainerFactory<T> extends
 				endpoint.getId() != null ? endpoint.getId() : endpoint.getLogicalNames());
 		Assert.notNull(this.sqsAsyncClientSupplier, "asyncClientSupplier not set");
 		SqsAsyncClient asyncClient = getSqsAsyncClientInstance();
-		return new SqsMessageListenerContainer<>(asyncClient, containerOptions);
+		SqsMessageListenerContainer<T> container = new SqsMessageListenerContainer<>(asyncClient, containerOptions);
+		ConfigUtils.INSTANCE.acceptIfNotNull(this.observationRegistry, container::setObservationRegistry);
+		return container;
 	}
 
 	protected SqsAsyncClient getSqsAsyncClientInstance() {
@@ -178,6 +184,11 @@ public class SqsMessageListenerContainerFactory<T> extends
 		this.sqsAsyncClientSupplier = sqsAsyncClientSupplier;
 	}
 
+	public void setObservationRegistry(ObservationRegistry observationRegistry) {
+		Assert.notNull(observationRegistry, "observationRegistry cannot be null.");
+		this.observationRegistry = observationRegistry;
+	}
+
 	/**
 	 * Set the {@link SqsAsyncClient} instance to be shared by the containers. For high throughput scenarios the client
 	 * should be tuned for allowing higher maximum connections.
@@ -199,6 +210,8 @@ public class SqsMessageListenerContainerFactory<T> extends
 		private final Collection<MessageInterceptor<T>> messageInterceptors = new ArrayList<>();
 
 		private Supplier<SqsAsyncClient> sqsAsyncClientSupplier;
+
+		private ObservationRegistry observationRegistry;
 
 		private SqsAsyncClient sqsAsyncClient;
 
@@ -226,6 +239,11 @@ public class SqsMessageListenerContainerFactory<T> extends
 		 */
 		public Builder<T> sqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 			this.sqsAsyncClient = sqsAsyncClient;
+			return this;
+		}
+
+		public Builder<T> observationRegistry(ObservationRegistry observationRegistry) {
+			this.observationRegistry = observationRegistry;
 			return this;
 		}
 
@@ -306,7 +324,8 @@ public class SqsMessageListenerContainerFactory<T> extends
 				.acceptIfNotNull(this.asyncAcknowledgementResultCallback, factory::setAcknowledgementResultCallback)
 				.acceptIfNotNull(this.containerComponentFactories, factory::setContainerComponentFactories)
 				.acceptIfNotNull(this.sqsAsyncClient, factory::setSqsAsyncClient)
-				.acceptIfNotNull(this.sqsAsyncClientSupplier, factory::setSqsAsyncClientSupplier);
+				.acceptIfNotNull(this.sqsAsyncClientSupplier, factory::setSqsAsyncClientSupplier)
+				.acceptIfNotNull(this.observationRegistry, factory::setObservationRegistry);
 			this.messageInterceptors.forEach(factory::addMessageInterceptor);
 			this.asyncMessageInterceptors.forEach(factory::addMessageInterceptor);
 			factory.configure(this.optionsConsumer);

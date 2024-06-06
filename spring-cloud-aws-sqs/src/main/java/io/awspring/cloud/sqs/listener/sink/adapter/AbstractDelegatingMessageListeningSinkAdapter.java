@@ -18,11 +18,13 @@ package io.awspring.cloud.sqs.listener.sink.adapter;
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.LifecycleHandler;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.ObservationRegistryAware;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.TaskExecutorAware;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
 import io.awspring.cloud.sqs.listener.sink.MessageProcessingPipelineSink;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
+import io.micrometer.observation.ObservationRegistry;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -31,10 +33,11 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * {@link MessageProcessingPipelineSink} implementation that delegates method invocations to the provided delegate.
  *
  * @author Tomaz Fernandes
+ * @author Mariusz Sondecki
  * @since 3.0
  */
 public abstract class AbstractDelegatingMessageListeningSinkAdapter<T>
-		implements MessageProcessingPipelineSink<T>, TaskExecutorAware, SqsAsyncClientAware {
+		implements MessageProcessingPipelineSink<T>, TaskExecutorAware, SqsAsyncClientAware, ObservationRegistryAware {
 
 	private final MessageSink<T> delegate;
 
@@ -64,6 +67,12 @@ public abstract class AbstractDelegatingMessageListeningSinkAdapter<T>
 	public void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 		ConfigUtils.INSTANCE.acceptIfInstance(this.delegate, SqsAsyncClientAware.class,
 				saca -> saca.setSqsAsyncClient(sqsAsyncClient));
+	}
+
+	@Override
+	public void setObservationRegistry(ObservationRegistry observationRegistry) {
+		ConfigUtils.INSTANCE.acceptIfInstance(this.delegate, ObservationRegistryAware.class,
+				ea -> ea.setObservationRegistry(observationRegistry));
 	}
 
 	@Override

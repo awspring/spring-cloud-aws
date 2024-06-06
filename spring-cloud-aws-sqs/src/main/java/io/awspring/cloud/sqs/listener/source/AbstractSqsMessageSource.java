@@ -17,15 +17,11 @@ package io.awspring.cloud.sqs.listener.source;
 
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.QueueAttributesResolver;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
-import io.awspring.cloud.sqs.listener.QueueAttributes;
-import io.awspring.cloud.sqs.listener.QueueAttributesAware;
-import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
-import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
-import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.listener.*;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementExecutor;
 import io.awspring.cloud.sqs.listener.acknowledgement.ExecutingAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,7 +60,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
  * @since 3.0
  */
 public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessageSource<T, Message>
-		implements SqsAsyncClientAware {
+		implements SqsAsyncClientAware, ObservationRegistryAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractSqsMessageSource.class);
 
@@ -88,10 +84,17 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 
 	private int pollTimeout;
 
+	private ObservationRegistry observationRegistry;
+
 	@Override
 	public void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 		Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null.");
 		this.sqsAsyncClient = sqsAsyncClient;
+	}
+
+	@Override
+	public void setObservationRegistry(ObservationRegistry observationRegistry) {
+		this.observationRegistry = observationRegistry;
 	}
 
 	@Override
@@ -146,7 +149,9 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 		ConfigUtils.INSTANCE
 				.acceptIfInstance(executor, QueueAttributesAware.class, qaa -> qaa.setQueueAttributes(queueAttributes))
 				.acceptIfInstance(executor, SqsAsyncClientAware.class,
-						saca -> saca.setSqsAsyncClient(this.sqsAsyncClient));
+						saca -> saca.setSqsAsyncClient(this.sqsAsyncClient))
+				.acceptIfInstance(executor, ObservationRegistryAware.class,
+						ora -> ConfigUtils.INSTANCE.acceptIfNotNull(observationRegistry, ora::setObservationRegistry));
 		return executor;
 	}
 

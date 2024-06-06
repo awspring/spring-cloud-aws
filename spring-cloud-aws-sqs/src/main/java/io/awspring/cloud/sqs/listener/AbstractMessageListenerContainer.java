@@ -21,6 +21,7 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -70,6 +71,8 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	};
 
 	private int phase = DEFAULT_PHASE;
+
+	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
 	/**
 	 * Create an instance with the provided {@link ContainerOptions}
@@ -172,6 +175,10 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 		this.phase = phase;
 	}
 
+	public void setObservationRegistry(ObservationRegistry observationRegistry) {
+		this.observationRegistry = observationRegistry;
+	}
+
 	/**
 	 * Returns the {@link ContainerOptions} instance for this container. Changed options will take effect on container
 	 * restart.
@@ -264,6 +271,10 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 
 	public int getPhase() {
 		return this.phase;
+	}
+
+	public ObservationRegistry getObservationRegistry() {
+		return this.observationRegistry;
 	}
 
 	@Override

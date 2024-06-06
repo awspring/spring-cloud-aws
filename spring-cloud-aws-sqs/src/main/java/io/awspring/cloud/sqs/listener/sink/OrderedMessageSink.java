@@ -31,6 +31,7 @@ import org.springframework.messaging.Message;
  * @param <T> the {@link Message} payload type.
  *
  * @author Tomaz Fernandes
+ * @author Mariusz Sondecki
  * @since 3.0
  */
 public class OrderedMessageSink<T> extends AbstractMessageProcessingPipelineSink<T> {
@@ -41,14 +42,16 @@ public class OrderedMessageSink<T> extends AbstractMessageProcessingPipelineSink
 	protected CompletableFuture<Void> doEmit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
 		logger.trace("Emitting messages {}", MessageHeaderUtils.getId(messages));
 		CompletableFuture<Void> execution = messages.stream().reduce(CompletableFuture.completedFuture(null),
-				(resultFuture, msg) -> CompletableFutures.handleCompose(resultFuture, (v, t) -> {
-					if (t == null) {
-						return execute(msg, context).whenComplete(logIfError(msg));
-					}
-					// Release backpressure from subsequent interrupted executions in case of errors.
-					context.runBackPressureReleaseCallback();
-					return CompletableFutures.failedFuture(t);
-				}), (a, b) -> a);
+				(resultFuture, msg) -> tryObservedCompletableFuture(
+						() -> CompletableFutures.handleCompose(resultFuture, (v, t) -> {
+							if (t == null) {
+								return execute(msg, context).whenComplete(logIfError(msg));
+							}
+							// Release backpressure from subsequent interrupted executions in case of errors.
+							context.runBackPressureReleaseCallback();
+							return CompletableFutures.failedFuture(t);
+						}), msg),
+				(a, b) -> a);
 		return execution.exceptionally(t -> null);
 	}
 

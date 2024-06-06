@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.autoconfigure.sqs;
 
+import static org.springframework.boot.actuate.autoconfigure.tracing.MicrometerTracingAutoConfiguration.RECEIVER_TRACING_OBSERVATION_HANDLER_ORDER;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
@@ -30,21 +32,28 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.observation.BatchMessageProcessTracingObservationHandler;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.propagation.Propagator;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -56,6 +65,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
  * @author Maciej Walkowiak
  * @author Wei Jiang
  * @author Dongha Kim
+ * @author Mariusz Sondecki
  * @since 3.0
  */
 @AutoConfiguration
@@ -87,13 +97,15 @@ public class SqsAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObjectProvider<ObjectMapper> objectMapperProvider,
-			MessagingMessageConverter<Message> messageConverter) {
+			MessagingMessageConverter<Message> messageConverter,
+			ObjectProvider<ObservationRegistry> observationRegistry) {
 		SqsTemplateBuilder builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient)
 				.messageConverter(messageConverter);
 		objectMapperProvider.ifAvailable(om -> setMapperToConverter(messageConverter, om));
 		if (sqsProperties.getQueueNotFoundStrategy() != null) {
 			builder.configure((options) -> options.queueNotFoundStrategy(sqsProperties.getQueueNotFoundStrategy()));
 		}
+		observationRegistry.ifAvailable(builder::observationRegistry);
 		return builder.build();
 	}
 
@@ -104,7 +116,8 @@ public class SqsAutoConfiguration {
 			ObjectProvider<ErrorHandler<Object>> errorHandler,
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
 			ObjectProvider<MessageInterceptor<Object>> interceptors, ObjectProvider<ObjectMapper> objectMapperProvider,
-			MessagingMessageConverter<?> messagingMessageConverter) {
+			MessagingMessageConverter<?> messagingMessageConverter,
+			ObjectProvider<ObservationRegistry> observationRegistry) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
 		factory.configure(this::configureProperties);
@@ -115,6 +128,8 @@ public class SqsAutoConfiguration {
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
 		objectMapperProvider.ifAvailable(om -> setMapperToConverter(messagingMessageConverter, om));
 		factory.configure(options -> options.messageConverter(messagingMessageConverter));
+		observationRegistry.ifAvailable(factory::setObservationRegistry);
+
 		return factory;
 	}
 
@@ -149,4 +164,17 @@ public class SqsAutoConfiguration {
 		};
 	}
 
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnBean({ Tracer.class, Propagator.class })
+	public static class SqsTracingConfiguration {
+
+		@Bean
+		@ConditionalOnMissingBean
+		@Order(RECEIVER_TRACING_OBSERVATION_HANDLER_ORDER - 100)
+		public BatchMessageProcessTracingObservationHandler batchMessageProcessTracingObservationHandler(Tracer tracer,
+																										 Propagator propagator) {
+			return new BatchMessageProcessTracingObservationHandler(tracer, propagator);
+		}
+
+	}
 }

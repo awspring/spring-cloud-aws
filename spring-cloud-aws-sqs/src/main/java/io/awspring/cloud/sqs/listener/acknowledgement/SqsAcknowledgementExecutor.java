@@ -16,12 +16,13 @@
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
 import io.awspring.cloud.sqs.CompletableFutures;
+import io.awspring.cloud.sqs.ContextScopeManager;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.SqsAcknowledgementException;
-import io.awspring.cloud.sqs.listener.QueueAttributes;
-import io.awspring.cloud.sqs.listener.QueueAttributesAware;
-import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
-import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.listener.*;
+import io.micrometer.context.ContextRegistry;
+import io.micrometer.context.ContextSnapshotFactory;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
@@ -46,7 +47,7 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
  * @see ExecutingAcknowledgementProcessor
  */
 public class SqsAcknowledgementExecutor<T>
-		implements AcknowledgementExecutor<T>, SqsAsyncClientAware, QueueAttributesAware {
+		implements AcknowledgementExecutor<T>, SqsAsyncClientAware, QueueAttributesAware, ObservationRegistryAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsAcknowledgementExecutor.class);
 
@@ -55,6 +56,11 @@ public class SqsAcknowledgementExecutor<T>
 	private String queueUrl;
 
 	private String queueName;
+
+	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
+
+	private final ContextSnapshotFactory snapshotFactory = ContextSnapshotFactory.builder()
+			.contextRegistry(ContextRegistry.getInstance()).build();
 
 	@Override
 	public void setQueueAttributes(QueueAttributes queueAttributes) {
@@ -67,6 +73,12 @@ public class SqsAcknowledgementExecutor<T>
 	public void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 		Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null");
 		this.sqsAsyncClient = sqsAsyncClient;
+	}
+
+	@Override
+	public void setObservationRegistry(ObservationRegistry observationRegistry) {
+		Assert.notNull(observationRegistry, "observationRegistry cannot be null");
+		this.observationRegistry = observationRegistry;
 	}
 
 	@Override
@@ -93,12 +105,15 @@ public class SqsAcknowledgementExecutor<T>
 		logger.trace("Acknowledging messages for queue {}: {}", this.queueName,
 				MessageHeaderUtils.getId(messagesToAck));
 		StopWatch watch = new StopWatch();
+		ContextScopeManager scopeManager = new ContextScopeManager(snapshotFactory.captureAll(), null, observationRegistry);
 		watch.start();
-		return CompletableFutures.exceptionallyCompose(this.sqsAsyncClient
-			.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck))
+		return CompletableFutures.exceptionallyCompose(scopeManager
+					.manageContextWhileComposing(CompletableFuture.completedFuture(null), unused -> this.sqsAsyncClient
+						.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck)))
 			.thenRun(() -> {}),
 				t -> CompletableFutures.failedFuture(createAcknowledgementException(messagesToAck, t)))
-			.whenComplete((v, t) -> logAckResult(messagesToAck, t, watch));
+			.whenComplete((v, t) -> logAckResult(messagesToAck, t, watch))
+			.whenComplete((unused, throwable) -> scopeManager.restoreScope());
 	}
 
 	private DeleteMessageBatchRequest createDeleteMessageBatchRequest(Collection<Message<T>> messagesToAck) {
