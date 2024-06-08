@@ -26,6 +26,7 @@ import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
+import io.awspring.cloud.sqs.listener.BatchVisibility;
 import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
@@ -360,7 +361,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		LatchContainer latchContainer;
 
 		@SqsListener(queueNames = RECEIVES_MESSAGE_BATCH_QUEUE_NAME, factory = MANUAL_ACK_FACTORY, id = "receivesMessageBatchListener")
-		CompletableFuture<Void> listen(List<String> messages, BatchAcknowledgement<String> acknowledgement) {
+		CompletableFuture<Void> listen(List<String> messages, BatchAcknowledgement<String> acknowledgement,
+				BatchVisibility<String> visibility) {
 			logger.debug("Received messages in listener: " + messages);
 			latchContainer.receivesMessageBatchLatch.countDown();
 			return acknowledgement.acknowledgeAsync();

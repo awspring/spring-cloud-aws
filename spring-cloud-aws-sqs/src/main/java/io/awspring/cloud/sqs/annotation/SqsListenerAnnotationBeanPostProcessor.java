@@ -19,11 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
-import io.awspring.cloud.sqs.listener.SqsHeaders;
-import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolver;
-import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
-import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
-import io.awspring.cloud.sqs.support.resolver.VisibilityHandlerMethodArgumentResolver;
+import io.awspring.cloud.sqs.support.resolver.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,8 +68,9 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers() {
-		return Arrays.asList(new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
-				new SqsMessageMethodArgumentResolver(), new QueueAttributesMethodArgumentResolver());
+		return Arrays.asList(new VisibilityHandlerMethodArgumentResolver(),
+				new BatchVisibilityHandlerMethodArgumentResolver(), new SqsMessageMethodArgumentResolver(),
+				new QueueAttributesMethodArgumentResolver());
 	}
 
 	@Override
