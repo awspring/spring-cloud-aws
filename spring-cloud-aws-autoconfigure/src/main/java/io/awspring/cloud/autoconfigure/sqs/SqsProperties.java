@@ -16,6 +16,8 @@
 package io.awspring.cloud.autoconfigure.sqs;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
+
 import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;
@@ -24,6 +26,7 @@ import org.springframework.lang.Nullable;
  * Properties related to AWS SQS.
  *
  * @author Tomaz Fernandes
+ * @author Wei Jiang
  * @since 3.0
  */
 @ConfigurationProperties(prefix = SqsProperties.PREFIX)
@@ -36,12 +39,22 @@ public class SqsProperties extends AwsClientProperties {
 
 	private Listener listener = new Listener();
 
+	private Options options = new Options();
+
 	public Listener getListener() {
 		return this.listener;
 	}
 
 	public void setListener(Listener listener) {
 		this.listener = listener;
+	}
+
+	public Options getOptions() {
+		return this.options;
+	}
+
+	public void setOptions(Options options) {
+		this.options = options;
 	}
 
 	public static class Listener {
@@ -91,6 +104,23 @@ public class SqsProperties extends AwsClientProperties {
 		public void setPollTimeout(Duration pollTimeout) {
 			this.pollTimeout = pollTimeout;
 		}
+	}
+
+	public static class Options {
+
+		/**
+		 * The default {@link QueueNotFoundStrategy}
+		 */
+		private QueueNotFoundStrategy queueNotFoundStrategy = QueueNotFoundStrategy.CREATE;
+
+		public QueueNotFoundStrategy getQueueNotFoundStrategy() {
+			return queueNotFoundStrategy;
+		}
+
+		public void setQueueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
+			this.queueNotFoundStrategy = queueNotFoundStrategy;
+		}
+
 	}
 
 }
