@@ -104,7 +104,14 @@ public class SqsAutoConfiguration {
 		errorHandler.ifAvailable(factory::setErrorHandler);
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
-		objectMapperProvider.ifAvailable(objectMapper -> setObjectMapper(factory, objectMapper, messagingMessageConverter));
+		objectMapperProvider.ifAvailable(objectMapper -> {
+			if (messagingMessageConverter instanceof SqsMessagingMessageConverter) {
+				((SqsMessagingMessageConverter) messagingMessageConverter).setObjectMapper(objectMapper);
+			}
+		});
+
+		factory.configure(options -> options.messageConverter(messagingMessageConverter));
+
 		return factory;
 	}
 
@@ -112,14 +119,6 @@ public class SqsAutoConfiguration {
 	@Bean
 	public MessagingMessageConverter<?> defaultMessageConverter() {
 		return new SqsMessagingMessageConverter();
-	}
-
-	private void setObjectMapper(SqsMessageListenerContainerFactory<Object> factory, ObjectMapper objectMapper, MessagingMessageConverter<?> messagingMessageConverter) {
-		if (messagingMessageConverter instanceof SqsMessagingMessageConverter) {
-			((SqsMessagingMessageConverter)messagingMessageConverter).setObjectMapper(objectMapper);
-		}
-
-		factory.configure(options -> options.messageConverter(messagingMessageConverter));
 	}
 
 	private void configureContainerOptions(ContainerOptionsBuilder<?, ?> options) {
