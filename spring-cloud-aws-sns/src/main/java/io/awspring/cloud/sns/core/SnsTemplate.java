@@ -34,6 +34,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.NotFoundException;
 
 /**
  * Helper class that simplifies synchronous sending of notifications to SNS. The only mandatory fields are
@@ -42,6 +43,7 @@ import software.amazon.awssdk.services.sns.SnsClient;
  * @author Alain Sahli
  * @author Matej Nedic
  * @author Mariusz Sondecki
+ * @author Hardik Singh Behl
  * @since 1.0
  */
 public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChannel>
@@ -150,6 +152,17 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 	@Override
 	public void sendNotification(String topic, SnsNotification<?> notification) {
 		this.convertAndSend(topic, notification.getPayload(), notification.getHeaders());
+	}
+	
+	@Override
+	public boolean topicExists(String topicArn) {
+		Assert.notNull(topicArn, "topicArn must not be null");
+		try {
+			snsClient.getTopicAttributes(request -> request.topicArn(topicArn));
+		} catch (NotFoundException exception) {
+			return false;
+		}
+		return true;
 	}
 
 	private TopicMessageChannel resolveMessageChannelByTopicName(String topicName) {
