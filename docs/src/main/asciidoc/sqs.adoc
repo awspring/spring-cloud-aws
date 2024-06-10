@@ -1701,3 +1701,55 @@ Sample IAM policy granting access to SQS:
             "Resource": "yourARN"
         }
 ----
+
+=== Observability Support
+
+The framework instruments SQS processing codebase to publish observations.
+This instrumentation will create 2 types of observations:
+
+* `"sqs.single.message.process"` when a SQS messages from the batch are processed by the service. They propagate the inbound tracing information by looking it up in `MessageHeaders`.
+* `"sqs.batch.message.process"` when the entire received batch of SQS messages is processed by the service. They propagate the inbound tracing information in the form the of a list of tracing `Link` by looking it up in the `MessageHeaders` of incoming traces in the entire received batch.
+
+Additionally, both types of observations measure the time taken to process SQS messages and create the following `KeyValues`:
+
+.Low cardinality Keys
+[cols="2"]
+|===
+| Name | Description
+| `messaging.processing.mode` |The mode of SQS message processing (values: `"single"` or `"batch"`).
+|===
+
+.High cardinality Keys
+[cols="2"]
+|===
+| Name | Description
+| `message.id` |The ID of either a single processed SQS Message or the entire processed batch.
+|===
+
+When using a `Spring Boot` application with `auto-configuration` and the default `SqsMessageListenerContainerFactory`, enabling this functionality requires only the `ObservationRegistry` bean to be available. In any other case, the `ObservationRegistry` needs to be set in the `MessageListenerContainerFactory`:
+
+[source, java]
+----
+@Bean
+SqsMessageListenerContainerFactory<Object> sqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient, ObservationRegistry observationRegistry) {
+    return SqsMessageListenerContainerFactory
+        .builder()
+        .sqsAsyncClientSupplier(sqsAsyncClient)
+        .observationRegistry(observationRegistry)
+        .build();
+}
+----
+
+Or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+MessageListenerContainer<Object> listenerContainer(SqsAsyncClient sqsAsyncClient, ObservationRegistry observationRegistry) {
+    return SqsMessageListenerContainer
+            .builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .observationRegistry(observationRegistry)
+            .build();
+}
+----

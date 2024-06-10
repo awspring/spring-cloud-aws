@@ -21,8 +21,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.listener.observation.MessageObservationDocumentation;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageGroupingSinkAdapter;
+import io.micrometer.observation.tck.TestObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,11 +65,14 @@ class MessageGroupingSinkTests {
 		messagesToEmit.addAll(thirdMessageGroupMessages);
 
 		List<Message<Integer>> received = Collections.synchronizedList(new ArrayList<>());
+		TestObservationRegistry registry = TestObservationRegistry.create();
 
-		MessageGroupingSinkAdapter<Integer> sinkAdapter = new MessageGroupingSinkAdapter<>(new OrderedMessageSink<>(),
+		OrderedMessageSink<Integer> messageSink = new OrderedMessageSink<>();
+		messageSink.setObservationRegistry(registry);
+		MessageGroupingSinkAdapter<Integer> sinkAdapter = new MessageGroupingSinkAdapter<>(messageSink,
 				message -> message.getHeaders().get(header, String.class));
 		sinkAdapter.setTaskExecutor(new SimpleAsyncTaskExecutor());
-		sinkAdapter.setMessagePipeline(new MessageProcessingPipeline<Integer>() {
+		sinkAdapter.setMessagePipeline(new MessageProcessingPipeline<>() {
 			@Override
 			public CompletableFuture<Message<Integer>> process(Message<Integer> message,
 					MessageProcessingContext<Integer> context) {
@@ -84,10 +90,21 @@ class MessageGroupingSinkTests {
 		sinkAdapter.emit(messagesToEmit, MessageProcessingContext.create()).join();
 		Map<String, List<Message<Integer>>> receivedMessages = received.stream()
 				.collect(groupingBy(message -> (String) message.getHeaders().get(header)));
+		sinkAdapter.stop();
 
 		assertThat(receivedMessages.get(firstMessageGroupId)).containsExactlyElementsOf(firstMessageGroupMessages);
 		assertThat(receivedMessages.get(secondMessageGroupId)).containsExactlyElementsOf(secondMessageGroupMessages);
 		assertThat(receivedMessages.get(thirdMessageGroupId)).containsExactlyElementsOf(thirdMessageGroupMessages);
+		TestObservationRegistryAssert.assertThat(registry)
+				.hasNumberOfObservationsWithNameEqualTo("sqs.single.message.process", 30)
+				.forAllObservationsWithNameEqualTo("sqs.single.message.process",
+						observationContextAssert -> observationContextAssert
+								.hasHighCardinalityKeyValueWithKey(
+										MessageObservationDocumentation.HighCardinalityKeyNames.MESSAGE_ID.asString())
+								.hasLowCardinalityKeyValue(
+										MessageObservationDocumentation.LowCardinalityKeyNames.PROCESSING_MODE
+												.asString(),
+										"single"));
 	}
 
 	@NotNull
