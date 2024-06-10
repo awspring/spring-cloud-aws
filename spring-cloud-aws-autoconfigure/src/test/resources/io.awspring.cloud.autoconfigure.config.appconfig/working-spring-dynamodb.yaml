@@ -1,0 +1,6 @@
+spring:
+    cloud:
+        aws:
+            dynamodb:
+                enabled: true
+                endpoint: "localhost://123123"
