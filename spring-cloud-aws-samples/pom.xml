@@ -15,6 +15,7 @@
 
 	<modules>
 		<module>infrastructure</module>
+		<module>spring-cloud-aws-docker-compose-sample</module>
 		<module>spring-cloud-aws-dynamodb-sample</module>
 		<module>spring-cloud-aws-parameter-store-sample</module>
 		<module>spring-cloud-aws-s3-sample</module>

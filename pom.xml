@@ -37,6 +37,7 @@
 		<module>spring-cloud-aws-core</module>
 		<module>spring-cloud-aws-autoconfigure</module>
 		<module>spring-cloud-aws-dependencies</module>
+		<module>spring-cloud-aws-docker-compose</module>
 		<module>spring-cloud-aws-parameter-store</module>
 		<module>spring-cloud-aws-secrets-manager</module>
 		<module>spring-cloud-aws-ses</module>
