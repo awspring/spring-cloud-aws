@@ -136,6 +136,7 @@ The Spring Boot Starter for SES provides the following configuration options:
 | `spring.cloud.aws.ses.endpoint` | Configures endpoint used by `SesClient`. | No |
 | `spring.cloud.aws.ses.region` | Configures region used by `SesClient`. | No |
 | `spring.cloud.aws.ses.source-arn` | Configures source ARN, used only for sending authorization. | No |
+| `spring.cloud.aws.ses.from-arn` | Configures from ARN, used only for sending authorization in the SendRawEmail operation. | No |
 | `spring.cloud.aws.ses.configuration-set-name` | The configuration set name used for every message | No |
 |===
 
@@ -148,6 +149,9 @@ an SES service where the client is overridden to use a valid region (`EU-WEST-1`
 `sourceArn` is the ARN of the identity that is associated with the sending authorization policy. For information about when to use this parameter, see the
 description see https://docs.aws.amazon.com/ses/latest/dg/sending-authorization-delegate-sender-tasks-email.html[Amazon SES Developer Guide].
 
+`fromArn` is the ARN of the identity that is associated with the sending authorization policy that permits you to specify a particular "From" address in the header of the raw email.
+For information about when to use this parameter, see the description see https://docs.aws.amazon.com/ses/latest/dg/sending-authorization-delegate-sender-tasks-email.html[Amazon SES Developer Guide].
+
 `configurationSetName` sets the configuration set name on mail sender level and applies to every mail. For information about when to use this parameter, see the
 description https://docs.aws.amazon.com/ses/latest/dg/using-configuration-sets.html[Using configuration sets in Amazon SES].
 
@@ -155,6 +159,7 @@ description https://docs.aws.amazon.com/ses/latest/dg/using-configuration-sets.h
 ----
 spring.cloud.aws.ses.region=eu-west-1
 spring.cloud.aws.ses.source-arn=arn:aws:ses:eu-west-1:123456789012:identity/example.com
+spring.cloud.aws.ses.from-arn=arn:aws:ses:eu-west-1:123456789012:identity/example.com
 spring.cloud.aws.ses.configuration-set-name=ConfigSet
 ----
 

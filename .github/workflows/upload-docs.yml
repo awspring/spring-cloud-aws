@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 3.1.x
       - 3.0.x
       - 2.4.x
       - 2.3.x
@@ -28,11 +29,12 @@ jobs:
         with:
           candidate: java
           version: '17.0.1-tem'
-      - name: Set up 8.0.332-tem
+      - name: Set up JDK 8
         uses: actions/setup-java@v4
         with:
           java-version: 8
-          jdkFile: ${{ steps.sdkman.outputs.file }}
+          distribution: 'adopt'
+          cache: 'maven'
       - uses: actions/cache@v1
         with:
           path: ~/.m2/repository

@@ -21,6 +21,7 @@ import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.TaskExecutorAware;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -105,7 +107,8 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 			logger.warn("Acknowledgement queue full, dropping acknowledgement for message {}",
 					MessageHeaderUtils.getId(message));
 		}
-		logger.trace("Received message {} to ack in {}.", MessageHeaderUtils.getId(message), getId());
+		logger.trace("Received message {} to ack in {}. Primary queue size: {}", MessageHeaderUtils.getId(message),
+				getId(), acks.size());
 		return CompletableFuture.completedFuture(null);
 	}
 
@@ -143,7 +146,12 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 
 	@Override
 	public void doStop() {
-		this.acknowledgementProcessor.waitAcknowledgementsToFinish();
+		try {
+			this.acknowledgementProcessor.waitAcknowledgementsToFinish();
+		}
+		catch (Exception e) {
+			logger.error("Error waiting for acknowledgements to finish. Proceeding with shutdown.", e);
+		}
 		LifecycleHandler.get().dispose(this.taskScheduler);
 	}
 
@@ -187,7 +195,7 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 		public void run() {
 			logger.debug("Starting acknowledgement processor thread with batchSize: {}", this.ackThreshold);
 			this.scheduledExecution.start();
-			while (this.parent.isRunning()) {
+			while (shouldKeepPollingAcks()) {
 				try {
 					Message<T> polledMessage = this.acks.poll(1, TimeUnit.SECONDS);
 					if (polledMessage != null) {
@@ -202,6 +210,10 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 			logger.debug("Acknowledgement processor thread stopped");
 		}
 
+		private boolean shouldKeepPollingAcks() {
+			return this.parent.isRunning() || !this.context.isTimeoutElapsed;
+		}
+
 		private void addMessageToBuffer(Message<T> polledMessage) {
 			this.context.lock();
 			try {
@@ -214,9 +226,33 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 		}
 
 		public void waitAcknowledgementsToFinish() {
+			waitOnAcknowledgementsIfTimeoutSet();
+			this.context.isTimeoutElapsed = true;
+			this.context.lock();
 			try {
-				CompletableFuture.allOf(this.context.runningAcks.toArray(new CompletableFuture[] {}))
-						.get(this.ackShutdownTimeout.toMillis(), TimeUnit.MILLISECONDS);
+				this.context.acksBuffer.clear();
+			}
+			finally {
+				this.context.unlock();
+			}
+			this.context.runningAcks.forEach(future -> future.cancel(true));
+		}
+
+		private void waitOnAcknowledgementsIfTimeoutSet() {
+			if (Duration.ZERO.equals(this.ackShutdownTimeout)) {
+				logger.debug("Not waiting for acknowledgements, shutting down.");
+				return;
+			}
+			try {
+				var endTime = LocalDateTime.now().plus(this.ackShutdownTimeout);
+				logger.debug("Waiting until {} for acknowledgements to finish", endTime);
+				while (hasAcksLeft() || hasUnfinishedAcks()) {
+					if (LocalDateTime.now().isAfter(endTime)) {
+						throw new TimeoutException();
+					}
+					Thread.sleep(200);
+				}
+				logger.debug("All acknowledgements completed.");
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
@@ -231,9 +267,21 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 						"Error thrown when waiting for acknowledgement tasks to finish in {}. Continuing with shutdown.",
 						this.parent.getId(), e);
 			}
-			if (!this.context.runningAcks.isEmpty()) {
-				this.context.runningAcks.forEach(future -> future.cancel(true));
-			}
+		}
+
+		private boolean hasUnfinishedAcks() {
+			var unfinishedAcks = this.context.runningAcks.stream().filter(Predicate.not(CompletableFuture::isDone))
+					.toList().size();
+			logger.trace("{} unfinished acknowledgement batches", unfinishedAcks);
+			return unfinishedAcks > 0;
+		}
+
+		private boolean hasAcksLeft() {
+			int messagesInAcks = this.acks.size();
+			int messagesInAcksBuffer = this.context.acksBuffer.size();
+			logger.trace("Acknowledgement queue has {} messages.", messagesInAcks);
+			logger.trace("Acknowledgement buffer has {} messages.", messagesInAcksBuffer);
+			return messagesInAcksBuffer > 0 || messagesInAcks > 0;
 		}
 
 	}
@@ -254,7 +302,9 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 
 		private Instant lastAcknowledgement = Instant.now();
 
-		public AcknowledgementExecutionContext(String id, Map<String, BlockingQueue<Message<T>>> acksBuffer,
+		private volatile boolean isTimeoutElapsed = false;
+
+		private AcknowledgementExecutionContext(String id, Map<String, BlockingQueue<Message<T>>> acksBuffer,
 				Lock ackLock, Supplier<Boolean> runningFunction,
 				Function<Collection<Message<T>>, CompletableFuture<Void>> executingFunction) {
 			this.id = id;
@@ -314,8 +364,8 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 		private Message<T> pollMessage(String groupKey, BlockingQueue<Message<T>> messages) {
 			Message<T> polledMessage = messages.poll();
 			Assert.notNull(polledMessage, "poll should never return null");
-			logger.trace("Retrieved message {} from the queue for group {}. Queue size: {}",
-					MessageHeaderUtils.getId(polledMessage), groupKey, messages.size());
+			logger.trace("Retrieved message {} from the buffer for group {}. Queue size: {} runningAcks: {}",
+					MessageHeaderUtils.getId(polledMessage), groupKey, messages.size(), this.runningAcks);
 			return polledMessage;
 		}
 
@@ -327,9 +377,11 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 
 		private CompletableFuture<Void> manageFuture(CompletableFuture<Void> future) {
 			this.runningAcks.add(future);
+			logger.trace("Added future to runningAcks. Total: {}", this.runningAcks.size());
 			future.whenComplete((v, t) -> {
 				if (isRunning()) {
 					this.runningAcks.remove(future);
+					logger.trace("Removed future from runningAcks. Total: {}", this.runningAcks.size());
 				}
 			});
 			return future;

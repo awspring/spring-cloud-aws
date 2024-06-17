@@ -17,7 +17,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
 To fetch parameters from Parameter Store and add them to Spring's environment properties, add `spring.config.import` property to `application.properties`:
 
-For example, assuming that the parameters in Parameter Store are stored under path `/config/spring`:
+For example, assuming that the parameters in Parameter Store are stored under path `/config/spring/`:
 
 |===
 | Parameter Name | Parameter Value
@@ -31,7 +31,7 @@ Once `spring.config.import` statement is added:
 
 [source,properties]
 ----
-spring.config.import=aws-parameterstore:/config/spring
+spring.config.import=aws-parameterstore:/config/spring/
 ----
 
 Two parameters are added to environment: `message` and `httpUrl`.
@@ -40,21 +40,21 @@ If a given path in Parameter Store does not exist, application will fail to star
 
 [source,properties]
 ----
-spring.config.import=optional:aws-parameterstore:/config/spring
+spring.config.import=optional:aws-parameterstore:/config/spring/
 ----
 
 To load parameters from multiple paths, separate their names with `;`:
 
 [source,properties]
 ----
-spring.config.import=aws-parameterstore:/config/spring;/config/app
+spring.config.import=aws-parameterstore:/config/spring/;/config/app/
 ----
 
 If some parameters are required, and other ones are optional, list them as separate entries in `spring.config.import` property:
 
 [source,properties]
 ----
-spring.config.import[0]=optional:aws-parameterstore=/config/spring
+spring.config.import[0]=optional:aws-parameterstore=/config/spring/
 spring.config.import[1]=aws-parameterstore=/config/optional-params/
 ----
 
@@ -65,7 +65,7 @@ these will become accessible as array properties `cloud.aws.stack[0].name`, `clo
 
 To avoid property key collisions it is possible to configure a property key prefix that gets added to each resolved parameter.
 
-As an example, assuming the following parameters are stored under path `/config/my-datasource`:
+As an example, assuming the following parameters are stored under path `/config/my-datasource/`:
 
 |===
 | Parameter Name | Parameter Value
@@ -182,7 +182,23 @@ class ParameterStoreBootstrapConfiguration implements BootstrapRegistryInitializ
 Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
 The reload feature of Spring Cloud AWS Parameter Store integration is able to trigger an application reload when a related parameter value changes.
 
-By default, this feature is disabled. You can enable it by using the `spring.cloud.aws.parameterstore.reload.strategy` configuration property (for example, in the `application.properties` file).
+By default, this feature is disabled. You can enable it by using the `spring.cloud.aws.parameterstore.reload.strategy` configuration property (for example, in the `application.properties` file) and adding following dependencies:
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-commons</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-context</artifactId>
+</dependency>
+----
 
 The following levels of reload are supported (by setting the `spring.cloud.aws.parameterstore.reload.strategy` property):
 
