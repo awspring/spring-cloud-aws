@@ -24,10 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.logging.Log;
 import org.springframework.boot.BootstrapContext;
-import org.springframework.boot.context.config.ConfigDataLocation;
-import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
-import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
-import org.springframework.boot.context.config.Profiles;
+import org.springframework.boot.context.config.*;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLogFactory;
@@ -62,28 +59,38 @@ public class SecretsManagerConfigDataLocationResolver
 	}
 
 	@Override
-	public List<SecretsManagerConfigDataResource> resolveProfileSpecific(
-			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
-			throws ConfigDataLocationNotFoundException {
-		registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
-		registerBean(resolverContext, SecretsManagerProperties.class, loadProperties(resolverContext.getBinder()));
-		registerBean(resolverContext, CredentialsProperties.class,
-				loadCredentialsProperties(resolverContext.getBinder()));
-		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
-
-		registerAndPromoteBean(resolverContext, SecretsManagerClient.class, this::createAwsSecretsManagerClient);
-
-		SecretsManagerPropertySources propertySources = new SecretsManagerPropertySources();
+	public List<SecretsManagerConfigDataResource> resolve(ConfigDataLocationResolverContext resolverContext,
+			ConfigDataLocation location)
+			throws ConfigDataLocationNotFoundException, ConfigDataResourceNotFoundException {
+		SecretsManagerProperties secretsManagerProperties = loadProperties(resolverContext.getBinder());
 
 		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));
-
 		List<SecretsManagerConfigDataResource> locations = new ArrayList<>();
-		contexts.forEach(propertySourceContext -> locations.add(
-				new SecretsManagerConfigDataResource(propertySourceContext, location.isOptional(), propertySources)));
+		SecretsManagerPropertySources propertySources = new SecretsManagerPropertySources();
 
-		if (!location.isOptional() && locations.isEmpty()) {
-			throw new SecretsManagerKeysMissingException(
-					"No Secrets Manager keys provided in `spring.config.import=aws-secretsmanager:` configuration.");
+		if (secretsManagerProperties.isEnabled()) {
+			registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
+			registerBean(resolverContext, SecretsManagerProperties.class, secretsManagerProperties);
+			registerBean(resolverContext, CredentialsProperties.class,
+					loadCredentialsProperties(resolverContext.getBinder()));
+			registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
+			registerAndPromoteBean(resolverContext, SecretsManagerClient.class, this::createAwsSecretsManagerClient);
+
+			contexts.forEach(
+					propertySourceContext -> locations.add(new SecretsManagerConfigDataResource(propertySourceContext,
+							location.isOptional(), propertySources)));
+
+			if (!location.isOptional() && locations.isEmpty()) {
+				throw new SecretsManagerKeysMissingException(
+						"No Secrets Manager keys provided in `spring.config.import=aws-secretsmanager:` configuration.");
+			}
+		}
+		else {
+			// create dummy resources with enabled flag set to false,
+			// because returned locations cannot be empty
+			contexts.forEach(
+					propertySourceContext -> locations.add(new SecretsManagerConfigDataResource(propertySourceContext,
+							location.isOptional(), false, propertySources)));
 		}
 
 		return locations;

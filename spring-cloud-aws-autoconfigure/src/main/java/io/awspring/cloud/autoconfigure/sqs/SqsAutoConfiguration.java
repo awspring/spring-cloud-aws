@@ -30,6 +30,7 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
+import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -88,7 +89,8 @@ public class SqsAutoConfiguration {
 			ObjectProvider<SqsAsyncClient> sqsAsyncClient, ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
 			ObjectProvider<ErrorHandler<Object>> errorHandler,
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
-			ObjectProvider<MessageInterceptor<Object>> interceptors) {
+			ObjectProvider<MessageInterceptor<Object>> interceptors,
+			ObjectProvider<ObjectMapper> objectMapperProvider) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
 		factory.configure(this::configureContainerOptions);
@@ -97,7 +99,15 @@ public class SqsAutoConfiguration {
 		errorHandler.ifAvailable(factory::setErrorHandler);
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
+		objectMapperProvider.ifAvailable(objectMapper -> setObjectMapper(factory, objectMapper));
 		return factory;
+	}
+
+	private void setObjectMapper(SqsMessageListenerContainerFactory<Object> factory, ObjectMapper objectMapper) {
+		// Object Mapper for early deserialization in MessageSource
+		var messageConverter = new SqsMessagingMessageConverter();
+		messageConverter.setObjectMapper(objectMapper);
+		factory.configure(options -> options.messageConverter(messageConverter));
 	}
 
 	private void configureContainerOptions(ContainerOptionsBuilder<?, ?> options) {
@@ -111,6 +121,7 @@ public class SqsAutoConfiguration {
 	public SqsListenerConfigurer objectMapperCustomizer(ObjectProvider<ObjectMapper> objectMapperProvider) {
 		ObjectMapper objectMapper = objectMapperProvider.getIfUnique();
 		return registrar -> {
+			// Object Mapper for SqsListener annotations handler method
 			if (registrar.getObjectMapper() == null && objectMapper != null) {
 				registrar.setObjectMapper(objectMapper);
 			}

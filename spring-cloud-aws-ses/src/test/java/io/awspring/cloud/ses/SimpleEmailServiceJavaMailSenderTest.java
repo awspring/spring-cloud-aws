@@ -163,6 +163,20 @@ class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
+	void testSendMimeMessageWithConfigurationSetNameSet() throws MessagingException {
+		SesClient emailService = mock(SesClient.class);
+		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService, null, "Configuration Set");
+		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
+		when(emailService.sendRawEmail(request.capture()))
+				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
+		MimeMessage mimeMessage = createMimeMessage();
+
+		mailSender.send(mimeMessage);
+
+		assertThat(request.getValue().configurationSetName()).isEqualTo("Configuration Set");
+	}
+
+	@Test
 	void testSendMultipleMimeMessages() throws Exception {
 		SesClient emailService = mock(SesClient.class);
 

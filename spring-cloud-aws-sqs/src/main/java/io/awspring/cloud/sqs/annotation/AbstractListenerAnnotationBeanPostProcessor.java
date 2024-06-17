@@ -22,6 +22,7 @@ import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.HandlerMethodEndpoint;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
+import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.resolver.AcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchAcknowledgmentArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
@@ -74,6 +75,7 @@ import org.springframework.util.StringUtils;
  * information to a {@link SqsEndpoint}, and registers it in the {@link EndpointRegistrar}.
  *
  * @author Tomaz Fernandes
+ * @author Joao Calassio
  * @since 3.0
  */
 public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Annotation>
@@ -219,6 +221,17 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		}
 	}
 
+	@Nullable
+	protected AcknowledgementMode resolveAcknowledgement(String value) {
+		try {
+			final String resolvedValue = resolveAsString(value, "acknowledgementMode");
+			return StringUtils.hasText(resolvedValue) ? AcknowledgementMode.valueOf(resolvedValue) : null;
+		}
+		catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("Cannot resolve " + value + " as AcknowledgementMode", e);
+		}
+	}
+
 	protected String getEndpointId(String id) {
 		if (StringUtils.hasText(id)) {
 			return resolveAsString(id, "id");
@@ -288,9 +301,9 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 				new BatchAcknowledgmentArgumentResolver(),
 				new HeaderMethodArgumentResolver(new DefaultConversionService(), getConfigurableBeanFactory()),
 				new HeadersMethodArgumentResolver(),
-				new BatchPayloadMethodArgumentResolver(messageConverter),
+				new BatchPayloadMethodArgumentResolver(messageConverter, this.endpointRegistrar.getValidator()),
 				new MessageMethodArgumentResolver(messageConverter),
-				new PayloadMethodArgumentResolver(messageConverter));
+				new PayloadMethodArgumentResolver(messageConverter,  this.endpointRegistrar.getValidator()));
 	}
 	// @formatter:on
 

@@ -18,7 +18,6 @@ package io.awspring.cloud.parameterstore;
 import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
@@ -41,20 +40,31 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	// logger must stay static non-final so that it can be set with a value in
 	// ParameterStoreConfigDataLoader
 	private static Log LOG = LogFactory.getLog(ParameterStorePropertySource.class);
-
+	private static final String PREFIX_PART = "?prefix=";
 	private final String context;
+
+	private final String parameterPath;
+
+	/**
+	 * Prefix that gets added to resolved property keys. Useful when same property keys are returned by multiple
+	 * parameter paths.
+	 */
+	@Nullable
+	private final String prefix;
 
 	private final Map<String, Object> properties = new LinkedHashMap<>();
 
 	public ParameterStorePropertySource(String context, SsmClient ssmClient) {
 		super("aws-parameterstore:" + context, ssmClient);
 		this.context = context;
+		this.parameterPath = resolveParameterPath(context);
+		this.prefix = resolvePrefix(context);
 	}
 
 	@Override
 	public void init() {
-		GetParametersByPathRequest paramsRequest = GetParametersByPathRequest.builder().path(context).recursive(true)
-				.withDecryption(true).build();
+		GetParametersByPathRequest paramsRequest = GetParametersByPathRequest.builder().path(parameterPath)
+				.recursive(true).withDecryption(true).build();
 		getParameters(paramsRequest);
 	}
 
@@ -65,8 +75,7 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 
 	@Override
 	public String[] getPropertyNames() {
-		Set<String> strings = this.properties.keySet();
-		return strings.toArray(new String[strings.size()]);
+		return this.properties.keySet().stream().toArray(String[]::new);
 	}
 
 	@Override
@@ -78,13 +87,45 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	private void getParameters(GetParametersByPathRequest paramsRequest) {
 		GetParametersByPathResponse paramsResult = this.source.getParametersByPath(paramsRequest);
 		for (Parameter parameter : paramsResult.parameters()) {
-			String key = parameter.name().replace(this.context, "").replace('/', '.');
+			String key = parameter.name().replace(this.parameterPath, "").replace('/', '.').replaceAll("_(\\d)_",
+					"[$1]");
 			LOG.debug("Populating property retrieved from AWS Parameter Store: " + key);
-			this.properties.put(key, parameter.value());
+			String propertyKey = prefix != null ? prefix + key : key;
+			this.properties.put(propertyKey, parameter.value());
 		}
 		if (paramsResult.nextToken() != null) {
 			getParameters(paramsRequest.toBuilder().nextToken(paramsResult.nextToken()).build());
 		}
+	}
+
+	@Nullable
+	String getPrefix() {
+		return prefix;
+	}
+
+	String getContext() {
+		return context;
+	}
+
+	String getParameterPath() {
+		return parameterPath;
+	}
+
+	@Nullable
+	private static String resolvePrefix(String context) {
+		int prefixIndex = context.indexOf(PREFIX_PART);
+		if (prefixIndex != -1) {
+			return context.substring(prefixIndex + PREFIX_PART.length());
+		}
+		return null;
+	}
+
+	private static String resolveParameterPath(String context) {
+		int prefixIndex = context.indexOf(PREFIX_PART);
+		if (prefixIndex != -1) {
+			return context.substring(0, prefixIndex);
+		}
+		return context;
 	}
 
 }

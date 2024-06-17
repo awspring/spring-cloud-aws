@@ -16,7 +16,6 @@
 package io.awspring.cloud.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.DYNAMODB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,12 +59,12 @@ public class DynamoDbTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(DYNAMODB).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.3.2")).withReuse(true);
 
 	@BeforeAll
 	public static void createTable() {
-		DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
-				.endpointOverride(localstack.getEndpointOverride(DYNAMODB)).region(Region.of(localstack.getRegion()))
+		DynamoDbClient dynamoDbClient = DynamoDbClient.builder().endpointOverride(localstack.getEndpoint())
+				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider
 						.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())))
 				.build();

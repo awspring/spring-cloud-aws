@@ -39,12 +39,27 @@ public class SesProperties extends AwsClientProperties {
 	@Nullable
 	private String sourceArn;
 
+	/**
+	 * Configures configuration set name.
+	 */
+	@Nullable
+	private String configurationSetName;
+
 	@Nullable
 	public String getSourceArn() {
 		return sourceArn;
 	}
 
+	@Nullable
+	public String getConfigurationSetName() {
+		return configurationSetName;
+	}
+
 	public void setSourceArn(@Nullable String sourceArn) {
 		this.sourceArn = sourceArn;
+	}
+
+	public void setConfigurationSetName(@Nullable String configurationSetName) {
+		this.configurationSetName = configurationSetName;
 	}
 }

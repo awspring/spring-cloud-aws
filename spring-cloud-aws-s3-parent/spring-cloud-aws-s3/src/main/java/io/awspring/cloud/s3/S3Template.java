@@ -19,11 +19,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.time.Duration;
+import java.util.List;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
@@ -35,6 +40,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
  * Higher level abstraction over {@link S3Client} providing methods for the most common use cases.
  *
  * @author Maciej Walkowiak
+ * @author Ziemowit Stolarczyk
  * @since 3.0
  */
 public class S3Template implements S3Operations {
@@ -72,6 +78,18 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
+	public boolean bucketExists(String bucketName) {
+		Assert.notNull(bucketName, "bucketName is required");
+		try {
+			s3Client.headBucket(request -> request.bucket(bucketName));
+		}
+		catch (NoSuchBucketException e) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
 	public void deleteObject(String bucketName, String key) {
 		Assert.notNull(bucketName, "bucketName is required");
 		Assert.notNull(key, "key is required");
@@ -83,6 +101,31 @@ public class S3Template implements S3Operations {
 		Assert.notNull(s3Url, "s3Url is required");
 		Location location = Location.of(s3Url);
 		this.deleteObject(location.getBucket(), location.getObject());
+	}
+
+	@Override
+	public boolean objectExists(String bucketName, String key) {
+		Assert.notNull(bucketName, "bucketName is required");
+		Assert.notNull(key, "key is required");
+		try {
+			s3Client.headObject(request -> request.bucket(bucketName).key(key));
+		}
+		catch (NoSuchBucketException | NoSuchKeyException e) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public List<S3Resource> listObjects(String bucketName, String prefix) {
+		Assert.notNull(bucketName, "bucketName is required");
+		Assert.notNull(prefix, "prefix is required");
+
+		final ListObjectsV2Request request = ListObjectsV2Request.builder().bucket(bucketName).prefix(prefix).build();
+		final ListObjectsV2Response response = s3Client.listObjectsV2(request);
+
+		return response.contents().stream()
+				.map(s3Object -> new S3Resource(bucketName, s3Object.key(), s3Client, s3OutputStreamProvider)).toList();
 	}
 
 	@Override
@@ -165,7 +208,7 @@ public class S3Template implements S3Operations {
 
 		PutObjectRequest.Builder putObjectRequestBuilder = PutObjectRequest.builder().bucket(bucketName).key(key);
 		if (metadata != null) {
-			putObjectRequestBuilder.metadata(metadata.getMetadata());
+			metadata.apply(putObjectRequestBuilder);
 		}
 		if (contentType != null) {
 			putObjectRequestBuilder.contentType(contentType);

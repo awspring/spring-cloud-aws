@@ -42,6 +42,7 @@
 |spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
 |spring.cloud.aws.s3.checksum-validation-enabled |  | Option to disable doing a validation of the checksum of an object stored in S3.
 |spring.cloud.aws.s3.chunked-encoding-enabled |  | Option to enable using chunked encoding when signing the request payload for {@link software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link software.amazon.awssdk.services.s3.model.UploadPartRequest}.
+|spring.cloud.aws.s3.cross-region-enabled |  | Enables cross-region bucket access.
 |spring.cloud.aws.s3.crt.initial-read-buffer-size-in-bytes |  | Configure the starting buffer size the client will use to buffer the parts downloaded from S3. Maintain a larger window to keep up a high download throughput; parts cannot download in parallel unless the window is large enough to hold multiple parts. Maintain a smaller window to limit the amount of data buffered in memory.
 |spring.cloud.aws.s3.crt.max-concurrency |  | Specifies the maximum number of S3 connections that should be established during transfer.
 |spring.cloud.aws.s3.crt.minimum-part-size-in-bytes |  | Sets the minimum part size for transfer parts. Decreasing the minimum part size causes multipart transfer to be split into a larger number of smaller parts. Setting this value too low has a negative effect on transfer speeds, causing extra latency and network communication for each part.
@@ -62,6 +63,7 @@
 |spring.cloud.aws.ses.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.ses.region |  | Overrides the default region.
 |spring.cloud.aws.ses.source-arn |  | Configures source ARN. Used only for sending authorization.
+|spring.cloud.aws.ses.configuration-set-name | The configuration set name used for every message.
 |spring.cloud.aws.sns.enabled | `+++true+++` | Enables SNS integration.
 |spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sns.region |  | Overrides the default region.

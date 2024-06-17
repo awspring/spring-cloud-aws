@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Collection;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
+import org.springframework.retry.backoff.BackOffPolicy;
 
 /**
  * Contains the options to be used by the {@link MessageListenerContainer} at runtime. Note that after the object has
@@ -72,6 +73,15 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	 * @return the timeout duration.
 	 */
 	Duration getPollTimeout();
+
+	/**
+	 * Return the {@link BackOffPolicy} to be applied when polling throws an exception.
+	 * @return the timeout duration.
+	 * @since 3.2
+	 */
+	default BackOffPolicy getPollBackOffPolicy() {
+		throw new UnsupportedOperationException("Poll Back Off not supported by this ContainerOptions");
+	}
 
 	/**
 	 * Return the {@link TaskExecutor} to be used by this container's components. It's shared by the

@@ -42,7 +42,7 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
  * @since 3.0
  */
 @AutoConfiguration
-@ConditionalOnClass({ S3Client.class })
+@ConditionalOnClass({ S3Client.class, S3AsyncClient.class })
 @EnableConfigurationProperties({ S3Properties.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 @AutoConfigureBefore(S3TransferManagerAutoConfiguration.class)
@@ -66,6 +66,8 @@ public class S3CrtAsyncClientAutoConfiguration {
 				.region(this.awsClientBuilderConfigurer.resolveRegion(this.properties));
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
+		Optional.ofNullable(this.properties.getPathStyleAccessEnabled()).ifPresent(builder::forcePathStyle);
 
 		if (this.properties.getCrt() != null) {
 			S3CrtClientProperties crt = this.properties.getCrt();

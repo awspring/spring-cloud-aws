@@ -249,6 +249,138 @@ class SqsTemplateTests {
 	}
 
 	@Test
+	void shouldSendWithDeduplicationIdWhenContentBasedDeduplicationSetToAutoAndIsDisabled() {
+		String queue = "test-queue.fifo";
+		String payload = "test-payload";
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
+		var queueAttributesResponse = GetQueueAttributesResponse.builder()
+				.attributes(Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "false")).build();
+
+		given(mockClient.getQueueAttributes(any(Consumer.class)))
+				.willReturn(CompletableFuture.completedFuture(queueAttributesResponse));
+
+		UUID uuid = UUID.randomUUID();
+		String sequenceNumber = "1234";
+		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
+				.sequenceNumber(sequenceNumber).build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(response));
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient).configure(options -> options
+				.defaultQueue(queue).contentBasedDeduplication(TemplateContentBasedDeduplication.AUTO))
+				.buildSyncTemplate();
+
+		SendResult<String> result = template.send(payload);
+
+		assertThat(result.endpoint()).isEqualTo(queue);
+		ArgumentCaptor<SendMessageRequest> captor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		then(mockClient).should().sendMessage(captor.capture());
+		SendMessageRequest capturedRequest = captor.getValue();
+		assertThat(capturedRequest.queueUrl()).isEqualTo(queue);
+		assertThat(capturedRequest.messageDeduplicationId()).isNotNull();
+	}
+
+	@Test
+	void shouldSendWithoutDeduplicationIdWhenContentBasedDeduplicationSetToAutoAndEnabled() {
+		String queue = "test-queue.fifo";
+		String payload = "test-payload";
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
+		var queueAttributesResponse = GetQueueAttributesResponse.builder()
+				.attributes(Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "true")).build();
+
+		given(mockClient.getQueueAttributes(any(Consumer.class)))
+				.willReturn(CompletableFuture.completedFuture(queueAttributesResponse));
+
+		UUID uuid = UUID.randomUUID();
+		String sequenceNumber = "1234";
+		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
+				.sequenceNumber(sequenceNumber).build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(response));
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient).configure(options -> options
+				.defaultQueue(queue).contentBasedDeduplication(TemplateContentBasedDeduplication.AUTO))
+				.buildSyncTemplate();
+
+		SendResult<String> result = template.send(payload);
+
+		assertThat(result.endpoint()).isEqualTo(queue);
+		ArgumentCaptor<SendMessageRequest> captor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		then(mockClient).should().sendMessage(captor.capture());
+		SendMessageRequest capturedRequest = captor.getValue();
+		assertThat(capturedRequest.queueUrl()).isEqualTo(queue);
+		assertThat(capturedRequest.messageDeduplicationId()).isNull();
+	}
+
+	@Test
+	void shouldSendWithDeduplicationIdWhenContentBasedDeduplicationSetToDisabled() {
+		String queue = "test-queue.fifo";
+		String payload = "test-payload";
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
+		UUID uuid = UUID.randomUUID();
+		String sequenceNumber = "1234";
+		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
+				.sequenceNumber(sequenceNumber).build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(response));
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient).configure(options -> options
+				.defaultQueue(queue).contentBasedDeduplication(TemplateContentBasedDeduplication.DISABLED))
+				.buildSyncTemplate();
+
+		SendResult<String> result = template.send(payload);
+
+		assertThat(result.endpoint()).isEqualTo(queue);
+		ArgumentCaptor<SendMessageRequest> captor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		then(mockClient).should().sendMessage(captor.capture());
+		SendMessageRequest capturedRequest = captor.getValue();
+		assertThat(capturedRequest.queueUrl()).isEqualTo(queue);
+		assertThat(capturedRequest.messageDeduplicationId()).isNotNull();
+	}
+
+	@Test
+	void shouldSendWithoutDeduplicationIdWhenContentBasedDeduplicationSetToEnabled() {
+		String queue = "test-queue.fifo";
+		String payload = "test-payload";
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
+		UUID uuid = UUID.randomUUID();
+		String sequenceNumber = "1234";
+		SendMessageResponse response = SendMessageResponse.builder().messageId(uuid.toString())
+				.sequenceNumber(sequenceNumber).build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(response));
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient).configure(options -> options
+				.defaultQueue(queue).contentBasedDeduplication(TemplateContentBasedDeduplication.ENABLED))
+				.buildSyncTemplate();
+
+		SendResult<String> result = template.send(payload);
+
+		assertThat(result.endpoint()).isEqualTo(queue);
+		ArgumentCaptor<SendMessageRequest> captor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		then(mockClient).should().sendMessage(captor.capture());
+		SendMessageRequest capturedRequest = captor.getValue();
+		assertThat(capturedRequest.queueUrl()).isEqualTo(queue);
+		assertThat(capturedRequest.messageDeduplicationId()).isNull();
+	}
+
+	@Test
 	void shouldWrapSendError() {
 		String queue = "test-queue";
 		String payload = "test-payload";
@@ -450,10 +582,10 @@ class SqsTemplateTests {
 					assertThat(failedResult.message().getPayload()).isEqualTo(payload2);
 					assertThat(
 							failedResult.additionalInformation().get(SqsTemplateParameters.ERROR_CODE_PARAMETER_NAME))
-									.isEqualTo(code);
+							.isEqualTo(code);
 					assertThat(
 							failedResult.additionalInformation().get(SqsTemplateParameters.SENDER_FAULT_PARAMETER_NAME))
-									.isEqualTo(senderFault);
+							.isEqualTo(senderFault);
 				});
 	}
 

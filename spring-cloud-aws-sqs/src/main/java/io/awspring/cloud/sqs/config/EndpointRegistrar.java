@@ -28,6 +28,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
@@ -35,6 +36,7 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.Validator;
 
 /**
  * Processes the registered {@link Endpoint} instances using the appropriate {@link MessageListenerContainerFactory}.
@@ -57,6 +59,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	private MessageListenerContainerRegistry listenerContainerRegistry;
 
+	@Nullable
 	private String messageListenerContainerRegistryBeanName;
 
 	private String defaultListenerContainerFactoryBeanName = DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME;
@@ -69,7 +72,11 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	private Consumer<List<HandlerMethodArgumentResolver>> methodArgumentResolversConsumer = resolvers -> {
 	};
 
+	@Nullable
 	private ObjectMapper objectMapper;
+
+	@Nullable
+	private Validator validator;
 
 	/**
 	 * Set a custom {@link MessageHandlerMethodFactory} implementation.
@@ -119,6 +126,15 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	}
 
 	/**
+	 * Set the {@link Validator} instance used for payload validating in {@link HandlerMethodArgumentResolver}
+	 * instances.
+	 * @param validator payload validator.
+	 */
+	public void setValidator(Validator validator) {
+		this.validator = validator;
+	}
+
+	/**
 	 * Manage the list of {@link MessageConverter} instances to be used to convert payloads.
 	 * @param convertersConsumer a consumer for the converters list.
 	 */
@@ -156,6 +172,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 * Get the object mapper used to deserialize payloads.
 	 * @return the object mapper instance.
 	 */
+	@Nullable
 	public ObjectMapper getObjectMapper() {
 		return this.objectMapper;
 	}
@@ -167,6 +184,16 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 */
 	public MessageHandlerMethodFactory getMessageHandlerMethodFactory() {
 		return this.messageHandlerMethodFactory;
+	}
+
+	/**
+	 * Return the {@link Validator} instance used for payload validating in {@link HandlerMethodArgumentResolver}
+	 * instances.
+	 * @return the payload validator.
+	 */
+	@Nullable
+	public Validator getValidator() {
+		return this.validator;
 	}
 
 	@Override

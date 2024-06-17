@@ -41,6 +41,12 @@ public class InfrastructureStack extends Stack {
 		StringParameter.Builder.create(this, "Parameter").parameterName("/config/spring/message")
 				.stringValue("Spring-cloud-aws value!").build();
 
+		StringParameter.Builder.create(this, "Parameter2").parameterName("/config/spring/messages_0_")
+				.stringValue("Spring-cloud-aws msg0!").build();
+
+		StringParameter.Builder.create(this, "Parameter3").parameterName("/config/spring/messages_1_")
+				.stringValue("Spring-cloud-aws msg1!").build();
+
 		// Secrets Manager
 		SecretStringGenerator secretStringGenerator = SecretStringGenerator.builder().generateStringKey("password")
 				.secretStringTemplate("{}").build();

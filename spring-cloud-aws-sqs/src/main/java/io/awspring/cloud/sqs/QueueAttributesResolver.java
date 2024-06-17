@@ -119,9 +119,15 @@ public class QueueAttributesResolver {
 	}
 
 	private CompletableFuture<String> createQueue() {
-		return this.sqsAsyncClient.createQueue(req -> req.queueName(this.queueName).build())
+		return this.sqsAsyncClient.createQueue(req -> req.queueName(this.queueName)
+				.attributes(getAttributes())
+				.build())
 			.thenApply(CreateQueueResponse::queueUrl)
 			.whenComplete(this::logCreateQueueResult);
+	}
+
+	private Map<QueueAttributeName,String> getAttributes() {
+        return FifoUtils.isFifo(this.queueName) ? Map.of(QueueAttributeName.FIFO_QUEUE, "true") : Map.of();
 	}
 
 	private void logCreateQueueResult(String v, Throwable t) {

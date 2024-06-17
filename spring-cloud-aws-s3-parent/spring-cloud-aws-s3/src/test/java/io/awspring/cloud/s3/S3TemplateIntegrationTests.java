@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -60,6 +61,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
  *
  * @author Maciej Walkowiak
  * @author Yuki Yoshida
+ * @author Ziemowit Stolarczyk
  */
 @Testcontainers
 class S3TemplateIntegrationTests {
@@ -68,7 +70,7 @@ class S3TemplateIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withReuse(true);
+			DockerImageName.parse("localstack/localstack:2.3.2")).withReuse(true);
 
 	private static S3Client client;
 
@@ -82,10 +84,9 @@ class S3TemplateIntegrationTests {
 		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
 				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
 		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
+				.endpointOverride(localstack.getEndpoint()).build();
 		presigner = S3Presigner.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.S3)).build();
+				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint()).build();
 	}
 
 	@BeforeEach
@@ -125,6 +126,23 @@ class S3TemplateIntegrationTests {
 	}
 
 	@Test
+	void whenBucketExistsShouldReturnTrue() {
+		final boolean existsBucket = s3Template.bucketExists(BUCKET_NAME);
+
+		assertThat(existsBucket).isTrue();
+		assertThat(client.listBuckets()).satisfies(r -> this.bucketExists(r, BUCKET_NAME));
+	}
+
+	@Test
+	void whenBucketNotExistsShouldReturnFalse() {
+		destroyBuckets();
+
+		final boolean existsBucket = s3Template.bucketExists(BUCKET_NAME);
+
+		assertThat(existsBucket).isFalse();
+	}
+
+	@Test
 	void deletesObject() {
 		client.createBucket(r -> r.bucket(BUCKET_NAME));
 		client.putObject(r -> r.bucket(BUCKET_NAME).key("key.txt"), RequestBody.fromString("foo"));
@@ -145,6 +163,41 @@ class S3TemplateIntegrationTests {
 
 		assertThatExceptionOfType(NoSuchKeyException.class)
 				.isThrownBy(() -> client.headObject(r -> r.bucket(BUCKET_NAME).key("key.txt")));
+	}
+
+	@Test
+	void whenObjectExistsShouldReturnTrue() {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("key.txt"), RequestBody.fromString("hello"));
+
+		final boolean existsObject = s3Template.objectExists(BUCKET_NAME, "key.txt");
+
+		assertThat(existsObject).isTrue();
+	}
+
+	@Test
+	void whenObjectNotExistsShouldReturnFalse() {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("key.txt"), RequestBody.fromString("hello"));
+
+		final boolean existsObject1 = s3Template.objectExists(BUCKET_NAME, "other-key.txt");
+		final boolean existsObject2 = s3Template.objectExists("other-bucket", "key.txt");
+
+		assertThat(existsObject1).isFalse();
+		assertThat(existsObject2).isFalse();
+	}
+
+	@Test
+	void listObjects() throws IOException {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("hello-en.txt"), RequestBody.fromString("hello"));
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("hello-fr.txt"), RequestBody.fromString("bonjour"));
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("bye.txt"), RequestBody.fromString("bye"));
+
+		List<S3Resource> resources = s3Template.listObjects(BUCKET_NAME, "hello");
+		assertThat(resources.size()).isEqualTo(2);
+
+		// According to the S3Client doc : "Objects are returned sorted in an ascending order of the respective key
+		// names in the list."
+		assertThat(resources).extracting(S3Resource::getInputStream)
+				.map(is -> new String(is.readAllBytes(), StandardCharsets.UTF_8)).containsExactly("hello", "bonjour");
 	}
 
 	@Test

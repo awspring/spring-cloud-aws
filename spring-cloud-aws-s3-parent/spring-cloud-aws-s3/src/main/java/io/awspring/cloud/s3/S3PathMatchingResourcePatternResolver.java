@@ -180,9 +180,9 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 		String s3KeyPattern = substringAfter(locationPattern, s3BucketNamePattern + "/");
 		LOGGER.debug("The s3 key pattern is {}", s3KeyPattern);
 		return (pathMatcher.isPattern(s3BucketNamePattern) ? findMatchingBuckets(s3BucketNamePattern)
-				: List.of(s3BucketNamePattern)).stream().flatMap(
-						s3BucketName -> findResourcesInBucketWithKeyPattern(s3BucketName, s3KeyPattern).stream())
-						.toArray(Resource[]::new);
+				: List.of(s3BucketNamePattern)).stream()
+				.flatMap(s3BucketName -> findResourcesInBucketWithKeyPattern(s3BucketName, s3KeyPattern).stream())
+				.toArray(Resource[]::new);
 	}
 
 	/**
@@ -227,7 +227,7 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 						PATH_DELIMITER))
 				.findFirst();
 		ListObjectsV2Request.Builder listObjectsV2RequestBuilder = ListObjectsV2Request.builder().bucket(s3BucketName);
-		if (optionalPrefix.isPresent()) {
+		if (optionalPrefix.isPresent() && !"/".equals(optionalPrefix.get())) {
 			listObjectsV2RequestBuilder = listObjectsV2RequestBuilder.prefix(optionalPrefix.get());
 		}
 		return listObjectsV2RequestBuilder;
