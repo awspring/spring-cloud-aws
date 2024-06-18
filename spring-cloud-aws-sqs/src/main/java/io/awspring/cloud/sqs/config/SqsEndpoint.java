@@ -41,8 +41,6 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 	private final Integer maxMessagesPerPoll;
 
-	private final FifoBatchGroupingStrategy batchGroupingStrategy;
-
 	@Nullable
 	private final AcknowledgementMode acknowledgementMode;
 
@@ -53,7 +51,6 @@ public class SqsEndpoint extends AbstractEndpoint {
 		this.messageVisibility = builder.messageVisibility;
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
 		this.acknowledgementMode = builder.acknowledgementMode;
-		this.batchGroupingStrategy = builder.batchGroupingStrategy;
 	}
 
 	/**
@@ -90,15 +87,6 @@ public class SqsEndpoint extends AbstractEndpoint {
 	@Nullable
 	public Integer getMaxMessagesPerPoll() {
 		return this.maxMessagesPerPoll;
-	}
-
-	/**
-	 * Return how messages should be grouped in batch mode.
-	 * @return the batch message grouping strategy.
-	 */
-	@Nullable
-	public FifoBatchGroupingStrategy getBatchGroupingStrategy() {
-		return this.batchGroupingStrategy;
 	}
 
 	/**
@@ -162,11 +150,6 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 		public SqsEndpointBuilder maxMessagesPerPoll(Integer maxMessagesPerPoll) {
 			this.maxMessagesPerPoll = maxMessagesPerPoll;
-			return this;
-		}
-
-		public SqsEndpointBuilder batchGroupingStrategy(FifoBatchGroupingStrategy batchGroupingStrategy) {
-			this.batchGroupingStrategy = batchGroupingStrategy;
 			return this;
 		}
 

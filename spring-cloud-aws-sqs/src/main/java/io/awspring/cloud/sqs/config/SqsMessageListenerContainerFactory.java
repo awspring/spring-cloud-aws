@@ -163,7 +163,6 @@ public class SqsMessageListenerContainerFactory<T> extends
 				.acceptIfNotNull(sqsEndpoint.getMaxMessagesPerPoll(), options::maxMessagesPerPoll)
 				.acceptIfNotNull(sqsEndpoint.getPollTimeout(), options::pollTimeout)
 				.acceptIfNotNull(sqsEndpoint.getMessageVisibility(), options::messageVisibility)
-				.acceptIfNotNull(sqsEndpoint.getBatchGroupingStrategy(), options::batchGroupingStrategy)
 				.acceptIfNotNull(sqsEndpoint.getAcknowledgementMode(), options::acknowledgementMode);
 	}
 
