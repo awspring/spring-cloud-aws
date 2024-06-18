@@ -16,7 +16,6 @@
 package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
-import io.awspring.cloud.sqs.listener.FifoBatchGroupingStrategy;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import java.time.Duration;
 import java.util.Collection;
@@ -122,8 +121,6 @@ public class SqsEndpoint extends AbstractEndpoint {
 		private String id;
 
 		private Integer maxMessagesPerPoll;
-
-		private FifoBatchGroupingStrategy batchGroupingStrategy;
 
 		@Nullable
 		private AcknowledgementMode acknowledgementMode;
