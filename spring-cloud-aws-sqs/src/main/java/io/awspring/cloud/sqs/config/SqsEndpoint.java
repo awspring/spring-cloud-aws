@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
+import io.awspring.cloud.sqs.listener.FifoBatchGroupingStrategy;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import java.time.Duration;
 import java.util.Collection;
@@ -40,7 +41,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 	private final Integer maxMessagesPerPoll;
 
-	private final boolean messageGrouping;
+	private final FifoBatchGroupingStrategy batchGroupingStrategy;
 
 	@Nullable
 	private final AcknowledgementMode acknowledgementMode;
@@ -52,7 +53,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 		this.messageVisibility = builder.messageVisibility;
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
 		this.acknowledgementMode = builder.acknowledgementMode;
-		this.messageGrouping = builder.messageGrouping;
+		this.batchGroupingStrategy = builder.batchGroupingStrategy;
 	}
 
 	/**
@@ -92,12 +93,12 @@ public class SqsEndpoint extends AbstractEndpoint {
 	}
 
 	/**
-	 * Return whether message should be grouped or not.
-	 * @return the message grouping.
+	 * Return how messages should be grouped in batch mode.
+	 * @return the batch message grouping.
 	 */
 	@Nullable
-	public Boolean getMessageGrouping() {
-		return this.messageGrouping;
+	public FifoBatchGroupingStrategy getBatchGroupingStrategy() {
+		return this.batchGroupingStrategy;
 	}
 
 	/**
@@ -134,7 +135,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 		private Integer maxMessagesPerPoll;
 
-		private boolean messageGrouping;
+		private FifoBatchGroupingStrategy batchGroupingStrategy;
 
 		@Nullable
 		private AcknowledgementMode acknowledgementMode;
@@ -164,8 +165,8 @@ public class SqsEndpoint extends AbstractEndpoint {
 			return this;
 		}
 
-		public SqsEndpointBuilder messageGrouping(boolean messageGrouping) {
-			this.messageGrouping = messageGrouping;
+		public SqsEndpointBuilder batchGroupingStrategy(FifoBatchGroupingStrategy batchGroupingStrategy) {
+			this.batchGroupingStrategy = batchGroupingStrategy;
 			return this;
 		}
 

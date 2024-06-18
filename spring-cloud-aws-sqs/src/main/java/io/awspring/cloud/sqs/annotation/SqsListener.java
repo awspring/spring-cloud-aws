@@ -132,13 +132,6 @@ public @interface SqsListener {
 	String maxMessagesPerPoll() default "";
 
 	/**
-	 * Specifies whether messages coming from FIFO queues should be grouped when retrieved by the container in listener
-	 * mode {@link io.awspring.cloud.sqs.listener.ListenerMode#BATCH}.
-	 * @return message grouping boolean
-	 */
-	boolean messageGrouping() default true;
-
-	/**
 	 * The message visibility to be applied to messages received from the provided queues. For Standard SQS queues and
 	 * batch listeners, visibility will be applied at polling. For single message FIFO queues, visibility is changed
 	 * before each remaining message from the same message group is processed.

@@ -26,7 +26,6 @@ import io.awspring.cloud.sqs.listener.sink.BatchMessageSink;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.sink.OrderedMessageSink;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageGroupingSinkAdapter;
-import io.awspring.cloud.sqs.listener.sink.adapter.MessageSinkAdapter;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityExtendingSinkAdapter;
 import io.awspring.cloud.sqs.listener.source.FifoSqsMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
@@ -73,9 +72,10 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 		MessageSink<T> deliverySink = createDeliverySink(options.getListenerMode());
 		MessageSink<T> wrappedDeliverySink = maybeWrapWithVisibilityAdapter(deliverySink,
 				options.getMessageVisibility());
-		return options.getMessageGrouping()
-				? new MessageGroupingSinkAdapter<>(wrappedDeliverySink, getMessageGroupingFunction())
-				: new MessageSinkAdapter<>(wrappedDeliverySink);
+		return FifoBatchGroupingStrategy.PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES
+				.equals(options.getBatchGroupingStrategy())
+						? new MessageGroupingSinkAdapter<>(wrappedDeliverySink, getMessageGroupingFunction())
+						: wrappedDeliverySink;
 	}
 
 	// @formatter:off

@@ -38,7 +38,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	@Nullable
 	private final Duration messageVisibility;
 
-	private final boolean messageGrouping;
+	private final FifoBatchGroupingStrategy batchGroupingStrategy;
 
 	private final Collection<QueueAttributeName> queueAttributeNames;
 
@@ -59,7 +59,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		this.messageSystemAttributeNames = builder.messageSystemAttributeNames;
 		this.messageVisibility = builder.messageVisibility;
 		this.queueNotFoundStrategy = builder.queueNotFoundStrategy;
-		this.messageGrouping = builder.messageGrouping;
+		this.batchGroupingStrategy = builder.batchGroupingStrategy;
 	}
 
 	/**
@@ -104,12 +104,12 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	}
 
 	/**
-	 * Get whether messages in FIFO queues should be grouped when retrieved by the container in listener mode
-	 * {@link ListenerMode#BATCH}. Default is true.
-	 * @return the message grouping.
+	 * Get messages grouping strategy in FIFO queues when retrieved by the container in listener mode
+	 * {@link ListenerMode#BATCH}.
+	 * @return the batch message grouping strategy.
 	 */
-	public boolean getMessageGrouping() {
-		return this.messageGrouping;
+	public FifoBatchGroupingStrategy getBatchGroupingStrategy() {
+		return this.batchGroupingStrategy;
 	}
 
 	/**
@@ -147,7 +147,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 
 		private QueueNotFoundStrategy queueNotFoundStrategy = DEFAULT_QUEUE_NOT_FOUND_STRATEGY;
 
-		private boolean messageGrouping = true;
+		private FifoBatchGroupingStrategy batchGroupingStrategy = FifoBatchGroupingStrategy.PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES;
 
 		@Nullable
 		private Duration messageVisibility;
@@ -162,7 +162,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 			this.messageAttributeNames = options.messageAttributeNames;
 			this.messageSystemAttributeNames = options.messageSystemAttributeNames;
 			this.messageVisibility = options.messageVisibility;
-			this.messageGrouping = options.messageGrouping;
+			this.batchGroupingStrategy = options.batchGroupingStrategy;
 			this.queueNotFoundStrategy = options.queueNotFoundStrategy;
 		}
 
@@ -197,9 +197,9 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		}
 
 		@Override
-		public SqsContainerOptionsBuilder messageGrouping(boolean messageGrouping) {
-			Assert.notNull(messageGrouping, "messageGrouping cannot be null");
-			this.messageGrouping = messageGrouping;
+		public SqsContainerOptionsBuilder batchGroupingStrategy(FifoBatchGroupingStrategy batchGroupingStrategy) {
+			Assert.notNull(batchGroupingStrategy, "batchGroupingStrategy cannot be null");
+			this.batchGroupingStrategy = batchGroupingStrategy;
 			return this;
 		}
 
