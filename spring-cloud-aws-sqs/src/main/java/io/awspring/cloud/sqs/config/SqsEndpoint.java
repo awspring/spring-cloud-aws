@@ -94,7 +94,7 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 	/**
 	 * Return how messages should be grouped in batch mode.
-	 * @return the batch message grouping.
+	 * @return the batch message grouping strategy.
 	 */
 	@Nullable
 	public FifoBatchGroupingStrategy getBatchGroupingStrategy() {
