@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,18 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.util.Assert;
 
 /**
  * {@link MessagingMessageConverter} implementation for converting SQS
  * {@link software.amazon.awssdk.services.sqs.model.Message} instances to Spring Messaging {@link Message} instances.
  *
+ * @author Dongha kim
  * @author Tomaz Fernandes
  * @since 3.0
  * @see SqsHeaderMapper
@@ -37,7 +42,24 @@ public class SqsMessagingMessageConverter
 
 	@Override
 	protected Object getPayloadToDeserialize(software.amazon.awssdk.services.sqs.model.Message message) {
-		return message.body();
+		String body = message.body();
+
+		ObjectMapper objectMapper = getMappingJackson2MessageConverter()
+			.map(MappingJackson2MessageConverter::getObjectMapper)
+			.orElse(new ObjectMapper());
+
+		try {
+			ObjectNode jsonNode = objectMapper.readValue(body, ObjectNode.class);
+			return objectMapper.writeValueAsString(jsonNode);
+		} catch (JsonProcessingException e) {
+			try {
+				String decodedBody = objectMapper.readValue(body, String.class);
+				ObjectNode jsonNode = objectMapper.readValue(decodedBody, ObjectNode.class);
+				return objectMapper.writeValueAsString(jsonNode);
+			} catch (JsonProcessingException e2) {
+				return body;
+			}
+		}
 	}
 
 	@Override

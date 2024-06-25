@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ import org.springframework.util.Assert;
  * Base {@link MessagingMessageConverter} implementation.
  *
  * @author Tomaz Fernandes
+ * @author Dongha Kim
+ *
  * @since 3.0
  * @see SqsHeaderMapper
  * @see SqsMessageConversionContext
@@ -98,7 +100,7 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 		converter.setObjectMapper(objectMapper);
 	}
 
-	private Optional<MappingJackson2MessageConverter> getMappingJackson2MessageConverter() {
+	protected Optional<MappingJackson2MessageConverter> getMappingJackson2MessageConverter() {
 		return this.payloadMessageConverter instanceof CompositeMessageConverter compositeConverter
 				? compositeConverter.getConverters().stream()
 						.filter(converter -> converter instanceof MappingJackson2MessageConverter)
@@ -172,23 +174,33 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 		return ((ContextAwareHeaderMapper<S>) this.headerMapper).createContextHeaders(message, context);
 	}
 
-	private Object convertPayload(S message, MessageHeaders messageHeaders,
-			@Nullable MessageConversionContext context) {
+	private Object convertPayload(S message, MessageHeaders messageHeaders, @Nullable MessageConversionContext context) {
 		Message<?> messagingMessage = MessageBuilder.createMessage(getPayloadToDeserialize(message), messageHeaders);
 		Class<?> targetType = getTargetType(messagingMessage, context);
-		return targetType != null
-				? Objects.requireNonNull(this.payloadMessageConverter.fromMessage(messagingMessage, targetType),
-						"payloadMessageConverter returned null payload")
-				: messagingMessage.getPayload();
+		if (targetType == null) {
+			return messagingMessage.getPayload();
+		}
+		Object convertedPayload = this.payloadMessageConverter.fromMessage(messagingMessage, targetType);
+		return Objects.requireNonNull(convertedPayload, "payloadMessageConverter returned null payload");
 	}
+
 
 	@Nullable
 	private Class<?> getTargetType(Message<?> messagingMessage, @Nullable MessageConversionContext context) {
 		Class<?> classFromTypeMapper = this.payloadTypeMapper.apply(messagingMessage);
-		return classFromTypeMapper == null && context != null && context.getPayloadClass() != null
-				? context.getPayloadClass()
-				: classFromTypeMapper;
+
+		if (context != null && context.getPayloadClass() != null) {
+			if (!context.getPayloadClass().equals(String.class)) {
+				return context.getPayloadClass();
+			}
+			if (classFromTypeMapper != null && !classFromTypeMapper.equals(String.class)) {
+				return classFromTypeMapper;
+			}
+		}
+
+		return classFromTypeMapper != null ? classFromTypeMapper : (context != null ? context.getPayloadClass() : null);
 	}
+
 
 	protected abstract Object getPayloadToDeserialize(S message);
 
