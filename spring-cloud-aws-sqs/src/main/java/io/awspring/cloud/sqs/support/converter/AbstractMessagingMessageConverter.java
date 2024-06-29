@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ import org.springframework.util.Assert;
  * Base {@link MessagingMessageConverter} implementation.
  *
  * @author Tomaz Fernandes
+ * @author Dongha Kim
+ * 
  * @since 3.0
  * @see SqsHeaderMapper
  * @see SqsMessageConversionContext
@@ -185,6 +187,15 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	@Nullable
 	private Class<?> getTargetType(Message<?> messagingMessage, @Nullable MessageConversionContext context) {
 		Class<?> classFromTypeMapper = this.payloadTypeMapper.apply(messagingMessage);
+
+        if(context != null && context.getPayloadClass() != null && !context.getPayloadClass().equals(String.class)) {
+			return context.getPayloadClass();
+		}
+
+		if(context != null && context.getPayloadClass() != null && classFromTypeMapper != null && !classFromTypeMapper.equals(String.class)) {
+			return classFromTypeMapper;
+		}
+
 		return classFromTypeMapper == null && context != null && context.getPayloadClass() != null
 				? context.getPayloadClass()
 				: classFromTypeMapper;
