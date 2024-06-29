@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -34,12 +35,6 @@ import org.springframework.util.Assert;
 public class SqsMessagingMessageConverter
 		extends AbstractMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
 
-	private final ObjectMapper objectMapper;
-
-	public SqsMessagingMessageConverter() {
-		this.objectMapper = new ObjectMapper();
-	}
-
 	@Override
 	protected HeaderMapper<software.amazon.awssdk.services.sqs.model.Message> createDefaultHeaderMapper() {
 		return new SqsHeaderMapper();
@@ -48,6 +43,11 @@ public class SqsMessagingMessageConverter
 	@Override
 	protected Object getPayloadToDeserialize(software.amazon.awssdk.services.sqs.model.Message message) {
 		String body = message.body();
+
+		ObjectMapper objectMapper = getMappingJackson2MessageConverter()
+			.map(MappingJackson2MessageConverter::getObjectMapper)
+			.orElse(new ObjectMapper());
+
 		try {
 			ObjectNode jsonNode = objectMapper.readValue(body, ObjectNode.class);
 			return objectMapper.writeValueAsString(jsonNode);

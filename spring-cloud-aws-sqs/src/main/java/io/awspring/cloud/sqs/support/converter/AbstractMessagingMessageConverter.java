@@ -98,7 +98,7 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 		converter.setObjectMapper(objectMapper);
 	}
 
-	private Optional<MappingJackson2MessageConverter> getMappingJackson2MessageConverter() {
+	protected Optional<MappingJackson2MessageConverter> getMappingJackson2MessageConverter() {
 		return this.payloadMessageConverter instanceof CompositeMessageConverter compositeConverter
 				? compositeConverter.getConverters().stream()
 						.filter(converter -> converter instanceof MappingJackson2MessageConverter)
