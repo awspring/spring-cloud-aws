@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  *
  * @author Tomaz Fernandes
  * @author Dongha Kim
- * 
+ *
  * @since 3.0
  * @see SqsHeaderMapper
  * @see SqsMessageConversionContext
@@ -174,32 +174,33 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 		return ((ContextAwareHeaderMapper<S>) this.headerMapper).createContextHeaders(message, context);
 	}
 
-	private Object convertPayload(S message, MessageHeaders messageHeaders,
-			@Nullable MessageConversionContext context) {
+	private Object convertPayload(S message, MessageHeaders messageHeaders, @Nullable MessageConversionContext context) {
 		Message<?> messagingMessage = MessageBuilder.createMessage(getPayloadToDeserialize(message), messageHeaders);
 		Class<?> targetType = getTargetType(messagingMessage, context);
-		return targetType != null
-				? Objects.requireNonNull(this.payloadMessageConverter.fromMessage(messagingMessage, targetType),
-						"payloadMessageConverter returned null payload")
-				: messagingMessage.getPayload();
+		if (targetType == null) {
+			return messagingMessage.getPayload();
+		}
+		Object convertedPayload = this.payloadMessageConverter.fromMessage(messagingMessage, targetType);
+		return Objects.requireNonNull(convertedPayload, "payloadMessageConverter returned null payload");
 	}
+
 
 	@Nullable
 	private Class<?> getTargetType(Message<?> messagingMessage, @Nullable MessageConversionContext context) {
 		Class<?> classFromTypeMapper = this.payloadTypeMapper.apply(messagingMessage);
 
-        if(context != null && context.getPayloadClass() != null && !context.getPayloadClass().equals(String.class)) {
-			return context.getPayloadClass();
+		if (context != null && context.getPayloadClass() != null) {
+			if (!context.getPayloadClass().equals(String.class)) {
+				return context.getPayloadClass();
+			}
+			if (classFromTypeMapper != null && !classFromTypeMapper.equals(String.class)) {
+				return classFromTypeMapper;
+			}
 		}
 
-		if(context != null && context.getPayloadClass() != null && classFromTypeMapper != null && !classFromTypeMapper.equals(String.class)) {
-			return classFromTypeMapper;
-		}
-
-		return classFromTypeMapper == null && context != null && context.getPayloadClass() != null
-				? context.getPayloadClass()
-				: classFromTypeMapper;
+		return classFromTypeMapper != null ? classFromTypeMapper : (context != null ? context.getPayloadClass() : null);
 	}
+
 
 	protected abstract Object getPayloadToDeserialize(S message);
 
