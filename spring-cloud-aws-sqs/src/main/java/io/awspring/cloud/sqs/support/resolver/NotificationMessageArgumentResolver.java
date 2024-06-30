@@ -23,11 +23,11 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
-import org.springframework.util.Assert;
 
 /**
  * @author Michael Sosa
  * @author gustavomonarin
+ * @author Wei Jiang
  * @since 3.1.1
  */
 public class NotificationMessageArgumentResolver implements HandlerMethodArgumentResolver {
@@ -45,10 +45,7 @@ public class NotificationMessageArgumentResolver implements HandlerMethodArgumen
 
 	@Override
 	public Object resolveArgument(MethodParameter par, Message<?> msg) {
-		Object object = this.converter.fromMessage(msg, par.getParameterType(), par);
-		Assert.isInstanceOf(SnsMessageConverter.SnsMessageWrapper.class, object);
-		SnsMessageConverter.SnsMessageWrapper nr = (SnsMessageConverter.SnsMessageWrapper) object;
-		return nr.message();
+		return this.converter.fromMessage(msg, par.getParameterType(), par);
 	}
 
 }
