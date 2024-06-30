@@ -185,28 +185,18 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveJsonString() {
 		SqsOperations template = SqsTemplate.newSyncTemplate(this.asyncClient);
-
 		String jsonString = """
-            {
-              "propertyOne": "hello",
-              "propertyTwo": "sqs!"
-            }
-            """;
-
+			{
+			"propertyOne": "hello",
+			"propertyTwo": "sqs!"
+			}
+			""";
 		SampleRecord expectedPayload = new SampleRecord("hello", "sqs!");
-
 		SendResult<Object> result = template.send(to -> to.queue(SENDS_AND_RECEIVES_MESSAGE_QUEUE_NAME)
-														  .payload(jsonString)
-														  .header(MessageHeaders.CONTENT_TYPE, "application/json"));
-
+				  .payload(jsonString).header(MessageHeaders.CONTENT_TYPE, "application/json"));
 		assertThat(result).isNotNull();
 		Optional<Message<SampleRecord>> receivedMessage = template.receive(from -> from.queue(SENDS_AND_RECEIVES_MESSAGE_QUEUE_NAME), SampleRecord.class);
-
-		assertThat(receivedMessage).isPresent();
-		Message<SampleRecord> message = receivedMessage.get();
-		SampleRecord actualPayload = message.getPayload();
-
-		assertThat(actualPayload).isEqualTo(expectedPayload);
+		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(expectedPayload);
 	}
 
 	@Test
