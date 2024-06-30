@@ -187,8 +187,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		SqsOperations template = SqsTemplate.newSyncTemplate(this.asyncClient);
 		String jsonString = """
 			{
-			"propertyOne": "hello",
-			"propertyTwo": "sqs!"
+				"propertyOne": "hello",
+				"propertyTwo": "sqs!"
 			}
 			""";
 		SampleRecord expectedPayload = new SampleRecord("hello", "sqs!");
