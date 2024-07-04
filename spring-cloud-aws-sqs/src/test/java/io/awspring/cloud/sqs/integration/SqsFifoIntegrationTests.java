@@ -336,10 +336,10 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.sendMany(FIFO_RECEIVES_BATCH_GROUPING_STRATEGY_MULTIPLE_GROUPS_IN_SAME_BATCH_QUEUE_NAME, messages);
 		assertThat(latchContainer.receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchLatch
 				.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS)).isTrue();
-		assertThat(receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener.receivedMessages.get(messageGroupId1))
-				.containsExactlyElementsOf(values);
-		assertThat(receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener.receivedMessages.get(messageGroupId2))
-				.containsExactlyElementsOf(values);
+		assertThat(receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener.receivedMessages
+				.get(messageGroupId1)).containsExactlyElementsOf(values);
+		assertThat(receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener.receivedMessages
+				.get(messageGroupId2)).containsExactlyElementsOf(values);
 	}
 
 	@Test
