@@ -884,8 +884,8 @@ See <<Retrieving Attributes from SQS>>.
 |Configures the `MessageSystemAttribute` that will be retrieved from SQS for each message.
 See <<Retrieving Attributes from SQS>>.
 
-|`batchGroupingStrategy`
-|`PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES`, `PROCESS_ALL_GROUPS_IN_EACH_BATCH`
+|`fifoBatchGroupingStrategy`
+|`PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES`, `PROCESS_MULTIPLE_GROUPS_IN_SAME_BATCH`
 |`PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES`
 |Specifies how messages from FIFO queues should be grouped when retrieved by the container when listener
 mode is `batch`. See <<FIFO Support>>.
@@ -1038,7 +1038,7 @@ NOTE: Spring-managed `MessageListenerContainer` beans' lifecycle actions are alw
 * If processing fails for a message, the following messages from the same message group are discarded so they will be served again after their `message visibility`
 expires.
 * Messages which were already successfully processed and acknowledged will not be served again.
-* If a `batch` listener is used, each message group from a poll will be served as a batch to the listener method. To receive messages from different groups in a `batch`, `batchGroupingStrategy` property must be configured in `SqsContainerOptions`.
+* If a `batch` listener is used, each message group from a poll will be served as a batch to the listener method. To receive messages from multiple groups in a `batch`, `fifoBatchGroupingStrategy` property must be configured in `SqsContainerOptions`.
 * `FIFO` queues also have different defaults for acknowledging messages, see <<Acknowledgement Defaults>> for more information.
 * If a `message visibility` is set through `@SqsListener` or `SqsContainerOptions`, visibility will be extended for all messages in the message group before each message is processed.
 

@@ -73,7 +73,7 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 		MessageSink<T> wrappedDeliverySink = maybeWrapWithVisibilityAdapter(deliverySink,
 				options.getMessageVisibility());
 		return FifoBatchGroupingStrategy.PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES
-				.equals(options.getBatchGroupingStrategy())
+				.equals(options.getFifoBatchGroupingStrategy())
 						? new MessageGroupingSinkAdapter<>(wrappedDeliverySink, getMessageGroupingFunction())
 						: wrappedDeliverySink;
 	}
