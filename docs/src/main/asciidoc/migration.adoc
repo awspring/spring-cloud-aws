@@ -79,3 +79,8 @@ spring.config.import=aws-parameterstore:/config/application/;/config/my-service/
 ```
 
 NOTE: The paths specified after the `aws-parameterstore:` scheme are used as-is for resolving parameter names. If you want parameter names to be separated with a slash between the prefix and property name, make sure to add a trailing slash to the prefix.
+
+=== SQS Integration migration
+
+In Spring Cloud AWS 2.x, when a collection of objects was passed as an argument to send or receive payloads, the framework serialized and deserialized the list in a single message.
+In Spring Cloud AWS 3.x, the way to send and receive object collections has changed, see <<sqs-send-message>>.

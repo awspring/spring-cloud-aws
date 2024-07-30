@@ -1,0 +1,34 @@
+[#spring-cloud-aws-modulith]
+== Spring Modulith Integration
+
+Spring Cloud AWS comes with externalized events
+
+Integration with https://spring.io/projects/spring-modulith[Spring Modulith] provides capability to send externalized events to SNS and SQS. Read more about externalizing events in https://docs.spring.io/spring-modulith/reference/events.html#externalization[Spring Modulith Reference Guide].
+
+=== SNS
+
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-modulith-events-sns</artifactId>
+</dependency>
+----
+
+The logical routing key will be used as SNS message group id. When routing key is set, requires SNS to be configured as a FIFO topic with content based deduplication enabled.
+
+=== SQS
+
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-modulith-events-sqs</artifactId>
+</dependency>
+----
+
+The logical routing key will be used as SQS message group id. When routing key is set, requires SQS queue to be configured as a FIFO queue.

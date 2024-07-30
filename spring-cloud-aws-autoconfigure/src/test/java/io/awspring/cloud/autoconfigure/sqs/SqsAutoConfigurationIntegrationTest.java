@@ -60,7 +60,7 @@ class SqsAutoConfigurationIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:2.3.2"));
+			DockerImageName.parse("localstack/localstack:3.2.0"));
 
 	@SuppressWarnings("unchecked")
 	@Test

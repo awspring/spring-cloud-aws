@@ -66,7 +66,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * beans implementing these interfaces will be set to the default factory.
  * <p>
  * Example using the builder:
- * 
+ *
  * <pre>
  * <code>
  * &#064;Bean
@@ -74,7 +74,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *     return SqsMessageListenerContainerFactory
  *             .builder()
  *             .configure(options -> options
- *                     .messagesPerPoll(5)
+ *                     .maxMessagesPerPoll(5)
  *                     .pollTimeout(Duration.ofSeconds(10)))
  *             .sqsAsyncClient(sqsAsyncClient)
  *             .build();
@@ -84,7 +84,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *
  * <p>
  * Example using the default constructor:
- * 
+ *
  * <pre>
  * <code>
  * &#064;Bean
@@ -92,7 +92,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *     SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
  *     factory.setSqsAsyncClient(sqsAsyncClient);
  *     factory.configure(options -> options
- *             .messagesPerPoll(5)
+ *             .maxMessagesPerPoll(5)
  *             .pollTimeout(Duration.ofSeconds(10)));
  *     return factory;
  * }
@@ -100,7 +100,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * </pre>
  * <p>
  * Example creating a container manually:
- * 
+ *
  * <pre>
  * <code>
  * &#064;Bean
@@ -108,11 +108,11 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *     return SqsMessageListenerContainerFactory
  *             .builder()
  *             .configure(options -> options
- *                     .messagesPerPoll(5)
+ *                     .maxMessagesPerPoll(5)
  *                     .pollTimeout(Duration.ofSeconds(10)))
  *             .sqsAsyncClient(sqsAsyncClient)
  *             .build()
- *             .create("myQueue");
+ *             .createContainer("myQueue");
  * }
  * </code>
  * </pre>
