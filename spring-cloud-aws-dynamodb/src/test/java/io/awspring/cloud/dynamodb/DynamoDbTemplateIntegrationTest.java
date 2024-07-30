@@ -129,9 +129,11 @@ public class DynamoDbTemplateIntegrationTest {
 		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
-		dynamoDbTemplate.delete(personEntity);
+		var deletedItem = dynamoDbTemplate.delete(personEntity);
+
 		PersonEntity personEntity1 = dynamoDbTemplate
 				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
+		assertThat(deletedItem.getName()).isEqualTo("foo");
 		assertThat(personEntity1).isEqualTo(null);
 		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
