@@ -50,3 +50,37 @@ spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://127.0.0.1:4566/us-e
 ----
 
 The example above set the URIs to LocalStack's Cognito Server.
+
+=== Parameter store migration
+
+In 2.x, parameter store items were resolved using a combination of the following settings:
+
+* `aws.paramstore.prefix` (defaulted to `/config`)
+* `aws.paramstore.defaultContext` for shared config items
+* `aws.paramstore.name` for application-specific config items
+
+For example, if all you had done was set `aws.paramstore.enabled=true`, and your `spring.application.name` was `my-service`, then parameter store items could be resolved from either `/config/application` (for shared config items) and `/config/my-service` (for application specific config items)
+
+If you overrode one or more of the settings, then there could potentially be other prefixes where the application would look for parameters.
+
+In 3.x, the prefix is defined by the `spring.config.import` property, and is no longer made up of a "prefix" or "name" component. For example, if reading properties for a service called `my-service`, the parameter store should be configured like this:
+
+```
+# Still needed for other parts of spring boot
+spring.application.name=my-service
+# Needed for spring-cloud-aws-starter-parameter-store
+spring.config.import=aws-parameterstore:/config/my-service/
+```
+
+To load multiple parameters from multiple paths, separate their names by `;`. For example, this would replicate a 2.x configuration that utilized both shared config items and application specific config items
+
+```
+spring.config.import=aws-parameterstore:/config/application/;/config/my-service/
+```
+
+NOTE: The paths specified after the `aws-parameterstore:` scheme are used as-is for resolving parameter names. If you want parameter names to be separated with a slash between the prefix and property name, make sure to add a trailing slash to the prefix.
+
+=== SQS Integration migration
+
+In Spring Cloud AWS 2.x, when a collection of objects was passed as an argument to send or receive payloads, the framework serialized and deserialized the list in a single message.
+In Spring Cloud AWS 3.x, the way to send and receive object collections has changed, see <<sqs-send-message>>.

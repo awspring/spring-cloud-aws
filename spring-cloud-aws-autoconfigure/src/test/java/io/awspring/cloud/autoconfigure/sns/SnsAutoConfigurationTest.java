@@ -39,6 +39,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.arns.Arn;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
  * Tests for class {@link io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration}.
  *
  * @author Matej Nedic
+ * @author Mariusz Sondecki
  */
 class SnsAutoConfigurationTest {
 
@@ -107,7 +109,7 @@ class SnsAutoConfigurationTest {
 
 			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
 					ReflectionTestUtils.getField(snsClient, "clientConfiguration"), "attributes"), "attributes");
-			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT)).isEqualTo(Duration.ofMillis(1999));
+			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT).toString()).isEqualTo("Value(PT1.999S)");
 			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
 		});
 	}
@@ -135,6 +137,12 @@ class SnsAutoConfigurationTest {
 		this.contextRunner.withUserConfiguration(InjectingTemplatesConfiguration.class).run(context -> {
 			assertThat(context.isRunning()).isTrue();
 		});
+	}
+
+	@Test
+	void customChannelInterceptorCanBeConfigured() {
+		this.contextRunner.withUserConfiguration(CustomChannelInterceptorConfiguration.class)
+				.run(context -> assertThat(context).hasSingleBean(CustomChannelInterceptor.class));
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -215,4 +223,15 @@ class SnsAutoConfigurationTest {
 		}
 	}
 
+	@Configuration(proxyBeanMethods = false)
+	static class CustomChannelInterceptorConfiguration {
+
+		@Bean
+		ChannelInterceptor customChannelInterceptor() {
+			return new CustomChannelInterceptor();
+		}
+	}
+
+	static class CustomChannelInterceptor implements ChannelInterceptor {
+	}
 }

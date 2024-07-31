@@ -53,6 +53,7 @@ public class CredentialsProperties {
 	/**
 	 * The AWS profile.
 	 */
+	@NestedConfigurationProperty
 	@Nullable
 	private Profile profile;
 

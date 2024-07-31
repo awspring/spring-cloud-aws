@@ -18,8 +18,10 @@ package io.awspring.cloud.sqs.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.annotation.SnsNotificationMessage;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
+import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
@@ -45,6 +47,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
@@ -65,6 +68,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	static final String RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME = "resolves_pojo_message_list_test_queue";
 	static final String RESOLVES_POJO_FROM_HEADER_QUEUE_NAME = "resolves_pojo_from_mapping_test_queue";
 	static final String RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME = "resolves_my_other_pojo_from_mapping_test_queue";
+	static final String RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME = "resolves_pojo_from_notification_message_queue";
 
 	@Autowired
 	LatchContainer latchContainer;
@@ -80,7 +84,8 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, RESOLVES_POJO_LIST_QUEUE_NAME),
 				createQueue(client, RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME),
 				createQueue(client, RESOLVES_POJO_FROM_HEADER_QUEUE_NAME),
-				createQueue(client, RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME)).join();
+				createQueue(client, RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME),
+				createQueue(client, RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME)).join();
 	}
 
 	@Test
@@ -133,6 +138,17 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME,
 				payload);
 		assertThat(latchContainer.resolvesMyOtherPojoFromMappingLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void resolvesMyPojoFromNotificationMessage() throws Exception {
+		byte[] notificationJsonContent = FileCopyUtils
+				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("notificationMessage.json"));
+		String payload = new String(notificationJsonContent);
+		sqsTemplate.send(RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME, payload);
+		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME,
+				payload);
+		assertThat(latchContainer.resolvesPojoNotificationMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	private Map<String, Object> getHeaderMapping(Class<?> clazz) {
@@ -219,6 +235,20 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	static class ResolvesPojoWithNotificationAnnotationListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@SqsListener(queueNames = RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME, id = "resolves-pojo-with-notification-message", factory = "defaultSqsListenerContainerFactory")
+		void listen(@SnsNotificationMessage MyEnvelope<MyPojo> myPojo) {
+			Assert.notNull((myPojo).data.firstField, "Received null message");
+			logger.debug("Received message {} from queue {}", myPojo,
+					RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME);
+			latchContainer.resolvesPojoNotificationMessageLatch.countDown();
+		}
+	}
+
 	static class LatchContainer {
 
 		CountDownLatch resolvesPojoLatch = new CountDownLatch(1);
@@ -227,6 +257,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		CountDownLatch resolvesPojoMessageListLatch = new CountDownLatch(1);
 		CountDownLatch resolvesPojoFromMappingLatch = new CountDownLatch(1);
 		CountDownLatch resolvesMyOtherPojoFromMappingLatch = new CountDownLatch(1);
+		CountDownLatch resolvesPojoNotificationMessageLatch = new CountDownLatch(1);
 
 	}
 
@@ -271,6 +302,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 			});
 			return factory;
 		}
+
 		// @formatter:on
 
 		LatchContainer latchContainer = new LatchContainer();
@@ -306,6 +338,11 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
+		ResolvesPojoWithNotificationAnnotationListener resolvesPojoWithNotificationAnnotationListener() {
+			return new ResolvesPojoWithNotificationAnnotationListener();
+		}
+
+		@Bean
 		LatchContainer latchContainer() {
 			return this.latchContainer;
 		}
@@ -316,10 +353,36 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
+		SqsListenerConfigurer customizer(ObjectMapper objectMapper) {
+			return registrar -> registrar.setObjectMapper(objectMapper);
+		}
+
+		@Bean
 		SqsTemplate sqsTemplate() {
 			return SqsTemplate.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient()).build();
 		}
 
+	}
+
+	static class MyEnvelope<T> {
+		String specversion;
+		T data;
+
+		public String getSpecversion() {
+			return specversion;
+		}
+
+		public void setSpecversion(String specversion) {
+			this.specversion = specversion;
+		}
+
+		public T getData() {
+			return data;
+		}
+
+		public void setData(T data) {
+			this.data = data;
+		}
 	}
 
 	static class MyPojo implements MyInterface {

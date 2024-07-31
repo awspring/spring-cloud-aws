@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.retry.backoff.BackOffPolicy;
+import org.springframework.retry.backoff.BackOffPolicyBuilder;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
@@ -97,6 +99,13 @@ class ContainerOptionsTests {
 	}
 
 	@Test
+	void shouldSetPollBackOffPolicyExecutor() {
+		BackOffPolicy pollBackOffPolicy = BackOffPolicyBuilder.newDefaultPolicy();
+		SqsContainerOptions options = SqsContainerOptions.builder().pollBackOffPolicy(pollBackOffPolicy).build();
+		assertThat(options.getPollBackOffPolicy()).isEqualTo(pollBackOffPolicy);
+	}
+
+	@Test
 	void shouldSetQueueNotFoundStrategy() {
 		SqsContainerOptions options = SqsContainerOptions.builder().queueNotFoundStrategy(QueueNotFoundStrategy.FAIL)
 				.build();
@@ -118,6 +127,7 @@ class ContainerOptionsTests {
 	private SqsContainerOptionsBuilder createConfiguredBuilder() {
 		return SqsContainerOptions.builder().acknowledgementShutdownTimeout(Duration.ofSeconds(7))
 				.messageVisibility(Duration.ofSeconds(11))
+				.pollBackOffPolicy(BackOffPolicyBuilder.newBuilder().delay(1000).build())
 				.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 				.messageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.MESSAGE_GROUP_ID))
 				.messageAttributeNames(Collections.singletonList("my-attribute"))

@@ -18,11 +18,13 @@ package io.awspring.cloud.autoconfigure.config.secretsmanager;
 import io.awspring.cloud.autoconfigure.config.BootstrapLoggingHelper;
 import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
 import java.util.Collections;
+import java.util.Map;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.boot.logging.DeferredLogFactory;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
@@ -46,14 +48,23 @@ public class SecretsManagerConfigDataLoader implements ConfigDataLoader<SecretsM
 	@Nullable
 	public ConfigData load(ConfigDataLoaderContext context, SecretsManagerConfigDataResource resource) {
 		try {
-			SecretsManagerClient sm = context.getBootstrapContext().get(SecretsManagerClient.class);
-			SecretsManagerPropertySource propertySource = resource.getPropertySources()
-					.createPropertySource(resource.getContext(), resource.isOptional(), sm);
-			if (propertySource != null) {
-				return new ConfigData(Collections.singletonList(propertySource));
+			// resource is disabled if secrets manager integration is disabled via
+			// spring.cloud.aws.secretsmanager.enabled=false
+			if (resource.isEnabled()) {
+				SecretsManagerClient sm = context.getBootstrapContext().get(SecretsManagerClient.class);
+				SecretsManagerPropertySource propertySource = resource.getPropertySources()
+						.createPropertySource(resource.getContext(), resource.isOptional(), sm);
+				if (propertySource != null) {
+					return new ConfigData(Collections.singletonList(propertySource));
+				}
+				else {
+					return null;
+				}
 			}
 			else {
-				return null;
+				// create dummy empty config data
+				return new ConfigData(
+						Collections.singletonList(new MapPropertySource("aws-secretsmanager:" + context, Map.of())));
 			}
 		}
 		catch (Exception e) {

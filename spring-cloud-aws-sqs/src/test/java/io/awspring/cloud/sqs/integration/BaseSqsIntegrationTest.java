@@ -44,9 +44,11 @@ abstract class BaseSqsIntegrationTest {
 
 	protected static final boolean useLocalStackClient = true;
 
-	protected static final boolean purgeQueues = true;
+	protected static boolean purgeQueues = false;
 
-	private static final String LOCAL_STACK_VERSION = "localstack/localstack:2.3.2";
+	protected static boolean waitForPurge = false;
+
+	private static final String LOCAL_STACK_VERSION = "localstack/localstack:3.2.0";
 
 	static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse(LOCAL_STACK_VERSION));
 
@@ -93,7 +95,13 @@ abstract class BaseSqsIntegrationTest {
 			if (purgeQueues) {
 				String queueUrl = v.queueUrl();
 				logger.debug("Purging queue {}", queueName);
-				return client.purgeQueue(req -> req.queueUrl(queueUrl).build());
+				return client.purgeQueue(req -> req.queueUrl(queueUrl).build()).thenRun(() -> {
+					if (waitForPurge) {
+						logger.info("Waiting 30000 seconds to start sending.");
+						sleep(30000);
+						logger.info("Done waiting.");
+					}
+				});
 			}
 			else {
 				logger.debug("Skipping purge for queue {}", queueName);
@@ -106,6 +114,16 @@ abstract class BaseSqsIntegrationTest {
 			}
 			logger.debug("Done purging queue {}", queueName);
 		});
+	}
+
+	private static void sleep(int time) {
+		try {
+			Thread.sleep(time);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new RuntimeException("Interrupted while sleeping");
+		}
 	}
 
 	private static CreateQueueRequest getCreateQueueRequest(String queueName,

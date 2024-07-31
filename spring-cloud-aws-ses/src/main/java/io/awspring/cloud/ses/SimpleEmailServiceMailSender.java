@@ -54,13 +54,22 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 	@Nullable
 	private final String sourceArn;
 
+	@Nullable
+	private final String configurationSetName;
+
 	public SimpleEmailServiceMailSender(SesClient sesClient) {
 		this(sesClient, null);
 	}
 
 	public SimpleEmailServiceMailSender(SesClient sesClient, @Nullable String sourceArn) {
+		this(sesClient, sourceArn, null);
+	}
+
+	public SimpleEmailServiceMailSender(SesClient sesClient, @Nullable String sourceArn,
+			@Nullable String configurationSetName) {
 		this.sesClient = sesClient;
 		this.sourceArn = sourceArn;
+		this.configurationSetName = configurationSetName;
 	}
 
 	@Override
@@ -108,6 +117,11 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 		return sourceArn;
 	}
 
+	@Nullable
+	protected String getConfigurationSetName() {
+		return configurationSetName;
+	}
+
 	private SendEmailRequest prepareMessage(SimpleMailMessage simpleMailMessage) {
 		Assert.notNull(simpleMailMessage, "simpleMailMessage are required");
 		Destination.Builder destinationBuilder = Destination.builder();
@@ -127,7 +141,7 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 
 		SendEmailRequest.Builder emailRequestBuilder = SendEmailRequest.builder()
 				.destination(destinationBuilder.build()).source(simpleMailMessage.getFrom()).sourceArn(getSourceArn())
-				.message(message);
+				.configurationSetName(getConfigurationSetName()).message(message);
 
 		if (StringUtils.hasText(simpleMailMessage.getReplyTo())) {
 			emailRequestBuilder.replyToAddresses(simpleMailMessage.getReplyTo());

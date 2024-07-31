@@ -74,12 +74,26 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 	@Nullable
 	private FileTypeMap defaultFileTypeMap;
 
+	@Nullable
+	private String fromArn;
+
 	public SimpleEmailServiceJavaMailSender(SesClient sesClient) {
 		this(sesClient, null);
 	}
 
 	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn) {
-		super(sesClient, sourceArn);
+		this(sesClient, sourceArn, null);
+	}
+
+	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn,
+			@Nullable String configurationSetName) {
+		super(sesClient, sourceArn, configurationSetName);
+	}
+
+	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn,
+			@Nullable String configurationSetName, @Nullable String fromArn) {
+		super(sesClient, sourceArn, configurationSetName);
+		this.fromArn = fromArn;
 	}
 
 	/**
@@ -206,8 +220,9 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 			try {
 				RawMessage rawMessage = createRawMessage(mimeMessage);
 
-				SendRawEmailResponse sendRawEmailResponse = getEmailService().sendRawEmail(
-						SendRawEmailRequest.builder().sourceArn(getSourceArn()).rawMessage(rawMessage).build());
+				SendRawEmailResponse sendRawEmailResponse = getEmailService()
+						.sendRawEmail(SendRawEmailRequest.builder().sourceArn(getSourceArn()).fromArn(this.fromArn)
+								.configurationSetName(getConfigurationSetName()).rawMessage(rawMessage).build());
 
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Message with id: {} successfully sent", sendRawEmailResponse.messageId());

@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>spring-cloud-aws</artifactId>
 		<groupId>io.awspring.cloud</groupId>
-		<version>3.1.1-SNAPSHOT</version>
+		<version>3.2.0-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
@@ -17,10 +17,6 @@
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-s3</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>

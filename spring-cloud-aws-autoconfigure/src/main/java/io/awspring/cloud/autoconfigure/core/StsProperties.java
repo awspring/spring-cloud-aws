@@ -44,7 +44,7 @@ public class StsProperties {
 	 * Enables provider to asynchronously fetch credentials in the background. Defaults to synchronous blocking if not
 	 * specified otherwise.
 	 */
-	private boolean isAsyncCredentialsUpdate = false;
+	private boolean asyncCredentialsUpdate = false;
 
 	/**
 	 * Role session name that will be used by credentials provider. By default this is read from
@@ -54,7 +54,7 @@ public class StsProperties {
 	private String roleSessionName;
 
 	public boolean isAsyncCredentialsUpdate() {
-		return isAsyncCredentialsUpdate;
+		return asyncCredentialsUpdate;
 	}
 
 	@Nullable
@@ -81,7 +81,7 @@ public class StsProperties {
 	}
 
 	public void setAsyncCredentialsUpdate(boolean asyncCredentialsUpdate) {
-		isAsyncCredentialsUpdate = asyncCredentialsUpdate;
+		this.asyncCredentialsUpdate = asyncCredentialsUpdate;
 	}
 
 	public void setRoleSessionName(@Nullable String roleSessionName) {

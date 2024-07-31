@@ -219,6 +219,7 @@ Such attributes are available as `MessageHeaders` in received messages.
 With `ContentBasedDeduplication#AUTO`, the queue attribute value will be resolved automatically.
 |===
 
+[[sqs-send-message]]
 ==== Sending Messages
 
 There are a number of available methods to send messages to SQS queues using the `SqsTemplate`.
@@ -240,6 +241,9 @@ SendResult<T> send(Consumer<SqsSendOptions> to);
 // Send a batch of Messages to the provided queue
 SendResult.Batch<T> sendMany(String queue, Collection<Message<T>> messages);
 ```
+
+NOTE: To send a collection of objects, it is recommended to use `sendMany(String queue, Collection<Message<T>> messages)` to optimize throughput.
+To send a collection of objects in a single message, the collection must be wrapped in an object.
 
 An example using the `options` variant follows:
 
@@ -611,6 +615,17 @@ Any number of `@SqsListener` annotations can be used in a bean class, and each a
 
 NOTE: Queues declared in the same annotation will share the container, though each will have separate throughput and acknowledgement controls.
 
+===== SNS Messages
+
+Since 3.1.1, when receiving SNS messages through the `@SqsListener`, the message includes all attributes of the `SnsNotification`. To only receive need the `Message` part of the payload, you can utilize the `@SnsNotificationMessage` annotation.
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(@SnsNotificationMessage Pojo pojo) {
+	System.out.println(pojo.field);
+}
+----
+
 ===== Specifying a MessageListenerContainerFactory
 A `MessageListenerContainerFactory` can be specified through the `factory` property.
 Such factory will then be used to create the container for the annotated method.
@@ -665,6 +680,8 @@ AcknowledgementMode must be set to `MANUAL` (see <<Acknowledging Messages>>)
 - `QueueAttributes` - provides queue attributes for the queue that received the message.
 See <<Retrieving Attributes from SQS>> for how to specify the queue attributes that will be fetched from `SQS`
 - `software.amazon.awssdk.services.sqs.model.Message` - provides the original `Message` from `SQS`
+
+NOTE: To receive a collection of objects in a single message, the collection must be wrapped in an object. See <<Sending Messages>>.
 
 Here's a sample with many arguments:
 
@@ -812,6 +829,11 @@ See AWS documentation for more information.
 After that period, the framework will try to perform a partial acquire with the available permits, resulting in a poll for less than `maxMessagesPerPoll` messages, unless otherwise configured.
 See <<Message Processing Throughput>>.
 
+|<<pollBackOffPolicy>>
+|Any valid `BackOffPolicy` implementation
+|`ExponentialBackOffPolicy`
+|The back off policy to be applied when a polling thread throws an error. The default is an exponential policy with a delay of `1s`, a multiplier of `2.0`, and a maximum of `10s`.
+
 |`autoStartup`
 |true, false
 |true
@@ -821,13 +843,13 @@ See <<Container Lifecycle>>.
 
 |`listenerShutdownTimeout`
 |0 - undefined
-|10 seconds
+|20 seconds
 |The amount of time the container will wait for a queue to complete message processing before attempting to forcefully shutdown.
 See <<Container Lifecycle>>.
 
 |`acknowledgementShutdownTimeout`
 |0 - undefined
-|10 seconds
+|20 seconds
 |The amount of time the container will wait for acknowledgements to complete for a queue after message processing has ended.
 See <<Container Lifecycle>>.
 
@@ -1226,6 +1248,8 @@ public interface MessagingMessageConverter<S> {
 
 The default header-based type mapping can be configured to use a different header name by using the `setPayloadTypeHeader` method.
 
+It is also possible not to include payload type information in the header by using the `doNotSendPayloadTypeHeader` method.
+
 More complex mapping can be achieved by using the `setPayloadTypeMapper` method, which overrides the default header-based mapping.
 This method receives a `Function<Message<?>, Class<?>> payloadTypeMapper` that will be applied to incoming messages.
 
@@ -1243,6 +1267,9 @@ SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter
 
 // Configure Type Header
 messageConverter.setPayloadTypeHeader("myTypeHeader");
+
+// Do not send Type Header
+messageConverter.doNotSendPayloadTypeHeader();
 
 // Configure Header Mapper
 SqsHeaderMapper headerMapper = new SqsHeaderMapper();
@@ -1568,6 +1595,11 @@ Set in `SqsContainerOptions`.
 Represents the maximum amount of time the container will wait for `maxMessagesPerPoll` permits to be available before trying to acquire a partial batch if so configured.
 This wait is applied per queue and one queue has no interference in another in this regard.
 Defaults to 10 seconds.
+
+===== pollBackOffPolicy
+Since 3.2 it's possible to specify a `BackOffPolicy` which will be applied when a polling thread throws an exception.
+The default policy is an exponential back off with a delay of 1000ms, a 2.0 multiplier, and a 10000ms maximum delay.
+Note that in highly concurrent environments with many polling threads it may happen that a successful poll cancels the next scheduled backoff before it happens, and as such no back offs need to be executed.
 
 ==== Default Polling Behavior
 By default, the framework starts all queues in `low throughput mode`, where it will perform one poll for messages at a time.
