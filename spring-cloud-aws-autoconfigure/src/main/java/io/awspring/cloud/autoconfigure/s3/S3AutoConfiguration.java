@@ -48,7 +48,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.util.ClassUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -155,8 +154,6 @@ public class S3AutoConfiguration {
 			propertyMapper.from(encryptionProperties::getKeyId).to(s3EncryptionBuilder::kmsKeyId);
 			return s3EncryptionBuilder.build();
 		}
-
-	}
 
 	@Configuration
 	@ConditionalOnClass(ObjectMapper.class)

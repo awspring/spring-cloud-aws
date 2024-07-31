@@ -69,6 +69,13 @@
 			</dependency>
 
 			<dependency>
+				<groupId>software.amazon.encryption.s3</groupId>
+				<artifactId>amazon-s3-encryption-client-java</artifactId>
+				<version>${amazon.encryption.s3}</version>
+				<optional>true</optional>
+			</dependency>
+
+			<dependency>
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>s3-transfer-manager</artifactId>
 				<version>${awssdk-v2.version}</version>

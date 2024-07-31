@@ -70,8 +70,14 @@ class S3AutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+			.withClassLoader(new FilteredClassLoader(S3EncryptionClient.class))
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
+
+	private final ApplicationContextRunner contextRunnerEncryption = new ApplicationContextRunner()
+		.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+		.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+			CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
 
 	@Test
 	void createsS3ClientBean() {
@@ -104,42 +110,33 @@ class S3AutoConfigurationTests {
 	@Nested
 	class S3ClientTests {
 		@Test
-		void byDefaultCreatesCrossRegionS3Client() {
-			contextRunner.run(
-					context -> assertThat(context).getBean(S3Client.class).isInstanceOf(CrossRegionS3Client.class));
-		}
-
-		@Test
 		void s3ClientCanBeOverwritten() {
-			contextRunner.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
+			contextRunnerEncryption.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
 				assertThat(context).hasSingleBean(S3Client.class);
-				assertThat(context).getBean(S3Client.class).isNotInstanceOf(CrossRegionS3Client.class);
 			});
 		}
 
 		@Test
 		void createsStandardClientWhenCrossRegionAndEncryptionModuleIsNotInClasspath() {
-			contextRunner.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class, S3EncryptionClient.class))
+			contextRunnerEncryption.withClassLoader(new FilteredClassLoader(S3EncryptionClient.class))
 					.run(context -> {
-						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+						assertThat(context).doesNotHaveBean(S3EncryptionClient.class);
 						assertThat(context).hasSingleBean(S3Client.class);
 					});
 		}
 
 		@Test
 		void createsEncryptionClientWhenCrossRegionModuleIsNotInClasspath() {
-			contextRunner.withPropertyValues("spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab")
-					.withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class)).run(context -> {
-						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
+			contextRunnerEncryption.withPropertyValues("spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab").run(context -> {
+
 						assertThat(context).hasSingleBean(S3EncryptionClient.class);
 					});
 		}
 
 		@Test
 		void createsEncryptionClientBackedByRsa() {
-			contextRunner.withPropertyValues().withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class))
+			contextRunnerEncryption.withPropertyValues()
 					.withUserConfiguration(CustomRsaProvider.class).run(context -> {
-						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
 						assertThat(context).hasSingleBean(S3EncryptionClient.class);
 						assertThat(context).hasSingleBean(S3RsaProvider.class);
 					});
@@ -147,9 +144,8 @@ class S3AutoConfigurationTests {
 
 		@Test
 		void createsEncryptionClientBackedByAes() {
-			contextRunner.withPropertyValues().withClassLoader(new FilteredClassLoader(CrossRegionS3Client.class))
+			contextRunnerEncryption.withPropertyValues()
 					.withUserConfiguration(CustomAesProvider.class).run(context -> {
-						assertThat(context).doesNotHaveBean(CrossRegionS3Client.class);
 						assertThat(context).hasSingleBean(S3EncryptionClient.class);
 						assertThat(context).hasSingleBean(S3AesProvider.class);
 					});
@@ -219,7 +215,7 @@ class S3AutoConfigurationTests {
 
 		@Test
 		void withoutJacksonOnClasspathDoesNotConfigureObjectConverter() {
-			contextRunner.withClassLoader(new FilteredClassLoader(ObjectMapper.class)).run(context -> {
+			contextRunner.withClassLoader(new FilteredClassLoader(ObjectMapper.class, S3EncryptionClient.class)).run(context -> {
 				assertThat(context).doesNotHaveBean(S3ObjectConverter.class);
 				assertThat(context).doesNotHaveBean(S3Template.class);
 			});
