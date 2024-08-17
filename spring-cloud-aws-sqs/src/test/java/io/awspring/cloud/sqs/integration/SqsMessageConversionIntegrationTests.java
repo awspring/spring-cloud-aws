@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -159,7 +161,8 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		byte[] notificationJsonContent = FileCopyUtils
 				.copyToByteArray(getClass().getClassLoader().getResourceAsStream("notificationMessage.json"));
 		String payload = new String(notificationJsonContent);
-		sqsTemplate.send(RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME, payload);
+		List<Message<String>> messages = IntStream.range(0, 10).mapToObj(index -> MessageBuilder.withPayload(payload).build()).toList();
+		sqsTemplate.sendMany(RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME, messages);
 		logger.debug("Sent message to queue {} with messageBody {}",
 				RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME, payload);
 		assertThat(latchContainer.resolvesPojoNotificationMessageListLatch.await(10, TimeUnit.SECONDS)).isTrue();
