@@ -24,16 +24,16 @@ package io.awspring.cloud.sqs.listener;
 public enum FifoBatchGroupingStrategy {
 
 	/**
-	 * Default strategy. Group messages by message group. Each batch contains messages from a single message group. The
-	 * order of messages within the group is preserved. As message groups are processed in parallel, this strategy
+	 * Default strategy. Group messages in batches by message group. Each batch contains messages from a single message group.
+	 * The order of messages within the group is preserved. As message groups are processed in parallel, this strategy
 	 * provides the maximal throughput.
 	 */
 	PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES,
 
 	/**
 	 * Each batch contains messages originating from multiple message groups. The order of messages within each group is
-	 * preserved. Indeed, FIFO queues do not serve messages from a group until all the messages of the previous batch
-	 * for that group have been acknowledged.
+	 * preserved. Note that FIFO queues do not serve new messages from a group until all the messages for that group in
+	 * the previous batch have been acknowledged or their visibility expired.
 	 */
 	PROCESS_MULTIPLE_GROUPS_IN_SAME_BATCH
 }

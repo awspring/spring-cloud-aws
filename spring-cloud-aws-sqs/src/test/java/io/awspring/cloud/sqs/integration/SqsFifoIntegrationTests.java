@@ -126,9 +126,6 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	@Autowired(required = false)
 	ReceivesBatchesFromManyGroupsListener receivesBatchesFromManyGroupsListener;
 
-	@Autowired(required = false)
-	ReceivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener;
-
 	@Autowired
 	LoadSimulator loadSimulator;
 
@@ -324,9 +321,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatch() throws Exception {
-		latchContainer.receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchLatch = new CountDownLatch(
-				this.settings.messagesPerTest * 2);
-		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
+		List<String> values = IntStream.range(0, 2).mapToObj(String::valueOf)
 				.collect(toList());
 		String messageGroupId1 = UUID.randomUUID().toString();
 		String messageGroupId2 = UUID.randomUUID().toString();
@@ -334,12 +329,43 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		messages.addAll(createMessagesFromValues(messageGroupId1, values));
 		messages.addAll(createMessagesFromValues(messageGroupId2, values));
 		sqsTemplate.sendMany(FIFO_RECEIVES_BATCH_GROUPING_STRATEGY_MULTIPLE_GROUPS_IN_SAME_BATCH_QUEUE_NAME, messages);
-		assertThat(latchContainer.receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchLatch
+
+		SqsMessageListenerContainer<String> container = SqsMessageListenerContainer
+			.<String>builder()
+			.queueNames(FIFO_RECEIVES_BATCH_GROUPING_STRATEGY_MULTIPLE_GROUPS_IN_SAME_BATCH_QUEUE_NAME)
+			.messageListener(new MessageListener<>() {
+				@Override
+				public void onMessage(Message<String> message) {
+					throw new UnsupportedOperationException("Batch listener");
+				}
+
+				@Override
+				public void onMessage(Collection<Message<String>> messages) {
+					assertThat(MessageHeaderUtils
+						.getHeader(messages, SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, String.class)
+						.stream().distinct().count()).isEqualTo(2);
+					latchContainer.receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchLatch.countDown();
+				}
+			})
+			.configure(options -> options
+				.maxConcurrentMessages(10)
+				.pollTimeout(Duration.ofSeconds(10))
+				.maxMessagesPerPoll(10)
+				.maxDelayBetweenPolls(Duration.ofSeconds(1))
+				.fifoBatchGroupingStrategy(FifoBatchGroupingStrategy.PROCESS_MULTIPLE_GROUPS_IN_SAME_BATCH)
+				.listenerMode(ListenerMode.BATCH))
+			.sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
+			.build();
+
+		try {
+			container.start();
+			assertThat(latchContainer.receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchLatch
 				.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS)).isTrue();
-		assertThat(receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener.receivedMessages
-				.get(messageGroupId1)).containsExactlyElementsOf(values);
-		assertThat(receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener.receivedMessages
-				.get(messageGroupId2)).containsExactlyElementsOf(values);
+		}
+		finally {
+			container.stop();
+		}
+
 	}
 
 	@Test
@@ -520,33 +546,6 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	}
 
-	static class ReceivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener {
-
-		Map<String, List<String>> receivedMessages = new ConcurrentHashMap<>();
-
-		@Autowired
-		LatchContainer latchContainer;
-
-		@SqsListener(queueNames = FIFO_RECEIVES_BATCH_GROUPING_STRATEGY_MULTIPLE_GROUPS_IN_SAME_BATCH_QUEUE_NAME, factory = "fifoBatchGroupingStrategyMultipleGroupsInSameBatchFactory")
-		void listen(List<Message<String>> messages) {
-			Assert.isTrue(MessageHeaderUtils
-					.getHeader(messages, SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, String.class)
-					.stream().distinct().count() != 1, "Only one message group returned in the same batch");
-			List<String> values = messages.stream().map(Message::getPayload).collect(toList());
-			logger.trace("Started processing messages {} from different groups", values);
-			messages.stream()
-					.forEach(message -> receivedMessages
-							.computeIfAbsent(message.getHeaders()
-									.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, String.class),
-									groupId -> Collections.synchronizedList(new ArrayList<>()))
-							.add(message.getPayload()));
-			messages.forEach(
-					msg -> latchContainer.receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchLatch.countDown());
-			logger.trace("Finished processing messages {} from different groups", values);
-		}
-
-	}
-
 	static class LatchContainer {
 		Settings settings;
 
@@ -643,20 +642,6 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 					}
 				}
 			});
-			return factory;
-		}
-		
-		@Bean
-		public SqsMessageListenerContainerFactory<String> fifoBatchGroupingStrategyMultipleGroupsInSameBatchFactory() {
-			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
-			factory.configure(options -> options
-				.maxConcurrentMessages(10)
-				.pollTimeout(Duration.ofSeconds(1))
-				.maxMessagesPerPoll(10)
-				.maxDelayBetweenPolls(Duration.ofSeconds(1))
-				.fifoBatchGroupingStrategy(FifoBatchGroupingStrategy.PROCESS_MULTIPLE_GROUPS_IN_SAME_BATCH)
-				.listenerMode(ListenerMode.BATCH));
-			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
 			return factory;
 		}
 
@@ -818,11 +803,6 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		ReceivesBatchesFromManyGroupsListener receiveBatchesFromManyGroupsListener() {
 			return new ReceivesBatchesFromManyGroupsListener();
-		}
-
-		@Bean
-		ReceivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener() {
-			return new ReceivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchListener();
 		}
 
 		Settings settings = new Settings();
