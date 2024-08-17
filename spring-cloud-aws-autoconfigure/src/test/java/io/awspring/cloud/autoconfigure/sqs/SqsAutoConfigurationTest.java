@@ -32,6 +32,7 @@ import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
+import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
@@ -60,6 +61,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
  * Tests for {@link SqsAutoConfiguration}.
  *
  * @author Tomaz Fernandes
+ * @author Wei Jiang
  */
 class SqsAutoConfigurationTest {
 
@@ -107,6 +109,18 @@ class SqsAutoConfigurationTest {
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SqsAsyncClient.class));
 			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
 			assertThat(client.isEndpointOverridden()).isTrue();
+		});
+	}
+
+	@Test
+	void withCustomQueueNotFoundStrategy() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.queue-not-found-strategy=fail").run(context -> {
+			assertThat(context).hasSingleBean(SqsProperties.class);
+			SqsProperties sqsProperties = context.getBean(SqsProperties.class);
+			assertThat(context).hasSingleBean(SqsAsyncClient.class);
+			assertThat(context).hasSingleBean(SqsTemplate.class);
+			assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+			assertThat(sqsProperties.getQueueNotFoundStrategy()).isEqualTo(QueueNotFoundStrategy.FAIL);
 		});
 	}
 

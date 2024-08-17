@@ -29,6 +29,7 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
@@ -51,6 +52,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
  *
  * @author Tomaz Fernandes
  * @author Maciej Walkowiak
+ * @author Wei Jiang
  * @since 3.0
  */
 @AutoConfiguration
@@ -82,6 +84,9 @@ public class SqsAutoConfiguration {
 		SqsTemplateBuilder builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
 		objectMapperProvider
 				.ifAvailable(om -> builder.configureDefaultConverter(converter -> converter.setObjectMapper(om)));
+		if (sqsProperties.getQueueNotFoundStrategy() != null) {
+			builder.configure((options) -> options.queueNotFoundStrategy(sqsProperties.getQueueNotFoundStrategy()));
+		}
 		return builder.build();
 	}
 
@@ -112,8 +117,9 @@ public class SqsAutoConfiguration {
 		factory.configure(options -> options.messageConverter(messageConverter));
 	}
 
-	private void configureContainerOptions(ContainerOptionsBuilder<?, ?> options) {
+	private void configureContainerOptions(SqsContainerOptionsBuilder options) {
 		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
+		mapper.from(this.sqsProperties.getQueueNotFoundStrategy()).to(options::queueNotFoundStrategy);
 		mapper.from(this.sqsProperties.getListener().getMaxConcurrentMessages()).to(options::maxConcurrentMessages);
 		mapper.from(this.sqsProperties.getListener().getMaxMessagesPerPoll()).to(options::maxMessagesPerPoll);
 		mapper.from(this.sqsProperties.getListener().getPollTimeout()).to(options::pollTimeout);
