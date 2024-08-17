@@ -114,13 +114,13 @@ class SqsAutoConfigurationTest {
 
 	@Test
 	void withCustomQueueNotFoundStrategy() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.options.queue-not-found-strategy:fail").run(context -> {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.queue-not-found-strategy=fail").run(context -> {
 			assertThat(context).hasSingleBean(SqsProperties.class);
 			SqsProperties sqsProperties = context.getBean(SqsProperties.class);
 			assertThat(context).hasSingleBean(SqsAsyncClient.class);
 			assertThat(context).hasSingleBean(SqsTemplate.class);
 			assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
-			assertThat(sqsProperties.getOptions().getQueueNotFoundStrategy()).isEqualTo(QueueNotFoundStrategy.FAIL);
+			assertThat(sqsProperties.getQueueNotFoundStrategy()).isEqualTo(QueueNotFoundStrategy.FAIL);
 		});
 	}
 

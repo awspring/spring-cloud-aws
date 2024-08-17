@@ -24,6 +24,7 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sqs.QueueAttributesResolvingException;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import org.testcontainers.shaded.org.bouncycastle.util.Arrays;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 
 import java.util.concurrent.CompletionException;
@@ -56,28 +57,30 @@ class SqsAutoConfigurationIntegrationTest {
 
 	private static final String PAYLOAD = "Test";
 
-	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withPropertyValues("spring.cloud.aws.sqs.region=eu-west-1",
-					"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpoint(),
-					"spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
-					"spring.cloud.aws.region.static=eu-west-1")
-			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, SqsAutoConfiguration.class, AwsAutoConfiguration.class,
-					ListenerConfiguration.class));
-
-	private final ApplicationContextRunner contextRunnerWithFailQueueNotFoundStrategy = new ApplicationContextRunner()
-			.withPropertyValues("spring.cloud.aws.sqs.region=eu-west-1",
-					"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpoint(),
-					"spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
-					"spring.cloud.aws.region.static=eu-west-1",
-					"spring.cloud.aws.sqs.options.queue-not-found-strategy:fail")
-			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, SqsAutoConfiguration.class, AwsAutoConfiguration.class,
-					ListenerConfiguration.class));
-
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.2.0"));
+		DockerImageName.parse("localstack/localstack:3.2.0"));
+
+	static {
+		localstack.start();
+	}
+
+	private static final String[] BASE_PARAMS = {"spring.cloud.aws.sqs.region=eu-west-1",
+					"spring.cloud.aws.sqs.endpoint=" + localstack.getEndpoint(),
+						"spring.cloud.aws.credentials.access-key=noop", "spring.cloud.aws.credentials.secret-key=noop",
+						"spring.cloud.aws.region.static=eu-west-1"};
+
+	private static final AutoConfigurations BASE_CONFIGURATIONS = AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+		CredentialsProviderAutoConfiguration.class, SqsAutoConfiguration.class, AwsAutoConfiguration.class,
+		ListenerConfiguration.class);
+
+	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withPropertyValues(BASE_PARAMS)
+			.withConfiguration(BASE_CONFIGURATIONS);
+
+	private final ApplicationContextRunner applicationContextRunnerWithFailStrategy = new ApplicationContextRunner()
+		.withPropertyValues(Arrays.append(BASE_PARAMS, "spring.cloud.aws.sqs.queue-not-found-strategy=fail"))
+		.withConfiguration(BASE_CONFIGURATIONS);
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -91,27 +94,22 @@ class SqsAutoConfigurationIntegrationTest {
 	}
 
 	@Test
-	void sendsMessageWithFailQueueNotFoundStrategy() {
-		this.contextRunnerWithFailQueueNotFoundStrategy.run(context -> {
-			assertThatThrownBy(() -> {
-				SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
-				sqsTemplate.send(to -> to.queue("QUEUE_DOES_NOT_EXISTS").payload(PAYLOAD));
-			}).isInstanceOf(IllegalStateException.class).cause().isInstanceOf(ApplicationContextException.class).cause()
-			.isInstanceOf(CompletionException.class).cause().isInstanceOf(QueueAttributesResolvingException.class)
-			.cause().isInstanceOf(QueueDoesNotExistException.class);
-		});
+	void containerReceivesMessageWithFailQueueNotFoundStrategy() {
+		applicationContextRunnerWithFailStrategy.run(context ->
+				assertThatThrownBy(() -> context.getBean(SqsTemplate.class).send(to -> to.queue("QUEUE_DOES_NOT_EXISTS").payload(PAYLOAD)))
+					.isInstanceOf(IllegalStateException.class).cause().isInstanceOf(ApplicationContextException.class).cause()
+					.isInstanceOf(CompletionException.class).cause().isInstanceOf(QueueAttributesResolvingException.class)
+					.cause().isInstanceOf(QueueDoesNotExistException.class));
 	}
 
 	@Test
-	void receivesMessageWithFailQueueNotFoundStrategy() {
-		this.contextRunnerWithFailQueueNotFoundStrategy.run(context -> {
-			assertThatThrownBy(() -> {
-				SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
-				sqsTemplate.receive("QUEUE_DOES_NOT_EXISTS", String.class);
-			}).isInstanceOf(IllegalStateException.class).cause().isInstanceOf(ApplicationContextException.class).cause()
-			.isInstanceOf(CompletionException.class).cause().isInstanceOf(QueueAttributesResolvingException.class)
-			.cause().isInstanceOf(QueueDoesNotExistException.class);
-		});
+	void templateReceivesMessageWithFailQueueNotFoundStrategy() {
+		applicationContextRunnerWithFailStrategy
+			.run(context ->
+				assertThatThrownBy(() -> context.getBean(SqsTemplate.class).receive("QUEUE_DOES_NOT_EXIST", String.class))
+					.isInstanceOf(IllegalStateException.class).cause().isInstanceOf(ApplicationContextException.class).cause()
+					.isInstanceOf(CompletionException.class).cause().isInstanceOf(QueueAttributesResolvingException.class)
+					.cause().isInstanceOf(QueueDoesNotExistException.class));
 	}
 
 	static class Listener {

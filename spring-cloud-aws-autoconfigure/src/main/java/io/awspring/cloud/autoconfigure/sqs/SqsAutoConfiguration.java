@@ -84,9 +84,9 @@ public class SqsAutoConfiguration {
 		SqsTemplateBuilder builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
 		objectMapperProvider
 				.ifAvailable(om -> builder.configureDefaultConverter(converter -> converter.setObjectMapper(om)));
-		builder.configure((options) -> {
-			options.queueNotFoundStrategy(sqsProperties.getOptions().getQueueNotFoundStrategy());
-		});
+		if (sqsProperties.getQueueNotFoundStrategy() != null) {
+			builder.configure((options) -> options.queueNotFoundStrategy(sqsProperties.getQueueNotFoundStrategy()));
+		}
 		return builder.build();
 	}
 
@@ -117,11 +117,9 @@ public class SqsAutoConfiguration {
 		factory.configure(options -> options.messageConverter(messageConverter));
 	}
 
-	private void configureContainerOptions(ContainerOptionsBuilder<?, ?> options) {
-		SqsContainerOptionsBuilder sqsContainerOptions = (SqsContainerOptionsBuilder) options;
-		sqsContainerOptions.queueNotFoundStrategy(sqsProperties.getOptions().getQueueNotFoundStrategy());
-
+	private void configureContainerOptions(SqsContainerOptionsBuilder options) {
 		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
+		mapper.from(this.sqsProperties.getQueueNotFoundStrategy()).to(options::queueNotFoundStrategy);
 		mapper.from(this.sqsProperties.getListener().getMaxConcurrentMessages()).to(options::maxConcurrentMessages);
 		mapper.from(this.sqsProperties.getListener().getMaxMessagesPerPoll()).to(options::maxMessagesPerPoll);
 		mapper.from(this.sqsProperties.getListener().getPollTimeout()).to(options::pollTimeout);

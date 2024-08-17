@@ -39,8 +39,6 @@ public class SqsProperties extends AwsClientProperties {
 
 	private Listener listener = new Listener();
 
-	private Options options = new Options();
-
 	public Listener getListener() {
 		return this.listener;
 	}
@@ -49,12 +47,24 @@ public class SqsProperties extends AwsClientProperties {
 		this.listener = listener;
 	}
 
-	public Options getOptions() {
-		return this.options;
+	@Nullable
+	private QueueNotFoundStrategy queueNotFoundStrategy;
+
+	/**
+	 * Return the strategy to use if the queue is not found.
+	 * @return the {@link QueueNotFoundStrategy}
+	 */
+	@Nullable
+	public QueueNotFoundStrategy getQueueNotFoundStrategy() {
+		return queueNotFoundStrategy;
 	}
 
-	public void setOptions(Options options) {
-		this.options = options;
+	/**
+	 * Set the strategy to use if the queue is not found.
+	 * @param queueNotFoundStrategy the strategy to set.
+	 */
+	public void setQueueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
+		this.queueNotFoundStrategy = queueNotFoundStrategy;
 	}
 
 	public static class Listener {
@@ -104,23 +114,6 @@ public class SqsProperties extends AwsClientProperties {
 		public void setPollTimeout(Duration pollTimeout) {
 			this.pollTimeout = pollTimeout;
 		}
-	}
-
-	public static class Options {
-
-		/**
-		 * The default {@link QueueNotFoundStrategy}
-		 */
-		private QueueNotFoundStrategy queueNotFoundStrategy = QueueNotFoundStrategy.CREATE;
-
-		public QueueNotFoundStrategy getQueueNotFoundStrategy() {
-			return queueNotFoundStrategy;
-		}
-
-		public void setQueueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
-			this.queueNotFoundStrategy = queueNotFoundStrategy;
-		}
-
 	}
 
 }
