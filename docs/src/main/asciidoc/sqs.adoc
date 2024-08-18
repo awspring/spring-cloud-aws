@@ -690,6 +690,7 @@ AcknowledgementMode must be set to `MANUAL` (see <<Acknowledging Messages>>)
 - `BatchAcknowledgement` - provides methods for manually acknowledging partial or whole message batches for batch listeners.
 AcknowledgementMode must be set to `MANUAL` (see <<Acknowledging Messages>>)
 - `Visibility` - provides the `changeTo()` method that enables changing the message's visibility to the provided value.
+- `BatchVisibility` - provides `changeTo()` methods that enables changing partial or whole message batches visibility to the provided value.
 - `QueueAttributes` - provides queue attributes for the queue that received the message.
 See <<Retrieving Attributes from SQS>> for how to specify the queue attributes that will be fetched from `SQS`
 - `software.amazon.awssdk.services.sqs.model.Message` - provides the original `Message` from `SQS`
@@ -712,7 +713,7 @@ public void listen(Message<MyPojo> message, MyPojo pojo, MessageHeaders headers,
 }
 ----
 
-IMPORTANT: Batch listeners support a single `List<MyPojo>` and `List<Message<MyPojo>>` method arguments, and an optional `BatchAcknowledgement` or `AsyncBatchAcknowledgement` arguments.
+IMPORTANT: Batch listeners support a single `List<MyPojo>` and `List<Message<MyPojo>>` method arguments, and optional `BatchAcknowledgement` (or `AsyncBatchAcknowledgement`) and `BatchVisibility` arguments.
 `MessageHeaders` should be extracted from the `Message` instances through the `getHeaders()` method.
 
 ==== Batch Processing
@@ -724,7 +725,9 @@ When batch mode is enabled, the framework will serve the entire result of a poll
 If a value greater than 10 is provided for `maxMessagesPerPoll`, the result of multiple polls will be combined and up to the respective amount of messages will be served to the listener.
 
 To enable batch processing using `@SqsListener`, a single `List<MyPojo>` or `List<Message<MyPojo>>` method argument should be provided in the listener method.
-The listener method can also have an optional `BatchAcknowledgement` argument for `AcknowledgementMode.MANUAL`.
+The listener method can also have:
+- an optional `BatchAcknowledgement` argument for `AcknowledgementMode.MANUAL`
+- an optional `BatchVisibility` argument
 
 Alternatively, `SqsContainerOptions` can be set to `ListenerMode.BATCH` in the `SqsContainerOptions` in the factory or container.
 
