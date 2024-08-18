@@ -15,14 +15,15 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import io.awspring.cloud.sqs.CollectionUtils;
-import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
+
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * {@link Visibility} implementation for SQS messages.
@@ -53,6 +54,17 @@ public class QueueMessageVisibility implements Visibility {
 		this.receiptHandle = receiptHandle;
 	}
 
+	/**
+	 * Create a {@link BatchVisibility} instance with the provided messages' receipt handlers.
+	 * @param messages the messages to populate the {@link BatchVisibility} instance.
+	 * @return {@link BatchVisibility} instance.
+	 */
+	public BatchVisibility toBatchVisibility(Collection<Message<?>> messages) {
+		return new QueueMessageBatchVisibility(this.sqsAsyncClient, this.queueUrl, messages.stream()
+			.map(message -> MessageHeaderUtils.getHeader(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, String.class))
+			.collect(Collectors.toList()));
+	}
+
 	@Override
 	public CompletableFuture<Void> changeToAsync(int seconds) {
 		return this.sqsAsyncClient
@@ -60,34 +72,6 @@ public class QueueMessageVisibility implements Visibility {
 						req -> req.queueUrl(this.queueUrl).receiptHandle(this.receiptHandle).visibilityTimeout(seconds))
 				.thenRun(() -> logger.trace("Changed the visibility of message {} to {} seconds", this.receiptHandle,
 						seconds));
-	}
-
-	// TODO this is used by QueueMessageBatchVisibility to change visibility of multiple messages.
-	// This design is far from ideal, but it is very simple and minimizes changes.
-	// It is public so BatchVisibilityArgumentResolverTests can access the method.
-	public CompletableFuture<Void> changeToAsyncBatch(int seconds, Collection<? extends Message<?>> messages) {
-		CollectionUtils.partition(messages, 10).forEach(batch -> sqsAsyncClient
-				.changeMessageVisibilityBatch(req -> req.queueUrl(queueUrl)
-						.entries(batch.stream().map(QueueMessageVisibility::fromMessage)
-								.map(v -> ChangeMessageVisibilityBatchRequestEntry.builder()
-										.receiptHandle(v.receiptHandle).visibilityTimeout(seconds).build())
-								.toList()))
-				.thenRun(() -> logger.trace("Changed the visibility of {} message to {} seconds", batch.size(),
-						seconds)));
-		return CompletableFuture.completedFuture(null);
-	}
-
-	public static QueueMessageVisibility fromMessage(Message<?> message) {
-		Object visibilityObject = message.getHeaders().get(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER);
-		if (visibilityObject == null) {
-			throw new IllegalArgumentException("No visibility object found for message header: '"
-					+ SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER + "'");
-		}
-		if (!(visibilityObject instanceof QueueMessageVisibility)) {
-			throw new IllegalArgumentException(
-					"Visibility object not of expected  " + QueueMessageBatchVisibility.class);
-		}
-		return (QueueMessageVisibility) visibilityObject;
 	}
 
 }

@@ -61,6 +61,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeAll;
@@ -133,6 +134,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String MANUAL_ACK_FACTORY = "manualAcknowledgementFactory";
 
+	static final String MANUAL_ACK_BATCH_FACTORY = "manualAcknowledgementBatchFactory";
+
 	static final String ACK_AFTER_SECOND_ERROR_FACTORY = "ackAfterSecondErrorFactory";
 
 	@BeforeAll
@@ -183,9 +186,9 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void receivesMessageBatch() throws Exception {
-		String messageBody = "receivesMessageBatch-payload";
-		sqsTemplate.send(RECEIVES_MESSAGE_BATCH_QUEUE_NAME, messageBody);
-		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_BATCH_QUEUE_NAME, messageBody);
+		List<Message<String>> messages = create10Messages("receivesMessageBatch");
+		sqsTemplate.sendMany(RECEIVES_MESSAGE_BATCH_QUEUE_NAME, messages);
+		logger.debug("Sent 10 messages to queue {}", RECEIVES_MESSAGE_BATCH_QUEUE_NAME);
 		assertThat(latchContainer.receivesMessageBatchLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.acknowledgementCallbackBatchLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
@@ -360,12 +363,23 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = RECEIVES_MESSAGE_BATCH_QUEUE_NAME, factory = MANUAL_ACK_FACTORY, id = "receivesMessageBatchListener")
+		AtomicBoolean firstPass = new AtomicBoolean(true);
+
+		@SqsListener(queueNames = RECEIVES_MESSAGE_BATCH_QUEUE_NAME, factory = MANUAL_ACK_BATCH_FACTORY, id = "receivesMessageBatchListener")
 		CompletableFuture<Void> listen(List<String> messages, BatchAcknowledgement<String> acknowledgement,
-				BatchVisibility<String> visibility) {
+				BatchVisibility visibility) throws Exception {
 			logger.debug("Received messages in listener: " + messages);
-			latchContainer.receivesMessageBatchLatch.countDown();
-			return acknowledgement.acknowledgeAsync();
+
+			if (firstPass.compareAndSet(true, false)) {
+				visibility.changeTo(1);
+				Thread.sleep(1000);
+			}
+			else {
+				acknowledgement.acknowledge();
+			}
+
+			messages.forEach(msg -> latchContainer.receivesMessageBatchLatch.countDown());
+			return CompletableFuture.completedFuture(null);
 		}
 	}
 
@@ -483,7 +497,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	static class LatchContainer {
 
 		final CountDownLatch receivesMessageLatch = new CountDownLatch(1);
-		final CountDownLatch receivesMessageBatchLatch = new CountDownLatch(1);
+		final CountDownLatch receivesMessageBatchLatch = new CountDownLatch(20);
 		final CountDownLatch receivesMessageAsyncLatch = new CountDownLatch(1);
 		final CountDownLatch doesNotAckLatch = new CountDownLatch(2);
 		final CountDownLatch doesNotAckAsyncLatch = new CountDownLatch(2);
@@ -597,6 +611,30 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 					.maxMessagesPerPoll(1)
 					.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 					.maxDelayBetweenPolls(Duration.ofSeconds(1)))
+				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+				.acknowledgementResultCallback(new AcknowledgementResultCallback<Object>() {
+					@Override
+					public void onSuccess(Collection<Message<Object>> messages) {
+						if (RECEIVES_MESSAGE_BATCH_QUEUE_NAME.equals(MessageHeaderUtils.getHeaderAsString(messages.iterator().next(),
+							SqsHeaders.SQS_QUEUE_NAME_HEADER))) {
+							latchContainer.acknowledgementCallbackBatchLatch.countDown();
+						}
+					}
+				})
+				.build();
+		}
+
+		@Bean(name = MANUAL_ACK_BATCH_FACTORY)
+		public SqsMessageListenerContainerFactory<Object> manualAcknowledgementBatchFactory() {
+			return SqsMessageListenerContainerFactory
+				.builder()
+				.configure(options -> options
+					.acknowledgementMode(AcknowledgementMode.MANUAL)
+					.maxConcurrentMessages(10)
+					.pollTimeout(Duration.ofSeconds(10))
+					.maxMessagesPerPoll(10)
+					.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
+					.maxDelayBetweenPolls(Duration.ofSeconds(10)))
 				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
 				.acknowledgementResultCallback(new AcknowledgementResultCallback<Object>() {
 					@Override

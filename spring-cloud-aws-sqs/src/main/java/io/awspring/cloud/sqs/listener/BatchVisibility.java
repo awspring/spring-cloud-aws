@@ -15,47 +15,32 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import org.springframework.messaging.Message;
 
 /**
  * BatchVisibility interface that can be injected as parameter into a listener method. The purpose of this interface is
  * to provide a way for the listener methods to extend the visibility timeout of the messages being currently processed.
  *
  * @author Clement Denis
+ * @author Tomaz Fernandes
  * @since 3.3
  */
-public interface BatchVisibility<T> {
+public interface BatchVisibility {
 
 	/**
-	 * Asynchronously changes all messages visibility to the provided value. // * @param seconds number of seconds to
-	 * set the visibility of all messages to.
+	 * Asynchronously changes the provided messages visibility to the provided value.
+	 * @param seconds number of seconds to set the visibility of the provided messages to.
+	 * seconds to set the visibility of provided messages to.
 	 * @return a completable future.
 	 */
 	CompletableFuture<Void> changeToAsync(int seconds);
 
 	/**
-	 * Changes all messages visibility to the provided value.
-	 * @param seconds number of seconds to set the visibility of all messages to.
-	 */
-	default void changeTo(int seconds) {
-		changeToAsync(seconds).join();
-	}
-
-	/**
-	 * Asynchronously changes the provided messages visibility to the provided value. // * @param seconds number of
-	 * seconds to set the visibility of provided messages to.
-	 * @return a completable future.
-	 */
-	CompletableFuture<Void> changeToAsync(Collection<Message<T>> messages, int seconds);
-
-	/**
 	 * Changes the provided messages visibility to the provided value.
 	 * @param seconds number of seconds to set the visibility of the provided messages to.
 	 */
-	default void changeTo(Collection<Message<T>> messages, int seconds) {
-		changeToAsync(messages, seconds).join();
+	default void changeTo(int seconds) {
+		changeToAsync(seconds).join();
 	}
 
 }

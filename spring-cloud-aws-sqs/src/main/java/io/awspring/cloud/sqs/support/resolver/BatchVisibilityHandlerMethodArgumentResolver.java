@@ -15,22 +15,31 @@
  */
 package io.awspring.cloud.sqs.support.resolver;
 
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.BatchVisibility;
-import io.awspring.cloud.sqs.listener.QueueMessageBatchVisibility;
-import java.util.Collection;
+import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import java.util.Collection;
+
 /**
  * {@link HandlerMethodArgumentResolver} for {@link BatchVisibility} method parameters.
  *
  * @author Clement Denis
+ * @author Tomaz Fernandes
  * @since 3.3
  */
 public class BatchVisibilityHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
+
+	private final String visibilityHeaderName;
+
+	public BatchVisibilityHandlerMethodArgumentResolver(String visibilityHeaderName) {
+		this.visibilityHeaderName = visibilityHeaderName;
+	}
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
@@ -40,9 +49,16 @@ public class BatchVisibilityHandlerMethodArgumentResolver implements HandlerMeth
 	@SuppressWarnings("unchecked")
 	@Override
 	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
+
 		Object payloadObject = message.getPayload();
 		Assert.isInstanceOf(Collection.class, payloadObject, "Payload must be instance of Collection");
-		return new QueueMessageBatchVisibility<>((Collection<Message<Object>>) payloadObject);
+		Collection<Message<?>> messages = (Collection<Message<?>>) payloadObject;
+
+		QueueMessageVisibility visibilityObject = MessageHeaderUtils.getHeader(messages
+			.iterator()
+			.next(), visibilityHeaderName, QueueMessageVisibility.class);
+
+		return visibilityObject.toBatchVisibility(messages);
 	}
 
 }

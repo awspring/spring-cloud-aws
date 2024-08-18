@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.support.resolver;
 
-import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
 import io.awspring.cloud.sqs.listener.Visibility;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
@@ -30,6 +29,12 @@ import org.springframework.util.ClassUtils;
  */
 public class VisibilityHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
+	private final String visibilityHeaderName;
+
+	public VisibilityHandlerMethodArgumentResolver(String visibilityHeaderName) {
+		this.visibilityHeaderName = visibilityHeaderName;
+	}
+
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
 		return ClassUtils.isAssignable(Visibility.class, parameter.getParameterType());
@@ -37,7 +42,12 @@ public class VisibilityHandlerMethodArgumentResolver implements HandlerMethodArg
 
 	@Override
 	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
-		return QueueMessageVisibility.fromMessage(message);
+		if (!message.getHeaders().containsKey(this.visibilityHeaderName)
+				|| message.getHeaders().get(this.visibilityHeaderName) == null) {
+			throw new IllegalArgumentException(
+					"No visibility object found for message header: '" + this.visibilityHeaderName + "'");
+		}
+		return message.getHeaders().get(this.visibilityHeaderName);
 	}
 
 }
