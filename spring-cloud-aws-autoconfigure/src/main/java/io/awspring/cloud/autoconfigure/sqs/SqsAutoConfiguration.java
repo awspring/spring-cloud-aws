@@ -47,6 +47,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SQS integration.
@@ -82,10 +84,9 @@ public class SqsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObjectProvider<ObjectMapper> objectMapperProvider) {
+	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObjectProvider<ObjectMapper> objectMapperProvider, MessagingMessageConverter<Message> messageConverter) {
 		SqsTemplateBuilder builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
-		objectMapperProvider
-				.ifAvailable(om -> builder.configureDefaultConverter(converter -> converter.setObjectMapper(om)));
+		objectMapperProvider.ifAvailable(om -> setMapperToConverter(messageConverter, om));
 		if (sqsProperties.getQueueNotFoundStrategy() != null) {
 			builder.configure((options) -> options.queueNotFoundStrategy(sqsProperties.getQueueNotFoundStrategy()));
 		}
@@ -103,26 +104,26 @@ public class SqsAutoConfiguration {
 			MessagingMessageConverter<?> messagingMessageConverter) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
-		factory.configure(this::configureContainerOptions);
+		factory.configure(this::configureProperties);
 		sqsAsyncClient.ifAvailable(factory::setSqsAsyncClient);
 		asyncErrorHandler.ifAvailable(factory::setErrorHandler);
 		errorHandler.ifAvailable(factory::setErrorHandler);
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
-		objectMapperProvider.ifAvailable(objectMapper -> {
-			if (messagingMessageConverter instanceof SqsMessagingMessageConverter) {
-				((SqsMessagingMessageConverter) messagingMessageConverter).setObjectMapper(objectMapper);
-			}
-		});
-
 		factory.configure(options -> options.messageConverter(messagingMessageConverter));
-
+		objectMapperProvider.ifAvailable(om -> setMapperToConverter(messagingMessageConverter, om));
 		return factory;
+	}
+
+	private void setMapperToConverter(MessagingMessageConverter<?> messagingMessageConverter, ObjectMapper om) {
+		if (messagingMessageConverter instanceof SqsMessagingMessageConverter sqsConverter) {
+			sqsConverter.setObjectMapper(om);
+		}
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public MessagingMessageConverter<?> defaultMessageConverter() {
+	public MessagingMessageConverter<Message> messageConverter() {
 		return new SqsMessagingMessageConverter();
 	}
 
