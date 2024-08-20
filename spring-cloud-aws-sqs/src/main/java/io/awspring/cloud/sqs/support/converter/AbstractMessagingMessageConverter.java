@@ -226,11 +226,8 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	}
 
 	private Message<?> convertPayload(Message<?> message, Object payload) {
-		return Objects.requireNonNull(
-			this.payloadMessageConverter instanceof SmartMessageConverter smartConverter
-				? smartConverter.toMessage(payload, message.getHeaders(), String.class)
-				: this.payloadMessageConverter.toMessage(payload, message.getHeaders())
-			, () -> "payloadMessageConverter returned null message for message " + message);
+		return Objects.requireNonNull(this.payloadMessageConverter.toMessage(payload, message.getHeaders()),
+			() -> "payloadMessageConverter returned null message for message " + message);
 	}
 
 	private MessageHeaders getMessageHeaders(Message<?> message) {
@@ -244,10 +241,16 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	private CompositeMessageConverter createDefaultCompositeMessageConverter() {
 		List<MessageConverter> messageConverters = new ArrayList<>();
-		messageConverters.add(new SimpleMessageConverter());
+		messageConverters.add(createClassMatchingMessageConverter());
 		messageConverters.add(createStringMessageConverter());
 		messageConverters.add(createDefaultMappingJackson2MessageConverter());
 		return new CompositeMessageConverter(messageConverters);
+	}
+
+	private SimpleClassMatchingMessageConverter createClassMatchingMessageConverter() {
+		SimpleClassMatchingMessageConverter matchingMessageConverter = new SimpleClassMatchingMessageConverter();
+		matchingMessageConverter.setSerializedPayloadClass(String.class);
+		return matchingMessageConverter;
 	}
 
 	private StringMessageConverter createStringMessageConverter() {
