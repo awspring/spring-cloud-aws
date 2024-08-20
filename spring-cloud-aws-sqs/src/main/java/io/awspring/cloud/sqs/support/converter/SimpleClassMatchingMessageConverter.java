@@ -17,7 +17,7 @@ public class SimpleClassMatchingMessageConverter extends AbstractMessageConverte
 
 	@Override
 	protected boolean supports(Class<?> clazz) {
-		return clazz.isAssignableFrom(getSerializedPayloadClass());
+		return true;
 	}
 
 	@Nullable
@@ -30,6 +30,6 @@ public class SimpleClassMatchingMessageConverter extends AbstractMessageConverte
 	@Nullable
 	@Override
 	protected Object convertToInternal(Object payload, @Nullable MessageHeaders headers, @Nullable Object conversionHint) {
-		return payload;
+		return payload.getClass().isAssignableFrom(getSerializedPayloadClass()) ? payload : null;
 	}
 }
