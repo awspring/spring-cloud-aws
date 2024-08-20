@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -58,6 +59,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  *
  * @author Tomaz Fernandes
  * @author Mikhail Strokov
+ * @author Dongha Kim
  * @author Wei Jiang
  */
 @SpringBootTest
@@ -171,6 +173,20 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	private Map<String, Object> getHeaderMapping(Class<?> clazz) {
 		return Collections.singletonMap(SqsHeaders.SQS_DEFAULT_TYPE_HEADER, clazz.getName());
 	}
+
+	@Test
+	void shouldSendAndReceiveJsonString() throws Exception {
+		String messageBody = """
+            {
+              "firstField": "hello",
+              "secondField": "sqs!"
+            }
+            """;
+		sqsTemplate.send(to -> to.queue(RESOLVES_POJO_TYPES_QUEUE_NAME).payload(messageBody).header(MessageHeaders.CONTENT_TYPE, "application/json"));
+		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_TYPES_QUEUE_NAME, messageBody);
+		assertThat(latchContainer.resolvesPojoLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
 
 	static class ResolvesPojoListener {
 

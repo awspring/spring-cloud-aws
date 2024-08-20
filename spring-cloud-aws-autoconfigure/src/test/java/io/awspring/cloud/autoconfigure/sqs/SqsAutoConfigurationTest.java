@@ -178,7 +178,7 @@ class SqsAutoConfigurationTest {
 					.asInstanceOf(type(CompositeMessageConverter.class))
 					.extracting(CompositeMessageConverter::getConverters)
 					.isInstanceOfSatisfying(List.class, converters ->
-						assertThat(converters.get(1)).isInstanceOfSatisfying(
+						assertThat(converters.get(2)).isInstanceOfSatisfying(
 							MappingJackson2MessageConverter.class,
 							jackson2MessageConverter ->
 								assertThat(jackson2MessageConverter.getObjectMapper().getRegisteredModuleIds()).contains("jackson-datatype-jsr310")));
@@ -205,7 +205,7 @@ class SqsAutoConfigurationTest {
 				.asInstanceOf(type(CompositeMessageConverter.class))
 				.extracting(CompositeMessageConverter::getConverters)
 				.isInstanceOfSatisfying(List.class, converters ->
-					assertThat(converters.get(1)).isInstanceOfSatisfying(
+					assertThat(converters.get(2)).isInstanceOfSatisfying(
 						MappingJackson2MessageConverter.class,
 						jackson2MessageConverter ->
 							assertThat(jackson2MessageConverter.getObjectMapper().getRegisteredModuleIds()).isEmpty()));
