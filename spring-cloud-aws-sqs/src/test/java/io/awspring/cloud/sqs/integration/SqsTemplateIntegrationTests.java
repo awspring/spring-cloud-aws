@@ -333,13 +333,6 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(result).isNotNull();
 		Optional<Message<SampleRecord>> receivedMessage = template
 				.receive(from -> from.queue(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME), SampleRecord.class);
-
-
-		assertThat(receivedMessage).isPresent();
-		Message<SampleRecord> message = receivedMessage.get();
-		SampleRecord actualPayload = message.getPayload();
-
-
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(testRecord);
 	}
 
