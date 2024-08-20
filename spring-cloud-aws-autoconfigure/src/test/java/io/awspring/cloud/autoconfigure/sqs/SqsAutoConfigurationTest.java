@@ -30,12 +30,16 @@ import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
+import io.awspring.cloud.sqs.listener.AbstractContainerOptions;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
+import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import java.net.URI;
 import java.time.Duration;
@@ -56,6 +60,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
  * Tests for {@link SqsAutoConfiguration}.
@@ -66,6 +71,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 class SqsAutoConfigurationTest {
 
 	private static final String CUSTOM_OBJECT_MAPPER_BEAN_NAME = "customObjectMapper";
+	private static final String CUSTOM_MESSAGE_CONVERTER_BEAN_NAME = "customMessageConverter";
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
@@ -219,6 +225,30 @@ class SqsAutoConfigurationTest {
 				});
 	}
 
+	@Test
+	void configuresMessageConverter() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true")
+				.withUserConfiguration(ObjectMapperConfiguration.class, MessageConverterConfiguration.class)
+			.run(context -> {
+				SqsTemplate sqsTemplate = context.getBean("sqsTemplate", SqsTemplate.class);
+				SqsMessageListenerContainerFactory<?> factory = context.getBean("defaultSqsListenerContainerFactory", SqsMessageListenerContainerFactory.class);
+				ObjectMapper objectMapper = context.getBean(CUSTOM_OBJECT_MAPPER_BEAN_NAME, ObjectMapper.class);
+				SqsMessagingMessageConverter converter = context.getBean(CUSTOM_MESSAGE_CONVERTER_BEAN_NAME, SqsMessagingMessageConverter.class);
+				assertThat(converter.getPayloadMessageConverter())
+					.extracting("converters")
+					.asList()
+					.filteredOn(conv -> conv instanceof MappingJackson2MessageConverter)
+					.first()
+					.extracting("objectMapper")
+					.isEqualTo(objectMapper);
+				assertThat(sqsTemplate).extracting("messageConverter").isEqualTo(converter);
+				assertThat(factory)
+					.extracting("containerOptionsBuilder")
+					.extracting("messageConverter")
+					.isEqualTo(converter);
+				});
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class CustomComponentsConfiguration {
 
@@ -242,6 +272,16 @@ class SqsAutoConfigurationTest {
 		@Bean(name = CUSTOM_OBJECT_MAPPER_BEAN_NAME)
 		ObjectMapper objectMapper() {
 			return new ObjectMapper().registerModule(new JavaTimeModule());
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class MessageConverterConfiguration {
+
+		@Bean(name = CUSTOM_MESSAGE_CONVERTER_BEAN_NAME)
+		MessagingMessageConverter<Message> messageConverter() {
+			return new SqsMessagingMessageConverter();
 		}
 
 	}
