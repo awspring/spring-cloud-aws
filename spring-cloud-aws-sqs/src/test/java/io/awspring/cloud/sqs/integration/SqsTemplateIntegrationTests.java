@@ -73,6 +73,8 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final String HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME = "handles-content-deduplication-queue.fifo";
 
+	private static final String SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME = "send-receive-json-message-queue";
+
 	@Autowired
 	private SqsAsyncClient asyncClient;
 
@@ -87,7 +89,9 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME),
 				createQueue(client, RETURNS_ON_PARTIAL_BATCH_QUEUE_NAME),
 				createQueue(client, THROWS_ON_PARTIAL_BATCH_QUEUE_NAME),
-				createQueue(client, SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME), createQueue(client, EMPTY_QUEUE_NAME),
+				createQueue(client, SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME),
+				createQueue(client, SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME),
+				createQueue(client, EMPTY_QUEUE_NAME),
 				createFifoQueue(client, SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME),
 				createFifoQueue(client, SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME),
 				createFifoQueue(client, HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME,
@@ -184,7 +188,10 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendAndReceiveJsonString() {
-		SqsOperations template = SqsTemplate.newSyncTemplate(this.asyncClient);
+		SqsOperations template = SqsTemplate.builder()
+			.sqsAsyncClient(this.asyncClient)
+			.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader)
+			.buildSyncTemplate();
 		String jsonString = """
 			{
 				"propertyOne": "hello",
@@ -192,10 +199,11 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			}
 			""";
 		SampleRecord expectedPayload = new SampleRecord("hello", "sqs!");
-		SendResult<Object> result = template.send(to -> to.queue(SENDS_AND_RECEIVES_MESSAGE_QUEUE_NAME)
+		SendResult<Object> result = template.send(to -> to.queue(SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME)
 				  .payload(jsonString).header(MessageHeaders.CONTENT_TYPE, "application/json"));
 		assertThat(result).isNotNull();
-		Optional<Message<SampleRecord>> receivedMessage = template.receive(from -> from.queue(SENDS_AND_RECEIVES_MESSAGE_QUEUE_NAME), SampleRecord.class);
+		Optional<Message<SampleRecord>> receivedMessage = template
+			.receive(from -> from.queue(SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME), SampleRecord.class);
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(expectedPayload);
 	}
 
