@@ -153,6 +153,13 @@ class S3ResourceIntegrationTests {
 	}
 
 	@TestAvailableOutputStreamProviders
+	void returnsEmptyUrlToBucketWhenObjectIsEmpty(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
+		S3Resource resource = s3Resource("s3://first-bucket/", s3OutputStreamProvider);
+		assertThat(resource.getURL().toString())
+			.isEqualTo("https://first-bucket.s3.amazonaws.com/");
+	}
+
+	@TestAvailableOutputStreamProviders
 	void returnsEncodedResourceUrlAndUri(S3OutputStreamProvider s3OutputStreamProvider)
 			throws IOException, URISyntaxException {
 		S3Resource resource = s3Resource("s3://first-bucket/some/[objectName]", s3OutputStreamProvider);
