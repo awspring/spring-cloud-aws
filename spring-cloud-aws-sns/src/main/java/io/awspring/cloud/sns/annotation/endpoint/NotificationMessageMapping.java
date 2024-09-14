@@ -19,6 +19,7 @@ import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import org.springframework.aot.hint.annotation.Reflective;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +45,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Retention(RetentionPolicy.RUNTIME)
 @RequestMapping(headers = "x-amz-sns-message-type=Notification", method = RequestMethod.POST)
 @ResponseStatus(HttpStatus.NO_CONTENT)
+@Reflective(processors = SnsControllerMappingReflectiveProcessor.class)
 public @interface NotificationMessageMapping {
 
 	@AliasFor(annotation = RequestMapping.class, attribute = "path")
