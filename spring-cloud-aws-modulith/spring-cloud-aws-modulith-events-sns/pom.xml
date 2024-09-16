@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>io.awspring.cloud</groupId>
 		<artifactId>spring-cloud-aws-modulith</artifactId>
-		<version>3.2.0-SNAPSHOT</version>
+		<version>3.2.0</version>
 	</parent>
 
 	<name>Spring Cloud AWS Modulith - Events - SNS support</name>
