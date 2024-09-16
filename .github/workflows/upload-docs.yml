@@ -29,12 +29,11 @@ jobs:
         with:
           candidate: java
           version: '17.0.1-tem'
-      - name: Set up JDK 8
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: 8
-          distribution: 'adopt'
-          cache: 'maven'
+          jdkFile: ${{ steps.sdkman.outputs.file }}
       - uses: actions/cache@v1
         with:
           path: ~/.m2/repository
