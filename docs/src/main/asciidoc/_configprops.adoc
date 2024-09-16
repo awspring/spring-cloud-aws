@@ -5,7 +5,8 @@
 |spring.cloud.aws.cloudwatch.region |  | Overrides the default region.
 |spring.cloud.aws.credentials.access-key |  | The access key to be used with a static provider.
 |spring.cloud.aws.credentials.instance-profile | `+++false+++` | Configures an instance profile credentials provider with no further configuration.
-|spring.cloud.aws.credentials.profile |  | The AWS profile.
+|spring.cloud.aws.credentials.profile.name |  | Profile name.
+|spring.cloud.aws.credentials.profile.path |  | Profile file path.
 |spring.cloud.aws.credentials.secret-key |  | The secret key to be used with a static provider.
 |spring.cloud.aws.credentials.sts.async-credentials-update | `+++false+++` | Enables provider to asynchronously fetch credentials in the background. Defaults to synchronous blocking if not specified otherwise.
 |spring.cloud.aws.credentials.sts.role-arn |  | ARN of IAM role associated with STS. If not provided this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
@@ -39,7 +40,8 @@
 |spring.cloud.aws.parameterstore.reload.period | `+++1m+++` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
 |spring.cloud.aws.parameterstore.reload.strategy |  | Reload strategy to run when properties change.
 |spring.cloud.aws.region.instance-profile | `+++false+++` | Configures an instance profile region provider with no further configuration.
-|spring.cloud.aws.region.profile |  | The AWS profile.
+|spring.cloud.aws.region.profile.name |  | Profile name.
+|spring.cloud.aws.region.profile.path |  | Profile file path.
 |spring.cloud.aws.region.static |  | 
 |spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
 |spring.cloud.aws.s3.checksum-validation-enabled |  | Option to disable doing a validation of the checksum of an object stored in S3.
@@ -76,7 +78,7 @@
 |spring.cloud.aws.sqs.listener.max-concurrent-messages |  | The maximum concurrent messages that can be processed simultaneously for each queue. Note that if acknowledgement batching is being used, the actual maximum number of messages inflight might be higher.
 |spring.cloud.aws.sqs.listener.max-messages-per-poll |  | The maximum number of messages to be retrieved in a single poll to SQS.
 |spring.cloud.aws.sqs.listener.poll-timeout |  | The maximum amount of time for a poll to SQS.
-|spring.cloud.aws.sqs.queue-not-found-strategy | `+++CREATE+++` | Configures strategy when queue not found.
+|spring.cloud.aws.sqs.queue-not-found-strategy |  | 
 |spring.cloud.aws.sqs.region |  | Overrides the default region.
 
 |===
