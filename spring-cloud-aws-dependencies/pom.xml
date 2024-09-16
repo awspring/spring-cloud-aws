@@ -24,7 +24,7 @@
 
 	<properties>
 		<spotless.version>2.31.0</spotless.version>
-		<awssdk-v2.version>2.25.21</awssdk-v2.version>
+		<awssdk-v2.version>2.25.70</awssdk-v2.version>
 		<amazon.dax.version>2.0.4</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<spring-cloud-commons.version>4.1.0</spring-cloud-commons.version>
