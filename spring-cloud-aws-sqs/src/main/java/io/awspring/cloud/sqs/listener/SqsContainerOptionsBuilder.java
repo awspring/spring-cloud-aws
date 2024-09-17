@@ -60,8 +60,8 @@ public interface SqsContainerOptionsBuilder
 
 	/**
 	 * Set how the messages from FIFO queues should be grouped when container listener mode is
-	 * {@link ListenerMode#BATCH}. By default, messages are grouped in batches by message group,
-	 * which are processed in parallel, maintaining order within each message group.
+	 * {@link ListenerMode#BATCH}. By default, messages are grouped in batches by message group, which are processed in
+	 * parallel, maintaining order within each message group.
 	 * @param fifoBatchGroupingStrategy the strategy to batch FIFO messages.
 	 * @return this instance.
 	 */

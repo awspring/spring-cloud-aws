@@ -24,9 +24,9 @@ package io.awspring.cloud.sqs.listener;
 public enum FifoBatchGroupingStrategy {
 
 	/**
-	 * Default strategy. Group messages in batches by message group. Each batch contains messages from a single message group.
-	 * The order of messages within the group is preserved. As message groups are processed in parallel, this strategy
-	 * provides the maximal throughput.
+	 * Default strategy. Group messages in batches by message group. Each batch contains messages from a single message
+	 * group. The order of messages within the group is preserved. As message groups are processed in parallel, this
+	 * strategy provides the maximal throughput.
 	 */
 	PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES,
 

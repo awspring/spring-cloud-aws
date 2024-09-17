@@ -16,16 +16,15 @@
 package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.CollectionUtils;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchResponse;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * {@link BatchVisibility} implementation for SQS messages.
@@ -47,7 +46,8 @@ public class QueueMessageBatchVisibility implements BatchVisibility {
 	/**
 	 * Create an instance for changing the visibility in batch for the provided queue.
 	 */
-	public QueueMessageBatchVisibility(SqsAsyncClient sqsAsyncClient, String queueUrl, Collection<String> receiptHandles) {
+	public QueueMessageBatchVisibility(SqsAsyncClient sqsAsyncClient, String queueUrl,
+			Collection<String> receiptHandles) {
 		this.sqsAsyncClient = sqsAsyncClient;
 		this.queueUrl = queueUrl;
 		this.receiptHandles = receiptHandles;
@@ -59,26 +59,21 @@ public class QueueMessageBatchVisibility implements BatchVisibility {
 	}
 
 	private CompletableFuture<Void> changeToAsyncBatch(int seconds) {
-		return CompletableFuture.allOf(CollectionUtils.partition(receiptHandles, 10)
-			.stream()
-			.map(batch -> doChangeVisibility(seconds, batch)
-				.thenRun(() -> logger.trace("Changed the visibility of {} message to {} seconds", batch.size(),
-					seconds))).toArray(CompletableFuture[]::new));
+		return CompletableFuture.allOf(CollectionUtils.partition(receiptHandles, 10).stream()
+				.map(batch -> doChangeVisibility(seconds, batch).thenRun(() -> logger
+						.trace("Changed the visibility of {} message to {} seconds", batch.size(), seconds)))
+				.toArray(CompletableFuture[]::new));
 	}
 
-	private CompletableFuture<ChangeMessageVisibilityBatchResponse> doChangeVisibility(int seconds, Collection<String> batch) {
-		return sqsAsyncClient.changeMessageVisibilityBatch(req -> req.queueUrl(queueUrl)
-			.entries(createEntries(seconds, batch)));
+	private CompletableFuture<ChangeMessageVisibilityBatchResponse> doChangeVisibility(int seconds,
+			Collection<String> batch) {
+		return sqsAsyncClient
+				.changeMessageVisibilityBatch(req -> req.queueUrl(queueUrl).entries(createEntries(seconds, batch)));
 	}
 
 	private List<ChangeMessageVisibilityBatchRequestEntry> createEntries(int seconds, Collection<String> batch) {
-		return batch.stream()
-			.map(handle -> ChangeMessageVisibilityBatchRequestEntry.builder()
-				.receiptHandle(handle)
-				.id(UUID.randomUUID().toString())
-				.visibilityTimeout(seconds)
-				.build())
-			.toList();
+		return batch.stream().map(handle -> ChangeMessageVisibilityBatchRequestEntry.builder().receiptHandle(handle)
+				.id(UUID.randomUUID().toString()).visibilityTimeout(seconds).build()).toList();
 	}
 
 }

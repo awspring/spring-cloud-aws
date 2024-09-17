@@ -52,7 +52,7 @@ public interface DynamoDbOperations {
 	 * @param clazz Class of entity being deleted so {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be
 	 *     generated.
 	 */
-	<T> T  delete(Key key, Class<T> clazz);
+	<T> T delete(Key key, Class<T> clazz);
 
 	/**
 	 * Deletes a record for a given Entity.

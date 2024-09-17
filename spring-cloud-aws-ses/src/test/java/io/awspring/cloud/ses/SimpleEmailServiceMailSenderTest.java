@@ -125,7 +125,7 @@ class SimpleEmailServiceMailSenderTest {
 
 		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
 		when(emailService.sendEmail(request.capture()))
-			.thenReturn(SendEmailResponse.builder().messageId("123").build());
+				.thenReturn(SendEmailResponse.builder().messageId("123").build());
 
 		mailSender.send(simpleMailMessage);
 
@@ -133,7 +133,7 @@ class SimpleEmailServiceMailSenderTest {
 		assertThat(sendEmailRequest.message().subject().data()).isEqualTo(simpleMailMessage.getSubject());
 		assertThat(sendEmailRequest.message().body().text().data()).isEqualTo(simpleMailMessage.getText());
 		assertThat(sendEmailRequest.destination().bccAddresses().get(0))
-			.isEqualTo(Objects.requireNonNull(simpleMailMessage.getBcc())[0]);
+				.isEqualTo(Objects.requireNonNull(simpleMailMessage.getBcc())[0]);
 	}
 
 	@Test

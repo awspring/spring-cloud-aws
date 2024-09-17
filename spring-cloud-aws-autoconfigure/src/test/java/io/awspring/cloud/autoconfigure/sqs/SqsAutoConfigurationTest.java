@@ -30,12 +30,9 @@ import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
-import io.awspring.cloud.sqs.listener.AbstractContainerOptions;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
-import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
-import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
@@ -229,23 +226,19 @@ class SqsAutoConfigurationTest {
 	void configuresMessageConverter() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true")
 				.withUserConfiguration(ObjectMapperConfiguration.class, MessageConverterConfiguration.class)
-			.run(context -> {
-				SqsTemplate sqsTemplate = context.getBean("sqsTemplate", SqsTemplate.class);
-				SqsMessageListenerContainerFactory<?> factory = context.getBean("defaultSqsListenerContainerFactory", SqsMessageListenerContainerFactory.class);
-				ObjectMapper objectMapper = context.getBean(CUSTOM_OBJECT_MAPPER_BEAN_NAME, ObjectMapper.class);
-				SqsMessagingMessageConverter converter = context.getBean(CUSTOM_MESSAGE_CONVERTER_BEAN_NAME, SqsMessagingMessageConverter.class);
-				assertThat(converter.getPayloadMessageConverter())
-					.extracting("converters")
-					.asList()
-					.filteredOn(conv -> conv instanceof MappingJackson2MessageConverter)
-					.first()
-					.extracting("objectMapper")
-					.isEqualTo(objectMapper);
-				assertThat(sqsTemplate).extracting("messageConverter").isEqualTo(converter);
-				assertThat(factory)
-					.extracting("containerOptionsBuilder")
-					.extracting("messageConverter")
-					.isEqualTo(converter);
+				.run(context -> {
+					SqsTemplate sqsTemplate = context.getBean("sqsTemplate", SqsTemplate.class);
+					SqsMessageListenerContainerFactory<?> factory = context
+							.getBean("defaultSqsListenerContainerFactory", SqsMessageListenerContainerFactory.class);
+					ObjectMapper objectMapper = context.getBean(CUSTOM_OBJECT_MAPPER_BEAN_NAME, ObjectMapper.class);
+					SqsMessagingMessageConverter converter = context.getBean(CUSTOM_MESSAGE_CONVERTER_BEAN_NAME,
+							SqsMessagingMessageConverter.class);
+					assertThat(converter.getPayloadMessageConverter()).extracting("converters").asList()
+							.filteredOn(conv -> conv instanceof MappingJackson2MessageConverter).first()
+							.extracting("objectMapper").isEqualTo(objectMapper);
+					assertThat(sqsTemplate).extracting("messageConverter").isEqualTo(converter);
+					assertThat(factory).extracting("containerOptionsBuilder").extracting("messageConverter")
+							.isEqualTo(converter);
 				});
 	}
 

@@ -75,11 +75,12 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 		return maybeWrapWithMessageGroupingAdapter(options, wrappedDeliverySink);
 	}
 
-	private MessageSink<T> maybeWrapWithMessageGroupingAdapter(SqsContainerOptions options, MessageSink<T> wrappedDeliverySink) {
+	private MessageSink<T> maybeWrapWithMessageGroupingAdapter(SqsContainerOptions options,
+			MessageSink<T> wrappedDeliverySink) {
 		return FifoBatchGroupingStrategy.PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES
-			.equals(options.getFifoBatchGroupingStrategy())
-			? new MessageGroupingSinkAdapter<>(wrappedDeliverySink, getMessageGroupingFunction())
-			: wrappedDeliverySink;
+				.equals(options.getFifoBatchGroupingStrategy())
+						? new MessageGroupingSinkAdapter<>(wrappedDeliverySink, getMessageGroupingFunction())
+						: wrappedDeliverySink;
 	}
 
 	// @formatter:off
