@@ -15,10 +15,15 @@
  */
 package io.awspring.cloud.sqs.listener;
 
-import java.util.concurrent.CompletableFuture;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.Message;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+
+import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * {@link Visibility} implementation for SQS messages.
@@ -49,6 +54,17 @@ public class QueueMessageVisibility implements Visibility {
 		this.receiptHandle = receiptHandle;
 	}
 
+	/**
+	 * Create a {@link BatchVisibility} instance with the provided messages' receipt handlers.
+	 * @param messages the messages to populate the {@link BatchVisibility} instance.
+	 * @return {@link BatchVisibility} instance.
+	 */
+	public BatchVisibility toBatchVisibility(Collection<Message<?>> messages) {
+		return new QueueMessageBatchVisibility(this.sqsAsyncClient, this.queueUrl, messages.stream()
+			.map(message -> MessageHeaderUtils.getHeader(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, String.class))
+			.collect(Collectors.toList()));
+	}
+
 	@Override
 	public CompletableFuture<Void> changeToAsync(int seconds) {
 		return this.sqsAsyncClient
@@ -57,4 +73,5 @@ public class QueueMessageVisibility implements Visibility {
 				.thenRun(() -> logger.trace("Changed the visibility of message {} to {} seconds", this.receiptHandle,
 						seconds));
 	}
+
 }
