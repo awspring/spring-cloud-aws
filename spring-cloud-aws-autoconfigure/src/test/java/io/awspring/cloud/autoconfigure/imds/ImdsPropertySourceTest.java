@@ -57,8 +57,7 @@ public class ImdsPropertySourceTest {
 		propertySource.init();
 
 		assertThat(propertySource.getProperty("mac"))
-			.describedAs("Resulting PropertySource should contain the test data")
-			.isEqualTo("mac");
+				.describedAs("Resulting PropertySource should contain the test data").isEqualTo("mac");
 	}
 
 	@Test
@@ -83,11 +82,9 @@ public class ImdsPropertySourceTest {
 		// and make sure it's in the original propertySource
 		for (String name : copy.getPropertyNames()) {
 			assertThat(propertySource.containsProperty(name))
-				.describedAs("The two PropertySources should contain the same keys")
-				.isTrue();
-			assertThat(copy.getProperty(name))
-				.describedAs("Each property should be equal")
-				.isEqualTo(propertySource.getProperty(name));
+					.describedAs("The two PropertySources should contain the same keys").isTrue();
+			assertThat(copy.getProperty(name)).describedAs("Each property should be equal")
+					.isEqualTo(propertySource.getProperty(name));
 
 		}
 	}
@@ -98,9 +95,8 @@ public class ImdsPropertySourceTest {
 		propertySource.init();
 
 		List<Object> keyList = Arrays.asList(propertySource.getPropertyNames());
-		assertThat(keyList)
-			.describedAs("None of the keys from our test data should be missing.")
-			.containsAll(testMap.keySet());
+		assertThat(keyList).describedAs("None of the keys from our test data should be missing.")
+				.containsAll(testMap.keySet());
 	}
 
 }

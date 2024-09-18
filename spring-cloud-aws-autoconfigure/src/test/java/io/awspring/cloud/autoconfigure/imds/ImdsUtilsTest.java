@@ -137,10 +137,8 @@ public class ImdsUtilsTest {
 
 		Map<String, String> results = utils.getEc2InstanceMetadata();
 
-		assertThat(results).hasSize(3)
-			.containsKeys("ami-id", "instance-id", "mac")
-			.containsValue("mac")
-			.doesNotContainKey("public-hostname");
+		assertThat(results).hasSize(3).containsKeys("ami-id", "instance-id", "mac").containsValue("mac")
+				.doesNotContainKey("public-hostname");
 	}
 
 }
