@@ -32,6 +32,7 @@
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
 		<bytebuddy.version>1.14.9</bytebuddy.version>
 		<spring-modulith.version>1.2.3</spring-modulith.version>
+		<wiremock-standalone.version>3.3.1</wiremock-standalone.version>
 	</properties>
 
 	<dependencyManagement>
@@ -166,6 +167,12 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-imds</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter-secrets-manager</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -222,6 +229,12 @@
 				<groupId>net.bytebuddy</groupId>
 				<artifactId>byte-buddy</artifactId>
 				<version>${bytebuddy.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.wiremock</groupId>
+				<artifactId>wiremock-standalone</artifactId>
+				<version>${wiremock-standalone.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
