@@ -23,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
 import java.util.Map;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,8 +45,7 @@ public class ImdsAutoConfigurationIntegrationTest {
 	}
 
 	/**
-	 * If the IMDS is not available, no exceptions should occur; 
-	 * the metadata should simply not be available.
+	 * If the IMDS is not available, no exceptions should occur; the metadata should simply not be available.
 	 */
 	@Test
 	void imdsNotAvailable() {
@@ -55,9 +53,8 @@ public class ImdsAutoConfigurationIntegrationTest {
 		assertThat(imdsUtils.isRunningOnCloudEnvironment()).isFalse();
 	}
 
-	/** 
-	 * If IMDS is available, the utility object should report 
-	 * that we are running within an EC2-based environment.
+	/**
+	 * If IMDS is available, the utility object should report that we are running within an EC2-based environment.
 	 */
 	@Test
 	void imdsIsCloud() {
@@ -68,7 +65,7 @@ public class ImdsAutoConfigurationIntegrationTest {
 		assertThat(imdsUtils.isRunningOnCloudEnvironment()).isTrue();
 	}
 
-	/** 
+	/**
 	 * Test retrieval of a subset of IMDS data.
 	 */
 	@Test
@@ -78,16 +75,15 @@ public class ImdsAutoConfigurationIntegrationTest {
 				get(urlEqualTo("/latest/meta-data/ami-id")).willReturn(responseDefinition().withBody("sample-ami-id")));
 		wireMockServer.stubFor(
 				get(urlEqualTo("/latest/meta-data/public-ipv4")).willReturn(responseDefinition().withBody("1.2.3.4")));
-		wireMockServer.stubFor(
-				get(urlEqualTo("/latest/meta-data/placement/partition-number")).willReturn(responseDefinition().withBody("2")));
+		wireMockServer.stubFor(get(urlEqualTo("/latest/meta-data/placement/partition-number"))
+				.willReturn(responseDefinition().withBody("2")));
 
-		Map<String,String> map = imdsUtils.getEc2InstanceMetadata();
-		
+		Map<String, String> map = imdsUtils.getEc2InstanceMetadata();
+
 		assertThat(map.get("ami-id")).isEqualTo("sample-ami-id");
 		assertThat(map.get("public-ipv4")).isEqualTo("1.2.3.4");
 		assertThat(map.get("placement/partition-number")).isEqualTo("2");
 	}
-
 
 	private void addStubToken() {
 		wireMockServer.stubFor(put(urlEqualTo("/latest/api/token")).willReturn(
