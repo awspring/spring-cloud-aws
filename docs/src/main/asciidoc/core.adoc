@@ -109,7 +109,7 @@ STS credentials configuration supports following properties:
 | Name | Description | Required | Default value
 | `spring.cloud.aws.credentials.sts.role-arn` | ARN of IAM role associated with STS. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.credentials.sts.web-identity-token-file` | Absolute path to the web identity token file that will be used by credentials provider. | No | `null` (falls back to SDK default)
-| `spring.cloud.aws.credentials.sts.is-async-credentials-update` | Enables provider to asynchronously fetch credentials in the background. | No | `false`
+| `spring.cloud.aws.credentials.sts.async-credentials-update` | Enables provider to asynchronously fetch credentials in the background. | No | `false`
 | `spring.cloud.aws.credentials.sts.role-session-name` | Role session name that will be used by credentials provider. | No | `null` (falls back to SDK default)
 |===
 

@@ -17,11 +17,17 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
+import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.dynamodb.*;
+import io.awspring.cloud.dynamodb.DefaultDynamoDbTableNameResolver;
+import io.awspring.cloud.dynamodb.DefaultDynamoDbTableSchemaResolver;
+import io.awspring.cloud.dynamodb.DynamoDbOperations;
+import io.awspring.cloud.dynamodb.DynamoDbTableNameResolver;
+import io.awspring.cloud.dynamodb.DynamoDbTableSchemaResolver;
+import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 import java.io.IOException;
-import java.util.Optional;
+import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -37,6 +43,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
@@ -47,6 +54,7 @@ import software.amazon.dax.ClusterDaxClient;
  *
  * @author Matej Nedic
  * @author Arun Patra
+ * @author Maciej Walkowiak
  * @since 3.0.0
  */
 @AutoConfiguration
@@ -55,6 +63,7 @@ import software.amazon.dax.ClusterDaxClient;
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.dynamodb.enabled", havingValue = "true", matchIfMissing = true)
 public class DynamoDbAutoConfiguration {
+
 	@ConditionalOnProperty(name = "spring.cloud.aws.dynamodb.dax.url")
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(name = "software.amazon.dax.ClusterDaxClient")
@@ -63,7 +72,8 @@ public class DynamoDbAutoConfiguration {
 		@ConditionalOnMissingBean
 		@Bean
 		public DynamoDbClient dynamoDbClient(DynamoDbProperties properties, AwsCredentialsProvider credentialsProvider,
-				AwsRegionProvider regionProvider) throws IOException {
+				AwsRegionProvider regionProvider, ObjectProvider<AwsConnectionDetails> connectionDetails)
+				throws IOException {
 			DaxProperties daxProperties = properties.getDax();
 
 			PropertyMapper propertyMapper = PropertyMapper.get();
@@ -88,8 +98,9 @@ public class DynamoDbAutoConfiguration {
 			propertyMapper.from(daxProperties.getSkipHostNameVerification()).whenNonNull()
 					.to(configuration::skipHostNameVerification);
 
-			configuration.region(AwsClientBuilderConfigurer.resolveRegion(properties, regionProvider))
-					.credentialsProvider(credentialsProvider).url(properties.getDax().getUrl());
+			configuration.region(AwsClientBuilderConfigurer.resolveRegion(properties,
+					connectionDetails.getIfAvailable(), regionProvider)).credentialsProvider(credentialsProvider)
+					.url(properties.getDax().getUrl());
 			return ClusterDaxClient.builder().overrideConfiguration(configuration.build()).build();
 		}
 
@@ -102,9 +113,10 @@ public class DynamoDbAutoConfiguration {
 		@ConditionalOnMissingBean
 		@Bean
 		public DynamoDbClient dynamoDbClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-				ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer, DynamoDbProperties properties) {
-			return awsClientBuilderConfigurer
-					.configure(DynamoDbClient.builder(), properties, configurer.getIfAvailable()).build();
+				ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
+				ObjectProvider<AwsConnectionDetails> connectionDetails, DynamoDbProperties properties) {
+			return awsClientBuilderConfigurer.configure(DynamoDbClient.builder(), properties,
+					connectionDetails.getIfAvailable(), configurer.getIfAvailable()).build();
 		}
 
 	}
@@ -115,17 +127,23 @@ public class DynamoDbAutoConfiguration {
 		return DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
 	}
 
+	@ConditionalOnMissingBean(DynamoDbTableSchemaResolver.class)
+	@Bean
+	public DefaultDynamoDbTableSchemaResolver dynamoDbTableSchemaResolver(List<TableSchema<?>> tableSchemas) {
+		return new DefaultDynamoDbTableSchemaResolver(tableSchemas);
+	}
+
+	@ConditionalOnMissingBean(DynamoDbTableNameResolver.class)
+	@Bean
+	public DefaultDynamoDbTableNameResolver dynamoDbTableNameResolver(DynamoDbProperties properties) {
+		return new DefaultDynamoDbTableNameResolver(properties.getTablePrefix(), properties.getTableSuffix());
+	}
+
 	@ConditionalOnMissingBean(DynamoDbOperations.class)
 	@Bean
-	public DynamoDbTemplate dynamoDBTemplate(DynamoDbProperties properties,
-			DynamoDbEnhancedClient dynamoDbEnhancedClient, Optional<DynamoDbTableSchemaResolver> tableSchemaResolver,
-			Optional<DynamoDbTableNameResolver> tableNameResolver) {
-		DynamoDbTableSchemaResolver tableSchemaRes = tableSchemaResolver
-				.orElseGet(DefaultDynamoDbTableSchemaResolver::new);
-
-		DynamoDbTableNameResolver tableNameRes = tableNameResolver
-				.orElseGet(() -> new DefaultDynamoDbTableNameResolver(properties.getTablePrefix()));
-		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaRes, tableNameRes);
+	public DynamoDbTemplate dynamoDBTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
+			DynamoDbTableSchemaResolver tableSchemaResolver, DynamoDbTableNameResolver dynamoDbTableNameResolver) {
+		return new DynamoDbTemplate(dynamoDbEnhancedClient, tableSchemaResolver, dynamoDbTableNameResolver);
 	}
 
 	static class MissingDaxUrlCondition extends NoneNestedConditions {

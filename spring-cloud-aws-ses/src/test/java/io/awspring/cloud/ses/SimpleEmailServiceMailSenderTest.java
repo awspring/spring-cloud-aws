@@ -68,6 +68,22 @@ class SimpleEmailServiceMailSenderTest {
 	}
 
 	@Test
+	void testSendSimpleMailWithConfigurationSetNameSet() {
+		SesClient emailService = mock(SesClient.class);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService, null,
+				"Configuration Set");
+		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
+		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
+		when(emailService.sendEmail(request.capture()))
+				.thenReturn(SendEmailResponse.builder().messageId("123").build());
+
+		mailSender.send(simpleMailMessage);
+
+		SendEmailRequest sendEmailRequest = request.getValue();
+		assertThat(sendEmailRequest.configurationSetName()).isEqualTo("Configuration Set");
+	}
+
+	@Test
 	void testSendSimpleMailWithCCandBCC() {
 		SesClient emailService = mock(SesClient.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
@@ -90,6 +106,32 @@ class SimpleEmailServiceMailSenderTest {
 		assertThat(sendEmailRequest.message().body().text().data()).isEqualTo(simpleMailMessage.getText());
 		assertThat(sendEmailRequest.destination().ccAddresses().get(0))
 				.isEqualTo(Objects.requireNonNull(simpleMailMessage.getCc())[0]);
+		assertThat(sendEmailRequest.destination().bccAddresses().get(0))
+				.isEqualTo(Objects.requireNonNull(simpleMailMessage.getBcc())[0]);
+	}
+
+	@Test
+	void testSendSimpleMailWithNoTo() {
+		SesClient emailService = mock(SesClient.class);
+		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
+
+		// Not using createSimpleMailMessage as we don't want the to address set.
+		SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+		simpleMailMessage.setFrom("sender@domain.com");
+		simpleMailMessage.setSubject("message subject");
+		simpleMailMessage.setText("message body");
+
+		simpleMailMessage.setBcc("bcc@domain.com");
+
+		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
+		when(emailService.sendEmail(request.capture()))
+				.thenReturn(SendEmailResponse.builder().messageId("123").build());
+
+		mailSender.send(simpleMailMessage);
+
+		SendEmailRequest sendEmailRequest = request.getValue();
+		assertThat(sendEmailRequest.message().subject().data()).isEqualTo(simpleMailMessage.getSubject());
+		assertThat(sendEmailRequest.message().body().text().data()).isEqualTo(simpleMailMessage.getText());
 		assertThat(sendEmailRequest.destination().bccAddresses().get(0))
 				.isEqualTo(Objects.requireNonNull(simpleMailMessage.getBcc())[0]);
 	}

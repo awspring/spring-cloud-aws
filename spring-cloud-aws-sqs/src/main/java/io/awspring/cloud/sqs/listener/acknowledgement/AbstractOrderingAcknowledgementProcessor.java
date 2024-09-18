@@ -15,10 +15,10 @@
  */
 package io.awspring.cloud.sqs.listener.acknowledgement;
 
+import io.awspring.cloud.sqs.CollectionUtils;
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +29,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -286,16 +285,7 @@ public abstract class AbstractOrderingAcknowledgementProcessor<T>
 
 	private Collection<Collection<Message<T>>> partitionMessages(Collection<Message<T>> messagesToAck) {
 		logger.trace("Partitioning {} messages in {}", messagesToAck.size(), this.id);
-		List<Message<T>> messagesToUse = getMessagesAsList(messagesToAck);
-		int totalSize = messagesToUse.size();
-		return IntStream.rangeClosed(0, (totalSize - 1) / this.maxAcknowledgementsPerBatch)
-				.mapToObj(index -> messagesToUse.subList(index * this.maxAcknowledgementsPerBatch,
-						Math.min((index + 1) * this.maxAcknowledgementsPerBatch, totalSize)))
-				.collect(Collectors.toList());
-	}
-
-	private List<Message<T>> getMessagesAsList(Collection<Message<T>> messagesToAck) {
-		return messagesToAck instanceof List ? (List<Message<T>>) messagesToAck : new ArrayList<>(messagesToAck);
+		return CollectionUtils.partition(messagesToAck, this.maxAcknowledgementsPerBatch);
 	}
 
 	protected abstract CompletableFuture<Void> doOnAcknowledge(Message<T> message);

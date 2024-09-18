@@ -41,6 +41,12 @@ public class DynamoDbProperties extends AwsClientProperties {
 	private String tablePrefix;
 
 	/**
+	 * The suffix used to resolve table names.
+	 */
+	@Nullable
+	private String tableSuffix;
+
+	/**
 	 * Properties that are used to configure {@link software.amazon.dax.ClusterDaxClient}.
 	 */
 	@NestedConfigurationProperty
@@ -50,8 +56,16 @@ public class DynamoDbProperties extends AwsClientProperties {
 		return tablePrefix;
 	}
 
+	public String getTableSuffix() {
+		return tableSuffix;
+	}
+
 	public void setTablePrefix(String tablePrefix) {
 		this.tablePrefix = tablePrefix;
+	}
+
+	public void setTableSuffix(String tableSuffix) {
+		this.tableSuffix = tableSuffix;
 	}
 
 	public DaxProperties getDax() {

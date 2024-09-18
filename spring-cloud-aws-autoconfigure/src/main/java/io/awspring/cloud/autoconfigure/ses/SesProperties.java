@@ -39,12 +39,43 @@ public class SesProperties extends AwsClientProperties {
 	@Nullable
 	private String sourceArn;
 
+	/**
+	 * Configures configuration set name.
+	 */
+	@Nullable
+	private String configurationSetName;
+
+	/**
+	 * Configures from ARN. Only applies to SendRawEmail operation.
+	 */
+	@Nullable
+	private String fromArn;
+
 	@Nullable
 	public String getSourceArn() {
 		return sourceArn;
 	}
 
+	@Nullable
+	public String getConfigurationSetName() {
+		return configurationSetName;
+	}
+
+	@Nullable
+	public String getFromArn() {
+		return fromArn;
+	}
+
 	public void setSourceArn(@Nullable String sourceArn) {
 		this.sourceArn = sourceArn;
 	}
+
+	public void setConfigurationSetName(@Nullable String configurationSetName) {
+		this.configurationSetName = configurationSetName;
+	}
+
+	public void setFromArn(@Nullable String fromArn) {
+		this.fromArn = fromArn;
+	}
+
 }

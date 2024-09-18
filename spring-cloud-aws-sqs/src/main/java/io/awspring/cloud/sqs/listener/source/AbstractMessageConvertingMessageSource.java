@@ -24,7 +24,10 @@ import io.awspring.cloud.sqs.support.converter.ContextAwareMessagingMessageConve
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
@@ -45,6 +48,8 @@ import org.springframework.messaging.Message;
  * @since 3.0
  */
 public abstract class AbstractMessageConvertingMessageSource<T, S> implements MessageSource<T> {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractMessageConvertingMessageSource.class);
 
 	private MessagingMessageConverter<S> messagingMessageConverter;
 
@@ -82,14 +87,22 @@ public abstract class AbstractMessageConvertingMessageSource<T, S> implements Me
 	}
 
 	protected Collection<Message<T>> convertMessages(Collection<S> messages) {
-		return messages.stream().map(this::convertMessage).collect(Collectors.toList());
+		return messages.stream().map(this::convertMessage).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 
+	@Nullable
 	@SuppressWarnings("unchecked")
 	protected Message<T> convertMessage(S msg) {
-		return this.messagingMessageConverter instanceof ContextAwareMessagingMessageConverter
-				? (Message<T>) getContextAwareConverter().toMessagingMessage(msg, this.messageConversionContext)
-				: (Message<T>) this.messagingMessageConverter.toMessagingMessage(msg);
+		try {
+			logger.trace("Converting message {}", msg);
+			return this.messagingMessageConverter instanceof ContextAwareMessagingMessageConverter
+					? (Message<T>) getContextAwareConverter().toMessagingMessage(msg, this.messageConversionContext)
+					: (Message<T>) this.messagingMessageConverter.toMessagingMessage(msg);
+		}
+		catch (Exception e) {
+			logger.error("Error converting message {}, ignoring.", msg, e);
+			return null;
+		}
 	}
 
 	private ContextAwareMessagingMessageConverter<S> getContextAwareConverter() {

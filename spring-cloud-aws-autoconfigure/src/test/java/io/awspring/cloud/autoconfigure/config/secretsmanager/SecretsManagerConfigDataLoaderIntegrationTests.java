@@ -74,7 +74,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:2.3.2")).withReuse(true);
+			DockerImageName.parse("localstack/localstack:3.2.0"));
 
 	@TempDir
 	static Path tokenTempDir;
@@ -170,6 +170,16 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
+	void respectsImportOrder() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application, "classpath:config.properties")) {
+			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("from properties file");
+		}
+	}
+
+	@Test
 	void clientIsConfiguredWithConfigurerProvidedToBootstrapRegistry() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
@@ -259,6 +269,22 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring;/config/second", "spring.cloud.aws.endpoint")) {
 			assertThat(context.getEnvironment().getProperty("message")).isEqualTo("value from tests");
+		}
+	}
+
+	@Test
+	void propertyIsNotResolvedWhenIntegrationIsDisabled() {
+		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = application.run(
+				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
+				"--spring.cloud.aws.secretsmanager.enabled=false", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
+				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
+				"--spring.cloud.aws.region.static=eu-west-1")) {
+			assertThat(context.getEnvironment().getProperty("message")).isNull();
+			assertThat(context.getBeanProvider(SecretsManagerClient.class).getIfAvailable()).isNull();
 		}
 	}
 
@@ -452,7 +478,6 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class App {
-
 	}
 
 	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {

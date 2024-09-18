@@ -210,8 +210,16 @@ Such attributes are available as `MessageHeaders` in received messages.
 |All
 |Set the message system attribute names that will be retrieved with messages on receive operations.
 Such attributes are available as `MessageHeaders` in received messages.
+
+|`contentBasedDeduplication`
+|ContentBasedDeduplication
+|ContentBasedDeduplication
+#AUTO
+|Set the ContentBasedDeduplication queue attribute value of the queues the template is sending messages to.
+With `ContentBasedDeduplication#AUTO`, the queue attribute value will be resolved automatically.
 |===
 
+[[sqs-send-message]]
 ==== Sending Messages
 
 There are a number of available methods to send messages to SQS queues using the `SqsTemplate`.
@@ -233,6 +241,9 @@ SendResult<T> send(Consumer<SqsSendOptions> to);
 // Send a batch of Messages to the provided queue
 SendResult.Batch<T> sendMany(String queue, Collection<Message<T>> messages);
 ```
+
+NOTE: To send a collection of objects, it is recommended to use `sendMany(String queue, Collection<Message<T>> messages)` to optimize throughput.
+To send a collection of objects in a single message, the collection must be wrapped in an object.
 
 An example using the `options` variant follows:
 
@@ -604,6 +615,30 @@ Any number of `@SqsListener` annotations can be used in a bean class, and each a
 
 NOTE: Queues declared in the same annotation will share the container, though each will have separate throughput and acknowledgement controls.
 
+===== SNS Messages
+
+Since 3.1.1, when receiving SNS messages through the `@SqsListener`, the message includes all attributes of the `SnsNotification`. To only receive need the `Message` part of the payload, you can utilize the `@SnsNotificationMessage` annotation.
+
+For handling individual message processing, the @SnsNotificationMessage annotation can be used in the following manner:
+
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(@SnsNotificationMessage Pojo pojo) {
+	System.out.println(pojo.field);
+}
+----
+
+For batch message processing, use the @SnsNotificationMessage annotation with a List<Pojo> parameter.
+
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(@SnsNotificationMessage List<Pojo> pojos) {
+	System.out.println(pojos.size());
+}
+----
+
 ===== Specifying a MessageListenerContainerFactory
 A `MessageListenerContainerFactory` can be specified through the `factory` property.
 Such factory will then be used to create the container for the annotated method.
@@ -655,9 +690,12 @@ AcknowledgementMode must be set to `MANUAL` (see <<Acknowledging Messages>>)
 - `BatchAcknowledgement` - provides methods for manually acknowledging partial or whole message batches for batch listeners.
 AcknowledgementMode must be set to `MANUAL` (see <<Acknowledging Messages>>)
 - `Visibility` - provides the `changeTo()` method that enables changing the message's visibility to the provided value.
+- `BatchVisibility` - provides `changeTo()` methods that enables changing partial or whole message batches visibility to the provided value.
 - `QueueAttributes` - provides queue attributes for the queue that received the message.
 See <<Retrieving Attributes from SQS>> for how to specify the queue attributes that will be fetched from `SQS`
 - `software.amazon.awssdk.services.sqs.model.Message` - provides the original `Message` from `SQS`
+
+NOTE: To receive a collection of objects in a single message, the collection must be wrapped in an object. See <<Sending Messages>>.
 
 Here's a sample with many arguments:
 
@@ -675,7 +713,7 @@ public void listen(Message<MyPojo> message, MyPojo pojo, MessageHeaders headers,
 }
 ----
 
-IMPORTANT: Batch listeners support a single `List<MyPojo>` and `List<Message<MyPojo>>` method arguments, and an optional `BatchAcknowledgement` or `AsyncBatchAcknowledgement` arguments.
+IMPORTANT: Batch listeners support a single `List<MyPojo>` and `List<Message<MyPojo>>` method arguments, and optional `BatchAcknowledgement` (or `AsyncBatchAcknowledgement`) and `BatchVisibility` arguments.
 `MessageHeaders` should be extracted from the `Message` instances through the `getHeaders()` method.
 
 ==== Batch Processing
@@ -687,7 +725,9 @@ When batch mode is enabled, the framework will serve the entire result of a poll
 If a value greater than 10 is provided for `maxMessagesPerPoll`, the result of multiple polls will be combined and up to the respective amount of messages will be served to the listener.
 
 To enable batch processing using `@SqsListener`, a single `List<MyPojo>` or `List<Message<MyPojo>>` method argument should be provided in the listener method.
-The listener method can also have an optional `BatchAcknowledgement` argument for `AcknowledgementMode.MANUAL`.
+The listener method can also have:
+- an optional `BatchAcknowledgement` argument for `AcknowledgementMode.MANUAL`
+- an optional `BatchVisibility` argument
 
 Alternatively, `SqsContainerOptions` can be set to `ListenerMode.BATCH` in the `SqsContainerOptions` in the factory or container.
 
@@ -762,6 +802,7 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 | <<maxConcurrentMessages, `spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue`>> | Maximum number of inflight messages per queue. | No | 10
 | <<maxMessagesPerPoll, `spring.cloud.aws.sqs.listener.max-messages-per-poll`>> | Maximum number of messages to be received per poll. | No | 10
 | <<pollTimeout, `spring.cloud.aws.sqs.listener.poll-timeout`>> | Maximum amount of time to wait for messages in a poll. | No | 10 seconds
+| `spring.cloud.aws.sqs.queue-not-found-strategy`  | The strategy to be used by SqsTemplate and SqsListeners when a queue does not exist. | No | CREATE
 |===
 
 
@@ -805,6 +846,11 @@ See AWS documentation for more information.
 After that period, the framework will try to perform a partial acquire with the available permits, resulting in a poll for less than `maxMessagesPerPoll` messages, unless otherwise configured.
 See <<Message Processing Throughput>>.
 
+|<<pollBackOffPolicy>>
+|Any valid `BackOffPolicy` implementation
+|`ExponentialBackOffPolicy`
+|The back off policy to be applied when a polling thread throws an error. The default is an exponential policy with a delay of `1s`, a multiplier of `2.0`, and a maximum of `10s`.
+
 |`autoStartup`
 |true, false
 |true
@@ -814,13 +860,13 @@ See <<Container Lifecycle>>.
 
 |`listenerShutdownTimeout`
 |0 - undefined
-|10 seconds
+|20 seconds
 |The amount of time the container will wait for a queue to complete message processing before attempting to forcefully shutdown.
 See <<Container Lifecycle>>.
 
 |`acknowledgementShutdownTimeout`
 |0 - undefined
-|10 seconds
+|20 seconds
 |The amount of time the container will wait for acknowledgements to complete for a queue after message processing has ended.
 See <<Container Lifecycle>>.
 
@@ -854,6 +900,12 @@ See <<Retrieving Attributes from SQS>>.
 |`ALL`
 |Configures the `MessageSystemAttribute` that will be retrieved from SQS for each message.
 See <<Retrieving Attributes from SQS>>.
+
+|`fifoBatchGroupingStrategy`
+|`PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES`, `PROCESS_MULTIPLE_GROUPS_IN_SAME_BATCH`
+|`PROCESS_MESSAGE_GROUPS_IN_PARALLEL_BATCHES`
+|Specifies how messages from FIFO queues should be grouped when retrieved by the container when listener
+mode is `batch`. See <<FIFO Support>>.
 
 |`messageConverter`
 |`MessagingMessageConverter`
@@ -1000,10 +1052,9 @@ NOTE: Spring-managed `MessageListenerContainer` beans' lifecycle actions are alw
 
 * Messages are polled with a `receiveRequestAttemptId`, and the received batch of messages is split according to the message`s `MessageGroupId`.
 * Each message from a given group will then be processed in order, while each group is processed in parallel.
-* If processing fails for a message, the following messages from the same message group are discarded so they will be served again after their `message visibility`
-expires.
+* To receive messages from multiple groups in a `batch`, set `fifoBatchGroupingStrategy` to `PROCESS_MULTIPLE_GROUPS_IN_SAME_BATCH` in `SqsContainerOptions`.
+* If processing fails for a message, the following messages from the same message group are discarded so they will be served again after their `message visibility` expires.
 * Messages which were already successfully processed and acknowledged will not be served again.
-* If a `batch` listener is used, each message group from a poll will be served as a batch to the listener method.
 * `FIFO` queues also have different defaults for acknowledging messages, see <<Acknowledgement Defaults>> for more information.
 * If a `message visibility` is set through `@SqsListener` or `SqsContainerOptions`, visibility will be extended for all messages in the message group before each message is processed.
 
@@ -1219,6 +1270,8 @@ public interface MessagingMessageConverter<S> {
 
 The default header-based type mapping can be configured to use a different header name by using the `setPayloadTypeHeader` method.
 
+It is also possible not to include payload type information in the header by using the `doNotSendPayloadTypeHeader` method.
+
 More complex mapping can be achieved by using the `setPayloadTypeMapper` method, which overrides the default header-based mapping.
 This method receives a `Function<Message<?>, Class<?>> payloadTypeMapper` that will be applied to incoming messages.
 
@@ -1236,6 +1289,9 @@ SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter
 
 // Configure Type Header
 messageConverter.setPayloadTypeHeader("myTypeHeader");
+
+// Do not send Type Header
+messageConverter.doNotSendPayloadTypeHeader();
 
 // Configure Header Mapper
 SqsHeaderMapper headerMapper = new SqsHeaderMapper();
@@ -1561,6 +1617,11 @@ Set in `SqsContainerOptions`.
 Represents the maximum amount of time the container will wait for `maxMessagesPerPoll` permits to be available before trying to acquire a partial batch if so configured.
 This wait is applied per queue and one queue has no interference in another in this regard.
 Defaults to 10 seconds.
+
+===== pollBackOffPolicy
+Since 3.2 it's possible to specify a `BackOffPolicy` which will be applied when a polling thread throws an exception.
+The default policy is an exponential back off with a delay of 1000ms, a 2.0 multiplier, and a 10000ms maximum delay.
+Note that in highly concurrent environments with many polling threads it may happen that a successful poll cancels the next scheduled backoff before it happens, and as such no back offs need to be executed.
 
 ==== Default Polling Behavior
 By default, the framework starts all queues in `low throughput mode`, where it will perform one poll for messages at a time.

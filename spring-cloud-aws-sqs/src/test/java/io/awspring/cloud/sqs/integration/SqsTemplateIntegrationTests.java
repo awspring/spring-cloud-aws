@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
-import io.awspring.cloud.sqs.operations.SendResult;
-import io.awspring.cloud.sqs.operations.SqsOperations;
-import io.awspring.cloud.sqs.operations.SqsTemplate;
-import io.awspring.cloud.sqs.operations.SqsTemplateParameters;
-import io.awspring.cloud.sqs.operations.TemplateAcknowledgementMode;
+import io.awspring.cloud.sqs.operations.*;
+import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -40,12 +33,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
  * @author Tomaz Fernandes
+ * @author Dongha Kim
  */
 @SpringBootTest
 public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
@@ -74,6 +70,10 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final String SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME = "send-receive-message-queue.fifo";
 
+	private static final String HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME = "handles-content-deduplication-queue.fifo";
+
+	private static final String SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME = "send-receive-json-message-queue";
+
 	@Autowired
 	private SqsAsyncClient asyncClient;
 
@@ -88,9 +88,13 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME),
 				createQueue(client, RETURNS_ON_PARTIAL_BATCH_QUEUE_NAME),
 				createQueue(client, THROWS_ON_PARTIAL_BATCH_QUEUE_NAME),
+				createQueue(client, SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME),
 				createQueue(client, SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME), createQueue(client, EMPTY_QUEUE_NAME),
 				createFifoQueue(client, SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME),
-				createFifoQueue(client, SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME)).join();
+				createFifoQueue(client, SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME),
+				createFifoQueue(client, HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME,
+						Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "true")))
+				.join();
 	}
 
 	@Test
@@ -181,6 +185,26 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
+	void shouldSendAndReceiveJsonString() {
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
+				.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader)
+				.buildSyncTemplate();
+		String jsonString = """
+				{
+					"propertyOne": "hello",
+					"propertyTwo": "sqs!"
+				}
+				""";
+		SampleRecord expectedPayload = new SampleRecord("hello", "sqs!");
+		SendResult<Object> result = template.send(to -> to.queue(SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME)
+				.payload(jsonString).header(MessageHeaders.CONTENT_TYPE, "application/json"));
+		assertThat(result).isNotNull();
+		Optional<Message<SampleRecord>> receivedMessage = template
+				.receive(from -> from.queue(SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME), SampleRecord.class);
+		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(expectedPayload);
+	}
+
+	@Test
 	void shouldSendAndReceiveBatch() {
 		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
 				.configure(options -> options.acknowledgementMode(TemplateAcknowledgementMode.MANUAL))
@@ -223,6 +247,29 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 			assertThat(result.messageId()).isEqualTo(message.getHeaders().getId());
 		});
 
+	}
+
+	@Test
+	void shouldHandleContentBasedDeduplication() {
+		String testBody = "Hello world!";
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient).build();
+		SendResult<Object> result = template
+				.send(to -> to.queue(HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME).payload(testBody));
+		Optional<Message<?>> receivedMessage = template
+				.receive(from -> from.queue(HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME));
+		assertThat(result.message().getHeaders()
+				.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER)).isNull();
+		assertThat(receivedMessage).isPresent().get().isInstanceOfSatisfying(Message.class, message -> {
+			assertThat(message.getPayload()).isEqualTo(testBody);
+			assertThat(result.additionalInformation().get(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME))
+					.isEqualTo(message.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_SEQUENCE_NUMBER));
+			assertThat(message.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER))
+					.isEqualTo(result.message().getHeaders()
+							.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER));
+			assertThat(message.getHeaders().get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER))
+					.isNotNull();
+			assertThat(result.messageId()).isEqualTo(message.getHeaders().getId());
+		});
 	}
 
 	@Test
@@ -276,8 +323,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader() {
 		SqsTemplate template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
-				.configureDefaultConverter(converter -> converter.setPayloadTypeHeaderValueFunction(msg -> null))
-				.build();
+				.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader).build();
 		SampleRecord testRecord = new SampleRecord("Hello world!",
 				"From shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader!");
 		SendResult<SampleRecord> result = template.send(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME, testRecord);

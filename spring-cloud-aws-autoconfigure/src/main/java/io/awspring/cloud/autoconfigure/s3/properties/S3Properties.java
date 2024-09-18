@@ -74,6 +74,12 @@ public class S3Properties extends AwsClientProperties {
 	private Boolean useArnRegionEnabled;
 
 	/**
+	 * Enables cross-region bucket access.
+	 */
+	@Nullable
+	private Boolean crossRegionEnabled;
+
+	/**
 	 * Configuration properties for {@link S3TransferManager} integration.
 	 */
 	@Nullable
@@ -130,6 +136,15 @@ public class S3Properties extends AwsClientProperties {
 
 	public void setUseArnRegionEnabled(@Nullable Boolean useArnRegionEnabled) {
 		this.useArnRegionEnabled = useArnRegionEnabled;
+	}
+
+	@Nullable
+	public Boolean getCrossRegionEnabled() {
+		return crossRegionEnabled;
+	}
+
+	public void setCrossRegionEnabled(@Nullable Boolean crossRegionEnabled) {
+		this.crossRegionEnabled = crossRegionEnabled;
 	}
 
 	@Nullable

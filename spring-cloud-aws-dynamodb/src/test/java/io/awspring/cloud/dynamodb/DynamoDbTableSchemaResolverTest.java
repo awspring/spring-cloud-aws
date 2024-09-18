@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,56 +18,72 @@ package io.awspring.cloud.dynamodb;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.util.Map;
-import org.jetbrains.annotations.Nullable;
+import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 
 /**
  * Tests for {@link DefaultDynamoDbTableSchemaResolver}.
  *
  * @author Matej Nedic
+ * @author Maciej Walkowiak
  */
 class DynamoDbTableSchemaResolverTest {
 
-	private final DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
-
 	@Test
 	void tableSchemaResolved_successfully() {
-		// given when
-		TableSchema<Person> tableSchema = defaultTableSchemaResolver.resolve(Person.class, "person");
+		// given
+		DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
+		// when
+		TableSchema<Person> tableSchema = defaultTableSchemaResolver.resolve(Person.class);
 
 		// Call one more time to see if cache is being filled properly.
-		defaultTableSchemaResolver.resolve(Person.class, "person");
+		defaultTableSchemaResolver.resolve(Person.class);
 
 		// then
 		assertThat(tableSchema).isNotNull();
-		assertThat(getTableSchemaCache(defaultTableSchemaResolver)).hasSize(1);
+		assertThat(defaultTableSchemaResolver.getTableSchemaCache()).hasSize(1);
+	}
+
+	@Test
+	void tableSchemaResolved_whenSchemaPassedThroughConstructor() {
+		StaticTableSchema<Library> librarySchema = StaticTableSchema.builder(Library.class).build();
+		DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver(
+				List.of(librarySchema));
+
+		// when
+		TableSchema<Library> tableSchema = defaultTableSchemaResolver.resolve(Library.class);
+
+		// then
+		assertThat(tableSchema).isNotNull().isEqualTo(librarySchema);
+		assertThat(defaultTableSchemaResolver.getTableSchemaCache()).hasSize(1);
 	}
 
 	@Test
 	void tableSchemaResolved_successfully_for_multiple_tables() {
-		// given when
-		TableSchema<Person> person = defaultTableSchemaResolver.resolve(Person.class, "person");
-		TableSchema<Book> bookTableSchema = defaultTableSchemaResolver.resolve(Book.class, "book");
+		// given
+		DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
+
+		// when
+		TableSchema<Person> person = defaultTableSchemaResolver.resolve(Person.class);
+		TableSchema<Book> bookTableSchema = defaultTableSchemaResolver.resolve(Book.class);
 
 		// then
 		assertThat(person).isNotNull();
 		assertThat(bookTableSchema).isNotNull();
-		assertThat(getTableSchemaCache(defaultTableSchemaResolver)).hasSize(2);
+		assertThat(defaultTableSchemaResolver.getTableSchemaCache()).hasSize(2);
 	}
 
 	@Test
 	void tableSchemaResolver_fail_entity_not_annotated() {
-		assertThatThrownBy(() -> defaultTableSchemaResolver.resolve(FakePerson.class, "fake_person"))
+		DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
+
+		assertThatThrownBy(() -> defaultTableSchemaResolver.resolve(FakePerson.class))
 				.isInstanceOf(IllegalArgumentException.class);
 
 	}
 
-	@Nullable
-	private Map<String, TableSchema> getTableSchemaCache(
-			DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver) {
-		return (Map<String, TableSchema>) ReflectionTestUtils.getField(defaultTableSchemaResolver, "tableSchemaCache");
+	static class Library {
 	}
 }

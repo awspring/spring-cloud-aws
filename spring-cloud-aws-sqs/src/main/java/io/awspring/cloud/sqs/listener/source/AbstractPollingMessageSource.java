@@ -33,10 +33,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.Message;
+import org.springframework.retry.backoff.BackOffContext;
+import org.springframework.retry.backoff.BackOffPolicy;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -65,6 +68,10 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 
 	private Duration shutdownTimeout;
 
+	private BackOffPolicy pollBackOffPolicy;
+
+	private AtomicReference<BackOffContext> pollBackOffContext = new AtomicReference<>();
+
 	private TaskExecutor taskExecutor;
 
 	private BatchAwareBackPressureHandler backPressureHandler;
@@ -87,6 +94,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 	@Override
 	protected void configureMessageSource(ContainerOptions<?, ?> containerOptions) {
 		this.shutdownTimeout = containerOptions.getListenerShutdownTimeout();
+		this.pollBackOffPolicy = containerOptions.getPollBackOffPolicy();
 		doConfigure(containerOptions);
 	}
 
@@ -163,6 +171,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 			Assert.notNull(this.messageSink, "messageSink not set");
 			Assert.notNull(this.backPressureHandler, "backPressureHandler not set");
 			Assert.notNull(this.acknowledgmentProcessor, "acknowledgmentProcessor not set");
+			Assert.notNull(this.pollBackOffPolicy, "pollBackOffPolicy not set");
 			logger.debug("Starting {} for queue {}", getClass().getSimpleName(), this.pollingEndpointName);
 			this.running = true;
 			ConfigUtils.INSTANCE
@@ -194,6 +203,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 				if (!isRunning()) {
 					continue;
 				}
+				handlePollBackOff();
 				logger.trace("Requesting permits for queue {}", this.pollingEndpointName);
 				final int acquiredPermits = this.backPressureHandler.requestBatch();
 				if (acquiredPermits == 0) {
@@ -209,9 +219,10 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 				}
 				// @formatter:off
 				managePollingFuture(doPollForMessages(acquiredPermits))
+					.thenApply(this::resetBackOffContext)
 					.exceptionally(this::handlePollingException)
-					.thenApply(msgs -> releaseUnusedPermits(acquiredPermits, msgs))
 					.thenApply(this::convertMessages)
+					.thenApply(msgs -> releaseUnusedPermits(acquiredPermits, msgs))
 					.thenCompose(this::emitMessagesToPipeline)
 					.exceptionally(this::handleSinkException);
 				// @formatter:on
@@ -228,9 +239,19 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 		logger.debug("Execution thread stopped for queue {}", this.pollingEndpointName);
 	}
 
+	private void handlePollBackOff() {
+		BackOffContext backOffContext = this.pollBackOffContext.get();
+		if (backOffContext == null) {
+			return;
+		}
+		logger.trace("Back off context found, backing off");
+		this.pollBackOffPolicy.backOff(backOffContext);
+		logger.trace("Resuming from back off");
+	}
+
 	protected abstract CompletableFuture<Collection<S>> doPollForMessages(int messagesToRequest);
 
-	public Collection<S> releaseUnusedPermits(int permits, Collection<S> msgs) {
+	public Collection<Message<T>> releaseUnusedPermits(int permits, Collection<Message<T>> msgs) {
 		if (msgs.isEmpty() && permits == this.backPressureHandler.getBatchSize()) {
 			this.backPressureHandler.releaseBatch();
 			logger.trace("Released batch of unused permits for queue {}", this.pollingEndpointName);
@@ -273,8 +294,28 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 	}
 
 	private Collection<S> handlePollingException(Throwable t) {
-		logger.error("Error polling for messages in queue {}", this.pollingEndpointName, t);
+		logger.error("Error polling for messages in queue {}.", this.pollingEndpointName, t);
+		if (this.pollBackOffContext.get() == null) {
+			logger.trace("Setting back off policy in queue {}", this.pollingEndpointName);
+			this.pollBackOffContext.set(createBackOffContext());
+		}
 		return Collections.emptyList();
+	}
+
+	private BackOffContext createBackOffContext() {
+		BackOffContext context = this.pollBackOffPolicy.start(null);
+		return context != null ? context : new NoOpsBackOffContext();
+	}
+
+	private static class NoOpsBackOffContext implements BackOffContext {
+	}
+
+	private Collection<S> resetBackOffContext(Collection<S> messages) {
+		if (this.pollBackOffContext.get() != null) {
+			logger.trace("Polling successful, resetting back off context.");
+			this.pollBackOffContext.set(null);
+		}
+		return messages;
 	}
 
 	private <F> CompletableFuture<F> managePollingFuture(CompletableFuture<F> pollingFuture) {
