@@ -15,9 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.imds;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
@@ -62,7 +60,7 @@ public class ImdsUtilsTest {
 		loggerField.setAccessible(true);
 		loggerField.set(utils, mockLogger);
 
-		assertTrue(utils.isRunningOnCloudEnvironment());
+		assertThat(utils.isRunningOnCloudEnvironment()).isTrue();
 
 		verify(mockLogger).info(contains("application is running within an EC2 instance"));
 	}
@@ -86,7 +84,7 @@ public class ImdsUtilsTest {
 		loggerField.setAccessible(true);
 		loggerField.set(utils, mockLogger);
 
-		assertFalse(utils.isRunningOnCloudEnvironment());
+		assertThat(utils.isRunningOnCloudEnvironment()).isFalse();
 
 		verify(mockLogger).info(contains("application is NOT running"));
 
@@ -112,7 +110,7 @@ public class ImdsUtilsTest {
 		loggerField.setAccessible(true);
 		loggerField.set(utils, mockLogger);
 
-		assertFalse(utils.isRunningOnCloudEnvironment());
+		assertThat(utils.isRunningOnCloudEnvironment()).isFalse();
 
 		verify(mockLogger).error(contains("Error occurred when"), any(Exception.class));
 
@@ -139,14 +137,10 @@ public class ImdsUtilsTest {
 
 		Map<String, String> results = utils.getEc2InstanceMetadata();
 
-		assertNotNull(results);
-		assertTrue(results.size() == 3);
-		assertTrue(results.containsKey("ami-id"));
-		assertTrue(results.containsKey("instance-id"));
-		assertTrue(results.containsKey("mac"));
-		assertTrue(results.containsValue("mac"));
-		assertFalse(results.containsKey("public-hostname"));
-
+		assertThat(results).hasSize(3)
+			.containsKeys("ami-id", "instance-id", "mac")
+			.containsValue("mac")
+			.doesNotContainKey("public-hostname");
 	}
 
 }

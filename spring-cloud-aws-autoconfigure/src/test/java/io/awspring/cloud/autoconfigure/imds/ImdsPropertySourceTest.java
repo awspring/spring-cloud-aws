@@ -15,8 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.imds;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,7 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * test for {@link ImdsPropertySource} Attempts to acquire instance metadata should succeed on a best-effort basis. Any
+ * Test for {@link ImdsPropertySource} Attempts to acquire instance metadata should succeed on a best-effort basis. Any
  * exceptions or missing keys should be logged at debug level and ignored.
  *
  * @author Ken Krueger
@@ -57,8 +56,9 @@ public class ImdsPropertySourceTest {
 		ImdsPropertySource propertySource = new ImdsPropertySource("test", mockUtils);
 		propertySource.init();
 
-		assertTrue("Resulting PropertySource should contain the test data",
-				propertySource.getProperty("mac").equals("mac"));
+		assertThat(propertySource.getProperty("mac"))
+			.describedAs("Resulting PropertySource should contain the test data")
+			.isEqualTo("mac");
 	}
 
 	@Test
@@ -67,7 +67,9 @@ public class ImdsPropertySourceTest {
 		ImdsPropertySource propertySource = new ImdsPropertySource("test", mockUtils);
 		propertySource.init();
 
-		assertTrue("Resulting PropertySource should be empty", propertySource.getPropertyNames().length == 0);
+		assertThat(propertySource.getPropertyNames())
+			.describedAs("Resulting PropertySource should be empty")
+			.hasSize(0);
 	}
 
 	@Test
@@ -80,8 +82,13 @@ public class ImdsPropertySourceTest {
 		// Loop through each property in copy's getPropertyNames
 		// and make sure it's in the original propertySource
 		for (String name : copy.getPropertyNames()) {
-			assertTrue("The two PropertySources should contain the same keys", propertySource.containsProperty(name));
-			assertEquals("Each property should be equal", copy.getProperty(name), propertySource.getProperty(name));
+			assertThat(propertySource.containsProperty(name))
+				.describedAs("The two PropertySources should contain the same keys")
+				.isTrue();
+			assertThat(copy.getProperty(name))
+				.describedAs("Each property should be equal")
+				.isEqualTo(propertySource.getProperty(name));
+
 		}
 	}
 
@@ -91,7 +98,9 @@ public class ImdsPropertySourceTest {
 		propertySource.init();
 
 		List<Object> keyList = Arrays.asList(propertySource.getPropertyNames());
-		assertTrue("None of the keys from our test data should be missing.", keyList.containsAll(testMap.keySet()));
+		assertThat(keyList)
+			.describedAs("None of the keys from our test data should be missing.")
+			.containsAll(testMap.keySet());
 	}
 
 }
