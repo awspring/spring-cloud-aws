@@ -29,5 +29,6 @@ public abstract class S3OutputStream extends OutputStream {
 	/**
 	 * Cancels the upload and cleans up temporal resources (temp files, partial multipart upload).
 	 */
-	public abstract void abort() throws IOException;
+	public void abort() throws IOException {
+	}
 }
