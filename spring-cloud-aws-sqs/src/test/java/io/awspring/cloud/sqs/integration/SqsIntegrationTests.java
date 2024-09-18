@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.integration;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -188,7 +189,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		List<Message<String>> messages = create10Messages("receivesMessageBatch");
 		sqsTemplate.sendMany(RECEIVES_MESSAGE_BATCH_QUEUE_NAME, messages);
 		logger.debug("Sent 10 messages to queue {}", RECEIVES_MESSAGE_BATCH_QUEUE_NAME);
-		assertThat(latchContainer.receivesMessageBatchLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		await().untilAsserted(() -> {
+			// ensure that first batch was processed more than once
+			assertThat(latchContainer.receivesMessageBatchLatch.getCount()).isLessThan(10);
+		});
 		assertThat(latchContainer.acknowledgementCallbackBatchLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
