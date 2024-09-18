@@ -155,9 +155,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/blob/byte_certificate")) {
-			byte[] byteCertificates = context.getEnvironment().getProperty("byte_certificate", byte[].class);
-			System.out.println(new String(byteCertificates, StandardCharsets.UTF_8));
-			assertThat(byteCertificates).isEqualTo("My certificate".getBytes(StandardCharsets.UTF_8));
+			assertThat(context.getEnvironment().getProperty("byte_certificate", byte[].class))
+					.isEqualTo("My certificate".getBytes(StandardCharsets.UTF_8));
 		}
 	}
 
