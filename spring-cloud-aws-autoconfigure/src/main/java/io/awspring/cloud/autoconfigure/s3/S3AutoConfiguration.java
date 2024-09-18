@@ -122,7 +122,8 @@ public class S3AutoConfiguration {
 					  ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider)
 		throws NoSuchAlgorithmException {
 		if (ClassUtils.isPresent("software.amazon.encryption.s3.S3EncryptionClient", null)
-		|| aesProvider.getIfAvailable() != null || rsaProvider.getIfAvailable() != null) {
+		&& (aesProvider.getIfAvailable() != null || rsaProvider.getIfAvailable() != null ||
+			StringUtils.hasText(properties.getEncryption().getKeyId()))) {
 			return s3EncClient(properties, s3ClientBuilder, rsaProvider, aesProvider);
 		}
 		return s3ClientBuilder.build();
