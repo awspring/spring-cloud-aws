@@ -122,6 +122,17 @@ abstract class AbstractTempFileS3OutputStream extends S3OutputStream {
 	}
 
 	@Override
+	public void abort() throws IOException {
+		if (closed) {
+			throw new IllegalStateException("Stream is already closed. Too late to abort.");
+		}
+
+		localOutputStream.close();
+		closed = true;
+		deleteTempFile();
+	}
+
+	@Override
 	public void close() throws IOException {
 		if (closed) {
 			return;
@@ -145,16 +156,19 @@ abstract class AbstractTempFileS3OutputStream extends S3OutputStream {
 				}
 			}
 			this.upload(builder.build());
-			boolean result = file.delete();
-
-			if (!result) {
-				getLogger().warn(String.format("Temporary file %s could not be deleted", file.getPath()));
-			}
+			deleteTempFile();
 		}
 		catch (Exception se) {
-			getLogger().error(
-					String.format("Failed to upload %s. Temporary file @%s", location.getObject(), file.getPath()));
+			getLogger().error("Failed to upload {}. Temporary file @{}", location.getObject(), file.getPath());
 			throw new UploadFailedException(file.getPath(), se);
+		}
+	}
+
+	private void deleteTempFile() {
+		boolean result = file.delete();
+
+		if (!result) {
+			getLogger().warn("Temporary file {} could not be deleted", file.getPath());
 		}
 	}
 
