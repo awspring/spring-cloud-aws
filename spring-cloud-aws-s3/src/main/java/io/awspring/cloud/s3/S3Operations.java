@@ -101,6 +101,18 @@ public interface S3Operations {
 	S3Resource store(String bucketName, String key, Object object);
 
 	/**
+	 * Creates an {@link S3Resource} for given bucket name and object key using {@link S3OutputStreamProvider}
+	 * configured on the implementation class ({@link S3Template}).
+	 * <p>
+	 * Note that calling this method does not create an actual object on S3.
+	 *
+	 * @param bucketName - the bucket name
+	 * @param key - the object key
+	 * @return the {@link S3Resource}
+	 */
+	S3Resource createResource(String bucketName, String key);
+
+	/**
 	 * Reads a Java object from a S3 bucket. Uses {@link S3ObjectConverter} for deserialization.
 	 *
 	 * @param bucketName - the bucket name
