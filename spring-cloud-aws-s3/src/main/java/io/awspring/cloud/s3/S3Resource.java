@@ -130,7 +130,7 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	@Override
-	public long contentLength() throws IOException {
+	public long contentLength() {
 		if (headMetadata == null) {
 			fetchMetadata();
 		}
@@ -138,7 +138,7 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	@Override
-	public long lastModified() throws IOException {
+	public long lastModified() {
 		if (headMetadata == null) {
 			fetchMetadata();
 		}
@@ -146,7 +146,7 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	@Override
-	public File getFile() throws IOException {
+	public File getFile() {
 		throw new UnsupportedOperationException("Amazon S3 resource can not be resolved to java.io.File objects.Use "
 				+ "getInputStream() to retrieve the contents of the object!");
 	}

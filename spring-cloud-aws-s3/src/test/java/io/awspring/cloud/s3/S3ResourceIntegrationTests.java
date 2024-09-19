@@ -122,7 +122,7 @@ class S3ResourceIntegrationTests {
 	}
 
 	@TestAvailableOutputStreamProviders
-	void objectHasContentLength(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
+	void objectHasContentLength(S3OutputStreamProvider s3OutputStreamProvider) {
 		String contents = "test-file-content";
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString(contents));
