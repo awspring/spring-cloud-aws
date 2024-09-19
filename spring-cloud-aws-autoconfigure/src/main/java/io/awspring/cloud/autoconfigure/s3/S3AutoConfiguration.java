@@ -130,8 +130,7 @@ public class S3AutoConfiguration {
 	}
 
 		S3Client s3EncClient(S3Properties properties, S3ClientBuilder s3ClientBuilder,
-				ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider)
-				throws NoSuchAlgorithmException {
+				ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider) {
 			PropertyMapper propertyMapper = PropertyMapper.get();
 			S3EncryptionProperties encryptionProperties = properties.getEncryption();
 			S3EncryptionClient.Builder s3EncryptionBuilder = S3EncryptionClient.builder();
