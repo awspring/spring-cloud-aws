@@ -76,7 +76,7 @@ class DiskBufferingS3OutputStreamTests {
 		S3Client s3Client = mock(S3Client.class);
 
 		try (DiskBufferingS3OutputStream diskBufferingS3OutputStream = new DiskBufferingS3OutputStream(
-			new Location("bucket", "key"), s3Client, null)) {
+				new Location("bucket", "key"), s3Client, null)) {
 			diskBufferingS3OutputStream.write("hello".getBytes(StandardCharsets.UTF_8));
 			diskBufferingS3OutputStream.abort();
 		}
