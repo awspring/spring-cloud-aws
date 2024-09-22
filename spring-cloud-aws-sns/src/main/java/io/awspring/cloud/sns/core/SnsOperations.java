@@ -31,7 +31,7 @@ public interface SnsOperations {
 	 * @param notification - the notification
 	 */
 	void sendNotification(String topic, SnsNotification<?> notification);
-	
+
 	/**
 	 * Checks if topic with given ARN exists.
 	 * 
