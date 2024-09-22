@@ -70,9 +70,9 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean
 	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+			ObjectProvider<AwsConnectionDetails> connectionDetails, ObjectProvider<S3ClientCustomizer> customizer) {
 		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(), this.properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable());
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), customizer.orderedStream());
 
 		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
 

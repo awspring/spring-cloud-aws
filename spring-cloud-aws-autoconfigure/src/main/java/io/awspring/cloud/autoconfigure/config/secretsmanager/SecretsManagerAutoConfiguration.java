@@ -50,8 +50,9 @@ public class SecretsManagerAutoConfiguration {
 	public SecretsManagerClient secretsManagerClient(SecretsManagerProperties properties,
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<SecretsManagerClientBuilder>> customizer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+			ObjectProvider<AwsConnectionDetails> connectionDetails,
+			ObjectProvider<SecretsManagerClientCustomizer> customizers) {
 		return awsClientBuilderConfigurer.configure(SecretsManagerClient.builder(), properties,
-				connectionDetails.getIfAvailable(), customizer.getIfAvailable()).build();
+				connectionDetails.getIfAvailable(), customizer.getIfAvailable(), customizers.orderedStream()).build();
 	}
 }

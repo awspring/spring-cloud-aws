@@ -15,9 +15,11 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
+import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -47,17 +49,44 @@ public class AwsClientBuilderConfigurer {
 		this.clientOverrideConfiguration = new SpringCloudClientConfiguration().clientOverrideConfiguration();
 	}
 
-	public <T extends AwsClientBuilder<?, ?>> T configure(T builder) {
-		return configure(builder, null, null, null);
+	public <T extends AwsClientBuilder<T, ?>> T configure(T builder) {
+		return configure(builder, null, null, null, null);
 	}
 
-	public <T extends AwsClientBuilder<?, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
-			@Nullable AwsClientCustomizer<T> customizer) {
-		return configure(builder, clientProperties, null, customizer);
+	/**
+	 * @deprecated use {@link #configure(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream)}
+	 */
+	@Deprecated
+	public <T extends AwsClientBuilder<T, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
+			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer) {
+		return configure(builder, clientProperties, null, customizer, null);
 	}
 
-	public <T extends AwsClientBuilder<?, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
-			@Nullable AwsConnectionDetails connectionDetails, @Nullable AwsClientCustomizer<T> customizer) {
+	/**
+	 * @deprecated use {@link #configure(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream)}
+	 */
+	@Deprecated
+	public <T extends AwsClientBuilder<T, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
+			@Nullable AwsConnectionDetails connectionDetails,
+			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer) {
+		return configure(builder, clientProperties, connectionDetails, customizer, null);
+	}
+
+	public <T extends AwsClientBuilder<T, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
+			@Nullable AwsConnectionDetails connectionDetails,
+			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer) {
+		return configure(builder, clientProperties, connectionDetails, null, clientBuilderCustomizer);
+	}
+
+	/**
+	 * @deprecated use {@link #configure(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream)}
+	 */
+	@Deprecated
+	public <T extends AwsClientBuilder<T, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
+			@Nullable AwsConnectionDetails connectionDetails,
+			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer,
+			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer) {
+
 		Assert.notNull(builder, "builder is required");
 
 		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties, connectionDetails))
@@ -72,7 +101,10 @@ public class AwsClientBuilderConfigurer {
 		Optional.ofNullable(this.awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
 		Optional.ofNullable(this.awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
 		if (customizer != null) {
-			AwsClientCustomizer.apply(customizer, builder);
+			io.awspring.cloud.autoconfigure.core.AwsClientCustomizer.apply(customizer, builder);
+		}
+		if (clientBuilderCustomizer != null) {
+			clientBuilderCustomizer.forEach(it -> it.customize(builder));
 		}
 		return builder;
 	}

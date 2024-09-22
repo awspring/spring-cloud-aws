@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.testcontainers;
+package io.awspring.cloud.autoconfigure;
 
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 
-/**
- * Provides convenient way to construct AWS SDK clients.
- *
- * @author Maciej Walkowiak
- * @since 3.2.0
- */
-public interface AwsClientFactory {
-	<CLIENT, BUILDER extends AwsClientBuilder<BUILDER, CLIENT>> CLIENT create(BUILDER builder);
+public interface AwsClientCustomizer<T extends AwsClientBuilder<?, ?>> {
+	void customize(T builder);
 }

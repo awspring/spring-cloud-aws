@@ -69,9 +69,10 @@ public class CloudWatchExportAutoConfiguration {
 	public CloudWatchAsyncClient cloudWatchAsyncClient(CloudWatchProperties properties,
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+			ObjectProvider<AwsConnectionDetails> connectionDetails,
+			ObjectProvider<CloudWatchAsyncClientCustomizer> customizer) {
 		return awsClientBuilderConfigurer.configure(CloudWatchAsyncClient.builder(), properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable()).build();
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), customizer.orderedStream()).build();
 	}
 
 	@Bean

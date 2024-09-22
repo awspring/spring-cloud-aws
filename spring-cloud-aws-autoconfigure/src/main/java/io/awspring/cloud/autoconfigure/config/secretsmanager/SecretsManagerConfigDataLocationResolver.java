@@ -104,6 +104,10 @@ public class SecretsManagerConfigDataLocationResolver
 			if (configurer != null) {
 				AwsClientCustomizer.apply(configurer, builder);
 			}
+			SecretsManagerClientCustomizer clientCustomizer = context.get(SecretsManagerClientCustomizer.class);
+			if (clientCustomizer != null) {
+				clientCustomizer.customize(builder);
+			}
 		}
 		catch (IllegalStateException e) {
 			log.debug("Bean of type AwsClientConfigurerSecretsManager is not registered: " + e.getMessage());

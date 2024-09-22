@@ -100,6 +100,10 @@ public class ParameterStoreConfigDataLocationResolver
 			if (configurer != null) {
 				AwsClientCustomizer.apply(configurer, builder);
 			}
+			SsmClientCustomizer ssmClientCustomizer = context.get(SsmClientCustomizer.class);
+			if (ssmClientCustomizer != null) {
+				ssmClientCustomizer.customize(builder);
+			}
 		}
 		catch (IllegalStateException e) {
 			log.debug("Bean of type AwsClientConfigurerParameterStore is not registered: " + e.getMessage());

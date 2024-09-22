@@ -75,9 +75,10 @@ public class SqsAutoConfiguration {
 	@Bean
 	public SqsAsyncClient sqsAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<SqsAsyncClientBuilder>> configurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+			ObjectProvider<AwsConnectionDetails> connectionDetails,
+			ObjectProvider<SqsAsyncClientCustomizer> customizer) {
 		return awsClientBuilderConfigurer.configure(SqsAsyncClient.builder(), this.sqsProperties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable()).build();
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), customizer.orderedStream()).build();
 	}
 
 	@ConditionalOnMissingBean

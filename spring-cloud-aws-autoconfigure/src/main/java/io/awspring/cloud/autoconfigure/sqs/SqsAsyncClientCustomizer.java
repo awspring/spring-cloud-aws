@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.testcontainers;
+package io.awspring.cloud.autoconfigure.sqs;
 
-import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
+import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 
 /**
- * Provides convenient way to construct AWS SDK clients.
- *
  * @author Maciej Walkowiak
- * @since 3.2.0
+ * @since 3.2.1
  */
-public interface AwsClientFactory {
-	<CLIENT, BUILDER extends AwsClientBuilder<BUILDER, CLIENT>> CLIENT create(BUILDER builder);
+@FunctionalInterface
+public interface SqsAsyncClientCustomizer extends AwsClientCustomizer<SqsAsyncClientBuilder> {
 }

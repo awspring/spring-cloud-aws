@@ -56,9 +56,9 @@ public class SesAutoConfiguration {
 	@ConditionalOnMissingBean
 	public SesClient sesClient(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+			ObjectProvider<AwsConnectionDetails> connectionDetails, ObjectProvider<SesClientCustomizer> customizer) {
 		return awsClientBuilderConfigurer.configure(SesClient.builder(), properties, connectionDetails.getIfAvailable(),
-				configurer.getIfAvailable()).build();
+				configurer.getIfAvailable(), customizer.orderedStream()).build();
 	}
 
 	@Bean

@@ -114,9 +114,10 @@ public class DynamoDbAutoConfiguration {
 		@Bean
 		public DynamoDbClient dynamoDbClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 				ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
-				ObjectProvider<AwsConnectionDetails> connectionDetails, DynamoDbProperties properties) {
+				ObjectProvider<AwsConnectionDetails> connectionDetails, DynamoDbProperties properties,
+				ObjectProvider<DynamoDbClientCustomizer> customizer) {
 			return awsClientBuilderConfigurer.configure(DynamoDbClient.builder(), properties,
-					connectionDetails.getIfAvailable(), configurer.getIfAvailable()).build();
+					connectionDetails.getIfAvailable(), configurer.getIfAvailable(), customizer.orderedStream()).build();
 		}
 
 	}

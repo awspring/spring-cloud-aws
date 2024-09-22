@@ -69,9 +69,9 @@ public class SnsAutoConfiguration {
 	@Bean
 	public SnsClient snsClient(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+			ObjectProvider<AwsConnectionDetails> connectionDetails, ObjectProvider<SnsClientCustomizer> customizer) {
 		return awsClientBuilderConfigurer.configure(SnsClient.builder(), properties, connectionDetails.getIfAvailable(),
-				configurer.getIfAvailable()).build();
+				configurer.getIfAvailable(), customizer.orderedStream()).build();
 	}
 
 	@ConditionalOnMissingBean(SnsOperations.class)

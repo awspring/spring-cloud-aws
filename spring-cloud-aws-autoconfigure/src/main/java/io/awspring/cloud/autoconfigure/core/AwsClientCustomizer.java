@@ -27,6 +27,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
  * @author Matej Nedić
  * @since 3.0.0
  */
+@Deprecated
 public interface AwsClientCustomizer<T> {
 
 	@Nullable
