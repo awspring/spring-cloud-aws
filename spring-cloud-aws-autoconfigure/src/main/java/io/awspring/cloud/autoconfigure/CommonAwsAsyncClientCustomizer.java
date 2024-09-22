@@ -23,7 +23,7 @@ import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
  * It gets applied to every configured asynchronous AWS client bean.
  *
  * @author Maciej Walkowiak
- * @since 3.2.1
+ * @since 3.3.0
  */
 public interface CommonAwsAsyncClientCustomizer {
 	/**

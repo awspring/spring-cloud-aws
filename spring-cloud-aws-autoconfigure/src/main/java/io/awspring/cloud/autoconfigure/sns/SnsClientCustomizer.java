@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
 
 /**
  * @author Maciej Walkowiak
- * @since 3.2.1
+ * @since 3.3.0
  */
 @FunctionalInterface
 public interface SnsClientCustomizer extends AwsClientCustomizer<SnsClientBuilder> {

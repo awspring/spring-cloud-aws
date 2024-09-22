@@ -23,7 +23,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
  * Callback interface that can be used to customize a {@link DynamoDbClientBuilder}.
  *
  * @author Maciej Walkowiak
- * @since 3.2.1
+ * @since 3.3.0
  */
 @FunctionalInterface
 public interface DynamoDbClientCustomizer extends AwsClientCustomizer<DynamoDbClientBuilder> {
