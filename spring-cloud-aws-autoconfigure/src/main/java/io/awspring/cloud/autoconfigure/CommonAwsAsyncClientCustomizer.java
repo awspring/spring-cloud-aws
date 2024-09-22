@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.dynamodb;
+package io.awspring.cloud.autoconfigure;
 
-import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
-import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
+import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 
 /**
- * Callback interface that can be used to customize a {@link DynamoDbClientBuilder}.
+ * Callback interface that can be used to customize a {@link AwsAsyncClientBuilder}.
+ * <p>
+ * It gets applied to every configured asynchronous AWS client bean.
  *
  * @author Maciej Walkowiak
  * @since 3.2.1
  */
-@FunctionalInterface
-public interface DynamoDbClientCustomizer extends AwsClientCustomizer<DynamoDbClientBuilder> {
+public interface CommonAwsAsyncClientCustomizer {
+	/**
+	 * Callback to customize a {@link AwsAsyncClientBuilder} instance.
+	 *
+	 * @param builder the client builder to customize
+	 */
+	void customize(AwsAsyncClientBuilder<?, ?> builder);
 }

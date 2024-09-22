@@ -35,7 +35,6 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -128,28 +127,6 @@ class DynamoDbAutoConfigurationTest {
 						assertThat(dynamoDbClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1999));
 						assertThat(dynamoDbClient.getSyncHttpClient()).isNotNull();
 					});
-		}
-
-		@Test
-		void customDynamoDbClientCustomizer() {
-			contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomizerConfig.class)
-				.run(context -> {
-					ConfiguredAwsClient dynamoDbClient = new ConfiguredAwsClient(
-						context.getBean(DynamoDbClient.class));
-					assertThat(dynamoDbClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2001));
-					assertThat(dynamoDbClient.getApiCallAttemptTimeout()).isEqualTo(Duration.ofMillis(2002));
-					assertThat(dynamoDbClient.getSyncHttpClient()).isNotNull();
-				});
-		}
-
-		@Test
-		void customDynamoDbClientCustomizerWithOrder() {
-			contextRunner.withUserConfiguration(DynamoDbAutoConfigurationTest.CustomizerConfigWithOrder.class)
-				.run(context -> {
-					ConfiguredAwsClient dynamoDbClient = new ConfiguredAwsClient(
-						context.getBean(DynamoDbClient.class));
-					assertThat(dynamoDbClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2001));
-				});
 		}
 
 		@Test
@@ -333,53 +310,6 @@ class DynamoDbAutoConfigurationTest {
 			}
 		}
 
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	static class CustomizerConfig {
-
-		@Bean
-		DynamoDbClientCustomizer dynamoDbClientCustomizer() {
-			return builder -> {
-				builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
-					c.apiCallTimeout(Duration.ofMillis(2001));
-				}))
-				.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
-			};
-		}
-
-		@Bean
-		DynamoDbClientCustomizer dynamoDbClientCustomizer2() {
-			return builder -> {
-				builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
-					c.apiCallAttemptTimeout(Duration.ofMillis(2002));
-				}));
-			};
-		}
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	static class CustomizerConfigWithOrder {
-
-		@Bean
-		@Order(2)
-		DynamoDbClientCustomizer dynamoDbClientCustomizer() {
-			return builder -> {
-				builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
-					c.apiCallTimeout(Duration.ofMillis(2001));
-				}));
-			};
-		}
-
-		@Bean
-		@Order(1)
-		DynamoDbClientCustomizer dynamoDbClientCustomizer2() {
-			return builder -> {
-				builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
-					c.apiCallTimeout(Duration.ofMillis(2000));
-				}));
-			};
-		}
 	}
 
 	@Configuration(proxyBeanMethods = false)

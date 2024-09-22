@@ -17,6 +17,8 @@ package io.awspring.cloud.autoconfigure.core;
 
 import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import io.awspring.cloud.autoconfigure.CommonAwsAsyncClientCustomizer;
+import io.awspring.cloud.autoconfigure.CommonAwsSyncClientCustomizer;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -24,7 +26,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
@@ -50,43 +54,33 @@ public class AwsClientBuilderConfigurer {
 	}
 
 	public <T extends AwsClientBuilder<T, ?>> T configure(T builder) {
-		return configure(builder, null, null, null, null);
+		return configure(builder, null, null, null);
 	}
 
 	/**
-	 * @deprecated use {@link #configure(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream)}
+	 * @deprecated use
+	 * {@link #configureSyncClient(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream, Stream)} for
+	 * sync client or
+	 * {@link #configureAsyncClient(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream, Stream)} for
+	 * async client.
 	 */
 	@Deprecated
 	public <T extends AwsClientBuilder<T, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
 			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer) {
-		return configure(builder, clientProperties, null, customizer, null);
+		return configure(builder, clientProperties, null, customizer);
 	}
 
 	/**
-	 * @deprecated use {@link #configure(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream)}
+	 * @deprecated use
+	 * {@link #configureSyncClient(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream, Stream)} for
+	 * sync client or
+	 * {@link #configureAsyncClient(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream, Stream)} for
+	 * async client.
 	 */
 	@Deprecated
 	public <T extends AwsClientBuilder<T, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
 			@Nullable AwsConnectionDetails connectionDetails,
 			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer) {
-		return configure(builder, clientProperties, connectionDetails, customizer, null);
-	}
-
-	public <T extends AwsClientBuilder<T, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
-			@Nullable AwsConnectionDetails connectionDetails,
-			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer) {
-		return configure(builder, clientProperties, connectionDetails, null, clientBuilderCustomizer);
-	}
-
-	/**
-	 * @deprecated use {@link #configure(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream)}
-	 */
-	@Deprecated
-	public <T extends AwsClientBuilder<T, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
-			@Nullable AwsConnectionDetails connectionDetails,
-			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer,
-			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer) {
-
 		Assert.notNull(builder, "builder is required");
 
 		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties, connectionDetails))
@@ -103,10 +97,67 @@ public class AwsClientBuilderConfigurer {
 		if (customizer != null) {
 			io.awspring.cloud.autoconfigure.core.AwsClientCustomizer.apply(customizer, builder);
 		}
-		if (clientBuilderCustomizer != null) {
-			clientBuilderCustomizer.forEach(it -> it.customize(builder));
-		}
 		return builder;
+	}
+
+	public <T extends AwsClientBuilder<T, ?>> T configureSyncClient(T builder,
+			@Nullable AwsClientProperties clientProperties, @Nullable AwsConnectionDetails connectionDetails,
+			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer,
+			@Nullable Stream<? extends CommonAwsSyncClientCustomizer> commonCustomizers) {
+		return configureSyncClient(builder, clientProperties, connectionDetails, null, clientBuilderCustomizer,
+				commonCustomizers);
+	}
+
+	public <T extends AwsClientBuilder<T, ?>> T configureAsyncClient(T builder,
+			@Nullable AwsClientProperties clientProperties, @Nullable AwsConnectionDetails connectionDetails,
+			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer,
+			@Nullable Stream<? extends CommonAwsAsyncClientCustomizer> commonCustomizers) {
+		return configureAsyncClient(builder, clientProperties, connectionDetails, null, clientBuilderCustomizer,
+				commonCustomizers);
+	}
+
+	@Deprecated
+	public <T extends AwsClientBuilder<T, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
+			@Nullable AwsConnectionDetails connectionDetails,
+			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer,
+			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer) {
+		return configure(builder, clientProperties, connectionDetails, null, clientBuilderCustomizer);
+	}
+
+	/**
+	 * @deprecated use
+	 * {@link #configureSyncClient(AwsClientBuilder, AwsClientProperties, AwsConnectionDetails, Stream, Stream)}.
+	 */
+	@Deprecated
+	public <T extends AwsClientBuilder<T, ?>> T configureSyncClient(T builder,
+			@Nullable AwsClientProperties clientProperties, @Nullable AwsConnectionDetails connectionDetails,
+			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer,
+			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer,
+			@Nullable Stream<? extends CommonAwsSyncClientCustomizer> commonBuilderCustomizer) {
+		T result = configure(builder, clientProperties, connectionDetails, customizer);
+		if (commonBuilderCustomizer != null && builder instanceof AwsSyncClientBuilder<?, ?>) {
+			commonBuilderCustomizer.forEach(it -> it.customize((AwsSyncClientBuilder<?, ?>) result));
+		}
+		if (clientBuilderCustomizer != null) {
+			clientBuilderCustomizer.forEach(it -> it.customize(result));
+		}
+		return result;
+	}
+
+	@Deprecated
+	public <T extends AwsClientBuilder<T, ?>> T configureAsyncClient(T builder,
+			@Nullable AwsClientProperties clientProperties, @Nullable AwsConnectionDetails connectionDetails,
+			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer,
+			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer,
+			@Nullable Stream<? extends CommonAwsAsyncClientCustomizer> commonBuilderCustomizer) {
+		T result = configure(builder, clientProperties, connectionDetails, customizer);
+		if (commonBuilderCustomizer != null && builder instanceof AwsAsyncClientBuilder<?, ?>) {
+			commonBuilderCustomizer.forEach(it -> it.customize((AwsAsyncClientBuilder<?, ?>) result));
+		}
+		if (clientBuilderCustomizer != null) {
+			clientBuilderCustomizer.forEach(it -> it.customize(result));
+		}
+		return result;
 	}
 
 	public Region resolveRegion(@Nullable AwsClientProperties clientProperties,
