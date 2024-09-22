@@ -1,6 +1,7 @@
 # importing single secret
-spring.config.import: aws-secretsmanager:/secrets/spring-cloud-aws-sample-app
-logging.level.io.awspring.cloud.secretsmanager: debug
+#spring.config.import: aws-secretsmanager:/secrets/spring-cloud-aws-sample-app
+logging.level:
+  io.awspring.cloud.secretsmanager: debug
 
 # LocalStack configuration
 spring.cloud.aws.endpoint: http://localhost:4566

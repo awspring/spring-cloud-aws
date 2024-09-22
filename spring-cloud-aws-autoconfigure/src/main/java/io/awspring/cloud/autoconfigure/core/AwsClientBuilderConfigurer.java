@@ -39,7 +39,7 @@ public class AwsClientBuilderConfigurer {
 	private final AwsProperties awsProperties;
 	private final ClientOverrideConfiguration clientOverrideConfiguration;
 
-	AwsClientBuilderConfigurer(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider,
+	public AwsClientBuilderConfigurer(AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider,
 			AwsProperties awsProperties) {
 		this.credentialsProvider = credentialsProvider;
 		this.regionProvider = regionProvider;
@@ -48,17 +48,24 @@ public class AwsClientBuilderConfigurer {
 	}
 
 	public <T extends AwsClientBuilder<?, ?>> T configure(T builder) {
-		return configure(builder, null, null);
+		return configure(builder, null, null, null);
 	}
 
 	public <T extends AwsClientBuilder<?, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
 			@Nullable AwsClientCustomizer<T> customizer) {
+		return configure(builder, clientProperties, null, customizer);
+	}
+
+	public <T extends AwsClientBuilder<?, ?>> T configure(T builder, @Nullable AwsClientProperties clientProperties,
+			@Nullable AwsConnectionDetails connectionDetails, @Nullable AwsClientCustomizer<T> customizer) {
 		Assert.notNull(builder, "builder is required");
 
-		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties))
+		builder.credentialsProvider(this.credentialsProvider).region(resolveRegion(clientProperties, connectionDetails))
 				.overrideConfiguration(this.clientOverrideConfiguration);
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(clientProperties).map(AwsClientProperties::getEndpoint)
+				.ifPresent(builder::endpointOverride);
+		Optional.ofNullable(connectionDetails).map(AwsConnectionDetails::getEndpoint)
 				.ifPresent(builder::endpointOverride);
 
 		Optional.ofNullable(this.awsProperties.getDefaultsMode()).ifPresent(builder::defaultsMode);
@@ -70,14 +77,21 @@ public class AwsClientBuilderConfigurer {
 		return builder;
 	}
 
-	public Region resolveRegion(@Nullable AwsClientProperties clientProperties) {
-		return resolveRegion(clientProperties, this.regionProvider);
+	public Region resolveRegion(@Nullable AwsClientProperties clientProperties,
+			@Nullable AwsConnectionDetails connectionDetails) {
+		return resolveRegion(clientProperties, connectionDetails, this.regionProvider);
 	}
 
 	public static Region resolveRegion(@Nullable AwsClientProperties clientProperties,
-			AwsRegionProvider regionProvider) {
-		return clientProperties != null && StringUtils.hasLength(clientProperties.getRegion())
-				? Region.of(clientProperties.getRegion())
-				: regionProvider.getRegion();
+			@Nullable AwsConnectionDetails connectionDetails, AwsRegionProvider regionProvider) {
+		if (connectionDetails != null && StringUtils.hasLength(connectionDetails.getRegion())) {
+			return Region.of(connectionDetails.getRegion());
+		}
+
+		if (clientProperties != null && StringUtils.hasLength(clientProperties.getRegion())) {
+			return Region.of(clientProperties.getRegion());
+		}
+
+		return regionProvider.getRegion();
 	}
 }

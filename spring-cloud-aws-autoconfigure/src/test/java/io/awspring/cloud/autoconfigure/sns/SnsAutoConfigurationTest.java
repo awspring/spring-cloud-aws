@@ -39,6 +39,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.arns.Arn;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
  * Tests for class {@link io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration}.
  *
  * @author Matej Nedic
+ * @author Mariusz Sondecki
  */
 class SnsAutoConfigurationTest {
 
@@ -137,6 +139,12 @@ class SnsAutoConfigurationTest {
 		});
 	}
 
+	@Test
+	void customChannelInterceptorCanBeConfigured() {
+		this.contextRunner.withUserConfiguration(CustomChannelInterceptorConfiguration.class)
+				.run(context -> assertThat(context).hasSingleBean(CustomChannelInterceptor.class));
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class CustomTopicArnResolverConfiguration {
 
@@ -215,4 +223,15 @@ class SnsAutoConfigurationTest {
 		}
 	}
 
+	@Configuration(proxyBeanMethods = false)
+	static class CustomChannelInterceptorConfiguration {
+
+		@Bean
+		ChannelInterceptor customChannelInterceptor() {
+			return new CustomChannelInterceptor();
+		}
+	}
+
+	static class CustomChannelInterceptor implements ChannelInterceptor {
+	}
 }

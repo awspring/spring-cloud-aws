@@ -66,15 +66,15 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 		return prepareTable(entity).updateItem(entity);
 	}
 
-	public void delete(Key key, Class<?> clazz) {
+	public <T> T delete(Key key, Class<T> clazz) {
 		Assert.notNull(key, "key is required");
 		Assert.notNull(clazz, "clazz is required");
-		prepareTable(clazz).deleteItem(key);
+		 return prepareTable(clazz).deleteItem(key);
 	}
 
-	public <T> void delete(T entity) {
+	public <T> T delete(T entity) {
 		Assert.notNull(entity, "entity is required");
-		prepareTable(entity).deleteItem(entity);
+		return prepareTable(entity).deleteItem(entity);
 	}
 
 	@Nullable

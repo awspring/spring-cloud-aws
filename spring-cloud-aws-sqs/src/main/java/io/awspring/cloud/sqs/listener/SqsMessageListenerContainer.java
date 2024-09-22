@@ -122,14 +122,15 @@ public class SqsMessageListenerContainer<T>
 
 	@Override
 	protected Collection<ContainerComponentFactory<T, SqsContainerOptions>> createDefaultComponentFactories() {
-		Assert.isTrue(allQueuesSameType(),
-				"SqsMessageListenerContainer must contain either all FIFO or all Standard queues.");
 		return Arrays.asList(new FifoSqsComponentFactory<>(), new StandardSqsComponentFactory<>());
 	}
 
-	private boolean allQueuesSameType() {
-		return getQueueNames().stream().allMatch(this::isFifoQueue)
-				|| getQueueNames().stream().noneMatch(this::isFifoQueue);
+	@Override
+	public void setQueueNames(Collection<String> queueNames) {
+		Assert.isTrue(
+			queueNames.stream().allMatch(this::isFifoQueue) || queueNames.stream().noneMatch(this::isFifoQueue),
+			"SqsMessageListenerContainer must contain either all FIFO or all Standard queues.");
+		super.setQueueNames(queueNames);
 	}
 
 	private boolean isFifoQueue(String name) {

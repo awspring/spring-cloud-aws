@@ -34,9 +34,7 @@ public class ConfiguredTransferManager {
 		// todo: this is getting too hacky
 		if (s3TransferManager.getClass().getName()
 				.equals("software.amazon.awssdk.transfer.s3.internal.CrtS3TransferManager")) {
-			S3TransferManager delegate = (S3TransferManager) ReflectionTestUtils.getField(s3TransferManager,
-					"delegate");
-			this.transferConfiguration = (TransferManagerConfiguration) ReflectionTestUtils.getField(delegate,
+			this.transferConfiguration = (TransferManagerConfiguration) ReflectionTestUtils.getField(s3TransferManager,
 					"transferConfiguration");
 			this.client = (S3AsyncClient) ReflectionTestUtils.getField(s3TransferManager, "s3AsyncClient");
 		}

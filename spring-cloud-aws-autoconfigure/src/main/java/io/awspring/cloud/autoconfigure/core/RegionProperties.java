@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.core;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
@@ -50,6 +51,7 @@ public class RegionProperties {
 	/**
 	 * The AWS profile.
 	 */
+	@NestedConfigurationProperty
 	@Nullable
 	private Profile profile;
 

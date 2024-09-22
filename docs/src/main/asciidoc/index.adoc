@@ -150,6 +150,12 @@ include::parameter-store.adoc[]
 
 include::cloudwatch.adoc[]
 
+include::spring-modulith.adoc[]
+
+include::testing.adoc[]
+
+include::docker-compose.adoc[]
+
 include::migration.adoc[]
 
 == Configuration properties

@@ -125,7 +125,9 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 	private SendEmailRequest prepareMessage(SimpleMailMessage simpleMailMessage) {
 		Assert.notNull(simpleMailMessage, "simpleMailMessage are required");
 		Destination.Builder destinationBuilder = Destination.builder();
-		destinationBuilder.toAddresses(simpleMailMessage.getTo());
+		if (simpleMailMessage.getTo() != null) {
+			destinationBuilder.toAddresses(simpleMailMessage.getTo());
+		}
 
 		if (simpleMailMessage.getCc() != null) {
 			destinationBuilder.ccAddresses(simpleMailMessage.getCc());

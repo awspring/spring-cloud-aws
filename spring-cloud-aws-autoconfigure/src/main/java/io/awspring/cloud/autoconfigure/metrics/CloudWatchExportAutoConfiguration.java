@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.metrics;
 
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
+import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.micrometer.cloudwatch2.CloudWatchConfig;
@@ -67,9 +68,10 @@ public class CloudWatchExportAutoConfiguration {
 	@ConditionalOnMissingBean
 	public CloudWatchAsyncClient cloudWatchAsyncClient(CloudWatchProperties properties,
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer) {
-		return awsClientBuilderConfigurer
-				.configure(CloudWatchAsyncClient.builder(), properties, configurer.getIfAvailable()).build();
+			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer,
+			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+		return awsClientBuilderConfigurer.configure(CloudWatchAsyncClient.builder(), properties,
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable()).build();
 	}
 
 	@Bean

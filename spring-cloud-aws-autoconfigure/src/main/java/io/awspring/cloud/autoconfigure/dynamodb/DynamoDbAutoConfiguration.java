@@ -17,9 +17,15 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
+import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.dynamodb.*;
+import io.awspring.cloud.dynamodb.DefaultDynamoDbTableNameResolver;
+import io.awspring.cloud.dynamodb.DefaultDynamoDbTableSchemaResolver;
+import io.awspring.cloud.dynamodb.DynamoDbOperations;
+import io.awspring.cloud.dynamodb.DynamoDbTableNameResolver;
+import io.awspring.cloud.dynamodb.DynamoDbTableSchemaResolver;
+import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 import java.io.IOException;
 import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
@@ -57,6 +63,7 @@ import software.amazon.dax.ClusterDaxClient;
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.dynamodb.enabled", havingValue = "true", matchIfMissing = true)
 public class DynamoDbAutoConfiguration {
+
 	@ConditionalOnProperty(name = "spring.cloud.aws.dynamodb.dax.url")
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(name = "software.amazon.dax.ClusterDaxClient")
@@ -65,7 +72,8 @@ public class DynamoDbAutoConfiguration {
 		@ConditionalOnMissingBean
 		@Bean
 		public DynamoDbClient dynamoDbClient(DynamoDbProperties properties, AwsCredentialsProvider credentialsProvider,
-				AwsRegionProvider regionProvider) throws IOException {
+				AwsRegionProvider regionProvider, ObjectProvider<AwsConnectionDetails> connectionDetails)
+				throws IOException {
 			DaxProperties daxProperties = properties.getDax();
 
 			PropertyMapper propertyMapper = PropertyMapper.get();
@@ -90,8 +98,9 @@ public class DynamoDbAutoConfiguration {
 			propertyMapper.from(daxProperties.getSkipHostNameVerification()).whenNonNull()
 					.to(configuration::skipHostNameVerification);
 
-			configuration.region(AwsClientBuilderConfigurer.resolveRegion(properties, regionProvider))
-					.credentialsProvider(credentialsProvider).url(properties.getDax().getUrl());
+			configuration.region(AwsClientBuilderConfigurer.resolveRegion(properties,
+					connectionDetails.getIfAvailable(), regionProvider)).credentialsProvider(credentialsProvider)
+					.url(properties.getDax().getUrl());
 			return ClusterDaxClient.builder().overrideConfiguration(configuration.build()).build();
 		}
 
@@ -104,9 +113,10 @@ public class DynamoDbAutoConfiguration {
 		@ConditionalOnMissingBean
 		@Bean
 		public DynamoDbClient dynamoDbClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-				ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer, DynamoDbProperties properties) {
-			return awsClientBuilderConfigurer
-					.configure(DynamoDbClient.builder(), properties, configurer.getIfAvailable()).build();
+				ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
+				ObjectProvider<AwsConnectionDetails> connectionDetails, DynamoDbProperties properties) {
+			return awsClientBuilderConfigurer.configure(DynamoDbClient.builder(), properties,
+					connectionDetails.getIfAvailable(), configurer.getIfAvailable()).build();
 		}
 
 	}
