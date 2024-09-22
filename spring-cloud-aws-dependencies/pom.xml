@@ -19,20 +19,19 @@
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws-dependencies</artifactId>
 	<name>Spring Cloud AWS Dependencies</name>
-	<version>3.1.1</version>
+	<version>3.2.0</version>
 	<packaging>pom</packaging>
 
 	<properties>
-		<javaparser.version>3.24.10</javaparser.version>
 		<spotless.version>2.31.0</spotless.version>
-		<awssdk-v2.version>2.21.46</awssdk-v2.version>
+		<awssdk-v2.version>2.25.70</awssdk-v2.version>
 		<amazon.dax.version>2.0.4</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<spring-cloud-commons.version>4.1.0</spring-cloud-commons.version>
+		<spring-cloud-commons.version>4.1.4</spring-cloud-commons.version>
 		<jakarta.mail.version>2.1.0</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
-		<aws-crt.version>0.28.13</aws-crt.version>
 		<bytebuddy.version>1.14.9</bytebuddy.version>
+		<spring-modulith.version>1.1.2</spring-modulith.version>
 	</properties>
 
 	<dependencyManagement>
@@ -54,6 +53,14 @@
 			</dependency>
 
 			<dependency>
+				<groupId>org.springframework.modulith</groupId>
+				<artifactId>spring-modulith-bom</artifactId>
+				<version>${spring-modulith.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
 				<groupId>software.amazon.dax</groupId>
 				<artifactId>amazon-dax-client</artifactId>
 				<version>${amazon.dax.version}</version>
@@ -64,13 +71,6 @@
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>s3-transfer-manager</artifactId>
 				<version>${awssdk-v2.version}</version>
-				<optional>true</optional>
-			</dependency>
-
-			<dependency>
-				<groupId>software.amazon.awssdk.crt</groupId>
-				<artifactId>aws-crt</artifactId>
-				<version>${aws-crt.version}</version>
 				<optional>true</optional>
 			</dependency>
 
@@ -130,7 +130,13 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
-				<artifactId>spring-cloud-aws-s3-cross-region-client</artifactId>
+				<artifactId>spring-cloud-aws-testcontainers</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-docker-compose</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -192,12 +198,6 @@
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-test</artifactId>
 				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>com.github.javaparser</groupId>
-				<artifactId>javaparser-symbol-solver-core</artifactId>
-				<version>${javaparser.version}</version>
 			</dependency>
 
 			<dependency>

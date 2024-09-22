@@ -74,7 +74,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.2.0")).withReuse(true);
+			DockerImageName.parse("localstack/localstack:3.2.0"));
 
 	@TempDir
 	static Path tokenTempDir;
@@ -478,7 +478,6 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class App {
-
 	}
 
 	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
