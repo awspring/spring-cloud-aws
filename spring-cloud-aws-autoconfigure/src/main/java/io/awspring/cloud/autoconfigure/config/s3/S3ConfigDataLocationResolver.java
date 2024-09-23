@@ -16,7 +16,6 @@
 package io.awspring.cloud.autoconfigure.config.s3;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
-import io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataResource;
 import io.awspring.cloud.autoconfigure.core.*;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import java.util.ArrayList;
