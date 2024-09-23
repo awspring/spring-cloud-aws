@@ -87,11 +87,6 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>io.awspring.cloud</groupId>
-			<artifactId>spring-cloud-aws-s3-config</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>software.amazon.dax</groupId>
 			<artifactId>amazon-dax-client</artifactId>
 			<optional>true</optional>

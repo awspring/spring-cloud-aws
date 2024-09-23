@@ -42,7 +42,7 @@ public class S3PropertySources {
 	@Nullable
 	public S3PropertySource createPropertySource(String context, boolean optional, S3Client client) {
 		Assert.notNull(context, "context is required");
-		Assert.notNull(client, "SecretsManagerClient is required");
+		Assert.notNull(client, "S3Client is required");
 
 		LOG.info("Loading properties from AWS S3 object: " + context + ", optional: " + optional);
 		try {

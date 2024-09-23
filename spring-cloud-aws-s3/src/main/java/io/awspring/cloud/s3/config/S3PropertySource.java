@@ -132,19 +132,15 @@ public class S3PropertySource extends AwsPropertySource<S3PropertySource, S3Clie
 
 	@Nullable
 	private String resolveBucket(String context) {
-		int delimitedIndex = context.lastIndexOf("/");
+		int delimitedIndex = context.indexOf("/");
 		if (delimitedIndex != -1) {
 			return context.substring(0, delimitedIndex);
 		}
 		return null;
 	}
 
-	@Nullable
 	private String resolveKey(String context) {
-		int delimitedIndex = context.lastIndexOf("/");
-		if (delimitedIndex != -1) {
-			return context.substring(delimitedIndex);
-		}
-		return null;
+		int delimitedIndex = context.indexOf("/") + 1;
+		return context.substring(delimitedIndex);
 	}
 }

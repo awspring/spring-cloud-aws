@@ -72,7 +72,7 @@ public class S3ReloadAutoConfiguration {
 	@ConditionalOnMissingBean(name = "s3ConfigurationUpdateStrategy")
 	public ConfigurationUpdateStrategy s3ConfigurationUpdateStrategy(S3Properties properties,
 			Optional<RestartEndpoint> restarter, ContextRefresher refresher) {
-		return ConfigurationUpdateStrategy.create(properties.getReload(), refresher, restarter);
+		return ConfigurationUpdateStrategy.create(properties.getConfig().getReload(), refresher, restarter);
 	}
 
 	@Bean
@@ -82,7 +82,7 @@ public class S3ReloadAutoConfiguration {
 			@Qualifier("s3TaskScheduler") TaskSchedulerWrapper<TaskScheduler> taskScheduler,
 			ConfigurableEnvironment environment) {
 
-		return new PollingAwsPropertySourceChangeDetector<>(properties.getReload(), S3PropertySource.class, strategy,
+		return new PollingAwsPropertySourceChangeDetector<>(properties.getConfig().getReload(), S3PropertySource.class, strategy,
 				taskScheduler.getTaskScheduler(), environment);
 	}
 }

@@ -69,7 +69,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void resolvesPropertyFromS3() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		uploadFileToBucket("key1=value1", "/application.properties", TEXT_TYPE);
+		uploadFileToBucket("key1=value1", "application.properties", TEXT_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-s3:test-bucket/application.properties")) {
@@ -78,10 +78,23 @@ public class S3ConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
+	void resolvesPropertyFromS3CompplexPath() {
+		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		uploadFileToBucket("key1=value1", "myPath/unusual/application.properties", TEXT_TYPE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+			"aws-s3:test-bucket/myPath/unusual/application.properties")) {
+			assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value1");
+		}
+	}
+
+
+	@Test
 	void resolvesYamlFromS3() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		uploadFileToBucket("key1: value1", "/application.yaml", YAML_TYPE);
+		uploadFileToBucket("key1: value1", "application.yaml", YAML_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-s3:test-bucket/application.yaml")) {
@@ -93,7 +106,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void resolvesYamlAlternative() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		uploadFileToBucket("key1: value1", "/test.yaml", YAML_TYPE_ALTERNATIVE);
+		uploadFileToBucket("key1: value1", "test.yaml", YAML_TYPE_ALTERNATIVE);
 
 		try (ConfigurableApplicationContext context = runApplication(application, "aws-s3:test-bucket/test.yaml")) {
 			assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value1");
@@ -117,7 +130,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void reloadPropertiesFromS3() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		uploadFileToBucket("key1=value1", "/reload.properties", TEXT_TYPE);
+		uploadFileToBucket("key1=value1", "reload.properties", TEXT_TYPE);
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-s3:test-bucket/reload.properties",

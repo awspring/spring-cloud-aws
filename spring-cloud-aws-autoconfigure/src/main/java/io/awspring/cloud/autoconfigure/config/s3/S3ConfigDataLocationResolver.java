@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.s3;
 
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataResource;
 import io.awspring.cloud.autoconfigure.core.*;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import java.util.ArrayList;
@@ -62,31 +63,36 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 			ConfigDataLocation location, Profiles profiles) throws ConfigDataLocationNotFoundException {
 
 		S3Properties s3Properties = loadProperties(resolverContext.getBinder());
-
-		registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
-		registerBean(resolverContext, S3Properties.class, s3Properties);
-		registerBean(resolverContext, CredentialsProperties.class,
-				loadCredentialsProperties(resolverContext.getBinder()));
-		registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
-
-		registerAndPromoteBean(resolverContext, S3Client.class, this::createSystemManagementClient);
-
+		List<S3ConfigDataResource> locations = new ArrayList<>();
 		S3PropertySources propertySources = new S3PropertySources();
-
 		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));
 
-		List<S3ConfigDataResource> locations = new ArrayList<>();
-		contexts.forEach(propertySourceContext -> locations.add(new S3ConfigDataResource(propertySourceContext,
+		if (s3Properties.getConfig().isEnabled()) {
+			registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
+			registerBean(resolverContext, S3Properties.class, s3Properties);
+			registerBean(resolverContext, CredentialsProperties.class,
+				loadCredentialsProperties(resolverContext.getBinder()));
+			registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
+
+			registerAndPromoteBean(resolverContext, S3Client.class, this::createS3Client);
+
+			contexts.forEach(propertySourceContext -> locations.add(new S3ConfigDataResource(propertySourceContext,
 				location.isOptional(), s3Properties.isEnableImport(), propertySources)));
 
-		if (!location.isOptional() && locations.isEmpty()) {
-			throw new S3KeysMissingException("No S3 keys provided in `spring.config.import=aws-s3:` configuration.");
+			if (!location.isOptional() && locations.isEmpty()) {
+				throw new S3KeysMissingException("No S3 keys provided in `spring.config.import=aws-s3:` configuration.");
+			}
+		} else {
+			// create dummy resources with enabled flag set to false,
+			// because returned locations cannot be empty
+			contexts.forEach(
+				propertySourceContext -> locations.add(new S3ConfigDataResource(propertySourceContext,
+					location.isOptional(), false, propertySources)));
 		}
-
 		return locations;
 	}
 
-	private S3Client createSystemManagementClient(BootstrapContext context) {
+	private S3Client createS3Client(BootstrapContext context) {
 		S3ClientBuilder builder = configure(S3Client.builder(), context.get(S3Properties.class), context);
 
 		try {
