@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.config.parameterstore;
 
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
@@ -99,6 +100,10 @@ public class ParameterStoreConfigDataLocationResolver
 			AwsParameterStoreClientCustomizer configurer = context.get(AwsParameterStoreClientCustomizer.class);
 			if (configurer != null) {
 				AwsClientCustomizer.apply(configurer, builder);
+			}
+			AwsSyncClientCustomizer awsSyncClientCustomizer = context.get(AwsSyncClientCustomizer.class);
+			if (awsSyncClientCustomizer != null) {
+				awsSyncClientCustomizer.customize(builder);
 			}
 			SsmClientCustomizer ssmClientCustomizer = context.get(SsmClientCustomizer.class);
 			if (ssmClientCustomizer != null) {

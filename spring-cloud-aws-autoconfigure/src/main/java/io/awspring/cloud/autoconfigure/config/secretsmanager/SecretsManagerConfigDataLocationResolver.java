@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
@@ -104,9 +105,14 @@ public class SecretsManagerConfigDataLocationResolver
 			if (configurer != null) {
 				AwsClientCustomizer.apply(configurer, builder);
 			}
-			SecretsManagerClientCustomizer clientCustomizer = context.get(SecretsManagerClientCustomizer.class);
-			if (clientCustomizer != null) {
-				clientCustomizer.customize(builder);
+			AwsSyncClientCustomizer awsSyncClientCustomizer = context.get(AwsSyncClientCustomizer.class);
+			if (awsSyncClientCustomizer != null) {
+				awsSyncClientCustomizer.customize(builder);
+			}
+			SecretsManagerClientCustomizer secretsManagerClientCustomizer = context
+					.get(SecretsManagerClientCustomizer.class);
+			if (secretsManagerClientCustomizer != null) {
+				secretsManagerClientCustomizer.customize(builder);
 			}
 		}
 		catch (IllegalStateException e) {

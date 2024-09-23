@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -51,8 +52,10 @@ public class SecretsManagerAutoConfiguration {
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<SecretsManagerClientBuilder>> customizer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
-			ObjectProvider<SecretsManagerClientCustomizer> customizers) {
-		return awsClientBuilderConfigurer.configure(SecretsManagerClient.builder(), properties,
-				connectionDetails.getIfAvailable(), customizer.getIfAvailable(), customizers.orderedStream()).build();
+			ObjectProvider<SecretsManagerClientCustomizer> secretsManagerClientCustomizers,
+			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
+		return awsClientBuilderConfigurer.configureSyncClient(SecretsManagerClient.builder(), properties,
+				connectionDetails.getIfAvailable(), customizer.getIfAvailable(),
+				secretsManagerClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream()).build();
 	}
 }

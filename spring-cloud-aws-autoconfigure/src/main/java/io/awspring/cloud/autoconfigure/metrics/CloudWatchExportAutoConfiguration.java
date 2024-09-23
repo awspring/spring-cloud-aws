@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.metrics;
 
+import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -70,9 +71,11 @@ public class CloudWatchExportAutoConfiguration {
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
-			ObjectProvider<CloudWatchAsyncClientCustomizer> customizer) {
-		return awsClientBuilderConfigurer.configure(CloudWatchAsyncClient.builder(), properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), customizer.orderedStream()).build();
+			ObjectProvider<CloudWatchAsyncClientCustomizer> cloudWatchAsyncClientCustomizers,
+			ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers) {
+		return awsClientBuilderConfigurer.configureAsyncClient(CloudWatchAsyncClient.builder(), properties,
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable(),
+				cloudWatchAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream()).build();
 	}
 
 	@Bean
