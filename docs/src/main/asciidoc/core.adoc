@@ -214,7 +214,7 @@ To simplify using services with AWS compatible APIs, or running applications aga
 
 === Customizing AWS Clients
 
-Properties cover the most common configuration needs. When more advanced configuration is required, Spring Cloud AWS offers a set of customizer beans that can be implemented to customize AWS clients.
+Properties cover the most common configuration needs. When more advanced configuration is required, Spring Cloud AWS offers a set of customizer interfaces that can be implemented to customize AWS clients.
 
 There are two types of AWS clients - synchronous and asynchronous. Each Spring Cloud AWS integration use one or the other type:
 
@@ -258,5 +258,5 @@ AwsAsyncClientCustomizer awsAsyncClientCustomizer() {
 
 There can be multiple customizer beans present in single application context and all of them will be used to configure AWS clients. If order of customizer matters, use `@Order` annotation on customizer beans.
 
+Client-specific customizations can be applied through client-specific customizer interfaces (for example `S3ClientCustomizer` for S3). See integrations documentation for details.
 
-----
