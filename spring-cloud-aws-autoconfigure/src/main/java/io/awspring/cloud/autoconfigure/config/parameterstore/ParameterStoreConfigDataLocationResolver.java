@@ -101,18 +101,31 @@ public class ParameterStoreConfigDataLocationResolver
 			if (configurer != null) {
 				AwsClientCustomizer.apply(configurer, builder);
 			}
+		}
+		catch (IllegalStateException e) {
+			log.debug("Bean of type AwsParameterStoreClientCustomizer is not registered: " + e.getMessage());
+		}
+
+		try {
 			AwsSyncClientCustomizer awsSyncClientCustomizer = context.get(AwsSyncClientCustomizer.class);
 			if (awsSyncClientCustomizer != null) {
 				awsSyncClientCustomizer.customize(builder);
 			}
+		}
+		catch (IllegalStateException e) {
+			log.debug("Bean of type AwsSyncClientCustomizer is not registered: " + e.getMessage());
+		}
+
+		try {
 			SsmClientCustomizer ssmClientCustomizer = context.get(SsmClientCustomizer.class);
 			if (ssmClientCustomizer != null) {
 				ssmClientCustomizer.customize(builder);
 			}
 		}
 		catch (IllegalStateException e) {
-			log.debug("Bean of type AwsClientConfigurerParameterStore is not registered: " + e.getMessage());
+			log.debug("Bean of type SsmClientCustomizer is not registered: " + e.getMessage());
 		}
+
 		return builder.build();
 	}
 
