@@ -17,7 +17,7 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.awspring.cloud.autoconfigure.CommonAwsSyncClientCustomizer;
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -90,7 +90,7 @@ class DynamoDbClientCustomizerTests {
 		}
 
 		@Bean
-		CommonAwsSyncClientCustomizer commonAwsSyncClientCustomizer() {
+		AwsSyncClientCustomizer commonAwsSyncClientCustomizer() {
 			return builder -> {
 				builder.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
 			};

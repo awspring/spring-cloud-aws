@@ -15,10 +15,10 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
+import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
-import io.awspring.cloud.autoconfigure.CommonAwsAsyncClientCustomizer;
-import io.awspring.cloud.autoconfigure.CommonAwsSyncClientCustomizer;
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.core.SpringCloudClientConfiguration;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -103,7 +103,7 @@ public class AwsClientBuilderConfigurer {
 	public <T extends AwsClientBuilder<T, ?>> T configureSyncClient(T builder,
 			@Nullable AwsClientProperties clientProperties, @Nullable AwsConnectionDetails connectionDetails,
 			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer,
-			@Nullable Stream<? extends CommonAwsSyncClientCustomizer> commonCustomizers) {
+			@Nullable Stream<? extends AwsSyncClientCustomizer> commonCustomizers) {
 		return configureSyncClient(builder, clientProperties, connectionDetails, null, clientBuilderCustomizer,
 				commonCustomizers);
 	}
@@ -111,7 +111,7 @@ public class AwsClientBuilderConfigurer {
 	public <T extends AwsClientBuilder<T, ?>> T configureAsyncClient(T builder,
 			@Nullable AwsClientProperties clientProperties, @Nullable AwsConnectionDetails connectionDetails,
 			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer,
-			@Nullable Stream<? extends CommonAwsAsyncClientCustomizer> commonCustomizers) {
+			@Nullable Stream<? extends AwsAsyncClientCustomizer> commonCustomizers) {
 		return configureAsyncClient(builder, clientProperties, connectionDetails, null, clientBuilderCustomizer,
 				commonCustomizers);
 	}
@@ -133,7 +133,7 @@ public class AwsClientBuilderConfigurer {
 			@Nullable AwsClientProperties clientProperties, @Nullable AwsConnectionDetails connectionDetails,
 			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer,
 			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer,
-			@Nullable Stream<? extends CommonAwsSyncClientCustomizer> commonBuilderCustomizer) {
+			@Nullable Stream<? extends AwsSyncClientCustomizer> commonBuilderCustomizer) {
 		T result = configure(builder, clientProperties, connectionDetails, customizer);
 		if (commonBuilderCustomizer != null && builder instanceof AwsSyncClientBuilder<?, ?>) {
 			commonBuilderCustomizer.forEach(it -> it.customize((AwsSyncClientBuilder<?, ?>) result));
@@ -149,7 +149,7 @@ public class AwsClientBuilderConfigurer {
 			@Nullable AwsClientProperties clientProperties, @Nullable AwsConnectionDetails connectionDetails,
 			@Nullable io.awspring.cloud.autoconfigure.core.AwsClientCustomizer<T> customizer,
 			@Nullable Stream<? extends AwsClientCustomizer<T>> clientBuilderCustomizer,
-			@Nullable Stream<? extends CommonAwsAsyncClientCustomizer> commonBuilderCustomizer) {
+			@Nullable Stream<? extends AwsAsyncClientCustomizer> commonBuilderCustomizer) {
 		T result = configure(builder, clientProperties, connectionDetails, customizer);
 		if (commonBuilderCustomizer != null && builder instanceof AwsAsyncClientBuilder<?, ?>) {
 			commonBuilderCustomizer.forEach(it -> it.customize((AwsAsyncClientBuilder<?, ?>) result));

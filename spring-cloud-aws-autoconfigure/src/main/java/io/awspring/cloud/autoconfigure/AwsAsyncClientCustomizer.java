@@ -15,21 +15,21 @@
  */
 package io.awspring.cloud.autoconfigure;
 
-import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
+import software.amazon.awssdk.awscore.client.builder.AwsAsyncClientBuilder;
 
 /**
- * Callback interface that can be used to customize a {@link AwsSyncClientBuilder}.
+ * Callback interface that can be used to customize a {@link AwsAsyncClientBuilder}.
  * <p>
- * It gets applied to every configured synchronous AWS client bean.
+ * It gets applied to every configured asynchronous AWS client bean.
  *
  * @author Maciej Walkowiak
  * @since 3.3.0
  */
-public interface CommonAwsSyncClientCustomizer {
+public interface AwsAsyncClientCustomizer {
 	/**
-	 * Callback to customize a {@link AwsSyncClientBuilder} instance.
+	 * Callback to customize a {@link AwsAsyncClientBuilder} instance.
 	 *
 	 * @param builder the client builder to customize
 	 */
-	void customize(AwsSyncClientBuilder<?, ?> builder);
+	void customize(AwsAsyncClientBuilder<?, ?> builder);
 }

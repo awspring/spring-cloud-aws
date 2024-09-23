@@ -16,7 +16,6 @@
 package io.awspring.cloud.autoconfigure.dynamodb;
 
 import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
-import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 
 /**

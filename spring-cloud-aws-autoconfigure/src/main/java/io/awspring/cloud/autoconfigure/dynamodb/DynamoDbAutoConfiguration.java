@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.dynamodb;
 
-import io.awspring.cloud.autoconfigure.CommonAwsSyncClientCustomizer;
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -116,11 +116,11 @@ public class DynamoDbAutoConfiguration {
 		public DynamoDbClient dynamoDbClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 				ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
 				ObjectProvider<AwsConnectionDetails> connectionDetails, DynamoDbProperties properties,
-				ObjectProvider<DynamoDbClientCustomizer> customizer,
-				ObjectProvider<CommonAwsSyncClientCustomizer> commonAwsClientCustomizers) {
+				ObjectProvider<DynamoDbClientCustomizer> dynamoDbClientCustomizers,
+				ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
 			return awsClientBuilderConfigurer.configureSyncClient(DynamoDbClient.builder(), properties,
-					connectionDetails.getIfAvailable(), configurer.getIfAvailable(), customizer.orderedStream(),
-					commonAwsClientCustomizers.orderedStream()).build();
+					connectionDetails.getIfAvailable(), configurer.getIfAvailable(),
+					dynamoDbClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream()).build();
 		}
 
 	}
