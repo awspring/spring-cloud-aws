@@ -17,6 +17,19 @@ package io.awspring.cloud.autoconfigure;
 
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 
+/**
+ * Base callback interface to be extended by customizers for specific AWS clients.
+ *
+ * @param <T> - type of AWS client builder to customize
+ * @author Maciej Walkowiak
+ * @since 3.3.0
+ */
 public interface AwsClientCustomizer<T extends AwsClientBuilder<?, ?>> {
+
+	/**
+	 * Callback to customize an instance of AWS client builder.
+	 *
+	 * @param builder the client builder to customize
+	 */
 	void customize(T builder);
 }

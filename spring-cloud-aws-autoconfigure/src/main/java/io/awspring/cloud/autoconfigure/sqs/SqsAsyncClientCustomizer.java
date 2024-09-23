@@ -19,6 +19,8 @@ import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 
 /**
+ * Callback interface that can be used to customize a {@link SqsAsyncClientBuilder}.
+ *
  * @author Maciej Walkowiak
  * @since 3.3.0
  */

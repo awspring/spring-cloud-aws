@@ -18,6 +18,12 @@ package io.awspring.cloud.autoconfigure.config.parameterstore;
 import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
+/**
+ * Callback interface that can be used to customize a {@link SsmClientBuilder}.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.3.0
+ */
 @FunctionalInterface
 public interface SsmClientCustomizer extends AwsClientCustomizer<SsmClientBuilder> {
 }

@@ -18,6 +18,12 @@ package io.awspring.cloud.autoconfigure.config.secretsmanager;
 import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 
+/**
+ * Callback interface that can be used to customize a {@link SecretsManagerClientBuilder}.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.3.0
+ */
 @FunctionalInterface
 public interface SecretsManagerClientCustomizer extends AwsClientCustomizer<SecretsManagerClientBuilder> {
 }

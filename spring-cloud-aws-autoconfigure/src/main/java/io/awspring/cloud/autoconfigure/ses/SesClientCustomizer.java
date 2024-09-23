@@ -19,6 +19,8 @@ import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
 import software.amazon.awssdk.services.ses.SesClientBuilder;
 
 /**
+ * Callback interface that can be used to customize a {@link SesClientBuilder}.
+ *
  * @author Maciej Walkowiak
  * @since 3.3.0
  */
