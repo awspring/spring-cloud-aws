@@ -43,7 +43,8 @@ class CloudWatchAsyncClientCustomizerTests {
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1",
 					"spring.cloud.aws.credentials.access-key:noop", "spring.cloud.aws.credentials.secret-key:noop")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, CloudWatchExportAutoConfiguration.class));
+					CredentialsProviderAutoConfiguration.class, CloudWatchExportAutoConfiguration.class))
+			.withPropertyValues("management.cloudwatch.metrics.export.namespace:test");
 
 	@Test
 	void customClientCustomizer() {
