@@ -58,7 +58,7 @@
 		<module>spring-cloud-aws-test</module>
 		<module>spring-cloud-aws-modulith</module>
 		<module>docs</module>
-	</modules>
+    </modules>
 
 	<dependencyManagement>
 		<dependencies>
