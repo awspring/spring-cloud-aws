@@ -19,12 +19,13 @@ import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEA
 import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_GROUP_ID_HEADER;
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
 
 import io.awspring.cloud.sns.Person;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicNotFoundException;
 import io.awspring.cloud.sns.core.TopicsListingTopicArnResolver;
+import net.bytebuddy.utility.RandomString;
+
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
  * Integration tests for {@link SnsTemplate}.
  *
  * @author Matej Nedic
+ * @author Hardik Singh Behl
  */
 @Testcontainers
 class SnsTemplateIntegrationTest {
@@ -63,7 +65,7 @@ class SnsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:2.3.2")).withServices(SQS).withReuse(true);
+			DockerImageName.parse("localstack/localstack:3.2.0"));
 
 	@BeforeAll
 	public static void createSnsTemplate() {
@@ -203,6 +205,26 @@ class SnsTemplateIntegrationTest {
 				snsClient.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + i).build());
 			}
 		}
+	}
+	
+	@Test
+	void shouldReturnFalseForNonExistingTopic() {
+		String nonExistentTopicArn = String.format("arn:aws:sns:us-east-1:000000000000:%s", RandomString.make());
+		
+		boolean response = snsTemplate.topicExists(nonExistentTopicArn);
+		
+		assertThat(response).isFalse();
+	}
+	
+	@Test
+	void shouldReturnTrueForExistingTopic() {
+		String topicName = RandomString.make();
+		snsClient.createTopic(request -> request.name(topicName));
+		String topicArn = String.format("arn:aws:sns:us-east-1:000000000000:%s", topicName);
+		
+		boolean response = snsTemplate.topicExists(topicArn);
+		
+		assertThat(response).isTrue();
 	}
 
 }

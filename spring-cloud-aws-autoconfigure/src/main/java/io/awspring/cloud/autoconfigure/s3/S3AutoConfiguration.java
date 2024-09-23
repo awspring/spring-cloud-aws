@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.s3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
+import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
@@ -29,7 +30,6 @@ import io.awspring.cloud.s3.S3Operations;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
-import io.awspring.cloud.s3.crossregion.CrossRegionS3Client;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -37,7 +37,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -70,9 +69,10 @@ public class S3AutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer) {
+			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer,
+			ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(), this.properties,
-				configurer.getIfAvailable());
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable());
 
 		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
 
@@ -91,10 +91,11 @@ public class S3AutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	S3Presigner s3Presigner(S3Properties properties, AwsProperties awsProperties,
-			AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider) {
+			AwsCredentialsProvider credentialsProvider, AwsRegionProvider regionProvider,
+			ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		S3Presigner.Builder builder = S3Presigner.builder().serviceConfiguration(properties.toS3Configuration())
-				.credentialsProvider(credentialsProvider)
-				.region(AwsClientBuilderConfigurer.resolveRegion(properties, regionProvider));
+				.credentialsProvider(credentialsProvider).region(AwsClientBuilderConfigurer.resolveRegion(properties,
+						connectionDetails.getIfAvailable(), regionProvider));
 
 		if (properties.getEndpoint() != null) {
 			builder.endpointOverride(properties.getEndpoint());
@@ -107,28 +108,10 @@ public class S3AutoConfiguration {
 		return builder.build();
 	}
 
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnClass(CrossRegionS3Client.class)
-	static class CrossRegionS3ClientConfiguration {
-
-		@Bean
-		@ConditionalOnMissingBean
-		S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
-			return new CrossRegionS3Client(s3ClientBuilder);
-		}
-
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	@ConditionalOnMissingClass("io.awspring.cloud.s3.crossregion.CrossRegionS3Client")
-	static class StandardS3ClientConfiguration {
-
-		@Bean
-		@ConditionalOnMissingBean
-		S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
-			return s3ClientBuilder.build();
-		}
-
+	@Bean
+	@ConditionalOnMissingBean
+	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
+		return s3ClientBuilder.build();
 	}
 
 	@Configuration

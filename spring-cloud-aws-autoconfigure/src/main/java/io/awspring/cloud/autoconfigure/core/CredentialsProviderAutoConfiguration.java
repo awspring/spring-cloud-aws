@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -30,6 +31,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
@@ -59,20 +61,33 @@ public class CredentialsProviderAutoConfiguration {
 
 	private final CredentialsProperties properties;
 	private final AwsRegionProvider regionProvider;
+	private final ObjectProvider<AwsConnectionDetails> connectionDetails;
 
-	public CredentialsProviderAutoConfiguration(CredentialsProperties properties, AwsRegionProvider regionProvider) {
+	public CredentialsProviderAutoConfiguration(CredentialsProperties properties, AwsRegionProvider regionProvider,
+			ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		this.properties = properties;
 		this.regionProvider = regionProvider;
+		this.connectionDetails = connectionDetails;
 	}
 
 	@Bean
 	public AwsCredentialsProvider credentialsProvider() {
-		return createCredentialsProvider(this.properties, this.regionProvider);
+		return createCredentialsProvider(this.properties, this.regionProvider, this.connectionDetails.getIfAvailable());
 	}
 
 	public static AwsCredentialsProvider createCredentialsProvider(CredentialsProperties properties,
 			AwsRegionProvider regionProvider) {
+		return createCredentialsProvider(properties, regionProvider, null);
+	}
+
+	public static AwsCredentialsProvider createCredentialsProvider(CredentialsProperties properties,
+			AwsRegionProvider regionProvider, @Nullable AwsConnectionDetails connectionDetails) {
 		final List<AwsCredentialsProvider> providers = new ArrayList<>();
+
+		if (connectionDetails != null && StringUtils.hasText(connectionDetails.getAccessKey())
+				&& StringUtils.hasText(connectionDetails.getSecretKey())) {
+			providers.add(createStaticCredentialsProvider(connectionDetails));
+		}
 
 		if (StringUtils.hasText(properties.getAccessKey()) && StringUtils.hasText(properties.getSecretKey())) {
 			providers.add(createStaticCredentialsProvider(properties));
@@ -114,6 +129,11 @@ public class CredentialsProviderAutoConfiguration {
 				.create(AwsBasicCredentials.create(properties.getAccessKey(), properties.getSecretKey()));
 	}
 
+	private static StaticCredentialsProvider createStaticCredentialsProvider(AwsConnectionDetails connectionDetails) {
+		return StaticCredentialsProvider
+				.create(AwsBasicCredentials.create(connectionDetails.getAccessKey(), connectionDetails.getSecretKey()));
+	}
+
 	private static ProfileCredentialsProvider createProfileCredentialProvider(Profile profile) {
 		ProfileFile profileFile;
 		if (profile.getPath() != null) {
@@ -134,7 +154,8 @@ public class CredentialsProviderAutoConfiguration {
 				AwsRegionProvider regionProvider) {
 			PropertyMapper propertyMapper = PropertyMapper.get();
 			StsWebIdentityTokenFileCredentialsProvider.Builder builder = StsWebIdentityTokenFileCredentialsProvider
-					.builder().stsClient(StsClient.builder().region(regionProvider.getRegion()).build());
+					.builder().stsClient(StsClient.builder().credentialsProvider(AnonymousCredentialsProvider.create())
+							.region(regionProvider.getRegion()).build());
 
 			if (stsProperties != null) {
 				builder.asyncCredentialUpdateEnabled(stsProperties.isAsyncCredentialsUpdate());

@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>4.1.0</version>
+		<version>4.1.3</version>
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>3.1.1-SNAPSHOT</version>
+	<version>3.3.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 
@@ -30,20 +30,21 @@
 		<spotless.version>2.40.0</spotless.version>
 		<jacoco.version>0.8.8</jacoco.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<testcontainers.version>1.19.3</testcontainers.version>
 	</properties>
 
 	<modules>
 		<module>spring-cloud-aws-core</module>
 		<module>spring-cloud-aws-autoconfigure</module>
 		<module>spring-cloud-aws-dependencies</module>
+		<module>spring-cloud-aws-docker-compose</module>
 		<module>spring-cloud-aws-parameter-store</module>
 		<module>spring-cloud-aws-secrets-manager</module>
 		<module>spring-cloud-aws-ses</module>
 		<module>spring-cloud-aws-sns</module>
 		<module>spring-cloud-aws-sqs</module>
 		<module>spring-cloud-aws-dynamodb</module>
-		<module>spring-cloud-aws-s3-parent</module>
+		<module>spring-cloud-aws-s3</module>
+		<module>spring-cloud-aws-testcontainers</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-dynamodb</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-metrics</module>
@@ -56,6 +57,7 @@
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sqs</module>
 		<module>spring-cloud-aws-samples</module>
 		<module>spring-cloud-aws-test</module>
+		<module>spring-cloud-aws-modulith</module>
 		<module>docs</module>
     </modules>
 
@@ -65,13 +67,6 @@
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-dependencies</artifactId>
 				<version>${project.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.testcontainers</groupId>
-				<artifactId>testcontainers-bom</artifactId>
-				<version>${testcontainers.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>

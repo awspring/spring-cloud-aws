@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+      - 3.1.x
+      - 3.2.x
+      - 3.3.x
       - 3.0.x
       - 2.4.x
       - 2.3.x
@@ -28,8 +31,8 @@ jobs:
         with:
           candidate: java
           version: '17.0.1-tem'
-      - name: Set up 8.0.332-tem
-        uses: actions/setup-java@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v1
         with:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}

@@ -37,7 +37,7 @@
 	<logger name="io.awspring.cloud.sqs.listener.acknowledgement.handler" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.operations" level="TRACE"/>
+	<logger name="io.awspring.cloud.sqs.operations" level="INFO"/>
 
 	<logger name="io.awspring.cloud.sqs.integration.BaseSqsIntegrationTest" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.integration.SqsIntegrationTests" level="INFO"/>
@@ -45,7 +45,7 @@
 	<logger name="io.awspring.cloud.sqs.integration.SqsLoadIntegrationTests" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.integration.SqsInterceptorIntegrationTests" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.integration.SqsMessageConversionIntegrationTests" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.integration.SqsTemplateIntegrationTests" level="TRACE"/>
+	<logger name="io.awspring.cloud.sqs.integration.SqsTemplateIntegrationTests" level="INFO"/>
 
 	<root level="warn">
 		<appender-ref ref="STDOUT"/>

@@ -85,6 +85,8 @@ public class TopicArnResolverConfiguration {
 
 ----
 
+However, when using the topic ARN in your application, the `SnsTemplate` provides a `topicExists` method to validate the existence of the SNS topic at application startup itself.
+
 ==== SNS Operations
 
 Because of Spring Messaging compatibility, `SnsTemplate` exposes many methods that you may not need if you don't need Spring Messaging abstractions.
@@ -235,6 +237,7 @@ Following IAM permissions are required by Spring Cloud AWS:
 | To publish notification you will also need | `sns:ListTopics`
 | To use Annotation-driven HTTP notification endpoint | `sns:ConfirmSubscription`
 | For resolving topic name to ARN | `sns:CreateTopic`
+| For validating topic existence by ARN | `sns:GetTopicAttributes` 
 |===
 
 Sample IAM policy granting access to SNS:
@@ -248,7 +251,8 @@ Sample IAM policy granting access to SNS:
             "Effect": "Allow",
             "Action": [
                 "sns:Publish",
-                "sns:ConfirmSubscription"
+                "sns:ConfirmSubscription",
+                "sns:GetTopicAttributes"
             ],
             "Resource": "yourArn"
         },

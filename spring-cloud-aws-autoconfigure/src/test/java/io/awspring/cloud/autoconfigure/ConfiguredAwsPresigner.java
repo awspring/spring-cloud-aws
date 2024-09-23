@@ -38,11 +38,11 @@ public class ConfiguredAwsPresigner {
 	}
 
 	public URI getEndpoint() {
-		return attributes.get(SdkClientOption.ENDPOINT);
+		return attributes.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint();
 	}
 
 	public boolean isEndpointOverridden() {
-		return attributes.get(SdkClientOption.ENDPOINT_OVERRIDDEN);
+		return attributes.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden();
 	}
 
 	public Boolean getFipsEnabled() {
