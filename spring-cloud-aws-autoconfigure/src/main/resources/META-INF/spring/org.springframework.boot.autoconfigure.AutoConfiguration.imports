@@ -13,3 +13,4 @@ io.awspring.cloud.autoconfigure.dynamodb.DynamoDbAutoConfiguration
 io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerReloadAutoConfiguration
 io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerAutoConfiguration
 io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreReloadAutoConfiguration
+io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreAutoConfiguration
