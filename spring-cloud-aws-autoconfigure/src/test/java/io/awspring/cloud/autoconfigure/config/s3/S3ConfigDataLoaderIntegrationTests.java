@@ -78,7 +78,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-	void resolvesPropertyFromS3CompplexPath() {
+	void resolvesPropertyFromS3ComplexPath() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 		uploadFileToBucket("key1=value1", "myPath/unusual/application.properties", TEXT_TYPE);

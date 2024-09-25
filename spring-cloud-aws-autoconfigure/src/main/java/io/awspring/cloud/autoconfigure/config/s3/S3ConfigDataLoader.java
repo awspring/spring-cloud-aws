@@ -46,7 +46,7 @@ public class S3ConfigDataLoader implements ConfigDataLoader<S3ConfigDataResource
 	public ConfigData load(ConfigDataLoaderContext context, S3ConfigDataResource resource) {
 		try {
 			// resource is disabled if s3 integration is disabled via
-			// spring.cloud.aws.s3.enable_import=false
+			// spring.cloud.aws.s3.config.enabled=false
 			if (resource.isEnabled()) {
 				S3Client s3Client = context.getBootstrapContext().get(S3Client.class);
 				S3PropertySource propertySource = resource.getPropertySources()

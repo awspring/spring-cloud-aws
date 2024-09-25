@@ -486,8 +486,6 @@ The Spring Boot Starter for S3 provides the following configuration options:
 |===
 | Name | Description | Required | Default value
 | `spring.cloud.aws.s3.config.enabled` | Enables the S3 config import integration. | No | `true`
-| `spring.cloud.aws.s3.config.endpoint` | Configures endpoint used by `S3Client`. | No | `null`
-| `spring.cloud.aws.s3.config.region` | Configures region used by `S3Client`. | No | `null`
 | `spring.cloud.aws.s3.config.reload.strategy` | `Enum` | `refresh` | The strategy to use when firing a reload (`refresh`, `restart_context`)
 | `spring.cloud.aws.s3.config.reload.period` | `Duration`| `15s` | The period for verifying changes
 | `spring.cloud.aws.s3.config.reload.max-wait-time-for-restart` | `Duration`| `2s` | The maximum time between the detection of changes in property source and the application context restart when `restart_context` strategy is used.
