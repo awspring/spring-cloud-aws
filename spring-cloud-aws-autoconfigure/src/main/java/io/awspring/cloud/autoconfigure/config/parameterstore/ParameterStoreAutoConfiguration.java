@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.config.parameterstore;
 
+import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -40,7 +41,8 @@ import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 @AutoConfiguration
 @EnableConfigurationProperties(ParameterStoreProperties.class)
 @ConditionalOnClass({ SsmClient.class })
-@AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
+@AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+		AwsAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.parameterstore.enabled", havingValue = "true", matchIfMissing = true)
 public class ParameterStoreAutoConfiguration {
 
