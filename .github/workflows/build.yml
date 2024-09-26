@@ -2,9 +2,9 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ main, 2.3.x, 2.4.x, 3.0.x, 3.1.x ]
+    branches: [ main, 2.3.x, 2.4.x, 3.0.x, 3.1.x, 3.2.x ]
   pull_request:
-    branches: [ main, 2.3.x, 2.4.x, 3.0.x, 3.1.x ]
+    branches: [ main, 2.3.x, 2.4.x, 3.0.x, 3.1.x, 3.2.x ]
 
 permissions:
   contents: read
@@ -17,9 +17,9 @@ jobs:
         version: [ 17.0.1-tem, 21-tem ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -43,9 +43,9 @@ jobs:
     # Disable Sonar for foreign PRs
     if: (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -62,7 +62,7 @@ jobs:
           java-version: 8
           jdkFile: ${{ steps.sdkman.outputs.file }}
       - name: Cache SonarCloud packages
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar

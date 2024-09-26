@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.sqs;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
-
 import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;

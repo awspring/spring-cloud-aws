@@ -53,9 +53,9 @@ class ObjectMetadataTests {
 		PutObjectRequest.Builder builder = PutObjectRequest.builder();
 		objectMetadata.apply(builder);
 
-		assertThat(builder)
-				.usingRecursiveComparison().ignoringFields("awsRequestOverrideConfig", "checksumCRC32C", "checksumSHA1",
-						"checksumSHA256", "key", "contentMD5", "bucket", "checksumCRC32", "contentLength")
+		assertThat(builder).usingRecursiveComparison()
+				.ignoringFields("awsRequestOverrideConfig", "checksumCRC32C", "checksumSHA1", "checksumSHA256", "key",
+						"contentMD5", "bucket", "checksumCRC32", "contentLength", "ifNoneMatch")
 				.isEqualTo(objectMetadata);
 	}
 

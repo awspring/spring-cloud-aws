@@ -31,8 +31,6 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.converter.SimpleMessageConverter;
-import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -227,7 +225,7 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	private Message<?> convertPayload(Message<?> message, Object payload) {
 		return Objects.requireNonNull(this.payloadMessageConverter.toMessage(payload, message.getHeaders()),
-			() -> "payloadMessageConverter returned null message for message " + message);
+				() -> "payloadMessageConverter returned null message for message " + message);
 	}
 
 	private MessageHeaders getMessageHeaders(Message<?> message) {

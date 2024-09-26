@@ -141,6 +141,11 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
+	public S3Resource createResource(String bucketName, String key) {
+		return new S3Resource(bucketName, key, s3Client, s3OutputStreamProvider);
+	}
+
+	@Override
 	public <T> T read(String bucketName, String key, Class<T> clazz) {
 		Assert.notNull(bucketName, "bucketName is required");
 		Assert.notNull(key, "key is required");

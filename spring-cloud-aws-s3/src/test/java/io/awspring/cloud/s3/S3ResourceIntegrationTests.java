@@ -122,7 +122,7 @@ class S3ResourceIntegrationTests {
 	}
 
 	@TestAvailableOutputStreamProviders
-	void objectHasContentLength(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
+	void objectHasContentLength(S3OutputStreamProvider s3OutputStreamProvider) {
 		String contents = "test-file-content";
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString(contents));
@@ -155,8 +155,7 @@ class S3ResourceIntegrationTests {
 	@TestAvailableOutputStreamProviders
 	void returnsEmptyUrlToBucketWhenObjectIsEmpty(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		S3Resource resource = s3Resource("s3://first-bucket/", s3OutputStreamProvider);
-		assertThat(resource.getURL().toString())
-			.isEqualTo("https://first-bucket.s3.amazonaws.com/");
+		assertThat(resource.getURL().toString()).isEqualTo("https://first-bucket.s3.amazonaws.com/");
 	}
 
 	@TestAvailableOutputStreamProviders

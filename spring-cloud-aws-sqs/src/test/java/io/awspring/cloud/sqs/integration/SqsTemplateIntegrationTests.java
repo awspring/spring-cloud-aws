@@ -15,10 +15,16 @@
  */
 package io.awspring.cloud.sqs.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
 import io.awspring.cloud.sqs.operations.*;
 import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,13 +38,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
-
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Tomaz Fernandes
@@ -90,8 +89,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, RETURNS_ON_PARTIAL_BATCH_QUEUE_NAME),
 				createQueue(client, THROWS_ON_PARTIAL_BATCH_QUEUE_NAME),
 				createQueue(client, SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME),
-				createQueue(client, SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME),
-				createQueue(client, EMPTY_QUEUE_NAME),
+				createQueue(client, SENDS_AND_RECEIVES_MANUAL_ACK_QUEUE_NAME), createQueue(client, EMPTY_QUEUE_NAME),
 				createFifoQueue(client, SENDS_AND_RECEIVES_MESSAGE_FIFO_QUEUE_NAME),
 				createFifoQueue(client, SENDS_AND_RECEIVES_BATCH_FIFO_QUEUE_NAME),
 				createFifoQueue(client, HANDLES_CONTENT_DEDUPLICATION_QUEUE_NAME,
@@ -188,22 +186,21 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldSendAndReceiveJsonString() {
-		SqsOperations template = SqsTemplate.builder()
-			.sqsAsyncClient(this.asyncClient)
-			.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader)
-			.buildSyncTemplate();
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
+				.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader)
+				.buildSyncTemplate();
 		String jsonString = """
-			{
-				"propertyOne": "hello",
-				"propertyTwo": "sqs!"
-			}
-			""";
+				{
+					"propertyOne": "hello",
+					"propertyTwo": "sqs!"
+				}
+				""";
 		SampleRecord expectedPayload = new SampleRecord("hello", "sqs!");
 		SendResult<Object> result = template.send(to -> to.queue(SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME)
-				  .payload(jsonString).header(MessageHeaders.CONTENT_TYPE, "application/json"));
+				.payload(jsonString).header(MessageHeaders.CONTENT_TYPE, "application/json"));
 		assertThat(result).isNotNull();
 		Optional<Message<SampleRecord>> receivedMessage = template
-			.receive(from -> from.queue(SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME), SampleRecord.class);
+				.receive(from -> from.queue(SENDS_AND_RECEIVES_JSON_MESSAGE_QUEUE_NAME), SampleRecord.class);
 		assertThat(receivedMessage).isPresent().get().extracting(Message::getPayload).isEqualTo(expectedPayload);
 	}
 

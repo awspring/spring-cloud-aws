@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,4 +71,16 @@ class DiskBufferingS3OutputStreamTests {
 		}
 	}
 
+	@Test
+	void abortsWhenExplicitlyInvoked() throws IOException {
+		S3Client s3Client = mock(S3Client.class);
+
+		try (DiskBufferingS3OutputStream diskBufferingS3OutputStream = new DiskBufferingS3OutputStream(
+				new Location("bucket", "key"), s3Client, null)) {
+			diskBufferingS3OutputStream.write("hello".getBytes(StandardCharsets.UTF_8));
+			diskBufferingS3OutputStream.abort();
+		}
+
+		verify(s3Client, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+	}
 }

@@ -29,8 +29,8 @@ public interface BatchVisibility {
 
 	/**
 	 * Asynchronously changes the provided messages visibility to the provided value.
-	 * @param seconds number of seconds to set the visibility of the provided messages to.
-	 * seconds to set the visibility of provided messages to.
+	 * @param seconds number of seconds to set the visibility of the provided messages to. seconds to set the visibility
+	 *     of provided messages to.
 	 * @return a completable future.
 	 */
 	CompletableFuture<Void> changeToAsync(int seconds);
