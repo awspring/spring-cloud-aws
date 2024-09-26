@@ -15,15 +15,13 @@
  */
 package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
+import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
-import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -33,7 +31,7 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 
 /**
- * {@link EnableAutoConfiguration Auto-Configuration} for Secrets Manager integration.
+ * {@link AutoConfiguration Auto-Configuration} for Secrets Manager integration.
  *
  * @author Maciej Walkowiak
  * @since 3.2.0
@@ -41,7 +39,7 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilde
 @AutoConfiguration
 @EnableConfigurationProperties(SecretsManagerProperties.class)
 @ConditionalOnClass({ SecretsManagerClient.class })
-@AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
+@AutoConfigureAfter(AwsAutoConfiguration.class)
 @ConditionalOnProperty(name = "spring.cloud.aws.secretsmanager.enabled", havingValue = "true", matchIfMissing = true)
 public class SecretsManagerAutoConfiguration {
 
