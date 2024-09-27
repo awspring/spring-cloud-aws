@@ -56,3 +56,7 @@
     - any-glob-to-any-file:
       - pom.xml
       - spring-cloud-aws-dependencies/pom.xml
+"type: maintenance":
+  - changed-files:
+    - any-glob-to-any-file:
+      - .github/**/*
