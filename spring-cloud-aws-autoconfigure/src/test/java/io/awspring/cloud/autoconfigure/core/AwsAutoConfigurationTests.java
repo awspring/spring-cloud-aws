@@ -15,11 +15,11 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for {@link AwsAutoConfiguration}.
