@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.sqs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -75,9 +76,12 @@ public class SqsAutoConfiguration {
 	@Bean
 	public SqsAsyncClient sqsAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<SqsAsyncClientBuilder>> configurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
-		return awsClientBuilderConfigurer.configure(SqsAsyncClient.builder(), this.sqsProperties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable()).build();
+			ObjectProvider<AwsConnectionDetails> connectionDetails,
+			ObjectProvider<SqsAsyncClientCustomizer> sqsAsyncClientCustomizers,
+			ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers) {
+		return awsClientBuilderConfigurer.configureAsyncClient(SqsAsyncClient.builder(), this.sqsProperties,
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable(),
+				sqsAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream()).build();
 	}
 
 	@ConditionalOnMissingBean

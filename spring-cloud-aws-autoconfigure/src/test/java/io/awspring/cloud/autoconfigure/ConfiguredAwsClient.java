@@ -66,6 +66,10 @@ public class ConfiguredAwsClient {
 		return clientConfigurationAttributes.get(SdkClientOption.API_CALL_TIMEOUT);
 	}
 
+	public Duration getApiCallAttemptTimeout() {
+		return clientConfigurationAttributes.get(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT);
+	}
+
 	public SdkHttpClient getSyncHttpClient() {
 		return clientConfigurationAttributes.get(SdkClientOption.SYNC_HTTP_CLIENT);
 	}

@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.config.parameterstore;
 
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
@@ -51,9 +52,12 @@ public class ParameterStoreAutoConfiguration {
 	public SsmClient ssmClient(ParameterStoreProperties properties,
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<SsmClientBuilder>> customizers,
+			ObjectProvider<SsmClientCustomizer> ssmClientCustomizers,
+			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers,
 			ObjectProvider<AwsConnectionDetails> connectionDetails) {
-		return awsClientBuilderConfigurer.configure(SsmClient.builder(), properties, connectionDetails.getIfAvailable(),
-				customizers.getIfAvailable()).build();
+		return awsClientBuilderConfigurer.configureSyncClient(SsmClient.builder(), properties,
+				connectionDetails.getIfAvailable(), customizers.getIfAvailable(), ssmClientCustomizers.orderedStream(),
+				awsSyncClientCustomizers.orderedStream()).build();
 	}
 
 }

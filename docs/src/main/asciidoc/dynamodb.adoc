@@ -150,6 +150,33 @@ The Spring Boot Starter for DynamoDb provides the following configuration option
 | `spring.cloud.aws.dynamodb.dax.skip-host-name-verification` | Skips hostname verification in url. | No |
 |===
 
+=== Client Customization
+
+`DynamoDbClient` can be further customized by providing a bean of type `DynamoDbClientCustomizer`:
+
+[source,java]
+----
+@Bean
+DynamoDbClientCustomizer customizer() {
+	return builder -> {
+		builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+			c.apiCallTimeout(Duration.ofMillis(1500));
+		}));
+	};
+}
+----
+
+[WARNING]
+====
+`builder.overrideConfiguration(..)` replaces the configuration object, so always make sure to use `builder.overrideConfiguration().copy(c -> ..)` to configure only certain properties and keep the already pre-configured values for others.
+====
+
+`DynamoDbClientCustomizer` is a functional interface that enables configuring `DynamoDbClientBuilder` before the `DynamoDbClient` is built in auto-configuration.
+
+There can be multiple `DynamoDbClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+
+Note that `DynamoDbClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
+
 === IAM Permissions
 
 Since it depends on how you will use DynamoDb integration providing a list of IAM policies would be pointless since least privilege model should be used.
