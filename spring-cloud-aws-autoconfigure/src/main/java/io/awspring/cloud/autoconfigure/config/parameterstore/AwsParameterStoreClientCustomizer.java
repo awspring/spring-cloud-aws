@@ -19,8 +19,10 @@ import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 /**
+ * @deprecated use {@link SsmClientCustomizer}
  * @author Matej Nedic
  * @since 3.0.0
  */
+@Deprecated(since = "3.3.0", forRemoval = true)
 public interface AwsParameterStoreClientCustomizer extends AwsClientCustomizer<SsmClientBuilder> {
 }
