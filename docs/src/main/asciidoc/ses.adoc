@@ -163,6 +163,33 @@ spring.cloud.aws.ses.from-arn=arn:aws:ses:eu-west-1:123456789012:identity/exampl
 spring.cloud.aws.ses.configuration-set-name=ConfigSet
 ----
 
+=== Client Customization
+
+`SesClient` can be further customized by providing a bean of type `SesClientCustomizer`:
+
+[source,java]
+----
+@Bean
+SesClientCustomizer customizer() {
+	return builder -> {
+		builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+			c.apiCallTimeout(Duration.ofMillis(1500));
+		}));
+	};
+}
+----
+
+[WARNING]
+====
+`builder.overrideConfiguration(..)` replaces the configuration object, so always make sure to use `builder.overrideConfiguration().copy(c -> ..)` to configure only certain properties and keep the already pre-configured values for others.
+====
+
+`SesClientCustomizer` is a functional interface that enables configuring `SesClientBuilder` before the `SesClient` is built in auto-configuration.
+
+There can be multiple `SesClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+
+Note that `SesClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
+
 === IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 

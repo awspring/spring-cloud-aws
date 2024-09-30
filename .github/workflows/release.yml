@@ -19,30 +19,19 @@ permissions:
 
 jobs:
   build:
-    name: "Release"
+    name: Release
     strategy:
       matrix:
-        version: [ 17.0.1-tem ]
+        version: [ 17.0.12 ]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - name: Cache local Maven repository
-        uses: actions/cache@v4
+      - name: Set up JDK ${{ matrix.version }}
+        uses: actions/setup-java@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-      - name: Download ${{ matrix.version }}
-        uses: sdkman/sdkman-action@master
-        id: sdkman
-        with:
-          candidate: java
-          version: ${{ matrix.version }}
-      - name: Set up ${{ matrix.version }}
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
-          jdkFile: ${{ steps.sdkman.outputs.file }}
+          distribution: temurin
+          java-version: ${{ matrix.version }}
+          cache: maven
           server-id: ossrh-awspring
           server-username: OSSRH_USERNAME
           server-password: OSSRH_PASSWORD

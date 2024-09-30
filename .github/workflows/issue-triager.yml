@@ -20,7 +20,7 @@ jobs:
           configuration-path: "./.github/triage-rules.yml"
 
       - if: always()
-        uses: actions/github-script@0.4.0
+        uses: actions/github-script@v7
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |

@@ -254,6 +254,33 @@ The Spring Boot Starter for S3 provides the following configuration options:
 | `spring.cloud.aws.s3.transfer-manager.follow-symbolic-links` | Specifies whether to follow symbolic links when traversing the file tree in `S3TransferManager#uploadDirectory` operation | No | `null` (falls back to SDK default)
 |===
 
+=== Client Customization
+
+`S3Client` can be further customized by providing a bean of type `S3ClientCustomizer`:
+
+[source,java]
+----
+@Bean
+S3ClientCustomizer customizer() {
+	return builder -> {
+		builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+			c.apiCallTimeout(Duration.ofMillis(1500));
+		}));
+	};
+}
+----
+
+[WARNING]
+====
+`builder.overrideConfiguration(..)` replaces the configuration object, so always make sure to use `builder.overrideConfiguration().copy(c -> ..)` to configure only certain properties and keep the already pre-configured values for others.
+====
+
+`S3ClientCustomizer` is a functional interface that enables configuring `S3ClientBuilder` before the `S3Client` is built in auto-configuration.
+
+There can be multiple `S3ClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+
+Note that `S3ClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
+
 === IAM Permissions
 
 Following IAM permissions are required by Spring Cloud AWS:

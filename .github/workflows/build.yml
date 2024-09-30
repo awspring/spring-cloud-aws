@@ -11,56 +11,34 @@ permissions:
 
 jobs:
   build:
-    name: "Test with ${{ matrix.version }}"
+    name: Test with JDK ${{ matrix.version }}
     strategy:
       matrix:
-        version: [ 17.0.1-tem, 21-tem ]
+        version: [ 17.0.12, 21.0.4 ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Cache local Maven repository
-        uses: actions/cache@v4
+      - name: Set up JDK ${{ matrix.version }}
+        uses: actions/setup-java@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-      - name: Download ${{ matrix.version }}
-        uses: sdkman/sdkman-action@master
-        id: sdkman
-        with:
-          candidate: java
-          version: ${{ matrix.version }}
-      - name: Set up ${{ matrix.version }}
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
-          jdkFile: ${{ steps.sdkman.outputs.file }}
+          distribution: temurin
+          java-version: ${{ matrix.version }}
+          cache: maven
       - name: Build with Maven
         run: ./mvnw -V -B verify -Pspring
   sonar:
-    name: "Run Sonar Analysis"
+    name: Run Sonar Analysis
     runs-on: ubuntu-latest
     # Disable Sonar for foreign PRs
     if: (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
     steps:
       - uses: actions/checkout@v4
-      - name: Cache local Maven repository
-        uses: actions/cache@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
-      - name: Download JDK
-        uses: sdkman/sdkman-action@master
-        id: sdkman
-        with:
-          candidate: java
-          version: 17.0.1-tem
-      - name: Set up JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
-          jdkFile: ${{ steps.sdkman.outputs.file }}
+          distribution: temurin
+          java-version: 17.0.12
+          cache: maven
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
         with:
