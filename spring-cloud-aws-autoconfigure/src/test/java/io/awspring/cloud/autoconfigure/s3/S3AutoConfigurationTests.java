@@ -46,6 +46,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsIdentityProvider;
+import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -70,12 +72,28 @@ class S3AutoConfigurationTests {
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
 
+	private final ApplicationContextRunner contextRunnerWithoutGrant = new ApplicationContextRunner()
+		.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+		.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+			CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class))
+		.withClassLoader(new FilteredClassLoader(S3AccessGrantsPlugin.class));
+
+
 	@Test
 	void testThatS3AccessGrantIdentityProviderIsSet() {
 		contextRunner.run(context -> {
 			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
 			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
 			assertThat(client.getIdentityProviders()).isInstanceOf(S3AccessGrantsIdentityProvider.class);
+		});
+	}
+
+	@Test
+	void testThatS3AccessGrantIdentityProviderIsNotSet() {
+		contextRunnerWithoutGrant.run(context -> {
+			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+			assertThat(client.getIdentityProviders()).isNotInstanceOf(S3AccessGrantsIdentityProvider.class);
 		});
 	}
 
