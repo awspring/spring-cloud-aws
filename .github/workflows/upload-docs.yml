@@ -26,22 +26,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
-        uses: sdkman/sdkman-action@master
-        id: sdkman
+        uses: actions/setup-java@v4
         with:
-          candidate: java
-          version: '17.0.1-tem'
-      - name: Set up JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
-          jdkFile: ${{ steps.sdkman.outputs.file }}
-      - uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          distribution: temurin
+          java-version: 17.0.12
+          cache: maven
       - name: Build docs
         run: ./mvnw clean package javadoc:aggregate -Pdocs-classic,spring -DskipTests=true -e
       - name: Upload to S3

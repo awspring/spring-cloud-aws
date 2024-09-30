@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.testcontainers;
+package io.awspring.cloud.autoconfigure;
 
-import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.awscore.client.builder.AwsSyncClientBuilder;
 
 /**
- * Provides convenient way to construct AWS SDK clients.
+ * Callback interface that can be used to customize a {@link AwsSyncClientBuilder}.
+ * <p>
+ * It gets applied to every configured synchronous AWS client bean.
  *
  * @author Maciej Walkowiak
- * @since 3.2.0
+ * @since 3.3.0
  */
-public interface AwsClientFactory {
-	<CLIENT, BUILDER extends AwsClientBuilder<BUILDER, CLIENT>> CLIENT create(BUILDER builder);
+public interface AwsSyncClientCustomizer {
+	/**
+	 * Callback to customize a {@link AwsSyncClientBuilder} instance.
+	 *
+	 * @param builder the client builder to customize
+	 */
+	void customize(AwsSyncClientBuilder<?, ?> builder);
 }

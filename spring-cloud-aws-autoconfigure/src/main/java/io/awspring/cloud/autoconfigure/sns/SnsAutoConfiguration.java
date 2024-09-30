@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.sns;
 import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -69,9 +70,12 @@ public class SnsAutoConfiguration {
 	@Bean
 	public SnsClient snsClient(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
-		return awsClientBuilderConfigurer.configure(SnsClient.builder(), properties, connectionDetails.getIfAvailable(),
-				configurer.getIfAvailable()).build();
+			ObjectProvider<AwsConnectionDetails> connectionDetails,
+			ObjectProvider<SnsClientCustomizer> snsClientCustomizers,
+			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
+		return awsClientBuilderConfigurer.configureSyncClient(SnsClient.builder(), properties,
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), snsClientCustomizers.orderedStream(),
+				awsSyncClientCustomizers.orderedStream()).build();
 	}
 
 	@ConditionalOnMissingBean(SnsOperations.class)

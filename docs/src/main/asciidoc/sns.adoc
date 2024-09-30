@@ -228,6 +228,33 @@ The Spring Boot Starter for SNS provides the following configuration options:
 | `spring.cloud.aws.sns.region` | Configures region used by `SnsClient`. | No | `eu-west-1`
 |===
 
+=== Client Customization
+
+`SnsClient` can be further customized by providing a bean of type `SnsClientCustomizer`:
+
+[source,java]
+----
+@Bean
+SnsClientCustomizer customizer() {
+	return builder -> {
+		builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+			c.apiCallTimeout(Duration.ofMillis(1500));
+		}));
+	};
+}
+----
+
+[WARNING]
+====
+`builder.overrideConfiguration(..)` replaces the configuration object, so always make sure to use `builder.overrideConfiguration().copy(c -> ..)` to configure only certain properties and keep the already pre-configured values for others.
+====
+
+`SnsClientCustomizer` is a functional interface that enables configuring `SnsClientBuilder` before the `SnsClient` is built in auto-configuration.
+
+There can be multiple `SnsClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+
+Note that `SnsClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
+
 === IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS:
 
@@ -237,7 +264,7 @@ Following IAM permissions are required by Spring Cloud AWS:
 | To publish notification you will also need | `sns:ListTopics`
 | To use Annotation-driven HTTP notification endpoint | `sns:ConfirmSubscription`
 | For resolving topic name to ARN | `sns:CreateTopic`
-| For validating topic existence by ARN | `sns:GetTopicAttributes` 
+| For validating topic existence by ARN | `sns:GetTopicAttributes`
 |===
 
 Sample IAM policy granting access to SNS:

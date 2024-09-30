@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.config.secretsmanager;
+package io.awspring.cloud.autoconfigure.s3;
 
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
+import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
 /**
- * @deprecated use {@link SecretsManagerClientCustomizer}
- * @author Matej Nedic
- * @since 3.0.0
+ * Callback interface that can be used to customize a {@link S3ClientBuilder}.
+ *
+ * @author Maciej Walkowiak
+ * @since 3.3.0
  */
-@Deprecated(since = "3.3.0", forRemoval = true)
-public interface AwsSecretsManagerClientCustomizer extends AwsClientCustomizer<SecretsManagerClientBuilder> {
+@FunctionalInterface
+public interface S3ClientCustomizer extends AwsClientCustomizer<S3ClientBuilder> {
 }
