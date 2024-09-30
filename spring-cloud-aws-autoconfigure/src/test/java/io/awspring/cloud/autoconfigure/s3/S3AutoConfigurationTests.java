@@ -46,7 +46,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -73,11 +72,10 @@ class S3AutoConfigurationTests {
 					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
 
 	private final ApplicationContextRunner contextRunnerWithoutGrant = new ApplicationContextRunner()
-		.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
-		.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-			CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class))
-		.withClassLoader(new FilteredClassLoader(S3AccessGrantsPlugin.class));
-
+			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(S3AccessGrantsPlugin.class));
 
 	@Test
 	void testThatS3AccessGrantIdentityProviderIsSet() {
@@ -184,8 +182,7 @@ class S3AutoConfigurationTests {
 		}
 	}
 
-
-@Nested
+	@Nested
 	class S3TemplateAutoConfigurationTests {
 
 		@Test
