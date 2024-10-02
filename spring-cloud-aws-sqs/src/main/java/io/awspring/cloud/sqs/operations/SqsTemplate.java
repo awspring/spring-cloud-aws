@@ -602,11 +602,11 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		ReceiveMessageRequest.Builder builder = ReceiveMessageRequest.builder().queueUrl(attributes.getQueueUrl())
 				.maxNumberOfMessages(maxNumberOfMessages).messageAttributeNames(this.messageAttributeNames)
 				.attributeNamesWithStrings(this.messageSystemAttributeNames)
-				.waitTimeSeconds(pollTimeout.toSecondsPart());
+				.waitTimeSeconds(pollTimeout.toSeconds());
 		if (additionalHeaders.containsKey(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER)) {
 			builder.visibilityTimeout(
 					getValueAs(additionalHeaders, SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, Duration.class)
-							.toSecondsPart());
+							.toSeconds());
 		}
 		if (additionalHeaders.containsKey(SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER)) {
 			builder.receiveRequestAttemptId(
