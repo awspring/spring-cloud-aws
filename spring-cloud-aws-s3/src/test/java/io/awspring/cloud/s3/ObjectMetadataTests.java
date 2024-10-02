@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.services.s3.model.StorageClass;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
 /**
  * Unit tests for {@link ObjectMetadata}.
@@ -76,6 +77,19 @@ class ObjectMetadataTests {
 		assertThat(result.requestPayer()).isEqualTo(RequestPayer.REQUESTER);
 		assertThat(result.serverSideEncryption()).isEqualTo(ServerSideEncryption.AES256);
 		assertThat(result.checksumAlgorithm()).isEqualTo(ChecksumAlgorithm.CRC32);
+	}
+
+	@Test
+	void doesNotApplyContentLengthForPartUpload() {
+		long objectContentLength =  16L;
+		long partContentLength = 8L;
+		ObjectMetadata metadata = ObjectMetadata.builder().contentLength(objectContentLength).build();
+
+		UploadPartRequest.Builder builder = UploadPartRequest.builder().contentLength(partContentLength);
+		metadata.apply(builder);
+		UploadPartRequest result = builder.build();
+
+		assertThat(result.contentLength()).isEqualTo(partContentLength);
 	}
 
 }
