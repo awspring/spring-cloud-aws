@@ -198,7 +198,6 @@ To use S3 Access Grants out of the box with `S3Client` and `S3Template` introduc
 <dependency>
 	<groupId>software.amazon.s3.accessgrants</groupId>
 	<artifactId>aws-s3-accessgrants-java-plugin</artifactId>
-	<optional>true</optional>
 </dependency>
 ----
 

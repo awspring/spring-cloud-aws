@@ -78,7 +78,7 @@ class S3AutoConfigurationTests {
 			.withClassLoader(new FilteredClassLoader(S3AccessGrantsPlugin.class));
 
 	@Test
-	void testThatS3AccessGrantIdentityProviderIsSet() {
+	void setsS3AccessGrantIdentityProvider() {
 		contextRunner.run(context -> {
 			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
 			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
@@ -87,7 +87,7 @@ class S3AutoConfigurationTests {
 	}
 
 	@Test
-	void testThatS3AccessGrantIdentityProviderIsNotSet() {
+	void doesNotSetS3AccessGrantIdentityProvider() {
 		contextRunnerWithoutGrant.run(context -> {
 			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
 			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());

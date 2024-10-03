@@ -82,7 +82,7 @@ public class S3AutoConfiguration {
 
 		if (ClassUtils.isPresent("software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin", null)) {
 			S3AccessGrantsPlugin s3AccessGrantsPlugin = S3AccessGrantsPlugin.builder()
-					.enableFallback(properties.getEnableFallback()).build();
+					.enableFallback(properties.getPlugin().getEnableFallback()).build();
 			builder.addPlugin(s3AccessGrantsPlugin);
 		}
 		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);

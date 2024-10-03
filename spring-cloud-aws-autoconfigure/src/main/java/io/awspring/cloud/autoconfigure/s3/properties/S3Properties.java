@@ -93,11 +93,8 @@ public class S3Properties extends AwsClientProperties {
 	@NestedConfigurationProperty
 	private S3CrtClientProperties crt;
 
-	/**
-	 * If set to false if Access Grants does not find/return permissions, S3Client won't try to determine if policies
-	 * grant access If set to true fallback policies S3/IAM will be evaluated.
-	 */
-	private boolean enableFallback;
+	@NestedConfigurationProperty
+	private S3PluginProperties plugin = new S3PluginProperties();
 
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
@@ -182,11 +179,11 @@ public class S3Properties extends AwsClientProperties {
 		return config.build();
 	}
 
-	public boolean getEnableFallback() {
-		return enableFallback;
+	public S3PluginProperties getPlugin() {
+		return plugin;
 	}
 
-	public void setEnableFallback(boolean enableFallback) {
-		this.enableFallback = enableFallback;
+	public void setPlugin(S3PluginProperties plugin) {
+		this.plugin = plugin;
 	}
 }
