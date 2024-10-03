@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
 import java.time.Duration;
@@ -134,6 +135,20 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				"aws-parameterstore:/config/spring/")) {
 			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SsmClient.class));
 			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
+			assertThat(ssmClient.getSyncHttpClient()).isNotNull();
+		}
+	}
+
+	@Test
+	void clientIsConfiguredWithCustomizerProvidedToBootstrapRegistry() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		application.addBootstrapRegistryInitializer(new CustomizerConfiguration());
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-parameterstore:/config/spring/")) {
+			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SsmClient.class));
+			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2001));
 			assertThat(ssmClient.getSyncHttpClient()).isNotNull();
 		}
 	}
@@ -448,6 +463,21 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 							return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 						}
 					});
+		}
+	}
+
+	static class CustomizerConfiguration implements BootstrapRegistryInitializer {
+
+		@Override
+		public void initialize(BootstrapRegistry registry) {
+			registry.register(SsmClientCustomizer.class, context -> (builder -> {
+				builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+					c.apiCallTimeout(Duration.ofMillis(2001));
+				}));
+			}));
+			registry.register(AwsSyncClientCustomizer.class, context -> (builder -> {
+				builder.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
+			}));
 		}
 	}
 

@@ -1682,6 +1682,34 @@ When providing a custom executor, it's important that it's configured to support
 IMPORTANT: To avoid unnecessary thread hopping between blocking components, a `MessageExecutionThreadFactory` MUST be set to the executor.
 
 
+=== Client Customization
+
+`SqsAsyncClient` can be further customized by providing a bean of type `SqsAsyncClientCustomizer`:
+
+[source,java]
+----
+@Bean
+SqsAsyncClientCustomizer customizer() {
+	return builder -> {
+		builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+			c.apiCallTimeout(Duration.ofMillis(1500));
+		}));
+	};
+}
+----
+
+[WARNING]
+====
+`builder.overrideConfiguration(..)` replaces the configuration object, so always make sure to use `builder.overrideConfiguration().copy(c -> ..)` to configure only certain properties and keep the already pre-configured values for others.
+====
+
+`SqsAsyncClientCustomizer` is a functional interface that enables configuring `SqsAsyncClientBuilder` before the `SqsAsyncClient` is built in auto-configuration.
+
+There can be multiple `SqsAsyncClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+
+Note that `SqsAsyncClientCustomizer` beans are applied **after** `AwsAsyncClientCustomizer` beans and therefore can overwrite previously set configurations.
+
+
 === IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS SQS:
 

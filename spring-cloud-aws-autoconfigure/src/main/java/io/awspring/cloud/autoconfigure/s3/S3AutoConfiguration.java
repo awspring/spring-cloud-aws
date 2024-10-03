@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -70,9 +71,12 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean
 	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
-		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(), this.properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable());
+			ObjectProvider<AwsConnectionDetails> connectionDetails,
+			ObjectProvider<S3ClientCustomizer> s3ClientCustomizers,
+			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
+		S3ClientBuilder builder = awsClientBuilderConfigurer.configureSyncClient(S3Client.builder(), this.properties,
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), s3ClientCustomizers.orderedStream(),
+				awsSyncClientCustomizers.orderedStream());
 
 		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
 

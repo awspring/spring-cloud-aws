@@ -153,13 +153,14 @@ public class SnsTemplate extends AbstractMessageSendingTemplate<TopicMessageChan
 	public void sendNotification(String topic, SnsNotification<?> notification) {
 		this.convertAndSend(topic, notification.getPayload(), notification.getHeaders());
 	}
-	
+
 	@Override
 	public boolean topicExists(String topicArn) {
 		Assert.notNull(topicArn, "topicArn must not be null");
 		try {
 			snsClient.getTopicAttributes(request -> request.topicArn(topicArn));
-		} catch (NotFoundException exception) {
+		}
+		catch (NotFoundException exception) {
 			return false;
 		}
 		return true;

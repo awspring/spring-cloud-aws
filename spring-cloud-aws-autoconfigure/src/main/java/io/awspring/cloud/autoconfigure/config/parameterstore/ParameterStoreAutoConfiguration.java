@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.config.secretsmanager;
+package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
+import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -28,32 +30,34 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
+import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 /**
- * {@link AutoConfiguration Auto-Configuration} for Secrets Manager integration.
+ * {@link AutoConfiguration Auto-Configuration} for AWS Parameter Store integration.
  *
- * @author Maciej Walkowiak
- * @since 3.2.0
+ * @author Oleh Onufryk
+ * @since 3.3.0
  */
 @AutoConfiguration
-@EnableConfigurationProperties(SecretsManagerProperties.class)
-@ConditionalOnClass({ SecretsManagerClient.class })
-@AutoConfigureAfter(AwsAutoConfiguration.class)
-@ConditionalOnProperty(name = "spring.cloud.aws.secretsmanager.enabled", havingValue = "true", matchIfMissing = true)
-public class SecretsManagerAutoConfiguration {
+@EnableConfigurationProperties(ParameterStoreProperties.class)
+@ConditionalOnClass({ SsmClient.class })
+@AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+		AwsAutoConfiguration.class })
+@ConditionalOnProperty(name = "spring.cloud.aws.parameterstore.enabled", havingValue = "true", matchIfMissing = true)
+public class ParameterStoreAutoConfiguration {
 
-	@ConditionalOnMissingBean
 	@Bean
-	public SecretsManagerClient secretsManagerClient(SecretsManagerProperties properties,
+	@ConditionalOnMissingBean
+	public SsmClient ssmClient(ParameterStoreProperties properties,
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SecretsManagerClientBuilder>> customizer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails,
-			ObjectProvider<SecretsManagerClientCustomizer> secretsManagerClientCustomizers,
-			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
-		return awsClientBuilderConfigurer.configureSyncClient(SecretsManagerClient.builder(), properties,
-				connectionDetails.getIfAvailable(), customizer.getIfAvailable(),
-				secretsManagerClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream()).build();
+			ObjectProvider<AwsClientCustomizer<SsmClientBuilder>> customizers,
+			ObjectProvider<SsmClientCustomizer> ssmClientCustomizers,
+			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers,
+			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+		return awsClientBuilderConfigurer.configureSyncClient(SsmClient.builder(), properties,
+				connectionDetails.getIfAvailable(), customizers.getIfAvailable(), ssmClientCustomizers.orderedStream(),
+				awsSyncClientCustomizers.orderedStream()).build();
 	}
+
 }

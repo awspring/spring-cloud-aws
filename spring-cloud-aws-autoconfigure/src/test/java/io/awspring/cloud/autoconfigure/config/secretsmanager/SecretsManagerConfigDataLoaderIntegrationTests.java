@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.File;
 import java.io.IOException;
@@ -190,6 +191,20 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SecretsManagerClient.class));
 			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
 			assertThat(ssmClient.getSyncHttpClient()).isNotNull();
+		}
+	}
+
+	@Test
+	void clientIsConfiguredWithCustomizerProvidedToBootstrapRegistry() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		application.addBootstrapRegistryInitializer(new CustomizerConfiguration());
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/config/spring;/config/second")) {
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SecretsManagerClient.class));
+			assertThat(client.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2001));
+			assertThat(client.getSyncHttpClient()).isNotNull();
 		}
 	}
 
@@ -498,6 +513,21 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 							return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
 						}
 					});
+		}
+	}
+
+	static class CustomizerConfiguration implements BootstrapRegistryInitializer {
+
+		@Override
+		public void initialize(BootstrapRegistry registry) {
+			registry.register(SecretsManagerClientCustomizer.class, context -> (builder -> {
+				builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+					c.apiCallTimeout(Duration.ofMillis(2001));
+				}));
+			}));
+			registry.register(AwsSyncClientCustomizer.class, context -> (builder -> {
+				builder.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
+			}));
 		}
 	}
 
