@@ -32,7 +32,6 @@ import io.awspring.cloud.s3.S3Operations;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
-
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
@@ -49,7 +48,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.util.ClassUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin;
@@ -130,42 +128,42 @@ public class S3AutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	S3Client s3Client(S3Properties properties, S3ClientBuilder s3ClientBuilder,
-					  ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider)
-		throws NoSuchAlgorithmException {
+			ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider)
+			throws NoSuchAlgorithmException {
 		if (ClassUtils.isPresent("software.amazon.encryption.s3.S3EncryptionClient", null)
-		&& (aesProvider.getIfAvailable() != null || rsaProvider.getIfAvailable() != null ||
-			StringUtils.hasText(properties.getEncryption().getKeyId()))) {
+				&& (aesProvider.getIfAvailable() != null || rsaProvider.getIfAvailable() != null
+						|| StringUtils.hasText(properties.getEncryption().getKeyId()))) {
 			return s3EncClient(properties, s3ClientBuilder, rsaProvider, aesProvider);
 		}
 		return s3ClientBuilder.build();
 	}
 
-		S3Client s3EncClient(S3Properties properties, S3ClientBuilder s3ClientBuilder,
-				ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider) {
-			PropertyMapper propertyMapper = PropertyMapper.get();
-			S3EncryptionProperties encryptionProperties = properties.getEncryption();
-			S3EncryptionClient.Builder s3EncryptionBuilder = S3EncryptionClient.builder();
+	S3Client s3EncClient(S3Properties properties, S3ClientBuilder s3ClientBuilder,
+			ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider) {
+		PropertyMapper propertyMapper = PropertyMapper.get();
+		S3EncryptionProperties encryptionProperties = properties.getEncryption();
+		S3EncryptionClient.Builder s3EncryptionBuilder = S3EncryptionClient.builder();
 
-			s3EncryptionBuilder.wrappedClient(s3ClientBuilder.build());
-			propertyMapper.from(encryptionProperties::isEnableDelayedAuthenticationMode)
-					.to(s3EncryptionBuilder::enableDelayedAuthenticationMode);
-			propertyMapper.from(encryptionProperties::isEnableLegacyUnauthenticatedModes)
-					.to(s3EncryptionBuilder::enableLegacyUnauthenticatedModes);
-			propertyMapper.from(encryptionProperties::isEnableMultipartPutObject)
-					.to(s3EncryptionBuilder::enableMultipartPutObject);
+		s3EncryptionBuilder.wrappedClient(s3ClientBuilder.build());
+		propertyMapper.from(encryptionProperties::isEnableDelayedAuthenticationMode)
+				.to(s3EncryptionBuilder::enableDelayedAuthenticationMode);
+		propertyMapper.from(encryptionProperties::isEnableLegacyUnauthenticatedModes)
+				.to(s3EncryptionBuilder::enableLegacyUnauthenticatedModes);
+		propertyMapper.from(encryptionProperties::isEnableMultipartPutObject)
+				.to(s3EncryptionBuilder::enableMultipartPutObject);
 
-			if (!StringUtils.hasText(encryptionProperties.getKeyId())) {
-				if (aesProvider.getIfAvailable() != null) {
-					s3EncryptionBuilder.aesKey(aesProvider.getObject().generateSecretKey());
-				}
-				else {
-					s3EncryptionBuilder.rsaKeyPair(rsaProvider.getObject().generateKeyPair());
-				}
-				return s3EncryptionBuilder.build();
+		if (!StringUtils.hasText(encryptionProperties.getKeyId())) {
+			if (aesProvider.getIfAvailable() != null) {
+				s3EncryptionBuilder.aesKey(aesProvider.getObject().generateSecretKey());
 			}
-			propertyMapper.from(encryptionProperties::getKeyId).to(s3EncryptionBuilder::kmsKeyId);
+			else {
+				s3EncryptionBuilder.rsaKeyPair(rsaProvider.getObject().generateKeyPair());
+			}
 			return s3EncryptionBuilder.build();
 		}
+		propertyMapper.from(encryptionProperties::getKeyId).to(s3EncryptionBuilder::kmsKeyId);
+		return s3EncryptionBuilder.build();
+	}
 
 	@Configuration
 	@ConditionalOnClass(ObjectMapper.class)
