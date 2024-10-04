@@ -49,6 +49,11 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.AbstractSqsMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.tck.ObservationContextAssert;
+import io.micrometer.observation.tck.TestObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -93,6 +98,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * @author Mikhail Strokov
  * @author Michael Sosa
  * @author gustavomonarin
+ * @author Mariusz Sondecki
  */
 @SpringBootTest
 @TestPropertySource(properties = { "property.one=1", "property.five.seconds=5s",
@@ -130,6 +136,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String MAX_CONCURRENT_MESSAGES_QUEUE_NAME = "max_concurrent_messages_test_queue";
 
+	static final String OBSERVED_MESSAGE_QUEUE_NAME = "observed_message_test_queue";
+
 	static final String LOW_RESOURCE_FACTORY = "lowResourceFactory";
 
 	static final String MANUAL_ACK_FACTORY = "manualAcknowledgementFactory";
@@ -137,6 +145,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	static final String MANUAL_ACK_BATCH_FACTORY = "manualAcknowledgementBatchFactory";
 
 	static final String ACK_AFTER_SECOND_ERROR_FACTORY = "ackAfterSecondErrorFactory";
+
+	static final String OBSERVED_MESSAGE_FACTORY = "observedMessageFactory";
 
 	@BeforeAll
 	static void beforeTests() {
@@ -173,6 +183,9 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	@Autowired
 	@Qualifier("inactiveContainer")
 	MessageListenerContainer<Object> inactiveMessageListenerContainer;
+
+	@Autowired
+	TestObservationRegistry observationRegistry;
 
 	@Test
 	void receivesMessage() throws Exception {
@@ -349,6 +362,24 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertDoesNotThrow(() -> latchContainer.maxConcurrentMessagesBarrier.await(10, TimeUnit.SECONDS));
 	}
 
+	@Test
+	void receivesObservedMessage() throws Exception {
+		observationRegistry.clear();
+		Message<String> message = MessageBuilder.withPayload("receivesObservedMessage-payload").build();
+		sqsTemplate.send(OBSERVED_MESSAGE_QUEUE_NAME, message);
+		logger.debug("Sent message to queue {} with message {}", OBSERVED_MESSAGE_QUEUE_NAME, message);
+		assertThat(latchContainer.observedMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+
+		TestObservationRegistryAssert.then(observationRegistry).hasNumberOfObservationsEqualTo(2)
+				.hasHandledContextsThatSatisfy(contexts -> {
+					ObservationContextAssert.then(contexts.get(0)).hasNameEqualTo("sqs.single.message.polling.process")
+							.doesNotHaveParentObservation();
+					ObservationContextAssert.then(contexts.get(1)).hasNameEqualTo("listener.process")
+							.hasParentObservationContextMatching(
+									contextView -> contextView.getName().equals("sqs.single.message.polling.process"));
+				});
+	}
+
 	static class ReceivesMessageListener {
 
 		@Autowired
@@ -497,6 +528,23 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	static class ObservedMessageListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@Autowired
+		ObservationRegistry observationRegistry;
+
+		@SqsListener(queueNames = OBSERVED_MESSAGE_QUEUE_NAME, factory = OBSERVED_MESSAGE_FACTORY, id = "observedMessageContainer")
+		void listen(String message) {
+			Observation.createNotStarted("listener.process", observationRegistry).observe(() -> {
+				logger.debug("Observed message in Listener Method: {}", message);
+				latchContainer.observedMessageLatch.countDown();
+			});
+		}
+	}
+
 	static class LatchContainer {
 
 		final CountDownLatch receivesMessageLatch = new CountDownLatch(1);
@@ -521,6 +569,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		final CountDownLatch acknowledgementCallbackErrorLatch = new CountDownLatch(1);
 		final CountDownLatch manuallyInactiveCreatedContainerLatch = new CountDownLatch(1);
 		final CyclicBarrier maxConcurrentMessagesBarrier = new CyclicBarrier(21);
+		final CountDownLatch observedMessageLatch = new CountDownLatch(1);
 
 	}
 
@@ -538,6 +587,18 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				.configure(options -> options
 					.maxDelayBetweenPolls(Duration.ofSeconds(5))
 					.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
+					.pollTimeout(Duration.ofSeconds(5)))
+				.build();
+		}
+
+		@Bean(OBSERVED_MESSAGE_FACTORY)
+		public SqsMessageListenerContainerFactory<Object> observedMessageFactory() {
+			return SqsMessageListenerContainerFactory
+				.builder()
+				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+				.observationRegistry(observationRegistry())
+				.configure(options -> options
+					.maxDelayBetweenPolls(Duration.ofSeconds(5))
 					.pollTimeout(Duration.ofSeconds(5)))
 				.build();
 		}
@@ -759,6 +820,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
+		ObservedMessageListener observedMessageListener() {
+			return new ObservedMessageListener();
+		}
+
+		@Bean
 		SqsListenerConfigurer customizer() {
 			return registrar -> {
 				registrar.setMessageHandlerMethodFactory(new DefaultMessageHandlerMethodFactory() {
@@ -784,6 +850,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		SqsTemplate sqsTemplate() {
 			return SqsTemplate.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient()).build();
+		}
+
+		@Bean
+		TestObservationRegistry observationRegistry() {
+			return TestObservationRegistry.create();
 		}
 
 		private AsyncMessageInterceptor<Object> testInterceptor() {

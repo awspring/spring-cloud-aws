@@ -17,10 +17,14 @@ package io.awspring.cloud.sqs.listener.sink;
 
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
+import io.awspring.cloud.sqs.listener.ObservationRegistryAware;
 import io.awspring.cloud.sqs.listener.TaskExecutorAware;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
+import io.awspring.cloud.sqs.observation.*;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -41,12 +45,17 @@ import org.springframework.util.StopWatch;
  * @param <T> the {@link Message} payload type.
  *
  * @author Tomaz Fernandes
+ * @author Mariusz Sondecki
  * @since 3.0
  */
 public abstract class AbstractMessageProcessingPipelineSink<T>
-		implements MessageProcessingPipelineSink<T>, TaskExecutorAware {
+		implements MessageProcessingPipelineSink<T>, TaskExecutorAware, ObservationRegistryAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMessageProcessingPipelineSink.class);
+
+	private static final SingleMessagePollingProcessObservationConvention DEFAULT_SINGLE_MESSAGE_PROCESS_OBSERVATION_CONVENTION = new SingleMessagePollingProcessObservationConvention();
+
+	private static final BatchMessagePollingProcessObservationConvention DEFAULT_BATCH_MESSAGE_PROCESS_OBSERVATION_CONVENTION = new BatchMessagePollingProcessObservationConvention();
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -57,6 +66,8 @@ public abstract class AbstractMessageProcessingPipelineSink<T>
 	private MessageProcessingPipeline<T> messageProcessingPipeline;
 
 	private String id;
+
+	private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
 
 	@Override
 	public void setMessagePipeline(MessageProcessingPipeline<T> messageProcessingPipeline) {
@@ -124,6 +135,24 @@ public abstract class AbstractMessageProcessingPipelineSink<T>
 		return null;
 	}
 
+	protected CompletableFuture<Void> tryObservedCompletableFuture(Supplier<CompletableFuture<Void>> supplier,
+			Message<T> msg) {
+		return Objects.requireNonNull(MessageObservationDocumentation.SINGLE_MESSAGE_POLLING_PROCESS.observation(null,
+				DEFAULT_SINGLE_MESSAGE_PROCESS_OBSERVATION_CONVENTION,
+				() -> new SingleMessagePollingProcessObservationContext(msg.getHeaders()), this.observationRegistry)
+				.observe(supplier));
+	}
+
+	protected CompletableFuture<Void> tryObservedCompletableFuture(Supplier<CompletableFuture<Void>> supplier,
+			Collection<Message<T>> msgs) {
+		return Objects.requireNonNull(MessageObservationDocumentation.BATCH_MESSAGE_POLLING_PROCESS
+				.observation(null, DEFAULT_BATCH_MESSAGE_PROCESS_OBSERVATION_CONVENTION,
+						() -> new BatchMessagePollingProcessObservationContext(
+								msgs.stream().map(Message::getHeaders).toList()),
+						this.observationRegistry)
+				.observe(supplier));
+	}
+
 	private StopWatch getStartedWatch() {
 		StopWatch watch = new StopWatch();
 		watch.start();
@@ -181,4 +210,8 @@ public abstract class AbstractMessageProcessingPipelineSink<T>
 		return this.running;
 	}
 
+	@Override
+	public void setObservationRegistry(ObservationRegistry observationRegistry) {
+		this.observationRegistry = observationRegistry;
+	}
 }
