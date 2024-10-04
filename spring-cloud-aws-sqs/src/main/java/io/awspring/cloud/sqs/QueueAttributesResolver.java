@@ -38,6 +38,7 @@ import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
+import software.amazon.awssdk.services.sqs.model.SqsException;
 
 /**
  * Resolves {@link QueueAttributes} for the specified queue. Fetchs the queue url for a queue name, unless a url is
@@ -85,8 +86,15 @@ public class QueueAttributesResolver {
 	}
 
 	private CompletableFuture<QueueAttributes> wrapException(Throwable t) {
-		return CompletableFutures.failedFuture(new QueueAttributesResolvingException("Error resolving attributes for queue "
-			+ this.queueName + " with strategy " + this.queueNotFoundStrategy + " and queueAttributesNames " + this.queueAttributeNames,
+		String message = "Error resolving attributes for queue "
+			+ this.queueName + " with strategy " + this.queueNotFoundStrategy + " and queueAttributesNames " + this.queueAttributeNames;
+
+		if (t.getCause() instanceof SqsException) {
+			message += "\n This might be due to connectivity issues or incorrect configuration. " +
+				"Please verify your AWS credentials, network settings, and queue configuration.";
+		}
+
+		return CompletableFutures.failedFuture(new QueueAttributesResolvingException(message,
 			t instanceof CompletionException ? t.getCause() : t));
 	}
 
