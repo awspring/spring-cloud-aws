@@ -186,6 +186,21 @@ public class SimpleResourceLoadingBean {
 Resolving resources throughout all buckets can be very time consuming depending on the number of buckets a user owns.
 ====
 
+=== Using S3 Access grants
+
+Sometimes there is a need to make access control to S3 bucket contents fine grained.
+Since IAM polices and S3 Policies only support 10kbs size, S3 Access Grant is solving this by allowing fine grained access control over content in bucket.
+
+To use S3 Access Grants out of the box with `S3Client` and `S3Template` introduce following plugin:
+
+[source,xml]
+----
+<dependency>
+	<groupId>software.amazon.s3.accessgrants</groupId>
+	<artifactId>aws-s3-accessgrants-java-plugin</artifactId>
+</dependency>
+----
+
 === Using S3Template
 
 Spring Cloud AWS provides a higher abstraction on the top of `S3Client` providing methods for the most common use cases when working with S3.
