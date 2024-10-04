@@ -49,8 +49,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.ClassUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -86,6 +88,11 @@ public class S3AutoConfiguration {
 				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), s3ClientCustomizers.orderedStream(),
 				awsSyncClientCustomizers.orderedStream());
 
+		if (ClassUtils.isPresent("software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin", null)) {
+			S3AccessGrantsPlugin s3AccessGrantsPlugin = S3AccessGrantsPlugin.builder()
+					.enableFallback(properties.getPlugin().getEnableFallback()).build();
+			builder.addPlugin(s3AccessGrantsPlugin);
+		}
 		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
 
 		builder.serviceConfiguration(this.properties.toS3Configuration());

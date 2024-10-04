@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -80,6 +81,10 @@ public class ConfiguredAwsClient {
 
 	public Boolean getDualstackEnabled() {
 		return clientConfigurationAttributes.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED);
+	}
+
+	public IdentityProvider getIdentityProviders() {
+		return clientConfigurationAttributes.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
 	}
 
 	public DefaultsMode getDefaultsMode() {

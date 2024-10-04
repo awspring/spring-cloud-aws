@@ -340,9 +340,6 @@ public class ObjectMetadata {
 	}
 
 	void apply(UploadPartRequest.Builder builder) {
-		if (contentLength != null) {
-			builder.contentLength(contentLength);
-		}
 		if (sseCustomerAlgorithm != null) {
 			builder.sseCustomerAlgorithm(sseCustomerAlgorithm);
 		}

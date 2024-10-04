@@ -95,6 +95,9 @@ public class S3Properties extends AwsClientProperties {
 	@NestedConfigurationProperty
 	private S3CrtClientProperties crt;
 
+	@NestedConfigurationProperty
+	private S3PluginProperties plugin = new S3PluginProperties();
+
 	/**
 	 * Configuration properties for {@link S3EncryptionClient} integration
 	 */
@@ -190,5 +193,13 @@ public class S3Properties extends AwsClientProperties {
 		propertyMapper.from(this::getPathStyleAccessEnabled).whenNonNull().to(config::pathStyleAccessEnabled);
 		propertyMapper.from(this::getUseArnRegionEnabled).whenNonNull().to(config::useArnRegionEnabled);
 		return config.build();
+	}
+
+	public S3PluginProperties getPlugin() {
+		return plugin;
+	}
+
+	public void setPlugin(S3PluginProperties plugin) {
+		this.plugin = plugin;
 	}
 }

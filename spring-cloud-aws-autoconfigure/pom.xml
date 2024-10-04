@@ -92,6 +92,11 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>software.amazon.s3.accessgrants</groupId>
+			<artifactId>aws-s3-accessgrants-java-plugin</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3-transfer-manager</artifactId>
 			<optional>true</optional>
