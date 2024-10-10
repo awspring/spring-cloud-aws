@@ -21,7 +21,6 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
-import io.awspring.cloud.autoconfigure.s3.properties.S3EncryptionProperties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.Jackson2JsonS3ObjectConverter;
@@ -32,7 +31,6 @@ import io.awspring.cloud.s3.S3Operations;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3ProtocolResolver;
 import io.awspring.cloud.s3.S3Template;
-import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -52,8 +50,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.encryption.s3.S3EncryptionClient;
-import software.amazon.encryption.s3.materials.AesKeyring;
-import software.amazon.encryption.s3.materials.DefaultCryptoMaterialsManager;
 
 /**
  * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
@@ -69,8 +65,6 @@ import software.amazon.encryption.s3.materials.DefaultCryptoMaterialsManager;
 public class S3AutoConfiguration {
 
 	private final S3Properties properties;
-
-	private S3EncryptionClient.Builder encryptionBuilder;
 
 	public S3AutoConfiguration(S3Properties properties) {
 		this.properties = properties;
