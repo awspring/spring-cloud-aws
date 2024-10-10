@@ -73,7 +73,8 @@ class S3AutoConfigurationTests {
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withClassLoader(new FilteredClassLoader(S3EncryptionClient.class))
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
+					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class))
+		    .withClassLoader(new FilteredClassLoader(S3EncryptionClient.class));
 
 	private final ApplicationContextRunner contextRunnerEncryption = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
@@ -84,7 +85,7 @@ class S3AutoConfigurationTests {
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class))
-			.withClassLoader(new FilteredClassLoader(S3AccessGrantsPlugin.class));
+			.withClassLoader(new FilteredClassLoader(S3AccessGrantsPlugin.class, S3EncryptionClient.class));
 
 	@Test
 	void setsS3AccessGrantIdentityProvider() {
@@ -154,7 +155,6 @@ class S3AutoConfigurationTests {
 			contextRunnerEncryption
 					.withPropertyValues("spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab")
 					.run(context -> {
-
 						assertThat(context).hasSingleBean(S3EncryptionClient.class);
 					});
 		}

@@ -37,10 +37,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
@@ -71,6 +68,8 @@ public class S3AutoConfiguration {
 
 	private final S3Properties properties;
 
+	private S3EncryptionClient.Builder encryptionBuilder;
+
 	public S3AutoConfiguration(S3Properties properties) {
 		this.properties = properties;
 	}
@@ -86,17 +85,35 @@ public class S3AutoConfiguration {
 				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), s3ClientCustomizers.orderedStream(),
 				awsSyncClientCustomizers.orderedStream());
 
+
 		if (ClassUtils.isPresent("software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin", null)) {
 			S3AccessGrantsPlugin s3AccessGrantsPlugin = S3AccessGrantsPlugin.builder()
 					.enableFallback(properties.getPlugin().getEnableFallback()).build();
 			builder.addPlugin(s3AccessGrantsPlugin);
 		}
+
 		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
 
 		builder.serviceConfiguration(this.properties.toS3Configuration());
 		return builder;
 	}
 
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnClass(value = S3EncryptionClient.class )
+	S3EncryptionClient.Builder s3EncrpytionClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+									ObjectProvider<AwsClientCustomizer<S3EncryptionClient.Builder>> configurer,
+									ObjectProvider<AwsConnectionDetails> connectionDetails,
+									ObjectProvider<S3EncryptionClientCustomizer> s3ClientCustomizers,
+									ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
+		S3EncryptionClient.Builder builder = awsClientBuilderConfigurer.configureSyncClient(S3EncryptionClient.builder(), this.properties,
+			connectionDetails.getIfAvailable(), configurer. getIfAvailable(), s3ClientCustomizers.orderedStream(),
+			awsSyncClientCustomizers.orderedStream());
+		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
+		builder.serviceConfiguration(this.properties.toS3Configuration());
+		return builder;
+	}
+	
 	@Bean
 	@ConditionalOnMissingBean(S3Operations.class)
 	@ConditionalOnBean(S3ObjectConverter.class)
@@ -127,22 +144,18 @@ public class S3AutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3Client s3Client(S3Properties properties, S3ClientBuilder s3ClientBuilder,
-			ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider)
-			throws NoSuchAlgorithmException {
-		if (ClassUtils.isPresent("software.amazon.encryption.s3.S3EncryptionClient", null)
-				&& (aesProvider.getIfAvailable() != null || rsaProvider.getIfAvailable() != null
-						|| StringUtils.hasText(properties.getEncryption().getKeyId()))) {
-			return s3EncClient(properties, s3ClientBuilder, rsaProvider, aesProvider);
-		}
+	@ConditionalOnMissingClass(value = {"software.amazon.encryption.s3.S3EncryptionClient"})
+	S3Client s3Client(S3Properties properties, S3ClientBuilder s3ClientBuilder) {
 		return s3ClientBuilder.build();
 	}
 
-	S3Client s3EncClient(S3Properties properties, S3ClientBuilder s3ClientBuilder,
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnClass(name = {"software.amazon.encryption.s3.S3EncryptionClient"})
+	S3Client s3EncryptionClient(S3Properties properties,S3EncryptionClient.Builder s3EncryptionBuilder, S3ClientBuilder s3ClientBuilder,
 			ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider) {
 		PropertyMapper propertyMapper = PropertyMapper.get();
 		S3EncryptionProperties encryptionProperties = properties.getEncryption();
-		S3EncryptionClient.Builder s3EncryptionBuilder = S3EncryptionClient.builder();
 
 		s3EncryptionBuilder.wrappedClient(s3ClientBuilder.build());
 		propertyMapper.from(encryptionProperties::isEnableDelayedAuthenticationMode)
