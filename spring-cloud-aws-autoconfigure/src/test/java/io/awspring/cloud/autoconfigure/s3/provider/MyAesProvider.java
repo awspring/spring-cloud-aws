@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.s3.properties;
+package io.awspring.cloud.autoconfigure.s3.provider;
 
-public class S3PluginProperties {
+import io.awspring.cloud.autoconfigure.s3.S3AesProvider;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 
-	/**
-	 * If set to false if Access Grants does not find/return permissions, S3Client won't try to determine if policies
-	 * grant access If set to true fallback policies S3/IAM will be evaluated.
-	 */
-	private boolean enableFallback;
-
-	public boolean getEnableFallback() {
-		return enableFallback;
-	}
-
-	public void setEnableFallback(boolean enableFallback) {
-		this.enableFallback = enableFallback;
+public class MyAesProvider implements S3AesProvider {
+	@Override
+	public SecretKey generateSecretKey() {
+		try {
+			KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+			keyGenerator.init(256);
+			return keyGenerator.generateKey();
+		}
+		catch (Exception e) {
+			return null;
+		}
 	}
 }

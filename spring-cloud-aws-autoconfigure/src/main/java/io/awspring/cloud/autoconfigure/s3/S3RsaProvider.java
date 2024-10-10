@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.s3.properties;
+package io.awspring.cloud.autoconfigure.s3;
 
-public class S3PluginProperties {
+import java.security.KeyPair;
 
-	/**
-	 * If set to false if Access Grants does not find/return permissions, S3Client won't try to determine if policies
-	 * grant access If set to true fallback policies S3/IAM will be evaluated.
-	 */
-	private boolean enableFallback;
+public interface S3RsaProvider {
 
-	public boolean getEnableFallback() {
-		return enableFallback;
-	}
-
-	public void setEnableFallback(boolean enableFallback) {
-		this.enableFallback = enableFallback;
-	}
+	KeyPair generateKeyPair();
 }
