@@ -52,6 +52,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.encryption.s3.S3EncryptionClient;
+import software.amazon.encryption.s3.materials.AesKeyring;
+import software.amazon.encryption.s3.materials.DefaultCryptoMaterialsManager;
 
 /**
  * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
@@ -105,15 +107,19 @@ public class S3AutoConfiguration {
 									ObjectProvider<AwsClientCustomizer<S3EncryptionClient.Builder>> configurer,
 									ObjectProvider<AwsConnectionDetails> connectionDetails,
 									ObjectProvider<S3EncryptionClientCustomizer> s3ClientCustomizers,
-									ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
+									ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers,
+								ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider) {
 		S3EncryptionClient.Builder builder = awsClientBuilderConfigurer.configureSyncClient(S3EncryptionClient.builder(), this.properties,
 			connectionDetails.getIfAvailable(), configurer. getIfAvailable(), s3ClientCustomizers.orderedStream(),
 			awsSyncClientCustomizers.orderedStream());
+
 		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
 		builder.serviceConfiguration(this.properties.toS3Configuration());
+
+		configureEncryptionProperties(rsaProvider, aesProvider, builder);
 		return builder;
 	}
-	
+
 	@Bean
 	@ConditionalOnMissingBean(S3Operations.class)
 	@ConditionalOnBean(S3ObjectConverter.class)
@@ -152,29 +158,8 @@ public class S3AutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	@ConditionalOnClass(name = {"software.amazon.encryption.s3.S3EncryptionClient"})
-	S3Client s3EncryptionClient(S3Properties properties,S3EncryptionClient.Builder s3EncryptionBuilder, S3ClientBuilder s3ClientBuilder,
-			ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider) {
-		PropertyMapper propertyMapper = PropertyMapper.get();
-		S3EncryptionProperties encryptionProperties = properties.getEncryption();
-
+	S3Client s3EncryptionClient(S3EncryptionClient.Builder s3EncryptionBuilder, S3ClientBuilder s3ClientBuilder) {
 		s3EncryptionBuilder.wrappedClient(s3ClientBuilder.build());
-		propertyMapper.from(encryptionProperties::isEnableDelayedAuthenticationMode)
-				.to(s3EncryptionBuilder::enableDelayedAuthenticationMode);
-		propertyMapper.from(encryptionProperties::isEnableLegacyUnauthenticatedModes)
-				.to(s3EncryptionBuilder::enableLegacyUnauthenticatedModes);
-		propertyMapper.from(encryptionProperties::isEnableMultipartPutObject)
-				.to(s3EncryptionBuilder::enableMultipartPutObject);
-
-		if (!StringUtils.hasText(encryptionProperties.getKeyId())) {
-			if (aesProvider.getIfAvailable() != null) {
-				s3EncryptionBuilder.aesKey(aesProvider.getObject().generateSecretKey());
-			}
-			else {
-				s3EncryptionBuilder.rsaKeyPair(rsaProvider.getObject().generateKeyPair());
-			}
-			return s3EncryptionBuilder.build();
-		}
-		propertyMapper.from(encryptionProperties::getKeyId).to(s3EncryptionBuilder::kmsKeyId);
 		return s3EncryptionBuilder.build();
 	}
 
@@ -195,6 +180,30 @@ public class S3AutoConfiguration {
 			Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
 		return new InMemoryBufferingS3OutputStreamProvider(s3Client,
 				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
+	}
+
+
+	private void configureEncryptionProperties(ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider, S3EncryptionClient.Builder builder) {
+		PropertyMapper propertyMapper = PropertyMapper.get();
+		var encryptionProperties = properties.getEncryption();
+
+		propertyMapper.from(encryptionProperties::isEnableDelayedAuthenticationMode)
+			.to(builder::enableDelayedAuthenticationMode);
+		propertyMapper.from(encryptionProperties::isEnableLegacyUnauthenticatedModes)
+			.to(builder::enableLegacyUnauthenticatedModes);
+		propertyMapper.from(encryptionProperties::isEnableMultipartPutObject)
+			.to(builder::enableMultipartPutObject);
+
+		if (!StringUtils.hasText(properties.getEncryption().getKeyId())) {
+			if (aesProvider.getIfAvailable() != null) {
+				builder.aesKey(aesProvider.getObject().generateSecretKey());
+				}
+			else {
+				builder.rsaKeyPair(rsaProvider.getObject().generateKeyPair());
+			}
+		} else {
+			propertyMapper.from(encryptionProperties::getKeyId).to(builder::kmsKeyId);
+		}
 	}
 
 }

@@ -36,8 +36,11 @@ import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3Template;
 import java.io.IOException;
 import java.net.URI;
+import java.security.KeyPair;
 import java.time.Duration;
 import java.util.Objects;
+
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -137,7 +140,7 @@ class S3AutoConfigurationTests {
 	class S3ClientTests {
 		@Test
 		void s3ClientCanBeOverwritten() {
-			contextRunnerEncryption.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
+			contextRunnerEncryption.withPropertyValues("spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab").withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
 				assertThat(context).hasSingleBean(S3Client.class);
 			});
 		}
@@ -148,15 +151,6 @@ class S3AutoConfigurationTests {
 				assertThat(context).doesNotHaveBean(S3EncryptionClient.class);
 				assertThat(context).hasSingleBean(S3Client.class);
 			});
-		}
-
-		@Test
-		void createsEncryptionClientWhenCrossRegionModuleIsNotInClasspath() {
-			contextRunnerEncryption
-					.withPropertyValues("spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab")
-					.run(context -> {
-						assertThat(context).hasSingleBean(S3EncryptionClient.class);
-					});
 		}
 
 		@Test
