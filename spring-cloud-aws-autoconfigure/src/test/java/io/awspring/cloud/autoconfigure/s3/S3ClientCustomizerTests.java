@@ -46,7 +46,7 @@ class S3ClientCustomizerTests {
 					"spring.cloud.aws.credentials.access-key:noop", "spring.cloud.aws.credentials.secret-key:noop")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class))
-		.withClassLoader(new FilteredClassLoader(S3EncryptionClient.class));
+			.withClassLoader(new FilteredClassLoader(S3EncryptionClient.class));
 
 	@Test
 	void customClientCustomizer() {
