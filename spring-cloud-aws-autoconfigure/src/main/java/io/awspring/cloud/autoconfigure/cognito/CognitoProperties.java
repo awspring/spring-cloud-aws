@@ -18,6 +18,13 @@ package io.awspring.cloud.autoconfigure.cognito;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * Configuration properties for AWS Cognito Integration
+ *
+ * @author Oleh Onufryk
+ * @since 3.3.0
+ */
+
 @ConfigurationProperties(CognitoProperties.CONFIG_PREFIX)
 public class CognitoProperties extends AwsClientProperties {
 

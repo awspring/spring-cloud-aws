@@ -60,10 +60,10 @@ public class CognitoAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	@ConditionalOnProperty(name = {"spring.cloud.aws.cognito.clientId", "spring.cloud.aws.cognito.userPoolId"})
+	@ConditionalOnProperty(name = { "spring.cloud.aws.cognito.client-id", "spring.cloud.aws.cognito.user-pool-id" })
 	public CognitoTemplate cognitoTemplate(CognitoProperties cognitoProperties,
 			CognitoIdentityProviderClient cognitoIdentityProviderClient) {
 		return new CognitoTemplate(cognitoIdentityProviderClient, cognitoProperties.getClientId(),
-				cognitoProperties.getUserPoolId());
+				cognitoProperties.getUserPoolId(), cognitoProperties.getClientSecret());
 	}
 }
