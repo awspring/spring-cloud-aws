@@ -33,6 +33,7 @@
 		<bytebuddy.version>1.14.9</bytebuddy.version>
 		<spring-modulith.version>1.2.3</spring-modulith.version>
 		<wiremock-standalone.version>3.3.1</wiremock-standalone.version>
+		<amazon.s3.accessgrants>2.2.0</amazon.s3.accessgrants>
 	</properties>
 
 	<dependencyManagement>
@@ -68,6 +69,12 @@
 				<optional>true</optional>
 			</dependency>
 
+			<dependency>
+				<groupId>software.amazon.s3.accessgrants</groupId>
+				<artifactId>aws-s3-accessgrants-java-plugin</artifactId>
+				<version>${amazon.s3.accessgrants}</version>
+				<optional>true</optional>
+			</dependency>
 			<dependency>
 				<groupId>software.amazon.awssdk</groupId>
 				<artifactId>s3-transfer-manager</artifactId>
