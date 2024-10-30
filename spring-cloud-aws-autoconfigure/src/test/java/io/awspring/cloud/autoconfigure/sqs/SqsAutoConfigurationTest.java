@@ -35,9 +35,12 @@ import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
+import io.awspring.cloud.sqs.observation.BatchMessageProcessTracingObservationHandler;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.propagation.Propagator;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
@@ -242,6 +245,13 @@ class SqsAutoConfigurationTest {
 				});
 	}
 
+	@Test
+	void configureSqsObservation() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true")
+				.withUserConfiguration(TracingConfiguration.class)
+				.run(context -> assertThat(context).hasSingleBean(BatchMessageProcessTracingObservationHandler.class));
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class CustomComponentsConfiguration {
 
@@ -298,6 +308,21 @@ class SqsAutoConfigurationTest {
 				}
 			};
 		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class TracingConfiguration {
+
+		@Bean
+		Propagator propagator() {
+			return Propagator.NOOP;
+		}
+
+		@Bean
+		Tracer tracer() {
+			return Tracer.NOOP;
+		}
+
 	}
 
 }

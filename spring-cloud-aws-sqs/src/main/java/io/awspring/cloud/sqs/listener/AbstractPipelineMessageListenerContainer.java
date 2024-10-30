@@ -46,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
 import org.springframework.lang.Nullable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -66,6 +67,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  * restart.
  *
  * @author Tomaz Fernandes
+ * @author Mariusz Sondecki
  * @since 3.0
  */
 public abstract class AbstractPipelineMessageListenerContainer<T, O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>>
@@ -246,6 +248,9 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 		executor.setQueueCapacity(poolSize);
 		executor.setAllowCoreThreadTimeOut(true);
 		executor.setThreadFactory(createThreadFactory());
+		if (!getObservationRegistry().isNoop()) {
+			executor.setTaskDecorator(new ContextPropagatingTaskDecorator());
+		}
 		executor.afterPropertiesSet();
 		return executor;
 	}

@@ -25,13 +25,15 @@ import org.springframework.messaging.Message;
  * {@link io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline}.
  *
  * @author Tomaz Fernandes
+ * @author Mariusz Sondecki
  * @since 3.0
  */
 public class BatchMessageSink<T> extends AbstractMessageProcessingPipelineSink<T> {
 
 	@Override
 	protected CompletableFuture<Void> doEmit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
-		return execute(messages, context).exceptionally(t -> logError(t, messages));
+		return tryObservedCompletableFuture(() -> execute(messages, context).exceptionally(t -> logError(t, messages)),
+				messages);
 	}
 
 }

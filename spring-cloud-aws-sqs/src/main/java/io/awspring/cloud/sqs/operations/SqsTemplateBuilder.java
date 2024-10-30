@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.operations;
 
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.function.Consumer;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -82,4 +83,11 @@ public interface SqsTemplateBuilder {
 	 */
 	SqsOperations buildSyncTemplate();
 
+	/**
+	 * Set the {@link ObservationRegistry} to be used by the {@link SqsTemplate}.
+	 *
+	 * @param observationRegistry the instance.
+	 * @return the builder.
+	 */
+	SqsTemplateBuilder observationRegistry(ObservationRegistry observationRegistry);
 }

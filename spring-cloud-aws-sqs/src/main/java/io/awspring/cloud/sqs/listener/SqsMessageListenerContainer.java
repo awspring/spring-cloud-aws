@@ -25,6 +25,7 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -101,6 +102,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *     be used.
  *
  * @author Tomaz Fernandes
+ * @author Mariusz Sondecki
  * @since 3.0
  */
 public class SqsMessageListenerContainer<T>
@@ -141,12 +143,16 @@ public class SqsMessageListenerContainer<T>
 	protected void doConfigureMessageSources(Collection<MessageSource<T>> messageSources) {
 		ConfigUtils.INSTANCE.acceptManyIfInstance(messageSources, SqsAsyncClientAware.class,
 				asca -> asca.setSqsAsyncClient(this.sqsAsyncClient));
+		ConfigUtils.INSTANCE.acceptManyIfInstance(messageSources, ObservationRegistryAware.class,
+				asca -> asca.setObservationRegistry(this.getObservationRegistry()));
 	}
 
 	@Override
 	protected void doConfigureMessageSink(MessageSink<T> messageSink) {
 		ConfigUtils.INSTANCE.acceptIfInstance(messageSink, SqsAsyncClientAware.class,
 				asca -> asca.setSqsAsyncClient(this.sqsAsyncClient));
+		ConfigUtils.INSTANCE.acceptIfInstance(messageSink, ObservationRegistryAware.class,
+				asca -> asca.setObservationRegistry(this.getObservationRegistry()));
 	}
 
 	public static <T> Builder<T> builder() {
@@ -183,6 +189,8 @@ public class SqsMessageListenerContainer<T>
 		private AcknowledgementResultCallback<T> acknowledgementResultCallback;
 
 		private Integer phase;
+
+		private ObservationRegistry observationRegistry;
 
 		public Builder<T> id(String id) {
 			this.id = id;
@@ -262,6 +270,11 @@ public class SqsMessageListenerContainer<T>
 			return this;
 		}
 
+		public Builder<T> observationRegistry(ObservationRegistry observationRegistry) {
+			this.observationRegistry = observationRegistry;
+			return this;
+		}
+
 		// @formatter:off
 		public SqsMessageListenerContainer<T> build() {
 			SqsMessageListenerContainer<T> container = new SqsMessageListenerContainer<>(this.sqsAsyncClient);
@@ -275,7 +288,8 @@ public class SqsMessageListenerContainer<T>
 					.acceptIfNotNull(this.asyncAcknowledgementResultCallback, container::setAcknowledgementResultCallback)
 					.acceptIfNotNull(this.containerComponentFactories, container::setComponentFactories)
 					.acceptIfNotEmpty(this.queueNames, container::setQueueNames)
-					.acceptIfNotNullOrElse(container::setPhase, this.phase, DEFAULT_PHASE);
+					.acceptIfNotNullOrElse(container::setPhase, this.phase, DEFAULT_PHASE)
+					.acceptIfNotNull(this.observationRegistry, container::setObservationRegistry);
 			this.messageInterceptors.forEach(container::addMessageInterceptor);
 			this.asyncMessageInterceptors.forEach(container::addMessageInterceptor);
 
