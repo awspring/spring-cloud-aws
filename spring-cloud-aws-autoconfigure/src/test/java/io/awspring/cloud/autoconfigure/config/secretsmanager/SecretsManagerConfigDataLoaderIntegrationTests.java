@@ -32,7 +32,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -149,7 +148,6 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-//	@Disabled
 	void resolvesPropertyFromSecretsManager_SecretBinary() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
