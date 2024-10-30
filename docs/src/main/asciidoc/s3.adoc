@@ -173,9 +173,8 @@ public class MyRsaProvider implements S3RsaProvider {
 	@Override
 	public KeyPair generateKeyPair() {
 		try {
-			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-			keyPairGenerator.initialize(2048);
-			return keyPairGenerator.generateKeyPair();
+			// fetch key pair from secure location such as Secrets Manager
+			// access to KeyPair is required to decrypt objects when fetching, so it is advised to keep them stored securely
 		}
 		catch (Exception e) {
 			return null;
@@ -199,9 +198,8 @@ public class MyAesProvider implements S3AesProvider {
 	@Override
 	public SecretKey generateSecretKey() {
 		try {
-			KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-			keyGenerator.init(256);
-			return keyGenerator.generateKey();
+			// fetch secret key from secure location such as Secrets Manager
+        	// access to secret key is required to decrypt objects when fetching, so it is advised to keep them stored securely
 		}
 		catch (Exception e) {
 			return null;

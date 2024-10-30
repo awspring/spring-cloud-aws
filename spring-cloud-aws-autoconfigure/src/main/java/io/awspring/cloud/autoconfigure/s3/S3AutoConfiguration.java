@@ -39,6 +39,7 @@ import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.ClassUtils;
@@ -120,28 +121,21 @@ public class S3AutoConfiguration {
 		Optional.ofNullable(awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
 		return builder.build();
 	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	@ConditionalOnMissingClass(value = { "software.amazon.encryption.s3.S3EncryptionClient" })
-	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
-		return s3ClientBuilder.build();
-	}
-
+	@Conditional(S3EncryptionConditional.class)
+	@ConditionalOnClass(name = "software.amazon.encryption.s3.S3EncryptionClient")
 	@Configuration
-	@ConditionalOnClass(name = { "software.amazon.encryption.s3.S3EncryptionClient" })
-	static class S3EncryptionConfiguration {
+	public static class S3EncryptionConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		S3Client s3EncryptionClient(S3EncryptionClient.Builder s3EncryptionBuilder, S3ClientBuilder s3ClientBuilder) {
+		public static S3Client s3EncryptionClient(S3EncryptionClient.Builder s3EncryptionBuilder, S3ClientBuilder s3ClientBuilder) {
 			s3EncryptionBuilder.wrappedClient(s3ClientBuilder.build());
 			return s3EncryptionBuilder.build();
 		}
 
 		@Bean
 		@ConditionalOnMissingBean
-		S3EncryptionClient.Builder s3EncrpytionClientBuilder(S3Properties properties,
+		public static S3EncryptionClient.Builder s3EncrpytionClientBuilder(S3Properties properties,
 				AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 				ObjectProvider<AwsClientCustomizer<S3EncryptionClient.Builder>> configurer,
 				ObjectProvider<AwsConnectionDetails> connectionDetails,
@@ -186,6 +180,13 @@ public class S3AutoConfiguration {
 		}
 	}
 
+	@Bean
+	@ConditionalOnMissingBean
+	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
+		return s3ClientBuilder.build();
+	}
+
+
 	@Configuration
 	@ConditionalOnClass(ObjectMapper.class)
 	static class Jackson2JsonS3ObjectConverterConfiguration {
@@ -204,5 +205,4 @@ public class S3AutoConfiguration {
 		return new InMemoryBufferingS3OutputStreamProvider(s3Client,
 				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
 	}
-
 }

@@ -17,7 +17,20 @@ package io.awspring.cloud.autoconfigure.s3;
 
 import java.security.KeyPair;
 
+
+/**
+ * Interface for providing {@link KeyPair} when configuring {@link software.amazon.encryption.s3.S3EncryptionClient}.
+ * Required for encrypting/decrypting files server side with RSA.
+ * Key pair should be stored in secure storage, for example AWS Secrets Manager.
+ * @author Matej Nedic
+ * @since 3.3.0
+ */
 public interface S3RsaProvider {
 
+	/**
+	 * Provides KeyPair that will be used to configure {@link software.amazon.encryption.s3.S3EncryptionClient}.
+	 * Advised to fetch and return KeyPair in this method from Secured Storage.
+	 * @return KeyPair that will be used for encryption/decryption.
+	 */
 	KeyPair generateKeyPair();
 }
