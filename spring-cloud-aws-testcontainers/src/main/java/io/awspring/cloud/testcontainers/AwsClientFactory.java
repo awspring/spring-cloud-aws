@@ -24,5 +24,5 @@ import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
  * @since 3.2.0
  */
 public interface AwsClientFactory {
-	<CLIENT, BUILDER extends AwsClientBuilder<?, CLIENT>> CLIENT create(BUILDER builder);
+	<CLIENT, BUILDER extends AwsClientBuilder<BUILDER, CLIENT>> CLIENT create(BUILDER builder);
 }

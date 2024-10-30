@@ -122,7 +122,7 @@ class S3ResourceIntegrationTests {
 	}
 
 	@TestAvailableOutputStreamProviders
-	void objectHasContentLength(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
+	void objectHasContentLength(S3OutputStreamProvider s3OutputStreamProvider) {
 		String contents = "test-file-content";
 		client.putObject(PutObjectRequest.builder().bucket("first-bucket").key("test-file.txt").build(),
 				RequestBody.fromString(contents));
@@ -215,6 +215,28 @@ class S3ResourceIntegrationTests {
 		}
 		GetObjectResponse result = client
 				.getObject(request -> request.bucket("first-bucket").key("new-file" + i + ".txt").build()).response();
+		assertThat(result.contentType()).isEqualTo("text/plain");
+	}
+
+	@TestAvailableOutputStreamProviders
+	void contentLengthCanBeSetForLargeFiles(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
+		int i = new Random().nextInt();
+		S3Resource resource = s3Resource("s3://first-bucket/new-file" + i + ".txt", s3OutputStreamProvider);
+		int fileSize = DEFAULT_PART_SIZE * 2;
+		resource.setObjectMetadata(ObjectMetadata.builder().contentLength((long) fileSize).build());
+
+		// create file larger than single part size in multipart upload to make sure that file can be successfully
+		// uploaded in parts
+		File file = File.createTempFile("s3resource", "test");
+		byte[] b = new byte[fileSize];
+		new Random().nextBytes(b);
+		Files.write(b, file);
+
+		try (OutputStream outputStream = resource.getOutputStream()) {
+			outputStream.write(Files.toByteArray(file));
+		}
+		GetObjectResponse result = client
+			.getObject(request -> request.bucket("first-bucket").key("new-file" + i + ".txt").build()).response();
 		assertThat(result.contentType()).isEqualTo("text/plain");
 	}
 

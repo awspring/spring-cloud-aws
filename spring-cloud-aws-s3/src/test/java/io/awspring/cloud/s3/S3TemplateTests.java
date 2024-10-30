@@ -18,6 +18,7 @@ package io.awspring.cloud.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -75,6 +76,19 @@ class S3TemplateTests {
 			assertThat(ex.getMessage())
 					.isEqualTo("Failed to read object with a key 'key-name' from bucket 'bucket-name'");
 		});
+	}
+
+	@Test
+	void createsS3Resource() throws IOException {
+		S3OutputStream outputStream = mock(S3OutputStream.class);
+		when(s3OutputStreamProvider.create(eq("bucket"), eq("key"), any())).thenReturn(outputStream);
+
+		S3Resource resource = s3Template.createResource("bucket", "key");
+
+		assertThat(resource).isNotNull();
+		assertThat(resource.getOutputStream()).isEqualTo(outputStream);
+		assertThat(resource.getLocation().getBucket()).isEqualTo("bucket");
+		assertThat(resource.getLocation().getObject()).isEqualTo("key");
 	}
 
 }

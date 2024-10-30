@@ -52,6 +52,8 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsIdentityProvider;
+import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -68,6 +70,30 @@ class S3AutoConfigurationTests {
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
+
+	private final ApplicationContextRunner contextRunnerWithoutGrant = new ApplicationContextRunner()
+			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(S3AccessGrantsPlugin.class));
+
+	@Test
+	void setsS3AccessGrantIdentityProvider() {
+		contextRunner.run(context -> {
+			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+			assertThat(client.getIdentityProviders()).isInstanceOf(S3AccessGrantsIdentityProvider.class);
+		});
+	}
+
+	@Test
+	void doesNotSetS3AccessGrantIdentityProvider() {
+		contextRunnerWithoutGrant.run(context -> {
+			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+			assertThat(client.getIdentityProviders()).isNotInstanceOf(S3AccessGrantsIdentityProvider.class);
+		});
+	}
 
 	@Test
 	void createsS3ClientBean() {
@@ -149,6 +175,7 @@ class S3AutoConfigurationTests {
 					"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
 						S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
 						ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+						assertThat(client.getIdentityProviders()).isInstanceOf(S3AccessGrantsIdentityProvider.class);
 						assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
 						assertThat(client.isEndpointOverridden()).isTrue();
 					});

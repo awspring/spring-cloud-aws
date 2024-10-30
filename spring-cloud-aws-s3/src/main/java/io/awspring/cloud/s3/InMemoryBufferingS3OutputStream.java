@@ -118,6 +118,19 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 	}
 
 	@Override
+	public void abort() {
+		synchronized (this.monitor) {
+			if (isClosed()) {
+				throw new IllegalStateException("Stream is already closed. Too late to abort.");
+			}
+			if (isMultiPartUpload()) {
+				abortMultiPartUpload(multipartUploadResponse);
+			}
+			outputStream = null;
+		}
+	}
+
+	@Override
 	public void close() {
 		synchronized (this.monitor) {
 			if (isClosed()) {

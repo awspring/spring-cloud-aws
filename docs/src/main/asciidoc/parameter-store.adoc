@@ -94,7 +94,7 @@ The starter automatically configures and registers a `SsmClient` bean in the Spr
 
 [source,java]
 ----
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 import software.amazon.awssdk.services.ssm.SsmClient;
 ...
 @Autowired
@@ -139,14 +139,14 @@ Note that this class must be listed under `org.springframework.boot.BootstrapReg
 org.springframework.boot.BootstrapRegistryInitializer=com.app.ParameterStoreBootstrapConfiguration
 ----
 
-If you want to use autoconfigured `SsmClient` but change underlying SDKClient or ClientOverrideConfiguration you will need to register bean of type `AwsClientConfigurerParameterStore`:
+If you want to use autoconfigured `SsmClient` but change underlying `SDKClient` or `ClientOverrideConfiguration` you will need to register bean of type `SsmClientCustomizer`:
 Autoconfiguration will configure `SsmClient` Bean with provided values after that, for example:
 
 [source,java]
 ----
 package com.app;
 
-import io.awspring.cloud.autoconfigure.config.parameterstore.AwsParameterStoreClientCustomizer;
+import io.awspring.cloud.autoconfigure.config.parameterstore.SsmClientCustomizer;
 import java.time.Duration;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
@@ -159,20 +159,11 @@ class ParameterStoreBootstrapConfiguration implements BootstrapRegistryInitializ
 
 	@Override
 	public void initialize(BootstrapRegistry registry) {
-		registry.register(AwsParameterStoreClientCustomizer.class,
-            context -> new AwsParameterStoreClientCustomizer() {
-
-                @Override
-                public ClientOverrideConfiguration overrideConfiguration() {
-                    return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(500))
-                            .build();
-                }
-
-                @Override
-                public SdkHttpClient httpClient() {
-                    return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1000)).build();
-                }
-            });
+		registry.register(SsmClientCustomizer.class, context -> (builder -> {
+			builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+				c.apiCallTimeout(Duration.ofMillis(2000));
+			}));
+		}));
     }
 }
 ----

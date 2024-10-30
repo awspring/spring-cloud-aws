@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -42,8 +43,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.util.ClassUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -70,10 +73,18 @@ public class S3AutoConfiguration {
 	@ConditionalOnMissingBean
 	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
-		S3ClientBuilder builder = awsClientBuilderConfigurer.configure(S3Client.builder(), this.properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable());
+			ObjectProvider<AwsConnectionDetails> connectionDetails,
+			ObjectProvider<S3ClientCustomizer> s3ClientCustomizers,
+			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
+		S3ClientBuilder builder = awsClientBuilderConfigurer.configureSyncClient(S3Client.builder(), this.properties,
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), s3ClientCustomizers.orderedStream(),
+				awsSyncClientCustomizers.orderedStream());
 
+		if (ClassUtils.isPresent("software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin", null)) {
+			S3AccessGrantsPlugin s3AccessGrantsPlugin = S3AccessGrantsPlugin.builder()
+					.enableFallback(properties.getPlugin().getEnableFallback()).build();
+			builder.addPlugin(s3AccessGrantsPlugin);
+		}
 		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
 
 		builder.serviceConfiguration(this.properties.toS3Configuration());
