@@ -76,7 +76,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.7.2"));
+			DockerImageName.parse("localstack/localstack:3.8.1"));
 
 	@TempDir
 	static Path tokenTempDir;
@@ -149,7 +149,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-	@Disabled
+//	@Disabled
 	void resolvesPropertyFromSecretsManager_SecretBinary() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);

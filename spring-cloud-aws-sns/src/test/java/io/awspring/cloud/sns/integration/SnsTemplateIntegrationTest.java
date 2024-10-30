@@ -64,7 +64,7 @@ class SnsTemplateIntegrationTest {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.7.2"));
+			DockerImageName.parse("localstack/localstack:3.8.1"));
 
 	@BeforeAll
 	public static void createSnsTemplate() {
