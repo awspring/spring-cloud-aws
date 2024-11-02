@@ -19,8 +19,8 @@ import javax.crypto.SecretKey;
 
 /**
  * Interface for providing {@link SecretKey} when configuring {@link software.amazon.encryption.s3.S3EncryptionClient}.
- * Required when encrypting files server side with AES.
- * Secret Key should be stored in secure storage, for example AWS Secrets Manager.
+ * Required when encrypting files server side with AES. Secret Key should be stored in secure storage, for example AWS
+ * Secrets Manager.
  * @author Matej Nedic
  * @since 3.3.0
  */

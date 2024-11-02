@@ -121,6 +121,7 @@ public class S3AutoConfiguration {
 		Optional.ofNullable(awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
 		return builder.build();
 	}
+
 	@Conditional(S3EncryptionConditional.class)
 	@ConditionalOnClass(name = "software.amazon.encryption.s3.S3EncryptionClient")
 	@Configuration
@@ -128,14 +129,14 @@ public class S3AutoConfiguration {
 
 		@Bean
 		@ConditionalOnMissingBean
-		public static S3Client s3EncryptionClient(S3EncryptionClient.Builder s3EncryptionBuilder, S3ClientBuilder s3ClientBuilder) {
+		S3Client s3EncryptionClient(S3EncryptionClient.Builder s3EncryptionBuilder, S3ClientBuilder s3ClientBuilder) {
 			s3EncryptionBuilder.wrappedClient(s3ClientBuilder.build());
 			return s3EncryptionBuilder.build();
 		}
 
 		@Bean
 		@ConditionalOnMissingBean
-		public static S3EncryptionClient.Builder s3EncrpytionClientBuilder(S3Properties properties,
+		S3EncryptionClient.Builder s3EncrpytionClientBuilder(S3Properties properties,
 				AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 				ObjectProvider<AwsClientCustomizer<S3EncryptionClient.Builder>> configurer,
 				ObjectProvider<AwsConnectionDetails> connectionDetails,
@@ -185,7 +186,6 @@ public class S3AutoConfiguration {
 	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
 		return s3ClientBuilder.build();
 	}
-
 
 	@Configuration
 	@ConditionalOnClass(ObjectMapper.class)
