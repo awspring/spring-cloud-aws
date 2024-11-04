@@ -27,7 +27,7 @@
 		<awssdk-v2.version>2.29.6</awssdk-v2.version>
 		<amazon.dax.version>2.0.5</amazon.dax.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<spring-cloud-commons.version>4.1.4</spring-cloud-commons.version>
+		<spring-cloud-commons.version>4.2.0-M2</spring-cloud-commons.version>
 		<jakarta.mail.version>2.1.0</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
 		<bytebuddy.version>1.14.9</bytebuddy.version>
