@@ -166,5 +166,15 @@
 			<artifactId>sts</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>kms</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.encryption.s3</groupId>
+			<artifactId>amazon-s3-encryption-client-java</artifactId>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 </project>

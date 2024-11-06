@@ -236,7 +236,7 @@ class S3ResourceIntegrationTests {
 			outputStream.write(Files.toByteArray(file));
 		}
 		GetObjectResponse result = client
-			.getObject(request -> request.bucket("first-bucket").key("new-file" + i + ".txt").build()).response();
+				.getObject(request -> request.bucket("first-bucket").key("new-file" + i + ".txt").build()).response();
 		assertThat(result.contentType()).isEqualTo("text/plain");
 	}
 

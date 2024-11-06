@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.s3.properties;
+package io.awspring.cloud.autoconfigure.s3;
 
-public class S3PluginProperties {
+import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
+import software.amazon.encryption.s3.S3EncryptionClient;
 
-	/**
-	 * If set to false if Access Grants does not find/return permissions, S3Client won't try to determine if policies
-	 * grant access If set to true fallback policies S3/IAM will be evaluated.
-	 */
-	private boolean enableFallback;
-
-	public boolean getEnableFallback() {
-		return enableFallback;
-	}
-
-	public void setEnableFallback(boolean enableFallback) {
-		this.enableFallback = enableFallback;
-	}
+/**
+ * Callback interface that can be used to customize a {@link S3EncryptionClient.Builder}.
+ *
+ * @author Matej Nedic
+ * @since 3.3.0
+ */
+@FunctionalInterface
+public interface S3EncryptionClientCustomizer extends AwsClientCustomizer<S3EncryptionClient.Builder> {
 }

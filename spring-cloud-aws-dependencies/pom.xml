@@ -26,6 +26,7 @@
 		<spotless.version>2.31.0</spotless.version>
 		<awssdk-v2.version>2.29.6</awssdk-v2.version>
 		<amazon.dax.version>2.0.5</amazon.dax.version>
+		<amazon.encryption.s3.version>3.2.3</amazon.encryption.s3.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<spring-cloud-commons.version>4.2.0-M2</spring-cloud-commons.version>
 		<jakarta.mail.version>2.1.0</jakarta.mail.version>
@@ -66,6 +67,13 @@
 				<groupId>software.amazon.dax</groupId>
 				<artifactId>amazon-dax-client</artifactId>
 				<version>${amazon.dax.version}</version>
+				<optional>true</optional>
+			</dependency>
+
+			<dependency>
+				<groupId>software.amazon.encryption.s3</groupId>
+				<artifactId>amazon-s3-encryption-client-java</artifactId>
+				<version>${amazon.encryption.s3.version}</version>
 				<optional>true</optional>
 			</dependency>
 
