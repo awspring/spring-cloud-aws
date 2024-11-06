@@ -37,7 +37,7 @@ class AppTest {
 		@Bean
 		@ServiceConnection
 		LocalStackContainer localStackContainer() {
-			return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.2.0"));
+			return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.8.1"));
 		}
 	}
 
