@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.autoconfigure.s3.properties;
+package io.awspring.cloud.autoconfigure.s3.provider;
 
-public class S3PluginProperties {
+import io.awspring.cloud.autoconfigure.s3.S3RsaProvider;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 
-	/**
-	 * If set to false if Access Grants does not find/return permissions, S3Client won't try to determine if policies
-	 * grant access If set to true fallback policies S3/IAM will be evaluated.
-	 */
-	private boolean enableFallback;
-
-	public boolean getEnableFallback() {
-		return enableFallback;
-	}
-
-	public void setEnableFallback(boolean enableFallback) {
-		this.enableFallback = enableFallback;
+public class MyRsaProvider implements S3RsaProvider {
+	@Override
+	public KeyPair generateKeyPair() {
+		try {
+			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+			keyPairGenerator.initialize(2048);
+			return keyPairGenerator.generateKeyPair();
+		}
+		catch (Exception e) {
+			return null;
+		}
 	}
 }

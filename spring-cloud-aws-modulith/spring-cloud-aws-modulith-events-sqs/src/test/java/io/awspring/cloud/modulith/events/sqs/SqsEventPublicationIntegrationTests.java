@@ -55,7 +55,7 @@ class SqsEventPublicationIntegrationTests {
 		@Bean
 		LocalStackContainer localStackContainer(DynamicPropertyRegistry registry) {
 
-			var localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.2.0"));
+			var localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.8.1"));
 
 			registry.add("spring.cloud.aws.endpoint", localstack::getEndpoint);
 			registry.add("spring.cloud.aws.credentials.access-key", localstack::getAccessKey);

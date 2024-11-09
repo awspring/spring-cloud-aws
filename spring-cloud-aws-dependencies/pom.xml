@@ -24,16 +24,17 @@
 
 	<properties>
 		<spotless.version>2.31.0</spotless.version>
-		<awssdk-v2.version>2.28.2</awssdk-v2.version>
-		<amazon.dax.version>2.0.4</amazon.dax.version>
+		<awssdk-v2.version>2.29.6</awssdk-v2.version>
+		<amazon.dax.version>2.0.5</amazon.dax.version>
+		<amazon.encryption.s3.version>3.2.3</amazon.encryption.s3.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<spring-cloud-commons.version>4.1.4</spring-cloud-commons.version>
+		<spring-cloud-commons.version>4.2.0-M2</spring-cloud-commons.version>
 		<jakarta.mail.version>2.1.0</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
 		<bytebuddy.version>1.14.9</bytebuddy.version>
 		<spring-modulith.version>1.2.3</spring-modulith.version>
 		<wiremock-standalone.version>3.3.1</wiremock-standalone.version>
-		<amazon.s3.accessgrants>2.2.0</amazon.s3.accessgrants>
+		<amazon.s3.accessgrants>2.3.0</amazon.s3.accessgrants>
 	</properties>
 
 	<dependencyManagement>
@@ -66,6 +67,13 @@
 				<groupId>software.amazon.dax</groupId>
 				<artifactId>amazon-dax-client</artifactId>
 				<version>${amazon.dax.version}</version>
+				<optional>true</optional>
+			</dependency>
+
+			<dependency>
+				<groupId>software.amazon.encryption.s3</groupId>
+				<artifactId>amazon-s3-encryption-client-java</artifactId>
+				<version>${amazon.encryption.s3.version}</version>
 				<optional>true</optional>
 			</dependency>
 

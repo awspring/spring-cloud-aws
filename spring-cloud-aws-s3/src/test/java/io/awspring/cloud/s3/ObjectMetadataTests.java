@@ -81,7 +81,7 @@ class ObjectMetadataTests {
 
 	@Test
 	void doesNotApplyContentLengthForPartUpload() {
-		long objectContentLength =  16L;
+		long objectContentLength = 16L;
 		long partContentLength = 8L;
 		ObjectMetadata metadata = ObjectMetadata.builder().contentLength(objectContentLength).build();
 
