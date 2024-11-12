@@ -67,8 +67,8 @@ Transfer Manager works the best with CRT S3 Client. To auto-configure CRT based 
 [source,xml]
 ----
 <dependency>
-  <groupId>software.amazon.awssdk.crt</groupId>
-  <artifactId>aws-crt</artifactId>
+  <groupId>software.amazon.awssdk</groupId>
+  <artifactId>aws-crt-client</artifactId>
 </dependency>
 ----
 
