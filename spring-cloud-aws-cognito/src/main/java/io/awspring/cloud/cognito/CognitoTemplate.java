@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.cognito;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.util.Assert;
@@ -76,8 +77,12 @@ public class CognitoTemplate implements CognitoAuthOperations {
 
 	@Override
 	public ForgotPasswordResponse resetPassword(String username) {
-		ForgotPasswordRequest forgotPasswordRequest = ForgotPasswordRequest.builder().clientId(clientId)
-				.username(username).build();
+		ForgotPasswordRequest.Builder forgotPasswordRequestBuilder = ForgotPasswordRequest.builder().clientId(clientId)
+				.username(username);
+		if (this.clientSecret != null) {
+			forgotPasswordRequestBuilder.secretHash(CognitoUtils.calculateSecretHash(clientId, clientSecret, username));
+		}
+		ForgotPasswordRequest forgotPasswordRequest = forgotPasswordRequestBuilder.build();
 
 		return cognitoIdentityProviderClient.forgotPassword(forgotPasswordRequest);
 	}
@@ -94,7 +99,7 @@ public class CognitoTemplate implements CognitoAuthOperations {
 	@Override
 	public RespondToAuthChallengeResponse setPermanentPassword(String session, String username, String password) {
 		RespondToAuthChallengeRequest respondToAuthChallengeRequest = RespondToAuthChallengeRequest.builder()
-				.clientId(clientId).challengeName(ChallengeNameType.NEW_PASSWORD_REQUIRED)
+				.clientId(clientId).challengeName(ChallengeNameType.NEW_PASSWORD_REQUIRED).session(session)
 				.challengeResponses(Map.of(CognitoParameters.USERNAME_PARAM_NAME, username,
 						CognitoParameters.NEW_PASSWORD_PARAM_NAME, password, CognitoParameters.SECRET_HASH_PARAM_NAME,
 						CognitoUtils.calculateSecretHash(clientId, clientSecret, username)))
@@ -103,8 +108,13 @@ public class CognitoTemplate implements CognitoAuthOperations {
 	}
 
 	private Map<String, String> resolveAuthParameters(String username, String password) {
-		return Map.of(CognitoParameters.USERNAME_PARAM_NAME, username, CognitoParameters.PASSWORD_PARAM_NAME, password,
-				CognitoParameters.SECRET_HASH_PARAM_NAME,
-				CognitoUtils.calculateSecretHash(clientId, clientSecret, username));
+		Map<String, String> parametersMap = new HashMap<>();
+		parametersMap.put(CognitoParameters.USERNAME_PARAM_NAME, username);
+		parametersMap.put(CognitoParameters.PASSWORD_PARAM_NAME, password);
+		if (this.clientSecret != null) {
+			parametersMap.put(CognitoParameters.SECRET_HASH_PARAM_NAME,
+					CognitoUtils.calculateSecretHash(clientId, clientSecret, username));
+		}
+		return parametersMap;
 	}
 }
