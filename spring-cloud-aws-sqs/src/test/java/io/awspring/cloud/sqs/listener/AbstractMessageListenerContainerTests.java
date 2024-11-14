@@ -24,6 +24,7 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -74,6 +75,8 @@ class AbstractMessageListenerContainerTests {
 				.extracting("blockingMessageInterceptor").isEqualTo(interceptor);
 
 		assertThat(container.getPhase()).isEqualTo(MessageListenerContainer.DEFAULT_PHASE);
+
+		assertThat(container.getObservationRegistry()).isEqualTo(ObservationRegistry.NOOP);
 	}
 
 	@Test
@@ -103,6 +106,7 @@ class AbstractMessageListenerContainerTests {
 		assertThat(container.getContainerComponentFactories()).containsExactlyElementsOf(componentFactories);
 		assertThat(container.getMessageInterceptors()).containsExactly(interceptor);
 		assertThat(container.getPhase()).isEqualTo(MessageListenerContainer.DEFAULT_PHASE);
+		assertThat(container.getObservationRegistry()).isEqualTo(ObservationRegistry.NOOP);
 
 	}
 

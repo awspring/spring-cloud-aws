@@ -29,6 +29,7 @@ import org.springframework.messaging.Message;
  * @param <T> the {@link Message} payload type.
  *
  * @author Tomaz Fernandes
+ * @author Mariusz Sondecki
  * @since 3.0
  */
 public class FanOutMessageSink<T> extends AbstractMessageProcessingPipelineSink<T> {
@@ -38,9 +39,11 @@ public class FanOutMessageSink<T> extends AbstractMessageProcessingPipelineSink<
 	@Override
 	protected CompletableFuture<Void> doEmit(Collection<Message<T>> messages, MessageProcessingContext<T> context) {
 		logger.trace("Emitting messages {}", MessageHeaderUtils.getId(messages));
-		return CompletableFuture.allOf(messages.stream().map(msg -> execute(msg, context)
-				// Should log errors individually - no need to propagate upstream
-				.exceptionally(t -> logError(t, msg))).toArray(CompletableFuture[]::new));
+		return CompletableFuture.allOf(messages.stream()
+				.map(msg -> tryObservedCompletableFuture(() -> execute(msg, context)
+						// Should log errors individually - no need to propagate upstream
+						.exceptionally(t -> logError(t, msg)), msg))
+				.toArray(CompletableFuture[]::new));
 	}
 
 }

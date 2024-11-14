@@ -355,6 +355,37 @@ Optional<Message<SampleRecord>> receivedMessage = template
 			.receive(queue, SampleRecord.class);
 ```
 
+==== Observability Support
+
+The framework instruments the codebase for sending messages to SQS to publish observations.
+This instrumentation will create 2 types of observations:
+
+* `sqs.single.message.publish` when a single SQS message is published by the service. It propagates the outbound tracing information by setting it up in `MessageHeaders`.
+* `sqs.batch.message.publish` when multiple SQS messages are published by the service. It propagates the outbound tracing information by setting it up in `MessageHeaders` of each SQS message.
+
+Additionally, both types of observations measure the time taken to publish SQS messages and create the following `KeyValues`:
+
+.Low cardinality Keys
+[cols="2"]
+|===
+| Name | Description
+| `messaging.operation` |The mode of SQS message publishing (values: `single message publish` or `batch message publish`).
+|===
+
+.High cardinality Keys
+[cols="2"]
+|===
+| Name | Description
+| `messaging.message.id` |The ID of either a single published SQS message or concatenation IDs of all SQS messages in the entire published batch.
+|===
+
+When using a `Spring Boot` application with `auto-configuration` and the default `SqsTemplate`, enabling this functionality requires only the `ObservationRegistry` bean to be available. In any other case, the `ObservationRegistry` needs to be set in the `SqsTemplate` builder:
+
+[source, java]
+----
+SqsTemplate.builder().observationRegistry(registry);
+----
+
 === Receiving Messages
 
 The framework offers the following options to receive messages from a queue.
@@ -1750,4 +1781,83 @@ Sample IAM policy granting access to SQS:
             ],
             "Resource": "yourARN"
         }
+----
+
+=== Observability Support
+
+The framework offers instrumentation for the SQS processing codebase to publish observations.
+This instrumentation is available with SQS polling and `SqsTemplate`.
+The observations measure the time taken to process SQS messages and create the following `KeyValues`:
+
+.High cardinality Keys
+[cols="2"]
+|===
+| Name | Description
+| `messaging.message.id` |The ID of either a single processed SQS message or the concatenation IDs of all SQS messages in the entire processed batch.
+|===
+
+.Low cardinality Keys for SQS polling
+[cols="2"]
+|===
+| Name | Description
+| `messaging.operation` |The mode of SQS message processing (values: `single message polling process` or `batch message polling process`).
+|===
+
+.Low cardinality Keys for `SqsTemplate`
+[cols="2"]
+|===
+| Name | Description
+| `messaging.operation` |The mode of SQS message processing (values: `single message manual process` or `batch message manual process`).
+|===
+
+
+==== SQS polling
+
+The instrumentation will create two types of observations:
+
+* `sqs.single.message.polling.process` when a SQS messages from the batch are processed by the service. They propagate the inbound tracing information by looking it up in `MessageHeaders`.
+* `sqs.batch.message.polling.process` when the entire received batch of SQS messages is processed by the service. They propagate the inbound tracing information in the form the of a list of tracing `Link` by looking it up in the `MessageHeaders` of incoming traces in the entire received batch.
+
+When using a `Spring Boot` application with `auto-configuration` and the default `SqsMessageListenerContainerFactory`, enabling this functionality requires only the `ObservationRegistry` bean to be available. In any other case, the `ObservationRegistry` needs to be set in the `MessageListenerContainerFactory`:
+
+[source, java]
+----
+@Bean
+SqsMessageListenerContainerFactory<Object> sqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient, ObservationRegistry observationRegistry) {
+    return SqsMessageListenerContainerFactory
+        .builder()
+        .sqsAsyncClientSupplier(sqsAsyncClient)
+        .observationRegistry(observationRegistry)
+        .build();
+}
+----
+
+Or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+MessageListenerContainer<Object> listenerContainer(SqsAsyncClient sqsAsyncClient, ObservationRegistry observationRegistry) {
+    return SqsMessageListenerContainer
+            .builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .observationRegistry(observationRegistry)
+            .build();
+}
+----
+
+==== SqsTemplate
+
+The instrumentation will create two types of observations:
+
+* `sqs.single.message.manual.process` when an individual SQS message from the batch is processed by the service. The inbound tracing information is not propagated from messages, and a new tracing context is created instead.
+* `sqs.batch.message.manual.process` when the entire batch of received SQS messages is processed by the service. The inbound tracing information is not propagated from messages, and a new tracing context is created instead.
+
+*Note*: The inbound tracing information is not propagated, and a new tracing context is created because the user of SqsTemplate can invoke this API within the scope of an existing tracing context, where their trace ID should be reused. Additionally, the headers of received messages contain the required tracing information, allowing the user to decide whether to use the inbound tracing or not.
+
+When using a `Spring Boot` application with `auto-configuration` and the default `SqsTemplate`, enabling this functionality requires only the `ObservationRegistry` bean to be available. In any other case, the `ObservationRegistry` needs to be set in the `SqsTemplate` builder:
+
+[source, java]
+----
+SqsTemplate.builder().observationRegistry(registry);
 ----
