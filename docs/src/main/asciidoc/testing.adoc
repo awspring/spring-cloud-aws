@@ -13,7 +13,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-== Service Connection
+=== Service Connection
 
 https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing.testcontainers.service-connections[@ServiceConnection] for https://java.testcontainers.org/modules/localstack/[LocalStack Container] simplifies configuring Spring Cloud AWS based project to point to LocalStack instead of real AWS.
 
@@ -41,7 +41,7 @@ class LocalstackAwsClientFactoryTest {
 
 	@Container
 	private LocalStackContainer localStackContainer = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.2.0"));
+			DockerImageName.parse("localstack/localstack:3.8.1"));
 
 	@Test
 	void aTest() {

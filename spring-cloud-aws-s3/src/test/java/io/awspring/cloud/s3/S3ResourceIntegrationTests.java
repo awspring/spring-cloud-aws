@@ -69,7 +69,7 @@ class S3ResourceIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.2.0"));
+			DockerImageName.parse("localstack/localstack:3.8.1"));
 
 	private static S3Client client;
 	private static S3AsyncClient asyncClient;
@@ -236,7 +236,7 @@ class S3ResourceIntegrationTests {
 			outputStream.write(Files.toByteArray(file));
 		}
 		GetObjectResponse result = client
-			.getObject(request -> request.bucket("first-bucket").key("new-file" + i + ".txt").build()).response();
+				.getObject(request -> request.bucket("first-bucket").key("new-file" + i + ".txt").build()).response();
 		assertThat(result.contentType()).isEqualTo("text/plain");
 	}
 

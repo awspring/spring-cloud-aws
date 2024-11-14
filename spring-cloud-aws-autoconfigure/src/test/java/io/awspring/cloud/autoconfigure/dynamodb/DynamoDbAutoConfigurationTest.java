@@ -190,11 +190,11 @@ class DynamoDbAutoConfigurationTest {
 						assertThat(daxClient.getWriteRetries()).isEqualTo(2);
 						assertThat(daxClient.getReadRetries()).isEqualTo(2);
 						assertThat(daxClient.getIdleTimeoutMillis()).isEqualTo(30000);
-						assertThat(daxClient.getRequestTimeoutMillis()).isEqualTo(1000);
+						assertThat(daxClient.getRequestTimeoutMillis()).isEqualTo(60000);
 						assertThat(daxClient.getConnectionTtlMillis()).isEqualTo(0);
 						assertThat(daxClient.getClusterUpdateIntervalMillis()).isEqualTo(4000);
 						assertThat(daxClient.getEndpointRefreshTimeoutMillis()).isEqualTo(6000);
-						assertThat(daxClient.getMaxConcurrency()).isEqualTo(1000);
+						assertThat(daxClient.getMaxConcurrency()).isEqualTo(100);
 						assertThat(daxClient.getMaxPendingConnectionAcquires()).isEqualTo(10000);
 						assertThat(daxClient.getSkipHostNameVerification()).isFalse();
 						assertThat(daxClient.getConnectTimeoutMillis()).isEqualTo(1000);
