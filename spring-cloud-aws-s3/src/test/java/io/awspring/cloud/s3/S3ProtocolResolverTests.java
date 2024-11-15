@@ -36,7 +36,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import software.amazon.awssdk.services.s3.S3Client;
 
 /**
- * Tests for {@link S3ProtocolResolverTests}.
+ * Tests for {@link S3ProtocolResolver}.
  *
  * @author Maciej Walkowiak
  */
