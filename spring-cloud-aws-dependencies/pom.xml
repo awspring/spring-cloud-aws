@@ -83,12 +83,6 @@
 				<version>${amazon.s3.accessgrants}</version>
 				<optional>true</optional>
 			</dependency>
-			<dependency>
-				<groupId>software.amazon.awssdk</groupId>
-				<artifactId>s3-transfer-manager</artifactId>
-				<version>${awssdk-v2.version}</version>
-				<optional>true</optional>
-			</dependency>
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
