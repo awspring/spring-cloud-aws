@@ -15,13 +15,13 @@
  */
 package io.awspring.cloud;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+/**
+ * Demo permission enum.
+ *
+ * @author Oleh Onufryk
+ * @since 3.3.0
+ */
 
-@SpringBootApplication
-public class SpringCloudAwsCognitoExample {
-
-	public static void main(String[] args) {
-		SpringApplication.run(SpringCloudAwsCognitoExample.class, args);
-	}
+public enum Permission {
+	READ, WRITE
 }

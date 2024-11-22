@@ -15,13 +15,22 @@
  */
 package io.awspring.cloud;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Service;
 
-@SpringBootApplication
-public class SpringCloudAwsCognitoExample {
+/**
+ * Demo permission evaluator.
+ *
+ * @author Oleh Onufryk
+ * @since 3.3.0
+ */
 
-	public static void main(String[] args) {
-		SpringApplication.run(SpringCloudAwsCognitoExample.class, args);
+@Service
+public class SecurityDecisionMaker {
+
+	public boolean hasPermission(Authentication authentication, Permission permission) {
+		return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).map(Role::valueOf)
+				.anyMatch(role -> role.hasPermission(permission));
 	}
 }

@@ -15,13 +15,25 @@
  */
 package io.awspring.cloud;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import java.util.List;
 
-@SpringBootApplication
-public class SpringCloudAwsCognitoExample {
+/**
+ * Demo role enum.
+ *
+ * @author Oleh Onufryk
+ * @since 3.3.0
+ */
 
-	public static void main(String[] args) {
-		SpringApplication.run(SpringCloudAwsCognitoExample.class, args);
+public enum Role {
+	USER(List.of(Permission.READ));
+
+	private final List<Permission> permissions;
+
+	Role(List<Permission> permissions) {
+		this.permissions = permissions;
+	}
+
+	public boolean hasPermission(Permission permission) {
+		return permissions.contains(permission);
 	}
 }

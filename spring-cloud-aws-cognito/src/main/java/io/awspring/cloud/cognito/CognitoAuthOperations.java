@@ -43,10 +43,11 @@ public interface CognitoAuthOperations {
 	/**
 	 * Creates a new user with provided attributes
 	 * @param username - the username
+	 * @param password - the password
 	 * @param attributeTypes - the list of user attributes defined by user pool
 	 * @return {@link AdminCreateUserResponse} a result of user creation operation from the AWS Cognito
 	 */
-	AdminCreateUserResponse createUser(String username, List<AttributeType> attributeTypes);
+	AdminCreateUserResponse createUser(String username, String password, List<AttributeType> attributeTypes);
 
 	/**
 	 * Resets password for a user
@@ -74,5 +75,11 @@ public interface CognitoAuthOperations {
 	 * Cognito
 	 */
 	RespondToAuthChallengeResponse setPermanentPassword(String session, String username, String password);
+
+	/**
+	 * Invalidates user's access, id and refresh tokens
+	 * @param userName - the username
+	 */
+	void logout(String userName);
 
 }

@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreate
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminInitiateAuthRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminInitiateAuthResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminUserGlobalSignOutRequest;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AuthFlowType;
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ChallengeNameType;
@@ -69,9 +70,9 @@ public class CognitoTemplate implements CognitoAuthOperations {
 	}
 
 	@Override
-	public AdminCreateUserResponse createUser(String username, List<AttributeType> attributeTypes) {
+	public AdminCreateUserResponse createUser(String username, String password, List<AttributeType> attributeTypes) {
 		AdminCreateUserRequest createUserRequest = AdminCreateUserRequest.builder().userPoolId(userPoolId)
-				.username(username).userAttributes(attributeTypes).build();
+				.username(username).temporaryPassword(password).userAttributes(attributeTypes).build();
 		return cognitoIdentityProviderClient.adminCreateUser(createUserRequest);
 	}
 
@@ -105,6 +106,14 @@ public class CognitoTemplate implements CognitoAuthOperations {
 						CognitoUtils.calculateSecretHash(clientId, clientSecret, username)))
 				.build();
 		return cognitoIdentityProviderClient.respondToAuthChallenge(respondToAuthChallengeRequest);
+	}
+
+	@Override
+	public void logout(String userName) {
+		var signOutRequest = AdminUserGlobalSignOutRequest.builder().userPoolId(this.userPoolId).username(userName)
+				.build();
+
+		cognitoIdentityProviderClient.adminUserGlobalSignOut(signOutRequest);
 	}
 
 	private Map<String, String> resolveAuthParameters(String username, String password) {

@@ -15,13 +15,29 @@
  */
 package io.awspring.cloud;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@SpringBootApplication
-public class SpringCloudAwsCognitoExample {
+/**
+ * Demo secured resource.
+ *
+ * @author Oleh Onufryk
+ * @since 3.3.0
+ */
 
-	public static void main(String[] args) {
-		SpringApplication.run(SpringCloudAwsCognitoExample.class, args);
+@RestController
+@RequestMapping("/api/secured")
+public class SecuredResource {
+
+	@GetMapping
+	@PreAuthorize("@securityDecisionMaker.hasPermission(authentication, 'READ')")
+	public String secured() {
+		return """
+				{
+				    "message": "This is a secured endpoint"
+				}
+				""";
 	}
 }
