@@ -13,7 +13,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-For more information about Spring Docker Compose support please refer to https://docs.spring.io/spring-boot/reference/features/docker-compose.html[official Spring documentation]
+For more information about Spring Docker Compose support please refer to https://docs.spring.io/spring-boot/reference/features/dev-services.html#features.dev-services.docker-compose[official Spring documentation]
 
 === Example docker-compose.yaml file
 
