@@ -454,7 +454,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private Map<MessageSystemAttributeNameForSends, MessageSystemAttributeValue> mapMessageSystemAttributes(
 			Message message) {
 		return message.attributes().entrySet().stream().filter(Predicate.not(entry -> isSkipAttribute(entry.getKey())))
-				.collect(Collectors.toMap(entry -> MessageSystemAttributeNameForSends.fromValue(entry.getKey().name()),
+				.collect(Collectors.toMap(entry -> MessageSystemAttributeNameForSends.fromValue(entry.getKey().toString()),
 						entry -> MessageSystemAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
 								.stringValue(entry.getValue()).build()));
 	}
