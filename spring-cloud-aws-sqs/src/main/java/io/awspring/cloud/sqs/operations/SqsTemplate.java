@@ -602,11 +602,11 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		ReceiveMessageRequest.Builder builder = ReceiveMessageRequest.builder().queueUrl(attributes.getQueueUrl())
 				.maxNumberOfMessages(maxNumberOfMessages).messageAttributeNames(this.messageAttributeNames)
 				.attributeNamesWithStrings(this.messageSystemAttributeNames)
-				.waitTimeSeconds(pollTimeout.toSecondsPart());
+				.waitTimeSeconds(toInt(pollTimeout.toSeconds()));
 		if (additionalHeaders.containsKey(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER)) {
 			builder.visibilityTimeout(
-					getValueAs(additionalHeaders, SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, Duration.class)
-							.toSecondsPart());
+				toInt(getValueAs(additionalHeaders, SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, Duration.class)
+							.toSeconds()));
 		}
 		if (additionalHeaders.containsKey(SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER)) {
 			builder.receiveRequestAttemptId(
@@ -614,6 +614,15 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 							.toString());
 		}
 		return builder.build();
+	}
+
+	// Convert a long value to an int. Values larger than Integer.MAX_VALUE are set to Integer.MAX_VALUE
+	private int toInt(long longValue) {
+		if (longValue > Integer.MAX_VALUE) {
+			return Integer.MAX_VALUE;
+		}
+
+		return (int) longValue;
 	}
 
 	private <V> V getValueAs(Map<String, Object> headers, String headerName, Class<V> valueClass) {
