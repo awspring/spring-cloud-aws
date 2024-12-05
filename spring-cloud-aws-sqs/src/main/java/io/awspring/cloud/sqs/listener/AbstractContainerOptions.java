@@ -49,11 +49,15 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	private final Duration maxDelayBetweenPolls;
 
+	private final Duration standbyLimitPollingInterval;
+
 	private final Duration listenerShutdownTimeout;
 
 	private final Duration acknowledgementShutdownTimeout;
 
 	private final BackPressureMode backPressureMode;
+
+	private final BackPressureLimiter backPressureLimiter;
 
 	private final ListenerMode listenerMode;
 
@@ -86,10 +90,12 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.autoStartup = builder.autoStartup;
 		this.pollTimeout = builder.pollTimeout;
 		this.pollBackOffPolicy = builder.pollBackOffPolicy;
+		this.standbyLimitPollingInterval = builder.standbyLimitPollingInterval;
 		this.maxDelayBetweenPolls = builder.maxDelayBetweenPolls;
 		this.listenerShutdownTimeout = builder.listenerShutdownTimeout;
 		this.acknowledgementShutdownTimeout = builder.acknowledgementShutdownTimeout;
 		this.backPressureMode = builder.backPressureMode;
+		this.backPressureLimiter = builder.backPressureLimiter;
 		this.listenerMode = builder.listenerMode;
 		this.messageConverter = builder.messageConverter;
 		this.acknowledgementMode = builder.acknowledgementMode;
@@ -131,6 +137,11 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	}
 
 	@Override
+	public Duration getStandbyLimitPollingInterval() {
+		return this.standbyLimitPollingInterval;
+	}
+
+	@Override
 	public Duration getMaxDelayBetweenPolls() {
 		return this.maxDelayBetweenPolls;
 	}
@@ -160,6 +171,11 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	@Override
 	public BackPressureMode getBackPressureMode() {
 		return this.backPressureMode;
+	}
+
+	@Override
+	public BackPressureLimiter getBackPressureLimiter() {
+		return this.backPressureLimiter;
 	}
 
 	@Override
@@ -224,6 +240,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final BackOffPolicy DEFAULT_POLL_BACK_OFF_POLICY = buildDefaultBackOffPolicy();
 
+		private static final Duration DEFAULT_STANDBY_LIMIT_POLLING_INTERVAL = Duration.ofMillis(100);
+
 		private static final Duration DEFAULT_SEMAPHORE_TIMEOUT = Duration.ofSeconds(10);
 
 		private static final Duration DEFAULT_LISTENER_SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
@@ -231,6 +249,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private static final Duration DEFAULT_ACKNOWLEDGEMENT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
 
 		private static final BackPressureMode DEFAULT_THROUGHPUT_CONFIGURATION = BackPressureMode.AUTO;
+
+		private static final BackPressureLimiter DEFAULT_BACKPRESSURE_LIMITER = null;
 
 		private static final ListenerMode DEFAULT_MESSAGE_DELIVERY_STRATEGY = ListenerMode.SINGLE_MESSAGE;
 
@@ -250,9 +270,13 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private BackOffPolicy pollBackOffPolicy = DEFAULT_POLL_BACK_OFF_POLICY;
 
+		private Duration standbyLimitPollingInterval = DEFAULT_STANDBY_LIMIT_POLLING_INTERVAL;
+
 		private Duration maxDelayBetweenPolls = DEFAULT_SEMAPHORE_TIMEOUT;
 
 		private BackPressureMode backPressureMode = DEFAULT_THROUGHPUT_CONFIGURATION;
+
+		private BackPressureLimiter backPressureLimiter = DEFAULT_BACKPRESSURE_LIMITER;
 
 		private Duration listenerShutdownTimeout = DEFAULT_LISTENER_SHUTDOWN_TIMEOUT;
 
@@ -296,6 +320,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.listenerShutdownTimeout = options.listenerShutdownTimeout;
 			this.acknowledgementShutdownTimeout = options.acknowledgementShutdownTimeout;
 			this.backPressureMode = options.backPressureMode;
+			this.backPressureLimiter = options.backPressureLimiter;
 			this.listenerMode = options.listenerMode;
 			this.messageConverter = options.messageConverter;
 			this.acknowledgementMode = options.acknowledgementMode;
@@ -338,6 +363,13 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		public B pollBackOffPolicy(BackOffPolicy pollBackOffPolicy) {
 			Assert.notNull(pollBackOffPolicy, "pollBackOffPolicy cannot be null");
 			this.pollBackOffPolicy = pollBackOffPolicy;
+			return self();
+		}
+
+		@Override
+		public B standbyLimitPollingInterval(Duration standbyLimitPollingInterval) {
+			Assert.notNull(standbyLimitPollingInterval, "standbyLimitPollingInterval cannot be null");
+			this.standbyLimitPollingInterval = standbyLimitPollingInterval;
 			return self();
 		}
 
@@ -387,6 +419,12 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		public B backPressureMode(BackPressureMode backPressureMode) {
 			Assert.notNull(backPressureMode, "backPressureMode cannot be null");
 			this.backPressureMode = backPressureMode;
+			return self();
+		}
+
+		@Override
+		public B backPressureLimiter(BackPressureLimiter backPressureLimiter) {
+			this.backPressureLimiter = backPressureLimiter;
 			return self();
 		}
 

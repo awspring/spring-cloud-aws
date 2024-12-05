@@ -27,6 +27,7 @@ import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
+import io.awspring.cloud.sqs.listener.BackPressureLimiter;
 import io.awspring.cloud.sqs.listener.BatchVisibility;
 import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
@@ -65,18 +66,25 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -392,6 +400,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME,
 				messageBody);
 		assertThat(latchContainer.manuallyInactiveCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		inactiveMessageListenerContainer.stop();
 	}
 
 	// @formatter:off
@@ -470,6 +479,298 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent messages to queue {} with messages {} and {}", MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages1,
 				messages2);
 		assertDoesNotThrow(() -> latchContainer.maxConcurrentMessagesBarrier.await(10, TimeUnit.SECONDS));
+	}
+
+	static final class Limiter implements BackPressureLimiter {
+		private final AtomicInteger limit;
+
+		Limiter(int max) {
+			limit = new AtomicInteger(max);
+		}
+
+		public void setLimit(int value) {
+			logger.info("adjusting limit from {} to {}", limit.get(), value);
+			limit.set(value);
+		}
+
+		@Override
+		public int limit() {
+			return Math.max(0, limit.get());
+		}
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "2,2", "4,4", "5,5", "20,5" })
+	void staticBackPressureLimitShouldCapQueueProcessingCapacity(int staticLimit, int expectedMaxConcurrentRequests)
+			throws Exception {
+		AtomicInteger concurrentRequest = new AtomicInteger();
+		AtomicInteger maxConcurrentRequest = new AtomicInteger();
+		Limiter limiter = new Limiter(staticLimit);
+		String queueName = "BACK_PRESSURE_LIMITER_QUEUE_NAME_STATIC_LIMIT_" + staticLimit;
+		IntStream.range(0, 10).forEach(index -> {
+			List<Message<String>> messages = create10Messages("staticBackPressureLimit" + staticLimit);
+			sqsTemplate.sendMany(queueName, messages);
+		});
+		logger.debug("Sent 100 messages to queue {}", queueName);
+		var latch = new CountDownLatch(100);
+		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
+				.queueNames(queueName).configure(options -> options.pollTimeout(Duration.ofSeconds(1))
+						.maxConcurrentMessages(5).maxMessagesPerPoll(5).backPressureLimiter(limiter))
+				.messageListener(msg -> {
+					int concurrentRqs = concurrentRequest.incrementAndGet();
+					maxConcurrentRequest.updateAndGet(max -> Math.max(max, concurrentRqs));
+					sleep(50L);
+					logger.debug("concurrent rq {}, max concurrent rq {}, latch count {}", concurrentRequest.get(),
+							maxConcurrentRequest.get(), latch.getCount());
+					latch.countDown();
+					concurrentRequest.decrementAndGet();
+				}).build();
+		container.start();
+		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(maxConcurrentRequest.get()).isEqualTo(expectedMaxConcurrentRequests);
+		container.stop();
+	}
+
+	@Test
+	void zeroBackPressureLimitShouldStopQueueProcessing() throws Exception {
+		AtomicInteger concurrentRequest = new AtomicInteger();
+		AtomicInteger maxConcurrentRequest = new AtomicInteger();
+		Limiter limiter = new Limiter(0);
+		String queueName = "BACK_PRESSURE_LIMITER_QUEUE_NAME_STATIC_LIMIT_0";
+		IntStream.range(0, 10).forEach(index -> {
+			List<Message<String>> messages = create10Messages("staticBackPressureLimit0");
+			sqsTemplate.sendMany(queueName, messages);
+		});
+		logger.debug("Sent 100 messages to queue {}", queueName);
+		var latch = new CountDownLatch(100);
+		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
+				.queueNames(queueName).configure(options -> options.pollTimeout(Duration.ofSeconds(1))
+						.maxConcurrentMessages(5).maxMessagesPerPoll(5).backPressureLimiter(limiter))
+				.messageListener(msg -> {
+					int concurrentRqs = concurrentRequest.incrementAndGet();
+					maxConcurrentRequest.updateAndGet(max -> Math.max(max, concurrentRqs));
+					sleep(50L);
+					logger.debug("concurrent rq {}, max concurrent rq {}, latch count {}", concurrentRequest.get(),
+							maxConcurrentRequest.get(), latch.getCount());
+					latch.countDown();
+					concurrentRequest.decrementAndGet();
+				}).build();
+		container.start();
+		assertThat(latch.await(2, TimeUnit.SECONDS)).isFalse();
+		assertThat(maxConcurrentRequest.get()).isZero();
+		assertThat(latch.getCount()).isEqualTo(100L);
+		container.stop();
+	}
+
+	@Test
+	void changeInBackPressureLimitShouldAdaptQueueProcessingCapacity() throws Exception {
+		AtomicInteger concurrentRequest = new AtomicInteger();
+		AtomicInteger maxConcurrentRequest = new AtomicInteger();
+		Limiter limiter = new Limiter(5);
+		String queueName = "BACK_PRESSURE_LIMITER_QUEUE_NAME_SYNC_ADAPTIVE_LIMIT";
+		int nbMessages = 280;
+		IntStream.range(0, nbMessages / 10).forEach(index -> {
+			List<Message<String>> messages = create10Messages("syncAdaptiveBackPressureLimit");
+			sqsTemplate.sendMany(queueName, messages);
+		});
+		logger.debug("Sent {} messages to queue {}", nbMessages, queueName);
+		var latch = new CountDownLatch(nbMessages);
+		var controlSemaphore = new Semaphore(0);
+		var advanceSemaphore = new Semaphore(0);
+		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
+				.queueNames(queueName).configure(options -> options.pollTimeout(Duration.ofSeconds(1))
+						.maxConcurrentMessages(5).maxMessagesPerPoll(5).backPressureLimiter(limiter))
+				.messageListener(msg -> {
+					try {
+						controlSemaphore.acquire();
+					}
+					catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+					int concurrentRqs = concurrentRequest.incrementAndGet();
+					maxConcurrentRequest.updateAndGet(max -> Math.max(max, concurrentRqs));
+					latch.countDown();
+					logger.debug("concurrent rq {}, max concurrent rq {}, latch count {}", concurrentRequest.get(),
+							maxConcurrentRequest.get(), latch.getCount());
+					sleep(10L);
+					concurrentRequest.decrementAndGet();
+					advanceSemaphore.release();
+				}).build();
+		class Controller {
+			private final Semaphore advanceSemaphore;
+			private final Semaphore controlSemaphore;
+			private final Limiter limiter;
+			private final AtomicInteger maxConcurrentRequest;
+
+			Controller(Semaphore advanceSemaphore, Semaphore controlSemaphore, Limiter limiter,
+					AtomicInteger maxConcurrentRequest) {
+				this.advanceSemaphore = advanceSemaphore;
+				this.controlSemaphore = controlSemaphore;
+				this.limiter = limiter;
+				this.maxConcurrentRequest = maxConcurrentRequest;
+			}
+
+			public void updateLimit(int newLimit) {
+				limiter.setLimit(newLimit);
+			}
+
+			void updateLimitAndWaitForReset(int newLimit) throws InterruptedException {
+				updateLimit(newLimit);
+				int atLeastTwoPollingCycles = 2 * 5;
+				controlSemaphore.release(atLeastTwoPollingCycles);
+				waitForAdvance(atLeastTwoPollingCycles);
+				maxConcurrentRequest.set(0);
+			}
+
+			void advance(int permits) {
+				controlSemaphore.release(permits);
+			}
+
+			void waitForAdvance(int permits) throws InterruptedException {
+				assertThat(advanceSemaphore.tryAcquire(permits, 5, TimeUnit.SECONDS))
+						.withFailMessage(() -> "Waiting for %d permits timed out. Only %d permits available"
+								.formatted(permits, advanceSemaphore.availablePermits()))
+						.isTrue();
+			}
+		}
+		var controller = new Controller(advanceSemaphore, controlSemaphore, limiter, maxConcurrentRequest);
+		try {
+			container.start();
+
+			controller.advance(50);
+			controller.waitForAdvance(50);
+			// not limiting queue processing capacity
+			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(5);
+			controller.updateLimitAndWaitForReset(2);
+			controller.advance(50);
+
+			controller.waitForAdvance(50);
+			// limiting queue processing capacity
+			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(2);
+			controller.updateLimitAndWaitForReset(7);
+			controller.advance(50);
+
+			controller.waitForAdvance(50);
+			// not limiting queue processing capacity
+			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(5);
+			controller.updateLimitAndWaitForReset(3);
+			controller.advance(50);
+			sleep(10L);
+			limiter.setLimit(1);
+			sleep(10L);
+			limiter.setLimit(2);
+			sleep(10L);
+			limiter.setLimit(3);
+
+			controller.waitForAdvance(50);
+			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(3);
+			// stopping processing of the queue
+			controller.updateLimit(0);
+			controller.advance(50);
+			assertThat(advanceSemaphore.tryAcquire(10, 5, TimeUnit.SECONDS))
+					.withFailMessage("Acquiring semaphore should have timed out as limit was set to 0").isFalse();
+
+			// resume queue processing
+			controller.updateLimit(6);
+
+			controller.waitForAdvance(50);
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(5);
+		}
+		finally {
+			container.stop();
+		}
+	}
+
+	/**
+	 * This test simulates a progressive change in the back pressure limit. Unlike
+	 * {@link #changeInBackPressureLimitShouldAdaptQueueProcessingCapacity()}, this test does not block message
+	 * consumption while updating the limit.
+	 * <p>
+	 * The limit is updated in a loop until all messages are consumed. The update follows a triangle wave pattern with a
+	 * minimum of 0, a maximum of 15, and a period of 30 iterations. After each update of the limit, the test waits up
+	 * to 10ms and samples the maximum number of concurrent messages that were processed since the update. This number
+	 * can be higher than the defined limit during the adaptation period of the decreasing limit wave. For the
+	 * increasing limit wave, it is usually lower due to the adaptation delay. In both cases, the maximum number of
+	 * concurrent messages being processed rapidly converges toward the defined limit.
+	 * <p>
+	 * The test passes if the sum of the sampled maximum number of concurrently processed messages is lower than the sum
+	 * of the limits at those points in time.
+	 */
+	@Test
+	void unsynchronizedChangesInBackPressureLimitShouldAdaptQueueProcessingCapacity() throws Exception {
+		AtomicInteger concurrentRequest = new AtomicInteger();
+		AtomicInteger maxConcurrentRequest = new AtomicInteger();
+		Limiter limiter = new Limiter(0);
+		String queueName = "REACTIVE_BACK_PRESSURE_LIMITER_QUEUE_NAME_ADAPTIVE_LIMIT";
+		int nbMessages = 1000;
+		Semaphore advanceSemaphore = new Semaphore(0);
+		IntStream.range(0, nbMessages / 10).forEach(index -> {
+			List<Message<String>> messages = create10Messages("reactAdaptiveBackPressureLimit");
+			sqsTemplate.sendMany(queueName, messages);
+		});
+		logger.debug("Sent {} messages to queue {}", nbMessages, queueName);
+		var latch = new CountDownLatch(nbMessages);
+		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
+				.queueNames(queueName)
+				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
+						.standbyLimitPollingInterval(Duration.ofMillis(1)).maxConcurrentMessages(10)
+						.maxMessagesPerPoll(10).backPressureLimiter(limiter))
+				.messageListener(msg -> {
+					int currentConcurrentRq = concurrentRequest.incrementAndGet();
+					maxConcurrentRequest.updateAndGet(max -> Math.max(max, currentConcurrentRq));
+					sleep(ThreadLocalRandom.current().nextInt(10));
+					latch.countDown();
+					logger.debug("concurrent rq {}, max concurrent rq {}, latch count {}", concurrentRequest.get(),
+							maxConcurrentRequest.get(), latch.getCount());
+					concurrentRequest.decrementAndGet();
+					advanceSemaphore.release();
+				}).build();
+		IntUnaryOperator progressiveLimitChange = (int x) -> {
+			int period = 30;
+			int halfPeriod = period / 2;
+			if (x % period < halfPeriod) {
+				return (x % halfPeriod);
+			}
+			else {
+				return (halfPeriod - (x % halfPeriod));
+			}
+		};
+		try {
+			container.start();
+			Random random = new Random();
+			int limitsSum = 0;
+			int maxConcurrentRqSum = 0;
+			int changeLimitCount = 0;
+			while (latch.getCount() > 0 && changeLimitCount < nbMessages) {
+				changeLimitCount++;
+				int limit = progressiveLimitChange.applyAsInt(changeLimitCount);
+				limiter.setLimit(limit);
+				maxConcurrentRequest.set(0);
+				sleep(random.nextInt(10));
+				int actualLimit = Math.min(10, limit);
+				int max = maxConcurrentRequest.getAndSet(0);
+				if (max > 0) {
+					// Ignore iterations where nothing was polled (messages consumption slower than iteration)
+					limitsSum += actualLimit;
+					maxConcurrentRqSum += max;
+				}
+			}
+			assertThat(maxConcurrentRqSum).isLessThanOrEqualTo(limitsSum);
+			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		}
+		finally {
+			container.stop();
+		}
+	}
+
+	private static void sleep(long millis) {
+		try {
+			Thread.sleep(millis);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	static class ReceivesMessageListener {
