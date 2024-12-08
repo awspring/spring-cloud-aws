@@ -16,7 +16,6 @@
 package io.awspring.cloud.autoconfigure.s3.properties;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
-import io.awspring.cloud.autoconfigure.config.reload.ReloadProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -24,11 +23,13 @@ import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.encryption.s3.S3EncryptionClient;
 
 /**
  * Properties related to AWS S3.
  *
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  */
 @ConfigurationProperties(prefix = S3Properties.PREFIX)
 public class S3Properties extends AwsClientProperties {
@@ -36,7 +37,7 @@ public class S3Properties extends AwsClientProperties {
 	/**
 	 * The prefix used for S3 related properties.
 	 */
-	public static final String  PREFIX = "spring.cloud.aws.s3";
+	public static final String PREFIX = "spring.cloud.aws.s3";
 
 	/**
 	 * Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of
@@ -96,6 +97,20 @@ public class S3Properties extends AwsClientProperties {
 
 	@NestedConfigurationProperty
 	private S3PluginProperties plugin = new S3PluginProperties();
+
+	/**
+	 * Configuration properties for {@link S3EncryptionClient} integration
+	 */
+	@NestedConfigurationProperty
+	private S3EncryptionProperties encryption = new S3EncryptionProperties();
+
+	public S3EncryptionProperties getEncryption() {
+		return encryption;
+	}
+
+	public void setEncryption(S3EncryptionProperties encryption) {
+		this.encryption = encryption;
+	}
 
 	/**
 	 * Properties related to configuration reload.

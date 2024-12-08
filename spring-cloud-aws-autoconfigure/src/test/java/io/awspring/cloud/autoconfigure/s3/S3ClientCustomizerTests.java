@@ -25,12 +25,14 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.encryption.s3.S3EncryptionClient;
 
 /**
  * Tests for {@link S3ClientCustomizer}.
@@ -43,7 +45,8 @@ class S3ClientCustomizerTests {
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1",
 					"spring.cloud.aws.credentials.access-key:noop", "spring.cloud.aws.credentials.secret-key:noop")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
+					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(S3EncryptionClient.class));
 
 	@Test
 	void customClientCustomizer() {
