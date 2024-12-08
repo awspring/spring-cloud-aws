@@ -214,38 +214,49 @@ To simplify using services with AWS compatible APIs, or running applications aga
 
 === Customizing AWS Clients
 
-To configure an AWS client with custom HTTP client or `ClientOverrideConfiguration`, define a bean of type `AwsClientConfigurer` with a type parameter indicating configured client builder.
+Properties cover the most common configuration needs. When more advanced configuration is required, Spring Cloud AWS offers a set of customizer interfaces that can be implemented to customize AWS clients.
+
+There are two types of AWS clients - synchronous and asynchronous. Each Spring Cloud AWS integration use one or the other type:
+
+[cols="2*", options="header"]
+|===
+|client type
+|integrations
+
+|synchronous
+|DynamoDB, SES, SNS, Parameter Store, Secrets Manager, S3
+
+|asynchronous
+|SQS, CloudWatch
+|===
+
+To customize every synchronous client, provide a bean of type `AwsSyncClientCustomizer`. For example:
 
 [source,java,indent=0]
 ----
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
-import org.springframework.context.annotation.Bean;
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.services.sns.SnsClientBuilder;
-
-import java.time.Duration;
-
-@Configuration
-class S3AwsClientConfigurerConfiguration {
-
-    @Bean
-    AwsClientCustomizer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
-        return new S3AwsClientClientConfigurer();
-    }
-
-    static class S3AwsClientClientConfigurer implements AwsClientCustomizer<S3ClientBuilder> {
-        @Override
-        public ClientOverrideConfiguration overrideConfiguration() {
-            return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(500)).build();
-        }
-
-        @Override
-        public SdkHttpClient httpClient() {
-            return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1000)).build();
-        }
-    }
+@Bean
+AwsSyncClientCustomizer awsSyncClientCustomizer() {
+	return builder -> {
+		builder.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofSeconds(1)).build());
+	};
 }
 ----
+
+To customize every asynchronous client, provide a bean of type `AwsAsyncClientCustomizer`. For example:
+
+[source,java,indent=0]
+----
+@Bean
+AwsAsyncClientCustomizer awsAsyncClientCustomizer() {
+	return builder -> {
+		builder.httpClient(NettyNioAsyncHttpClient.builder().connectionTimeout(Duration.ofSeconds(1)).build());
+	};
+}
+----
+
+There can be multiple customizer beans present in single application context and all of them will be used to configure AWS clients. If order of customizer matters, use `@Order` annotation on customizer beans.
+
+Client-specific customizations can be applied through client-specific customizer interfaces (for example `S3ClientCustomizer` for S3). See integrations documentation for details.
+

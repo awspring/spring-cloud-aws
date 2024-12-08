@@ -168,4 +168,74 @@ class InMemoryBufferingS3OutputStreamTests {
 			assertThat(requestCaptor.getValue().uploadId()).isEqualTo("uploadId");
 		}
 	}
+
+	@Test
+	void abortsWhenExplicitlyInvoked() throws IOException {
+		when(s3Client.createMultipartUpload(any(CreateMultipartUploadRequest.class)))
+				.thenReturn(CreateMultipartUploadResponse.builder().uploadId("uploadId").build());
+
+		when(s3Client.uploadPart(any(UploadPartRequest.class), any(RequestBody.class)))
+				.thenReturn(UploadPartResponse.builder().build());
+
+		when(s3Client.completeMultipartUpload(any(CompleteMultipartUploadRequest.class)))
+				.thenThrow(SdkException.builder().build());
+
+		final byte[] content = new byte[DEFAULT_BUFFER_CAPACITY_IN_BYTES + 1];
+
+		try (InMemoryBufferingS3OutputStream outputStream = new InMemoryBufferingS3OutputStream(
+			new Location("bucket", "key", null), s3Client, null, null, DEFAULT_BUFFER_CAPACITY)) {
+			new Random().nextBytes(content);
+			outputStream.write(content);
+			outputStream.abort();
+		}
+		final ArgumentCaptor<AbortMultipartUploadRequest> requestCaptor = ArgumentCaptor
+				.forClass(AbortMultipartUploadRequest.class);
+
+		verify(s3Client, times(1)).abortMultipartUpload(requestCaptor.capture());
+		assertThat(requestCaptor.getValue().bucket()).isEqualTo("bucket");
+		assertThat(requestCaptor.getValue().key()).isEqualTo("key");
+		assertThat(requestCaptor.getValue().uploadId()).isEqualTo("uploadId");
+	}
+
+	@Test
+	void abortsWhenInvokedBeforeWriting() {
+		try (InMemoryBufferingS3OutputStream outputStream = new InMemoryBufferingS3OutputStream(
+				new Location("bucket", "key", null), s3Client, null, null, DEFAULT_BUFFER_CAPACITY)) {
+			outputStream.abort();
+		}
+
+		verify(s3Client, never()).createMultipartUpload(any(CreateMultipartUploadRequest.class));
+		verify(s3Client, never()).abortMultipartUpload(any(AbortMultipartUploadRequest.class));
+	}
+
+	@Test
+	void failsWhenAbortingAfterClosing() {
+		InMemoryBufferingS3OutputStream outputStream = null;
+		try {
+			outputStream = new InMemoryBufferingS3OutputStream(new Location("bucket", "key", null), s3Client, null,
+					null, DEFAULT_BUFFER_CAPACITY);
+		}
+		finally {
+			assertThat(outputStream).isNotNull();
+			outputStream.close();
+			try {
+				outputStream.abort();
+				fail("IllegalStateException should be thrown.");
+			}
+			catch (IllegalStateException e) {
+				final ArgumentCaptor<PutObjectRequest> requestCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+				final ArgumentCaptor<RequestBody> bodyCaptor = ArgumentCaptor.forClass(RequestBody.class);
+
+				verify(s3Client, times(1)).putObject(requestCaptor.capture(), bodyCaptor.capture());
+
+				assertThat(requestCaptor.getValue().bucket()).isEqualTo("bucket");
+				assertThat(requestCaptor.getValue().key()).isEqualTo("key");
+				assertThat(requestCaptor.getValue().contentLength()).isEqualTo(0);
+				assertThat(requestCaptor.getValue().contentMD5()).isNotNull();
+
+				verify(s3Client, never()).createMultipartUpload(any(CreateMultipartUploadRequest.class));
+				verify(s3Client, never()).abortMultipartUpload(any(AbortMultipartUploadRequest.class));
+			}
+		}
+	}
 }

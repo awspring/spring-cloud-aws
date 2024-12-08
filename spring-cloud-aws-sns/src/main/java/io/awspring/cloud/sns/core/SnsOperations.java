@@ -19,6 +19,7 @@ package io.awspring.cloud.sns.core;
  * High level SNS operations.
  *
  * @author Maciej Walkowiak
+ * @author Hardik Singh Behl
  * @since 3.0
  */
 public interface SnsOperations {
@@ -30,4 +31,12 @@ public interface SnsOperations {
 	 * @param notification - the notification
 	 */
 	void sendNotification(String topic, SnsNotification<?> notification);
+
+	/**
+	 * Checks if topic with given ARN exists.
+	 * 
+	 * @param topicArn - ARN of the topic
+	 * @return true if topic exists, false otherwise
+	 */
+	boolean topicExists(String topicArn);
 }

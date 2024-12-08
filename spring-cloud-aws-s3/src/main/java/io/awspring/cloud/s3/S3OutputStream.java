@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.s3;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -25,4 +26,9 @@ import java.io.OutputStream;
  */
 public abstract class S3OutputStream extends OutputStream {
 
+	/**
+	 * Cancels the upload and cleans up temporal resources (temp files, partial multipart upload).
+	 */
+	public void abort() throws IOException {
+	}
 }

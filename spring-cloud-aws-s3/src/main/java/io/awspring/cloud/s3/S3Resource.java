@@ -26,6 +26,7 @@ import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.WritableResource;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
@@ -82,6 +83,9 @@ public class S3Resource extends AbstractResource implements WritableResource {
 
 	@Override
 	public URL getURL() throws IOException {
+		if (!StringUtils.hasText(this.location.getObject())) {
+			return new URL("https", location.getBucket() + ".s3.amazonaws.com", "/");
+		}
 		GetUrlRequest getUrlRequest = GetUrlRequest.builder().bucket(this.getLocation().getBucket())
 				.key(this.location.getObject()).versionId(this.location.getVersion()).build();
 		return s3Client.utilities().getUrl(getUrlRequest);
@@ -126,7 +130,7 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	@Override
-	public long contentLength() throws IOException {
+	public long contentLength() {
 		if (headMetadata == null) {
 			fetchMetadata();
 		}
@@ -134,7 +138,7 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	@Override
-	public long lastModified() throws IOException {
+	public long lastModified() {
 		if (headMetadata == null) {
 			fetchMetadata();
 		}
@@ -142,7 +146,7 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	}
 
 	@Override
-	public File getFile() throws IOException {
+	public File getFile() {
 		throw new UnsupportedOperationException("Amazon S3 resource can not be resolved to java.io.File objects.Use "
 				+ "getInputStream() to retrieve the contents of the object!");
 	}
