@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.modulith.events.Externalized;
+import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.localstack.LocalStackContainer;
@@ -53,16 +54,17 @@ class SqsEventPublicationIntegrationTests {
 	static class TestConfiguration {
 
 		@Bean
-		LocalStackContainer localStackContainer(DynamicPropertyRegistry registry) {
-
-			var localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.8.1"));
-
-			registry.add("spring.cloud.aws.endpoint", localstack::getEndpoint);
-			registry.add("spring.cloud.aws.credentials.access-key", localstack::getAccessKey);
-			registry.add("spring.cloud.aws.credentials.secret-key", localstack::getSecretKey);
-			registry.add("spring.cloud.aws.region.static", localstack::getRegion);
-
-			return localstack;
+		DynamicPropertyRegistrar dynamicPropertyRegistrar(LocalStackContainer localstack) {
+			return registry -> {
+				registry.add("spring.cloud.aws.endpoint", localstack::getEndpoint);
+				registry.add("spring.cloud.aws.credentials.access-key", localstack::getAccessKey);
+				registry.add("spring.cloud.aws.credentials.secret-key", localstack::getSecretKey);
+				registry.add("spring.cloud.aws.region.static", localstack::getRegion);
+			};
+		}
+		@Bean
+		LocalStackContainer localStackContainer() {
+			return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.8.1"));
 		}
 
 		@Bean
