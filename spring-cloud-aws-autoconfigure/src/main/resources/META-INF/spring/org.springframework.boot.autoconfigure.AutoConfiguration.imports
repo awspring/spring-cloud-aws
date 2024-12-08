@@ -14,3 +14,4 @@ io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerReloadAutoCo
 io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerAutoConfiguration
 io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreReloadAutoConfiguration
 io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreAutoConfiguration
+io.awspring.cloud.autoconfigure.config.s3.S3ReloadAutoConfiguration
