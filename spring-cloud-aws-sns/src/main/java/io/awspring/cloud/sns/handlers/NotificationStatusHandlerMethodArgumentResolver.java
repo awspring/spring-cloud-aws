@@ -54,7 +54,7 @@ public class NotificationStatusHandlerMethodArgumentResolver
 				content.get("Token").asText());
 	}
 
-	private static final class AmazonSnsNotificationStatus implements NotificationStatus {
+	public static final class AmazonSnsNotificationStatus implements NotificationStatus {
 
 		private final SnsClient snsClient;
 

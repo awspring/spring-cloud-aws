@@ -260,3 +260,10 @@ There can be multiple customizer beans present in single application context and
 
 Client-specific customizations can be applied through client-specific customizer interfaces (for example `S3ClientCustomizer` for S3). See integrations documentation for details.
 
+
+=== Native Builds
+
+Spring Cloud AWS support native hints for all modules except DynamoDB.
+Native hints are provided automatically contributed to your build by Spring Cloud AWS.
+
+Note: When working with AWS S3 CRT client following must be followed: https://github.com/awslabs/aws-crt-java?tab=readme-ov-file#graalvm-support

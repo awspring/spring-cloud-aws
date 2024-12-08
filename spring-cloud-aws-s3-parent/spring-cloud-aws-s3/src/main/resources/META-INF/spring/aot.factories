@@ -1,0 +1,2 @@
+org.springframework.aot.hint.RuntimeHintsRegistrar=\
+io.awspring.cloud.s3.S3RuntimeHints
