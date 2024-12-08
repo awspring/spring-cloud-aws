@@ -22,8 +22,13 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
+
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
+import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -38,6 +43,7 @@ import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -117,12 +123,28 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void resolveJson() throws JsonProcessingException {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		uploadFileToBucket(new ObjectMapper().writeValueAsString(Map.of("key1", "value1")), "/application.json",
+		uploadFileToBucket(new ObjectMapper().writeValueAsString(Map.of("key1", "value1")), "application.json",
 				JSON_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-s3:test-bucket/application.json")) {
 			assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value1");
+		}
+	}
+
+	@Test
+	void clientIsConfiguredWithCustomizerProvidedToBootstrapRegistry() throws JsonProcessingException {
+		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		application.addBootstrapRegistryInitializer(new S3ConfigDataLoaderIntegrationTests.CustomizerConfiguration());
+		uploadFileToBucket(new ObjectMapper().writeValueAsString(Map.of("key1", "value1")), "application.json",
+			JSON_TYPE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+			"aws-s3:test-bucket/application.json")) {
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(S3Client.class));
+			assertThat(client.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2001));
+			assertThat(client.getSyncHttpClient()).isNotNull();
 		}
 	}
 
@@ -134,7 +156,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-s3:test-bucket/reload.properties",
-				"--spring.cloud.aws.s3.reload.strategy=refresh", "--spring.cloud.aws.s3.reload.period=PT1S",
+				"--spring.cloud.aws.s3.config.reload.strategy=refresh", "--spring.cloud.aws.s3.config.reload.period=PT1S",
 				"--spring.cloud.aws.s3.region=" + localstack.getRegion(),
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
@@ -142,7 +164,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 
 			assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value1");
 
-			uploadFileToBucket("key1=value2", "/reload.properties", TEXT_TYPE);
+			uploadFileToBucket("key1=value2", "reload.properties", TEXT_TYPE);
 
 			await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
 				assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value2");
@@ -180,6 +202,21 @@ public class S3ConfigDataLoaderIntegrationTests {
 				"--" + endpointProperty + "=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.s3=debug");
+	}
+
+	static class CustomizerConfiguration implements BootstrapRegistryInitializer {
+
+		@Override
+		public void initialize(BootstrapRegistry registry) {
+			registry.register(S3ManagerClientCustomizer.class, context -> (builder -> {
+				builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+					c.apiCallTimeout(Duration.ofMillis(2001));
+				}));
+			}));
+			registry.register(AwsSyncClientCustomizer.class, context -> (builder -> {
+				builder.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
+			}));
+		}
 	}
 
 	@SpringBootApplication

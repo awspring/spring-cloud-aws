@@ -26,7 +26,6 @@ import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfi
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -43,7 +42,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
- * {@link EnableAutoConfiguration Auto-Configuration} for reloading properties from S3.
+ * {@link AutoConfiguration Auto-Configuration} for reloading properties from S3.
  *
  * @author Matej Nedic
  * @since 3.2.0
@@ -52,8 +51,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @EnableConfigurationProperties(S3Properties.class)
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-		RefreshAutoConfiguration.class })
-@ConditionalOnProperty(value = S3Properties.PREFIX + ".reload.strategy")
+	RefreshAutoConfiguration.class })
+@ConditionalOnProperty(value = S3Properties.PREFIX + ".config.reload.strategy")
 @ConditionalOnBean(ContextRefresher.class)
 public class S3ReloadAutoConfiguration {
 

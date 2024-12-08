@@ -36,7 +36,7 @@ public class S3Properties extends AwsClientProperties {
 	/**
 	 * The prefix used for S3 related properties.
 	 */
-	public static final String PREFIX = "spring.cloud.aws.s3";
+	public static final String  PREFIX = "spring.cloud.aws.s3";
 
 	/**
 	 * Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of

@@ -43,7 +43,7 @@ public class S3ReloadAutoConfigurationTests {
 
 	@Test
 	void createsBeansForRefreshStrategy() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.reload.strategy:refresh").run(this::createsBeans);
+		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.config.reload.strategy:refresh").run(this::createsBeans);
 	}
 
 	@Test
@@ -51,7 +51,7 @@ public class S3ReloadAutoConfigurationTests {
 		this.contextRunner
 				.withConfiguration(AutoConfigurations.of(EndpointAutoConfiguration.class,
 						RefreshEndpointAutoConfiguration.class, ConfigurationPropertiesRebinderAutoConfiguration.class))
-				.withPropertyValues("spring.cloud.aws.s3.reload.strategy:restart_context",
+				.withPropertyValues("spring.cloud.aws.s3.config.reload.strategy:restart_context",
 						"management.endpoint.restart.enabled:true", "management.endpoints.web.exposure.include:restart")
 				.run(this::createsBeans);
 	}
@@ -63,7 +63,7 @@ public class S3ReloadAutoConfigurationTests {
 
 	@Test
 	void usesCustomTaskScheduler() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.reload.strategy:refresh")
+		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.config.reload.strategy:refresh")
 				.withUserConfiguration(S3ReloadAutoConfigurationTests.CustomTaskSchedulerConfig.class).run(ctx -> {
 					Object taskScheduler = ctx.getBean("s3TaskScheduler");
 					assertThat(mockingDetails(taskScheduler).isMock()).isTrue();
@@ -72,7 +72,7 @@ public class S3ReloadAutoConfigurationTests {
 
 	@Test
 	void usesCustomConfigurationUpdateStrategy() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.reload.strategy:refresh")
+		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.config.reload.strategy:refresh")
 				.withUserConfiguration(S3ReloadAutoConfigurationTests.CustomConfigurationUpdateStrategyConfig.class)
 				.run(ctx -> {
 					ConfigurationUpdateStrategy configurationUpdateStrategy = ctx

@@ -15,7 +15,9 @@
  */
 package io.awspring.cloud.autoconfigure.config.s3;
 
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
+import io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.*;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import java.util.ArrayList;
@@ -76,7 +78,7 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 			registerAndPromoteBean(resolverContext, S3Client.class, this::createS3Client);
 
 			contexts.forEach(propertySourceContext -> locations.add(new S3ConfigDataResource(propertySourceContext,
-				location.isOptional(), s3Properties.isEnableImport(), propertySources)));
+				location.isOptional(), propertySources)));
 
 			if (!location.isOptional() && locations.isEmpty()) {
 				throw new S3KeysMissingException("No S3 keys provided in `spring.config.import=aws-s3:` configuration.");
@@ -103,6 +105,27 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 		catch (IllegalStateException e) {
 			log.debug("Bean of type AwsClientConfigurerS3 is not registered: " + e.getMessage());
 		}
+		try {
+			AwsSyncClientCustomizer awsSyncClientCustomizer = context.get(AwsSyncClientCustomizer.class);
+			if (awsSyncClientCustomizer != null) {
+				awsSyncClientCustomizer.customize(builder);
+			}
+		}
+		catch (IllegalStateException e) {
+			log.debug("Bean of type AwsSyncClientCustomizer is not registered: " + e.getMessage());
+		}
+
+		try {
+			S3ManagerClientCustomizer secretsManagerClientCustomizer = context
+				.get(S3ManagerClientCustomizer.class);
+			if (secretsManagerClientCustomizer != null) {
+				secretsManagerClientCustomizer.customize(builder);
+			}
+		}
+		catch (IllegalStateException e) {
+			log.debug("Bean of type SecretsManagerClientCustomizer is not registered: " + e.getMessage());
+		}
+
 		return builder.build();
 	}
 
