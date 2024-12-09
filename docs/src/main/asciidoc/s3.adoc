@@ -380,47 +380,43 @@ Note that `S3ClientCustomizer` beans are applied **after** `AwsSyncClientCustomi
 
 === Loading External Configuration
 
-To fetch file from S3 and add them to Spring's environment properties, add `spring.config.import` property to `application.properties`:
+Just like Spring Boot supports configuring application through `application.properties` stored in the file system, Spring Cloud AWS S3 integration extends this capability with fetching application configuration the S3 bucket through `spring.config.import` property.
 
-For example, assuming that the file name in S3 is `myApp/application.json`:
+For example, assuming that there is a file `config.properties` in a bucket named `bucket-name`, to include it as Spring Boot configuration, add a following property to `application.properties` or `application.yml`:
 
 [source,properties]
 ----
-spring.config.import=aws-s3:/myApp/application.json
+spring.config.import=aws-s3:/bucket-name/config.properties
 ----
 
 If a file with given name does not exist in S3, application will fail to start. If file configuration is not required for the application, and it should continue to startup even when file configuration is missing, add `optional` before prefix:
 
 [source,properties]
 ----
-spring.config.import=optional:aws-s3:/myApp/application.json
+spring.config.import=optional:aws-s3:/bucket-name/config.properties
 ----
 
 To load multiple files, separate their names with `;`:
 
 [source,properties]
 ----
-spring.config.import=aws-s3:/myApp/application.json;/diffPath/app.yaml
+spring.config.import=aws-s3:/bucket-name/config.properties;/another-name/config.yml
 ----
 
 If some files are required, and other ones are optional, list them as separate entries in `spring.config.import` property:
 
 [source,properties]
 ----
-spring.config.import[0]=optional:aws-s3=/myApp/application.json
-spring.config.import[1]=aws-s3=/diffPath/application.yaml
+spring.config.import[0]=optional:bucket-name/config.properties
+spring.config.import[1]=aws-s3=/another-name/config.yml
 ----
 
 Fetched files configuration can be referenced with `@Value`, bound to `@ConfigurationProperties` classes, or referenced in `application.properties` file.
 
-==== S3 config import supports following models
-
-1. Json (application.json for example)
-2. Text (application.properties for example)
-3. Yaml (application.yaml for example)
+`JSON`, Java Properties and `YAML` configuration file formats are supported.
 
 File resolved with `spring.config.import` can be also referenced in `application.properties`.
-For example, with a file `urlDev.json` containing following JSON structure:
+For example, with a file `config.json` containing following JSON structure:
 
 [source,json]
 ----
@@ -434,7 +430,7 @@ For example, with a file `urlDev.json` containing following JSON structure:
 
 [source, properties]
 ----
-spring.config.import=aws-s3:/myPath/application.json
+spring.config.import=aws-s3:/bucket-name/config.json
 ----
 
 File configuration values can be referenced by JSON key names:

@@ -20,9 +20,15 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 public class S3ConfigProperties {
 
+	/**
+	 * Properties related to configuration reload.
+	 */
 	@NestedConfigurationProperty
 	private ReloadProperties reload = new ReloadProperties();
 
+	/**
+	 * Enables S3 Config File import integration.
+	 */
 	private boolean enabled = true;
 
 	public boolean isEnabled() {

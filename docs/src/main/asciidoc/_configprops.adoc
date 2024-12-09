@@ -46,14 +46,23 @@
 |spring.cloud.aws.s3.accelerate-mode-enabled |  | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations.
 |spring.cloud.aws.s3.checksum-validation-enabled |  | Option to disable doing a validation of the checksum of an object stored in S3.
 |spring.cloud.aws.s3.chunked-encoding-enabled |  | Option to enable using chunked encoding when signing the request payload for {@link software.amazon.awssdk.services.s3.model.PutObjectRequest} and {@link software.amazon.awssdk.services.s3.model.UploadPartRequest}.
+|spring.cloud.aws.s3.config.enabled | `+++true+++` | Enables S3 Config File import integration.
+|spring.cloud.aws.s3.config.reload.max-wait-for-restart | `+++2s+++` | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
+|spring.cloud.aws.s3.config.reload.period | `+++1m+++` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
+|spring.cloud.aws.s3.config.reload.strategy |  | Reload strategy to run when properties change.
 |spring.cloud.aws.s3.cross-region-enabled |  | Enables cross-region bucket access.
 |spring.cloud.aws.s3.crt.initial-read-buffer-size-in-bytes |  | Configure the starting buffer size the client will use to buffer the parts downloaded from S3. Maintain a larger window to keep up a high download throughput; parts cannot download in parallel unless the window is large enough to hold multiple parts. Maintain a smaller window to limit the amount of data buffered in memory.
 |spring.cloud.aws.s3.crt.max-concurrency |  | Specifies the maximum number of S3 connections that should be established during transfer.
 |spring.cloud.aws.s3.crt.minimum-part-size-in-bytes |  | Sets the minimum part size for transfer parts. Decreasing the minimum part size causes multipart transfer to be split into a larger number of smaller parts. Setting this value too low has a negative effect on transfer speeds, causing extra latency and network communication for each part.
 |spring.cloud.aws.s3.crt.target-throughput-in-gbps |  | The target throughput for transfer requests. Higher value means more S3 connections will be opened. Whether the transfer manager can achieve the configured target throughput depends on various factors such as the network bandwidth of the environment and the configured `max-concurrency`.
 |spring.cloud.aws.s3.enabled | `+++true+++` | Enables S3 integration.
+|spring.cloud.aws.s3.encryption.enable-delayed-authentication-mode | `+++false+++` | 
+|spring.cloud.aws.s3.encryption.enable-legacy-unauthenticated-modes | `+++false+++` | 
+|spring.cloud.aws.s3.encryption.enable-multipart-put-object | `+++false+++` | 
+|spring.cloud.aws.s3.encryption.key-id |  | 
 |spring.cloud.aws.s3.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.s3.path-style-access-enabled |  | Option to enable using path style access for accessing S3 objects instead of DNS style access. DNS style access is preferred as it will result in better load balancing when accessing S3.
+|spring.cloud.aws.s3.plugin.enable-fallback | `+++false+++` | If set to false if Access Grants does not find/return permissions, S3Client won't try to determine if policies grant access If set to true fallback policies S3/IAM will be evaluated.
 |spring.cloud.aws.s3.region |  | Overrides the default region.
 |spring.cloud.aws.s3.transfer-manager.follow-symbolic-links |  | Specifies whether to follow symbolic links when traversing the file tree in `S3TransferManager#uploadDirectory` operation.
 |spring.cloud.aws.s3.transfer-manager.max-depth |  | Specifies the maximum number of levels of directories to visit in `S3TransferManager#uploadDirectory` operation.

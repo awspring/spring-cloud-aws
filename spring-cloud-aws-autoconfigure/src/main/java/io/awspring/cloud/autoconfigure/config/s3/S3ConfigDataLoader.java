@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.s3.S3Client;
  * Loads config data from AWS S3.
  *
  * @author Kunal Varpe
- * @since 3.2.0
+ * @since 3.3.0
  */
 public class S3ConfigDataLoader implements ConfigDataLoader<S3ConfigDataResource> {
 
