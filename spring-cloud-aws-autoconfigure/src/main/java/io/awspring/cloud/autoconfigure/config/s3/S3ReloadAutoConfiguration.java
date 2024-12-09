@@ -51,7 +51,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @EnableConfigurationProperties(S3Properties.class)
 @ConditionalOnClass({ EndpointAutoConfiguration.class, RestartEndpoint.class, ContextRefresher.class })
 @AutoConfigureAfter({ InfoEndpointAutoConfiguration.class, RefreshEndpointAutoConfiguration.class,
-	RefreshAutoConfiguration.class })
+		RefreshAutoConfiguration.class })
 @ConditionalOnProperty(value = S3Properties.PREFIX + ".config.reload.strategy")
 @ConditionalOnBean(ContextRefresher.class)
 public class S3ReloadAutoConfiguration {
@@ -81,7 +81,7 @@ public class S3ReloadAutoConfiguration {
 			@Qualifier("s3TaskScheduler") TaskSchedulerWrapper<TaskScheduler> taskScheduler,
 			ConfigurableEnvironment environment) {
 
-		return new PollingAwsPropertySourceChangeDetector<>(properties.getConfig().getReload(), S3PropertySource.class, strategy,
-				taskScheduler.getTaskScheduler(), environment);
+		return new PollingAwsPropertySourceChangeDetector<>(properties.getConfig().getReload(), S3PropertySource.class,
+				strategy, taskScheduler.getTaskScheduler(), environment);
 	}
 }

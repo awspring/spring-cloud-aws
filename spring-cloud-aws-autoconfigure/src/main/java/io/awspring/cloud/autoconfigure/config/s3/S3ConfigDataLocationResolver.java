@@ -15,10 +15,9 @@
  */
 package io.awspring.cloud.autoconfigure.config.s3;
 
-import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
-import io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.*;
+import io.awspring.cloud.autoconfigure.s3.S3ClientCustomizer;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,23 +71,24 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 			registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
 			registerBean(resolverContext, S3Properties.class, s3Properties);
 			registerBean(resolverContext, CredentialsProperties.class,
-				loadCredentialsProperties(resolverContext.getBinder()));
+					loadCredentialsProperties(resolverContext.getBinder()));
 			registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
 
 			registerAndPromoteBean(resolverContext, S3Client.class, this::createS3Client);
 
-			contexts.forEach(propertySourceContext -> locations.add(new S3ConfigDataResource(propertySourceContext,
-				location.isOptional(), propertySources)));
+			contexts.forEach(propertySourceContext -> locations
+					.add(new S3ConfigDataResource(propertySourceContext, location.isOptional(), propertySources)));
 
 			if (!location.isOptional() && locations.isEmpty()) {
-				throw new S3KeysMissingException("No S3 keys provided in `spring.config.import=aws-s3:` configuration.");
+				throw new S3KeysMissingException(
+						"No S3 keys provided in `spring.config.import=aws-s3:` configuration.");
 			}
-		} else {
+		}
+		else {
 			// create dummy resources with enabled flag set to false,
 			// because returned locations cannot be empty
-			contexts.forEach(
-				propertySourceContext -> locations.add(new S3ConfigDataResource(propertySourceContext,
-					location.isOptional(), false, propertySources)));
+			contexts.forEach(propertySourceContext -> locations.add(
+					new S3ConfigDataResource(propertySourceContext, location.isOptional(), false, propertySources)));
 		}
 		return locations;
 	}
@@ -97,18 +97,9 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 		S3ClientBuilder builder = configure(S3Client.builder(), context.get(S3Properties.class), context);
 
 		try {
-			AwsS3ClientCustomizer configurer = context.get(AwsS3ClientCustomizer.class);
-			if (configurer != null) {
-				AwsClientCustomizer.apply(configurer, builder);
-			}
-		}
-		catch (IllegalStateException e) {
-			log.debug("Bean of type AwsClientConfigurerS3 is not registered: " + e.getMessage());
-		}
-		try {
-			AwsSyncClientCustomizer awsSyncClientCustomizer = context.get(AwsSyncClientCustomizer.class);
-			if (awsSyncClientCustomizer != null) {
-				awsSyncClientCustomizer.customize(builder);
+			S3ClientCustomizer s3ClientCustomizer = context.get(S3ClientCustomizer.class);
+			if (s3ClientCustomizer != null) {
+				s3ClientCustomizer.customize(builder);
 			}
 		}
 		catch (IllegalStateException e) {
@@ -116,8 +107,7 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 		}
 
 		try {
-			S3ManagerClientCustomizer secretsManagerClientCustomizer = context
-				.get(S3ManagerClientCustomizer.class);
+			S3ManagerClientCustomizer secretsManagerClientCustomizer = context.get(S3ManagerClientCustomizer.class);
 			if (secretsManagerClientCustomizer != null) {
 				secretsManagerClientCustomizer.customize(builder);
 			}

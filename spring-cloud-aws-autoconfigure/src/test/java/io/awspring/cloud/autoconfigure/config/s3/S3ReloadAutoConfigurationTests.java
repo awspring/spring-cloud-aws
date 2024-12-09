@@ -43,7 +43,8 @@ public class S3ReloadAutoConfigurationTests {
 
 	@Test
 	void createsBeansForRefreshStrategy() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.config.reload.strategy:refresh").run(this::createsBeans);
+		this.contextRunner.withPropertyValues("spring.cloud.aws.s3.config.reload.strategy:refresh")
+				.run(this::createsBeans);
 	}
 
 	@Test

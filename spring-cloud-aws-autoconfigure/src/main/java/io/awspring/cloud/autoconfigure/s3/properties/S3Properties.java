@@ -119,7 +119,6 @@ public class S3Properties extends AwsClientProperties {
 	@NestedConfigurationProperty
 	private S3ConfigProperties config = new S3ConfigProperties();
 
-
 	public S3ConfigProperties getConfig() {
 		return config;
 	}

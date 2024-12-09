@@ -481,14 +481,14 @@ Note that this class must be listed under `org.springframework.boot.BootstrapReg
 org.springframework.boot.BootstrapRegistryInitializer=com.app.S3ClientBootstrapConfiguration
 ----
 
-If you want to use autoconfigured `S3Client` but change underlying SDKClient or ClientOverrideConfiguration you will need to register bean of type `AwsS3ClientCustomizer`:
+If you want to use autoconfigured `S3Client` but change underlying SDKClient or `ClientOverrideConfiguration` you will need to register bean of type `S3ClientCustomizer`:
 Autoconfiguration will configure `S3Client` Bean with provided values after that, for example:
 
 [source,java]
 ----
 package com.app;
 
-import io.awspring.cloud.autoconfigure.config.s3.AwsS3ClientCustomizer;
+import io.awspring.cloud.autoconfigure.s3.S3ClientCustomizer;
 import java.time.Duration;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
@@ -501,20 +501,11 @@ class S3ClientBootstrapConfiguration implements BootstrapRegistryInitializer {
 
 	@Override
 	public void initialize(BootstrapRegistry registry) {
-		registry.register(AwsS3ClientCustomizer.class,
-            context -> new AwsS3ClientCustomizer() {
-
-                @Override
-                public ClientOverrideConfiguration overrideConfiguration() {
-                    return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(500))
-                            .build();
-                }
-
-                @Override
-                public SdkHttpClient httpClient() {
-                    return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1000)).build();
-                }
-            });
+		registry.register(S3ClientCustomizer.class, context -> (builder -> {
+			builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+				c.apiCallTimeout(Duration.ofMillis(2001));
+			}));
+		}));
 	}
 }
 ----

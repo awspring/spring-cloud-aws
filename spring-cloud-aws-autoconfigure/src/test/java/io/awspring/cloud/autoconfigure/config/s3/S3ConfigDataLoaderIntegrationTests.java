@@ -19,12 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
+import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
-
-import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
-import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.BootstrapRegistry;
@@ -90,11 +89,10 @@ public class S3ConfigDataLoaderIntegrationTests {
 		uploadFileToBucket("key1=value1", "myPath/unusual/application.properties", TEXT_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-			"aws-s3:test-bucket/myPath/unusual/application.properties")) {
+				"aws-s3:test-bucket/myPath/unusual/application.properties")) {
 			assertThat(context.getEnvironment().getProperty("key1")).isEqualTo("value1");
 		}
 	}
-
 
 	@Test
 	void resolvesYamlFromS3() {
@@ -138,10 +136,10 @@ public class S3ConfigDataLoaderIntegrationTests {
 		application.setWebApplicationType(WebApplicationType.NONE);
 		application.addBootstrapRegistryInitializer(new S3ConfigDataLoaderIntegrationTests.CustomizerConfiguration());
 		uploadFileToBucket(new ObjectMapper().writeValueAsString(Map.of("key1", "value1")), "application.json",
-			JSON_TYPE);
+				JSON_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-			"aws-s3:test-bucket/application.json")) {
+				"aws-s3:test-bucket/application.json")) {
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(S3Client.class));
 			assertThat(client.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2001));
 			assertThat(client.getSyncHttpClient()).isNotNull();
@@ -156,7 +154,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-s3:test-bucket/reload.properties",
-				"--spring.cloud.aws.s3.config.reload.strategy=refresh", "--spring.cloud.aws.s3.config.reload.period=PT1S",
+				"--spring.cloud.aws.s3.config.reload.strategy=refresh",
+				"--spring.cloud.aws.s3.config.reload.period=PT1S",
 				"--spring.cloud.aws.s3.region=" + localstack.getRegion(),
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
