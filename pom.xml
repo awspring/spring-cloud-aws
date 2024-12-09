@@ -60,7 +60,6 @@
 		<module>spring-cloud-aws-test</module>
 		<module>spring-cloud-aws-modulith</module>
 		<module>docs</module>
-        <module>spring-cloud-aws-samples/spring-cloud-aws-cognito-sample</module>
     </modules>
 
 	<dependencyManagement>

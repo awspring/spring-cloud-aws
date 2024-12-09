@@ -16,7 +16,6 @@
 package io.awspring.cloud.autoconfigure.cognito;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
-import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -42,8 +41,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityPr
 @AutoConfiguration
 @EnableConfigurationProperties(CognitoProperties.class)
 @ConditionalOnClass({ CognitoIdentityProviderClient.class })
-@AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-		AwsAutoConfiguration.class })
+@AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.cognito.enabled", havingValue = "true", matchIfMissing = true)
 public class CognitoAutoConfiguration {
 

@@ -17,16 +17,6 @@
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>cognitoidentityprovider</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>software.amazon.awssdk</groupId>
-					<artifactId>netty-nio-client</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>software.amazon.awssdk</groupId>
-					<artifactId>apache-client</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>

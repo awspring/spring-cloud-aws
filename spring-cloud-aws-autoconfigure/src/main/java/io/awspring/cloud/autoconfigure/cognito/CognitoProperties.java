@@ -34,11 +34,6 @@ public class CognitoProperties extends AwsClientProperties {
 	public static final String CONFIG_PREFIX = "spring.cloud.aws.cognito";
 
 	/**
-	 * Enables Cognito integration.
-	 */
-	private boolean enabled = true;
-
-	/**
 	 * The user pool ID.
 	 */
 	private String userPoolId;
@@ -52,14 +47,6 @@ public class CognitoProperties extends AwsClientProperties {
 	 * The client secret.
 	 */
 	private String clientSecret;
-
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
 
 	public String getUserPoolId() {
 		return userPoolId;
