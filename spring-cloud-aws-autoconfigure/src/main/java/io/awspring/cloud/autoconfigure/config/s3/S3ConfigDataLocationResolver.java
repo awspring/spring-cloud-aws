@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.config.s3;
 
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
 import io.awspring.cloud.autoconfigure.core.*;
 import io.awspring.cloud.autoconfigure.s3.S3ClientCustomizer;
@@ -107,13 +108,13 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 		}
 
 		try {
-			S3ManagerClientCustomizer secretsManagerClientCustomizer = context.get(S3ManagerClientCustomizer.class);
-			if (secretsManagerClientCustomizer != null) {
-				secretsManagerClientCustomizer.customize(builder);
+			AwsSyncClientCustomizer awsSyncClientCustomizer = context.get(AwsSyncClientCustomizer.class);
+			if (awsSyncClientCustomizer != null) {
+				awsSyncClientCustomizer.customize(builder);
 			}
 		}
 		catch (IllegalStateException e) {
-			log.debug("Bean of type SecretsManagerClientCustomizer is not registered: " + e.getMessage());
+			log.debug("Bean of type AwsSyncClientCustomizer is not registered: " + e.getMessage());
 		}
 
 		return builder.build();

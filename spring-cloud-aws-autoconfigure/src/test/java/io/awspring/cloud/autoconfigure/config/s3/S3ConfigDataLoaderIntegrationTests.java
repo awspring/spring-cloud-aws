@@ -16,11 +16,13 @@
 package io.awspring.cloud.autoconfigure.config.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
+import io.awspring.cloud.autoconfigure.s3.S3ClientCustomizer;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
@@ -41,7 +43,9 @@ import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -142,7 +146,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 				"aws-s3:test-bucket/application.json")) {
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(S3Client.class));
 			assertThat(client.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2001));
-			assertThat(client.getSyncHttpClient()).isNotNull();
+			assertThat(client.getSyncHttpClient()).isInstanceOf(SdkDefaultClientBuilder.NonManagedSdkHttpClient.class);
+			assertThat(client.getSyncHttpClient().clientName()).isEqualTo("mock-client");
 		}
 	}
 
@@ -207,13 +212,19 @@ public class S3ConfigDataLoaderIntegrationTests {
 
 		@Override
 		public void initialize(BootstrapRegistry registry) {
-			registry.register(S3ManagerClientCustomizer.class, context -> (builder -> {
+			registry.register(S3ClientCustomizer.class, context -> (builder -> {
 				builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
 					c.apiCallTimeout(Duration.ofMillis(2001));
 				}));
 			}));
+
+			SdkHttpClient mock = spy(ApacheHttpClient.builder().build());
+			when(mock.clientName()).thenReturn("mock-client");
+
+			registry.register(SdkHttpClient.class, context -> mock);
+
 			registry.register(AwsSyncClientCustomizer.class, context -> (builder -> {
-				builder.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
+				builder.httpClient(mock);
 			}));
 		}
 	}
