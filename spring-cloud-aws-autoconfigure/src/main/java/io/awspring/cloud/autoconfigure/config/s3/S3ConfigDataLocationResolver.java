@@ -38,7 +38,7 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
  *
  * @author Kunal Varpe
  * @author Matej Nedic
- * @since 3.2.0
+ * @since 3.3.0
  */
 public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationResolver<S3ConfigDataResource> {
 

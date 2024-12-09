@@ -20,7 +20,7 @@ package io.awspring.cloud.autoconfigure.config.s3;
  * `spring.config.import=aws-s3:`.
  *
  * @author Kunal Varpe
- * @since 3.2.0
+ * @since 3.3.0
  */
 public class S3KeysMissingException extends RuntimeException {
 

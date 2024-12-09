@@ -23,7 +23,7 @@ import org.springframework.boot.diagnostics.FailureAnalysis;
  * key to `spring.config.import` property.
  *
  * @author Kunal Varpe
- * @since 3.2.0
+ * @since 3.3.0
  */
 public class S3MissingKeysFailureAnalyzer extends AbstractFailureAnalyzer<S3KeysMissingException> {
 

@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
  *
  * @author Kunal Varpe
  * @author Matej Nedic
- * @since 3.4.0
+ * @since 3.3.0
  */
 public class S3PropertySource extends AwsPropertySource<S3PropertySource, S3Client> {
 

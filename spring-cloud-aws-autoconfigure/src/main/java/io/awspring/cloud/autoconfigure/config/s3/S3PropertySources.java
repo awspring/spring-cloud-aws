@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.s3.S3Client;
  * Provides prefix config import support.
  *
  * @author Kunal Varpe
- * @since 3.2.0
+ * @since 3.3.0
  */
 public class S3PropertySources {
 
