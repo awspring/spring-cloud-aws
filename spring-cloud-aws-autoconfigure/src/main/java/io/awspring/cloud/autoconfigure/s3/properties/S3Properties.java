@@ -112,6 +112,21 @@ public class S3Properties extends AwsClientProperties {
 		this.encryption = encryption;
 	}
 
+	/**
+	 * Properties related to configuration reload.
+	 */
+
+	@NestedConfigurationProperty
+	private S3ConfigProperties config = new S3ConfigProperties();
+
+	public S3ConfigProperties getConfig() {
+		return config;
+	}
+
+	public void setConfig(S3ConfigProperties config) {
+		this.config = config;
+	}
+
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
 		return this.accelerateModeEnabled;
