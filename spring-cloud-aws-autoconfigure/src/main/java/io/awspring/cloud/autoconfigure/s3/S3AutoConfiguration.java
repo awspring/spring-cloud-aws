@@ -34,7 +34,6 @@ import io.awspring.cloud.s3.S3Template;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -53,7 +52,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.encryption.s3.S3EncryptionClient;
 
 /**
- * {@link EnableAutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
+ * {@link AutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
  *
  * @author Maciej Walkowiak
  * @author Matej Nedic

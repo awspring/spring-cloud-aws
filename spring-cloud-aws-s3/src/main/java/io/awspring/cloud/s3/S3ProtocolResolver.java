@@ -27,6 +27,7 @@ import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.s3.S3Client;
 
 /**
@@ -52,6 +53,14 @@ public class S3ProtocolResolver implements ProtocolResolver, ResourceLoaderAware
 	private BeanFactory beanFactory;
 
 	public S3ProtocolResolver() {
+	}
+
+	// for direct usages outside of Spring context, when BeanFactory is not available
+	public S3ProtocolResolver(S3Client s3Client, S3OutputStreamProvider s3OutputStreamProvider) {
+		Assert.notNull(s3Client, "s3Client is required");
+		Assert.notNull(s3OutputStreamProvider, "s3OutputStreamProvider is required");
+		this.s3Client = s3Client;
+		this.s3OutputStreamProvider = s3OutputStreamProvider;
 	}
 
 	// only for testing
