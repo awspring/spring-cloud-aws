@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.modulith.events.Externalized;
 import org.springframework.test.context.DynamicPropertyRegistrar;
-import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -62,6 +61,7 @@ class SqsEventPublicationIntegrationTests {
 				registry.add("spring.cloud.aws.region.static", localstack::getRegion);
 			};
 		}
+
 		@Bean
 		LocalStackContainer localStackContainer() {
 			return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.8.1"));

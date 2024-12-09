@@ -44,18 +44,12 @@ public class SnsControllerMappingReflectiveProcessorTest {
 		Method method = ComplexNotificationTestController.class.getDeclaredMethod("handleSubscriptionMessage",
 				NotificationStatus.class);
 		processor.registerReflectionHints(hints, method);
-		assertThat(
-				hints.typeHints())
-						.satisfiesExactlyInAnyOrder(
-								typeHint -> assertThat(typeHint.getType())
-										.isEqualTo(TypeReference.of(ComplexNotificationTestController.class)),
-								typeHint -> {
-									assertThat(typeHint.getType())
-											.isEqualTo(TypeReference.of(NotificationStatus.class));
-									assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
-											MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-											MemberCategory.DECLARED_FIELDS);
-								});
+		assertThat(hints.typeHints()).satisfiesExactlyInAnyOrder(typeHint -> assertThat(typeHint.getType())
+				.isEqualTo(TypeReference.of(ComplexNotificationTestController.class)), typeHint -> {
+					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(NotificationStatus.class));
+					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.DECLARED_FIELDS);
+				});
 	}
 
 	@Test
@@ -63,24 +57,19 @@ public class SnsControllerMappingReflectiveProcessorTest {
 		Method method = ComplexNotificationTestController.class.getDeclaredMethod("handleNotificationMessage",
 				String.class, Person.class);
 		processor.registerReflectionHints(hints, method);
-		assertThat(
-				hints.typeHints())
-						.satisfiesExactlyInAnyOrder(
-								typeHint -> assertThat(typeHint.getType())
-										.isEqualTo(TypeReference.of(ComplexNotificationTestController.class)),
-								typeHint -> {
-									assertThat(typeHint.getType()).isEqualTo(TypeReference.of(String.class));
-								}, typeHint -> {
-									assertThat(typeHint.getType()).isEqualTo(TypeReference.of(Person.class));
-									assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
-											MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-											MemberCategory.DECLARED_FIELDS);
-									assertThat(typeHint.methods()).satisfiesExactlyInAnyOrder(
-											hint -> assertThat(hint.getName()).isEqualTo("getFirstName"),
-											hint -> assertThat(hint.getName()).isEqualTo("setFirstName"),
-											hint -> assertThat(hint.getName()).isEqualTo("getLastName"),
-											hint -> assertThat(hint.getName()).isEqualTo("setLastName"));
-								});
+		assertThat(hints.typeHints()).satisfiesExactlyInAnyOrder(typeHint -> assertThat(typeHint.getType())
+				.isEqualTo(TypeReference.of(ComplexNotificationTestController.class)), typeHint -> {
+					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(String.class));
+				}, typeHint -> {
+					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(Person.class));
+					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.DECLARED_FIELDS);
+					assertThat(typeHint.methods()).satisfiesExactlyInAnyOrder(
+							hint -> assertThat(hint.getName()).isEqualTo("getFirstName"),
+							hint -> assertThat(hint.getName()).isEqualTo("setFirstName"),
+							hint -> assertThat(hint.getName()).isEqualTo("getLastName"),
+							hint -> assertThat(hint.getName()).isEqualTo("setLastName"));
+				});
 	}
 
 	@Test
@@ -88,18 +77,12 @@ public class SnsControllerMappingReflectiveProcessorTest {
 		Method method = ComplexNotificationTestController.class.getDeclaredMethod("handleUnsubscribeMessage",
 				NotificationStatus.class);
 		processor.registerReflectionHints(hints, method);
-		assertThat(
-				hints.typeHints())
-						.satisfiesExactlyInAnyOrder(
-								typeHint -> assertThat(typeHint.getType())
-										.isEqualTo(TypeReference.of(ComplexNotificationTestController.class)),
-								typeHint -> {
-									assertThat(typeHint.getType())
-											.isEqualTo(TypeReference.of(NotificationStatus.class));
-									assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
-											MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-											MemberCategory.DECLARED_FIELDS);
-								});
+		assertThat(hints.typeHints()).satisfiesExactlyInAnyOrder(typeHint -> assertThat(typeHint.getType())
+				.isEqualTo(TypeReference.of(ComplexNotificationTestController.class)), typeHint -> {
+					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(NotificationStatus.class));
+					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.DECLARED_FIELDS);
+				});
 	}
 
 	@Controller
