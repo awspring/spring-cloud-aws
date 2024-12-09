@@ -26,6 +26,7 @@ import io.awspring.cloud.sqs.observation.MessagingOperationType;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
@@ -34,45 +35,45 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 
 /**
- * Tests for {@link OrderedMessageSink}.
+ * Tests for {@link BatchMessageSink}.
  *
- * @author Tomaz Fernandes
  * @author Mariusz Sondecki
  */
-class OrderedMessageListeningSinkTests {
+class BatchMessageListeningSinkTests {
 
 	@Test
-	void shouldEmitInOrder() {
+	void shouldEmitBatchMessages() {
 		TestObservationRegistry registry = TestObservationRegistry.create();
-		int numberOfMessagesToEmit = 1000;
+		int numberOfMessagesToEmit = 10;
 		List<Message<Integer>> messagesToEmit = IntStream.range(0, numberOfMessagesToEmit)
 				.mapToObj(index -> MessageBuilder.withPayload(index).build()).collect(toList());
 		List<Message<Integer>> received = new ArrayList<>(numberOfMessagesToEmit);
-		AbstractMessageProcessingPipelineSink<Integer> sink = new OrderedMessageSink<>();
+		AbstractMessageProcessingPipelineSink<Integer> sink = new BatchMessageSink<>();
 		sink.setObservationRegistry(registry);
 		sink.setTaskExecutor(Runnable::run);
 		sink.setMessagePipeline(getMessageProcessingPipeline(received));
 		sink.start();
 		sink.emit(messagesToEmit, MessageProcessingContext.create()).join();
 		sink.stop();
-		assertThat(received).containsSequence(messagesToEmit);
+		assertThat(received).containsExactlyElementsOf(messagesToEmit);
 		TestObservationRegistryAssert.assertThat(registry)
-				.hasNumberOfObservationsWithNameEqualTo("sqs.single.message.polling.process", numberOfMessagesToEmit)
-				.forAllObservationsWithNameEqualTo("sqs.single.message.polling.process",
+				.hasNumberOfObservationsWithNameEqualTo("sqs.batch.message.polling.process", 1)
+				.forAllObservationsWithNameEqualTo("sqs.batch.message.polling.process",
 						observationContextAssert -> observationContextAssert
 								.hasHighCardinalityKeyValueWithKey(HighCardinalityKeyNames.MESSAGE_ID.asString())
 								.hasLowCardinalityKeyValue(
 										MessageObservationDocumentation.LowCardinalityKeyNames.OPERATION.asString(),
-										MessagingOperationType.SINGLE_POLLING_PROCESS.getValue()));
+										MessagingOperationType.BATCH_POLLING_PROCESS.getValue()));
 	}
 
 	private MessageProcessingPipeline<Integer> getMessageProcessingPipeline(List<Message<Integer>> received) {
 		return new MessageProcessingPipeline<>() {
+
 			@Override
-			public CompletableFuture<Message<Integer>> process(Message<Integer> message,
+			public CompletableFuture<Collection<Message<Integer>>> process(Collection<Message<Integer>> messages,
 					MessageProcessingContext<Integer> context) {
-				received.add(message);
-				return CompletableFuture.completedFuture(message);
+				received.addAll(messages);
+				return CompletableFuture.completedFuture(messages);
 			}
 		};
 	}
