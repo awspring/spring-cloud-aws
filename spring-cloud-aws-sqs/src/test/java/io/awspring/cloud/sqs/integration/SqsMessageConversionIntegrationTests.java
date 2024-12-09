@@ -275,7 +275,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 
 		@SqsListener(queueNames = RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME, id = "resolves-pojo-with-notification-message", factory = "defaultSqsListenerContainerFactory")
 		void listen(@SnsNotificationMessage MyEnvelope<MyPojo> myPojo) {
-			Assert.notNull((myPojo).data.firstField, "Received null message");
+			assertThat(myPojo.getData().getFirstField()).isEqualTo("pojoNotificationMessage");
 			logger.debug("Received message {} from queue {}", myPojo,
 					RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME);
 			latchContainer.resolvesPojoNotificationMessageLatch.countDown();
@@ -286,6 +286,10 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 			Assert.notEmpty(myPojos, "Received empty messages");
 			logger.debug("Received messages {} from queue {}", myPojos,
 					RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME);
+
+			for (MyEnvelope<MyPojo> myPojo : myPojos) {
+				assertThat(myPojo.getData().getFirstField()).isEqualTo("pojoNotificationMessage");
+			}
 			latchContainer.resolvesPojoNotificationMessageListLatch.countDown();
 		}
 	}
