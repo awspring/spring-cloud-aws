@@ -72,7 +72,10 @@ public class SnsMessageConverter implements SmartMessageConverter {
 		Type resolvedType = getResolvedType(targetClass, conversionHint);
 		Class<?> resolvedClazz = ResolvableType.forType(resolvedType).resolve();
 
-		return messages.stream().map(message -> fromGenericMessage(message, resolvedClazz, resolvedType)).toList();
+		Object hint = targetClass.isAssignableFrom(List.class) &&
+			conversionHint instanceof MethodParameter mp ? mp.nested() : conversionHint;
+
+		return messages.stream().map(message -> fromGenericMessage(message, resolvedClazz, hint)).toList();
 	}
 
 	private Object fromGenericMessage(GenericMessage<?> message, Class<?> targetClass,
