@@ -378,6 +378,231 @@ There can be multiple `S3ClientCustomizer` beans present in single application c
 
 Note that `S3ClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
 
+=== Loading External Configuration
+
+Just like Spring Boot supports configuring application through `application.properties` stored in the file system, Spring Cloud AWS S3 integration extends this capability with fetching application configuration the S3 bucket through `spring.config.import` property.
+
+For example, assuming that there is a file `config.properties` in a bucket named `bucket-name`, to include it as Spring Boot configuration, add a following property to `application.properties` or `application.yml`:
+
+[source,properties]
+----
+spring.config.import=aws-s3:/bucket-name/config.properties
+----
+
+If a file with given name does not exist in S3, application will fail to start. If file configuration is not required for the application, and it should continue to startup even when file configuration is missing, add `optional` before prefix:
+
+[source,properties]
+----
+spring.config.import=optional:aws-s3:/bucket-name/config.properties
+----
+
+To load multiple files, separate their names with `;`:
+
+[source,properties]
+----
+spring.config.import=aws-s3:/bucket-name/config.properties;/another-name/config.yml
+----
+
+If some files are required, and other ones are optional, list them as separate entries in `spring.config.import` property:
+
+[source,properties]
+----
+spring.config.import[0]=optional:bucket-name/config.properties
+spring.config.import[1]=aws-s3=/another-name/config.yml
+----
+
+Fetched files configuration can be referenced with `@Value`, bound to `@ConfigurationProperties` classes, or referenced in `application.properties` file.
+
+`JSON`, Java Properties and `YAML` configuration file formats are supported.
+
+File resolved with `spring.config.import` can be also referenced in `application.properties`.
+For example, with a file `config.json` containing following JSON structure:
+
+[source,json]
+----
+{
+      "url": "someUrl"
+}
+----
+
+
+`spring.config.import` entry is added to `application.properties`:
+
+[source, properties]
+----
+spring.config.import=aws-s3:/bucket-name/config.json
+----
+
+File configuration values can be referenced by JSON key names:
+
+[source, java]
+----
+@Value("${url}"
+private String url;
+----
+
+=== Customizing S3Client
+
+To use custom `S3Client` in `spring.config.import`, provide an implementation of `BootstrapRegistryInitializer`. For example:
+
+[source,java]
+----
+package com.app;
+
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
+
+public class S3ClientBootstrapConfiguration implements BootstrapRegistryInitializer {
+
+    @Override
+    public void initialize(BootstrapRegistry registry) {
+        registry.register(S3Client.class, context -> {
+            AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("yourAccessKey", "yourSecretKey"));
+            return S3Client.builder().credentialsProvider(awsCredentialsProvider).region(Region.EU_WEST_2).build();
+        });
+    }
+}
+----
+
+Note that this class must be listed under `org.springframework.boot.BootstrapRegistryInitializer` key in `META-INF/spring.factories`:
+
+[source, properties]
+----
+org.springframework.boot.BootstrapRegistryInitializer=com.app.S3ClientBootstrapConfiguration
+----
+
+If you want to use autoconfigured `S3Client` but change underlying SDKClient or `ClientOverrideConfiguration` you will need to register bean of type `S3ClientCustomizer`:
+Autoconfiguration will configure `S3Client` Bean with provided values after that, for example:
+
+[source,java]
+----
+package com.app;
+
+import io.awspring.cloud.autoconfigure.s3.S3ClientCustomizer;
+import java.time.Duration;
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.services.s3.S3Client;
+
+class S3ClientBootstrapConfiguration implements BootstrapRegistryInitializer {
+
+	@Override
+	public void initialize(BootstrapRegistry registry) {
+		registry.register(S3ClientCustomizer.class, context -> (builder -> {
+			builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+				c.apiCallTimeout(Duration.ofMillis(2001));
+			}));
+		}));
+	}
+}
+----
+
+=== `PropertySource` Reload
+
+Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
+The reload feature of Spring Cloud AWS S3 config import integration is able to trigger an application reload when a related file value changes.
+
+By default, this feature is disabled. You can enable it by using the `spring.cloud.aws.s3.config.reload.strategy` configuration property (for example, in the `application.properties` file) and adding following dependencies.
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-commons</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-context</artifactId>
+</dependency>
+----
+
+The following levels of reload are supported (by setting the `spring.cloud.aws.s3.config.reload.strategy` property):
+
+* `refresh` (default): Only configuration beans annotated with `@ConfigurationProperties` or `@RefreshScope` are reloaded.
+This reload level leverages the refresh feature of Spring Cloud Context.
+
+* `restart_context`: the whole Spring `ApplicationContext` is gracefully restarted. Beans are recreated with the new configuration.
+In order for the restart context functionality to work properly you must enable and expose the restart actuator endpoint
+[source,yaml]
+====
+----
+management:
+  endpoint:
+    restart:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: restart
+----
+====
+
+Assuming that the reload feature is enabled with default settings (`refresh` mode), the following bean is refreshed when the file changes:
+
+====
+[java, source]
+----
+@Configuration
+@ConfigurationProperties(prefix = "bean")
+public class MyConfig {
+
+    private String message = "a message that can be changed live";
+
+    // getter and setters
+
+}
+----
+====
+
+To see that changes effectively happen, you can create another bean that prints the message periodically, as follows
+
+====
+[source,java]
+----
+@Component
+public class MyBean {
+
+    @Autowired
+    private MyConfig config;
+
+    @Scheduled(fixedDelay = 5000)
+    public void hello() {
+        System.out.println("The message is: " + config.getMessage());
+    }
+}
+----
+====
+
+The reload feature periodically re-creates the configuration from S3 file to see if it has changed.
+You can configure the polling period by using the `spring.cloud.aws.s3.config.reload.period` (default value is 1 minute).
+
+=== Configuration
+
+The Spring Boot Starter for S3 provides the following configuration options:
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.s3.config.enabled` | Enables the S3 config import integration. | No | `true`
+| `spring.cloud.aws.s3.config.reload.strategy` | `Enum` | `refresh` | The strategy to use when firing a reload (`refresh`, `restart_context`)
+| `spring.cloud.aws.s3.config.reload.period` | `Duration`| `15s` | The period for verifying changes
+| `spring.cloud.aws.s3.config.reload.max-wait-time-for-restart` | `Duration`| `2s` | The maximum time between the detection of changes in property source and the application context restart when `restart_context` strategy is used.
+|===
+
+
 === IAM Permissions
 
 Following IAM permissions are required by Spring Cloud AWS:

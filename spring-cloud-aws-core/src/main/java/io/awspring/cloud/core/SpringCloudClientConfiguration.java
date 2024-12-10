@@ -66,5 +66,4 @@ public final class SpringCloudClientConfiguration {
 	private String getUserAgent() {
 		return NAME + "/" + version;
 	}
-
 }
