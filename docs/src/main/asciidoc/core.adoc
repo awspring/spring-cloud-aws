@@ -260,3 +260,12 @@ There can be multiple customizer beans present in single application context and
 
 Client-specific customizations can be applied through client-specific customizer interfaces (for example `S3ClientCustomizer` for S3). See integrations documentation for details.
 
+
+=== GraalVM Native Image
+
+Since version 3.3.0 the framework provides **experimental** support for GraalVM Native Image build.
+
+Known issues are:
+
+- in DynamoDB integration, `StaticTableSchema` must be used instead of `DynamicTableSchema` (see https://github.com/aws/aws-sdk-java-v2/issues/2445)
+- in S3 integration, when working with CRT client, following guide must be followed: https://github.com/awslabs/aws-crt-java?tab=readme-ov-file#graalvm-support

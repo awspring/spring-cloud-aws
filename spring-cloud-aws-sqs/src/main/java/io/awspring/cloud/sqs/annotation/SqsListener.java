@@ -23,6 +23,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 
 /**
  * Methods with this annotation will be wrapped by a {@link io.awspring.cloud.sqs.listener.MessageListener} or
@@ -80,6 +81,7 @@ import org.springframework.core.annotation.AliasFor;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+@MessageMapping
 public @interface SqsListener {
 
 	/**
