@@ -17,10 +17,23 @@ package io.awspring.cloud.sqs.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import brave.Tracing;
+import brave.handler.MutableSpan;
+import brave.test.TestSpanHandler;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.acknowledgement.Acknowledgement;
 import io.awspring.cloud.sqs.operations.*;
 import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
+import io.micrometer.context.ContextRegistry;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.brave.bridge.BraveBaggageManager;
+import io.micrometer.tracing.brave.bridge.BraveCurrentTraceContext;
+import io.micrometer.tracing.brave.bridge.BravePropagator;
+import io.micrometer.tracing.brave.bridge.BraveTracer;
+import io.micrometer.tracing.contextpropagation.ObservationAwareSpanThreadLocalAccessor;
+import io.micrometer.tracing.handler.DefaultTracingObservationHandler;
+import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -42,6 +55,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 /**
  * @author Tomaz Fernandes
  * @author Dongha Kim
+ * @author Mariusz Sondecki
  */
 @SpringBootTest
 public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
@@ -160,6 +174,54 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 				.asInstanceOf(InstanceOfAssertFactories.MAP)
 				.containsKeys(myCustomHeader, myCustomHeader2, myCustomHeader3)
 				.containsValues(myCustomValue, myCustomValue2, myCustomValue3);
+	}
+
+	@Test
+	void shouldSendAndReceiveMessageWithTracingContext() {
+		SampleRecord testRecord = new SampleRecord("Hello world!",
+				"From shouldSendAndReceiveMessageWithTracingContext!");
+		String parentSpanName = "Parent span";
+
+		ObservationRegistry registry = ObservationRegistry.create();
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient).observationRegistry(registry)
+				.build();
+		TestSpanHandler testSpanHandler = new TestSpanHandler();
+		Tracing tracing = Tracing.newBuilder().addSpanHandler(testSpanHandler).build();
+		io.micrometer.tracing.Tracer tracer = new BraveTracer(tracing.tracer(),
+				new BraveCurrentTraceContext(tracing.currentTraceContext()), new BraveBaggageManager());
+		ContextRegistry.getInstance().loadThreadLocalAccessors()
+				.registerThreadLocalAccessor(new ObservationAwareSpanThreadLocalAccessor(tracer));
+		BravePropagator propagator = new BravePropagator(tracing);
+		registry.observationConfig()
+				.observationHandler(new PropagatingSenderTracingObservationHandler<>(tracer, propagator));
+
+		template.send(to -> to.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME).payload(testRecord));
+
+		registry.observationConfig().observationHandler(new DefaultTracingObservationHandler(tracer));
+
+		Optional<Message<SampleRecord>> receivedMessage = Observation.createNotStarted(parentSpanName, registry)
+				.observe(() -> template.receive(from -> from.queue(SENDS_AND_RECEIVES_WITH_HEADERS_QUEUE_NAME),
+						SampleRecord.class));
+
+		List<MutableSpan> spans = testSpanHandler.spans();
+		assertThat(spans).hasSize(3);
+		String publishTraceId = spans.get(0).traceId();
+		String publishSpanId = spans.get(0).id();
+		String processTraceId = spans.get(1).traceId();
+		String processSpanId = spans.get(1).id();
+		String processParentSpanId = spans.get(1).parentId();
+		String parentTraceId = spans.get(2).traceId();
+		String parentSpanId = spans.get(2).id();
+		String parentParentSpanId = spans.get(2).parentId();
+
+		assertThat(receivedMessage).isPresent().get().extracting(Message::getHeaders)
+				.asInstanceOf(InstanceOfAssertFactories.MAP).containsEntry("X-B3-TraceId", publishTraceId)
+				.containsEntry("X-B3-SpanId", publishSpanId);
+
+		assertThat(processTraceId).isNotEqualTo(publishTraceId).isEqualTo(parentTraceId);
+		assertThat(processSpanId).isNotEqualTo(publishSpanId);
+		assertThat(processParentSpanId).isEqualTo(parentSpanId);
+		assertThat(parentParentSpanId).isNull();
 	}
 
 	@Test
