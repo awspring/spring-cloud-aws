@@ -920,7 +920,7 @@ class SqsTemplateTests {
 				.willReturn(CompletableFuture.completedFuture(deleteResponse));
 		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
 		Optional<Message<String>> receivedMessage = template.receive(from -> from.queue(queue)
-				.pollTimeout(Duration.ofSeconds(1)).visibilityTimeout(Duration.ofSeconds(5))
+				.pollTimeout(Duration.ofSeconds(61)).visibilityTimeout(Duration.ofSeconds(65))
 				.additionalHeader(headerName1, headerValue1).additionalHeaders(Map.of(headerName2, headerValue2)),
 				String.class);
 		assertThat(receivedMessage).isPresent().hasValueSatisfying(message -> {
@@ -932,8 +932,8 @@ class SqsTemplateTests {
 		then(mockClient).should().receiveMessage(captor.capture());
 		ReceiveMessageRequest request = captor.getValue();
 		assertThat(request.maxNumberOfMessages()).isEqualTo(1);
-		assertThat(request.visibilityTimeout()).isEqualTo(5);
-		assertThat(request.waitTimeSeconds()).isEqualTo(1);
+		assertThat(request.visibilityTimeout()).isEqualTo(65);
+		assertThat(request.waitTimeSeconds()).isEqualTo(61);
 	}
 
 	@Test
