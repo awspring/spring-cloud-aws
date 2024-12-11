@@ -20,12 +20,17 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import net.bytebuddy.utility.RandomString;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.List;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -47,6 +52,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -62,6 +68,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
  * @author Maciej Walkowiak
  * @author Yuki Yoshida
  * @author Ziemowit Stolarczyk
+ * @author Hardik Singh Behl
  */
 @Testcontainers
 class S3TemplateIntegrationTests {
@@ -70,7 +77,7 @@ class S3TemplateIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.8.1"));
+			DockerImageName.parse("localstack/localstack:3.8.1")).withEnv("S3_SKIP_SIGNATURE_VALIDATION", "0");
 
 	private static S3Client client;
 
@@ -268,7 +275,12 @@ class S3TemplateIntegrationTests {
 
 	@Test
 	void createsWorkingSignedPutURL() throws IOException {
-		ObjectMetadata metadata = ObjectMetadata.builder().metadata("testkey", "testvalue").build();
+		String fileContent = RandomString.make();
+		long contentLength = fileContent.length();
+		String contentMD5 = calculateContentMD5(fileContent);
+
+		ObjectMetadata metadata = ObjectMetadata.builder().metadata("testkey", "testvalue").contentLength(contentLength)
+				.contentMD5(contentMD5).build();
 		URL signedPutUrl = s3Template.createSignedPutURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1), metadata,
 				"text/plain");
 
@@ -276,7 +288,8 @@ class S3TemplateIntegrationTests {
 		HttpPut httpPut = new HttpPut(signedPutUrl.toString());
 		httpPut.setHeader("x-amz-meta-testkey", "testvalue");
 		httpPut.setHeader("Content-Type", "text/plain");
-		HttpEntity body = new StringEntity("hello");
+		httpPut.setHeader("Content-MD5", contentMD5);
+		HttpEntity body = new StringEntity(fileContent);
 		httpPut.setEntity(body);
 
 		HttpResponse response = httpClient.execute(httpPut);
@@ -285,9 +298,34 @@ class S3TemplateIntegrationTests {
 		HeadObjectResponse headObjectResponse = client
 				.headObject(HeadObjectRequest.builder().bucket(BUCKET_NAME).key("file.txt").build());
 
-		assertThat(headObjectResponse.contentLength()).isEqualTo(5);
+		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatusCode.OK);
+		assertThat(headObjectResponse.contentLength()).isEqualTo(contentLength);
 		assertThat(headObjectResponse.metadata().containsKey("testkey")).isTrue();
 		assertThat(headObjectResponse.metadata().get("testkey")).isEqualTo("testvalue");
+	}
+
+	@Test
+	void signedPutURLFailsForNonMatchingSignature() throws IOException {
+		String fileContent = RandomString.make();
+		long contentLength = fileContent.length();
+		String contentMD5 = calculateContentMD5(fileContent);
+		String maliciousContent = RandomString.make();
+
+		ObjectMetadata metadata = ObjectMetadata.builder().contentLength(contentLength).contentMD5(contentMD5).build();
+		URL signedPutUrl = s3Template.createSignedPutURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1), metadata,
+				"text/plain");
+
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		HttpPut httpPut = new HttpPut(signedPutUrl.toString());
+		httpPut.setHeader("Content-Type", "text/plain");
+		httpPut.setHeader("Content-MD5", contentMD5);
+		HttpEntity body = new StringEntity(fileContent + maliciousContent);
+		httpPut.setEntity(body);
+
+		HttpResponse response = httpClient.execute(httpPut);
+		httpClient.close();
+
+		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatusCode.FORBIDDEN);
 	}
 
 	private void bucketDoesNotExist(ListBucketsResponse r, String bucketName) {
@@ -296,6 +334,17 @@ class S3TemplateIntegrationTests {
 
 	private void bucketExists(ListBucketsResponse r, String bucketName) {
 		assertThat(r.buckets().stream().filter(b -> b.name().equals(bucketName)).findAny()).isPresent();
+	}
+
+	private String calculateContentMD5(String content) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
+			byte[] mdBytes = md.digest(contentBytes);
+			return Base64.getEncoder().encodeToString(mdBytes);
+		} catch (Exception exception) {
+			throw new RuntimeException("Failed to calculate Content-MD5", exception);
+		}
 	}
 
 	static class Person {
