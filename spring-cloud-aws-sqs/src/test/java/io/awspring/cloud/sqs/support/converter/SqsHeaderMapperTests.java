@@ -21,6 +21,8 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
+
+import io.awspring.cloud.sqs.listener.SqsHeaders;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -29,6 +31,7 @@ import org.springframework.messaging.MessageHeaders;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 
 /**
  * Tests for {@link SqsHeaderMapper}.
@@ -137,6 +140,36 @@ class SqsHeaderMapperTests {
 				.messageId(UUID.randomUUID().toString()).build();
 		MessageHeaders headers = mapper.toHeaders(message);
 		assertThat(headers.get(headerName)).isEqualTo(headerValue);
+	}
+
+	@Test
+	void shouldCreateMessageWithSystemAttributesFromHeaders() {
+		MessageHeaders headers = new MessageHeaders(
+			Map.of(
+				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, "value1",
+				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, "value2",
+				SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER, "value3",
+				"customHeaderString", "customValueString",
+				"customHeaderNumber", 42
+			)
+		);
+
+		SqsHeaderMapper mapper = new SqsHeaderMapper();
+		Message message = mapper.fromHeaders(headers);
+
+		assertThat(message.attributes())
+			.hasSize(3)
+			.containsExactlyInAnyOrderEntriesOf(Map.of(
+				MessageSystemAttributeName.MESSAGE_GROUP_ID, "value1",
+				MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID, "value2",
+				MessageSystemAttributeName.AWS_TRACE_HEADER, "value3"
+			));
+		assertThat(message.messageAttributes())
+			.hasSize(2)
+			.containsExactlyInAnyOrderEntriesOf(Map.of(
+				"customHeaderString", MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING).stringValue("customValueString").build(),
+				"customHeaderNumber", MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.NUMBER + ".java.lang.Integer").stringValue("42").build()
+			));
 	}
 
 	@ParameterizedTest

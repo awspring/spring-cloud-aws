@@ -25,6 +25,7 @@ import software.amazon.awssdk.services.s3.model.*;
  * Container for S3 Object Metadata. For information about each field look at {@link PutObjectRequest} Javadocs.
  *
  * @author Maciej Walkowiak
+ * @author Hardik Singh Behl
  * @since 3.0
  */
 public class ObjectMetadata {
@@ -116,6 +117,9 @@ public class ObjectMetadata {
 	@Nullable
 	private final String checksumAlgorithm;
 
+	@Nullable
+	private final String contentMD5;
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -130,7 +134,7 @@ public class ObjectMetadata {
 			@Nullable String ssekmsKeyId, @Nullable String ssekmsEncryptionContext, @Nullable Boolean bucketKeyEnabled,
 			@Nullable String requestPayer, @Nullable String tagging, @Nullable String objectLockMode,
 			@Nullable Instant objectLockRetainUntilDate, @Nullable String objectLockLegalHoldStatus,
-			@Nullable String expectedBucketOwner, @Nullable String checksumAlgorithm) {
+			@Nullable String expectedBucketOwner, @Nullable String checksumAlgorithm, @Nullable String contentMD5) {
 		this.acl = acl;
 		this.cacheControl = cacheControl;
 		this.contentDisposition = contentDisposition;
@@ -160,6 +164,7 @@ public class ObjectMetadata {
 		this.objectLockLegalHoldStatus = objectLockLegalHoldStatus;
 		this.expectedBucketOwner = expectedBucketOwner;
 		this.checksumAlgorithm = checksumAlgorithm;
+		this.contentMD5 = contentMD5;
 	}
 
 	void apply(PutObjectRequest.Builder builder) {
@@ -249,6 +254,9 @@ public class ObjectMetadata {
 		}
 		if (checksumAlgorithm != null) {
 			builder.checksumAlgorithm(checksumAlgorithm);
+		}
+		if (contentMD5 != null) {
+			builder.contentMD5(contentMD5);
 		}
 	}
 
@@ -523,6 +531,11 @@ public class ObjectMetadata {
 		return checksumAlgorithm;
 	}
 
+	@Nullable
+	public String getContentMD5() {
+		return contentMD5;
+	}
+
 	public static class Builder {
 
 		private final Map<String, String> metadata = new HashMap<>();
@@ -610,6 +623,9 @@ public class ObjectMetadata {
 
 		@Nullable
 		private String checksumAlgorithm;
+
+		@Nullable
+		private String contentMD5;
 
 		public Builder acl(@Nullable String acl) {
 			this.acl = acl;
@@ -785,13 +801,18 @@ public class ObjectMetadata {
 			return checksumAlgorithm(checksumAlgorithm != null ? checksumAlgorithm.toString() : null);
 		}
 
+		public Builder contentMD5(@Nullable String contentMD5) {
+			this.contentMD5 = contentMD5;
+			return this;
+		}
+
 		public ObjectMetadata build() {
 			return new ObjectMetadata(acl, cacheControl, contentDisposition, contentEncoding, contentLanguage,
 					contentType, contentLength, expires, grantFullControl, grantRead, grantReadACP, grantWriteACP,
 					metadata, serverSideEncryption, storageClass, websiteRedirectLocation, sseCustomerAlgorithm,
 					sseCustomerKey, sseCustomerKeyMD5, ssekmsKeyId, ssekmsEncryptionContext, bucketKeyEnabled,
 					requestPayer, tagging, objectLockMode, objectLockRetainUntilDate, objectLockLegalHoldStatus,
-					expectedBucketOwner, checksumAlgorithm);
+					expectedBucketOwner, checksumAlgorithm, contentMD5);
 		}
 
 	}

@@ -20,8 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.QueueAttributesResolvingException;
@@ -47,23 +46,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.CreateQueueResponse;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
-import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
-import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
-import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
-import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
-import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
-import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
-import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
-import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.services.sqs.model.*;
 
 /**
  * @author Tomaz Fernandes
@@ -937,7 +920,7 @@ class SqsTemplateTests {
 				.willReturn(CompletableFuture.completedFuture(deleteResponse));
 		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
 		Optional<Message<String>> receivedMessage = template.receive(from -> from.queue(queue)
-				.pollTimeout(Duration.ofSeconds(1)).visibilityTimeout(Duration.ofSeconds(5))
+				.pollTimeout(Duration.ofSeconds(61)).visibilityTimeout(Duration.ofSeconds(65))
 				.additionalHeader(headerName1, headerValue1).additionalHeaders(Map.of(headerName2, headerValue2)),
 				String.class);
 		assertThat(receivedMessage).isPresent().hasValueSatisfying(message -> {
@@ -949,8 +932,8 @@ class SqsTemplateTests {
 		then(mockClient).should().receiveMessage(captor.capture());
 		ReceiveMessageRequest request = captor.getValue();
 		assertThat(request.maxNumberOfMessages()).isEqualTo(1);
-		assertThat(request.visibilityTimeout()).isEqualTo(5);
-		assertThat(request.waitTimeSeconds()).isEqualTo(1);
+		assertThat(request.visibilityTimeout()).isEqualTo(65);
+		assertThat(request.waitTimeSeconds()).isEqualTo(61);
 	}
 
 	@Test
@@ -1206,6 +1189,37 @@ class SqsTemplateTests {
 		assertThat(request.receiveRequestAttemptId()).isEqualTo(attemptId.toString());
 		assertThat(request.queueUrl()).isEqualTo(queue);
 
+	}
+
+	@Test
+	void shouldPropagateTracingAsMessageSystemAttribute() {
+		String queue = "test-queue";
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+			.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+		SendMessageResponse response = SendMessageResponse.builder().messageId(UUID.randomUUID().toString())
+			.sequenceNumber("123").build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+			.willReturn(CompletableFuture.completedFuture(response));
+
+		SqsOperations sqsOperations = SqsTemplate.newSyncTemplate(mockClient);
+		SendResult<Object> result = sqsOperations.send(options -> options
+			.queue(queue)
+			.header(SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER, "abc")
+			.payload("test")
+		);
+
+		assertThat(result).isNotNull();
+
+		ArgumentCaptor<SendMessageRequest> captor = ArgumentCaptor.forClass(SendMessageRequest.class);
+		then(mockClient).should().sendMessage(captor.capture());
+		SendMessageRequest sendMessageRequest = captor.getValue();
+
+		assertThat(sendMessageRequest.messageSystemAttributes()).hasEntrySatisfying(
+			MessageSystemAttributeNameForSends.AWS_TRACE_HEADER,
+			value -> assertThat(value.stringValue()).isEqualTo("abc")
+		);
 	}
 
 }
