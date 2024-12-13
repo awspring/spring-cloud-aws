@@ -60,6 +60,7 @@ public class AuthController {
 			AuthResult authResult = new AuthResult();
 			authResult.setStatus(Status.SET_PASSWORD);
 			loginResponse.setAuthResult(authResult);
+			return loginResponse;
 		}
 		AuthenticationResultType authenticationResultType = response.authenticationResult();
 		AuthResult authResult = new AuthResult();

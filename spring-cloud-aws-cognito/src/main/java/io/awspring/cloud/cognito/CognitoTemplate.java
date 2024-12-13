@@ -91,20 +91,31 @@ public class CognitoTemplate implements CognitoAuthOperations {
 	@Override
 	public ConfirmForgotPasswordResponse confirmResetPassword(String username, String confirmationCode,
 			String newPassword) {
-		ConfirmForgotPasswordRequest confirmForgotPasswordRequest = ConfirmForgotPasswordRequest.builder()
-				.clientId(clientId).username(username).password(newPassword).confirmationCode(confirmationCode)
-				.secretHash(CognitoUtils.calculateSecretHash(clientId, clientSecret, username)).build();
+		ConfirmForgotPasswordRequest.Builder confirmForgotPasswordRequestBuilder = ConfirmForgotPasswordRequest
+				.builder().clientId(clientId).username(username).password(newPassword)
+				.confirmationCode(confirmationCode);
+
+		if (this.clientSecret != null) {
+			confirmForgotPasswordRequestBuilder
+					.secretHash(CognitoUtils.calculateSecretHash(clientId, clientSecret, username));
+		}
+		ConfirmForgotPasswordRequest confirmForgotPasswordRequest = confirmForgotPasswordRequestBuilder.build();
 		return cognitoIdentityProviderClient.confirmForgotPassword(confirmForgotPasswordRequest);
 	}
 
 	@Override
 	public RespondToAuthChallengeResponse setPermanentPassword(String session, String username, String password) {
+		Map<String, String> resetPasswordParametersMap = new HashMap<>();
+		resetPasswordParametersMap.put(CognitoParameters.USERNAME_PARAM_NAME, username);
+		resetPasswordParametersMap.put(CognitoParameters.NEW_PASSWORD_PARAM_NAME, password);
+
+		if (this.clientSecret != null) {
+			resetPasswordParametersMap.put(CognitoParameters.SECRET_HASH_PARAM_NAME,
+					CognitoUtils.calculateSecretHash(clientId, clientSecret, username));
+		}
 		RespondToAuthChallengeRequest respondToAuthChallengeRequest = RespondToAuthChallengeRequest.builder()
 				.clientId(clientId).challengeName(ChallengeNameType.NEW_PASSWORD_REQUIRED).session(session)
-				.challengeResponses(Map.of(CognitoParameters.USERNAME_PARAM_NAME, username,
-						CognitoParameters.NEW_PASSWORD_PARAM_NAME, password, CognitoParameters.SECRET_HASH_PARAM_NAME,
-						CognitoUtils.calculateSecretHash(clientId, clientSecret, username)))
-				.build();
+				.challengeResponses(resetPasswordParametersMap).build();
 		return cognitoIdentityProviderClient.respondToAuthChallenge(respondToAuthChallengeRequest);
 	}
 
