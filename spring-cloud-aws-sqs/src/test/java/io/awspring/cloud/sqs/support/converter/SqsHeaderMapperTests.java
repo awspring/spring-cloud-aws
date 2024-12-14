@@ -17,12 +17,11 @@ package io.awspring.cloud.sqs.support.converter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
-
-import io.awspring.cloud.sqs.listener.SqsHeaders;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -145,31 +144,25 @@ class SqsHeaderMapperTests {
 	@Test
 	void shouldCreateMessageWithSystemAttributesFromHeaders() {
 		MessageHeaders headers = new MessageHeaders(
-			Map.of(
-				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, "value1",
-				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, "value2",
-				SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER, "value3",
-				"customHeaderString", "customValueString",
-				"customHeaderNumber", 42
-			)
-		);
+				Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, "value1",
+						SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, "value2",
+						SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER, "value3", "customHeaderString",
+						"customValueString", "customHeaderNumber", 42));
 
 		SqsHeaderMapper mapper = new SqsHeaderMapper();
 		Message message = mapper.fromHeaders(headers);
 
-		assertThat(message.attributes())
-			.hasSize(3)
-			.containsExactlyInAnyOrderEntriesOf(Map.of(
-				MessageSystemAttributeName.MESSAGE_GROUP_ID, "value1",
-				MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID, "value2",
-				MessageSystemAttributeName.AWS_TRACE_HEADER, "value3"
-			));
-		assertThat(message.messageAttributes())
-			.hasSize(2)
-			.containsExactlyInAnyOrderEntriesOf(Map.of(
-				"customHeaderString", MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING).stringValue("customValueString").build(),
-				"customHeaderNumber", MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.NUMBER + ".java.lang.Integer").stringValue("42").build()
-			));
+		assertThat(message.attributes()).hasSize(3)
+				.containsExactlyInAnyOrderEntriesOf(Map.of(MessageSystemAttributeName.MESSAGE_GROUP_ID, "value1",
+						MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID, "value2",
+						MessageSystemAttributeName.AWS_TRACE_HEADER, "value3"));
+		assertThat(message.messageAttributes()).hasSize(2)
+				.containsExactlyInAnyOrderEntriesOf(Map.of("customHeaderString", MessageAttributeValue.builder()
+						.dataType(MessageAttributeDataTypes.STRING).stringValue("customValueString").build(),
+						"customHeaderNumber",
+						MessageAttributeValue.builder()
+								.dataType(MessageAttributeDataTypes.NUMBER + ".java.lang.Integer").stringValue("42")
+								.build()));
 	}
 
 	@ParameterizedTest

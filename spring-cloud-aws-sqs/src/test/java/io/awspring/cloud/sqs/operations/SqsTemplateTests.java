@@ -1196,19 +1196,16 @@ class SqsTemplateTests {
 		String queue = "test-queue";
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(urlResponse));
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
 		mockQueueAttributes(mockClient, Map.of());
 		SendMessageResponse response = SendMessageResponse.builder().messageId(UUID.randomUUID().toString())
-			.sequenceNumber("123").build();
+				.sequenceNumber("123").build();
 		given(mockClient.sendMessage(any(SendMessageRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(response));
+				.willReturn(CompletableFuture.completedFuture(response));
 
 		SqsOperations sqsOperations = SqsTemplate.newSyncTemplate(mockClient);
-		SendResult<Object> result = sqsOperations.send(options -> options
-			.queue(queue)
-			.header(SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER, "abc")
-			.payload("test")
-		);
+		SendResult<Object> result = sqsOperations.send(options -> options.queue(queue)
+				.header(SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER, "abc").payload("test"));
 
 		assertThat(result).isNotNull();
 
@@ -1217,9 +1214,8 @@ class SqsTemplateTests {
 		SendMessageRequest sendMessageRequest = captor.getValue();
 
 		assertThat(sendMessageRequest.messageSystemAttributes()).hasEntrySatisfying(
-			MessageSystemAttributeNameForSends.AWS_TRACE_HEADER,
-			value -> assertThat(value.stringValue()).isEqualTo("abc")
-		);
+				MessageSystemAttributeNameForSends.AWS_TRACE_HEADER,
+				value -> assertThat(value.stringValue()).isEqualTo("abc"));
 	}
 
 }

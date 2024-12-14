@@ -20,9 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import net.bytebuddy.utility.RandomString;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +29,7 @@ import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import net.bytebuddy.utility.RandomString;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -342,7 +340,8 @@ class S3TemplateIntegrationTests {
 			byte[] contentBytes = content.getBytes(StandardCharsets.UTF_8);
 			byte[] mdBytes = md.digest(contentBytes);
 			return Base64.getEncoder().encodeToString(mdBytes);
-		} catch (Exception exception) {
+		}
+		catch (Exception exception) {
 			throw new RuntimeException("Failed to calculate Content-MD5", exception);
 		}
 	}

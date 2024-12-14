@@ -454,9 +454,11 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private Map<MessageSystemAttributeNameForSends, MessageSystemAttributeValue> mapMessageSystemAttributes(
 			Message message) {
 		return message.attributes().entrySet().stream().filter(Predicate.not(entry -> isSkipAttribute(entry.getKey())))
-				.collect(Collectors.toMap(entry -> MessageSystemAttributeNameForSends.fromValue(entry.getKey().toString()),
-						entry -> MessageSystemAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
-								.stringValue(entry.getValue()).build()));
+				.collect(Collectors
+						.toMap(entry -> MessageSystemAttributeNameForSends.fromValue(entry.getKey().toString()),
+								entry -> MessageSystemAttributeValue.builder()
+										.dataType(MessageAttributeDataTypes.STRING).stringValue(entry.getValue())
+										.build()));
 	}
 
 	private boolean isSkipAttribute(MessageSystemAttributeName name) {
@@ -605,7 +607,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 				.waitTimeSeconds(toInt(pollTimeout.toSeconds()));
 		if (additionalHeaders.containsKey(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER)) {
 			builder.visibilityTimeout(
-				toInt(getValueAs(additionalHeaders, SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, Duration.class)
+					toInt(getValueAs(additionalHeaders, SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, Duration.class)
 							.toSeconds()));
 		}
 		if (additionalHeaders.containsKey(SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER)) {
