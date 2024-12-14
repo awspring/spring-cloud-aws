@@ -81,7 +81,7 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		}
 		if (headers.containsKey(SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER)) {
 			attributes.put(MessageSystemAttributeName.AWS_TRACE_HEADER,
-				headers.get(SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER, String.class));
+					headers.get(SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER, String.class));
 		}
 		Map<String, MessageAttributeValue> messageAttributes = headers.entrySet().stream()
 				.filter(entry -> !isSkipHeader(entry.getKey())).collect(Collectors.toMap(Map.Entry::getKey,
