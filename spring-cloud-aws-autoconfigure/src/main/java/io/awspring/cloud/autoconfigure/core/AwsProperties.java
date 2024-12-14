@@ -53,7 +53,11 @@ public class AwsProperties {
 	private DefaultsMode defaultsMode;
 
 	/**
-	 * Configure whether the SDK should use the AWS dualstack endpoint.
+	 * Configure whether the SDK should use the AWS dualstack endpoint. Note that not each AWS service supports
+	 * dual-stack. For complete list check
+	 * <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support
+	 * IPv6</a> If you intend to use dual stack only on specific service, consider configuring dual stack through
+	 * `spring.cloud.aws.<service-name>.dualstack-enabled` property.
 	 */
 	@Nullable
 	private Boolean dualstackEnabled;
