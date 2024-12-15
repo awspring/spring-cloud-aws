@@ -32,6 +32,7 @@ import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLogFactory;
+import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
@@ -48,6 +49,8 @@ public class ParameterStoreConfigDataLocationResolver
 	 */
 	public static final String PREFIX = "aws-parameterstore:";
 
+	private boolean registered = false;
+
 	private final Log log;
 
 	public ParameterStoreConfigDataLocationResolver(DeferredLogFactory deferredLogFactory) {
@@ -63,26 +66,19 @@ public class ParameterStoreConfigDataLocationResolver
 	public List<ParameterStoreConfigDataResource> resolveProfileSpecific(
 			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
 			throws ConfigDataLocationNotFoundException {
+		return resolveLocations(resolverContext, location, profiles);
+	}
+
+	private List<ParameterStoreConfigDataResource> resolveLocations(ConfigDataLocationResolverContext resolverContext,
+			ConfigDataLocation location, @Nullable Profiles profiles) {
 		var properties = loadProperties(resolverContext.getBinder());
 		List<ParameterStoreConfigDataResource> locations = new ArrayList<>();
 		ParameterStorePropertySources sources = new ParameterStorePropertySources();
 		List<String> contexts = getCustomContexts(location.getNonPrefixedValue(PREFIX));
 
 		if (properties.isEnabled()) {
-			registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
-			registerBean(resolverContext, ParameterStoreProperties.class, properties);
-			registerBean(resolverContext, CredentialsProperties.class,
-					loadCredentialsProperties(resolverContext.getBinder()));
-			registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
-
-			registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
-			contexts.forEach(propertySourceContext -> locations
-					.add(new ParameterStoreConfigDataResource(propertySourceContext, location.isOptional(), sources)));
-
-			if (!location.isOptional() && locations.isEmpty()) {
-				throw new ParameterStoreKeysMissingException(
-						"No Parameter Store keys provided in `spring.config.import=aws-parameterstore:` configuration.");
-			}
+			registerBeans(resolverContext, properties);
+			populateContext(location, contexts, locations, sources, profiles);
 		}
 		else {
 			// create dummy resources with enabled flag set to false,
@@ -92,6 +88,44 @@ public class ParameterStoreConfigDataLocationResolver
 							location.isOptional(), false, sources)));
 		}
 		return locations;
+	}
+
+	private static void populateContext(ConfigDataLocation location, List<String> contexts,
+			List<ParameterStoreConfigDataResource> locations, ParameterStorePropertySources sources,
+			@Nullable Profiles profiles) {
+		if (profiles != null) {
+			for (String profile : profiles) {
+				populate(location, contexts, locations, sources, profile);
+			}
+		}
+		else {
+			populate(location, contexts, locations, sources, null);
+		}
+	}
+
+	private static void populate(ConfigDataLocation location, List<String> contexts,
+			List<ParameterStoreConfigDataResource> locations, ParameterStorePropertySources sources,
+			@Nullable String profile) {
+		contexts.forEach(
+				propertySourceContext -> locations.add(new ParameterStoreConfigDataResource(propertySourceContext,
+						location.isOptional(), true, sources, profile)));
+		if (!location.isOptional() && locations.isEmpty()) {
+			throw new ParameterStoreKeysMissingException(
+					"No Parameter Store keys provided in `spring.config.import=aws-parameterstore:` configuration.");
+		}
+	}
+
+	void registerBeans(ConfigDataLocationResolverContext resolverContext, ParameterStoreProperties properties) {
+		if (!registered) {
+			registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
+			registerBean(resolverContext, ParameterStoreProperties.class, properties);
+			registerBean(resolverContext, CredentialsProperties.class,
+					loadCredentialsProperties(resolverContext.getBinder()));
+			registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
+
+			registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
+			registered = true;
+		}
 	}
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {

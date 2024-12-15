@@ -32,6 +32,8 @@ public class ParameterStoreConfigDataResource extends ConfigDataResource {
 
 	private final boolean optional;
 
+	private final String profile;
+
 	/**
 	 * If resource should be resolved. This flag has the same value as {@link ParameterStoreProperties#isEnabled()}.
 	 */
@@ -40,16 +42,26 @@ public class ParameterStoreConfigDataResource extends ConfigDataResource {
 	private final ParameterStorePropertySources propertySources;
 
 	public ParameterStoreConfigDataResource(String context, boolean optional, boolean enabled,
-			ParameterStorePropertySources propertySources) {
+			ParameterStorePropertySources propertySources, String profile) {
 		this.context = context;
 		this.optional = optional;
 		this.enabled = enabled;
 		this.propertySources = propertySources;
+		this.profile = profile;
+	}
+
+	public ParameterStoreConfigDataResource(String context, boolean optional, boolean enabled,
+			ParameterStorePropertySources propertySources) {
+		this(context, optional, enabled, propertySources, null);
 	}
 
 	public ParameterStoreConfigDataResource(String context, boolean optional,
 			ParameterStorePropertySources propertySources) {
 		this(context, optional, true, propertySources);
+	}
+
+	public String getProfile() {
+		return profile;
 	}
 
 	/**

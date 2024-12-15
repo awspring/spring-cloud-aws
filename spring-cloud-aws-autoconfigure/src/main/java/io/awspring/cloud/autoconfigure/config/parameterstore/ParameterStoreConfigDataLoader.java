@@ -44,10 +44,18 @@ public class ParameterStoreConfigDataLoader implements ConfigDataLoader<Paramete
 				"io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStorePropertySources");
 	}
 
+	private static final ConfigData.PropertySourceOptions PROFILE_SPECIFIC = ConfigData.PropertySourceOptions
+			.always(ConfigData.Option.PROFILE_SPECIFIC);
+
+	private static final ConfigData.PropertySourceOptions NON_PROFILE_SPECIFIC = ConfigData.PropertySourceOptions.ALWAYS_NONE;
+
 	@Override
 	@Nullable
 	public ConfigData load(ConfigDataLoaderContext context, ParameterStoreConfigDataResource resource) {
 		try {
+
+			ConfigData.PropertySourceOptions options = (resource.getProfile() != null) ? PROFILE_SPECIFIC
+					: NON_PROFILE_SPECIFIC;
 			// resource is disabled if parameter store integration is disabled via
 			// spring.cloud.aws.parameterstore.enabled=false
 			if (resource.isEnabled()) {
@@ -55,7 +63,7 @@ public class ParameterStoreConfigDataLoader implements ConfigDataLoader<Paramete
 				ParameterStorePropertySource propertySource = resource.getPropertySources()
 						.createPropertySource(resource.getContext(), resource.isOptional(), ssm);
 				if (propertySource != null) {
-					return new ConfigData(Collections.singletonList(propertySource));
+					return new ConfigData(Collections.singletonList(propertySource), options);
 				}
 				else {
 					return null;
@@ -64,7 +72,8 @@ public class ParameterStoreConfigDataLoader implements ConfigDataLoader<Paramete
 			else {
 				// create dummy empty config data
 				return new ConfigData(
-						Collections.singletonList(new MapPropertySource("aws-parameterstore:" + context, Map.of())));
+						Collections.singletonList(new MapPropertySource("aws-parameterstore:" + context, Map.of())),
+						options);
 			}
 		}
 		catch (Exception e) {
