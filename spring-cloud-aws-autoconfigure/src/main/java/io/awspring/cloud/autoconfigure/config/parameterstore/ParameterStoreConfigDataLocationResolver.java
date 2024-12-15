@@ -49,8 +49,6 @@ public class ParameterStoreConfigDataLocationResolver
 	 */
 	public static final String PREFIX = "aws-parameterstore:";
 
-	private boolean registered = false;
-
 	private final Log log;
 
 	public ParameterStoreConfigDataLocationResolver(DeferredLogFactory deferredLogFactory) {
@@ -116,7 +114,6 @@ public class ParameterStoreConfigDataLocationResolver
 	}
 
 	void registerBeans(ConfigDataLocationResolverContext resolverContext, ParameterStoreProperties properties) {
-		if (!registered) {
 			registerBean(resolverContext, AwsProperties.class, loadAwsProperties(resolverContext.getBinder()));
 			registerBean(resolverContext, ParameterStoreProperties.class, properties);
 			registerBean(resolverContext, CredentialsProperties.class,
@@ -124,8 +121,6 @@ public class ParameterStoreConfigDataLocationResolver
 			registerBean(resolverContext, RegionProperties.class, loadRegionProperties(resolverContext.getBinder()));
 
 			registerAndPromoteBean(resolverContext, SsmClient.class, this::createSimpleSystemManagementClient);
-			registered = true;
-		}
 	}
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
