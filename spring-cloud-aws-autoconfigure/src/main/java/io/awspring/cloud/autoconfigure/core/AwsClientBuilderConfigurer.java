@@ -94,6 +94,9 @@ public class AwsClientBuilderConfigurer {
 		Optional.ofNullable(this.awsProperties.getDefaultsMode()).ifPresent(builder::defaultsMode);
 		Optional.ofNullable(this.awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
 		Optional.ofNullable(this.awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
+		Optional.ofNullable(clientProperties).flatMap(it -> Optional.ofNullable(clientProperties.getDualstackEnabled()))
+				.ifPresent(builder::dualstackEnabled);
+
 		if (customizer != null) {
 			io.awspring.cloud.autoconfigure.core.AwsClientCustomizer.apply(customizer, builder);
 		}

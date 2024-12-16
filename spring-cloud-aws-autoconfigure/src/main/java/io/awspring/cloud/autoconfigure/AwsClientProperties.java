@@ -37,6 +37,15 @@ public abstract class AwsClientProperties {
 	@Nullable
 	private String region;
 
+	/**
+	 * Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports
+	 * dual-stack. For complete list check
+	 * <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support
+	 * IPv6</a>
+	 */
+	@Nullable
+	private Boolean dualstackEnabled;
+
 	@Nullable
 	public URI getEndpoint() {
 		return this.endpoint;
@@ -53,5 +62,14 @@ public abstract class AwsClientProperties {
 
 	public void setRegion(String region) {
 		this.region = region;
+	}
+
+	@Nullable
+	public Boolean getDualstackEnabled() {
+		return dualstackEnabled;
+	}
+
+	public void setDualstackEnabled(@Nullable Boolean dualstackEnabled) {
+		this.dualstackEnabled = dualstackEnabled;
 	}
 }

@@ -287,6 +287,25 @@ class S3AutoConfigurationTests {
 				});
 	}
 
+	@Test
+	void setsS3SpecificDualStackProperty() {
+		contextRunner.withPropertyValues("spring.cloud.aws.s3.dualstack-enabled:true").run(context -> {
+			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+			assertThat(client.getDualstackEnabled()).isTrue();
+		});
+	}
+
+	@Test
+	void s3SpecificDualStackOverwritesGlobalDualStack() {
+		contextRunner.withPropertyValues("spring.cloud.aws.dualstack-enabled:true",
+				"spring.cloud.aws.s3.dualstack-enabled:false").run(context -> {
+					S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+					ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+					assertThat(client.getDualstackEnabled()).isFalse();
+				});
+	}
+
 	@Nested
 	class S3PresignerAutoConfigurationTests {
 

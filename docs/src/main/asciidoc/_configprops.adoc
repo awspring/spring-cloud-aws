@@ -1,6 +1,7 @@
 |===
 |Name | Default | Description
 
+|spring.cloud.aws.cloudwatch.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.cloudwatch.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.cloudwatch.region |  | Overrides the default region.
 |spring.cloud.aws.credentials.access-key |  | The access key to be used with a static provider.
@@ -13,7 +14,7 @@
 |spring.cloud.aws.credentials.sts.role-session-name |  | Role session name that will be used by credentials provider. By default this is read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 |spring.cloud.aws.credentials.sts.web-identity-token-file |  | Absolute path to the web identity token file that will be used by credentials provider. By default this will be read from {@link software.amazon.awssdk.core.SdkSystemSetting}.
 |spring.cloud.aws.defaults-mode |  | Sets the {@link DefaultsMode} that will be used to determine how certain default configuration options are resolved in the SDK. <a href= "https://aws.amazon.com/blogs/developer/introducing-smart-configuration-defaults-in-the-aws-sdk-for-java-v2/">Introducing Smart Configuration Defaults in the AWS SDK for Java v2</a>
-|spring.cloud.aws.dualstack-enabled |  | Configure whether the SDK should use the AWS dualstack endpoint.
+|spring.cloud.aws.dualstack-enabled |  | Configure whether the SDK should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a> If you intend to use dual stack only on specific service, consider configuring dual stack through `spring.cloud.aws.<service-name>.dualstack-enabled` property.
 |spring.cloud.aws.dynamodb.dax.cluster-update-interval-millis |  | Interval between polling of cluster members for membership changes.
 |spring.cloud.aws.dynamodb.dax.connect-timeout-millis |  | Connection timeout.
 |spring.cloud.aws.dynamodb.dax.connection-ttl-millis |  | Connection time to live.
@@ -26,6 +27,7 @@
 |spring.cloud.aws.dynamodb.dax.skip-host-name-verification |  | Skips hostname verification in url.
 |spring.cloud.aws.dynamodb.dax.url |  | DAX cluster endpoint.
 |spring.cloud.aws.dynamodb.dax.write-retries |  | Number of times to retry writes, initial try is not counted.
+|spring.cloud.aws.dynamodb.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.dynamodb.enabled | `+++true+++` | Enables DynamoDb integration.
 |spring.cloud.aws.dynamodb.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.dynamodb.region |  | Overrides the default region.
@@ -33,6 +35,7 @@
 |spring.cloud.aws.dynamodb.table-suffix |  | The suffix used to resolve table names.
 |spring.cloud.aws.endpoint |  | Overrides the default endpoint for all auto-configured AWS clients.
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
+|spring.cloud.aws.parameterstore.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.parameterstore.enabled | `+++true+++` | Enables ParameterStore integration.
 |spring.cloud.aws.parameterstore.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.parameterstore.region |  | Overrides the default region.
@@ -55,6 +58,7 @@
 |spring.cloud.aws.s3.crt.max-concurrency |  | Specifies the maximum number of S3 connections that should be established during transfer.
 |spring.cloud.aws.s3.crt.minimum-part-size-in-bytes |  | Sets the minimum part size for transfer parts. Decreasing the minimum part size causes multipart transfer to be split into a larger number of smaller parts. Setting this value too low has a negative effect on transfer speeds, causing extra latency and network communication for each part.
 |spring.cloud.aws.s3.crt.target-throughput-in-gbps |  | The target throughput for transfer requests. Higher value means more S3 connections will be opened. Whether the transfer manager can achieve the configured target throughput depends on various factors such as the network bandwidth of the environment and the configured `max-concurrency`.
+|spring.cloud.aws.s3.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.s3.enabled | `+++true+++` | Enables S3 integration.
 |spring.cloud.aws.s3.encryption.enable-delayed-authentication-mode | `+++false+++` | 
 |spring.cloud.aws.s3.encryption.enable-legacy-unauthenticated-modes | `+++false+++` | 
@@ -67,6 +71,7 @@
 |spring.cloud.aws.s3.transfer-manager.follow-symbolic-links |  | Specifies whether to follow symbolic links when traversing the file tree in `S3TransferManager#uploadDirectory` operation.
 |spring.cloud.aws.s3.transfer-manager.max-depth |  | Specifies the maximum number of levels of directories to visit in `S3TransferManager#uploadDirectory` operation.
 |spring.cloud.aws.s3.use-arn-region-enabled |  | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown.
+|spring.cloud.aws.secretsmanager.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.secretsmanager.enabled | `+++true+++` | Enables Secrets Manager integration.
 |spring.cloud.aws.secretsmanager.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.secretsmanager.region |  | Overrides the default region.
@@ -74,14 +79,17 @@
 |spring.cloud.aws.secretsmanager.reload.period | `+++1m+++` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
 |spring.cloud.aws.secretsmanager.reload.strategy |  | Reload strategy to run when properties change.
 |spring.cloud.aws.ses.configuration-set-name |  | Configures configuration set name.
+|spring.cloud.aws.ses.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.ses.enabled | `+++true+++` | Enables Simple Email Service integration.
 |spring.cloud.aws.ses.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.ses.from-arn |  | Configures from ARN. Only applies to SendRawEmail operation.
 |spring.cloud.aws.ses.region |  | Overrides the default region.
 |spring.cloud.aws.ses.source-arn |  | Configures source ARN. Used only for sending authorization.
+|spring.cloud.aws.sns.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.sns.enabled | `+++true+++` | Enables SNS integration.
 |spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sns.region |  | Overrides the default region.
+|spring.cloud.aws.sqs.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.sqs.enabled | `+++true+++` | Enables SQS integration.
 |spring.cloud.aws.sqs.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sqs.listener.max-concurrent-messages |  | The maximum concurrent messages that can be processed simultaneously for each queue. Note that if acknowledgement batching is being used, the actual maximum number of messages inflight might be higher.
