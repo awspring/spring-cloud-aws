@@ -16,8 +16,10 @@
 package io.awspring.cloud.autoconfigure.config;
 
 import io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStorePropertySources;
+import io.awspring.cloud.autoconfigure.config.s3.S3PropertySources;
 import io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerPropertySources;
 import io.awspring.cloud.parameterstore.ParameterStorePropertySource;
+import io.awspring.cloud.s3.config.S3PropertySource;
 import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
@@ -48,5 +50,14 @@ public class ConfigStoreRuntimeHints implements RuntimeHintsRegistrar {
 							MemberCategory.INTROSPECT_DECLARED_METHODS, MemberCategory.DECLARED_FIELDS));
 		}
 
+		if (ClassUtils.isPresent("io.awspring.cloud.s3.S3PropertySource", classLoader)) {
+			hints.reflection().registerType(TypeReference.of(S3PropertySources.class),
+				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+					MemberCategory.INTROSPECT_DECLARED_METHODS, MemberCategory.DECLARED_FIELDS));
+
+			hints.reflection().registerType(TypeReference.of(S3PropertySource.class),
+				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+					MemberCategory.INTROSPECT_DECLARED_METHODS, MemberCategory.DECLARED_FIELDS));
+		}
 	}
 }
