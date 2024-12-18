@@ -30,9 +30,11 @@ import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
+import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
 import org.springframework.boot.context.config.ConfigDataLocationResolver;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
 import org.springframework.boot.context.config.ConfigDataResource;
+import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -58,6 +60,12 @@ public abstract class AbstractAwsConfigDataLocationResolver<T extends ConfigData
 	@Override
 	public boolean isResolvable(ConfigDataLocationResolverContext context, ConfigDataLocation location) {
 		return location.hasPrefix(getPrefix());
+	}
+
+	@Override
+	public List<T> resolve(ConfigDataLocationResolverContext context, ConfigDataLocation location)
+			throws ConfigDataLocationNotFoundException, ConfigDataResourceNotFoundException {
+		return Collections.emptyList();
 	}
 
 	protected <C> void registerAndPromoteBean(ConfigDataLocationResolverContext context, Class<C> type,

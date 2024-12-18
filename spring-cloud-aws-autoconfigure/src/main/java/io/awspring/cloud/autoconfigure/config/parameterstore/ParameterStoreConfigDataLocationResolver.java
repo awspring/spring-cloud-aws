@@ -28,6 +28,7 @@ import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
+import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLogFactory;
@@ -59,8 +60,9 @@ public class ParameterStoreConfigDataLocationResolver
 	}
 
 	@Override
-	public List<ParameterStoreConfigDataResource> resolve(ConfigDataLocationResolverContext resolverContext,
-			ConfigDataLocation location) throws ConfigDataLocationNotFoundException {
+	public List<ParameterStoreConfigDataResource> resolveProfileSpecific(
+			ConfigDataLocationResolverContext resolverContext, ConfigDataLocation location, Profiles profiles)
+			throws ConfigDataLocationNotFoundException {
 		var properties = loadProperties(resolverContext.getBinder());
 		List<ParameterStoreConfigDataResource> locations = new ArrayList<>();
 		ParameterStorePropertySources sources = new ParameterStorePropertySources();
