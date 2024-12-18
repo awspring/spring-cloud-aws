@@ -120,6 +120,12 @@ public class ObjectMetadata {
 	@Nullable
 	private final String contentMD5;
 
+	@Nullable
+	private final Long writeOffsetBytes;
+
+	@Nullable
+	private final String ifMatch;
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -134,7 +140,8 @@ public class ObjectMetadata {
 			@Nullable String ssekmsKeyId, @Nullable String ssekmsEncryptionContext, @Nullable Boolean bucketKeyEnabled,
 			@Nullable String requestPayer, @Nullable String tagging, @Nullable String objectLockMode,
 			@Nullable Instant objectLockRetainUntilDate, @Nullable String objectLockLegalHoldStatus,
-			@Nullable String expectedBucketOwner, @Nullable String checksumAlgorithm, @Nullable String contentMD5) {
+			@Nullable String expectedBucketOwner, @Nullable String checksumAlgorithm, @Nullable String contentMD5,
+			@Nullable Long writeOffsetBytes, @Nullable String ifMatch) {
 		this.acl = acl;
 		this.cacheControl = cacheControl;
 		this.contentDisposition = contentDisposition;
@@ -165,6 +172,8 @@ public class ObjectMetadata {
 		this.expectedBucketOwner = expectedBucketOwner;
 		this.checksumAlgorithm = checksumAlgorithm;
 		this.contentMD5 = contentMD5;
+		this.ifMatch = ifMatch;
+		this.writeOffsetBytes = writeOffsetBytes;
 	}
 
 	void apply(PutObjectRequest.Builder builder) {
@@ -257,6 +266,12 @@ public class ObjectMetadata {
 		}
 		if (contentMD5 != null) {
 			builder.contentMD5(contentMD5);
+		}
+		if (writeOffsetBytes != null) {
+			builder.writeOffsetBytes(writeOffsetBytes);
+		}
+		if (ifMatch != null) {
+			builder.ifMatch(ifMatch);
 		}
 	}
 
@@ -383,6 +398,9 @@ public class ObjectMetadata {
 		}
 		if (expectedBucketOwner != null) {
 			builder.expectedBucketOwner(expectedBucketOwner);
+		}
+		if (ifMatch != null) {
+			builder.ifMatch(ifMatch);
 		}
 	}
 
@@ -627,6 +645,12 @@ public class ObjectMetadata {
 		@Nullable
 		private String contentMD5;
 
+		@Nullable
+		private Long writeOffsetBytes;
+
+		@Nullable
+		private String ifMatch;
+
 		public Builder acl(@Nullable String acl) {
 			this.acl = acl;
 			return this;
@@ -806,13 +830,23 @@ public class ObjectMetadata {
 			return this;
 		}
 
+		public Builder ifMatch(@Nullable String ifMatch) {
+			this.ifMatch = ifMatch;
+			return this;
+		}
+
+		public Builder writeOffsetBytes(@Nullable Long writeOffsetBytes) {
+			this.writeOffsetBytes = writeOffsetBytes;
+			return this;
+		}
+
 		public ObjectMetadata build() {
 			return new ObjectMetadata(acl, cacheControl, contentDisposition, contentEncoding, contentLanguage,
 					contentType, contentLength, expires, grantFullControl, grantRead, grantReadACP, grantWriteACP,
 					metadata, serverSideEncryption, storageClass, websiteRedirectLocation, sseCustomerAlgorithm,
 					sseCustomerKey, sseCustomerKeyMD5, ssekmsKeyId, ssekmsEncryptionContext, bucketKeyEnabled,
 					requestPayer, tagging, objectLockMode, objectLockRetainUntilDate, objectLockLegalHoldStatus,
-					expectedBucketOwner, checksumAlgorithm, contentMD5);
+					expectedBucketOwner, checksumAlgorithm, contentMD5, writeOffsetBytes, ifMatch);
 		}
 
 	}
