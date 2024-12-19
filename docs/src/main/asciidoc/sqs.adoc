@@ -639,6 +639,29 @@ public void listen(@SnsNotificationMessage List<Pojo> pojos) {
 }
 ----
 
+==== EventBridge Messages
+
+Since 3.3.0, similar to the @SnsNotificationMessage, there is also a @EventBridgeMessage annotation that can be used to receive EventBridge messages. To only receive the `detail` part of the payload, you can utilize the `@EventBridgeMessage` annotation.
+As with @SnsNotificationMessage, this supports both individual messages, or lists.
+
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(@EventBridgeMessage Pojo pojo) {
+	System.out.println(pojo.field);
+}
+----
+
+For batch message processing, use the @EventBridgeMessage annotation with a List<Pojo> parameter.
+
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(@EventBridgeMessage List<Pojo> pojos) {
+	System.out.println(pojos.size());
+}
+----
+
 ===== Specifying a MessageListenerContainerFactory
 A `MessageListenerContainerFactory` can be specified through the `factory` property.
 Such factory will then be used to create the container for the annotated method.
