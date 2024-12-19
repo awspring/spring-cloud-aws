@@ -17,6 +17,7 @@ package io.awspring.cloud.modulith.events.sns;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.*;
+import static org.springframework.modulith.events.EventExternalizationConfiguration.*;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.modulith.events.EventExternalizationConfiguration;
 import org.springframework.modulith.events.Externalized;
 import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,6 +80,13 @@ class SnsEventPublicationIntegrationTests {
 		TestListener testListener() {
 			return new TestListener();
 		}
+
+		@Bean
+		EventExternalizationConfiguration eventExternalizationConfiguration() {
+
+			return externalizing().select(annotatedAsExternalized())
+					.headers(Object.class, __ -> Map.of("testKey", "testValue")).build();
+		}
 	}
 
 	@Test // GH-344
@@ -100,6 +109,13 @@ class SnsEventPublicationIntegrationTests {
 			var response = sqsAsyncClient.receiveMessage(r -> r.queueUrl(queueUrl)).join();
 
 			assertThat(response.hasMessages()).isTrue();
+
+			// Assert header added
+
+			// assertThat(response.messages())
+			// .extracting(Message::attributesAsStrings) // headers is not attributes?
+			// .extracting(it -> it.get("testKey"))
+			// .containsExactly("testValue");
 		});
 	}
 
