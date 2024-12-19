@@ -1,0 +1,17 @@
+{
+	"version": "0",
+	"id": "17793124-05d4-b198-2fde-7ededc63b103",
+	"detail-type": "TestPojo",
+	"source": "TestService",
+	"account": "123456789012",
+	"time": "2017-01-12T22:37:39Z",
+	"region": "eu-north-1",
+	"resources": [],
+	"detail": {
+		"specversion": "1.0.2",
+		"data": {
+			"firstField": "pojoEventMessage",
+			"secondField": "secondValue"
+		}
+	}
+}
