@@ -28,6 +28,7 @@ import io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration;
 import io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -40,9 +41,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+
+import java.time.Duration;
 
 @SpringJUnitConfig
 @Testcontainers(disabledWithoutDocker = true)
@@ -86,6 +91,14 @@ class AwsContainerConnectionDetailsFactoryTest {
 	@Test
 	void configuresS3ClientWithServiceConnection(@Autowired S3Client client) {
 		assertThatCode(client::listBuckets).doesNotThrowAnyException();
+	}
+
+	@Test
+	@Disabled
+	void configuresS3PresignerWithServiceConnection(@Autowired S3Presigner s3Presigner) {
+		assertThatCode(() -> s3Presigner.presignGetObject(req1 -> req1.signatureDuration(Duration.ofSeconds(2))
+			.getObjectRequest(req2 -> req2.bucket("my-bucket").build())))
+			.doesNotThrowAnyException();
 	}
 
 	@Configuration(proxyBeanMethods = false)

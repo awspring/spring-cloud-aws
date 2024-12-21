@@ -110,12 +110,9 @@ public class S3AutoConfiguration {
 				.credentialsProvider(credentialsProvider).region(AwsClientBuilderConfigurer.resolveRegion(properties,
 						connectionDetails.getIfAvailable(), regionProvider));
 
-		if (properties.getEndpoint() != null) {
-			builder.endpointOverride(properties.getEndpoint());
-		}
-		else if (awsProperties.getEndpoint() != null) {
-			builder.endpointOverride(awsProperties.getEndpoint());
-		}
+		Optional.ofNullable(properties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
+		Optional.ofNullable(connectionDetails.getIfAvailable()).map(AwsConnectionDetails::getEndpoint).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
 		Optional.ofNullable(awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
 		return builder.build();
