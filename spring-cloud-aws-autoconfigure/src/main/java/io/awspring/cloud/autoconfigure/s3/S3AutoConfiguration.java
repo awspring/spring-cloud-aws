@@ -56,6 +56,7 @@ import software.amazon.encryption.s3.S3EncryptionClient;
  *
  * @author Maciej Walkowiak
  * @author Matej Nedic
+ * @author Kunal Varpe
  */
 @AutoConfiguration
 @ConditionalOnClass({ S3Client.class, S3OutputStreamProvider.class })
@@ -110,9 +111,16 @@ public class S3AutoConfiguration {
 				.credentialsProvider(credentialsProvider).region(AwsClientBuilderConfigurer.resolveRegion(properties,
 						connectionDetails.getIfAvailable(), regionProvider));
 
-		Optional.ofNullable(properties.getEndpoint()).ifPresent(builder::endpointOverride);
-		Optional.ofNullable(awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
-		Optional.ofNullable(connectionDetails.getIfAvailable()).map(AwsConnectionDetails::getEndpoint).ifPresent(builder::endpointOverride);
+		if (properties.getEndpoint() != null) {
+			builder.endpointOverride(properties.getEndpoint());
+		}
+		else if (awsProperties.getEndpoint() != null) {
+			builder.endpointOverride(awsProperties.getEndpoint());
+		}
+		else if (connectionDetails.getIfAvailable() != null
+				&& connectionDetails.getIfAvailable().getEndpoint() != null) {
+			builder.endpointOverride(connectionDetails.getIfAvailable().getEndpoint());
+		}
 		Optional.ofNullable(awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
 		Optional.ofNullable(awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
 		return builder.build();
