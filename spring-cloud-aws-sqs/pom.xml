@@ -13,6 +13,10 @@
 	<name>Spring Cloud AWS SQS</name>
 	<description>Spring Cloud AWS Simple Queue Service</description>
 
+	<properties>
+		<apache-commons-lang3.version>3.17.0</apache-commons-lang3.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
@@ -33,6 +37,11 @@
 		<dependency>
 			<groupId>org.springframework.retry</groupId>
 			<artifactId>spring-retry</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${apache-commons-lang3.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
