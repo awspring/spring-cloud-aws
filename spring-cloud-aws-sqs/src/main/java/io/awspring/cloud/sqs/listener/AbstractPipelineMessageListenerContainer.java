@@ -36,6 +36,7 @@ import io.awspring.cloud.sqs.listener.source.AcknowledgementProcessingMessageSou
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -231,17 +232,17 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 
 	protected BackPressureHandler createBackPressureHandler() {
 		O containerOptions = getContainerOptions();
-		BatchAwareBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
-				.batchSize(containerOptions.getMaxMessagesPerPoll())
-				.totalPermits(containerOptions.getMaxConcurrentMessages())
-				.acquireTimeout(containerOptions.getMaxDelayBetweenPolls())
-				.throughputConfiguration(containerOptions.getBackPressureMode()).build();
+		List<BackPressureHandler> backPressureHandlers = new ArrayList<>(2);
+		Duration acquireTimeout = containerOptions.getMaxDelayBetweenPolls();
+		int batchSize = containerOptions.getMaxMessagesPerPoll();
+		backPressureHandlers.add(SemaphoreBackPressureHandler.builder().batchSize(batchSize)
+				.totalPermits(containerOptions.getMaxConcurrentMessages()).acquireTimeout(acquireTimeout)
+				.throughputConfiguration(containerOptions.getBackPressureMode()).build());
 		if (containerOptions.getBackPressureLimiter() != null) {
-			backPressureHandler = new BackPressureHandlerLimiter(backPressureHandler,
-					containerOptions.getBackPressureLimiter(), containerOptions.getStandbyLimitPollingInterval(),
-					containerOptions.getMaxDelayBetweenPolls());
+			backPressureHandlers.add(new BackPressureHandlerLimiter(containerOptions.getBackPressureLimiter(),
+					acquireTimeout, containerOptions.getStandbyLimitPollingInterval(), batchSize));
 		}
-		return backPressureHandler;
+		return new CompositeBackPressureHandler(backPressureHandlers, batchSize);
 	}
 
 	protected TaskExecutor createSourcesTaskExecutor() {

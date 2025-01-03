@@ -27,12 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @see BackPressureLimiter
  */
-public class BackPressureHandlerLimiter implements BatchAwareBackPressureHandler {
-
-	/**
-	 * The {@link BatchAwareBackPressureHandler} which permits should be limited by the {@link #backPressureLimiter}.
-	 */
-	private final BatchAwareBackPressureHandler backPressureHandler;
+public class BackPressureHandlerLimiter implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 
 	/**
 	 * The {@link BackPressureLimiter} which computes a limit on how many permits can be requested at a given moment.
@@ -59,50 +54,54 @@ public class BackPressureHandlerLimiter implements BatchAwareBackPressureHandler
 
 	private final ReducibleSemaphore semaphore = new ReducibleSemaphore(0);
 
-	public BackPressureHandlerLimiter(BatchAwareBackPressureHandler backPressureHandler,
-			BackPressureLimiter backPressureLimiter, Duration standbyLimitPollingInterval, Duration acquireTimeout) {
-		this.backPressureHandler = backPressureHandler;
+	private final int batchSize;
+
+	private String id;
+
+	public BackPressureHandlerLimiter(BackPressureLimiter backPressureLimiter, Duration acquireTimeout,
+			Duration standbyLimitPollingInterval, int batchSize) {
 		this.backPressureLimiter = backPressureLimiter;
 		this.acquireTimeout = acquireTimeout;
 		this.standbyLimitPollingInterval = standbyLimitPollingInterval;
+		this.batchSize = batchSize;
+	}
+
+	@Override
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	@Override
+	public String getId() {
+		return id;
 	}
 
 	@Override
 	public int requestBatch() throws InterruptedException {
-		int permits = updatePermitsLimit();
-		int batchSize = getBatchSize();
-		if (permits < batchSize) {
-			return acquirePermits(permits, backPressureHandler::request);
-		}
-		return acquirePermits(batchSize, p -> backPressureHandler.requestBatch());
-	}
-
-	@Override
-	public void releaseBatch() {
-		semaphore.release(getBatchSize());
-		backPressureHandler.releaseBatch();
-	}
-
-	@Override
-	public int getBatchSize() {
-		return backPressureHandler.getBatchSize();
+		return request(batchSize);
 	}
 
 	@Override
 	public int request(int amount) throws InterruptedException {
 		int permits = Math.min(updatePermitsLimit(), amount);
-		return acquirePermits(permits, backPressureHandler::request);
+		if (permits == 0) {
+			Thread.sleep(standbyLimitPollingInterval.toMillis());
+			return 0;
+		}
+		if (semaphore.tryAcquire(permits, acquireTimeout.toMillis(), TimeUnit.MILLISECONDS)) {
+			return permits;
+		}
+		return 0;
 	}
 
 	@Override
-	public void release(int amount) {
+	public void release(int amount, ReleaseReason reason) {
 		semaphore.release(amount);
-		backPressureHandler.release(amount);
 	}
 
 	@Override
 	public boolean drain(Duration timeout) {
-		return backPressureHandler.drain(timeout);
+		return true;
 	}
 
 	private int updatePermitsLimit() {
@@ -118,25 +117,6 @@ public class BackPressureHandlerLimiter implements BatchAwareBackPressureHandler
 			}
 			return newLimit;
 		});
-	}
-
-	private interface PermitsRequester {
-		int request(int amount) throws InterruptedException;
-	}
-
-	private int acquirePermits(int amount, PermitsRequester permitsRequester) throws InterruptedException {
-		if (amount == 0) {
-			Thread.sleep(standbyLimitPollingInterval.toMillis());
-			return 0;
-		}
-		if (semaphore.tryAcquire(amount, acquireTimeout.toMillis(), TimeUnit.MILLISECONDS)) {
-			int obtained = permitsRequester.request(amount);
-			if (obtained < amount) {
-				semaphore.release(amount - obtained);
-			}
-			return obtained;
-		}
-		return 0;
 	}
 
 	private static class ReducibleSemaphore extends Semaphore {
