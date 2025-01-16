@@ -97,16 +97,14 @@ class SqsEventPublicationIntegrationTests {
 		publisher.publishEvent();
 
 		await().untilAsserted(() -> {
-			var response = sqsAsyncClient.receiveMessage(r -> r.queueUrl(queueUrl).messageAttributeNames("testKey")).join();
+			var response = sqsAsyncClient.receiveMessage(r -> r.queueUrl(queueUrl).messageAttributeNames("testKey"))
+					.join();
 
 			assertThat(response.hasMessages()).isTrue();
 
 			// Assert header added
-			assertThat(response.messages())
-				.extracting(Message::messageAttributes)
-				.extracting(it -> it.get("testKey"))
-				.extracting(MessageAttributeValue::stringValue)
-				.containsExactly("testValue");
+			assertThat(response.messages()).extracting(Message::messageAttributes).extracting(it -> it.get("testKey"))
+					.extracting(MessageAttributeValue::stringValue).containsExactly("testValue");
 		});
 	}
 

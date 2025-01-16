@@ -102,21 +102,20 @@ class SnsEventPublicationIntegrationTests {
 				.getQueueAttributes(r -> r.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN)).join()
 				.attributes().get(QueueAttributeName.QUEUE_ARN);
 
-		snsClient.subscribe(r -> r.attributes(Map.of("RawMessageDelivery", "true")).topicArn(topicArn).protocol("sqs").endpoint(queueArn));
+		snsClient.subscribe(r -> r.attributes(Map.of("RawMessageDelivery", "true")).topicArn(topicArn).protocol("sqs")
+				.endpoint(queueArn));
 
 		publisher.publishEvent();
 
 		await().untilAsserted(() -> {
-			var response = sqsAsyncClient.receiveMessage(r -> r.queueUrl(queueUrl).messageAttributeNames("testKey")).join();
+			var response = sqsAsyncClient.receiveMessage(r -> r.queueUrl(queueUrl).messageAttributeNames("testKey"))
+					.join();
 
 			assertThat(response.hasMessages()).isTrue();
 
 			// Assert header added
-			assertThat(response.messages())
-				.extracting(Message::messageAttributes)
-				.extracting(it -> it.get("testKey"))
-				.extracting(MessageAttributeValue::stringValue)
-				.containsExactly("testValue");
+			assertThat(response.messages()).extracting(Message::messageAttributes).extracting(it -> it.get("testKey"))
+					.extracting(MessageAttributeValue::stringValue).containsExactly("testValue");
 		});
 	}
 
