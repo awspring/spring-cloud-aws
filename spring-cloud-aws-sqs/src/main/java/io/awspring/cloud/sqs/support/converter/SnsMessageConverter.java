@@ -38,48 +38,20 @@ import org.springframework.util.Assert;
  * @author Wei Jiang
  * @since 3.1.1
  */
-public class SnsMessageConverter implements SmartMessageConverter {
-
-	private final ObjectMapper jsonMapper;
-
-	private final MessageConverter payloadConverter;
+public class SnsMessageConverter extends WrappedMessageConverter {
+	private static final String WRITING_CONVERSION_ERROR = "This converter only supports reading a SNS notification and not writing them";
 
 	public SnsMessageConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
-		Assert.notNull(payloadConverter, "payloadConverter must not be null");
-		Assert.notNull(jsonMapper, "jsonMapper must not be null");
-		this.payloadConverter = payloadConverter;
-		this.jsonMapper = jsonMapper;
+		super(payloadConverter, jsonMapper);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public Object fromMessage(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint) {
-		Assert.notNull(message, "message must not be null");
-		Assert.notNull(targetClass, "target class must not be null");
-
-		Object payload = message.getPayload();
-
-		if (payload instanceof List messages) {
-			return fromGenericMessages(messages, targetClass, conversionHint);
-		}
-		else {
-			return fromGenericMessage((GenericMessage<?>) message, targetClass, conversionHint);
-		}
+	protected String getWritingConversionErrorMessage() {
+		return WRITING_CONVERSION_ERROR;
 	}
 
-	private Object fromGenericMessages(List<GenericMessage<?>> messages, Class<?> targetClass,
-			@Nullable Object conversionHint) {
-		Type resolvedType = getResolvedType(targetClass, conversionHint);
-		Class<?> resolvedClazz = ResolvableType.forType(resolvedType).resolve();
-
-		Object hint = targetClass.isAssignableFrom(List.class) && conversionHint instanceof MethodParameter mp
-				? mp.nested()
-				: conversionHint;
-
-		return messages.stream().map(message -> fromGenericMessage(message, resolvedClazz, hint)).toList();
-	}
-
-	private Object fromGenericMessage(GenericMessage<?> message, Class<?> targetClass,
+	@Override
+	protected Object fromGenericMessage(GenericMessage<?> message, Class<?> targetClass,
 			@Nullable Object conversionHint) {
 		JsonNode jsonNode;
 		try {
@@ -111,41 +83,4 @@ public class SnsMessageConverter implements SmartMessageConverter {
 				: this.payloadConverter.fromMessage(genericMessage, targetClass);
 		return convertedMessage;
 	}
-
-	@Override
-	public Object fromMessage(Message<?> message, Class<?> targetClass) {
-		return fromMessage(message, targetClass, null);
-	}
-
-	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers) {
-		throw new UnsupportedOperationException(
-				"This converter only supports reading a SNS notification and not writing them");
-	}
-
-	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers, Object conversionHint) {
-		throw new UnsupportedOperationException(
-				"This converter only supports reading a SNS notification and not writing them");
-	}
-
-	private static Type getResolvedType(Class<?> targetClass, @Nullable Object conversionHint) {
-		if (conversionHint instanceof MethodParameter param) {
-			param = param.nestedIfOptional();
-			if (Message.class.isAssignableFrom(param.getParameterType())) {
-				param = param.nested();
-			}
-			Type genericParameterType = param.getNestedGenericParameterType();
-			Class<?> contextClass = param.getContainingClass();
-			Type resolveType = GenericTypeResolver.resolveType(genericParameterType, contextClass);
-			if (resolveType instanceof ParameterizedType parameterizedType) {
-				return parameterizedType.getActualTypeArguments()[0];
-			}
-			else {
-				return resolveType;
-			}
-		}
-		return targetClass;
-	}
-
 }
