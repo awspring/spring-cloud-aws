@@ -35,6 +35,7 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.AcknowledgementProcessingMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -225,10 +226,18 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 	}
 
 	protected BackPressureHandler createBackPressureHandler() {
-		return SemaphoreBackPressureHandler.builder().batchSize(getContainerOptions().getMaxMessagesPerPoll())
-				.totalPermits(getContainerOptions().getMaxConcurrentMessages())
-				.acquireTimeout(getContainerOptions().getMaxDelayBetweenPolls())
-				.throughputConfiguration(getContainerOptions().getBackPressureMode()).build();
+		O containerOptions = getContainerOptions();
+		List<BackPressureHandler> backPressureHandlers = new ArrayList<>(2);
+		Duration acquireTimeout = containerOptions.getMaxDelayBetweenPolls();
+		int batchSize = containerOptions.getMaxMessagesPerPoll();
+		backPressureHandlers.add(SemaphoreBackPressureHandler.builder().batchSize(batchSize)
+				.totalPermits(containerOptions.getMaxConcurrentMessages()).acquireTimeout(acquireTimeout)
+				.throughputConfiguration(containerOptions.getBackPressureMode()).build());
+		if (containerOptions.getBackPressureLimiter() != null) {
+			backPressureHandlers.add(new BackPressureHandlerLimiter(containerOptions.getBackPressureLimiter(),
+					acquireTimeout, containerOptions.getStandbyLimitPollingInterval(), batchSize));
+		}
+		return new CompositeBackPressureHandler(backPressureHandlers, batchSize);
 	}
 
 	protected TaskExecutor createSourcesTaskExecutor() {

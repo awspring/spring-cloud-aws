@@ -29,7 +29,7 @@ import java.time.Duration;
 public interface BackPressureHandler {
 
 	/**
-	 * Request a number of permits. Each obtained permit allows the
+	 * Requests a number of permits. Each obtained permit allows the
 	 * {@link io.awspring.cloud.sqs.listener.source.MessageSource} to retrieve one message.
 	 * @param amount the amount of permits to request.
 	 * @return the amount of permits obtained.
@@ -38,11 +38,24 @@ public interface BackPressureHandler {
 	int request(int amount) throws InterruptedException;
 
 	/**
-	 * Release the specified amount of permits. Each message that has been processed should release one permit, whether
-	 * processing was successful or not.
+	 * Releases the specified amount of permits for processed messages. Each message that has been processed should
+	 * release one permit, whether processing was successful or not.
+	 * <p>
+	 * This method can is called in the following use cases:
+	 * <ul>
+	 * <li>{@link ReleaseReason#LIMITED}: permits were not used because another BackPressureHandler has a lower permits
+	 * limit and the difference in permits needs to be returned.</li>
+	 * <li>{@link ReleaseReason#NONE_FETCHED}: none of the permits were actually used because no messages were retrieved
+	 * from SQS. Permits need to be returned.</li>
+	 * <li>{@link ReleaseReason#PARTIAL_FETCH}: some of the permits were used (some messages were retrieved from SQS).
+	 * The unused ones need to be returned. The amount to be returned might be {@literal 0}, in which case it means all
+	 * the permits will be used as the same number of messages were fetched from SQS.</li>
+	 * <li>{@link ReleaseReason#PROCESSED}: a message processing finished, successfully or not.</li>
+	 * </ul>
 	 * @param amount the amount of permits to release.
+	 * @param reason the reason why the permits were released.
 	 */
-	void release(int amount);
+	void release(int amount, ReleaseReason reason);
 
 	/**
 	 * Attempts to acquire all permits up to the specified timeout. If successful, means all permits were returned and
@@ -51,5 +64,25 @@ public interface BackPressureHandler {
 	 * @return whether all permits were acquired.
 	 */
 	boolean drain(Duration timeout);
+
+	enum ReleaseReason {
+		/**
+		 * Permits were not used because another BackPressureHandler has a lower permits limit and the difference need
+		 * to be aligned across all handlers.
+		 */
+		LIMITED,
+		/**
+		 * No messages were retrieved from SQS, so all permits need to be returned.
+		 */
+		NONE_FETCHED,
+		/**
+		 * Some messages were fetched from SQS. Unused permits need to be returned.
+		 */
+		PARTIAL_FETCH,
+		/**
+		 * The processing of one or more messages finished, successfully or not.
+		 */
+		PROCESSED;
+	}
 
 }

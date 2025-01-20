@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -47,7 +47,7 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 
 	private volatile CurrentThroughputMode currentThroughputMode;
 
-	private final AtomicBoolean hasAcquiredFullPermits = new AtomicBoolean(false);
+	private final AtomicInteger lowThroughputPermitsAcquired = new AtomicInteger(0);
 
 	private String id;
 
@@ -79,31 +79,31 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 	}
 
 	@Override
-	public int request(int amount) throws InterruptedException {
-		return tryAcquire(amount, this.currentThroughputMode) ? amount : 0;
+	public int requestBatch() throws InterruptedException {
+		return request(batchSize);
 	}
 
 	// @formatter:off
 	@Override
-	public int requestBatch() throws InterruptedException {
+	public int request(int amount) throws InterruptedException {
 		return CurrentThroughputMode.LOW.equals(this.currentThroughputMode)
-			? requestInLowThroughputMode()
-			: requestInHighThroughputMode();
+			? requestInLowThroughputMode(amount)
+			: requestInHighThroughputMode(amount);
 	}
 
-	private int requestInHighThroughputMode() throws InterruptedException {
-		return tryAcquire(this.batchSize, CurrentThroughputMode.HIGH)
-			? this.batchSize
-			: tryAcquirePartial();
+	private int requestInHighThroughputMode(int amount) throws InterruptedException {
+		return tryAcquire(amount, CurrentThroughputMode.HIGH)
+			? amount
+			: tryAcquirePartial(amount);
 	}
 	// @formatter:on
 
-	private int tryAcquirePartial() throws InterruptedException {
+	private int tryAcquirePartial(int max) throws InterruptedException {
 		int availablePermits = this.semaphore.availablePermits();
 		if (availablePermits == 0 || BackPressureMode.ALWAYS_POLL_MAX_MESSAGES.equals(this.backPressureConfiguration)) {
 			return 0;
 		}
-		int permitsToRequest = Math.min(availablePermits, this.batchSize);
+		int permitsToRequest = Math.min(availablePermits, max);
 		CurrentThroughputMode currentThroughputModeNow = this.currentThroughputMode;
 		logger.trace("Trying to acquire partial batch of {} permits from {} available for {} in TM {}",
 				permitsToRequest, availablePermits, this.id, currentThroughputModeNow);
@@ -111,7 +111,7 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 		return hasAcquiredPartial ? permitsToRequest : 0;
 	}
 
-	private int requestInLowThroughputMode() throws InterruptedException {
+	private int requestInLowThroughputMode(int amount) throws InterruptedException {
 		// Although LTM can be set / unset by many processes, only the MessageSource thread gets here,
 		// so no actual concurrency
 		logger.debug("Trying to acquire full permits for {}. Permits left: {}", this.id,
@@ -120,11 +120,11 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 		if (hasAcquired) {
 			logger.debug("Acquired full permits for {}. Permits left: {}", this.id, this.semaphore.availablePermits());
 			// We've acquired all permits - there's no other process currently processing messages
-			if (!this.hasAcquiredFullPermits.compareAndSet(false, true)) {
+			if (this.lowThroughputPermitsAcquired.getAndSet(amount) != 0) {
 				logger.warn("hasAcquiredFullPermits was already true. Permits left: {}",
 						this.semaphore.availablePermits());
 			}
-			return this.batchSize;
+			return amount;
 		}
 		else {
 			return 0;
@@ -147,17 +147,20 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 	}
 
 	@Override
-	public void releaseBatch() {
-		maybeSwitchToLowThroughputMode();
-		int permitsToRelease = getPermitsToRelease(this.batchSize);
-		this.semaphore.release(permitsToRelease);
-		logger.trace("Released {} permits for {}. Permits left: {}", permitsToRelease, this.id,
+	public void release(int amount, ReleaseReason reason) {
+		logger.trace("Releasing {} permits ({}) for {}. Permits left: {}", amount, reason, this.id,
 				this.semaphore.availablePermits());
-	}
-
-	@Override
-	public int getBatchSize() {
-		return this.batchSize;
+		switch (reason) {
+		case NONE_FETCHED -> maybeSwitchToLowThroughputMode();
+		case PARTIAL_FETCH -> maybeSwitchToHighThroughputMode(amount);
+		case PROCESSED, LIMITED -> {
+			// No need to switch throughput mode
+		}
+		}
+		int permitsToRelease = getPermitsToRelease(amount);
+		this.semaphore.release(permitsToRelease);
+		logger.debug("Released {} permits ({}) for {}. Permits left: {}", permitsToRelease, reason, this.id,
+				this.semaphore.availablePermits());
 	}
 
 	private void maybeSwitchToLowThroughputMode() {
@@ -169,31 +172,21 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 		}
 	}
 
-	@Override
-	public void release(int amount) {
-		logger.trace("Releasing {} permits for {}. Permits left: {}", amount, this.id,
-				this.semaphore.availablePermits());
-		maybeSwitchToHighThroughputMode(amount);
-		int permitsToRelease = getPermitsToRelease(amount);
-		this.semaphore.release(permitsToRelease);
-		logger.trace("Released {} permits for {}. Permits left: {}", permitsToRelease, this.id,
-				this.semaphore.availablePermits());
-	}
-
-	private int getPermitsToRelease(int amount) {
-		return this.hasAcquiredFullPermits.compareAndSet(true, false)
-				// The first process that gets here should release all permits except for inflight messages
-				// We can have only one batch of messages at this point since we have all permits
-				? this.totalPermits - (this.batchSize - amount)
-				: amount;
-	}
-
 	private void maybeSwitchToHighThroughputMode(int amount) {
 		if (CurrentThroughputMode.LOW.equals(this.currentThroughputMode)) {
 			logger.debug("{} unused permit(s), setting TM HIGH for {}. Permits left: {}", amount, this.id,
 					this.semaphore.availablePermits());
 			this.currentThroughputMode = CurrentThroughputMode.HIGH;
 		}
+	}
+
+	private int getPermitsToRelease(int amount) {
+		int lowThroughputPermits = this.lowThroughputPermitsAcquired.getAndSet(0);
+		return lowThroughputPermits > 0
+				// The first process that gets here should release all permits except for inflight messages
+				// We can have only one batch of messages at this point since we have all permits
+				? this.totalPermits - (lowThroughputPermits - amount)
+				: amount;
 	}
 
 	@Override
