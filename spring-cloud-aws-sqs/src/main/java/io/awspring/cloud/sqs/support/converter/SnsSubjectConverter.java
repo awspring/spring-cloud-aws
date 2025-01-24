@@ -30,11 +30,11 @@ import org.springframework.util.ClassUtils;
  */
 public class SnsSubjectConverter implements MessageConverter {
 
-	private final ObjectMapper jsonMapper;
+	private final ObjectMapper objectMapper;
 
-	public SnsSubjectConverter(ObjectMapper jsonMapper) {
-		Assert.notNull(jsonMapper, "jsonMapper must not be null");
-		this.jsonMapper = jsonMapper;
+	public SnsSubjectConverter(ObjectMapper objectMapper) {
+		Assert.notNull(objectMapper, "jsonMapper must not be null");
+		this.objectMapper = objectMapper;
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class SnsSubjectConverter implements MessageConverter {
 			throw new MessageConversionException("Conversion of List is not supported", null);
 		}
 
-		var snsJsonNode = new SnsJsonNode(jsonMapper, message.getPayload().toString());
+		var snsJsonNode = new SnsJsonNode(objectMapper, message.getPayload().toString());
 		return snsJsonNode.getSubjectAsString();
 	}
 
