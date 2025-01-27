@@ -639,6 +639,16 @@ public void listen(@SnsNotificationMessage List<Pojo> pojos) {
 }
 ----
 
+Since 3.3.1 you can also retrieve the subject of the SNS message through the `@SnsNotificationSubject` annotation.
+
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(@SnsNotificationSubject String subject, @SnsNotificationMessage Pojo pojo) {
+	System.out.println("received message for subject %s: %s".formatted(subject, pojo));
+}
+----
+
 ===== Specifying a MessageListenerContainerFactory
 A `MessageListenerContainerFactory` can be specified through the `factory` property.
 Such factory will then be used to create the container for the annotated method.

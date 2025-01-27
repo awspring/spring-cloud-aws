@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -26,7 +25,6 @@ import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.support.GenericMessage;
@@ -81,35 +79,13 @@ public class SnsMessageConverter implements SmartMessageConverter {
 
 	private Object fromGenericMessage(GenericMessage<?> message, Class<?> targetClass,
 			@Nullable Object conversionHint) {
-		JsonNode jsonNode;
-		try {
-			jsonNode = this.jsonMapper.readTree(message.getPayload().toString());
-		}
-		catch (Exception e) {
-			throw new MessageConversionException("Could not read JSON", e);
-		}
-		if (!jsonNode.has("Type")) {
-			throw new MessageConversionException(
-					"Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
-		}
+		var snsJsonNode = new SnsJsonNode(jsonMapper, message.getPayload().toString());
 
-		if (!"Notification".equals(jsonNode.get("Type").asText())) {
-			throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification",
-					null);
-		}
-
-		if (!jsonNode.has("Message")) {
-			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message",
-					null);
-		}
-
-		String messagePayload = jsonNode.get("Message").asText();
+		String messagePayload = snsJsonNode.getMessageAsString();
 		GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload);
-		Object convertedMessage = (payloadConverter instanceof SmartMessageConverter)
-				? ((SmartMessageConverter) this.payloadConverter).fromMessage(genericMessage, targetClass,
-						conversionHint)
-				: this.payloadConverter.fromMessage(genericMessage, targetClass);
-		return convertedMessage;
+		return payloadConverter instanceof SmartMessageConverter smartMessageConverter
+				? smartMessageConverter.fromMessage(genericMessage, targetClass, conversionHint)
+				: payloadConverter.fromMessage(genericMessage, targetClass);
 	}
 
 	@Override
