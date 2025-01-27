@@ -21,6 +21,7 @@ import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.support.resolver.BatchVisibilityHandlerMethodArgumentResolver;
+import io.awspring.cloud.sqs.support.resolver.EventBridgeMessageArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
@@ -84,6 +85,7 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
 		if (objectMapper != null) {
 			argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
+			argumentResolvers.add(new EventBridgeMessageArgumentResolver(messageConverter, objectMapper));
 		}
 		return argumentResolvers;
 	}

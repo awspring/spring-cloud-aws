@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.annotation.EventBridgeMessage;
 import io.awspring.cloud.sqs.annotation.SnsNotificationMessage;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
@@ -74,6 +75,8 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 	static final String RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME = "resolves_my_other_pojo_from_mapping_test_queue";
 	static final String RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME = "resolves_pojo_from_notification_message_queue";
 	static final String RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME = "resolves_pojo_from_notification_message_list_test_queue";
+	static final String RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_QUEUE_NAME = "resolves_pojo_from_eventbridge_message_queue";
+	static final String RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_LIST_QUEUE_NAME = "resolves_pojo_from_eventbridge_message_list_test_queue";
 
 	@Autowired
 	LatchContainer latchContainer;
@@ -91,7 +94,10 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, RESOLVES_POJO_FROM_HEADER_QUEUE_NAME),
 				createQueue(client, RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME),
 				createQueue(client, RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME),
-				createQueue(client, RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME)).join();
+				createQueue(client, RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME),
+				createQueue(client, RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_QUEUE_NAME),
+				createQueue(client, RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_QUEUE_NAME),
+				createQueue(client, RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_LIST_QUEUE_NAME)).join();
 	}
 
 	@Test
@@ -168,6 +174,29 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}",
 				RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME, payload);
 		assertThat(latchContainer.resolvesPojoNotificationMessageListLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void resolvesMyPojoFromEventBridgeMessage() throws Exception {
+		byte[] eventBridgeJsonContent = FileCopyUtils
+			.copyToByteArray(getClass().getClassLoader().getResourceAsStream("eventBridgeMessage.json"));
+		String payload = new String(eventBridgeJsonContent);
+		sqsTemplate.send(RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_QUEUE_NAME, payload);
+		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_QUEUE_NAME,
+			payload);
+		assertThat(latchContainer.resolvesPojoEventBridgeMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+	@Test
+	void resolvesMyPojoFromEventBridgeMessageList() throws Exception {
+		byte[] eventBridgeJsonContent = FileCopyUtils
+			.copyToByteArray(getClass().getClassLoader().getResourceAsStream("eventBridgeMessage.json"));
+		String payload = new String(eventBridgeJsonContent);
+		List<Message<String>> messages = IntStream.range(0, 10)
+			.mapToObj(index -> MessageBuilder.withPayload(payload).build()).toList();
+		sqsTemplate.sendMany(RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_LIST_QUEUE_NAME, messages);
+		logger.debug("Sent message to queue {} with messageBody {}",
+			RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_LIST_QUEUE_NAME, payload);
+		assertThat(latchContainer.resolvesPojoEventBridgeMessageListLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	private Map<String, Object> getHeaderMapping(Class<?> clazz) {
@@ -294,6 +323,41 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	static class ResolvesPojoWithEventBridgeAnnotationListener {
+		@Autowired
+		LatchContainer latchContainer;
+		@SqsListener(
+			queueNames = RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_QUEUE_NAME,
+			id = "resolves-pojo-with-eventbridge-message",
+			factory = "defaultSqsListenerContainerFactory"
+		)
+		void listen(@EventBridgeMessage MyEnvelope<MyPojo> myPojo) {
+			Assert.notNull((myPojo).data.firstField, "Received null message");
+			logger.debug("Received message {} from queue {}", myPojo,
+				RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_QUEUE_NAME);
+			assertThat(myPojo.data.getFirstField()).isEqualTo("pojoEventMessage");
+			assertThat(myPojo.data.getSecondField()).isEqualTo("secondValue");
+			assertThat(myPojo.specversion).isEqualTo("1.0.2");
+			latchContainer.resolvesPojoEventBridgeMessageLatch.countDown();
+		}
+		@SqsListener(
+			queueNames = RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_LIST_QUEUE_NAME,
+			id = "resolves-pojo-with-eventbridge-message-list",
+			factory = "defaultSqsListenerContainerFactory"
+		)
+		void listen(@EventBridgeMessage List<MyEnvelope<MyPojo>> myPojos) {
+			Assert.notEmpty(myPojos, "Received empty messages");
+			logger.debug("Received messages {} from queue {}", myPojos,
+				RESOLVES_POJO_FROM_EVENTBRIDGE_MESSAGE_LIST_QUEUE_NAME);
+			for (MyEnvelope<MyPojo> myPojo : myPojos) {
+				assertThat(myPojo.data.getFirstField()).isEqualTo("pojoEventMessage");
+				assertThat(myPojo.data.getSecondField()).isEqualTo("secondValue");
+				assertThat(myPojo.specversion).isEqualTo("1.0.2");
+			}
+			latchContainer.resolvesPojoEventBridgeMessageListLatch.countDown();
+		}
+	}
+
 	static class LatchContainer {
 
 		CountDownLatch resolvesPojoLatch = new CountDownLatch(1);
@@ -304,6 +368,8 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		CountDownLatch resolvesMyOtherPojoFromMappingLatch = new CountDownLatch(1);
 		CountDownLatch resolvesPojoNotificationMessageLatch = new CountDownLatch(1);
 		CountDownLatch resolvesPojoNotificationMessageListLatch = new CountDownLatch(1);
+		CountDownLatch resolvesPojoEventBridgeMessageLatch = new CountDownLatch(1);
+		CountDownLatch resolvesPojoEventBridgeMessageListLatch = new CountDownLatch(1);
 
 	}
 
@@ -386,6 +452,11 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		ResolvesPojoWithNotificationAnnotationListener resolvesPojoWithNotificationAnnotationListener() {
 			return new ResolvesPojoWithNotificationAnnotationListener();
+		}
+
+		@Bean
+		ResolvesPojoWithEventBridgeAnnotationListener resolvesPojoWithEventBridgeAnnotationListener() {
+			return new ResolvesPojoWithEventBridgeAnnotationListener();
 		}
 
 		@Bean
