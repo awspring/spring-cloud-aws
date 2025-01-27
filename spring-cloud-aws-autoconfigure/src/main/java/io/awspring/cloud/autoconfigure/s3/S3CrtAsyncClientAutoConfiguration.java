@@ -67,6 +67,8 @@ public class S3CrtAsyncClientAutoConfiguration {
 			ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		S3CrtAsyncClientBuilder builder = S3AsyncClient.crtBuilder().credentialsProvider(credentialsProvider).region(
 				this.awsClientBuilderConfigurer.resolveRegion(this.properties, connectionDetails.getIfAvailable()));
+		Optional.ofNullable(connectionDetails.getIfAvailable()).map(AwsConnectionDetails::getEndpoint)
+			.ifPresent(builder::endpointOverride);
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
