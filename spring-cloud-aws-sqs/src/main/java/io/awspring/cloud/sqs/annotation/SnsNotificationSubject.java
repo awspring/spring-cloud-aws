@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * Controllers method for handling/receiving SQS notifications.
  *
  * @author Alexander Nebel
- * @since 3.3.0
+ * @since 3.3.1
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)

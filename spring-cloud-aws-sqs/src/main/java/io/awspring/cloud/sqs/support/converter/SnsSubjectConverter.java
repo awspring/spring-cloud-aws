@@ -26,7 +26,7 @@ import org.springframework.util.ClassUtils;
 
 /**
  * @author Alexander Nebel
- * @since 3.3.0
+ * @since 3.3.1
  */
 public class SnsSubjectConverter implements MessageConverter {
 
