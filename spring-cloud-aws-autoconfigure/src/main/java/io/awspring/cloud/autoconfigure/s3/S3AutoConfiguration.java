@@ -56,6 +56,7 @@ import software.amazon.encryption.s3.S3EncryptionClient;
  *
  * @author Maciej Walkowiak
  * @author Matej Nedic
+ * @author Kunal Varpe
  */
 @AutoConfiguration
 @ConditionalOnClass({ S3Client.class, S3OutputStreamProvider.class })
@@ -115,6 +116,10 @@ public class S3AutoConfiguration {
 		}
 		else if (awsProperties.getEndpoint() != null) {
 			builder.endpointOverride(awsProperties.getEndpoint());
+		}
+		else if (connectionDetails.getIfAvailable() != null
+				&& connectionDetails.getIfAvailable().getEndpoint() != null) {
+			builder.endpointOverride(connectionDetails.getIfAvailable().getEndpoint());
 		}
 		Optional.ofNullable(awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
 		Optional.ofNullable(awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
