@@ -17,7 +17,6 @@ package io.awspring.cloud.testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.jupiter.api.Assertions.*;
 
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -40,7 +39,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.sesv2.SesV2Client;
+import software.amazon.awssdk.services.sesv2.model.ListEmailIdentitiesRequest;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
@@ -69,8 +69,9 @@ class AwsContainerConnectionDetailsFactoryTest {
 	}
 
 	@Test
-	void configuresSesClientWithServiceConnection(@Autowired SesClient client) {
-		assertThatCode(client::listIdentities).doesNotThrowAnyException();
+	void configuresSesClientWithServiceConnection(@Autowired SesV2Client client) {
+		assertThatCode(() -> client.listEmailIdentities(ListEmailIdentitiesRequest.builder().build()))
+			.doesNotThrowAnyException();
 	}
 
 	@Test
