@@ -43,10 +43,10 @@ import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
-import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
-import software.amazon.awssdk.services.ses.model.SesException;
+import software.amazon.awssdk.services.sesv2.SesV2Client;
+import software.amazon.awssdk.services.sesv2.model.SendEmailRequest;
+import software.amazon.awssdk.services.sesv2.model.SendEmailResponse;
+import software.amazon.awssdk.services.sesv2.model.SesV2Exception;
 
 /**
  * Tests for class {@link SimpleEmailServiceJavaMailSender}.
@@ -54,6 +54,7 @@ import software.amazon.awssdk.services.ses.model.SesException;
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
  * @author Arun Patra
+ * @author Dominik Kovács
  */
 class SimpleEmailServiceJavaMailSenderTest {
 
@@ -67,7 +68,7 @@ class SimpleEmailServiceJavaMailSenderTest {
 
 		// Assert
 		assertThat(mimeMessage).isNotNull();
-		assertThat(mimeMessage.getSession().getProperties().size()).isEqualTo(0);
+		assertThat(mimeMessage.getSession().getProperties()).isEmpty();
 	}
 
 	@Test
@@ -147,28 +148,28 @@ class SimpleEmailServiceJavaMailSenderTest {
 
 	@Test
 	void testSendMimeMessage() throws MessagingException {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService,
 				"arn:aws:ses:us-east-1:00000001:identity/domain.com");
 
-		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-		when(emailService.sendRawEmail(request.capture()))
-				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
+		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
+		when(emailService.sendEmail(request.capture()))
+				.thenReturn(SendEmailResponse.builder().messageId("123").build());
 
 		MimeMessage mimeMessage = createMimeMessage();
 		mailSender.send(mimeMessage);
 		assertThat(mimeMessage.getMessageID()).isEqualTo("123");
-		assertThat(request.getValue().sourceArn()).isEqualTo("arn:aws:ses:us-east-1:00000001:identity/domain.com");
+		assertThat(request.getValue().fromEmailAddressIdentityArn()).isEqualTo("arn:aws:ses:us-east-1:00000001:identity/domain.com");
 	}
 
 	@Test
 	void testSendMimeMessageWithConfigurationSetNameSet() throws MessagingException {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService, null, "Configuration Set");
-		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-		when(emailService.sendRawEmail(request.capture()))
-				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
+		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
+		when(emailService.sendEmail(request.capture()))
+				.thenReturn(SendEmailResponse.builder().messageId("123").build());
 		MimeMessage mimeMessage = createMimeMessage();
 
 		mailSender.send(mimeMessage);
@@ -177,36 +178,21 @@ class SimpleEmailServiceJavaMailSenderTest {
 	}
 
 	@Test
-	void testSendMimeMessageWithFromArnSet() throws MessagingException {
-		SesClient emailService = mock(SesClient.class);
-		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService, null, null,
-				"eu-west-1:123456789012:identity/example.com");
-		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-		when(emailService.sendRawEmail(request.capture()))
-				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
-		MimeMessage mimeMessage = createMimeMessage();
-
-		mailSender.send(mimeMessage);
-
-		assertThat(request.getValue().fromArn()).isEqualTo("eu-west-1:123456789012:identity/example.com");
-	}
-
-	@Test
 	void testSendMultipleMimeMessages() throws Exception {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
-		when(emailService.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class)))
-				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
+		when(emailService.sendEmail(ArgumentMatchers.isA(SendEmailRequest.class)))
+				.thenReturn(SendEmailResponse.builder().messageId("123").build());
 
 		mailSender.send(createMimeMessage(), createMimeMessage());
-		verify(emailService, times(2)).sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class));
+		verify(emailService, times(2)).sendEmail(ArgumentMatchers.isA(SendEmailRequest.class));
 	}
 
 	@Test
 	void testSendMailWithMimeMessagePreparator() throws Exception {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
@@ -217,15 +203,15 @@ class SimpleEmailServiceJavaMailSenderTest {
 			mimeMessageHelper.setText("body");
 		};
 
-		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-		when(emailService.sendRawEmail(request.capture()))
-				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
+		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
+		when(emailService.sendEmail(request.capture()))
+				.thenReturn(SendEmailResponse.builder().messageId("123").build());
 
 		mailSender.send(preparator);
 
 		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()),
-				new ByteArrayInputStream(request.getValue().rawMessage().data().asByteArray()));
-		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString()).isEqualTo("to@domain.com");
+				new ByteArrayInputStream(request.getValue().content().raw().data().asByteArray()));
+		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0]).hasToString("to@domain.com");
 		assertThat(mimeMessage.getSubject()).isEqualTo("subject");
 		assertThat(mimeMessage.getContent()).isEqualTo("body");
 	}
@@ -233,7 +219,7 @@ class SimpleEmailServiceJavaMailSenderTest {
 	@Test
 	void testSendMailWithMultipleMimeMessagePreparators() throws Exception {
 
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
@@ -253,15 +239,15 @@ class SimpleEmailServiceJavaMailSenderTest {
 			mimeMessageHelper.setText("body");
 		};
 
-		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
-		when(emailService.sendRawEmail(request.capture()))
-				.thenReturn(SendRawEmailResponse.builder().messageId("123").build());
+		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
+		when(emailService.sendEmail(request.capture()))
+				.thenReturn(SendEmailResponse.builder().messageId("123").build());
 
 		mailSender.send(preparators);
 
 		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()),
-				new ByteArrayInputStream(request.getValue().rawMessage().data().asByteArray()));
-		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString()).isEqualTo("to@domain.com");
+				new ByteArrayInputStream(request.getValue().content().raw().data().asByteArray()));
+		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0]).hasToString("to@domain.com");
 		assertThat(mimeMessage.getSubject()).isEqualTo("subject");
 		assertThat(mimeMessage.getContent()).isEqualTo("body");
 
@@ -271,7 +257,7 @@ class SimpleEmailServiceJavaMailSenderTest {
 	void testCreateMimeMessageWithExceptionInInputStream() throws Exception {
 		InputStream inputStream = mock(InputStream.class);
 
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
@@ -291,30 +277,30 @@ class SimpleEmailServiceJavaMailSenderTest {
 
 	@Test
 	void testSendMultipleMailsWithException() throws Exception {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
 		MimeMessage failureMail = createMimeMessage();
 
-		when(emailService.sendRawEmail(ArgumentMatchers.isA(SendRawEmailRequest.class)))
-				.thenReturn(SendRawEmailResponse.builder().build())
-				.thenThrow(SesException.builder().message("error").build())
-				.thenReturn(SendRawEmailResponse.builder().build());
+		when(emailService.sendEmail(ArgumentMatchers.isA(SendEmailRequest.class)))
+				.thenReturn(SendEmailResponse.builder().build())
+				.thenThrow(SesV2Exception.builder().message("error").build())
+				.thenReturn(SendEmailResponse.builder().build());
 
 		try {
 			mailSender.send(createMimeMessage(), failureMail, createMimeMessage());
 			fail("Exception expected due to error while sending mail");
 		}
 		catch (MailSendException e) {
-			assertThat(e.getFailedMessages().size()).isEqualTo(1);
-			assertThat(e.getFailedMessages().containsKey(failureMail)).isTrue();
+			assertThat(e.getFailedMessages()).hasSize(1);
+			assertThat(e.getFailedMessages()).containsKey(failureMail);
 		}
 	}
 
 	@Test
 	void testSendMailsWithExceptionWhilePreparing() {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 
 		JavaMailSender mailSender = new SimpleEmailServiceJavaMailSender(emailService);
 
@@ -326,9 +312,9 @@ class SimpleEmailServiceJavaMailSenderTest {
 		}
 		catch (MailSendException e) {
 			// expected due to empty mail message
-			assertThat(e.getFailedMessages().size()).isEqualTo(1);
+			assertThat(e.getFailedMessages()).hasSize(1);
 			// noinspection ThrowableResultOfMethodCallIgnored
-			assertThat(e.getFailedMessages().get(mimeMessage) instanceof MailPreparationException).isTrue();
+			assertThat(e.getFailedMessages().get(mimeMessage)).isInstanceOf(MailPreparationException.class);
 		}
 
 		MimeMessage failureMessage = null;
@@ -345,9 +331,9 @@ class SimpleEmailServiceJavaMailSenderTest {
 		}
 		catch (MailSendException e) {
 			// expected due to exception writing message
-			assertThat(e.getFailedMessages().size()).isEqualTo(1);
+			assertThat(e.getFailedMessages()).hasSize(1);
 			// noinspection ThrowableResultOfMethodCallIgnored
-			assertThat(e.getFailedMessages().get(failureMessage) instanceof MailParseException).isTrue();
+			assertThat(e.getFailedMessages().get(failureMessage)).isInstanceOf(MailParseException.class);
 		}
 	}
 
