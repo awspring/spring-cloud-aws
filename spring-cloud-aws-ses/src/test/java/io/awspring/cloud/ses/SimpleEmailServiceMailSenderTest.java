@@ -65,7 +65,8 @@ class SimpleEmailServiceMailSenderTest {
 		assertThat(sendEmailRequest.content().simple().body().text().data()).isEqualTo(simpleMailMessage.getText());
 		assertThat(sendEmailRequest.destination().ccAddresses()).isEmpty();
 		assertThat(sendEmailRequest.destination().bccAddresses()).isEmpty();
-		assertThat(sendEmailRequest.fromEmailAddressIdentityArn()).isEqualTo("arn:aws:ses:us-east-1:00000000:identity/domain.com");
+		assertThat(sendEmailRequest.fromEmailAddressIdentityArn())
+				.isEqualTo("arn:aws:ses:us-east-1:00000000:identity/domain.com");
 	}
 
 	@Test

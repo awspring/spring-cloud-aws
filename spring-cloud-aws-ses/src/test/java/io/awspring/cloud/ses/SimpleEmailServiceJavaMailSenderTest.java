@@ -160,7 +160,8 @@ class SimpleEmailServiceJavaMailSenderTest {
 		MimeMessage mimeMessage = createMimeMessage();
 		mailSender.send(mimeMessage);
 		assertThat(mimeMessage.getMessageID()).isEqualTo("123");
-		assertThat(request.getValue().fromEmailAddressIdentityArn()).isEqualTo("arn:aws:ses:us-east-1:00000001:identity/domain.com");
+		assertThat(request.getValue().fromEmailAddressIdentityArn())
+				.isEqualTo("arn:aws:ses:us-east-1:00000001:identity/domain.com");
 	}
 
 	@Test

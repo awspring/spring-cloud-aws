@@ -209,11 +209,9 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 		Map<Object, Exception> failedMessages = new HashMap<>();
 		for (MimeMessage mimeMessage : mimeMessages) {
 			try {
-				SendEmailRequest request = SendEmailRequest.builder()
-					.fromEmailAddressIdentityArn(getIdentityArn())
-					.configurationSetName(getConfigurationSetName())
-					.content(content -> content.raw(createRawMessage(mimeMessage)))
-					.build();
+				SendEmailRequest request = SendEmailRequest.builder().fromEmailAddressIdentityArn(getIdentityArn())
+						.configurationSetName(getConfigurationSetName())
+						.content(content -> content.raw(createRawMessage(mimeMessage))).build();
 
 				SendEmailResponse sendEmailResponse = getEmailService().sendEmail(request);
 
