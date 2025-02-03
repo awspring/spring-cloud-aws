@@ -139,7 +139,7 @@ class S3AutoConfigurationTests {
 		@Test
 		void s3ClientCanBeOverwritten() {
 			contextRunnerEncryption
-					.withPropertyValues("spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab")
+					.withPropertyValues("spring.cloud.aws.s3.encryption.key-id:234abcd-12ab-34cd-56ef-1234567890ab")
 					.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
 						assertThat(context).hasSingleBean(S3Client.class);
 					});
