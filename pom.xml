@@ -30,6 +30,7 @@
 		<spotless.version>2.40.0</spotless.version>
 		<jacoco.version>0.8.8</jacoco.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<wiremock-standalone.version>3.3.1</wiremock-standalone.version>
 	</properties>
 
 	<modules>
@@ -68,6 +69,11 @@
 				<version>${project.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.wiremock</groupId>
+				<artifactId>wiremock-standalone</artifactId>
+				<version>${wiremock-standalone.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
