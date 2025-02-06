@@ -22,6 +22,7 @@ import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.function.Supplier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.retry.backoff.BackOffPolicy;
@@ -63,8 +64,6 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	/**
 	 * {@return the amount of time to wait before checking again for the current limit when the queue processing is on
 	 * standby} Default is 100 milliseconds.
-	 *
-	 * @see BackPressureLimiter#limit()
 	 */
 	Duration getStandbyLimitPollingInterval();
 
@@ -138,10 +137,10 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	BackPressureMode getBackPressureMode();
 
 	/**
-	 * Return the {@link BackPressureLimiter} for this container.
-	 * @return the backpressure limiter.
+	 * Return the a {@link Supplier} to create a {@link BackPressureHandler} for this container.
+	 * @return the BackPressureHandler supplier.
 	 */
-	BackPressureLimiter getBackPressureLimiter();
+	Supplier<BackPressureHandler> getBackPressureHandlerSupplier();
 
 	/**
 	 * Return the {@link ListenerMode} mode for this container.

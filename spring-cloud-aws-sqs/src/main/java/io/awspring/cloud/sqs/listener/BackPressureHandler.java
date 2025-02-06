@@ -58,6 +58,18 @@ public interface BackPressureHandler {
 	void release(int amount, ReleaseReason reason);
 
 	/**
+	 * Release the specified amount of permits. Each message that has been processed should release one permit, whether
+	 * processing was successful or not.
+	 * @param amount the amount of permits to release.
+	 *
+	 * @deprecated This method is deprecated and will not be called by the Spring Cloud AWS SQS listener anymore.
+	 * Implement {@link #release(int, ReleaseReason)} instead.
+	 */
+	@Deprecated
+	default void release(int amount) {
+	}
+
+	/**
 	 * Attempts to acquire all permits up to the specified timeout. If successful, means all permits were returned and
 	 * thus no activity is left in the {@link io.awspring.cloud.sqs.listener.source.MessageSource}.
 	 * @param timeout the maximum amount of time to wait for all permits to be released.
