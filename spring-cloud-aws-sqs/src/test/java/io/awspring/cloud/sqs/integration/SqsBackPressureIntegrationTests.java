@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.integration;
 
-import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
@@ -36,7 +35,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
@@ -47,7 +45,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -60,8 +57,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
  * Integration tests for SQS containers back pressure management.
@@ -72,65 +67,6 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsBackPressureIntegrationTests.class);
-
-	static final String RECEIVES_MESSAGE_QUEUE_NAME = "receives_message_test_queue";
-
-	static final String RECEIVES_MESSAGE_BATCH_QUEUE_NAME = "receives_message_batch_test_queue";
-
-	static final String RECEIVES_MESSAGE_ASYNC_QUEUE_NAME = "receives_message_async_test_queue";
-
-	static final String DOES_NOT_ACK_ON_ERROR_QUEUE_NAME = "does_not_ack_test_queue";
-
-	static final String DOES_NOT_ACK_ON_ERROR_ASYNC_QUEUE_NAME = "does_not_ack_async_test_queue";
-
-	static final String DOES_NOT_ACK_ON_ERROR_BATCH_QUEUE_NAME = "does_not_ack_batch_test_queue";
-
-	static final String DOES_NOT_ACK_ON_ERROR_BATCH_ASYNC_QUEUE_NAME = "does_not_ack_batch_async_test_queue";
-
-	static final String RESOLVES_PARAMETER_TYPES_QUEUE_NAME = "resolves_parameter_type_test_queue";
-
-	static final String MANUALLY_START_CONTAINER = "manually_start_container_test_queue";
-
-	static final String MANUALLY_CREATE_CONTAINER_QUEUE_NAME = "manually_create_container_test_queue";
-
-	static final String MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME = "manually_create_inactive_container_test_queue";
-
-	static final String MANUALLY_CREATE_FACTORY_QUEUE_NAME = "manually_create_factory_test_queue";
-
-	static final String CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME = "consumes_one_message_test_queue";
-
-	static final String MAX_CONCURRENT_MESSAGES_QUEUE_NAME = "max_concurrent_messages_test_queue";
-
-	static final String LOW_RESOURCE_FACTORY = "lowResourceFactory";
-
-	static final String MANUAL_ACK_FACTORY = "manualAcknowledgementFactory";
-
-	static final String MANUAL_ACK_BATCH_FACTORY = "manualAcknowledgementBatchFactory";
-
-	static final String ACK_AFTER_SECOND_ERROR_FACTORY = "ackAfterSecondErrorFactory";
-
-	@BeforeAll
-	static void beforeTests() {
-		SqsAsyncClient client = createAsyncClient();
-		CompletableFuture.allOf(createQueue(client, RECEIVES_MESSAGE_QUEUE_NAME),
-				createQueue(client, DOES_NOT_ACK_ON_ERROR_QUEUE_NAME,
-						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "1")),
-				createQueue(client, DOES_NOT_ACK_ON_ERROR_ASYNC_QUEUE_NAME,
-						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "1")),
-				createQueue(client, DOES_NOT_ACK_ON_ERROR_BATCH_QUEUE_NAME,
-						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "1")),
-				createQueue(client, DOES_NOT_ACK_ON_ERROR_BATCH_ASYNC_QUEUE_NAME,
-						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "1")),
-				createQueue(client, RECEIVES_MESSAGE_ASYNC_QUEUE_NAME),
-				createQueue(client, RECEIVES_MESSAGE_BATCH_QUEUE_NAME),
-				createQueue(client, RESOLVES_PARAMETER_TYPES_QUEUE_NAME,
-						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "20")),
-				createQueue(client, MANUALLY_CREATE_CONTAINER_QUEUE_NAME),
-				createQueue(client, MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME),
-				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME),
-				createQueue(client, CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME),
-				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME)).join();
-	}
 
 	@Autowired
 	SqsTemplate sqsTemplate;
@@ -202,11 +138,12 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 				.queueNames(
 						queueName)
 				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
-						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(List.of(limiter,
-								SemaphoreBackPressureHandler.builder().batchSize(5).totalPermits(5)
-										.acquireTimeout(Duration.ofSeconds(1L))
-										.throughputConfiguration(BackPressureMode.AUTO).build()),
-								5)))
+						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(
+								List.of(limiter,
+										SemaphoreBackPressureHandler.builder().batchSize(5).totalPermits(5)
+												.acquireTimeout(Duration.ofSeconds(1L))
+												.throughputConfiguration(BackPressureMode.AUTO).build()),
+								5, Duration.ofMillis(50L))))
 				.messageListener(msg -> {
 					int concurrentRqs = concurrentRequest.incrementAndGet();
 					maxConcurrentRequest.updateAndGet(max -> Math.max(max, concurrentRqs));
@@ -241,11 +178,12 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 				.queueNames(
 						queueName)
 				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
-						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(List.of(limiter,
-								SemaphoreBackPressureHandler.builder().batchSize(5).totalPermits(5)
-										.acquireTimeout(Duration.ofSeconds(1L))
-										.throughputConfiguration(BackPressureMode.AUTO).build()),
-								5)))
+						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(
+								List.of(limiter,
+										SemaphoreBackPressureHandler.builder().batchSize(5).totalPermits(5)
+												.acquireTimeout(Duration.ofSeconds(1L))
+												.throughputConfiguration(BackPressureMode.AUTO).build()),
+								5, Duration.ofMillis(50L))))
 				.messageListener(msg -> {
 					int concurrentRqs = concurrentRequest.incrementAndGet();
 					maxConcurrentRequest.updateAndGet(max -> Math.max(max, concurrentRqs));
@@ -278,23 +216,33 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 		var latch = new CountDownLatch(nbMessages);
 		var controlSemaphore = new Semaphore(0);
 		var advanceSemaphore = new Semaphore(0);
+		var processingFailed = new AtomicBoolean(false);
+		var isDraining = new AtomicBoolean(false);
 		var container = SqsMessageListenerContainer
 				.builder().sqsAsyncClient(
 						BaseSqsIntegrationTest.createAsyncClient())
 				.queueNames(
 						queueName)
 				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
-						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(List.of(limiter,
-								SemaphoreBackPressureHandler.builder().batchSize(5).totalPermits(5)
-										.acquireTimeout(Duration.ofSeconds(1L))
-										.throughputConfiguration(BackPressureMode.AUTO).build()),
-								5)))
+						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(
+								List.of(limiter,
+										SemaphoreBackPressureHandler.builder().batchSize(5).totalPermits(5)
+												.acquireTimeout(Duration.ofSeconds(1L))
+												.throughputConfiguration(BackPressureMode.AUTO).build()),
+								5, Duration.ofMillis(50L))))
 				.messageListener(msg -> {
 					try {
-						controlSemaphore.acquire();
+						if (!controlSemaphore.tryAcquire(5, TimeUnit.SECONDS) && !isDraining.get()) {
+							processingFailed.set(true);
+							throw new IllegalStateException("Failed to wait for control semaphore");
+						}
 					}
 					catch (InterruptedException e) {
-						throw new RuntimeException(e);
+						if (!isDraining.get()) {
+							processingFailed.set(true);
+							Thread.currentThread().interrupt();
+							throw new RuntimeException(e);
+						}
 					}
 					int concurrentRqs = concurrentRequest.incrementAndGet();
 					maxConcurrentRequest.updateAndGet(max -> Math.max(max, concurrentRqs));
@@ -310,14 +258,16 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 			private final Semaphore controlSemaphore;
 			private final NonBlockingExternalConcurrencyLimiterBackPressureHandler limiter;
 			private final AtomicInteger maxConcurrentRequest;
+			private final AtomicBoolean processingFailed;
 
 			Controller(Semaphore advanceSemaphore, Semaphore controlSemaphore,
 					NonBlockingExternalConcurrencyLimiterBackPressureHandler limiter,
-					AtomicInteger maxConcurrentRequest) {
+					AtomicInteger maxConcurrentRequest, AtomicBoolean processingFailed) {
 				this.advanceSemaphore = advanceSemaphore;
 				this.controlSemaphore = controlSemaphore;
 				this.limiter = limiter;
 				this.maxConcurrentRequest = maxConcurrentRequest;
+				this.processingFailed = processingFailed;
 			}
 
 			public void updateLimit(int newLimit) {
@@ -341,9 +291,11 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 						.withFailMessage(() -> "Waiting for %d permits timed out. Only %d permits available"
 								.formatted(permits, advanceSemaphore.availablePermits()))
 						.isTrue();
+				assertThat(processingFailed.get()).isFalse();
 			}
 		}
-		var controller = new Controller(advanceSemaphore, controlSemaphore, limiter, maxConcurrentRequest);
+		var controller = new Controller(advanceSemaphore, controlSemaphore, limiter, maxConcurrentRequest,
+				processingFailed);
 		try {
 			container.start();
 
@@ -386,8 +338,10 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 			controller.waitForAdvance(50);
 			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(5);
+			assertThat(processingFailed.get()).isFalse();
 		}
 		finally {
+			isDraining.set(true);
 			container.stop();
 		}
 	}
@@ -500,13 +454,12 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 						options -> options.pollTimeout(Duration.ofSeconds(1))
 								.standbyLimitPollingInterval(
 										Duration.ofMillis(1))
-								.backPressureHandlerSupplier(() -> new StatisticsBphDecorator(
-										new CompositeBackPressureHandler(List.of(limiter,
-												SemaphoreBackPressureHandler.builder().batchSize(10).totalPermits(10)
-														.acquireTimeout(Duration.ofSeconds(1L))
+								.backPressureHandlerSupplier(
+										() -> new StatisticsBphDecorator(new CompositeBackPressureHandler(
+												List.of(limiter, SemaphoreBackPressureHandler.builder().batchSize(10)
+														.totalPermits(10).acquireTimeout(Duration.ofSeconds(1L))
 														.throughputConfiguration(BackPressureMode.AUTO).build()),
-												10),
-										eventsCsvWriter)))
+												10, Duration.ofMillis(50L)), eventsCsvWriter)))
 				.messageListener(msg -> {
 					int currentConcurrentRq = concurrentRequest.incrementAndGet();
 					maxConcurrentRequest.updateAndGet(max -> Math.max(max, currentConcurrentRq));

@@ -17,18 +17,33 @@ package io.awspring.cloud.sqs.listener;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CompositeBackPressureHandler implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
+
+	private static final Logger logger = LoggerFactory.getLogger(CompositeBackPressureHandler.class);
 
 	private final List<BackPressureHandler> backPressureHandlers;
 
 	private final int batchSize;
 
+	private final ReentrantLock noPermitsReturnedWaitLock = new ReentrantLock();
+
+	private final Condition permitsReleasedCondition = noPermitsReturnedWaitLock.newCondition();
+
+	private final Duration noPermitsReturnedWaitTimeout;
+
 	private String id;
 
-	public CompositeBackPressureHandler(List<BackPressureHandler> backPressureHandlers, int batchSize) {
+	public CompositeBackPressureHandler(List<BackPressureHandler> backPressureHandlers, int batchSize,
+			Duration waitTimeout) {
 		this.backPressureHandlers = backPressureHandlers;
 		this.batchSize = batchSize;
+		this.noPermitsReturnedWaitTimeout = waitTimeout;
 	}
 
 	@Override
@@ -63,6 +78,9 @@ public class CompositeBackPressureHandler implements BatchAwareBackPressureHandl
 				backPressureHandlers.get(i).release(obtainedForBph - obtained, ReleaseReason.LIMITED);
 			}
 		}
+		if (obtained == 0) {
+			waitForPermitsToBeReleased();
+		}
 		return obtained;
 	}
 
@@ -71,14 +89,48 @@ public class CompositeBackPressureHandler implements BatchAwareBackPressureHandl
 		for (BackPressureHandler handler : backPressureHandlers) {
 			handler.release(amount, reason);
 		}
+		if (amount > 0) {
+			signalPermitsWereReleased();
+		}
+	}
+
+	/**
+	 * Waits for permits to be released up to {@link #noPermitsReturnedWaitTimeout}. If no permits were released within
+	 * the configured {@link #noPermitsReturnedWaitTimeout}, returns immediately. This allows {@link #request(int)} to
+	 * return {@code 0} permits and will trigger another round of back-pressure handling.
+	 *
+	 * @throws InterruptedException if the Thread is interrupted while waiting for permits.
+	 */
+	@SuppressWarnings({ "java:S899" // we are not interested in the await return value here
+	})
+	private void waitForPermitsToBeReleased() throws InterruptedException {
+		noPermitsReturnedWaitLock.lock();
+		try {
+			permitsReleasedCondition.await(noPermitsReturnedWaitTimeout.toMillis(), TimeUnit.MILLISECONDS);
+		}
+		finally {
+			noPermitsReturnedWaitLock.unlock();
+		}
+	}
+
+	private void signalPermitsWereReleased() {
+		noPermitsReturnedWaitLock.lock();
+		try {
+			permitsReleasedCondition.signal();
+		}
+		finally {
+			noPermitsReturnedWaitLock.unlock();
+		}
 	}
 
 	@Override
 	public boolean drain(Duration timeout) {
+		logger.info("Draining back-pressure handlers initiated");
 		boolean result = true;
 		for (BackPressureHandler handler : backPressureHandlers) {
 			result &= !handler.drain(timeout);
 		}
+		logger.info("Draining back-pressure handlers completed");
 		return result;
 	}
 }
