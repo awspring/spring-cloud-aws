@@ -55,7 +55,9 @@ public interface BackPressureHandler {
 	 * @param amount the amount of permits to release.
 	 * @param reason the reason why the permits were released.
 	 */
-	void release(int amount, ReleaseReason reason);
+	default void release(int amount, ReleaseReason reason) {
+		release(amount);
+	}
 
 	/**
 	 * Release the specified amount of permits. Each message that has been processed should release one permit, whether
@@ -67,6 +69,7 @@ public interface BackPressureHandler {
 	 */
 	@Deprecated
 	default void release(int amount) {
+		release(amount, ReleaseReason.PROCESSED);
 	}
 
 	/**
