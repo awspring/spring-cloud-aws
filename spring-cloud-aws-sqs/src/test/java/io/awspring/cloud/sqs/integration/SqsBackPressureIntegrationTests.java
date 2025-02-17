@@ -18,13 +18,7 @@ package io.awspring.cloud.sqs.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
-import io.awspring.cloud.sqs.listener.BackPressureHandler;
-import io.awspring.cloud.sqs.listener.BackPressureMode;
-import io.awspring.cloud.sqs.listener.BatchAwareBackPressureHandler;
-import io.awspring.cloud.sqs.listener.CompositeBackPressureHandler;
-import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
-import io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler;
-import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
+import io.awspring.cloud.sqs.listener.*;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -140,8 +134,8 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
 						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(
 								List.of(limiter,
-										SemaphoreBackPressureHandler.builder().batchSize(5).totalPermits(5)
-												.acquireTimeout(Duration.ofSeconds(1L))
+										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(5)
+												.totalPermits(5).acquireTimeout(Duration.ofSeconds(1L))
 												.throughputConfiguration(BackPressureMode.AUTO).build()),
 								5, Duration.ofMillis(50L))))
 				.messageListener(msg -> {
@@ -180,8 +174,8 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
 						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(
 								List.of(limiter,
-										SemaphoreBackPressureHandler.builder().batchSize(5).totalPermits(5)
-												.acquireTimeout(Duration.ofSeconds(1L))
+										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(5)
+												.totalPermits(5).acquireTimeout(Duration.ofSeconds(1L))
 												.throughputConfiguration(BackPressureMode.AUTO).build()),
 								5, Duration.ofMillis(50L))))
 				.messageListener(msg -> {
@@ -226,8 +220,8 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
 						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(
 								List.of(limiter,
-										SemaphoreBackPressureHandler.builder().batchSize(5).totalPermits(5)
-												.acquireTimeout(Duration.ofSeconds(1L))
+										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(5)
+												.totalPermits(5).acquireTimeout(Duration.ofSeconds(1L))
 												.throughputConfiguration(BackPressureMode.AUTO).build()),
 								5, Duration.ofMillis(50L))))
 				.messageListener(msg -> {
@@ -446,20 +440,16 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent {} messages to queue {}", nbMessages, queueName);
 		var latch = new CountDownLatch(nbMessages);
 		EventsCsvWriter eventsCsvWriter = new EventsCsvWriter();
-		var container = SqsMessageListenerContainer
-				.builder().sqsAsyncClient(
-						BaseSqsIntegrationTest.createAsyncClient())
+		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
 				.queueNames(queueName)
-				.configure(
-						options -> options.pollTimeout(Duration.ofSeconds(1))
-								.standbyLimitPollingInterval(
-										Duration.ofMillis(1))
-								.backPressureHandlerSupplier(
-										() -> new StatisticsBphDecorator(new CompositeBackPressureHandler(
-												List.of(limiter, SemaphoreBackPressureHandler.builder().batchSize(10)
-														.totalPermits(10).acquireTimeout(Duration.ofSeconds(1L))
-														.throughputConfiguration(BackPressureMode.AUTO).build()),
-												10, Duration.ofMillis(50L)), eventsCsvWriter)))
+				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
+						.standbyLimitPollingInterval(Duration.ofMillis(1))
+						.backPressureHandlerSupplier(() -> new StatisticsBphDecorator(new CompositeBackPressureHandler(
+								List.of(limiter,
+										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(10)
+												.totalPermits(10).acquireTimeout(Duration.ofSeconds(1L))
+												.throughputConfiguration(BackPressureMode.AUTO).build()),
+								10, Duration.ofMillis(50L)), eventsCsvWriter)))
 				.messageListener(msg -> {
 					int currentConcurrentRq = concurrentRequest.incrementAndGet();
 					maxConcurrentRequest.updateAndGet(max -> Math.max(max, currentConcurrentRq));
@@ -507,8 +497,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 				eventsCsvWriter.registerEvent("expected_max", expectedMax);
 				eventsCsvWriter.registerEvent("max_minus_expected_max", max - expectedMax);
 			}
-			eventsCsvWriter.write(Path.of(
-					"target/0-stats-unsynchronizedChangesInBackPressureLimitShouldAdaptQueueProcessingCapacity.csv"));
+			eventsCsvWriter.write(Path.of("target/stats-%s.csv".formatted(queueName)));
 			assertThat(maxConcurrentRqSum).isLessThanOrEqualTo(limitsSum);
 			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 		}

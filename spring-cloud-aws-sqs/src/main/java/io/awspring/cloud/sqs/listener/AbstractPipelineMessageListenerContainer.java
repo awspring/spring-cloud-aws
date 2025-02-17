@@ -237,9 +237,23 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 		}
 		Duration acquireTimeout = containerOptions.getMaxDelayBetweenPolls();
 		int batchSize = containerOptions.getMaxMessagesPerPoll();
-		return SemaphoreBackPressureHandler.builder().batchSize(batchSize)
-				.totalPermits(containerOptions.getMaxConcurrentMessages()).acquireTimeout(acquireTimeout)
+		int maxConcurrentMessages = containerOptions.getMaxConcurrentMessages();
+		var concurrencyLimiterBlockingBackPressureHandler = ConcurrencyLimiterBlockingBackPressureHandler.builder()
+				.batchSize(batchSize).totalPermits(maxConcurrentMessages).acquireTimeout(acquireTimeout)
 				.throughputConfiguration(containerOptions.getBackPressureMode()).build();
+		if (maxConcurrentMessages == batchSize) {
+			return concurrencyLimiterBlockingBackPressureHandler;
+		}
+		return switch (containerOptions.getBackPressureMode()) {
+		case FIXED_HIGH_THROUGHPUT -> concurrencyLimiterBlockingBackPressureHandler;
+		case ALWAYS_POLL_MAX_MESSAGES,
+				AUTO -> {
+			var throughputBackPressureHandler = ThroughputBackPressureHandler.builder().batchSize(batchSize).build();
+			yield new CompositeBackPressureHandler(
+					List.of(concurrencyLimiterBlockingBackPressureHandler, throughputBackPressureHandler),
+					batchSize, containerOptions.getStandbyLimitPollingInterval());
+		}
+		};
 	}
 
 	protected TaskExecutor createSourcesTaskExecutor() {

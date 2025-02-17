@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -66,6 +67,7 @@ public class CompositeBackPressureHandler implements BatchAwareBackPressureHandl
 
 	@Override
 	public int request(int amount) throws InterruptedException {
+		logger.debug("[{}] Requesting {} permits", this.id, amount);
 		int obtained = amount;
 		int[] obtainedPerBph = new int[backPressureHandlers.size()];
 		for (int i = 0; i < backPressureHandlers.size() && obtained > 0; i++) {
@@ -81,11 +83,13 @@ public class CompositeBackPressureHandler implements BatchAwareBackPressureHandl
 		if (obtained == 0) {
 			waitForPermitsToBeReleased();
 		}
+		logger.debug("[{}] Obtained {} permits ({} requested)", this.id, obtained, amount);
 		return obtained;
 	}
 
 	@Override
 	public void release(int amount, ReleaseReason reason) {
+		logger.debug("[{}] Releasing {} permits ({})", this.id, amount, reason);
 		for (BackPressureHandler handler : backPressureHandlers) {
 			handler.release(amount, reason);
 		}
@@ -106,6 +110,8 @@ public class CompositeBackPressureHandler implements BatchAwareBackPressureHandl
 	private void waitForPermitsToBeReleased() throws InterruptedException {
 		noPermitsReturnedWaitLock.lock();
 		try {
+			logger.trace("[{}] No permits were obtained, waiting for a release up to {}", this.id,
+					noPermitsReturnedWaitTimeout);
 			permitsReleasedCondition.await(noPermitsReturnedWaitTimeout.toMillis(), TimeUnit.MILLISECONDS);
 		}
 		finally {
@@ -125,12 +131,19 @@ public class CompositeBackPressureHandler implements BatchAwareBackPressureHandl
 
 	@Override
 	public boolean drain(Duration timeout) {
-		logger.info("Draining back-pressure handlers initiated");
+		logger.debug("[{}] Draining back-pressure handlers initiated", this.id);
 		boolean result = true;
+		Instant start = Instant.now();
 		for (BackPressureHandler handler : backPressureHandlers) {
-			result &= !handler.drain(timeout);
+			Duration remainingTimeout = maxDuration(timeout.minus(Duration.between(start, Instant.now())),
+					Duration.ZERO);
+			result &= handler.drain(remainingTimeout);
 		}
-		logger.info("Draining back-pressure handlers completed");
+		logger.debug("[{}] Draining back-pressure handlers completed", this.id);
 		return result;
+	}
+
+	private static Duration maxDuration(Duration first, Duration second) {
+		return first.compareTo(second) > 0 ? first : second;
 	}
 }
