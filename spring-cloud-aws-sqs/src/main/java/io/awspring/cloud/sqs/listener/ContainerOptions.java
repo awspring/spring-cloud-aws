@@ -20,6 +20,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMod
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.function.Supplier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.retry.backoff.BackOffPolicy;
@@ -59,7 +60,13 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	boolean isAutoStartup();
 
 	/**
-	 * Set the maximum time the polling thread should wait for a full batch of permits to be available before trying to
+	 * {@return the amount of time to wait before checking again for the current limit when the queue processing is on
+	 * standby} Default is 100 milliseconds.
+	 */
+	Duration getStandbyLimitPollingInterval();
+
+	/**
+	 * Sets the maximum time the polling thread should wait for a full batch of permits to be available before trying to
 	 * acquire a partial batch if so configured. A poll is only actually executed if at least one permit is available.
 	 * Default is 10 seconds.
 	 *
@@ -126,6 +133,12 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	 * @return the backpressure mode.
 	 */
 	BackPressureMode getBackPressureMode();
+
+	/**
+	 * Return the a {@link Supplier} to create a {@link BackPressureHandler} for this container.
+	 * @return the BackPressureHandler supplier.
+	 */
+	Supplier<BackPressureHandler> getBackPressureHandlerSupplier();
 
 	/**
 	 * Return the {@link ListenerMode} mode for this container.
