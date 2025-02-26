@@ -134,7 +134,7 @@
 					</links>
 					<author>true</author>
 					<header>${project.name}</header>
-					<reportOutputDirectory>${project.build.directory}/site/${project.version}/apidocs</reportOutputDirectory>
+					<outputDirectory>${project.build.directory}/site/${project.version}/</outputDirectory>
 					<source>17</source>
 				</configuration>
 			</plugin>
