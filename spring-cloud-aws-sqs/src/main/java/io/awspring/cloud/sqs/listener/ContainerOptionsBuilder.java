@@ -19,6 +19,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import java.time.Duration;
+import java.util.function.Supplier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.retry.backoff.BackOffPolicy;
 
@@ -55,6 +56,15 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	 * @return this instance.
 	 */
 	B autoStartup(boolean autoStartup);
+
+	/**
+	 * Sets the amount of time to wait before checking again for the current limit when the queue processing is on
+	 * standby.
+	 *
+	 * @param standbyLimitPollingInterval the limit polling interval when the queue processing is on standby.
+	 * @return this instance.
+	 */
+	B standbyLimitPollingInterval(Duration standbyLimitPollingInterval);
 
 	/**
 	 * Set the maximum time the polling thread should wait for a full batch of permits to be available before trying to
@@ -144,6 +154,14 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	 * @return this instance.
 	 */
 	B backPressureMode(BackPressureMode backPressureMode);
+
+	/**
+	 * Set the {@link Supplier} of {@link BackPressureHandler} for this container. Default is {@code null}.
+	 *
+	 * @param backPressureHandlerSupplier the BackPressureHandler supplier.
+	 * @return this instance.
+	 */
+	B backPressureHandlerSupplier(Supplier<BackPressureHandler> backPressureHandlerSupplier);
 
 	/**
 	 * Set the maximum interval between acknowledgements for batch acknowledgements. The default depends on the specific
