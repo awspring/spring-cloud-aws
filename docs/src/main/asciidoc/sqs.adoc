@@ -42,6 +42,8 @@ public class SqsApplication {
 }
 ----
 
+IMPORTANT: Due to a classloader related https://github.com/awspring/spring-cloud-aws/issues/657[issue] it is currently not possible to use @SqsListener together with Spring Boot DevTools.
+
 Without Spring Boot, it's necessary to import the `SqsBootstrapConfiguration` class in a `@Configuration`, as well as declare a `SqsMessageListenerContainerFactory` bean.
 
 [source, java]
@@ -591,6 +593,8 @@ MessageListenerContainer<Object> myListenerContainer(SqsAsyncClient sqsAsyncClie
 
 The simplest way to consume `SQS` messages is by annotating a method in a `@Component` class with the `@SqsListener` annotation.
 The framework will then create the `MessageListenerContainer` and set a `MessagingMessageListenerAdapter` to invoke the method when a message is received.
+
+IMPORTANT: Due to a classloader related https://github.com/awspring/spring-cloud-aws/issues/657[issue] it is currently not possible to use @SqsListener together with Spring Boot DevTools.
 
 When using `Spring Boot` with `auto-configuration`, no configuration is necessary.
 
