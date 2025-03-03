@@ -35,7 +35,6 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.AcknowledgementProcessingMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -230,25 +229,10 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 		if (containerOptions.getBackPressureHandlerSupplier() != null) {
 			return containerOptions.getBackPressureHandlerSupplier().get();
 		}
-		Duration acquireTimeout = containerOptions.getMaxDelayBetweenPolls();
-		int batchSize = containerOptions.getMaxMessagesPerPoll();
-		int maxConcurrentMessages = containerOptions.getMaxConcurrentMessages();
-		var concurrencyLimiterBlockingBackPressureHandler = ConcurrencyLimiterBlockingBackPressureHandler.builder()
-				.batchSize(batchSize).totalPermits(maxConcurrentMessages).acquireTimeout(acquireTimeout)
-				.throughputConfiguration(containerOptions.getBackPressureMode()).build();
-		if (maxConcurrentMessages == batchSize) {
-			return concurrencyLimiterBlockingBackPressureHandler;
-		}
-		return switch (containerOptions.getBackPressureMode()) {
-		case FIXED_HIGH_THROUGHPUT -> concurrencyLimiterBlockingBackPressureHandler;
-		case ALWAYS_POLL_MAX_MESSAGES,
-				AUTO -> {
-			var throughputBackPressureHandler = ThroughputBackPressureHandler.builder().batchSize(batchSize).build();
-			yield new CompositeBackPressureHandler(
-					List.of(concurrencyLimiterBlockingBackPressureHandler, throughputBackPressureHandler),
-					batchSize, containerOptions.getStandbyLimitPollingInterval());
-		}
-		};
+		return SemaphoreBackPressureHandler.builder().batchSize(getContainerOptions().getMaxMessagesPerPoll())
+				.totalPermits(getContainerOptions().getMaxConcurrentMessages())
+				.acquireTimeout(getContainerOptions().getMaxDelayBetweenPolls())
+				.throughputConfiguration(getContainerOptions().getBackPressureMode()).build();
 	}
 
 	protected TaskExecutor createSourcesTaskExecutor() {
