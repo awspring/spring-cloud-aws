@@ -166,6 +166,7 @@ class AbstractPollingMessageSourceTests {
 					}
 					catch (Throwable t) {
 						logger.error("Error (not expecting it)", t);
+						errors.add(t);
 						throw new RuntimeException(t);
 					}
 				}, threadPool).whenComplete((v, t) -> {
