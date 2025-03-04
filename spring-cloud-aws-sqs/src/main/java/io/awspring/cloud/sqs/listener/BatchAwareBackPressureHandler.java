@@ -44,6 +44,16 @@ public interface BatchAwareBackPressureHandler extends BackPressureHandler {
 		release(getBatchSize(), ReleaseReason.NONE_FETCHED);
 	}
 
+	@Override
+	default void release(int amount, ReleaseReason reason) {
+		if (amount == getBatchSize() && reason == ReleaseReason.NONE_FETCHED) {
+			releaseBatch();
+		}
+		else {
+			release(amount);
+		}
+	}
+
 	/**
 	 * Return the configured batch size for this handler.
 	 * @return the batch size.

@@ -180,16 +180,6 @@ public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandl
 				this.semaphore.availablePermits());
 	}
 
-	@Override
-	public void release(int amount, ReleaseReason reason) {
-		if (amount == this.batchSize && reason == ReleaseReason.NONE_FETCHED) {
-			releaseBatch();
-		}
-		else {
-			release(amount);
-		}
-	}
-
 	private int getPermitsToRelease(int amount) {
 		return this.hasAcquiredFullPermits.compareAndSet(true, false)
 				// The first process that gets here should release all permits except for inflight messages
