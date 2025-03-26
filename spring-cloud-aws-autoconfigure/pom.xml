@@ -176,5 +176,10 @@
 			<artifactId>amazon-s3-encryption-client-java</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-observation-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

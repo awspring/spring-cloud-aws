@@ -18,10 +18,15 @@ package io.awspring.cloud.sqs.listener.sink;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
+import io.awspring.cloud.sqs.listener.sink.adapter.AbstractDelegatingMessageListeningSinkAdapter;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageGroupingSinkAdapter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +36,11 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
+
+import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationConvention;
+import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -42,6 +52,7 @@ import org.springframework.messaging.support.MessageBuilder;
  *
  * @author Tomaz Fernandes
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 class MessageGroupingSinkTests {
 
 	@Test
@@ -76,15 +87,17 @@ class MessageGroupingSinkTests {
 				catch (InterruptedException e) {
 					throw new RuntimeException(e);
 				}
-				received.add(message);
-				return CompletableFuture.completedFuture(message);
+				Message<Integer> messageWithoutObservation = MessageHeaderUtils.removeHeaderIfPresent(message, ObservationThreadLocalAccessor.KEY);
+				received.add(messageWithoutObservation);
+				return CompletableFuture.completedFuture(messageWithoutObservation);
 			}
 		});
+		setupObservationMocks(sinkAdapter);
+
 		sinkAdapter.start();
 		sinkAdapter.emit(messagesToEmit, MessageProcessingContext.create()).join();
 		Map<String, List<Message<Integer>>> receivedMessages = received.stream()
 				.collect(groupingBy(message -> (String) message.getHeaders().get(header)));
-
 		assertThat(receivedMessages.get(firstMessageGroupId)).containsExactlyElementsOf(firstMessageGroupMessages);
 		assertThat(receivedMessages.get(secondMessageGroupId)).containsExactlyElementsOf(secondMessageGroupMessages);
 		assertThat(receivedMessages.get(thirdMessageGroupId)).containsExactlyElementsOf(thirdMessageGroupMessages);
@@ -94,5 +107,20 @@ class MessageGroupingSinkTests {
 	private Message<Integer> createMessage(int index, String header, String thirdMessageGroupId) {
 		return MessageBuilder.withPayload(index).setHeader(header, thirdMessageGroupId).build();
 	}
+
+	private void setupObservationMocks(AbstractDelegatingMessageListeningSinkAdapter<Integer> sink) {
+		AbstractListenerObservation.Specifics specifics = mock(AbstractListenerObservation.Specifics.class);
+		ObservationConvention convention = mock(ObservationConvention.class);
+		AbstractListenerObservation.Context context = mock(AbstractListenerObservation.Context.class);
+		AbstractListenerObservation.Documentation documentation = mock(AbstractListenerObservation.Documentation.class);
+		Observation observation = mock(Observation.class);
+		given(specifics.getDefaultConvention()).willReturn(convention);
+		given(specifics.createContext(any())).willReturn(context);
+		given(specifics.getDocumentation()).willReturn(documentation);
+		given(documentation.start(any(), any(), any(), any())).willReturn(observation);
+		sink.setObservationSpecifics(specifics);
+	}
+
+
 
 }

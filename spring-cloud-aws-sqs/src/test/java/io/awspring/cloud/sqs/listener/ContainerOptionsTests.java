@@ -21,6 +21,8 @@ import static org.mockito.Mockito.mock;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
@@ -120,11 +122,35 @@ class ContainerOptionsTests {
 		assertThat(options.getMessageConverter()).isEqualTo(converter);
 	}
 
+	@Test
+	void shouldSetObservationRegistry() {
+		ObservationRegistry observationRegistry = ObservationRegistry.create();
+		SqsContainerOptions options = SqsContainerOptions.builder().observationRegistry(observationRegistry).build();
+		assertThat(options.getObservationRegistry()).isEqualTo(observationRegistry);
+	}
+
+	@Test
+	void shouldSetObservationConvention() {
+		SqsListenerObservation.Convention observationConvention = mock(SqsListenerObservation.Convention.class);
+		SqsContainerOptions options = SqsContainerOptions.builder().observationConvention(observationConvention)
+				.build();
+		assertThat(options.getObservationConvention()).isEqualTo(observationConvention);
+	}
+
+	@Test
+	void shouldDefaultToNoopObservationRegistry() {
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
+		assertThat(options.getObservationRegistry().isNoop()).isTrue();
+	}
+
 	private SqsContainerOptions createConfiguredOptions() {
 		return createConfiguredBuilder().build();
 	}
 
 	private SqsContainerOptionsBuilder createConfiguredBuilder() {
+		ObservationRegistry observationRegistry = ObservationRegistry.create();
+		SqsListenerObservation.Convention observationConvention = mock(SqsListenerObservation.Convention.class);
+
 		return SqsContainerOptions.builder().acknowledgementShutdownTimeout(Duration.ofSeconds(7))
 				.messageVisibility(Duration.ofSeconds(11))
 				.pollBackOffPolicy(BackOffPolicyBuilder.newBuilder().delay(1000).build())
@@ -136,7 +162,8 @@ class ContainerOptionsTests {
 				.maxConcurrentMessages(39).pollTimeout(Duration.ofSeconds(13))
 				.acknowledgementMode(AcknowledgementMode.MANUAL).acknowledgementResultTaskExecutor(Runnable::run)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).componentsTaskExecutor(Runnable::run)
-				.listenerMode(ListenerMode.BATCH).maxDelayBetweenPolls(Duration.ofSeconds(16));
+				.listenerMode(ListenerMode.BATCH).maxDelayBetweenPolls(Duration.ofSeconds(16))
+				.observationRegistry(observationRegistry).observationConvention(observationConvention);
 	}
 
 }
