@@ -43,6 +43,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallb
 import io.awspring.cloud.sqs.listener.acknowledgement.BatchAcknowledgement;
 import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
+import io.awspring.cloud.sqs.listener.errorhandler.AsyncDefaultErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
@@ -52,11 +53,13 @@ import io.awspring.cloud.sqs.operations.SqsTemplate;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
@@ -93,6 +96,8 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * @author Mikhail Strokov
  * @author Michael Sosa
  * @author gustavomonarin
+ * @author Bruno Garcia
+ * @author Rafael Pavarini
  */
 @SpringBootTest
 @TestPropertySource(properties = { "property.one=1", "property.five.seconds=5s",
@@ -130,6 +135,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String MAX_CONCURRENT_MESSAGES_QUEUE_NAME = "max_concurrent_messages_test_queue";
 
+	static final String SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_QUEUE_NAME = "success_visibility_timeout_to_zero_test_queue";
+
+	static final String SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_BATCH_QUEUE_NAME = "success_visibility_batch_timeout_to_zero_test_queue";
+
 	static final String LOW_RESOURCE_FACTORY = "lowResourceFactory";
 
 	static final String MANUAL_ACK_FACTORY = "manualAcknowledgementFactory";
@@ -137,6 +146,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	static final String MANUAL_ACK_BATCH_FACTORY = "manualAcknowledgementBatchFactory";
 
 	static final String ACK_AFTER_SECOND_ERROR_FACTORY = "ackAfterSecondErrorFactory";
+
+	static final String SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_FACTORY = "receivesMessageErrorFactory";
 
 	@BeforeAll
 	static void beforeTests() {
@@ -158,7 +169,12 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME),
 				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME),
 				createQueue(client, CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME),
-				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME)).join();
+				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME),
+				createQueue(client, SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_QUEUE_NAME,
+						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "500")),
+				createQueue(client, SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_BATCH_QUEUE_NAME,
+						singletonMap(QueueAttributeName.VISIBILITY_TIMEOUT, "500")))
+				.join();
 	}
 
 	@Autowired
@@ -182,6 +198,27 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.receivesMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.invocableHandlerMethodLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.acknowledgementCallbackSuccessLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void receivesMessageVisibilityTimeout() throws Exception {
+		String messageBody = UUID.randomUUID().toString();
+		sqsTemplate.send(SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_QUEUE_NAME, messageBody);
+		logger.debug("Sent message to queue {} with messageBody {}", SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_QUEUE_NAME,
+				messageBody);
+
+		assertThat(latchContainer.receivesRetryMessageQuicklyLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void receivesMessageVisibilityTimeoutBatch() throws Exception {
+		List<Message<String>> messages = create10Messages("receivesMessageVisibilityTimeoutBatch");
+
+		sqsTemplate.sendManyAsync(SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_BATCH_QUEUE_NAME, messages);
+		logger.debug("Sent message to queue {} with messageBody {}",
+				SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_BATCH_QUEUE_NAME, messages);
+
+		assertThat(latchContainer.receivesRetryBatchMessageQuicklyLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -425,6 +462,68 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	static class ErrorHandlerVisibilityTest {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		private static final Map<String, Long> previousReceivedMessageTimestamps = new ConcurrentHashMap<>();
+
+		private static final int MAX_EXPECTED_ELAPSED_TIME_BETWEEN_MSG_RECEIVES_IN_MS = 5000;
+
+		@SqsListener(queueNames = SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_QUEUE_NAME, messageVisibilitySeconds = "500", factory = SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_FACTORY, id = "visibilityErrHandler")
+		CompletableFuture<Void> listen(Message<String> message,
+				@Header(SqsHeaders.SQS_QUEUE_NAME_HEADER) String queueName) {
+			logger.info("Received message {} from queue {}", message, queueName);
+			String msgId = MessageHeaderUtils.getHeader(message, "id", UUID.class).toString();
+			Long prevReceivedMessageTimestamp = previousReceivedMessageTimestamps.get(msgId);
+			if (prevReceivedMessageTimestamp == null) {
+				previousReceivedMessageTimestamps.put(msgId, System.currentTimeMillis());
+				return CompletableFuture
+						.failedFuture(new RuntimeException("Expected exception from visibility-err-handler"));
+			}
+
+			long elapsedTimeBetweenMessageReceivesInMs = System.currentTimeMillis() - prevReceivedMessageTimestamp;
+			if (elapsedTimeBetweenMessageReceivesInMs < MAX_EXPECTED_ELAPSED_TIME_BETWEEN_MSG_RECEIVES_IN_MS) {
+				latchContainer.receivesRetryMessageQuicklyLatch.countDown();
+			}
+
+			return CompletableFuture.completedFuture(null);
+		}
+	}
+
+	static class ErrorHandlerVisibilityBatchTest {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		private static final Map<String, Long> previousReceivedMessageTimestamps = new ConcurrentHashMap<>();
+
+		private static final int MAX_EXPECTED_ELAPSED_TIME_BETWEEN_BATCH_MSG_RECEIVES_IN_MS = 5000;
+
+		@SqsListener(queueNames = SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_BATCH_QUEUE_NAME, messageVisibilitySeconds = "500", factory = SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_FACTORY, id = "visibilityBatchErrHandler")
+		CompletableFuture<Void> listen(List<Message<String>> messages) {
+			logger.info("Received messages {} from queue {}", MessageHeaderUtils.getId(messages),
+					messages.get(0).getHeaders().get(SqsHeaders.SQS_QUEUE_NAME_HEADER));
+
+			for(Message<String> message : messages) {
+				String msgId = MessageHeaderUtils.getHeader(message, "id", UUID.class).toString();
+				if (!previousReceivedMessageTimestamps.containsKey(msgId)) {
+					previousReceivedMessageTimestamps.put(msgId, System.currentTimeMillis());
+					return CompletableFuture.failedFuture(new RuntimeException("Expected exception from visibility-err-handler"));
+				}
+				else {
+					long timediff = System.currentTimeMillis() - previousReceivedMessageTimestamps.get(msgId);
+					if (MAX_EXPECTED_ELAPSED_TIME_BETWEEN_BATCH_MSG_RECEIVES_IN_MS > timediff) {
+						latchContainer.receivesRetryBatchMessageQuicklyLatch.countDown();
+					}
+				}
+			}
+
+			return CompletableFuture.completedFuture(null);
+		}
+	}
+
 	static class DoesNotAckOnErrorBatchListener {
 
 		@Autowired
@@ -500,6 +599,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	static class LatchContainer {
 
 		final CountDownLatch receivesMessageLatch = new CountDownLatch(1);
+		final CountDownLatch receivesRetryMessageQuicklyLatch = new CountDownLatch(1);
+		final CountDownLatch receivesRetryBatchMessageQuicklyLatch = new CountDownLatch(10);
 		final CountDownLatch receivesMessageBatchLatch = new CountDownLatch(20);
 		final CountDownLatch receivesMessageAsyncLatch = new CountDownLatch(1);
 		final CountDownLatch doesNotAckLatch = new CountDownLatch(2);
@@ -572,6 +673,21 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				.containerComponentFactories(getExceptionThrowingAckExecutor())
 				.acknowledgementResultCallback(getAcknowledgementResultCallback())
 				.errorHandler(testErrorHandler())
+				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+				.build();
+		}
+
+		@Bean(name = SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_FACTORY)
+		public SqsMessageListenerContainerFactory<Object> errorHandlerVisibility() {
+			return SqsMessageListenerContainerFactory
+				.builder()
+				.configure(options -> options
+					.maxConcurrentMessages(10)
+					.pollTimeout(Duration.ofSeconds(10))
+					.maxMessagesPerPoll(10)
+					.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
+					.maxDelayBetweenPolls(Duration.ofSeconds(10)))
+				.errorHandler(new AsyncDefaultErrorHandler<>())
 				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
 				.build();
 		}
@@ -736,6 +852,16 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		DoesNotAckOnErrorAsyncListener doesNotAckOnErrorAsyncListener() {
 			return new DoesNotAckOnErrorAsyncListener();
+		}
+
+		@Bean
+		ErrorHandlerVisibilityTest errorHandlerVisibilityTest() {
+			return new ErrorHandlerVisibilityTest();
+		}
+
+		@Bean
+		ErrorHandlerVisibilityBatchTest errorHandlerVisibilityBatchTest() {
+			return new ErrorHandlerVisibilityBatchTest();
 		}
 
 		@Bean
