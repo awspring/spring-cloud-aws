@@ -22,7 +22,6 @@ import java.util.Map;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
-import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.lang.Nullable;
@@ -47,28 +46,23 @@ public class ParameterStoreConfigDataLoader implements ConfigDataLoader<Paramete
 	@Override
 	@Nullable
 	public ConfigData load(ConfigDataLoaderContext context, ParameterStoreConfigDataResource resource) {
-		try {
-			// resource is disabled if parameter store integration is disabled via
-			// spring.cloud.aws.parameterstore.enabled=false
-			if (resource.isEnabled()) {
-				SsmClient ssm = context.getBootstrapContext().get(SsmClient.class);
-				ParameterStorePropertySource propertySource = resource.getPropertySources()
-						.createPropertySource(resource.getContext(), resource.isOptional(), ssm);
-				if (propertySource != null) {
-					return new ConfigData(Collections.singletonList(propertySource));
-				}
-				else {
-					return null;
-				}
+		// resource is disabled if parameter store integration is disabled via
+		// spring.cloud.aws.parameterstore.enabled=false
+		if (resource.isEnabled()) {
+			SsmClient ssm = context.getBootstrapContext().get(SsmClient.class);
+			ParameterStorePropertySource propertySource = resource.getPropertySources()
+					.createPropertySource(resource.getContext(), resource.isOptional(), ssm);
+			if (propertySource != null) {
+				return new ConfigData(Collections.singletonList(propertySource));
 			}
 			else {
-				// create dummy empty config data
-				return new ConfigData(
-						Collections.singletonList(new MapPropertySource("aws-parameterstore:" + context, Map.of())));
+				return null;
 			}
 		}
-		catch (Exception e) {
-			throw new ConfigDataResourceNotFoundException(resource, e);
+		else {
+			// create dummy empty config data
+			return new ConfigData(
+					Collections.singletonList(new MapPropertySource("aws-parameterstore:" + context, Map.of())));
 		}
 	}
 
