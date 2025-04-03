@@ -84,6 +84,12 @@
 			</dependency>
 
 			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>cognitoidentityprovider</artifactId>
+				<version>${awssdk-v2.version}</version>
+			</dependency>
+
+			<dependency>
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-core</artifactId>
 				<version>${project.version}</version>
@@ -134,6 +140,12 @@
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-s3</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-cognito</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -206,6 +218,12 @@
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter-sqs</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-cognito</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
