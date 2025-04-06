@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.listener;
 
+import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +53,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	 * Create a {@link ContainerOptions} instance from the builder.
 	 * @param builder the builder.
 	 */
-	protected SqsContainerOptions(BuilderImpl builder) {
+	private SqsContainerOptions(BuilderImpl builder) {
 		super(builder);
 		this.queueAttributeNames = builder.queueAttributeNames;
 		this.messageAttributeNames = builder.messageAttributeNames;
@@ -125,7 +126,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		return new BuilderImpl(this);
 	}
 
-	private static class BuilderImpl
+	protected static class BuilderImpl
 			extends AbstractContainerOptions.Builder<SqsContainerOptionsBuilder, SqsContainerOptions>
 			implements SqsContainerOptionsBuilder {
 
@@ -208,6 +209,14 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		public SqsContainerOptionsBuilder queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
 			Assert.notNull(queueNotFoundStrategy, "queueNotFoundStrategy cannot be null");
 			this.queueNotFoundStrategy = queueNotFoundStrategy;
+			return this;
+		}
+
+		@Override
+		public SqsContainerOptionsBuilder observationConvention(
+				SqsListenerObservation.Convention observationConvention) {
+			Assert.notNull(observationConvention, "observationConvention cannot be null");
+			super.observationConvention(observationConvention);
 			return this;
 		}
 
