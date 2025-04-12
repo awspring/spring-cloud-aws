@@ -21,6 +21,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 
 /**
  * Interface for simple DynamoDB template operations.
@@ -55,6 +56,16 @@ public interface DynamoDbOperations {
 	 * @param <T> Type of Entity object.
 	 */
 	<T> T update(T entity);
+
+	/**
+	 * Updates an item in DynamoDB using the provided UpdateItemEnhancedRequest.
+	 *
+	 * @param updateItemEnhancedRequest the request object containing the item to be updated
+	 * @param clazz the class type of the item to be updated
+	 * 
+	 * @see UpdateItemEnhancedRequest
+	 */
+	<T> T update(UpdateItemEnhancedRequest<T> updateItemEnhancedRequest, Class<T> clazz);
 
 	/**
 	 * Deletes a record for a given Key.

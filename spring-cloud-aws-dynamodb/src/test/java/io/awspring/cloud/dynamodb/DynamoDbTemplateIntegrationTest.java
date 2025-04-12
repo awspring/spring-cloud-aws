@@ -39,6 +39,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
@@ -324,15 +325,13 @@ public class DynamoDbTemplateIntegrationTest {
 				.item(secondPersonEntity).build();
 		// save a person with lastName "bar"
 		dynamoDbTemplate.save(personEntity);
-		// try to save a person with lastName "jar" again
-		// this should fail
+		// attempt to replace person with lastName "jar"
 		dynamoDbTemplate.save(putItemEnhancedRequest, PersonEntity.class);
 		PersonEntity savedPersonEntity = dynamoDbTemplate.load(
 				Key.builder().partitionValue(secondPersonEntity.getUuid().toString()).build(), PersonEntity.class);
 		assertThat(savedPersonEntity).isEqualTo(secondPersonEntity);
 
 		cleanUp(dynamoDbTable, personEntity.getUuid());
-		cleanUp(dynamoDbTable, secondPersonEntity.getUuid());
 	}
 
 	@ParameterizedTest
@@ -354,6 +353,46 @@ public class DynamoDbTemplateIntegrationTest {
 
 		cleanUp(dynamoDbTable, personEntity.getUuid());
 
+	}
+
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_updateConditionally_entitySuccessfully(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
+		UUID uuid = UUID.randomUUID();
+		PersonEntity personEntity = new PersonEntity(uuid, "foo", null);
+		PersonEntity updatedPersonEntity = new PersonEntity(uuid, "foo", "bar");
+		UpdateItemEnhancedRequest<PersonEntity> updateItemEnhancedRequest = UpdateItemEnhancedRequest
+				.builder(PersonEntity.class)
+				.conditionExpression(Expression.builder().expression("attribute_not_exists(lastName)").build())
+				.item(updatedPersonEntity).build();
+		// save a person with lastName "bar"
+		dynamoDbTemplate.save(personEntity);
+		// update person lastName
+		PersonEntity savedPersonEntity = dynamoDbTemplate.update(updateItemEnhancedRequest, PersonEntity.class);
+		assertThat(savedPersonEntity.getLastName()).isEqualTo("bar");
+
+		cleanUp(dynamoDbTable, personEntity.getUuid());
+	}
+
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_updateConditionally_entityFails(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
+		UUID uuid = UUID.randomUUID();
+		PersonEntity personEntity = new PersonEntity(uuid, "foo", "bar");
+		PersonEntity updatedPersonEntity = new PersonEntity(uuid, "foo", "jar");
+		UpdateItemEnhancedRequest<PersonEntity> updateItemEnhancedRequest = UpdateItemEnhancedRequest
+				.builder(PersonEntity.class)
+				.conditionExpression(Expression.builder().expression("attribute_not_exists(lastName)").build())
+				.item(updatedPersonEntity).build();
+		// save a person with lastName "bar"
+		dynamoDbTemplate.save(personEntity);
+		// update person lastName
+		assertThrows(DynamoDbException.class, () -> {
+			dynamoDbTemplate.update(updateItemEnhancedRequest, PersonEntity.class);
+		});
+		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
 
 	public static void cleanUp(DynamoDbTable<PersonEntity> dynamoDbTable, UUID uuid) {

@@ -25,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 
 /**
  * Default implementation of {@link DynamoDbOperations}.
@@ -62,15 +63,21 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 		return entity;
 	}
 
-	public <T> void save(PutItemEnhancedRequest<T> enhancedRequest, Class<T> clazz) {
-		Assert.notNull(enhancedRequest, "putItemEnhancedRequest is required");
+	public <T> void save(PutItemEnhancedRequest<T> putItemEnhancedRequest, Class<T> clazz) {
+		Assert.notNull(putItemEnhancedRequest, "putItemEnhancedRequest is required");
 		Assert.notNull(clazz, "clazz is required");
-		prepareTable(clazz).putItem(enhancedRequest);
+		prepareTable(clazz).putItem(putItemEnhancedRequest);
 	}
 
 	public <T> T update(T entity) {
 		Assert.notNull(entity, "entity is required");
 		return prepareTable(entity).updateItem(entity);
+	}
+
+	public <T> T update(UpdateItemEnhancedRequest<T> updateItemEnhancedRequest, Class<T> clazz) {
+		Assert.notNull(updateItemEnhancedRequest, "updateItemEnhancedRequest is required");
+		Assert.notNull(clazz, "clazz is required");
+		return prepareTable(clazz).updateItem(updateItemEnhancedRequest);
 	}
 
 	public <T> T delete(Key key, Class<T> clazz) {
