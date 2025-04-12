@@ -18,6 +18,7 @@ package io.awspring.cloud.dynamodb;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 
@@ -36,6 +37,16 @@ public interface DynamoDbOperations {
 	 * @param <T> Type of Entity object.
 	 */
 	<T> T save(T entity);
+
+	/**
+	 * Saves an item in DynamoDB using the provided PutItemEnhancedRequest.
+	 *
+	 * @param putItemEnhancedRequest the request object containing the item to be saved
+	 * @param clazz the class type of the item to be saved
+	 * 
+	 * @see PutItemEnhancedRequest
+	 */
+	<T> void save(PutItemEnhancedRequest<T> putItemEnhancedRequest, Class<T> clazz);
 
 	/**
 	 * Updates Entity to DynamoDB table.

@@ -22,6 +22,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 
@@ -59,6 +60,12 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 		Assert.notNull(entity, "entity is required");
 		prepareTable(entity).putItem(entity);
 		return entity;
+	}
+
+	public <T> void save(PutItemEnhancedRequest<T> enhancedRequest, Class<T> clazz) {
+		Assert.notNull(enhancedRequest, "putItemEnhancedRequest is required");
+		Assert.notNull(clazz, "clazz is required");
+		prepareTable(clazz).putItem(enhancedRequest);
 	}
 
 	public <T> T update(T entity) {
