@@ -197,6 +197,7 @@ class SqsAutoConfigurationTest {
 					assertThat(options.getMaxConcurrentMessages()).isEqualTo(10);
 					assertThat(options.getMaxMessagesPerPoll()).isEqualTo(10);
 					assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(10));
+					assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(10));
 				})
 				.extracting("messageConverter")
 				.asInstanceOf(type(SqsMessagingMessageConverter.class))

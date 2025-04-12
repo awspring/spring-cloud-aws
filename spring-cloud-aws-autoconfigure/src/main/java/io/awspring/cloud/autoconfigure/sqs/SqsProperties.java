@@ -88,7 +88,7 @@ public class SqsProperties extends AwsClientProperties {
 		private Duration pollTimeout;
 
 		/**
-		 *  The maximum amount of time to wait between consecutive polls to SQS.
+		 * The maximum amount of time to wait between consecutive polls to SQS.
 		 */
 		@Nullable
 		private Duration maxDelayBetweenPolls;
