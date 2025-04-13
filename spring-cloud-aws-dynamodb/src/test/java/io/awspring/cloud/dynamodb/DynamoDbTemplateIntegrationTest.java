@@ -34,6 +34,7 @@ import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.*;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
@@ -392,6 +393,49 @@ public class DynamoDbTemplateIntegrationTest {
 		assertThrows(DynamoDbException.class, () -> {
 			dynamoDbTemplate.update(updateItemEnhancedRequest, PersonEntity.class);
 		});
+		cleanUp(dynamoDbTable, personEntity.getUuid());
+	}
+
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_deleteConditionally_entitySuccessfully(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
+		UUID uuid = UUID.randomUUID();
+		PersonEntity personEntity = new PersonEntity(uuid, "notfoo", "bar");
+		DeleteItemEnhancedRequest deleteItemEnhancedRequest = DeleteItemEnhancedRequest.builder()
+				.conditionExpression(Expression.builder().expression("#nameNotBeDeleted <> :value")
+						.putExpressionName("#nameNotBeDeleted", "name")
+						.putExpressionValue(":value", AttributeValue.builder().s("foo").build()).build())
+				.key(Key.builder().partitionValue(personEntity.getUuid().toString()).build()).build();
+		dynamoDbTemplate.save(personEntity);
+		dynamoDbTemplate.delete(deleteItemEnhancedRequest, PersonEntity.class);
+
+		PersonEntity deletedEntity = dynamoDbTemplate
+				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
+
+		assertThat(deletedEntity).isNull();
+	}
+
+	@ParameterizedTest
+	@MethodSource("argumentSource")
+	void dynamoDbTemplate_deleteConditionally_entityFails(DynamoDbTable<PersonEntity> dynamoDbTable,
+			DynamoDbTemplate dynamoDbTemplate) {
+		UUID uuid = UUID.randomUUID();
+		PersonEntity personEntity = new PersonEntity(uuid, "foo", "bar");
+		DeleteItemEnhancedRequest deleteItemEnhancedRequest = DeleteItemEnhancedRequest.builder()
+				.conditionExpression(Expression.builder().expression("#nameNotBeDeleted <> :value")
+						.putExpressionName("#nameNotBeDeleted", "name")
+						.putExpressionValue(":value", AttributeValue.builder().s("foo").build()).build())
+				.key(Key.builder().partitionValue(personEntity.getUuid().toString()).build()).build();
+		dynamoDbTemplate.save(personEntity);
+		assertThrows(DynamoDbException.class, () -> {
+			dynamoDbTemplate.delete(deleteItemEnhancedRequest, PersonEntity.class);
+		});
+
+		PersonEntity deletedEntity = dynamoDbTemplate
+				.load(Key.builder().partitionValue(personEntity.getUuid().toString()).build(), PersonEntity.class);
+
+		assertThat(deletedEntity).isNotNull();
 		cleanUp(dynamoDbTable, personEntity.getUuid());
 	}
 

@@ -21,6 +21,7 @@ import org.springframework.util.Assert;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -89,6 +90,12 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	public <T> T delete(T entity) {
 		Assert.notNull(entity, "entity is required");
 		return prepareTable(entity).deleteItem(entity);
+	}
+
+	public <T> T delete(DeleteItemEnhancedRequest deleteItemEnhancedRequest, Class<T> clazz) {
+		Assert.notNull(deleteItemEnhancedRequest, "deleteItemEnhancedRequest is required");
+		Assert.notNull(clazz, "clazz is required");
+		return prepareTable(clazz).deleteItem(deleteItemEnhancedRequest);
 	}
 
 	@Nullable
