@@ -816,6 +816,7 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 | <<maxConcurrentMessages, `spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue`>> | Maximum number of inflight messages per queue. | No | 10
 | <<maxMessagesPerPoll, `spring.cloud.aws.sqs.listener.max-messages-per-poll`>> | Maximum number of messages to be received per poll. | No | 10
 | <<pollTimeout, `spring.cloud.aws.sqs.listener.poll-timeout`>> | Maximum amount of time to wait for messages in a poll. | No | 10 seconds
+| <<maxDelayBetweenPolls, `spring.cloud.aws.sqs.listener.max-delay-between-polls`>> | Maximum amount of time to wait between polls. | No | 10 seconds
 | `spring.cloud.aws.sqs.queue-not-found-strategy`  | The strategy to be used by SqsTemplate and SqsListeners when a queue does not exist. | No | CREATE
 |===
 
