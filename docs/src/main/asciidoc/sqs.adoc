@@ -1730,7 +1730,10 @@ Following IAM permissions are required by Spring Cloud AWS SQS:
 
 [cols="2"]
 |===
-| Send message to Queue
+| To access the queue by its name or ARN instead of the URL
+| `sqs:GetQueueUrl`
+
+| Send message to queue
 | `sqs:SendMessage`
 
 | Receive message from queue
@@ -1741,9 +1744,6 @@ Following IAM permissions are required by Spring Cloud AWS SQS:
 
 | To use sqsListener with SimpleMessageListenerContainerFactory you will need to add as well
 | `sqs:GetQueueAttributes`
-
-| To use SqsListener with Sqs name instead of ARN you will need
-| `sqs:GetQueueUrl`
 
 |===
 
