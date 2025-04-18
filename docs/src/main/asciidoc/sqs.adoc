@@ -1248,6 +1248,34 @@ If the error handler execution succeeds, i.e. no error is thrown from the error 
 IMPORTANT: If the message should not be acknowledged and the `ON_SUCCESS` acknowledgement mode is set, it's important to propagate the error.
 For simply executing an action in case of errors, an `interceptor` should be used instead, checking the presence of the `throwable` argument for detecting a failed execution.
 
+==== Immediate Retry Error Handler
+As mentioned in <<Error Handling>>, by default, messages that cause an error in the listener are only retried after the visibility timeout has expired.
+
+Starting with version 3.4, Spring Cloud AWS SQS includes the `ImmediateRetryAsyncErrorHandler`, which sets the visibility timeout to zero to enable immediate retry of failed messages.
+
+When using auto-configured factory, simply declare a `@Bean` and the error handler will be set
+
+[source, java]
+----
+@Bean
+public AsyncErrorHandler<Object> asyncErrorHandler() {
+    return new ImmediateRetryAsyncErrorHandler<>();
+}
+----
+
+Alternatively, `ImmediateRetryAsyncErrorHandler` can be set in the `MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+    return SqsMessageListenerContainerFactory
+        .builder()
+        .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+        .errorHandler(new ImmediateRetryAsyncErrorHandler<>())
+        .build();
+}
+----
 
 === Message Conversion and Payload Deserialization
 
