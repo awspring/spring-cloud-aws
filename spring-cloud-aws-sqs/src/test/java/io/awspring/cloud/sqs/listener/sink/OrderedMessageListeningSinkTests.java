@@ -17,13 +17,22 @@ package io.awspring.cloud.sqs.listener.sink;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
+
+import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationConvention;
+import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -33,6 +42,7 @@ import org.springframework.messaging.support.MessageBuilder;
  *
  * @author Tomaz Fernandes
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 class OrderedMessageListeningSinkTests {
 
 	@Test
@@ -42,6 +52,9 @@ class OrderedMessageListeningSinkTests {
 				.mapToObj(index -> MessageBuilder.withPayload(index).build()).collect(toList());
 		List<Message<Integer>> received = new ArrayList<>(numberOfMessagesToEmit);
 		AbstractMessageProcessingPipelineSink<Integer> sink = new OrderedMessageSink<>();
+
+		setupObservationMocks(sink);
+
 		sink.setTaskExecutor(Runnable::run);
 		sink.setMessagePipeline(getMessageProcessingPipeline(received));
 		sink.start();
@@ -50,13 +63,27 @@ class OrderedMessageListeningSinkTests {
 		assertThat(received).containsSequence(messagesToEmit);
 	}
 
+	private void setupObservationMocks(AbstractMessageProcessingPipelineSink<Integer> sink) {
+		AbstractListenerObservation.Specifics specifics = mock(AbstractListenerObservation.Specifics.class);
+		ObservationConvention convention = mock(ObservationConvention.class);
+		AbstractListenerObservation.Context context = mock(AbstractListenerObservation.Context.class);
+		AbstractListenerObservation.Documentation documentation = mock(AbstractListenerObservation.Documentation.class);
+		Observation observation = mock(Observation.class);
+		given(specifics.getDefaultConvention()).willReturn(convention);
+		given(specifics.createContext(any())).willReturn(context);
+		given(specifics.getDocumentation()).willReturn(documentation);
+		given(documentation.start(any(), any(), any(), any())).willReturn(observation);
+		sink.setObservationSpecifics(specifics);
+	}
+
 	private MessageProcessingPipeline<Integer> getMessageProcessingPipeline(List<Message<Integer>> received) {
 		return new MessageProcessingPipeline<Integer>() {
 			@Override
 			public CompletableFuture<Message<Integer>> process(Message<Integer> message,
 					MessageProcessingContext<Integer> context) {
-				received.add(message);
-				return CompletableFuture.completedFuture(message);
+				Message<Integer> messageWithoutObservation = MessageHeaderUtils.removeHeaderIfPresent(message, ObservationThreadLocalAccessor.KEY);
+				received.add(messageWithoutObservation);
+				return CompletableFuture.completedFuture(messageWithoutObservation);
 			}
 		};
 	}

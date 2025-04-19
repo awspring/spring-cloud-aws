@@ -17,15 +17,25 @@ package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageExecutionThread;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.support.observation.MessageHeaderContextAccessor;
+import io.micrometer.context.ContextRegistry;
+import io.micrometer.context.ContextSnapshot;
+import io.micrometer.context.ContextSnapshotFactory;
+import io.micrometer.context.Nullable;
+import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +58,7 @@ public class AsyncComponentAdapters {
 
 	/**
 	 * Adapt the provided {@link ErrorHandler} to an {@link AsyncErrorHandler}
+	 *
 	 * @param errorHandler the handler to be adapted
 	 * @param <T> the message payload type
 	 * @return the adapted component.
@@ -58,6 +69,7 @@ public class AsyncComponentAdapters {
 
 	/**
 	 * Adapt the provided {@link MessageInterceptor} to an {@link AsyncMessageInterceptor}
+	 *
 	 * @param messageInterceptor the interceptor to be adapted
 	 * @param <T> the message payload type
 	 * @return the adapted component.
@@ -68,6 +80,7 @@ public class AsyncComponentAdapters {
 
 	/**
 	 * Adapt the provided {@link MessageListener} to an {@link AsyncMessageListener}
+	 *
 	 * @param messageListener the listener to be adapted
 	 * @param <T> the message payload type
 	 * @return the adapted component.
@@ -83,12 +96,15 @@ public class AsyncComponentAdapters {
 
 	/**
 	 * Base class for BlockingComponentAdapters.
+	 *
 	 * @see io.awspring.cloud.sqs.MessageExecutionThreadFactory
 	 * @see io.awspring.cloud.sqs.MessageExecutionThread
 	 */
-	protected static class AbstractThreadingComponentAdapter implements TaskExecutorAware {
+	protected static class AbstractThreadingComponentAdapter<MessageType> implements TaskExecutorAware {
 
 		private TaskExecutor taskExecutor;
+
+		private final ThreadLocalScope<MessageType> threadLocalScope = new MicrometerObservationThreadLocalWrapper<>();
 
 		@Override
 		public void setTaskExecutor(TaskExecutor taskExecutor) {
@@ -162,9 +178,46 @@ public class AsyncComponentAdapters {
 					t instanceof CompletionException ? t.getCause() : t);
 		}
 
+		protected Supplier<Message<MessageType>> withFunctionThreadLocalScope(
+				Function<Message<MessageType>, Message<MessageType>> executable, Message<MessageType> message) {
+			return () -> {
+				ThreadLocalScope.CloseableScope<MessageType> closeableScope = threadLocalScope.openScope(message);
+				Message<MessageType> messageToExecute = closeableScope.beforeExecution(message);
+				try {
+					Message<MessageType> returnedMessage = executable.apply(messageToExecute);
+					return closeableScope.afterExecution(returnedMessage);
+				}
+				catch (Exception e) {
+					closeableScope.onExecutionError(messageToExecute, e);
+					throw e;
+				}
+				finally {
+					closeableScope.close();
+				}
+			};
+		}
+
+		protected Runnable withConsumerThreadLocalScope(Consumer<Message<MessageType>> executable,
+				Message<MessageType> message) {
+			return () -> {
+				ThreadLocalScope.CloseableScope<MessageType> closeableScope = threadLocalScope.openScope(message);
+				Message<MessageType> messageToExecute = closeableScope.beforeExecution(message);
+				try {
+					executable.accept(messageToExecute);
+					closeableScope.afterExecution(messageToExecute);
+				}
+				catch (Exception e) {
+					closeableScope.onExecutionError(messageToExecute, e);
+					throw e;
+				}
+				finally {
+					closeableScope.close();
+				}
+			};
+		}
 	}
 
-	private static class BlockingMessageInterceptorAdapter<T> extends AbstractThreadingComponentAdapter
+	private static class BlockingMessageInterceptorAdapter<T> extends AbstractThreadingComponentAdapter<T>
 			implements AsyncMessageInterceptor<T> {
 
 		private final MessageInterceptor<T> blockingMessageInterceptor;
@@ -175,7 +228,7 @@ public class AsyncComponentAdapters {
 
 		@Override
 		public CompletableFuture<Message<T>> intercept(Message<T> message) {
-			return execute(() -> this.blockingMessageInterceptor.intercept(message));
+			return execute(withFunctionThreadLocalScope(blockingMessageInterceptor::intercept, message));
 		}
 
 		@Override
@@ -185,7 +238,8 @@ public class AsyncComponentAdapters {
 
 		@Override
 		public CompletableFuture<Void> afterProcessing(Message<T> message, Throwable t) {
-			return execute(() -> this.blockingMessageInterceptor.afterProcessing(message, t));
+			return execute(withConsumerThreadLocalScope(msg -> this.blockingMessageInterceptor.afterProcessing(msg, t),
+					message));
 		}
 
 		@Override
@@ -194,7 +248,7 @@ public class AsyncComponentAdapters {
 		}
 	}
 
-	private static class BlockingMessageListenerAdapter<T> extends AbstractThreadingComponentAdapter
+	private static class BlockingMessageListenerAdapter<T> extends AbstractThreadingComponentAdapter<T>
 			implements AsyncMessageListener<T> {
 
 		private final MessageListener<T> blockingMessageListener;
@@ -205,7 +259,7 @@ public class AsyncComponentAdapters {
 
 		@Override
 		public CompletableFuture<Void> onMessage(Message<T> message) {
-			return execute(() -> this.blockingMessageListener.onMessage(message));
+			return execute(withConsumerThreadLocalScope(this.blockingMessageListener::onMessage, message));
 		}
 
 		@Override
@@ -214,7 +268,7 @@ public class AsyncComponentAdapters {
 		}
 	}
 
-	private static class BlockingErrorHandlerAdapter<T> extends AbstractThreadingComponentAdapter
+	private static class BlockingErrorHandlerAdapter<T> extends AbstractThreadingComponentAdapter<T>
 			implements AsyncErrorHandler<T> {
 
 		private final ErrorHandler<T> blockingErrorHandler;
@@ -225,7 +279,7 @@ public class AsyncComponentAdapters {
 
 		@Override
 		public CompletableFuture<Void> handle(Message<T> message, Throwable t) {
-			return execute(() -> this.blockingErrorHandler.handle(message, t));
+			return execute(withConsumerThreadLocalScope(msg -> this.blockingErrorHandler.handle(msg, t), message));
 		}
 
 		@Override
@@ -235,7 +289,7 @@ public class AsyncComponentAdapters {
 
 	}
 
-	private static class BlockingAcknowledgementResultCallbackAdapter<T> extends AbstractThreadingComponentAdapter
+	private static class BlockingAcknowledgementResultCallbackAdapter<T> extends AbstractThreadingComponentAdapter<T>
 			implements AsyncAcknowledgementResultCallback<T> {
 
 		private final AcknowledgementResultCallback<T> blockingAcknowledgementResultCallback;
@@ -255,4 +309,89 @@ public class AsyncComponentAdapters {
 			return execute(() -> this.blockingAcknowledgementResultCallback.onFailure(messages, t));
 		}
 	}
+
+	private interface ThreadLocalScope<MessageType> {
+
+		CloseableScope<MessageType> openScope(Message<MessageType> message);
+
+		interface CloseableScope<MessageType> extends AutoCloseable {
+
+			default Message<MessageType> beforeExecution(Message<MessageType> message) {
+				return message;
+			}
+
+			default Message<MessageType> afterExecution(Message<MessageType> message) {
+				return message;
+			}
+
+			default Message<MessageType> onExecutionError(Message<MessageType> message, Throwable t) {
+				return message;
+			}
+
+			@Override
+			void close();
+
+		}
+
+	}
+
+	private static class MicrometerObservationThreadLocalWrapper<MessageType> implements ThreadLocalScope<MessageType> {
+
+		private static final ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY;
+
+		static {
+			ContextRegistry registry = new ContextRegistry();
+			registry.registerContextAccessor(new MessageHeaderContextAccessor());
+			registry.registerThreadLocalAccessor(new ObservationThreadLocalAccessor());
+			CONTEXT_SNAPSHOT_FACTORY = ContextSnapshotFactory.builder().contextRegistry(registry).build();
+		}
+
+		@Override
+		public CloseableScope<MessageType> openScope(Message<MessageType> message) {
+			ContextSnapshot.Scope scope = CONTEXT_SNAPSHOT_FACTORY.captureFrom(message.getHeaders()).setThreadLocals();
+			return new ObservationAwareCloseableScope<>(scope, message);
+		}
+
+		private static class ObservationAwareCloseableScope<MessageType> implements CloseableScope<MessageType> {
+			private final ContextSnapshot.Scope scope;
+			private final @Nullable Object observationContext;
+
+			public ObservationAwareCloseableScope(ContextSnapshot.Scope scope, Message<MessageType> message) {
+				this.scope = scope;
+				this.observationContext = message.getHeaders().get(ObservationThreadLocalAccessor.KEY);
+			}
+
+			@Override
+			public void close() {
+				scope.close();
+			}
+
+			@Override
+			public Message<MessageType> beforeExecution(Message<MessageType> message) {
+				return MessageHeaderUtils.removeHeaderIfPresent(message, ObservationThreadLocalAccessor.KEY);
+			}
+
+			@Override
+			public Message<MessageType> afterExecution(Message<MessageType> message) {
+				return observationContext != null
+						? MessageHeaderUtils.addHeaderIfAbsent(message, ObservationThreadLocalAccessor.KEY,
+								observationContext)
+						: message;
+			}
+
+			@Override
+			public Message<MessageType> onExecutionError(Message<MessageType> message, Throwable t) {
+				if (observationContext != null && ListenerExecutionFailedException.hasListenerException(t)) {
+					Message<MessageType> failedMessage = Objects.requireNonNull(
+							ListenerExecutionFailedException.unwrapMessage(t),
+							"Message not found in Listener Exception.");
+					Message<MessageType> messageWithHeader = MessageHeaderUtils.addHeaderIfAbsent(failedMessage,
+							ObservationThreadLocalAccessor.KEY, observationContext);
+					throw new ListenerExecutionFailedException(t.getMessage(), t.getCause(), messageWithHeader);
+				}
+				return message;
+			}
+		}
+	}
+
 }

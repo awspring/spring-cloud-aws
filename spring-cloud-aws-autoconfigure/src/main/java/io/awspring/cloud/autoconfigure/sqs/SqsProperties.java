@@ -49,6 +49,8 @@ public class SqsProperties extends AwsClientProperties {
 	@Nullable
 	private QueueNotFoundStrategy queueNotFoundStrategy;
 
+	private Boolean observationEnabled = false;
+
 	/**
 	 * Return the strategy to use if the queue is not found.
 	 * @return the {@link QueueNotFoundStrategy}
@@ -64,6 +66,14 @@ public class SqsProperties extends AwsClientProperties {
 	 */
 	public void setQueueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
 		this.queueNotFoundStrategy = queueNotFoundStrategy;
+	}
+
+	public Boolean isObservationEnabled() {
+		return this.observationEnabled;
+	}
+
+	public void setObservationEnabled(Boolean observationEnabled) {
+		this.observationEnabled = observationEnabled;
 	}
 
 	public static class Listener {
