@@ -82,6 +82,32 @@ class AbstractTemplateObservationTest {
 		assertThat(documentationContext).isInstanceOf(TestDocumentation.class);
 	}
 
+	@Test
+	void shouldWhitelistAndBlockKeys() {
+		// given
+		String destinationName = "test-destination";
+		Message<String> message = MessageBuilder.withPayload("test-payload").build();
+		AbstractTemplateObservation.Context context = new AbstractTemplateObservation.Context(message, destinationName) {};
+
+		// when - test allowed keys
+		context.getSetter().set(context.getCarrier(), "baggage", "baggage-value");
+		context.getSetter().set(context.getCarrier(), "traceparent", "traceparent-value");
+		context.getSetter().set(context.getCarrier(), "tracestate", "tracestate-value");
+		context.getSetter().set(context.getCarrier(), "b3", "b3-value");
+
+		// when - test blocked keys
+		context.getSetter().set(context.getCarrier(), "blocked-key", "blocked-value");
+
+		// then
+		Map<String, Object> carrier = context.getCarrier();
+		assertThat(carrier)
+			.containsEntry("baggage", "baggage-value")
+			.containsEntry("traceparent", "traceparent-value")
+			.containsEntry("tracestate", "tracestate-value")
+			.containsEntry("b3", "b3-value")
+			.doesNotContainKey("blocked-key");
+	}
+
 	private static class TestConvention
 			extends AbstractTemplateObservation.Convention<AbstractTemplateObservation.Context> {
 

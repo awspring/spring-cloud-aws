@@ -237,6 +237,7 @@ public abstract class AbstractTemplateObservation {
 		private static final String BAGGAGE_KEY = "baggage";
 		private static final String TRACEPARENT_KEY = "traceparent";
 		private static final String TRACESTATE_KEY = "tracestate";
+		private static final String B3_KEY = "b3";
 
 		private final Message<?> message;
 		private final String destinationName;
@@ -262,7 +263,7 @@ public abstract class AbstractTemplateObservation {
 		}
 
 		private static boolean isAllowedKey(String key) {
-			return BAGGAGE_KEY.equals(key) || TRACEPARENT_KEY.equals(key) || TRACESTATE_KEY.equals(key);
+			return BAGGAGE_KEY.equals(key) || TRACEPARENT_KEY.equals(key) || TRACESTATE_KEY.equals(key) || B3_KEY.equals(key);
 		}
 
 		/**

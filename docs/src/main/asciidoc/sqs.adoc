@@ -1869,7 +1869,9 @@ SqsTemplate sqsTemplateWithCustomConvention(SqsAsyncClient sqsAsyncClient,
 
 ==== Context Propagation
 
-For regular blocking components such as message listeners, interceptors, and error handlers, observation scopes are automatically managed, so no further action is required.
+For regular blocking components such as message listeners, interceptors, and error handlers, observation scopes are automatically managed, and no further action is required.
+
+Remote baggage propagation is supported through the "baggage" message header.
 
 For asynchronous variants of these components, the observation context is not automatically propagated between threads.
 However, the Observation object is injected in the message headers under the key `ObservationThreadLocalAccessor.KEY`.
