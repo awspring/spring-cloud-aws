@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.listener;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.retry.backoff.BackOffPolicy;
@@ -186,6 +187,14 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	 * @return this instance.
 	 */
 	B messageConverter(MessagingMessageConverter<?> messageConverter);
+
+	/**
+	 * Set the {@link ObservationRegistry} for this container.
+	 *
+	 * @param observationRegistry the observation registry.
+	 * @return this instance.
+	 */
+	B observationRegistry(ObservationRegistry observationRegistry);
 
 	/**
 	 * Create the {@link ContainerOptions} instance.

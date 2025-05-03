@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.sqs.MessageExecutionThreadFactory;
@@ -29,13 +30,19 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
+import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
+import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
+import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
+import io.micrometer.observation.ObservationRegistry;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
@@ -193,6 +200,109 @@ class SqsMessageListenerContainerTests {
 
 		assertThatThrownBy(builder::build).isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining("must contain either all FIFO or all Standard queues");
+	}
+
+	@Test
+	void shouldCreateMessageSpecifics() {
+		// When we call the method
+		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder()
+				.sqsAsyncClient(mock(SqsAsyncClient.class)).queueNames("test-queue").messageListener(msg -> {
+				}).build();
+
+		AbstractListenerObservation.Specifics<?> specifics = container.createMessagingObservationSpecifics();
+
+		// Then we should get SqsSpecifics
+		assertThat(specifics).isInstanceOf(SqsListenerObservation.SqsSpecifics.class);
+	}
+
+	@Test
+	void shouldProvideObservationOptionsViaContainerOptions() {
+		// given
+		SqsAsyncClient client = mock(SqsAsyncClient.class);
+		ObservationRegistry observationRegistry = ObservationRegistry.create();
+		SqsListenerObservation.Convention observationConvention = mock(SqsListenerObservation.Convention.class);
+
+		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer
+				.builder().sqsAsyncClient(client).queueNames("test-queue").configure(options -> options
+						.observationRegistry(observationRegistry).observationConvention(observationConvention))
+				.messageListener(msg -> {
+				}).build();
+
+		SqsContainerOptions options = container.getContainerOptions();
+
+		assertThat(options.getObservationRegistry()).isSameAs(observationRegistry);
+		assertThat(options.getObservationConvention()).isSameAs(observationConvention);
+	}
+
+	@Test
+	void shouldConfigureObservationInContainerComponents() {
+		// given
+		SqsAsyncClient client = mock(SqsAsyncClient.class);
+		given(client.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(
+				CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl("test-queue").build()));
+
+		ObservationRegistry observationRegistry = ObservationRegistry.create();
+
+		// Create a test container that allows us to access the message sink
+		TestSqsMessageListenerContainer container = new TestSqsMessageListenerContainer(client,
+				SqsContainerOptions.builder().observationRegistry(observationRegistry).build());
+
+		container.setComponentFactories(Collections.singletonList(new StandardSqsComponentFactory<>() {
+			@Override
+			public MessageSink<Object> createMessageSink(SqsContainerOptions options) {
+				// Create a mock sink that implements ObservableComponent
+				return mock(MessageSink.class, Mockito.withSettings().extraInterfaces(ObservableComponent.class));
+			}
+
+			@Override
+			public MessageSource<Object> createMessageSource(SqsContainerOptions options) {
+				return mock(MessageSource.class);
+			}
+		}));
+
+		container.setMessageListener(message -> {
+		});
+		container.setQueueNames("test-queue");
+
+		// when - starting the container which creates and configures the sink
+		container.doStart();
+
+		// then - the message sink should be configured with observation specifics
+		then((ObservableComponent) container.getCreatedMessageSink()).should()
+				.setObservationSpecifics(any(SqsListenerObservation.SqsSpecifics.class));
+	}
+
+	/**
+	 * Test subclass that allows access to the created message sink.
+	 */
+	private static class TestSqsMessageListenerContainer extends SqsMessageListenerContainer<Object> {
+		private MessageSink<Object> createdMessageSink;
+
+		TestSqsMessageListenerContainer(SqsAsyncClient sqsAsyncClient, SqsContainerOptions options) {
+			super(sqsAsyncClient, options);
+		}
+
+		@Override
+		protected void configureMessageSink(MessageProcessingPipeline<Object> messageProcessingPipeline) {
+			super.configureMessageSink(messageProcessingPipeline);
+			this.createdMessageSink = getMessageSink();
+		}
+
+		public MessageSink<Object> getCreatedMessageSink() {
+			return this.createdMessageSink;
+		}
+
+		private MessageSink<Object> getMessageSink() {
+			try {
+				java.lang.reflect.Field field = AbstractPipelineMessageListenerContainer.class
+						.getDeclaredField("messageSink");
+				field.setAccessible(true);
+				return (MessageSink<Object>) field.get(this);
+			}
+			catch (Exception e) {
+				throw new RuntimeException("Could not access messageSink field", e);
+			}
+		}
 	}
 
 }

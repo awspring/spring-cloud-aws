@@ -15,20 +15,33 @@
  */
 package io.awspring.cloud.sqs.listener.sink;
 
+import io.awspring.cloud.sqs.ExceptionUtils;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.listener.AsyncAdapterBlockingExecutionFailedException;
+import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.ListenerExecutionFailedException;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
+import io.awspring.cloud.sqs.listener.ObservableComponent;
 import io.awspring.cloud.sqs.listener.TaskExecutorAware;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
+import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationConvention;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
+import io.micrometer.observation.docs.ObservationDocumentation;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
@@ -39,12 +52,11 @@ import org.springframework.util.StopWatch;
  * execution methods that can be used by subclasses.
  *
  * @param <T> the {@link Message} payload type.
- *
  * @author Tomaz Fernandes
  * @since 3.0
  */
 public abstract class AbstractMessageProcessingPipelineSink<T>
-		implements MessageProcessingPipelineSink<T>, TaskExecutorAware {
+		implements MessageProcessingPipelineSink<T>, TaskExecutorAware, ObservableComponent {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMessageProcessingPipelineSink.class);
 
@@ -58,6 +70,12 @@ public abstract class AbstractMessageProcessingPipelineSink<T>
 
 	private String id;
 
+	private ObservationRegistry observationRegistry;
+
+	private ObservationConvention<?> customObservationConvention;
+
+	private AbstractListenerObservation.Specifics<?> observationSpecifics;
+
 	@Override
 	public void setMessagePipeline(MessageProcessingPipeline<T> messageProcessingPipeline) {
 		Assert.notNull(messageProcessingPipeline, "messageProcessingPipeline must not be null.");
@@ -68,6 +86,18 @@ public abstract class AbstractMessageProcessingPipelineSink<T>
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		Assert.notNull(taskExecutor, "executor cannot be null");
 		this.taskExecutor = taskExecutor;
+	}
+
+	@Override
+	public void setObservationSpecifics(AbstractListenerObservation.Specifics<?> observationSpecifics) {
+		Assert.notNull(observationSpecifics, "observationSpecifics must not be null");
+		this.observationSpecifics = observationSpecifics;
+	}
+
+	@Override
+	public void configure(ContainerOptions<?, ?> containerOptions) {
+		this.observationRegistry = containerOptions.getObservationRegistry();
+		this.customObservationConvention = containerOptions.getObservationConvention();
 	}
 
 	@Override
@@ -89,16 +119,45 @@ public abstract class AbstractMessageProcessingPipelineSink<T>
 
 	/**
 	 * Send the provided {@link Message} to the {@link TaskExecutor} as a unit of work.
+	 *
 	 * @param message the message to be executed.
 	 * @param context the processing context.
 	 * @return the processing result.
 	 */
 	protected CompletableFuture<Void> execute(Message<T> message, MessageProcessingContext<T> context) {
-		logger.trace("Executing message {}", MessageHeaderUtils.getId(message));
-		StopWatch watch = getStartedWatch();
-		return doExecute(() -> this.messageProcessingPipeline.process(message, context))
-				.whenComplete((v, t) -> context.runBackPressureReleaseCallback())
-				.whenComplete((v, t) -> measureExecution(watch, Collections.singletonList(message)));
+		try {
+			logger.trace("Executing message {}", MessageHeaderUtils.getId(message));
+			Observation observation = startObservation(observationSpecifics.createContext(message));
+
+			Message<T> messageWithObservationContext = MessageHeaderUtils.addHeaderIfAbsent(message,
+					ObservationThreadLocalAccessor.KEY, observation);
+			StopWatch watch = getStartedWatch();
+			return doExecute(() -> this.messageProcessingPipeline.process(messageWithObservationContext, context))
+					.whenComplete((v, t) -> context.runBackPressureReleaseCallback())
+					.whenComplete((v, t) -> completeObservation(t, observation)).whenComplete((v,
+							t) -> measureExecution(watch, Collections.singletonList(messageWithObservationContext)));
+		}
+		catch (Exception e) {
+			return CompletableFuture.failedFuture(e);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private <Context extends Observation.Context> Observation startObservation(Context observationContext) {
+		ObservationConvention<Context> defaultConvention = (ObservationConvention<Context>) observationSpecifics
+				.getDefaultConvention();
+		ObservationConvention<Context> customConvention = (ObservationConvention<Context>) this.customObservationConvention;
+		ObservationDocumentation documentation = observationSpecifics.getDocumentation();
+		return documentation.start(customConvention, defaultConvention, () -> observationContext,
+				this.observationRegistry);
+	}
+
+	private void completeObservation(@Nullable Throwable t, Observation observation) {
+		if (t != null) {
+			observation.error(ExceptionUtils.unwrapException(t, CompletionException.class,
+					AsyncAdapterBlockingExecutionFailedException.class, ListenerExecutionFailedException.class));
+		}
+		observation.stop();
 	}
 
 	/**

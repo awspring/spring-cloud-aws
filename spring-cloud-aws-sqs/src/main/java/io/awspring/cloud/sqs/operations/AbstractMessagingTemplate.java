@@ -15,10 +15,18 @@
  */
 package io.awspring.cloud.sqs.operations;
 
+import io.awspring.cloud.sqs.ExceptionUtils;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.listener.AsyncAdapterBlockingExecutionFailedException;
+import io.awspring.cloud.sqs.listener.ListenerExecutionFailedException;
 import io.awspring.cloud.sqs.support.converter.ContextAwareMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.observation.AbstractTemplateObservation;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationConvention;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.docs.ObservationDocumentation;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
@@ -53,6 +61,8 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 
 	private static final SendBatchFailureHandlingStrategy DEFAULT_SEND_BATCH_OPERATION_FAILURE_STRATEGY = SendBatchFailureHandlingStrategy.THROW;
 
+	private static final ObservationRegistry DEFAULT_OBSERVATION_REGISTRY = ObservationRegistry.NOOP;
+
 	private static final int DEFAULT_MAX_NUMBER_OF_MESSAGES = 10;
 
 	private static final String DEFAULT_ENDPOINT_NAME = "";
@@ -71,16 +81,26 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 
 	private final SendBatchFailureHandlingStrategy sendBatchFailureHandlingStrategy;
 
+	private final AbstractTemplateObservation.Specifics<?> observationSpecifics;
+
+	private final ObservationRegistry observationRegistry;
+
+	@Nullable
+	private final ObservationConvention<?> customObservationConvention;
+
 	@Nullable
 	private final Class<?> defaultPayloadClass;
 
 	private final MessagingMessageConverter<S> messageConverter;
 
 	protected AbstractMessagingTemplate(MessagingMessageConverter<S> messageConverter,
-			AbstractMessagingTemplateOptions<?> options) {
+			AbstractMessagingTemplateOptions<?> options,
+			AbstractTemplateObservation.Specifics<?> observationSpecifics) {
+		Assert.notNull(observationSpecifics, "observationSpecifics must not be null");
 		Assert.notNull(messageConverter, "messageConverter must not be null");
 		Assert.notNull(options, "options must not be null");
 		this.messageConverter = messageConverter;
+		this.observationSpecifics = observationSpecifics;
 		this.defaultAdditionalHeaders = options.defaultAdditionalHeaders;
 		this.defaultMaxNumberOfMessages = options.defaultMaxNumberOfMessages;
 		this.defaultPollTimeout = options.defaultPollTimeout;
@@ -88,6 +108,8 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 		this.defaultEndpointName = options.defaultEndpointName;
 		this.acknowledgementMode = options.acknowledgementMode;
 		this.sendBatchFailureHandlingStrategy = options.sendBatchFailureHandlingStrategy;
+		this.observationRegistry = options.observationRegistry;
+		this.customObservationConvention = options.observationConvention;
 	}
 
 	@Override
@@ -279,14 +301,47 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	public <T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, Message<T> message) {
 		String endpointToUse = getEndpointName(endpointName);
 		logger.trace("Sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointName);
-		return preProcessMessageForSendAsync(endpointToUse, message).thenCompose(
-				messageToUse -> doSendAsync(endpointToUse, convertMessageToSend(messageToUse), messageToUse)
+		return preProcessMessageForSendAsync(endpointToUse, message)
+				.thenCompose(messageToUse -> observeAndSendAsync(messageToUse, endpointToUse)
 						.exceptionallyCompose(
 								t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
 										"Message send operation failed for message %s to endpoint %s"
 												.formatted(MessageHeaderUtils.getId(message), endpointToUse),
 										endpointToUse, message, t)))
 						.whenComplete((v, t) -> logSendMessageResult(endpointToUse, message, t)));
+	}
+
+	private <T> CompletableFuture<SendResult<T>> observeAndSendAsync(Message<T> message, String endpointToUse) {
+		AbstractTemplateObservation.Context context = this.observationSpecifics.createContext(message, endpointToUse);
+		Observation observation = startObservation(context);
+		Map<String, Object> carrier = Objects.requireNonNull(context.getCarrier(), "No carrier found in context.");
+		Message<T> messageWithObservationHeader = MessageHeaderUtils.addHeadersIfAbsent(message, carrier);
+		return doSendAsync(endpointToUse, convertMessageToSend(messageWithObservationHeader),
+				messageWithObservationHeader)
+				.whenComplete((sendResult, t) -> completeObservation(sendResult, context, t, observation));
+	}
+
+	private void completeObservation(@Nullable SendResult<?> sendResult, AbstractTemplateObservation.Context context,
+			@Nullable Throwable t, Observation observation) {
+		if (sendResult != null) {
+			context.setSendResult(sendResult);
+		}
+		if (t != null) {
+			observation.error(ExceptionUtils.unwrapException(t, CompletionException.class,
+					AsyncAdapterBlockingExecutionFailedException.class, ListenerExecutionFailedException.class));
+		}
+
+		observation.stop();
+	}
+
+	@SuppressWarnings("unchecked")
+	private <Context extends Observation.Context> Observation startObservation(Context observationContext) {
+		ObservationConvention<Context> defaultConvention = (ObservationConvention<Context>) observationSpecifics
+				.getDefaultConvention();
+		ObservationConvention<Context> customConvention = (ObservationConvention<Context>) this.customObservationConvention;
+		ObservationDocumentation documentation = observationSpecifics.getDocumentation();
+		return documentation.start(customConvention, defaultConvention, () -> observationContext,
+				this.observationRegistry);
 	}
 
 	protected abstract <T> Message<T> preProcessMessageForSend(String endpointToUse, Message<T> message);
@@ -423,6 +478,11 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 
 		private final Map<String, Object> defaultAdditionalHeaders = new HashMap<>();
 
+		private ObservationRegistry observationRegistry = DEFAULT_OBSERVATION_REGISTRY;
+
+		@Nullable
+		private ObservationConvention<?> observationConvention;
+
 		@Nullable
 		private Class<?> defaultPayloadClass;
 
@@ -482,6 +542,19 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 		public O additionalHeadersForReceive(Map<String, Object> defaultAdditionalHeaders) {
 			Assert.notNull(defaultAdditionalHeaders, "defaultAdditionalHeaders must not be null");
 			this.defaultAdditionalHeaders.putAll(defaultAdditionalHeaders);
+			return self();
+		}
+
+		@Override
+		public O observationRegistry(ObservationRegistry observationRegistry) {
+			Assert.notNull(observationRegistry, "observationRegistry cannot be null");
+			this.observationRegistry = observationRegistry;
+			return self();
+		}
+
+		protected O observationConvention(ObservationConvention<?> observationConvention) {
+			Assert.notNull(observationConvention, "observationConvention cannot be null");
+			this.observationConvention = observationConvention;
 			return self();
 		}
 
