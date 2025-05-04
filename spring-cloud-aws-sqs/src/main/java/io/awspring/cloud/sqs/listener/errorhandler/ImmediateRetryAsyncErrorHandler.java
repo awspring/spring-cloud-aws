@@ -15,14 +15,10 @@
  */
 package io.awspring.cloud.sqs.listener.errorhandler;
 
-import io.awspring.cloud.sqs.MessageHeaderUtils;
-import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
-import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.listener.BatchVisibility;
 import io.awspring.cloud.sqs.listener.Visibility;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
 import org.springframework.messaging.Message;
 
 /**
@@ -33,8 +29,8 @@ import org.springframework.messaging.Message;
  * effectively making the message immediately available for reprocessing.
  *
  * <p>
- * When AcknowledgementMode is set to ON_SUCCESS (the default value),
- * returning a failed future will prevent the message from being acknowledged
+ * When AcknowledgementMode is set to ON_SUCCESS (the default value), returning a failed future will prevent the message
+ * from being acknowledged
  *
  * @author Bruno Garcia
  * @author Rafael Pavarini
@@ -43,33 +39,22 @@ public class ImmediateRetryAsyncErrorHandler<T> implements AsyncErrorHandler<T> 
 
 	@Override
 	public CompletableFuture<Void> handle(Message<T> message, Throwable t) {
-		return changeTimeoutToZero(message)
-			.thenCompose(theVoid -> CompletableFuture.failedFuture(t));
+		return changeTimeoutToZero(message).thenCompose(theVoid -> CompletableFuture.failedFuture(t));
 	}
 
 	@Override
 	public CompletableFuture<Void> handle(Collection<Message<T>> messages, Throwable t) {
-		return changeTimeoutToZero(messages)
-			.thenCompose(theVoid -> CompletableFuture.failedFuture(t));
+		return changeTimeoutToZero(messages).thenCompose(theVoid -> CompletableFuture.failedFuture(t));
 
 	}
 
 	private CompletableFuture<Void> changeTimeoutToZero(Message<T> message) {
-		Visibility visibilityTimeout = getVisibilityTimeout(message);
+		Visibility visibilityTimeout = ErrorHandlerVisibilityHelper.getVisibility(message);
 		return visibilityTimeout.changeToAsync(0);
 	}
 
 	private CompletableFuture<Void> changeTimeoutToZero(Collection<Message<T>> messages) {
-		QueueMessageVisibility firstVisibilityMessage = (QueueMessageVisibility) getVisibilityTimeout(messages.iterator().next());
-
-		Collection<Message<?>> castMessages = messages.stream()
-			.map(m -> (Message<?>) m)
-			.collect(Collectors.toList());
-
-		return firstVisibilityMessage.toBatchVisibility(castMessages).changeToAsync(0);
-	}
-
-	private Visibility getVisibilityTimeout(Message<T> message) {
-		return MessageHeaderUtils.getHeader(message, SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, Visibility.class);
+		BatchVisibility visibility = ErrorHandlerVisibilityHelper.getVisibility(messages);
+		return visibility.changeToAsync(0);
 	}
 }
