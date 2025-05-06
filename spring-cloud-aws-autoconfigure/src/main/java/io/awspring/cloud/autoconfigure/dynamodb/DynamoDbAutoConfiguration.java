@@ -140,7 +140,8 @@ public class DynamoDbAutoConfiguration {
 	@ConditionalOnMissingBean(DynamoDbTableNameResolver.class)
 	@Bean
 	public DefaultDynamoDbTableNameResolver dynamoDbTableNameResolver(DynamoDbProperties properties) {
-		return new DefaultDynamoDbTableNameResolver(properties.getTablePrefix(), properties.getTableSuffix());
+		return new DefaultDynamoDbTableNameResolver(properties.getTablePrefix(), properties.getTableSuffix(),
+				properties.getTableSeparator());
 	}
 
 	@ConditionalOnMissingBean(DynamoDbOperations.class)
