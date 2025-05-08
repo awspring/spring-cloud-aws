@@ -43,7 +43,7 @@ public class ConcurrencyLimiterBlockingBackPressureHandler
 
 	private final Duration acquireTimeout;
 
-	private final boolean alwaysPollMasMessages;
+	private final boolean alwaysPollMaxMessages;
 
 	private String id = getClass().getSimpleName();
 
@@ -51,12 +51,12 @@ public class ConcurrencyLimiterBlockingBackPressureHandler
 		this.batchSize = builder.batchSize;
 		this.totalPermits = builder.totalPermits;
 		this.acquireTimeout = builder.acquireTimeout;
-		this.alwaysPollMasMessages = BackPressureMode.ALWAYS_POLL_MAX_MESSAGES.equals(builder.backPressureMode);
+		this.alwaysPollMaxMessages = BackPressureMode.ALWAYS_POLL_MAX_MESSAGES.equals(builder.backPressureMode);
 		this.semaphore = new Semaphore(totalPermits);
 		logger.debug(
 				"ConcurrencyLimiterBlockingBackPressureHandler created with configuration "
-						+ "totalPermits: {}, batchSize: {}, acquireTimeout: {}, an alwaysPollMasMessages: {}",
-				this.totalPermits, this.batchSize, this.acquireTimeout, this.alwaysPollMasMessages);
+						+ "totalPermits: {}, batchSize: {}, acquireTimeout: {}, an alwaysPollMaxMessages: {}",
+				this.totalPermits, this.batchSize, this.acquireTimeout, this.alwaysPollMaxMessages);
 	}
 
 	public static Builder builder() {
@@ -81,7 +81,7 @@ public class ConcurrencyLimiterBlockingBackPressureHandler
 	@Override
 	public int request(int amount) throws InterruptedException {
 		int acquiredPermits = tryAcquire(amount, this.acquireTimeout);
-		if (alwaysPollMasMessages || acquiredPermits > 0) {
+		if (alwaysPollMaxMessages || acquiredPermits > 0) {
 			return acquiredPermits;
 		}
 		int availablePermits = Math.min(this.semaphore.availablePermits(), amount);

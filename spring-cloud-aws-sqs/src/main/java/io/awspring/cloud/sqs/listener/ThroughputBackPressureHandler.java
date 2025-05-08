@@ -17,7 +17,6 @@ package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -146,7 +145,7 @@ public class ThroughputBackPressureHandler implements BatchAwareBackPressureHand
 		}
 
 		public ThroughputBackPressureHandler build() {
-			Assert.noNullElements(List.of(this.batchSize), "Missing configuration");
+			Assert.notNull(this.batchSize, "Missing configuration");
 			Assert.isTrue(this.batchSize > 0, "batch size must be greater than 0");
 			return new ThroughputBackPressureHandler(this);
 		}
