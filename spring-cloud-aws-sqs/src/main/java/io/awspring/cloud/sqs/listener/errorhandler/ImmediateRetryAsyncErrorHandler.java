@@ -22,7 +22,6 @@ import io.awspring.cloud.sqs.listener.Visibility;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
 import org.springframework.messaging.Message;
 
 /**
@@ -33,8 +32,8 @@ import org.springframework.messaging.Message;
  * effectively making the message immediately available for reprocessing.
  *
  * <p>
- * When AcknowledgementMode is set to ON_SUCCESS (the default value),
- * returning a failed future will prevent the message from being acknowledged
+ * When AcknowledgementMode is set to ON_SUCCESS (the default value), returning a failed future will prevent the message
+ * from being acknowledged
  *
  * @author Bruno Garcia
  * @author Rafael Pavarini
@@ -43,14 +42,12 @@ public class ImmediateRetryAsyncErrorHandler<T> implements AsyncErrorHandler<T> 
 
 	@Override
 	public CompletableFuture<Void> handle(Message<T> message, Throwable t) {
-		return changeTimeoutToZero(message)
-			.thenCompose(theVoid -> CompletableFuture.failedFuture(t));
+		return changeTimeoutToZero(message).thenCompose(theVoid -> CompletableFuture.failedFuture(t));
 	}
 
 	@Override
 	public CompletableFuture<Void> handle(Collection<Message<T>> messages, Throwable t) {
-		return changeTimeoutToZero(messages)
-			.thenCompose(theVoid -> CompletableFuture.failedFuture(t));
+		return changeTimeoutToZero(messages).thenCompose(theVoid -> CompletableFuture.failedFuture(t));
 
 	}
 
@@ -60,11 +57,10 @@ public class ImmediateRetryAsyncErrorHandler<T> implements AsyncErrorHandler<T> 
 	}
 
 	private CompletableFuture<Void> changeTimeoutToZero(Collection<Message<T>> messages) {
-		QueueMessageVisibility firstVisibilityMessage = (QueueMessageVisibility) getVisibilityTimeout(messages.iterator().next());
+		QueueMessageVisibility firstVisibilityMessage = (QueueMessageVisibility) getVisibilityTimeout(
+				messages.iterator().next());
 
-		Collection<Message<?>> castMessages = messages.stream()
-			.map(m -> (Message<?>) m)
-			.collect(Collectors.toList());
+		Collection<Message<?>> castMessages = messages.stream().map(m -> (Message<?>) m).collect(Collectors.toList());
 
 		return firstVisibilityMessage.toBatchVisibility(castMessages).changeToAsync(0);
 	}
