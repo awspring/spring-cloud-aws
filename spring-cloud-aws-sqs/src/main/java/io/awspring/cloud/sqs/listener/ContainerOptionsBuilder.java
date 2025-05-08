@@ -20,7 +20,6 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMod
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
-import java.util.function.Supplier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.retry.backoff.BackOffPolicy;
 
@@ -148,66 +147,14 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	B backPressureMode(BackPressureMode backPressureMode);
 
 	/**
-	 * Sets the {@link Supplier} of {@link BackPressureHandler} for this container. Default is {@code null} which
-	 * results in a default {@link SemaphoreBackPressureHandler} to be instantiated. In case a supplier is provided, the
-	 * {@link BackPressureHandler} will be instantiated by the supplier.
-	 * <p>
-	 * <strong>NOTE:</strong> <em>it is important for the supplier to always return a new instance as otherwise it might
-	 * result in a BackPressureHandler internal resources (counters, semaphores, ...) to be shared by multiple
-	 * containers which is very likely not the desired behavior.</em>
-	 * <p>
-	 * Spring Cloud AWS provides the following {@link BackPressureHandler} implementations:
-	 * <ul>
-	 * <li>{@link ConcurrencyLimiterBlockingBackPressureHandler}: Limits the maximum number of messages that can be
-	 * processed concurrently by the application.</li>
-	 * <li>{@link ThroughputBackPressureHandler}: Adapts the throughput dynamically between high and low modes in order
-	 * to reduce SQS pull costs when few messages are coming in.</li>
-	 * <li>{@link CompositeBackPressureHandler}: Allows combining multiple {@link BackPressureHandler} together and
-	 * ensures they cooperate.</li>
-	 * </ul>
-	 * <p>
-	 * Below are a few examples of how common use cases can be achieved. Keep in mind you can always create your own
-	 * {@link BackPressureHandler} implementation and if needed combine it with the provided ones thanks to the
-	 * {@link CompositeBackPressureHandler}.
+	 * Sets the {@link BackPressureHandlerFactory} for this container. Default is
+	 * {@code AbstractContainerOptions.DEFAULT_BACKPRESSURE_FACTORY} which results in a default
+	 * {@link SemaphoreBackPressureHandler} to be instantiated.
 	 *
-	 * <h3>A BackPressureHandler limiting the max concurrency with high throughput</h3>
-	 * 
-	 * <pre>{@code
-	 * containerOptionsBuilder.backPressureHandlerSupplier(() -> {
-	 * 		return ConcurrencyLimiterBlockingBackPressureHandler.builder()
-	 * 			.batchSize(batchSize)
-	 * 			.totalPermits(maxConcurrentMessages)
-	 * 			.acquireTimeout(acquireTimeout)
-	 * 			.throughputConfiguration(BackPressureMode.FIXED_HIGH_THROUGHPUT)
-	 * 			.build()
-	 * }}</pre>
-	 *
-	 * <h3>A BackPressureHandler limiting the max concurrency with dynamic throughput</h3>
-	 *
-	 * <pre>{@code
-	 * containerOptionsBuilder.backPressureHandlerSupplier(() -> {
-	 * 		var concurrencyLimiterBlockingBackPressureHandler = ConcurrencyLimiterBlockingBackPressureHandler.builder()
-	 * 			.batchSize(batchSize)
-	 * 			.totalPermits(maxConcurrentMessages)
-	 * 			.acquireTimeout(acquireTimeout)
-	 * 			.throughputConfiguration(BackPressureMode.AUTO)
-	 * 			.build()
-	 * 		var throughputBackPressureHandler = ThroughputBackPressureHandler.builder()
-	 * 			.batchSize(batchSize)
-	 * 			.build();
-	 * 		return new CompositeBackPressureHandler(List.of(
-	 * 				concurrencyLimiterBlockingBackPressureHandler,
-	 * 				throughputBackPressureHandler
-	 * 			),
-	 * 			batchSize,
-	 * 			standbyLimitPollingInterval
-	 * 		);
-	 * }}</pre>
-	 *
-	 * @param backPressureHandlerSupplier the BackPressureHandler supplier.
+	 * @param backPressureHandlerFactory the BackPressureHandler supplier.
 	 * @return this instance.
 	 */
-	B backPressureHandlerSupplier(Supplier<BackPressureHandler> backPressureHandlerSupplier);
+	B backPressureHandlerFactory(BackPressureHandlerFactory backPressureHandlerFactory);
 
 	/**
 	 * Set the maximum interval between acknowledgements for batch acknowledgements. The default depends on the specific

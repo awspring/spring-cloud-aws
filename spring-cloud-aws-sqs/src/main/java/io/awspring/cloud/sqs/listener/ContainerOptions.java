@@ -22,7 +22,6 @@ import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.Collection;
-import java.util.function.Supplier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.retry.backoff.BackOffPolicy;
@@ -131,10 +130,10 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	BackPressureMode getBackPressureMode();
 
 	/**
-	 * Return the a {@link Supplier} to create a {@link BackPressureHandler} for this container.
-	 * @return the BackPressureHandler supplier.
+	 * Return the a {@link BackPressureHandlerFactory} to create a {@link BackPressureHandler} for this container.
+	 * @return the BackPressureHandlerFactory.
 	 */
-	Supplier<BackPressureHandler> getBackPressureHandlerSupplier();
+	BackPressureHandlerFactory getBackPressureHandlerFactory();
 
 	/**
 	 * Return the {@link ListenerMode} mode for this container.
