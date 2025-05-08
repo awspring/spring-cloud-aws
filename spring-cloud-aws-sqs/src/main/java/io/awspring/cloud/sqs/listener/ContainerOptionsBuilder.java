@@ -59,15 +59,6 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	B autoStartup(boolean autoStartup);
 
 	/**
-	 * Sets the amount of time to wait before checking again for the current limit when the queue processing is on
-	 * standby.
-	 *
-	 * @param standbyLimitPollingInterval the limit polling interval when the queue processing is on standby.
-	 * @return this instance.
-	 */
-	B standbyLimitPollingInterval(Duration standbyLimitPollingInterval);
-
-	/**
 	 * Set the maximum time the polling thread should wait for a full batch of permits to be available before trying to
 	 * acquire a partial batch if so configured. A poll is only actually executed if at least one permit is available.
 	 * Default is 10 seconds.

@@ -50,8 +50,6 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	private final Duration maxDelayBetweenPolls;
 
-	private final Duration standbyLimitPollingInterval;
-
 	private final Duration listenerShutdownTimeout;
 
 	private final Duration acknowledgementShutdownTimeout;
@@ -91,7 +89,6 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.autoStartup = builder.autoStartup;
 		this.pollTimeout = builder.pollTimeout;
 		this.pollBackOffPolicy = builder.pollBackOffPolicy;
-		this.standbyLimitPollingInterval = builder.standbyLimitPollingInterval;
 		this.maxDelayBetweenPolls = builder.maxDelayBetweenPolls;
 		this.listenerShutdownTimeout = builder.listenerShutdownTimeout;
 		this.acknowledgementShutdownTimeout = builder.acknowledgementShutdownTimeout;
@@ -135,11 +132,6 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	@Override
 	public BackOffPolicy getPollBackOffPolicy() {
 		return this.pollBackOffPolicy;
-	}
-
-	@Override
-	public Duration getStandbyLimitPollingInterval() {
-		return this.standbyLimitPollingInterval;
 	}
 
 	@Override
@@ -241,8 +233,6 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final BackOffPolicy DEFAULT_POLL_BACK_OFF_POLICY = buildDefaultBackOffPolicy();
 
-		private static final Duration DEFAULT_STANDBY_LIMIT_POLLING_INTERVAL = Duration.ofMillis(100);
-
 		private static final Duration DEFAULT_SEMAPHORE_TIMEOUT = Duration.ofSeconds(10);
 
 		private static final Duration DEFAULT_LISTENER_SHUTDOWN_TIMEOUT = Duration.ofSeconds(20);
@@ -270,8 +260,6 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private Duration pollTimeout = DEFAULT_POLL_TIMEOUT;
 
 		private BackOffPolicy pollBackOffPolicy = DEFAULT_POLL_BACK_OFF_POLICY;
-
-		private Duration standbyLimitPollingInterval = DEFAULT_STANDBY_LIMIT_POLLING_INTERVAL;
 
 		private Duration maxDelayBetweenPolls = DEFAULT_SEMAPHORE_TIMEOUT;
 
@@ -364,13 +352,6 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		public B pollBackOffPolicy(BackOffPolicy pollBackOffPolicy) {
 			Assert.notNull(pollBackOffPolicy, "pollBackOffPolicy cannot be null");
 			this.pollBackOffPolicy = pollBackOffPolicy;
-			return self();
-		}
-
-		@Override
-		public B standbyLimitPollingInterval(Duration standbyLimitPollingInterval) {
-			Assert.notNull(standbyLimitPollingInterval, "standbyLimitPollingInterval cannot be null");
-			this.standbyLimitPollingInterval = standbyLimitPollingInterval;
 			return self();
 		}
 
