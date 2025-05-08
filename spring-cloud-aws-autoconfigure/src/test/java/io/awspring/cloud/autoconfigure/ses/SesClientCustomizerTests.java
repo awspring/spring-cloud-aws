@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.sesv2.SesV2Client;
 
 /**
  * Tests for {@link SesClientCustomizer}.
@@ -48,7 +48,7 @@ class SesClientCustomizerTests {
 	@Test
 	void customClientCustomizer() {
 		contextRunner.withUserConfiguration(CustomizerConfig.class).run(context -> {
-			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesClient.class));
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesV2Client.class));
 			assertThat(client.getApiCallTimeout()).describedAs("sets property from first customizer")
 					.isEqualTo(Duration.ofMillis(2001));
 			assertThat(client.getApiCallAttemptTimeout()).describedAs("sets property from second customizer")
@@ -61,7 +61,7 @@ class SesClientCustomizerTests {
 	@Test
 	void customClientCustomizerWithOrder() {
 		contextRunner.withUserConfiguration(CustomizerConfigWithOrder.class).run(context -> {
-			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesClient.class));
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesV2Client.class));
 			assertThat(client.getApiCallTimeout())
 					.describedAs("property from the customizer with higher order takes precedence")
 					.isEqualTo(Duration.ofMillis(2001));
