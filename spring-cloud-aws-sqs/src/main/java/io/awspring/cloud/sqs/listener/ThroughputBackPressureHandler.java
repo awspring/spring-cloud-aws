@@ -25,12 +25,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 /**
- * {@link BackPressureHandler} implementation that uses a switches between high and low throughput modes.
+ * {@link BackPressureHandler} implementation that uses a switch between high and low throughput modes.
  * <p>
  * The initial throughput mode is low, which means, only one batch at a time can be requested. If some messages are
- * fetched, then the throughput mode is switched to high, which means, the multiple batches can be requested (i.e. there
- * is no need to wait for the previous batch's processing to complete before requesting a new one). If no messages are
- * returned fetched by a poll, the throughput mode is switched back to low.
+ * fetched, then the throughput mode is switched to high, which means that multiple batches can be requested (i.e.,
+ * there is no need to wait for the previous batch's processing to complete before requesting a new one). If no messages
+ * are returned fetched by a poll, the throughput mode is switched back to low.
  * <p>
  * This {@link BackPressureHandler} is designed to be used in combination with another {@link BackPressureHandler} like
  * the {@link ConcurrencyLimiterBlockingBackPressureHandler} that will handle the maximum concurrency level within the

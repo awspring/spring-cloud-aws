@@ -23,17 +23,27 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
 import io.awspring.cloud.sqs.MessageExecutionThreadFactory;
-import io.awspring.cloud.sqs.listener.*;
+import io.awspring.cloud.sqs.listener.BackPressureMode;
+import io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.awaitility.Awaitility;
@@ -51,7 +61,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
 /**
  * @author Tomaz Fernandes
  */
-class AbstractPollingMessageSourceTests {
+class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractPollingMessageSourceTests.class);
 
@@ -59,7 +69,7 @@ class AbstractPollingMessageSourceTests {
 	void shouldAcquireAndReleaseFullPermits() {
 		String testName = "shouldAcquireAndReleaseFullPermits";
 
-		BackPressureHandler backPressureHandler = ConcurrencyLimiterBlockingBackPressureHandler.builder()
+		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
 				.acquireTimeout(Duration.ofMillis(200)).batchSize(10).totalPermits(10)
 				.throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).build();
 		ExecutorService threadPool = Executors.newCachedThreadPool();
@@ -70,6 +80,8 @@ class AbstractPollingMessageSourceTests {
 
 			private final AtomicBoolean hasReceived = new AtomicBoolean(false);
 
+			private final AtomicBoolean hasMadeSecondPoll = new AtomicBoolean(false);
+
 			@Override
 			protected CompletableFuture<Collection<Message>> doPollForMessages(int messagesToRequest) {
 				return CompletableFuture.supplyAsync(() -> {
@@ -78,6 +90,21 @@ class AbstractPollingMessageSourceTests {
 						assertThat(messagesToRequest).isEqualTo(10);
 						assertAvailablePermits(backPressureHandler, 0);
 						boolean firstPoll = hasReceived.compareAndSet(false, true);
+						if (firstPoll) {
+							logger.debug("First poll");
+							// No permits released yet, should be TM low
+							assertThroughputMode(backPressureHandler, "low");
+						}
+						else if (hasMadeSecondPoll.compareAndSet(false, true)) {
+							logger.debug("Second poll");
+							// Permits returned, should be high
+							assertThroughputMode(backPressureHandler, "high");
+						}
+						else {
+							logger.debug("Third poll");
+							// Already returned full permits, should be low
+							assertThroughputMode(backPressureHandler, "low");
+						}
 						return firstPoll
 								? (Collection<Message>) List.of(Message.builder()
 										.messageId(UUID.randomUUID().toString()).body("message").build())
@@ -111,102 +138,13 @@ class AbstractPollingMessageSourceTests {
 		assertThat(doAwait(processingCounter)).isTrue();
 	}
 
-	@Test
-	void shouldAdaptThroughputMode() {
-		String testName = "shouldAdaptThroughputMode";
-
-		int batchSize = 10;
-		var concurrencyLimiterBlockingBackPressureHandler = ConcurrencyLimiterBlockingBackPressureHandler.builder()
-				.batchSize(batchSize).totalPermits(batchSize)
-				.throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
-				.acquireTimeout(Duration.ofSeconds(5L)).build();
-		var throughputBackPressureHandler = ThroughputBackPressureHandler.builder().batchSize(batchSize).build();
-		var backPressureHandler = new CompositeBackPressureHandler(
-				List.of(concurrencyLimiterBlockingBackPressureHandler, throughputBackPressureHandler), batchSize,
-				Duration.ofMillis(100L));
-		ExecutorService threadPool = Executors.newCachedThreadPool();
-		CountDownLatch pollingCounter = new CountDownLatch(3);
-		CountDownLatch processingCounter = new CountDownLatch(1);
-		Collection<Throwable> errors = new ConcurrentLinkedQueue<>();
-
-		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
-
-			private final AtomicInteger pollAttemptCounter = new AtomicInteger(0);
-
-			@Override
-			protected CompletableFuture<Collection<Message>> doPollForMessages(int messagesToRequest) {
-				return CompletableFuture.supplyAsync(() -> {
-					try {
-						int pollAttempt = pollAttemptCounter.incrementAndGet();
-						logger.debug("Poll attempt {}", pollAttempt);
-						if (pollAttempt == 1) {
-							// Initial poll; throughput mode should be low
-							assertThroughputMode(backPressureHandler, "low");
-							// Since no permits were acquired yet, should be 10
-							assertThat(messagesToRequest).isEqualTo(10);
-							return (Collection<Message>) List.of(
-									Message.builder().messageId(UUID.randomUUID().toString()).body("message").build());
-						}
-						else if (pollAttempt == 2) {
-							// Messages returned in the previous poll; throughput mode should be high
-							assertThroughputMode(backPressureHandler, "high");
-							// Since throughput mode is high, should be 10
-							assertThat(messagesToRequest).isEqualTo(10);
-							return Collections.<Message> emptyList();
-						}
-						else {
-							// No Messages returned in the previous poll; throughput mode should be low
-							assertThroughputMode(backPressureHandler, "low");
-							return Collections.<Message> emptyList();
-						}
-					}
-					catch (Throwable t) {
-						logger.error("Error (not expecting it)", t);
-						errors.add(t);
-						throw new RuntimeException(t);
-					}
-				}, threadPool).whenComplete((v, t) -> {
-					if (t == null) {
-						logger.warn("Polling succeeded", t);
-						pollingCounter.countDown();
-					}
-					else {
-						logger.warn("Polling failed with error", t);
-						errors.add(t);
-					}
-				});
-			}
-		};
-
-		source.setBackPressureHandler(backPressureHandler);
-		source.setMessageSink((msgs, context) -> {
-			msgs.forEach(msg -> context.runBackPressureReleaseCallback());
-			return CompletableFuture.runAsync(processingCounter::countDown);
-		});
-
-		source.setId(testName + " source");
-		source.configure(SqsContainerOptions.builder().build());
-		source.setTaskExecutor(createTaskExecutor(testName));
-		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
-		try {
-			source.start();
-			assertThat(doAwait(pollingCounter)).isTrue();
-			assertThat(doAwait(processingCounter)).isTrue();
-			assertThat(errors).isEmpty();
-		}
-		finally {
-			source.stop();
-			threadPool.shutdownNow();
-		}
-	}
-
 	private static final AtomicInteger testCounter = new AtomicInteger();
 
 	@Test
 	void shouldAcquireAndReleasePartialPermits() {
 		String testName = "shouldAcquireAndReleasePartialPermits";
-		ConcurrencyLimiterBlockingBackPressureHandler backPressureHandler = ConcurrencyLimiterBlockingBackPressureHandler
-				.builder().acquireTimeout(Duration.ofMillis(150)).batchSize(10).totalPermits(10)
+		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
+				.acquireTimeout(Duration.ofMillis(150)).batchSize(10).totalPermits(10)
 				.throughputConfiguration(BackPressureMode.AUTO).build();
 		ExecutorService threadPool = Executors
 				.newCachedThreadPool(new MessageExecutionThreadFactory("test " + testCounter.incrementAndGet()));
@@ -217,38 +155,60 @@ class AbstractPollingMessageSourceTests {
 
 		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
 
-			private final AtomicInteger pollAttemptCounter = new AtomicInteger(0);
+			private final AtomicBoolean hasReceived = new AtomicBoolean(false);
+
+			private final AtomicBoolean hasAcquired9 = new AtomicBoolean(false);
+
+			private final AtomicBoolean hasMadeThirdPoll = new AtomicBoolean(false);
 
 			@Override
 			protected CompletableFuture<Collection<Message>> doPollForMessages(int messagesToRequest) {
 				return CompletableFuture.supplyAsync(() -> {
 					try {
-						int pollAttempt = pollAttemptCounter.incrementAndGet();
-						if (pollAttempt == 1) {
+						// Give it some time between returning empty and polling again
+						// doSleep(100);
+
+						// Will only be true the first time it sets hasReceived to true
+						boolean shouldReturnMessage = hasReceived.compareAndSet(false, true);
+						if (shouldReturnMessage) {
 							// First poll, should have 10
 							logger.debug("First poll - should request 10 messages");
 							assertThat(messagesToRequest).isEqualTo(10);
 							assertAvailablePermits(backPressureHandler, 0);
 							// No permits have been released yet
-							return (Collection<Message>) List.of(
-									Message.builder().messageId(UUID.randomUUID().toString()).body("message").build());
+							assertThroughputMode(backPressureHandler, "low");
 						}
-						else if (pollAttempt == 2) {
+						else if (hasAcquired9.compareAndSet(false, true)) {
 							// Second poll, should have 9
 							logger.debug("Second poll - should request 9 messages");
 							assertThat(messagesToRequest).isEqualTo(9);
 							assertAvailablePermitsLessThanOrEqualTo(backPressureHandler, 1);
-							// Has released 9 permits
+							// Has released 9 permits, should be TM HIGH
+							assertThroughputMode(backPressureHandler, "high");
 							processingLatch.countDown(); // Release processing now
-							return Collections.<Message> emptyList();
 						}
 						else {
+							boolean thirdPoll = hasMadeThirdPoll.compareAndSet(false, true);
 							// Third poll or later, should have 10 again
-							logger.debug("Third (or later) poll - should request 10 messages");
+							logger.debug("Third poll - should request 10 messages");
 							assertThat(messagesToRequest).isEqualTo(10);
 							assertAvailablePermits(backPressureHandler, 0);
-							return Collections.<Message> emptyList();
+							if (thirdPoll) {
+								// Hasn't yet returned a full batch, should be TM High
+								assertThroughputMode(backPressureHandler, "high");
+							}
+							else {
+								// Has returned all permits in third poll
+								assertThroughputMode(backPressureHandler, "low");
+							}
 						}
+						if (shouldReturnMessage) {
+							logger.debug("shouldReturnMessage, returning one message");
+							return (Collection<Message>) List.of(
+									Message.builder().messageId(UUID.randomUUID().toString()).body("message").build());
+						}
+						logger.debug("should not return message, returning empty list");
+						return Collections.<Message> emptyList();
 					}
 					catch (Error e) {
 						hasThrownError.set(true);
@@ -276,14 +236,13 @@ class AbstractPollingMessageSourceTests {
 		assertThat(doAwait(pollingCounter)).isTrue();
 		source.stop();
 		assertThat(hasThrownError.get()).isFalse();
-		threadPool.shutdownNow();
 	}
 
 	@Test
 	void shouldReleasePermitsOnConversionErrors() {
 		String testName = "shouldReleasePermitsOnConversionErrors";
-		ConcurrencyLimiterBlockingBackPressureHandler backPressureHandler = ConcurrencyLimiterBlockingBackPressureHandler
-				.builder().acquireTimeout(Duration.ofMillis(150)).batchSize(10).totalPermits(10)
+		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
+				.acquireTimeout(Duration.ofMillis(150)).batchSize(10).totalPermits(10)
 				.throughputConfiguration(BackPressureMode.AUTO).build();
 
 		AtomicInteger convertedMessages = new AtomicInteger(0);
@@ -345,16 +304,9 @@ class AbstractPollingMessageSourceTests {
 
 		var testName = "shouldBackOffIfPollingThrowsAnError";
 
-		int totalPermits = 40;
-		int batchSize = 10;
-		var concurrencyLimiterBlockingBackPressureHandler = ConcurrencyLimiterBlockingBackPressureHandler.builder()
-				.batchSize(batchSize).totalPermits(totalPermits)
-				.throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
-				.acquireTimeout(Duration.ofMillis(200)).build();
-		var throughputBackPressureHandler = ThroughputBackPressureHandler.builder().batchSize(batchSize).build();
-		var backPressureHandler = new CompositeBackPressureHandler(
-				List.of(concurrencyLimiterBlockingBackPressureHandler, throughputBackPressureHandler), batchSize,
-				Duration.ofSeconds(5L));
+		var backPressureHandler = SemaphoreBackPressureHandler.builder().acquireTimeout(Duration.ofMillis(200))
+				.batchSize(10).totalPermits(40).throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
+				.build();
 		var currentPoll = new AtomicInteger(0);
 		var waitThirdPollLatch = new CountDownLatch(4);
 
@@ -411,43 +363,22 @@ class AbstractPollingMessageSourceTests {
 		}
 	}
 
-	private void assertThroughputMode(BackPressureHandler backPressureHandler, String expectedThroughputMode) {
-		var bph = extractBackPressureHandler(backPressureHandler, ThroughputBackPressureHandler.class);
-		assertThat(getThroughputModeValue(bph, "currentThroughputMode"))
+	private void assertThroughputMode(SemaphoreBackPressureHandler backPressureHandler, String expectedThroughputMode) {
+		assertThat(ReflectionTestUtils.getField(backPressureHandler, "currentThroughputMode"))
+				.extracting(Object::toString).extracting(String::toLowerCase)
 				.isEqualTo(expectedThroughputMode.toLowerCase());
 	}
 
-	private static String getThroughputModeValue(ThroughputBackPressureHandler bph, String targetThroughputMode) {
-		return ((AtomicReference<Object>) ReflectionTestUtils.getField(bph, targetThroughputMode)).get().toString()
-				.toLowerCase(Locale.ROOT);
-	}
-
-	private void assertAvailablePermits(BackPressureHandler backPressureHandler, int expectedPermits) {
-		var bph = extractBackPressureHandler(backPressureHandler, ConcurrencyLimiterBlockingBackPressureHandler.class);
-		assertThat(ReflectionTestUtils.getField(bph, "semaphore")).asInstanceOf(type(Semaphore.class))
+	private void assertAvailablePermits(SemaphoreBackPressureHandler backPressureHandler, int expectedPermits) {
+		assertThat(ReflectionTestUtils.getField(backPressureHandler, "semaphore")).asInstanceOf(type(Semaphore.class))
 				.extracting(Semaphore::availablePermits).isEqualTo(expectedPermits);
 	}
 
-	private void assertAvailablePermitsLessThanOrEqualTo(
-			ConcurrencyLimiterBlockingBackPressureHandler backPressureHandler, int maxExpectedPermits) {
-		var bph = extractBackPressureHandler(backPressureHandler, ConcurrencyLimiterBlockingBackPressureHandler.class);
-		assertThat(ReflectionTestUtils.getField(bph, "semaphore")).asInstanceOf(type(Semaphore.class))
+	private void assertAvailablePermitsLessThanOrEqualTo(SemaphoreBackPressureHandler backPressureHandler,
+			int maxExpectedPermits) {
+		assertThat(ReflectionTestUtils.getField(backPressureHandler, "semaphore")).asInstanceOf(type(Semaphore.class))
 				.extracting(Semaphore::availablePermits).asInstanceOf(InstanceOfAssertFactories.INTEGER)
 				.isLessThanOrEqualTo(maxExpectedPermits);
-	}
-
-	private <T extends BackPressureHandler> T extractBackPressureHandler(BackPressureHandler bph, Class<T> type) {
-		if (type.isInstance(bph)) {
-			return type.cast(bph);
-		}
-		if (bph instanceof CompositeBackPressureHandler cbph) {
-			List<BackPressureHandler> backPressureHandlers = (List<BackPressureHandler>) ReflectionTestUtils
-					.getField(cbph, "backPressureHandlers");
-			return extractBackPressureHandler(
-					backPressureHandlers.stream().filter(type::isInstance).map(type::cast).findFirst().orElseThrow(),
-					type);
-		}
-		throw new NoSuchElementException("%s not found in %s".formatted(type.getSimpleName(), bph));
 	}
 
 	// Used to slow down tests while developing

@@ -20,7 +20,6 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMod
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import java.time.Duration;
-import java.util.function.Supplier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.retry.backoff.BackOffPolicy;
@@ -54,7 +53,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	private final BackPressureMode backPressureMode;
 
-	private final Supplier<BackPressureHandler> backPressureHandlerSupplier;
+	private final BackPressureHandlerFactory backPressureHandlerFactory;
 
 	private final ListenerMode listenerMode;
 
@@ -87,7 +86,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.listenerShutdownTimeout = builder.listenerShutdownTimeout;
 		this.acknowledgementShutdownTimeout = builder.acknowledgementShutdownTimeout;
 		this.backPressureMode = builder.backPressureMode;
-		this.backPressureHandlerSupplier = builder.backPressureHandlerSupplier;
+		this.backPressureHandlerFactory = builder.backPressureHandlerFactory;
 		this.listenerMode = builder.listenerMode;
 		this.messageConverter = builder.messageConverter;
 		this.acknowledgementMode = builder.acknowledgementMode;
@@ -159,8 +158,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	}
 
 	@Override
-	public Supplier<BackPressureHandler> getBackPressureHandlerSupplier() {
-		return this.backPressureHandlerSupplier;
+	public BackPressureHandlerFactory getBackPressureHandlerFactory() {
+		return this.backPressureHandlerFactory;
 	}
 
 	@Override
@@ -223,7 +222,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final BackPressureMode DEFAULT_THROUGHPUT_CONFIGURATION = BackPressureMode.AUTO;
 
-		private static final Supplier<BackPressureHandler> DEFAULT_BACKPRESSURE_LIMITER = null;
+		private static final BackPressureHandlerFactory DEFAULT_BACKPRESSURE_FACTORY = buildDefaultBackPressureHandlerFactory();
 
 		private static final ListenerMode DEFAULT_MESSAGE_DELIVERY_STRATEGY = ListenerMode.SINGLE_MESSAGE;
 
@@ -245,7 +244,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private BackPressureMode backPressureMode = DEFAULT_THROUGHPUT_CONFIGURATION;
 
-		private Supplier<BackPressureHandler> backPressureHandlerSupplier = DEFAULT_BACKPRESSURE_LIMITER;
+		private BackPressureHandlerFactory backPressureHandlerFactory = DEFAULT_BACKPRESSURE_FACTORY;
 
 		private Duration listenerShutdownTimeout = DEFAULT_LISTENER_SHUTDOWN_TIMEOUT;
 
@@ -285,7 +284,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.listenerShutdownTimeout = options.listenerShutdownTimeout;
 			this.acknowledgementShutdownTimeout = options.acknowledgementShutdownTimeout;
 			this.backPressureMode = options.backPressureMode;
-			this.backPressureHandlerSupplier = options.backPressureHandlerSupplier;
+			this.backPressureHandlerFactory = options.backPressureHandlerFactory;
 			this.listenerMode = options.listenerMode;
 			this.messageConverter = options.messageConverter;
 			this.acknowledgementMode = options.acknowledgementMode;
@@ -379,8 +378,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		}
 
 		@Override
-		public B backPressureHandlerSupplier(Supplier<BackPressureHandler> backPressureHandlerSupplier) {
-			this.backPressureHandlerSupplier = backPressureHandlerSupplier;
+		public B backPressureHandlerFactory(BackPressureHandlerFactory backPressureHandlerFactory) {
+			this.backPressureHandlerFactory = backPressureHandlerFactory;
 			return self();
 		}
 
@@ -428,6 +427,12 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private static BackOffPolicy buildDefaultBackOffPolicy() {
 			return BackOffPolicyBuilder.newBuilder().multiplier(DEFAULT_BACK_OFF_MULTIPLIER)
 					.delay(DEFAULT_BACK_OFF_DELAY).maxDelay(DEFAULT_BACK_OFF_MAX_DELAY).build();
+		}
+
+		private static BackPressureHandlerFactory buildDefaultBackPressureHandlerFactory() {
+			return options -> SemaphoreBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
+					.totalPermits(options.getMaxConcurrentMessages()).acquireTimeout(options.getMaxDelayBetweenPolls())
+					.throughputConfiguration(options.getBackPressureMode()).build();
 		}
 	}
 

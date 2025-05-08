@@ -132,7 +132,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 				.queueNames(
 						queueName)
 				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
-						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(
+						.backPressureHandlerFactory(containerOptions -> new CompositeBackPressureHandler(
 								List.of(limiter,
 										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(5)
 												.totalPermits(5).acquireTimeout(Duration.ofSeconds(1L))
@@ -172,7 +172,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 				.queueNames(
 						queueName)
 				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
-						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(
+						.backPressureHandlerFactory(containerOptions -> new CompositeBackPressureHandler(
 								List.of(limiter,
 										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(5)
 												.totalPermits(5).acquireTimeout(Duration.ofSeconds(1L))
@@ -218,7 +218,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 				.queueNames(
 						queueName)
 				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
-						.backPressureHandlerSupplier(() -> new CompositeBackPressureHandler(
+						.backPressureHandlerFactory(containerOptions -> new CompositeBackPressureHandler(
 								List.of(limiter,
 										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(5)
 												.totalPermits(5).acquireTimeout(Duration.ofSeconds(1L))
@@ -442,9 +442,8 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 		EventsCsvWriter eventsCsvWriter = new EventsCsvWriter();
 		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
 				.queueNames(queueName)
-				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
-						.standbyLimitPollingInterval(Duration.ofMillis(1))
-						.backPressureHandlerSupplier(() -> new StatisticsBphDecorator(new CompositeBackPressureHandler(
+				.configure(options -> options.pollTimeout(Duration.ofSeconds(1)).backPressureHandlerFactory(
+						containerOptions -> new StatisticsBphDecorator(new CompositeBackPressureHandler(
 								List.of(limiter,
 										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(10)
 												.totalPermits(10).acquireTimeout(Duration.ofSeconds(1L))
