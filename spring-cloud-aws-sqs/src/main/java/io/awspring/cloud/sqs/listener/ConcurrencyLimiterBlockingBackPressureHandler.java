@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.listener;
 
+import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
@@ -24,11 +25,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 /**
- * {@link BackPressureHandler} implementation that uses a {@link Semaphore} for handling backpressure.
+ * Blocking {@link BackPressureHandler} implementation that uses a {@link Semaphore} for handling the number of
+ * concurrent messages being processed.
  *
- * @author Tomaz Fernandes
- * @see io.awspring.cloud.sqs.listener.source.PollingMessageSource
- * @since 3.0
+ * @see PollingMessageSource
  */
 public class ConcurrencyLimiterBlockingBackPressureHandler
 		implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
@@ -43,20 +43,17 @@ public class ConcurrencyLimiterBlockingBackPressureHandler
 
 	private final Duration acquireTimeout;
 
-	private final boolean alwaysPollMaxMessages;
-
 	private String id = getClass().getSimpleName();
 
 	private ConcurrencyLimiterBlockingBackPressureHandler(Builder builder) {
 		this.batchSize = builder.batchSize;
 		this.totalPermits = builder.totalPermits;
 		this.acquireTimeout = builder.acquireTimeout;
-		this.alwaysPollMaxMessages = BackPressureMode.ALWAYS_POLL_MAX_MESSAGES.equals(builder.backPressureMode);
-		this.semaphore = new Semaphore(totalPermits);
 		logger.debug(
 				"ConcurrencyLimiterBlockingBackPressureHandler created with configuration "
-						+ "totalPermits: {}, batchSize: {}, acquireTimeout: {}, an alwaysPollMaxMessages: {}",
-				this.totalPermits, this.batchSize, this.acquireTimeout, this.alwaysPollMaxMessages);
+						+ "totalPermits: {}, batchSize: {}, acquireTimeout: {}",
+				this.totalPermits, this.batchSize, this.acquireTimeout);
+		this.semaphore = new Semaphore(totalPermits);
 	}
 
 	public static Builder builder() {
@@ -81,7 +78,7 @@ public class ConcurrencyLimiterBlockingBackPressureHandler
 	@Override
 	public int request(int amount) throws InterruptedException {
 		int acquiredPermits = tryAcquire(amount, this.acquireTimeout);
-		if (alwaysPollMaxMessages || acquiredPermits > 0) {
+		if (acquiredPermits > 0) {
 			return acquiredPermits;
 		}
 		int availablePermits = Math.min(this.semaphore.availablePermits(), amount);

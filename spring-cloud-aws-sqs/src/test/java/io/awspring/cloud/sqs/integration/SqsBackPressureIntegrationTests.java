@@ -126,18 +126,16 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 		});
 		logger.debug("Sent 100 messages to queue {}", queueName);
 		var latch = new CountDownLatch(100);
-		var container = SqsMessageListenerContainer
-				.builder().sqsAsyncClient(
-						BaseSqsIntegrationTest.createAsyncClient())
-				.queueNames(
-						queueName)
-				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
-						.backPressureHandlerFactory(containerOptions -> new CompositeBackPressureHandler(
-								List.of(limiter,
-										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(5)
-												.totalPermits(5).acquireTimeout(Duration.ofSeconds(1L))
-												.throughputConfiguration(BackPressureMode.AUTO).build()),
-								5, Duration.ofMillis(50L))))
+		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
+				.queueNames(queueName)
+				.configure(
+						options -> options.maxMessagesPerPoll(5).maxConcurrentMessages(5)
+								.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofSeconds(1))
+								.pollTimeout(Duration.ofSeconds(1))
+								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactory
+										.compositeBackPressureHandler(containerOptions, Duration.ofMillis(50L),
+												List.of(limiter, BackPressureHandlerFactory
+														.concurrencyLimiterBackPressureHandler2(containerOptions)))))
 				.messageListener(msg -> {
 					int concurrentRqs = concurrentRequest.incrementAndGet();
 					maxConcurrentRequest.updateAndGet(max -> Math.max(max, concurrentRqs));
@@ -166,18 +164,16 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 		});
 		logger.debug("Sent 100 messages to queue {}", queueName);
 		var latch = new CountDownLatch(100);
-		var container = SqsMessageListenerContainer
-				.builder().sqsAsyncClient(
-						BaseSqsIntegrationTest.createAsyncClient())
-				.queueNames(
-						queueName)
-				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
-						.backPressureHandlerFactory(containerOptions -> new CompositeBackPressureHandler(
-								List.of(limiter,
-										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(5)
-												.totalPermits(5).acquireTimeout(Duration.ofSeconds(1L))
-												.throughputConfiguration(BackPressureMode.AUTO).build()),
-								5, Duration.ofMillis(50L))))
+		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
+				.queueNames(queueName)
+				.configure(
+						options -> options.maxMessagesPerPoll(5).maxConcurrentMessages(5)
+								.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofSeconds(1))
+								.pollTimeout(Duration.ofSeconds(1))
+								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactory
+										.compositeBackPressureHandler(containerOptions, Duration.ofMillis(50L),
+												List.of(limiter, BackPressureHandlerFactory
+														.concurrencyLimiterBackPressureHandler2(containerOptions)))))
 				.messageListener(msg -> {
 					int concurrentRqs = concurrentRequest.incrementAndGet();
 					maxConcurrentRequest.updateAndGet(max -> Math.max(max, concurrentRqs));
@@ -212,18 +208,16 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 		var advanceSemaphore = new Semaphore(0);
 		var processingFailed = new AtomicBoolean(false);
 		var isDraining = new AtomicBoolean(false);
-		var container = SqsMessageListenerContainer
-				.builder().sqsAsyncClient(
-						BaseSqsIntegrationTest.createAsyncClient())
-				.queueNames(
-						queueName)
-				.configure(options -> options.pollTimeout(Duration.ofSeconds(1))
-						.backPressureHandlerFactory(containerOptions -> new CompositeBackPressureHandler(
-								List.of(limiter,
-										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(5)
-												.totalPermits(5).acquireTimeout(Duration.ofSeconds(1L))
-												.throughputConfiguration(BackPressureMode.AUTO).build()),
-								5, Duration.ofMillis(50L))))
+		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
+				.queueNames(queueName)
+				.configure(
+						options -> options.maxMessagesPerPoll(5).maxConcurrentMessages(5)
+								.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofSeconds(1))
+								.pollTimeout(Duration.ofSeconds(1))
+								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactory
+										.compositeBackPressureHandler(containerOptions, Duration.ofMillis(50L),
+												List.of(limiter, BackPressureHandlerFactory
+														.concurrencyLimiterBackPressureHandler2(containerOptions)))))
 				.messageListener(msg -> {
 					try {
 						if (!controlSemaphore.tryAcquire(5, TimeUnit.SECONDS) && !isDraining.get()) {
@@ -442,13 +436,16 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 		EventsCsvWriter eventsCsvWriter = new EventsCsvWriter();
 		var container = SqsMessageListenerContainer.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient())
 				.queueNames(queueName)
-				.configure(options -> options.pollTimeout(Duration.ofSeconds(1)).backPressureHandlerFactory(
-						containerOptions -> new StatisticsBphDecorator(new CompositeBackPressureHandler(
-								List.of(limiter,
-										ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(10)
-												.totalPermits(10).acquireTimeout(Duration.ofSeconds(1L))
-												.throughputConfiguration(BackPressureMode.AUTO).build()),
-								10, Duration.ofMillis(50L)), eventsCsvWriter)))
+				.configure(
+						options -> options.maxMessagesPerPoll(10).maxConcurrentMessages(10)
+								.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofSeconds(1))
+								.pollTimeout(Duration.ofSeconds(1))
+								.backPressureHandlerFactory(containerOptions -> new StatisticsBphDecorator(
+										BackPressureHandlerFactory.compositeBackPressureHandler(containerOptions,
+												Duration.ofMillis(50L),
+												List.of(limiter, BackPressureHandlerFactory
+														.concurrencyLimiterBackPressureHandler2(containerOptions))),
+										eventsCsvWriter)))
 				.messageListener(msg -> {
 					int currentConcurrentRq = concurrentRequest.incrementAndGet();
 					maxConcurrentRequest.updateAndGet(max -> Math.max(max, currentConcurrentRq));

@@ -15,6 +15,10 @@
  */
 package io.awspring.cloud.sqs.listener;
 
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A factory for creating {@link BackPressureHandler} for managing queue consumption backpressure. Implementations can
  * configure each the {@link BackPressureHandler} according to its strategies, using the provided
@@ -82,4 +86,99 @@ public interface BackPressureHandlerFactory {
 	 * @return the created BackPressureHandler
 	 */
 	BackPressureHandler createBackPressureHandler(ContainerOptions<?, ?> containerOptions);
+
+	/**
+	 * Creates a new {@link SemaphoreBackPressureHandler} instance based on the provided {@link ContainerOptions}.
+	 *
+	 * @param options the container options.
+	 * @return the created SemaphoreBackPressureHandler.
+	 */
+	static BatchAwareBackPressureHandler semaphoreBackPressureHandler(ContainerOptions<?, ?> options) {
+		return SemaphoreBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
+				.totalPermits(options.getMaxConcurrentMessages()).acquireTimeout(options.getMaxDelayBetweenPolls())
+				.throughputConfiguration(options.getBackPressureMode()).build();
+	}
+
+	/**
+	 * Creates a new {@link BackPressureHandler} instance based on the provided {@link ContainerOptions} combining a
+	 * {@link ConcurrencyLimiterBlockingBackPressureHandler}, a {@link ThroughputBackPressureHandler} and a
+	 * {@link FullBatchBackPressureHandler}. The exact combination of depends on the given {@link ContainerOptions}.
+	 *
+	 * @param options the container options.
+	 * @param maxIdleWaitTime the maximum amount of time to wait for a permit to be released in case no permits were
+	 *     obtained.
+	 * @return the created SemaphoreBackPressureHandler.
+	 */
+	static BatchAwareBackPressureHandler concurrencyLimiterBackPressureHandler(ContainerOptions<?, ?> options,
+			Duration maxIdleWaitTime) {
+		BackPressureMode backPressureMode = options.getBackPressureMode();
+
+		var concurrencyLimiterBlockingBackPressureHandler = concurrencyLimiterBackPressureHandler2(options);
+		if (backPressureMode == BackPressureMode.FIXED_HIGH_THROUGHPUT) {
+			return concurrencyLimiterBlockingBackPressureHandler;
+		}
+		var backPressureHandlers = new ArrayList<BackPressureHandler>();
+		backPressureHandlers.add(concurrencyLimiterBlockingBackPressureHandler);
+
+		// The ThroughputBackPressureHandler should run second in the chain as it is non-blocking.
+		// Running it first would result in more polls as it would potentially limit the
+		// ConcurrencyLimiterBlockingBackPressureHandler to a lower amount of requested permits
+		// which means the ConcurrencyLimiterBlockingBackPressureHandler blocking behavior would
+		// not be optimally leveraged.
+		if (backPressureMode == BackPressureMode.AUTO
+				|| backPressureMode == BackPressureMode.ALWAYS_POLL_MAX_MESSAGES) {
+			backPressureHandlers.add(throughputBackPressureHandler(options));
+		}
+
+		// The FullBatchBackPressureHandler should run last in the chain to ensure that a full batch is requested or not
+		if (backPressureMode == BackPressureMode.ALWAYS_POLL_MAX_MESSAGES) {
+			backPressureHandlers.add(fullBatchBackPressureHandler(options));
+		}
+		return compositeBackPressureHandler(options, maxIdleWaitTime, backPressureHandlers);
+	}
+
+	/**
+	 * Creates a new {@link ConcurrencyLimiterBlockingBackPressureHandler} instance based on the provided
+	 * {@link ContainerOptions}.
+	 *
+	 * @param options the container options.
+	 * @return the created ConcurrencyLimiterBlockingBackPressureHandler.
+	 */
+	static CompositeBackPressureHandler compositeBackPressureHandler(ContainerOptions<?, ?> options,
+			Duration maxIdleWaitTime, List<BackPressureHandler> backPressureHandlers) {
+		return new CompositeBackPressureHandler(List.copyOf(backPressureHandlers), options.getMaxMessagesPerPoll(),
+				maxIdleWaitTime);
+	}
+
+	/**
+	 * Creates a new {@link ConcurrencyLimiterBlockingBackPressureHandler} instance based on the provided
+	 * {@link ContainerOptions}.
+	 * @param options the container options.
+	 * @return the created ConcurrencyLimiterBlockingBackPressureHandler.
+	 */
+	static ConcurrencyLimiterBlockingBackPressureHandler concurrencyLimiterBackPressureHandler2(
+			ContainerOptions<?, ?> options) {
+		return ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
+				.totalPermits(options.getMaxConcurrentMessages()).throughputConfiguration(options.getBackPressureMode())
+				.acquireTimeout(options.getMaxDelayBetweenPolls()).build();
+	}
+
+	/**
+	 * Creates a new {@link ThroughputBackPressureHandler} instance based on the provided {@link ContainerOptions}.
+	 * @param options the container options.
+	 * @return the created ThroughputBackPressureHandler.
+	 */
+	static ThroughputBackPressureHandler throughputBackPressureHandler(ContainerOptions<?, ?> options) {
+		return ThroughputBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
+				.totalPermits(options.getMaxConcurrentMessages()).build();
+	}
+
+	/**
+	 * Creates a new {@link FullBatchBackPressureHandler} instance based on the provided {@link ContainerOptions}.
+	 * @param options the container options.
+	 * @return the created FullBatchBackPressureHandler.
+	 */
+	static FullBatchBackPressureHandler fullBatchBackPressureHandler(ContainerOptions<?, ?> options) {
+		return FullBatchBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll()).build();
+	}
 }

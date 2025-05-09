@@ -23,9 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
 import io.awspring.cloud.sqs.MessageExecutionThreadFactory;
-import io.awspring.cloud.sqs.listener.BackPressureMode;
-import io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler;
-import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.listener.*;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
@@ -68,10 +66,11 @@ class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 	@Test
 	void shouldAcquireAndReleaseFullPermits() {
 		String testName = "shouldAcquireAndReleaseFullPermits";
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactory
+				.semaphoreBackPressureHandler(SqsContainerOptions.builder().maxMessagesPerPoll(10)
+						.maxConcurrentMessages(10).backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
+						.maxDelayBetweenPolls(Duration.ofMillis(200)).build());
 
-		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
-				.acquireTimeout(Duration.ofMillis(200)).batchSize(10).totalPermits(10)
-				.throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).build();
 		ExecutorService threadPool = Executors.newCachedThreadPool();
 		CountDownLatch pollingCounter = new CountDownLatch(3);
 		CountDownLatch processingCounter = new CountDownLatch(1);
@@ -143,9 +142,10 @@ class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 	@Test
 	void shouldAcquireAndReleasePartialPermits() {
 		String testName = "shouldAcquireAndReleasePartialPermits";
-		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
-				.acquireTimeout(Duration.ofMillis(150)).batchSize(10).totalPermits(10)
-				.throughputConfiguration(BackPressureMode.AUTO).build();
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactory.semaphoreBackPressureHandler(
+				SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
+						.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofMillis(150)).build());
+
 		ExecutorService threadPool = Executors
 				.newCachedThreadPool(new MessageExecutionThreadFactory("test " + testCounter.incrementAndGet()));
 		CountDownLatch pollingCounter = new CountDownLatch(4);
@@ -241,9 +241,9 @@ class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 	@Test
 	void shouldReleasePermitsOnConversionErrors() {
 		String testName = "shouldReleasePermitsOnConversionErrors";
-		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
-				.acquireTimeout(Duration.ofMillis(150)).batchSize(10).totalPermits(10)
-				.throughputConfiguration(BackPressureMode.AUTO).build();
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactory.semaphoreBackPressureHandler(
+				SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
+						.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofMillis(150)).build());
 
 		AtomicInteger convertedMessages = new AtomicInteger(0);
 		AtomicInteger messagesInSink = new AtomicInteger(0);
@@ -301,12 +301,12 @@ class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 
 	@Test
 	void shouldBackOffIfPollingThrowsAnError() {
-
 		var testName = "shouldBackOffIfPollingThrowsAnError";
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactory
+				.semaphoreBackPressureHandler(SqsContainerOptions.builder().maxMessagesPerPoll(10)
+						.maxConcurrentMessages(40).backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
+						.maxDelayBetweenPolls(Duration.ofMillis(200)).build());
 
-		var backPressureHandler = SemaphoreBackPressureHandler.builder().acquireTimeout(Duration.ofMillis(200))
-				.batchSize(10).totalPermits(40).throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
-				.build();
 		var currentPoll = new AtomicInteger(0);
 		var waitThirdPollLatch = new CountDownLatch(4);
 
@@ -363,18 +363,18 @@ class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 		}
 	}
 
-	private void assertThroughputMode(SemaphoreBackPressureHandler backPressureHandler, String expectedThroughputMode) {
+	private void assertThroughputMode(BackPressureHandler backPressureHandler, String expectedThroughputMode) {
 		assertThat(ReflectionTestUtils.getField(backPressureHandler, "currentThroughputMode"))
 				.extracting(Object::toString).extracting(String::toLowerCase)
 				.isEqualTo(expectedThroughputMode.toLowerCase());
 	}
 
-	private void assertAvailablePermits(SemaphoreBackPressureHandler backPressureHandler, int expectedPermits) {
+	private void assertAvailablePermits(BackPressureHandler backPressureHandler, int expectedPermits) {
 		assertThat(ReflectionTestUtils.getField(backPressureHandler, "semaphore")).asInstanceOf(type(Semaphore.class))
 				.extracting(Semaphore::availablePermits).isEqualTo(expectedPermits);
 	}
 
-	private void assertAvailablePermitsLessThanOrEqualTo(SemaphoreBackPressureHandler backPressureHandler,
+	private void assertAvailablePermitsLessThanOrEqualTo(BackPressureHandler backPressureHandler,
 			int maxExpectedPermits) {
 		assertThat(ReflectionTestUtils.getField(backPressureHandler, "semaphore")).asInstanceOf(type(Semaphore.class))
 				.extracting(Semaphore::availablePermits).asInstanceOf(InstanceOfAssertFactories.INTEGER)

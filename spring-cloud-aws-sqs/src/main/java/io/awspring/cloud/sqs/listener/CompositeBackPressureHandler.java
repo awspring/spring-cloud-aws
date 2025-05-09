@@ -24,6 +24,28 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Composite {@link BackPressureHandler} implementation that delegates the back-pressure handling to a list of
+ * {@link BackPressureHandler}s.
+ * <p>
+ * This class is used to combine multiple back-pressure handlers into a single one. It allows for more complex
+ * back-pressure handling strategies by combining different implementations.
+ * <p>
+ * The order in which the back-pressure handlers are registered in the {@link CompositeBackPressureHandler} is important
+ * as it will affect the blocking and limiting behaviour of the back-pressure handling.
+ * <p>
+ * When {@link #request(int amount)} is called, the first back-pressure handler in the list is called with
+ * {@code amount} as the requested amount of permits. The returned amount of permits (which is less than or equal to the
+ * initial amount) is then passed to the next back-pressure handler in the list. This process of reducing the amount to
+ * request for the next handlers in the chain is called "limiting". This process continues until all back-pressure
+ * handlers have been called or {@literal 0} permits has been returned.
+ * <p>
+ * Once the final amount of available permits have been computed, unused acquired permits on back-pressure handlers (due
+ * to later limiting happening in the chain) are released.
+ * <p>
+ * If no permits were obtained, the {@link #request(int)} method will wait up to {@code noPermitsReturnedWaitTimeout}
+ * for a release of permits before returning.
+ */
 public class CompositeBackPressureHandler implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 
 	private static final Logger logger = LoggerFactory.getLogger(CompositeBackPressureHandler.class);
@@ -41,10 +63,10 @@ public class CompositeBackPressureHandler implements BatchAwareBackPressureHandl
 	private String id;
 
 	public CompositeBackPressureHandler(List<BackPressureHandler> backPressureHandlers, int batchSize,
-			Duration waitTimeout) {
+			Duration noPermitsReturnedWaitTimeout) {
 		this.backPressureHandlers = backPressureHandlers;
 		this.batchSize = batchSize;
-		this.noPermitsReturnedWaitTimeout = waitTimeout;
+		this.noPermitsReturnedWaitTimeout = noPermitsReturnedWaitTimeout;
 	}
 
 	@Override
