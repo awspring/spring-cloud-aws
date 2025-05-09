@@ -135,7 +135,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactory
 										.compositeBackPressureHandler(containerOptions, Duration.ofMillis(50L),
 												List.of(limiter, BackPressureHandlerFactory
-														.concurrencyLimiterBackPressureHandler2(containerOptions)))))
+														.concurrencyLimiterBackPressureHandler(containerOptions)))))
 				.messageListener(msg -> {
 					int concurrentRqs = concurrentRequest.incrementAndGet();
 					maxConcurrentRequest.updateAndGet(max -> Math.max(max, concurrentRqs));
@@ -173,7 +173,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactory
 										.compositeBackPressureHandler(containerOptions, Duration.ofMillis(50L),
 												List.of(limiter, BackPressureHandlerFactory
-														.concurrencyLimiterBackPressureHandler2(containerOptions)))))
+														.concurrencyLimiterBackPressureHandler(containerOptions)))))
 				.messageListener(msg -> {
 					int concurrentRqs = concurrentRequest.incrementAndGet();
 					maxConcurrentRequest.updateAndGet(max -> Math.max(max, concurrentRqs));
@@ -217,7 +217,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactory
 										.compositeBackPressureHandler(containerOptions, Duration.ofMillis(50L),
 												List.of(limiter, BackPressureHandlerFactory
-														.concurrencyLimiterBackPressureHandler2(containerOptions)))))
+														.concurrencyLimiterBackPressureHandler(containerOptions)))))
 				.messageListener(msg -> {
 					try {
 						if (!controlSemaphore.tryAcquire(5, TimeUnit.SECONDS) && !isDraining.get()) {
@@ -444,7 +444,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 										BackPressureHandlerFactory.compositeBackPressureHandler(containerOptions,
 												Duration.ofMillis(50L),
 												List.of(limiter, BackPressureHandlerFactory
-														.concurrencyLimiterBackPressureHandler2(containerOptions))),
+														.concurrencyLimiterBackPressureHandler(containerOptions))),
 										eventsCsvWriter)))
 				.messageListener(msg -> {
 					int currentConcurrentRq = concurrentRequest.incrementAndGet();
