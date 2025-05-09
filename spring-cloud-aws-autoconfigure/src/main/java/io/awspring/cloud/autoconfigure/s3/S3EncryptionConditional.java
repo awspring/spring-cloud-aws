@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
  * Conditional for creating {@link software.amazon.encryption.s3.S3EncryptionClient}. Will only create
  * S3EncryptionClient if one of following is true.
  * @author Matej Nedic
+ * @author Giacomo Baso
  * @since 3.3.0
  */
 public class S3EncryptionConditional extends AnyNestedCondition {
@@ -38,7 +39,7 @@ public class S3EncryptionConditional extends AnyNestedCondition {
 	static class AESProviderCondition {
 	}
 
-	@ConditionalOnProperty(name = "spring.cloud.aws.s3.encryption.keyId")
+	@ConditionalOnProperty(name = "spring.cloud.aws.s3.encryption.key-id")
 	static class KmsKeyProperty {
 	}
 }

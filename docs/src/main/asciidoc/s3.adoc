@@ -129,7 +129,7 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
 
 === S3 Client Side Encryption
 
-AWS offers encryption library which is integrated inside of S3 Client called https://docs.aws.amazon.com/amazon-s3-encryption-client/latest/developerguide/what-is-s3-encryption-client.html [S3EncryptionClient].
+AWS offers encryption library which is integrated inside of S3 Client called https://docs.aws.amazon.com/amazon-s3-encryption-client/latest/developerguide/what-is-s3-encryption-client.html[S3EncryptionClient].
 With encryption client you are going to encrypt your files before sending them to S3 bucket.
 
 To autoconfigure Encryption Client simply add the following dependency.
@@ -145,7 +145,7 @@ To autoconfigure Encryption Client simply add the following dependency.
 
 We are supporting 3 types of encryption.
 
-1. To configure encryption via KMS key specify 'spring.cloud.aws.s3.encryption.keyId' with KMS key arn and this key will be used to encrypt your files.
+1. To configure encryption via KMS key specify `spring.cloud.aws.s3.encryption.key-id` with KMS key arn and this key will be used to encrypt your files.
 
 Also, following dependency is required.
 [source,xml]
@@ -158,10 +158,11 @@ Also, following dependency is required.
 ----
 
 
-2. Asymmetric encryption is possible via RSA to enable it you will have to implement 'io.awspring.cloud.autoconfigure.s3.S3RsaProvider'
+2. Asymmetric encryption is possible via RSA to enable it you will have to implement `io.awspring.cloud.autoconfigure.s3.S3RsaProvider`
 
-!Note you will have to manage storing private and public keys yourself otherwise you won't be able to decrypt the data later.
-Example of simple RSAProvider:
+NOTE: You will have to store private and public keys yourself otherwise you won't be able to decrypt the data later.
+
+Example of simple `S3RsaProvider`:
 
 [source,java,indent=0]
 ----
@@ -185,8 +186,9 @@ public class MyRsaProvider implements S3RsaProvider {
 
 3. Last option is if you want to use symmetric algorithm, this is possible via `io.awspring.cloud.autoconfigure.s3.S3AesProvider`
 
-!Note you will have to manage storing storing private key!
-Example of simple AESProvider:
+NOTE: Ensure the private key is stored using secure storage mechanisms that prevent unauthorized access.
+
+Example of simple `S3AesProvider`:
 
 [source,java,indent=0]
 ----

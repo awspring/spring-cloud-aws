@@ -31,6 +31,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration;
@@ -112,6 +113,14 @@ class S3CrtAsyncClientAutoConfigurationTests {
 	@Test
 	void handlesMissingS3AsyncClient() {
 		contextRunner.withClassLoader(new FilteredClassLoader(S3AsyncClient.class)).run(context -> {
+			assertThat(context).hasNotFailed();
+			assertThat(context).doesNotHaveBean(S3AsyncClient.class);
+		});
+	}
+
+	@Test
+	void handlesMissingS3CrtLibrary() {
+		contextRunner.withClassLoader(new FilteredClassLoader(AwsCrtHttpClient.class)).run(context -> {
 			assertThat(context).hasNotFailed();
 			assertThat(context).doesNotHaveBean(S3AsyncClient.class);
 		});

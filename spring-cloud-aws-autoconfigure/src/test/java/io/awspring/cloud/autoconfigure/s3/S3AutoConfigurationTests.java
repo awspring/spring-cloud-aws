@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ import software.amazon.encryption.s3.S3EncryptionClient;
  *
  * @author Maciej Walkowiak
  * @author Matej Nedic
+ * @author Giacomo Baso
  */
 class S3AutoConfigurationTests {
 
@@ -138,7 +139,7 @@ class S3AutoConfigurationTests {
 		@Test
 		void s3ClientCanBeOverwritten() {
 			contextRunnerEncryption
-					.withPropertyValues("spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab")
+					.withPropertyValues("spring.cloud.aws.s3.encryption.key-id:234abcd-12ab-34cd-56ef-1234567890ab")
 					.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
 						assertThat(context).hasSingleBean(S3Client.class);
 					});
@@ -166,6 +167,15 @@ class S3AutoConfigurationTests {
 				assertThat(context).hasSingleBean(S3EncryptionClient.class);
 				assertThat(context).hasSingleBean(S3AesProvider.class);
 			});
+		}
+
+		@Test
+		void createsEncryptionClientBackedByKms() {
+			contextRunnerEncryption
+					.withPropertyValues("spring.cloud.aws.s3.encryption.key-id:234abcd-12ab-34cd-56ef-1234567890ab")
+					.run(context -> {
+						assertThat(context).hasSingleBean(S3EncryptionClient.class);
+					});
 		}
 	}
 

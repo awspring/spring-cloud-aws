@@ -27,7 +27,6 @@ import org.springframework.boot.BootstrapContext;
 import org.springframework.boot.context.config.ConfigDataLocation;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
 import org.springframework.boot.context.config.ConfigDataLocationResolverContext;
-import org.springframework.boot.context.config.Profiles;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.logging.DeferredLogFactory;
@@ -60,8 +59,8 @@ public class S3ConfigDataLocationResolver extends AbstractAwsConfigDataLocationR
 	}
 
 	@Override
-	public List<S3ConfigDataResource> resolveProfileSpecific(ConfigDataLocationResolverContext resolverContext,
-			ConfigDataLocation location, Profiles profiles) throws ConfigDataLocationNotFoundException {
+	public List<S3ConfigDataResource> resolve(ConfigDataLocationResolverContext resolverContext,
+			ConfigDataLocation location) throws ConfigDataLocationNotFoundException {
 
 		S3Properties s3Properties = loadProperties(resolverContext.getBinder());
 		List<S3ConfigDataResource> locations = new ArrayList<>();

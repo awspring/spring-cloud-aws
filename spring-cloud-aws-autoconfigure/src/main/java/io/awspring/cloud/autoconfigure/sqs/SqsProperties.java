@@ -87,6 +87,12 @@ public class SqsProperties extends AwsClientProperties {
 		@Nullable
 		private Duration pollTimeout;
 
+		/**
+		 * The maximum amount of time to wait between consecutive polls to SQS.
+		 */
+		@Nullable
+		private Duration maxDelayBetweenPolls;
+
 		@Nullable
 		public Integer getMaxConcurrentMessages() {
 			return this.maxConcurrentMessages;
@@ -112,6 +118,15 @@ public class SqsProperties extends AwsClientProperties {
 
 		public void setPollTimeout(Duration pollTimeout) {
 			this.pollTimeout = pollTimeout;
+		}
+
+		@Nullable
+		public Duration getMaxDelayBetweenPolls() {
+			return maxDelayBetweenPolls;
+		}
+
+		public void setMaxDelayBetweenPolls(Duration maxDelayBetweenPolls) {
+			this.maxDelayBetweenPolls = maxDelayBetweenPolls;
 		}
 	}
 

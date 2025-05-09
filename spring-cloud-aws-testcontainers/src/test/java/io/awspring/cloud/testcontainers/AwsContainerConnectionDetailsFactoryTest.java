@@ -25,6 +25,7 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.dynamodb.DynamoDbAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration;
+import io.awspring.cloud.autoconfigure.s3.S3CrtAsyncClientAutoConfiguration;
 import io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration;
@@ -39,6 +40,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -88,10 +90,16 @@ class AwsContainerConnectionDetailsFactoryTest {
 		assertThatCode(client::listBuckets).doesNotThrowAnyException();
 	}
 
+	@Test
+	void configuresS3AsyncClientWithServiceConnection(@Autowired S3AsyncClient client) {
+		assertThatCode(client.listBuckets()::join).doesNotThrowAnyException();
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@ImportAutoConfiguration({ AwsAutoConfiguration.class, CredentialsProviderAutoConfiguration.class,
 			RegionProviderAutoConfiguration.class, DynamoDbAutoConfiguration.class, SesAutoConfiguration.class,
-			SqsAutoConfiguration.class, SnsAutoConfiguration.class, S3AutoConfiguration.class })
+			SqsAutoConfiguration.class, SnsAutoConfiguration.class, S3AutoConfiguration.class,
+			S3CrtAsyncClientAutoConfiguration.class })
 	static class TestConfiguration {
 	}
 

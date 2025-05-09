@@ -1,5 +1,6 @@
 {
 	"Type": "Notification",
+	"Subject": "IntegrationTestSubject",
 	"MessageId": "f2c15fec-c617-5b08-b54d-13c4099fec60",
 	"TopicArn": "arn:aws:sns:eu-west-1:111111111111:mySampleTopic",
 	"Message": "{\"specversion\": \"1.0.2\", \"data\": {\"firstField\":\"pojoNotificationMessage\",\"secondField\":\"secondValue\"}}",

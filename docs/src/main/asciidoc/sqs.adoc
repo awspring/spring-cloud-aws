@@ -42,6 +42,8 @@ public class SqsApplication {
 }
 ----
 
+IMPORTANT: Due to a classloader related https://github.com/awspring/spring-cloud-aws/issues/657[issue] it is currently not possible to use @SqsListener together with Spring Boot DevTools.
+
 Without Spring Boot, it's necessary to import the `SqsBootstrapConfiguration` class in a `@Configuration`, as well as declare a `SqsMessageListenerContainerFactory` bean.
 
 [source, java]
@@ -592,6 +594,8 @@ MessageListenerContainer<Object> myListenerContainer(SqsAsyncClient sqsAsyncClie
 The simplest way to consume `SQS` messages is by annotating a method in a `@Component` class with the `@SqsListener` annotation.
 The framework will then create the `MessageListenerContainer` and set a `MessagingMessageListenerAdapter` to invoke the method when a message is received.
 
+IMPORTANT: Due to a classloader related https://github.com/awspring/spring-cloud-aws/issues/657[issue] it is currently not possible to use @SqsListener together with Spring Boot DevTools.
+
 When using `Spring Boot` with `auto-configuration`, no configuration is necessary.
 
 Most attributes on the annotation can be resolved from SpEL `(#{...})` or property placeholders `(${...})`.
@@ -636,6 +640,16 @@ For batch message processing, use the @SnsNotificationMessage annotation with a 
 @SqsListener("my-queue")
 public void listen(@SnsNotificationMessage List<Pojo> pojos) {
 	System.out.println(pojos.size());
+}
+----
+
+Since 3.3.1 you can also retrieve the subject of the SNS message through the `@SnsNotificationSubject` annotation.
+
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(@SnsNotificationSubject String subject, @SnsNotificationMessage Pojo pojo) {
+	System.out.println("received message for subject %s: %s".formatted(subject, pojo));
 }
 ----
 
@@ -802,6 +816,7 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 | <<maxConcurrentMessages, `spring.cloud.aws.sqs.listener.max-inflight-messages-per-queue`>> | Maximum number of inflight messages per queue. | No | 10
 | <<maxMessagesPerPoll, `spring.cloud.aws.sqs.listener.max-messages-per-poll`>> | Maximum number of messages to be received per poll. | No | 10
 | <<pollTimeout, `spring.cloud.aws.sqs.listener.poll-timeout`>> | Maximum amount of time to wait for messages in a poll. | No | 10 seconds
+| <<maxDelayBetweenPolls, `spring.cloud.aws.sqs.listener.max-delay-between-polls`>> | Maximum amount of time to wait between polls. | No | 10 seconds
 | `spring.cloud.aws.sqs.queue-not-found-strategy`  | The strategy to be used by SqsTemplate and SqsListeners when a queue does not exist. | No | CREATE
 |===
 
@@ -1233,6 +1248,34 @@ If the error handler execution succeeds, i.e. no error is thrown from the error 
 IMPORTANT: If the message should not be acknowledged and the `ON_SUCCESS` acknowledgement mode is set, it's important to propagate the error.
 For simply executing an action in case of errors, an `interceptor` should be used instead, checking the presence of the `throwable` argument for detecting a failed execution.
 
+==== Immediate Retry Error Handler
+As mentioned in <<Error Handling>>, by default, messages that cause an error in the listener are only retried after the visibility timeout has expired.
+
+Starting with version 3.4, Spring Cloud AWS SQS includes the `ImmediateRetryAsyncErrorHandler`, which sets the visibility timeout to zero to enable immediate retry of failed messages.
+
+When using auto-configured factory, simply declare a `@Bean` and the error handler will be set
+
+[source, java]
+----
+@Bean
+public AsyncErrorHandler<Object> asyncErrorHandler() {
+    return new ImmediateRetryAsyncErrorHandler<>();
+}
+----
+
+Alternatively, `ImmediateRetryAsyncErrorHandler` can be set in the `MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+    return SqsMessageListenerContainerFactory
+        .builder()
+        .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+        .errorHandler(new ImmediateRetryAsyncErrorHandler<>())
+        .build();
+}
+----
 
 === Message Conversion and Payload Deserialization
 
@@ -1715,7 +1758,10 @@ Following IAM permissions are required by Spring Cloud AWS SQS:
 
 [cols="2"]
 |===
-| Send message to Queue
+| To access the queue by its name or ARN instead of the URL
+| `sqs:GetQueueUrl`
+
+| Send message to queue
 | `sqs:SendMessage`
 
 | Receive message from queue
@@ -1726,9 +1772,6 @@ Following IAM permissions are required by Spring Cloud AWS SQS:
 
 | To use sqsListener with SimpleMessageListenerContainerFactory you will need to add as well
 | `sqs:GetQueueAttributes`
-
-| To use SqsListener with Sqs name instead of ARN you will need
-| `sqs:GetQueueUrl`
 
 |===
 

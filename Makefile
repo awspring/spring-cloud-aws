@@ -11,3 +11,6 @@ clean:
 
 docs:
 	mvnd verify -Pdocs-classic -DskipTests=true
+
+docs-full:
+	mvnd verify javadoc:aggregate -Pdocs-classic -DskipTests=true
