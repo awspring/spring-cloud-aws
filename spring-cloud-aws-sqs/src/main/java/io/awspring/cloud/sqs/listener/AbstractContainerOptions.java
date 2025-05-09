@@ -240,7 +240,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final BackPressureMode DEFAULT_THROUGHPUT_CONFIGURATION = BackPressureMode.AUTO;
 
-		private static final BackPressureHandlerFactory DEFAULT_BACKPRESSURE_FACTORY = buildDefaultBackPressureHandlerFactory();
+		private static final BackPressureHandlerFactory DEFAULT_BACKPRESSURE_FACTORY = BackPressureHandlerFactory::semaphoreBackPressureHandler;
 
 		private static final ListenerMode DEFAULT_MESSAGE_DELIVERY_STRATEGY = ListenerMode.SINGLE_MESSAGE;
 
@@ -466,12 +466,6 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private static BackOffPolicy buildDefaultBackOffPolicy() {
 			return BackOffPolicyBuilder.newBuilder().multiplier(DEFAULT_BACK_OFF_MULTIPLIER)
 					.delay(DEFAULT_BACK_OFF_DELAY).maxDelay(DEFAULT_BACK_OFF_MAX_DELAY).build();
-		}
-
-		private static BackPressureHandlerFactory buildDefaultBackPressureHandlerFactory() {
-			return options -> SemaphoreBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
-					.totalPermits(options.getMaxConcurrentMessages()).acquireTimeout(options.getMaxDelayBetweenPolls())
-					.throughputConfiguration(options.getBackPressureMode()).build();
 		}
 	}
 

@@ -25,26 +25,34 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 /**
- * {@link BackPressureHandler} implementation that uses a switch between high and low throughput modes.
+ * Non-blocking {@link BackPressureHandler} implementation that uses a switch between high and low throughput modes.
  * <p>
- * The initial throughput mode is low, which means, only one batch at a time can be requested. If some messages are
- * fetched, then the throughput mode is switched to high, which means that multiple batches can be requested (i.e.,
- * there is no need to wait for the previous batch's processing to complete before requesting a new one). If no messages
- * are returned fetched by a poll, the throughput mode is switched back to low.
+ * <strong>Throughput modes</strong>
+ * <ul>
+ * <li>In low-throughput mode, a single batch can be requested at a time. The number of permits that will be delivered
+ * is adjusted so that the number of in flight messages will not exceed the batch size.</li>
+ * <li>In high-throughput mode, multiple batches can be requested at a time. The number of permits that will be
+ * delivered is adjusted so that the number of in flight messages will not exceed the maximum number of concurrent
+ * messages. Note that for a single poll the maximum number of permits that will be delivered will not exceed the batch
+ * size.</li>
+ * </ul>
+ * <p>
+ * <strong>Throughput mode switch:</strong> The initial throughput mode is the low-throughput mode. If some messages are
+ * fetched, then the throughput mode is switched to high-throughput mode. If no messages are returned fetched by a poll,
+ * the throughput mode is switched back to low-throughput mode.
  * <p>
  * This {@link BackPressureHandler} is designed to be used in combination with another {@link BackPressureHandler} like
  * the {@link ConcurrencyLimiterBlockingBackPressureHandler} that will handle the maximum concurrency level within the
- * application.
+ * application in a blocking way.
  *
- * @author Tomaz Fernandes
  * @see PollingMessageSource
- * @since 3.0
  */
 public class ThroughputBackPressureHandler implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 
 	private static final Logger logger = LoggerFactory.getLogger(ThroughputBackPressureHandler.class);
 
 	private final int batchSize;
+	private final int maxConcurrentMessages;
 
 	private final AtomicReference<CurrentThroughputMode> currentThroughputMode = new AtomicReference<>(
 			CurrentThroughputMode.LOW);
@@ -57,6 +65,7 @@ public class ThroughputBackPressureHandler implements BatchAwareBackPressureHand
 
 	private ThroughputBackPressureHandler(Builder builder) {
 		this.batchSize = builder.batchSize;
+		this.maxConcurrentMessages = builder.maxConcurrentMessages;
 		logger.debug("ThroughputBackPressureHandler created with batchSize {}", this.batchSize);
 	}
 
@@ -84,15 +93,22 @@ public class ThroughputBackPressureHandler implements BatchAwareBackPressureHand
 		if (drained.get()) {
 			return 0;
 		}
+		int amountCappedAtBatchSize = Math.min(amount, this.batchSize);
 		int permits;
 		int inFlight = inFlightRequests.get();
 		if (CurrentThroughputMode.LOW == this.currentThroughputMode.get()) {
-			permits = Math.max(0, Math.min(amount, this.batchSize - inFlight));
-			logger.debug("[{}] Acquired {} permits (low throughput mode), in flight: {}", this.id, amount, inFlight);
+			// In low-throughput mode, we only acquire one batch at a time,
+			// so we need to limit the available permits to the batchSize - inFlight messages.
+			permits = Math.max(0, Math.min(amountCappedAtBatchSize, this.batchSize - inFlight));
+			logger.debug("[{}] Acquired {} permits (low-throughput mode), requested: {}, in flight: {}", this.id,
+					permits, amount, inFlight);
 		}
 		else {
-			permits = amount;
-			logger.debug("[{}] Acquired {} permits (high throughput mode), in flight: {}", this.id, amount, inFlight);
+			// In high-throughput mode, we can acquire more permits than the batch size,
+			// but we need to limit the available permits to the maxConcurrentMessages - inFlight messages.
+			permits = Math.max(0, Math.min(amountCappedAtBatchSize, this.maxConcurrentMessages - inFlight));
+			logger.debug("[{}] Acquired {} permits (high-throughput mode), requested: {}, in flight: {}", this.id,
+					permits, amount, inFlight);
 		}
 		inFlightRequests.addAndGet(permits);
 		return permits;
@@ -138,15 +154,24 @@ public class ThroughputBackPressureHandler implements BatchAwareBackPressureHand
 	public static class Builder {
 
 		private int batchSize;
+		private int maxConcurrentMessages;
 
 		public Builder batchSize(int batchSize) {
 			this.batchSize = batchSize;
 			return this;
 		}
 
+		public Builder totalPermits(int maxConcurrentMessages) {
+			this.maxConcurrentMessages = maxConcurrentMessages;
+			return this;
+		}
+
 		public ThroughputBackPressureHandler build() {
-			Assert.notNull(this.batchSize, "Missing configuration");
+			Assert.notNull(this.batchSize, "Missing batchSize configuration");
 			Assert.isTrue(this.batchSize > 0, "batch size must be greater than 0");
+			Assert.notNull(this.maxConcurrentMessages, "Missing maxConcurrentMessages configuration");
+			Assert.notNull(this.maxConcurrentMessages >= this.batchSize,
+					"maxConcurrentMessages must be greater than or equal to batchSize");
 			return new ThroughputBackPressureHandler(this);
 		}
 	}
