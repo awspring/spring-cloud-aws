@@ -109,11 +109,11 @@ public interface BackPressureHandlerFactory {
 	 *     obtained.
 	 * @return the created SemaphoreBackPressureHandler.
 	 */
-	static BatchAwareBackPressureHandler concurrencyLimiterBackPressureHandler(ContainerOptions<?, ?> options,
+	static BatchAwareBackPressureHandler adaptativeThroughputBackPressureHandler(ContainerOptions<?, ?> options,
 			Duration maxIdleWaitTime) {
 		BackPressureMode backPressureMode = options.getBackPressureMode();
 
-		var concurrencyLimiterBlockingBackPressureHandler = concurrencyLimiterBackPressureHandler2(options);
+		var concurrencyLimiterBlockingBackPressureHandler = concurrencyLimiterBackPressureHandler(options);
 		if (backPressureMode == BackPressureMode.FIXED_HIGH_THROUGHPUT) {
 			return concurrencyLimiterBlockingBackPressureHandler;
 		}
@@ -156,7 +156,7 @@ public interface BackPressureHandlerFactory {
 	 * @param options the container options.
 	 * @return the created ConcurrencyLimiterBlockingBackPressureHandler.
 	 */
-	static ConcurrencyLimiterBlockingBackPressureHandler concurrencyLimiterBackPressureHandler2(
+	static ConcurrencyLimiterBlockingBackPressureHandler concurrencyLimiterBackPressureHandler(
 			ContainerOptions<?, ?> options) {
 		return ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
 				.totalPermits(options.getMaxConcurrentMessages()).throughputConfiguration(options.getBackPressureMode())
