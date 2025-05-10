@@ -49,8 +49,8 @@ public class AsyncMessagingMessageListenerAdapter<T> extends AbstractMethodInvok
 			return CompletableFutures.failedFuture(new IllegalArgumentException(
 					"Invalid return type for message " + MessageHeaderUtils.getId(message), e));
 		}
-		catch (Exception e) {
-			return CompletableFutures.failedFuture(e);
+		catch (Throwable t) {
+			return CompletableFutures.failedFuture(t);
 		}
 	}
 
@@ -68,8 +68,8 @@ public class AsyncMessagingMessageListenerAdapter<T> extends AbstractMethodInvok
 			return CompletableFutures.failedFuture(new IllegalArgumentException(
 					"Invalid return type for messages " + MessageHeaderUtils.getId(messages), e));
 		}
-		catch (Exception e) {
-			return CompletableFutures.failedFuture(e);
+		catch (Throwable t) {
+			return CompletableFutures.failedFuture(t);
 		}
 	}
 
