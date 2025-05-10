@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -76,6 +77,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Tomaz Fernandes
  * @author Joao Calassio
+ * @author José Iêdo
  * @since 3.0
  */
 public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Annotation>
@@ -120,15 +122,32 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		Map<Method, A> annotatedMethods = MethodIntrospector.selectMethods(targetClass,
 				(MethodIntrospector.MetadataLookup<A>) method -> AnnotatedElementUtils.findMergedAnnotation(method,
 						getAnnotationClass()));
-		if (annotatedMethods.isEmpty()) {
+
+		A classListener = AnnotatedElementUtils.findMergedAnnotation(targetClass, getAnnotationClass());
+		boolean hasMethodLevelListeners = !annotatedMethods.isEmpty();
+		boolean hasClassLevelListeners = classListener != null;
+
+		if (!hasMethodLevelListeners && !hasClassLevelListeners) {
 			this.nonAnnotatedClasses.add(targetClass);
 		}
-		annotatedMethods.entrySet().stream()
-				.map(entry -> createAndConfigureEndpoint(bean, entry.getKey(), entry.getValue()))
-				.forEach(this.endpointRegistrar::registerEndpoint);
+		else {
+			if (hasMethodLevelListeners) {
+				annotatedMethods.entrySet().stream()
+						.map(entry -> createAndConfigureEndpoint(bean, entry.getKey(), entry.getValue()))
+						.forEach(this.endpointRegistrar::registerEndpoint);
+			}
+
+			if (hasClassLevelListeners) {
+				Set<Method> handlerMethods = getHandlerMethods(targetClass);
+				createAndConfigureMultiMethodEndpoint(bean, targetClass, classListener,
+						new ArrayList<>(handlerMethods));
+			}
+		}
 	}
 
 	protected abstract Class<A> getAnnotationClass();
+
+	protected abstract Set<Method> getHandlerMethods(Class<?> targetClass);
 
 	private Endpoint createAndConfigureEndpoint(Object bean, Method method, A annotation) {
 		Endpoint endpoint = createEndpoint(annotation);
@@ -140,7 +159,29 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		return endpoint;
 	}
 
+	private void createAndConfigureMultiMethodEndpoint(Object bean, Class<?> targetClass, A classListener,
+			List<Method> handlerMethods) {
+		Assert.notEmpty(handlerMethods, "No handler method found for listener in class: " + targetClass);
+		Method defaultMethod = getDefaultHandlerMethod(targetClass, handlerMethods);
+
+		Endpoint endpoint = createMultiMethodEndpoint(classListener, handlerMethods, defaultMethod, bean);
+		for (Method method : handlerMethods) {
+			ConfigUtils.INSTANCE.acceptIfInstance(endpoint, HandlerMethodEndpoint.class, hme -> {
+				hme.setBean(bean);
+				hme.setMethod(method);
+				hme.setHandlerMethodFactory(this.delegatingHandlerMethodFactory);
+			});
+		}
+
+		this.endpointRegistrar.registerEndpoint(endpoint);
+	}
+
+	protected abstract Method getDefaultHandlerMethod(Class<?> targetClass, List<Method> handlerMethods);
+
 	protected abstract Endpoint createEndpoint(A sqsListenerAnnotation);
+
+	protected abstract Endpoint createMultiMethodEndpoint(A sqsListenerAnnotation, List<Method> methods,
+			@Nullable Method defaultMethod, Object bean);
 
 	protected Collection<String> resolveEndpointNames(String[] endpointNames) {
 		return Arrays.stream(endpointNames).map(this::resolveExpression)
