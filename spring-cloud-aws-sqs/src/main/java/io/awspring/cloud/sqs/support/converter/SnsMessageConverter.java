@@ -15,12 +15,16 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.List;
+import org.springframework.core.GenericTypeResolver;
+import org.springframework.core.MethodParameter;
+import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.support.GenericMessage;
@@ -29,6 +33,7 @@ import org.springframework.util.Assert;
 /**
  * @author Michael Sosa
  * @author gustavomonarin
+ * @author Wei Jiang
  * @since 3.1.1
  */
 public class SnsMessageConverter implements SmartMessageConverter {
@@ -45,39 +50,42 @@ public class SnsMessageConverter implements SmartMessageConverter {
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Object fromMessage(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint) {
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(targetClass, "target class must not be null");
 
-		JsonNode jsonNode;
-		try {
-			jsonNode = this.jsonMapper.readTree(message.getPayload().toString());
-		}
-		catch (Exception e) {
-			throw new MessageConversionException("Could not read JSON", e);
-		}
-		if (!jsonNode.has("Type")) {
-			throw new MessageConversionException(
-					"Payload: '" + message.getPayload() + "' does not contain a Type attribute", null);
-		}
+		Object payload = message.getPayload();
 
-		if (!"Notification".equals(jsonNode.get("Type").asText())) {
-			throw new MessageConversionException("Payload: '" + message.getPayload() + "' is not a valid notification",
-					null);
+		if (payload instanceof List messages) {
+			return fromGenericMessages(messages, targetClass, conversionHint);
 		}
-
-		if (!jsonNode.has("Message")) {
-			throw new MessageConversionException("Payload: '" + message.getPayload() + "' does not contain a message",
-					null);
+		else {
+			return fromGenericMessage((GenericMessage<?>) message, targetClass, conversionHint);
 		}
+	}
 
-		String messagePayload = jsonNode.get("Message").asText();
+	private Object fromGenericMessages(List<GenericMessage<?>> messages, Class<?> targetClass,
+			@Nullable Object conversionHint) {
+		Type resolvedType = getResolvedType(targetClass, conversionHint);
+		Class<?> resolvedClazz = ResolvableType.forType(resolvedType).resolve();
+
+		Object hint = targetClass.isAssignableFrom(List.class) && conversionHint instanceof MethodParameter mp
+				? mp.nested()
+				: conversionHint;
+
+		return messages.stream().map(message -> fromGenericMessage(message, resolvedClazz, hint)).toList();
+	}
+
+	private Object fromGenericMessage(GenericMessage<?> message, Class<?> targetClass,
+			@Nullable Object conversionHint) {
+		var snsJsonNode = new SnsJsonNode(jsonMapper, message.getPayload().toString());
+
+		String messagePayload = snsJsonNode.getMessageAsString();
 		GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload);
-		Object convertedMessage = (payloadConverter instanceof SmartMessageConverter)
-				? ((SmartMessageConverter) this.payloadConverter).fromMessage(genericMessage, targetClass,
-						conversionHint)
-				: this.payloadConverter.fromMessage(genericMessage, targetClass);
-		return new SnsMessageWrapper(jsonNode.path("Subject").asText(), convertedMessage);
+		return payloadConverter instanceof SmartMessageConverter smartMessageConverter
+				? smartMessageConverter.fromMessage(genericMessage, targetClass, conversionHint)
+				: payloadConverter.fromMessage(genericMessage, targetClass);
 	}
 
 	@Override
@@ -97,10 +105,23 @@ public class SnsMessageConverter implements SmartMessageConverter {
 				"This converter only supports reading a SNS notification and not writing them");
 	}
 
-	/**
-	 * SNS Message wrapper.
-	 */
-	public record SnsMessageWrapper(String subject, Object message) {
+	private static Type getResolvedType(Class<?> targetClass, @Nullable Object conversionHint) {
+		if (conversionHint instanceof MethodParameter param) {
+			param = param.nestedIfOptional();
+			if (Message.class.isAssignableFrom(param.getParameterType())) {
+				param = param.nested();
+			}
+			Type genericParameterType = param.getNestedGenericParameterType();
+			Class<?> contextClass = param.getContainingClass();
+			Type resolveType = GenericTypeResolver.resolveType(genericParameterType, contextClass);
+			if (resolveType instanceof ParameterizedType parameterizedType) {
+				return parameterizedType.getActualTypeArguments()[0];
+			}
+			else {
+				return resolveType;
+			}
+		}
+		return targetClass;
 	}
 
 }

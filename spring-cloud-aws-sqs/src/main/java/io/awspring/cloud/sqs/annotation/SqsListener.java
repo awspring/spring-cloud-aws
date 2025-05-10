@@ -23,6 +23,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 
 /**
  * Methods with this annotation will be wrapped by a {@link io.awspring.cloud.sqs.listener.MessageListener} or
@@ -80,6 +81,7 @@ import org.springframework.core.annotation.AliasFor;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+@MessageMapping
 public @interface SqsListener {
 
 	/**
@@ -124,9 +126,8 @@ public @interface SqsListener {
 	String pollTimeoutSeconds() default "";
 
 	/**
-	 * The maximum number of messages to poll from SQS. If a value greater than 10 is provided, the result of
-	 * multiple polls will be combined, which can be useful for
-	 * {@link io.awspring.cloud.sqs.listener.ListenerMode#BATCH}
+	 * The maximum number of messages to poll from SQS. If a value greater than 10 is provided, the result of multiple
+	 * polls will be combined, which can be useful for {@link io.awspring.cloud.sqs.listener.ListenerMode#BATCH}
 	 * @return the maximum messages per poll.
 	 */
 	String maxMessagesPerPoll() default "";

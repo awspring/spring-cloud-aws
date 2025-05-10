@@ -79,6 +79,10 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 			attributes.put(MessageSystemAttributeName.MESSAGE_DEDUPLICATION_ID,
 					headers.get(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, String.class));
 		}
+		if (headers.containsKey(SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER)) {
+			attributes.put(MessageSystemAttributeName.AWS_TRACE_HEADER,
+					headers.get(SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER, String.class));
+		}
 		Map<String, MessageAttributeValue> messageAttributes = headers.entrySet().stream()
 				.filter(entry -> !isSkipHeader(entry.getKey())).collect(Collectors.toMap(Map.Entry::getKey,
 						entry -> getMessageAttributeValue(entry.getKey(), entry.getValue())));
@@ -110,6 +114,7 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 	private boolean isSkipHeader(String headerName) {
 		return SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER.equals(headerName)
 				|| SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER.equals(headerName)
+				|| SqsHeaders.MessageSystemAttributes.SQS_AWS_TRACE_HEADER.equals(headerName)
 				|| SqsHeaders.SQS_DELAY_HEADER.equals(headerName) || MessageHeaders.ID.equals(headerName)
 				|| MessageHeaders.TIMESTAMP.equals(headerName);
 	}

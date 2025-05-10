@@ -1,33 +1,62 @@
 "component: core":
-  - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/core/*
-  - spring-cloud-aws-core/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/core/*
+      - spring-cloud-aws-core/**/*
 "component: cloudwatch":
-  - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/metrics/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/metrics/*
 "component: s3":
-  - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/s3/**/*
-  - spring-cloud-aws-s3-parent/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/s3/**/*
+      - spring-cloud-aws-s3-parent/**/*
 "component: parameter-store":
-  - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/config/parameterstore/*
-  - spring-cloud-aws-parameter-store/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/config/parameterstore/*
+      - spring-cloud-aws-parameter-store/**/*
 "component: secrets-manager":
-  - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/config/secretsmanager/*
-  - spring-cloud-aws-secrets-manager/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/config/secretsmanager/*
+      - spring-cloud-aws-secrets-manager/**/*
 "component: dynamodb":
-  - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/dynamodb/*
-  - spring-cloud-aws-dynamodb/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/dynamodb/*
+      - spring-cloud-aws-dynamodb/**/*
 "component: ses":
-  - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/ses/*
-  - spring-cloud-aws-ses/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/ses/*
+      - spring-cloud-aws-ses/**/*
 "component: sns":
-  - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/sns/*
-  - spring-cloud-aws-sns/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/sns/*
+      - spring-cloud-aws-sns/**/*
 "component: sqs":
-  - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/sqs/*
-  - spring-cloud-aws-sqs/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/sqs/*
+      - spring-cloud-aws-sqs/**/*
 "status: waiting-for-triage":
-  - ./*
-  - ./**/*
-"type: documentation": docs/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - ./*
+      - ./**/*
+"type: documentation":
+  - changed-files:
+    - any-glob-to-any-file:
+      - docs/**/*
 "type: dependency-upgrade":
-  - pom.xml
-  - spring-cloud-aws-dependencies/pom.xml
+  - changed-files:
+    - any-glob-to-any-file:
+      - pom.xml
+      - spring-cloud-aws-dependencies/pom.xml
+"type: maintenance":
+  - changed-files:
+    - any-glob-to-any-file:
+      - .github/**/*

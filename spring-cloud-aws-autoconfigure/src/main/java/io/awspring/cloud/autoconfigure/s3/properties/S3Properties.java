@@ -23,11 +23,13 @@ import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.encryption.s3.S3EncryptionClient;
 
 /**
  * Properties related to AWS S3.
  *
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  */
 @ConfigurationProperties(prefix = S3Properties.PREFIX)
 public class S3Properties extends AwsClientProperties {
@@ -92,6 +94,38 @@ public class S3Properties extends AwsClientProperties {
 	@Nullable
 	@NestedConfigurationProperty
 	private S3CrtClientProperties crt;
+
+	@NestedConfigurationProperty
+	private S3PluginProperties plugin = new S3PluginProperties();
+
+	/**
+	 * Configuration properties for {@link S3EncryptionClient} integration
+	 */
+	@NestedConfigurationProperty
+	private S3EncryptionProperties encryption = new S3EncryptionProperties();
+
+	public S3EncryptionProperties getEncryption() {
+		return encryption;
+	}
+
+	public void setEncryption(S3EncryptionProperties encryption) {
+		this.encryption = encryption;
+	}
+
+	/**
+	 * Properties related to configuration reload.
+	 */
+
+	@NestedConfigurationProperty
+	private S3ConfigProperties config = new S3ConfigProperties();
+
+	public S3ConfigProperties getConfig() {
+		return config;
+	}
+
+	public void setConfig(S3ConfigProperties config) {
+		this.config = config;
+	}
 
 	@Nullable
 	public Boolean getAccelerateModeEnabled() {
@@ -174,5 +208,13 @@ public class S3Properties extends AwsClientProperties {
 		propertyMapper.from(this::getPathStyleAccessEnabled).whenNonNull().to(config::pathStyleAccessEnabled);
 		propertyMapper.from(this::getUseArnRegionEnabled).whenNonNull().to(config::useArnRegionEnabled);
 		return config.build();
+	}
+
+	public S3PluginProperties getPlugin() {
+		return plugin;
+	}
+
+	public void setPlugin(S3PluginProperties plugin) {
+		this.plugin = plugin;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
+import io.awspring.cloud.autoconfigure.s3.provider.MyAesProvider;
+import io.awspring.cloud.autoconfigure.s3.provider.MyRsaProvider;
 import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.ObjectMetadata;
 import io.awspring.cloud.s3.S3ObjectConverter;
@@ -38,7 +40,6 @@ import java.time.Duration;
 import java.util.Objects;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.internal.util.MockUtil;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -52,22 +53,58 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsIdentityProvider;
+import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.encryption.s3.S3EncryptionClient;
 
 /**
  * Tests for {@link S3AutoConfiguration}.
  *
  * @author Maciej Walkowiak
+ * @author Matej Nedic
+ * @author Giacomo Baso
  */
 class S3AutoConfigurationTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+			.withClassLoader(new FilteredClassLoader(S3EncryptionClient.class))
+			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(S3EncryptionClient.class));
+
+	private final ApplicationContextRunner contextRunnerEncryption = new ApplicationContextRunner()
+			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class));
+
+	private final ApplicationContextRunner contextRunnerWithoutGrant = new ApplicationContextRunner()
+			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,
+					CredentialsProviderAutoConfiguration.class, S3AutoConfiguration.class))
+			.withClassLoader(new FilteredClassLoader(S3AccessGrantsPlugin.class, S3EncryptionClient.class));
+
+	@Test
+	void setsS3AccessGrantIdentityProvider() {
+		contextRunner.run(context -> {
+			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+			assertThat(client.getIdentityProviders()).isInstanceOf(S3AccessGrantsIdentityProvider.class);
+		});
+	}
+
+	@Test
+	void doesNotSetS3AccessGrantIdentityProvider() {
+		contextRunnerWithoutGrant.run(context -> {
+			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+			assertThat(client.getIdentityProviders()).isNotInstanceOf(S3AccessGrantsIdentityProvider.class);
+		});
+	}
 
 	@Test
 	void createsS3ClientBean() {
@@ -97,12 +134,49 @@ class S3AutoConfigurationTests {
 		});
 	}
 
-	@Test
-	void s3ClientCanBeOverwritten() {
-		contextRunner.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
-			assertThat(context).hasSingleBean(S3Client.class);
-			assertThat(MockUtil.isMock(context.getBean(S3Client.class))).isTrue();
-		});
+	@Nested
+	class S3ClientTests {
+		@Test
+		void s3ClientCanBeOverwritten() {
+			contextRunnerEncryption
+					.withPropertyValues("spring.cloud.aws.s3.encryption.key-id:234abcd-12ab-34cd-56ef-1234567890ab")
+					.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
+						assertThat(context).hasSingleBean(S3Client.class);
+					});
+		}
+
+		@Test
+		void createsStandardClientWhenCrossRegionAndEncryptionModuleIsNotInClasspath() {
+			contextRunnerEncryption.withClassLoader(new FilteredClassLoader(S3EncryptionClient.class)).run(context -> {
+				assertThat(context).doesNotHaveBean(S3EncryptionClient.class);
+				assertThat(context).hasSingleBean(S3Client.class);
+			});
+		}
+
+		@Test
+		void createsEncryptionClientBackedByRsa() {
+			contextRunnerEncryption.withPropertyValues().withUserConfiguration(CustomRsaProvider.class).run(context -> {
+				assertThat(context).hasSingleBean(S3EncryptionClient.class);
+				assertThat(context).hasSingleBean(S3RsaProvider.class);
+			});
+		}
+
+		@Test
+		void createsEncryptionClientBackedByAes() {
+			contextRunnerEncryption.withPropertyValues().withUserConfiguration(CustomAesProvider.class).run(context -> {
+				assertThat(context).hasSingleBean(S3EncryptionClient.class);
+				assertThat(context).hasSingleBean(S3AesProvider.class);
+			});
+		}
+
+		@Test
+		void createsEncryptionClientBackedByKms() {
+			contextRunnerEncryption
+					.withPropertyValues("spring.cloud.aws.s3.encryption.key-id:234abcd-12ab-34cd-56ef-1234567890ab")
+					.run(context -> {
+						assertThat(context).hasSingleBean(S3EncryptionClient.class);
+					});
+		}
 	}
 
 	@Nested
@@ -149,6 +223,7 @@ class S3AutoConfigurationTests {
 					"spring.cloud.aws.s3.endpoint:http://localhost:9999").run(context -> {
 						S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
 						ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+						assertThat(client.getIdentityProviders()).isInstanceOf(S3AccessGrantsIdentityProvider.class);
 						assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
 						assertThat(client.isEndpointOverridden()).isTrue();
 					});
@@ -168,10 +243,11 @@ class S3AutoConfigurationTests {
 
 		@Test
 		void withoutJacksonOnClasspathDoesNotConfigureObjectConverter() {
-			contextRunner.withClassLoader(new FilteredClassLoader(ObjectMapper.class)).run(context -> {
-				assertThat(context).doesNotHaveBean(S3ObjectConverter.class);
-				assertThat(context).doesNotHaveBean(S3Template.class);
-			});
+			contextRunner.withClassLoader(new FilteredClassLoader(ObjectMapper.class, S3EncryptionClient.class))
+					.run(context -> {
+						assertThat(context).doesNotHaveBean(S3ObjectConverter.class);
+						assertThat(context).doesNotHaveBean(S3Template.class);
+					});
 		}
 
 		@Test
@@ -218,6 +294,25 @@ class S3AutoConfigurationTests {
 					assertThat(client.getDualstackEnabled()).isTrue();
 					assertThat(client.getFipsEnabled()).isTrue();
 					assertThat(client.getDefaultsMode()).isEqualTo(DefaultsMode.MOBILE);
+				});
+	}
+
+	@Test
+	void setsS3SpecificDualStackProperty() {
+		contextRunner.withPropertyValues("spring.cloud.aws.s3.dualstack-enabled:true").run(context -> {
+			S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+			ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+			assertThat(client.getDualstackEnabled()).isTrue();
+		});
+	}
+
+	@Test
+	void s3SpecificDualStackOverwritesGlobalDualStack() {
+		contextRunner.withPropertyValues("spring.cloud.aws.dualstack-enabled:true",
+				"spring.cloud.aws.s3.dualstack-enabled:false").run(context -> {
+					S3ClientBuilder builder = context.getBean(S3ClientBuilder.class);
+					ConfiguredAwsClient client = new ConfiguredAwsClient(builder.build());
+					assertThat(client.getDualstackEnabled()).isFalse();
 				});
 	}
 
@@ -290,6 +385,22 @@ class S3AutoConfigurationTests {
 			return mock(S3Client.class);
 		}
 
+	}
+
+	@Configuration
+	static class CustomRsaProvider {
+		@Bean
+		S3RsaProvider rsaProvider() {
+			return new MyRsaProvider();
+		}
+	}
+
+	@Configuration
+	static class CustomAesProvider {
+		@Bean
+		S3AesProvider aesProvider() {
+			return new MyAesProvider();
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)

@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.sqs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -24,7 +25,7 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
-import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
+import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
@@ -46,12 +47,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SQS integration.
  *
  * @author Tomaz Fernandes
  * @author Maciej Walkowiak
+ * @author Wei Jiang
  * @author Dongha Kim
  * @since 3.0
  */
@@ -73,17 +76,24 @@ public class SqsAutoConfiguration {
 	@Bean
 	public SqsAsyncClient sqsAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsClientCustomizer<SqsAsyncClientBuilder>> configurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
-		return awsClientBuilderConfigurer.configure(SqsAsyncClient.builder(), this.sqsProperties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable()).build();
+			ObjectProvider<AwsConnectionDetails> connectionDetails,
+			ObjectProvider<SqsAsyncClientCustomizer> sqsAsyncClientCustomizers,
+			ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers) {
+		return awsClientBuilderConfigurer.configureAsyncClient(SqsAsyncClient.builder(), this.sqsProperties,
+				connectionDetails.getIfAvailable(), configurer.getIfAvailable(),
+				sqsAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream()).build();
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObjectProvider<ObjectMapper> objectMapperProvider) {
-		SqsTemplateBuilder builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient);
-		objectMapperProvider
-				.ifAvailable(om -> builder.configureDefaultConverter(converter -> converter.setObjectMapper(om)));
+	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObjectProvider<ObjectMapper> objectMapperProvider,
+			MessagingMessageConverter<Message> messageConverter) {
+		SqsTemplateBuilder builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient)
+				.messageConverter(messageConverter);
+		objectMapperProvider.ifAvailable(om -> setMapperToConverter(messageConverter, om));
+		if (sqsProperties.getQueueNotFoundStrategy() != null) {
+			builder.configure((options) -> options.queueNotFoundStrategy(sqsProperties.getQueueNotFoundStrategy()));
+		}
 		return builder.build();
 	}
 
@@ -93,39 +103,40 @@ public class SqsAutoConfiguration {
 			ObjectProvider<SqsAsyncClient> sqsAsyncClient, ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
 			ObjectProvider<ErrorHandler<Object>> errorHandler,
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
-			ObjectProvider<MessageInterceptor<Object>> interceptors,
-			ObjectProvider<ObjectMapper> objectMapperProvider,
+			ObjectProvider<MessageInterceptor<Object>> interceptors, ObjectProvider<ObjectMapper> objectMapperProvider,
 			MessagingMessageConverter<?> messagingMessageConverter) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
-		factory.configure(this::configureContainerOptions);
+		factory.configure(this::configureProperties);
 		sqsAsyncClient.ifAvailable(factory::setSqsAsyncClient);
 		asyncErrorHandler.ifAvailable(factory::setErrorHandler);
 		errorHandler.ifAvailable(factory::setErrorHandler);
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
-		objectMapperProvider.ifAvailable(objectMapper -> {
-			if (messagingMessageConverter instanceof SqsMessagingMessageConverter) {
-				((SqsMessagingMessageConverter) messagingMessageConverter).setObjectMapper(objectMapper);
-			}
-		});
-
+		objectMapperProvider.ifAvailable(om -> setMapperToConverter(messagingMessageConverter, om));
 		factory.configure(options -> options.messageConverter(messagingMessageConverter));
-
 		return factory;
+	}
+
+	private void setMapperToConverter(MessagingMessageConverter<?> messagingMessageConverter, ObjectMapper om) {
+		if (messagingMessageConverter instanceof SqsMessagingMessageConverter sqsConverter) {
+			sqsConverter.setObjectMapper(om);
+		}
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
-	public MessagingMessageConverter<?> defaultMessageConverter() {
+	public MessagingMessageConverter<Message> messageConverter() {
 		return new SqsMessagingMessageConverter();
 	}
 
-	private void configureContainerOptions(ContainerOptionsBuilder<?, ?> options) {
+	private void configureProperties(SqsContainerOptionsBuilder options) {
 		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
+		mapper.from(this.sqsProperties.getQueueNotFoundStrategy()).to(options::queueNotFoundStrategy);
 		mapper.from(this.sqsProperties.getListener().getMaxConcurrentMessages()).to(options::maxConcurrentMessages);
 		mapper.from(this.sqsProperties.getListener().getMaxMessagesPerPoll()).to(options::maxMessagesPerPoll);
 		mapper.from(this.sqsProperties.getListener().getPollTimeout()).to(options::pollTimeout);
+		mapper.from(this.sqsProperties.getListener().getMaxDelayBetweenPolls()).to(options::maxDelayBetweenPolls);
 	}
 
 	@Bean

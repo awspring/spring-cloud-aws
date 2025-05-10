@@ -38,7 +38,7 @@ public class LocalstackAwsClientFactory implements AwsClientFactory {
 	}
 
 	@Override
-	public <CLIENT, BUILDER extends AwsClientBuilder<?, CLIENT>> CLIENT create(BUILDER builder) {
+	public <CLIENT, BUILDER extends AwsClientBuilder<BUILDER, CLIENT>> CLIENT create(BUILDER builder) {
 		return configurer.configure(builder).build();
 	}
 

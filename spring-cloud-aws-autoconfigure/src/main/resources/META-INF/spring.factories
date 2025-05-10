@@ -1,14 +1,17 @@
 # ConfigData Location Resolvers
 org.springframework.boot.context.config.ConfigDataLocationResolver=\
 io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLocationResolver,\
-io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerConfigDataLocationResolver
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerConfigDataLocationResolver,\
+io.awspring.cloud.autoconfigure.config.s3.S3ConfigDataLocationResolver
 
 # ConfigData Loaders
 org.springframework.boot.context.config.ConfigDataLoader=\
 io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreConfigDataLoader,\
-io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerConfigDataLoader
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerConfigDataLoader,\
+io.awspring.cloud.autoconfigure.config.s3.S3ConfigDataLoader
 
 # Failure Analyzers
 org.springframework.boot.diagnostics.FailureAnalyzer=\
 io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreMissingKeysFailureAnalyzer, \
-io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerMissingKeysFailureAnalyzer
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerMissingKeysFailureAnalyzer,\
+io.awspring.cloud.autoconfigure.config.s3.S3MissingKeysFailureAnalyzer

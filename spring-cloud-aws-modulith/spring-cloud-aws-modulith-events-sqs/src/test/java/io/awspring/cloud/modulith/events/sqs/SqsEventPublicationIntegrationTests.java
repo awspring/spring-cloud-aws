@@ -17,6 +17,7 @@ package io.awspring.cloud.modulith.events.sqs;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.*;
+import static org.springframework.modulith.events.EventExternalizationConfiguration.*;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -26,12 +27,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.modulith.events.EventExternalizationConfiguration;
 import org.springframework.modulith.events.Externalized;
-import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
@@ -53,16 +57,18 @@ class SqsEventPublicationIntegrationTests {
 	static class TestConfiguration {
 
 		@Bean
-		LocalStackContainer localStackContainer(DynamicPropertyRegistry registry) {
+		DynamicPropertyRegistrar dynamicPropertyRegistrar(LocalStackContainer localstack) {
+			return registry -> {
+				registry.add("spring.cloud.aws.endpoint", localstack::getEndpoint);
+				registry.add("spring.cloud.aws.credentials.access-key", localstack::getAccessKey);
+				registry.add("spring.cloud.aws.credentials.secret-key", localstack::getSecretKey);
+				registry.add("spring.cloud.aws.region.static", localstack::getRegion);
+			};
+		}
 
-			var localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.2.0"));
-
-			registry.add("spring.cloud.aws.endpoint", localstack::getEndpoint);
-			registry.add("spring.cloud.aws.credentials.access-key", localstack::getAccessKey);
-			registry.add("spring.cloud.aws.credentials.secret-key", localstack::getSecretKey);
-			registry.add("spring.cloud.aws.region.static", localstack::getRegion);
-
-			return localstack;
+		@Bean
+		LocalStackContainer localStackContainer() {
+			return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.8.1"));
 		}
 
 		@Bean
@@ -74,6 +80,13 @@ class SqsEventPublicationIntegrationTests {
 		TestListener testListener() {
 			return new TestListener();
 		}
+
+		@Bean
+		EventExternalizationConfiguration eventExternalizationConfiguration() {
+
+			return externalizing().select(annotatedAsExternalized())
+					.headers(Object.class, __ -> Map.of("testKey", "testValue")).build();
+		}
 	}
 
 	@Test
@@ -84,9 +97,14 @@ class SqsEventPublicationIntegrationTests {
 		publisher.publishEvent();
 
 		await().untilAsserted(() -> {
-			var response = sqsAsyncClient.receiveMessage(r -> r.queueUrl(queueUrl)).join();
+			var response = sqsAsyncClient.receiveMessage(r -> r.queueUrl(queueUrl).messageAttributeNames("testKey"))
+					.join();
 
 			assertThat(response.hasMessages()).isTrue();
+
+			// Assert header added
+			assertThat(response.messages()).extracting(Message::messageAttributes).extracting(it -> it.get("testKey"))
+					.extracting(MessageAttributeValue::stringValue).containsExactly("testValue");
 		});
 	}
 

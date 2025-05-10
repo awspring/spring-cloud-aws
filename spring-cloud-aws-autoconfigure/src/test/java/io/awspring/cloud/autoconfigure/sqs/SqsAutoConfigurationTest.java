@@ -32,9 +32,11 @@ import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
+import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import java.net.URI;
 import java.time.Duration;
@@ -55,15 +57,18 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
  * Tests for {@link SqsAutoConfiguration}.
  *
  * @author Tomaz Fernandes
+ * @author Wei Jiang
  */
 class SqsAutoConfigurationTest {
 
 	private static final String CUSTOM_OBJECT_MAPPER_BEAN_NAME = "customObjectMapper";
+	private static final String CUSTOM_MESSAGE_CONVERTER_BEAN_NAME = "customMessageConverter";
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
@@ -110,6 +115,18 @@ class SqsAutoConfigurationTest {
 		});
 	}
 
+	@Test
+	void withCustomQueueNotFoundStrategy() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.queue-not-found-strategy=fail").run(context -> {
+			assertThat(context).hasSingleBean(SqsProperties.class);
+			SqsProperties sqsProperties = context.getBean(SqsProperties.class);
+			assertThat(context).hasSingleBean(SqsAsyncClient.class);
+			assertThat(context).hasSingleBean(SqsTemplate.class);
+			assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+			assertThat(sqsProperties.getQueueNotFoundStrategy()).isEqualTo(QueueNotFoundStrategy.FAIL);
+		});
+	}
+
 	// @formatter:off
 	@Test
 	void customSqsClientConfigurer() {
@@ -135,7 +152,8 @@ class SqsAutoConfigurationTest {
 				.withPropertyValues("spring.cloud.aws.sqs.enabled:true",
 						"spring.cloud.aws.sqs.listener.max-concurrent-messages:19",
 						"spring.cloud.aws.sqs.listener.max-messages-per-poll:8",
-						"spring.cloud.aws.sqs.listener.poll-timeout:6s")
+						"spring.cloud.aws.sqs.listener.poll-timeout:6s",
+						"spring.cloud.aws.sqs.listener.max-delay-between-polls:15s")
 				.withUserConfiguration(CustomComponentsConfiguration.class, ObjectMapperConfiguration.class).run(context -> {
 					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
 					SqsMessageListenerContainerFactory<?> factory = context
@@ -151,6 +169,7 @@ class SqsAutoConfigurationTest {
 						assertThat(options.getMaxConcurrentMessages()).isEqualTo(19);
 						assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);
 						assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
+						assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(15));
 					})
 					.extracting("messageConverter")
 					.asInstanceOf(type(SqsMessagingMessageConverter.class))
@@ -158,7 +177,7 @@ class SqsAutoConfigurationTest {
 					.asInstanceOf(type(CompositeMessageConverter.class))
 					.extracting(CompositeMessageConverter::getConverters)
 					.isInstanceOfSatisfying(List.class, converters ->
-						assertThat(converters.get(1)).isInstanceOfSatisfying(
+						assertThat(converters.get(2)).isInstanceOfSatisfying(
 							MappingJackson2MessageConverter.class,
 							jackson2MessageConverter ->
 								assertThat(jackson2MessageConverter.getObjectMapper().getRegisteredModuleIds()).contains("jackson-datatype-jsr310")));
@@ -178,6 +197,7 @@ class SqsAutoConfigurationTest {
 					assertThat(options.getMaxConcurrentMessages()).isEqualTo(10);
 					assertThat(options.getMaxMessagesPerPoll()).isEqualTo(10);
 					assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(10));
+					assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(10));
 				})
 				.extracting("messageConverter")
 				.asInstanceOf(type(SqsMessagingMessageConverter.class))
@@ -185,7 +205,7 @@ class SqsAutoConfigurationTest {
 				.asInstanceOf(type(CompositeMessageConverter.class))
 				.extracting(CompositeMessageConverter::getConverters)
 				.isInstanceOfSatisfying(List.class, converters ->
-					assertThat(converters.get(1)).isInstanceOfSatisfying(
+					assertThat(converters.get(2)).isInstanceOfSatisfying(
 						MappingJackson2MessageConverter.class,
 						jackson2MessageConverter ->
 							assertThat(jackson2MessageConverter.getObjectMapper().getRegisteredModuleIds()).isEmpty()));
@@ -202,6 +222,26 @@ class SqsAutoConfigurationTest {
 					ObjectMapper objectMapper = context.getBean(CUSTOM_OBJECT_MAPPER_BEAN_NAME, ObjectMapper.class);
 					assertThat(bpp).extracting("endpointRegistrar").asInstanceOf(type(EndpointRegistrar.class))
 							.extracting(EndpointRegistrar::getObjectMapper).isEqualTo(objectMapper);
+				});
+	}
+
+	@Test
+	void configuresMessageConverter() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true")
+				.withUserConfiguration(ObjectMapperConfiguration.class, MessageConverterConfiguration.class)
+				.run(context -> {
+					SqsTemplate sqsTemplate = context.getBean("sqsTemplate", SqsTemplate.class);
+					SqsMessageListenerContainerFactory<?> factory = context
+							.getBean("defaultSqsListenerContainerFactory", SqsMessageListenerContainerFactory.class);
+					ObjectMapper objectMapper = context.getBean(CUSTOM_OBJECT_MAPPER_BEAN_NAME, ObjectMapper.class);
+					SqsMessagingMessageConverter converter = context.getBean(CUSTOM_MESSAGE_CONVERTER_BEAN_NAME,
+							SqsMessagingMessageConverter.class);
+					assertThat(converter.getPayloadMessageConverter()).extracting("converters").asList()
+							.filteredOn(conv -> conv instanceof MappingJackson2MessageConverter).first()
+							.extracting("objectMapper").isEqualTo(objectMapper);
+					assertThat(sqsTemplate).extracting("messageConverter").isEqualTo(converter);
+					assertThat(factory).extracting("containerOptionsBuilder").extracting("messageConverter")
+							.isEqualTo(converter);
 				});
 	}
 
@@ -228,6 +268,16 @@ class SqsAutoConfigurationTest {
 		@Bean(name = CUSTOM_OBJECT_MAPPER_BEAN_NAME)
 		ObjectMapper objectMapper() {
 			return new ObjectMapper().registerModule(new JavaTimeModule());
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class MessageConverterConfiguration {
+
+		@Bean(name = CUSTOM_MESSAGE_CONVERTER_BEAN_NAME)
+		MessagingMessageConverter<Message> messageConverter() {
+			return new SqsMessagingMessageConverter();
 		}
 
 	}
