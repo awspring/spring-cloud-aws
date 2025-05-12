@@ -15,6 +15,18 @@
  */
 package io.awspring.cloud.sqs.listener.errorhandler;
 
+import io.awspring.cloud.sqs.listener.BatchVisibility;
+import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
+import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.listener.Visibility;
+import org.junit.jupiter.api.Test;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,17 +34,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
-
-import io.awspring.cloud.sqs.listener.BatchVisibility;
-import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
-import io.awspring.cloud.sqs.listener.SqsHeaders;
-import io.awspring.cloud.sqs.listener.Visibility;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.Test;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
 
 /**
  * Tests for {@link ImmediateRetryAsyncErrorHandler}.
@@ -69,8 +70,9 @@ class ImmediateRetryAsyncErrorHandlerTests {
 
 		ImmediateRetryAsyncErrorHandler<Object> handler = new ImmediateRetryAsyncErrorHandler<>();
 
-		assertThatThrownBy(() -> handler.handle(message, exception)).isInstanceOf(NullPointerException.class)
-				.hasMessageContaining("Header Sqs_VisibilityTimeout not found in message");
+		assertThatThrownBy(() -> handler.handle(message, exception))
+			.isInstanceOf(NullPointerException.class)
+			.hasMessageContaining("Header Sqs_VisibilityTimeout not found in message");
 	}
 
 	@Test
