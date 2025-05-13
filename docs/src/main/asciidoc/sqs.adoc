@@ -245,7 +245,8 @@ SendResult.Batch<T> sendMany(String queue, Collection<Message<T>> messages);
 ```
 
 NOTE: To send a collection of objects, it is recommended to use `sendMany(String queue, Collection<Message<T>> messages)` to optimize throughput.
-To send a collection of objects in a single message, the collection must be wrapped in an object.
+To send a collection of objects in a single message, the collection must be wrapped in an object. The underlying AWS SQS API has a limitation that only up to 10 messages can be sent in a single batch request using `SendMessageBatch`. If more than 10 messages are passed to `sendMany()`, the AWS SDK will throw a `TooManyEntriesInBatchRequestException`.
+This limitation is documented in the https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SendMessageBatch.html[AWS SQS API Reference for SendMessageBatch]. As of now, Spring Cloud AWS does not automatically split larger collections into smaller batches of 10 or fewer messages. Users are responsible for ensuring the batch size complies with this AWS limit.
 
 An example using the `options` variant follows:
 
