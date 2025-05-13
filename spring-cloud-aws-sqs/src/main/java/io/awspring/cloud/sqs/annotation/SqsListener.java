@@ -76,9 +76,10 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
  * @author Matej Nedic
  * @author Tomaz Fernandes
  * @author Joao Calassio
+ * @author José Iêdo
  * @since 1.1
  */
-@Target(ElementType.METHOD)
+@Target({ ElementType.METHOD, ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @MessageMapping
