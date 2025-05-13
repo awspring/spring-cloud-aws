@@ -59,7 +59,7 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	boolean isAutoStartup();
 
 	/**
-	 * Set the maximum time the polling thread should wait for a full batch of permits to be available before trying to
+	 * Sets the maximum time the polling thread should wait for a full batch of permits to be available before trying to
 	 * acquire a partial batch if so configured. A poll is only actually executed if at least one permit is available.
 	 * Default is 10 seconds.
 	 *
@@ -126,6 +126,12 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	 * @return the backpressure mode.
 	 */
 	BackPressureMode getBackPressureMode();
+
+	/**
+	 * Return the a {@link BackPressureHandlerFactory} to create a {@link BackPressureHandler} for this container.
+	 * @return the BackPressureHandlerFactory.
+	 */
+	BackPressureHandlerFactory getBackPressureHandlerFactory();
 
 	/**
 	 * Return the {@link ListenerMode} mode for this container.
