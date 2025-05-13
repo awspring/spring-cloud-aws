@@ -19,6 +19,8 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.micrometer.observation.ObservationConvention;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
@@ -59,6 +61,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	private final AcknowledgementMode acknowledgementMode;
 
+	private final ObservationRegistry observationRegistry;
+
 	@Nullable
 	private final AcknowledgementOrdering acknowledgementOrdering;
 
@@ -73,6 +77,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	@Nullable
 	private final TaskExecutor acknowledgementResultTaskExecutor;
+
+	private final ObservationConvention<?> observationConvention;
 
 	protected AbstractContainerOptions(Builder<?, ?> builder) {
 		this.maxConcurrentMessages = builder.maxConcurrentMessages;
@@ -92,6 +98,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.acknowledgementThreshold = builder.acknowledgementThreshold;
 		this.componentsTaskExecutor = builder.componentsTaskExecutor;
 		this.acknowledgementResultTaskExecutor = builder.acknowledgementResultTaskExecutor;
+		this.observationRegistry = builder.observationRegistry;
+		this.observationConvention = builder.observationConvention;
 		Assert.isTrue(this.maxMessagesPerPoll <= this.maxConcurrentMessages, String.format(
 				"messagesPerPoll should be less than or equal to maxConcurrentMessages. Values provided: %s and %s respectively",
 				this.maxMessagesPerPoll, this.maxConcurrentMessages));
@@ -187,6 +195,16 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		return this.acknowledgementOrdering;
 	}
 
+	@Override
+	public ObservationRegistry getObservationRegistry() {
+		return this.observationRegistry;
+	}
+
+	@Override
+	public ObservationConvention<?> getObservationConvention() {
+		return this.observationConvention;
+	}
+
 	protected abstract static class Builder<B extends ContainerOptionsBuilder<B, O>, O extends ContainerOptions<O, B>>
 			implements ContainerOptionsBuilder<B, O> {
 
@@ -220,6 +238,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final AcknowledgementMode DEFAULT_ACKNOWLEDGEMENT_MODE = AcknowledgementMode.ON_SUCCESS;
 
+		private static final ObservationRegistry DEFAULT_OBSERVATION_REGISTRY = ObservationRegistry.NOOP;
+
 		private int maxConcurrentMessages = DEFAULT_MAX_INFLIGHT_MSG_PER_QUEUE;
 
 		private int maxMessagesPerPoll = DEFAULT_MAX_MESSAGES_PER_POLL;
@@ -243,6 +263,10 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private MessagingMessageConverter<?> messageConverter = DEFAULT_MESSAGE_CONVERTER;
 
 		private AcknowledgementMode acknowledgementMode = DEFAULT_ACKNOWLEDGEMENT_MODE;
+
+		private ObservationRegistry observationRegistry = DEFAULT_OBSERVATION_REGISTRY;
+
+		private ObservationConvention<?> observationConvention;
 
 		@Nullable
 		private AcknowledgementOrdering acknowledgementOrdering;
@@ -280,6 +304,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.acknowledgementThreshold = options.acknowledgementThreshold;
 			this.componentsTaskExecutor = options.componentsTaskExecutor;
 			this.acknowledgementResultTaskExecutor = options.acknowledgementResultTaskExecutor;
+			this.observationRegistry = options.observationRegistry;
+			this.observationConvention = options.observationConvention;
 		}
 
 		@Override
@@ -397,6 +423,19 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		public B messageConverter(MessagingMessageConverter<?> messageConverter) {
 			Assert.notNull(messageConverter, "messageConverter cannot be null");
 			this.messageConverter = messageConverter;
+			return self();
+		}
+
+		@Override
+		public B observationRegistry(ObservationRegistry observationRegistry) {
+			Assert.notNull(observationRegistry, "observationRegistry cannot be null");
+			this.observationRegistry = observationRegistry;
+			return self();
+		}
+
+		protected B observationConvention(ObservationConvention<?> observationConvention) {
+			Assert.notNull(observationConvention, "observationConvention cannot be null");
+			this.observationConvention = observationConvention;
 			return self();
 		}
 
