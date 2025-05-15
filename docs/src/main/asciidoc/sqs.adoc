@@ -1278,6 +1278,55 @@ public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFac
 }
 ----
 
+==== Exponential Backoff Error Handler
+This error handler implements an exponential backoff strategy for retrying failed SQS message processing.
+
+The backoff duration is computed using the `ApproximateReceiveCount` message attribute, applying an exponential function to determine the delay. Once calculated, the handler sets the message's visibility timeout to the computed backoff value, postponing the message's reprocessing accordingly.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default
+| `initialVisibilityTimeoutSeconds` | The starting visibility timeout (in seconds) applied when a message is received for the very first time. This serves as the base delay before any exponential backoff is applied. | No | 100
+| `multiplier` | The base factor by which the visibility timeout is multiplied for each retry attempt beyond the first. A value greater than 1 increases the delay exponentially; for example, a multiplier of 2 doubles the timeout on each subsequent receive. | No | 2.0
+| `maxVisibilityTimeoutSeconds` | The upper bound (in seconds) on the computed visibility timeout. Regardless of how large the exponential calculation grows, the final timeout will never exceed this cap. | No | 43200
+|===
+
+NOTE: The maximum visibility timeout allowed by SQS is 43200 seconds (12 hours). If the value provided to the `maxVisibilityTimeoutSeconds` parameter exceeds this limit, an `IllegalArgumentException` will be thrown.
+
+When using auto-configured factory, simply declare a `@Bean` and the error handler will be set
+
+[source, java]
+----
+@Bean
+public ExponentialBackoffErrorHandler<Object> asyncErrorHandler() {
+	return ExponentialBackoffErrorHandler
+		.builder()
+		.initialVisibilityTimeoutSeconds(1)
+		.multiplier(2)
+		.maxVisibilityTimeoutSeconds(10)
+		.build();
+}
+----
+
+Alternatively, `ExponentialBackoffErrorHandler` can be set in the `MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+	return SqsMessageListenerContainerFactory
+		.builder()
+		.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+		.errorHandler(ExponentialBackoffErrorHandler
+			.builder()
+			.initialVisibilityTimeoutSeconds(1)
+			.multiplier(2)
+			.maxVisibilityTimeoutSeconds(10)
+			.build())
+		.build();
+}
+----
+
 === Message Conversion and Payload Deserialization
 
 Payloads are automatically deserialized from `JSON` for `@SqsListener` annotated methods using a `MappingJackson2MessageConverter`.

@@ -28,6 +28,11 @@ import java.util.concurrent.CompletableFuture;
 public interface Visibility {
 
 	/**
+	 * The maximum visibility timeout interval, which corresponds to the maximum SQS visibility timeout of 12 hours.
+	 */
+	int MAX_VISIBILITY_TIMEOUT_SECONDS = 43200;
+
+	/**
 	 * Asynchronously changes the message visibility to the provided value.
 	 * @param seconds number of seconds to set the visibility of the message to.
 	 * @return a completable future.
