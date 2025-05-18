@@ -56,12 +56,12 @@ class AbstractMethodInvokingListenerAdapterTests {
 	}
 
 	@Test
-	void shouldWrapError() throws Exception {
+	void shouldWrapException() throws Exception {
 		MessageHeaders headers = new MessageHeaders(null);
 		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
 		Message<Object> message = mock(Message.class);
 		given(message.getHeaders()).willReturn(headers);
-		RuntimeException exception = new RuntimeException("Expected exception from shouldWrapError");
+		RuntimeException exception = new RuntimeException("Expected exception from shouldWrapException");
 		when(handlerMethod.invoke(message)).thenThrow(exception);
 		AbstractMethodInvokingListenerAdapter<Object> adapter = new AbstractMethodInvokingListenerAdapter<Object>(
 				handlerMethod) {
@@ -69,6 +69,22 @@ class AbstractMethodInvokingListenerAdapterTests {
 		assertThatThrownBy(() -> adapter.invokeHandler(message)).isInstanceOf(ListenerExecutionFailedException.class)
 				.asInstanceOf(type(ListenerExecutionFailedException.class))
 				.extracting(ListenerExecutionFailedException::getFailedMessage).isEqualTo(message);
+	}
+
+	@Test
+	void shouldWrapError() throws Exception {
+		MessageHeaders headers = new MessageHeaders(null);
+		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
+		Message<Object> message = mock(Message.class);
+		given(message.getHeaders()).willReturn(headers);
+		Error error = new Error("Expected exception from shouldWrapError");
+		when(handlerMethod.invoke(message)).thenThrow(error);
+		AbstractMethodInvokingListenerAdapter<Object> adapter = new AbstractMethodInvokingListenerAdapter<Object>(
+			handlerMethod) {
+		};
+		assertThatThrownBy(() -> adapter.invokeHandler(message)).isInstanceOf(ListenerExecutionFailedException.class)
+			.asInstanceOf(type(ListenerExecutionFailedException.class))
+			.extracting(ListenerExecutionFailedException::getFailedMessage).isEqualTo(message);
 	}
 
 	@Test
@@ -94,6 +110,27 @@ class AbstractMethodInvokingListenerAdapterTests {
 	}
 
 	@Test
+	void shouldWrapExceptionBatch() throws Exception {
+		MessageHeaders messageHeaders = new MessageHeaders(null);
+		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
+		Message<Object> message1 = mock(Message.class);
+		Message<Object> message2 = mock(Message.class);
+		Message<Object> message3 = mock(Message.class);
+		List<Message<Object>> batch = Arrays.asList(message1, message2, message3);
+		given(message1.getHeaders()).willReturn(messageHeaders);
+		given(message2.getHeaders()).willReturn(messageHeaders);
+		given(message3.getHeaders()).willReturn(messageHeaders);
+		RuntimeException exception = new RuntimeException("Expected exception from shouldWrapExceptionBatch");
+		when(handlerMethod.invoke(any(Message.class))).thenThrow(exception);
+		AbstractMethodInvokingListenerAdapter<Object> adapter = new AbstractMethodInvokingListenerAdapter<Object>(
+				handlerMethod) {
+		};
+		assertThatThrownBy(() -> adapter.invokeHandler(batch)).isInstanceOf(ListenerExecutionFailedException.class)
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(batch);
+	}
+
+	@Test
 	void shouldWrapErrorBatch() throws Exception {
 		MessageHeaders messageHeaders = new MessageHeaders(null);
 		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
@@ -104,14 +141,14 @@ class AbstractMethodInvokingListenerAdapterTests {
 		given(message1.getHeaders()).willReturn(messageHeaders);
 		given(message2.getHeaders()).willReturn(messageHeaders);
 		given(message3.getHeaders()).willReturn(messageHeaders);
-		RuntimeException exception = new RuntimeException("Expected exception from shouldWrapErrorBatch");
-		when(handlerMethod.invoke(any(Message.class))).thenThrow(exception);
+		Error error = new Error("Expected exception from shouldWrapErrorBatch");
+		when(handlerMethod.invoke(any(Message.class))).thenThrow(error);
 		AbstractMethodInvokingListenerAdapter<Object> adapter = new AbstractMethodInvokingListenerAdapter<Object>(
-				handlerMethod) {
+			handlerMethod) {
 		};
 		assertThatThrownBy(() -> adapter.invokeHandler(batch)).isInstanceOf(ListenerExecutionFailedException.class)
-				.asInstanceOf(type(ListenerExecutionFailedException.class))
-				.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(batch);
+			.asInstanceOf(type(ListenerExecutionFailedException.class))
+			.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(batch);
 	}
 
 }
