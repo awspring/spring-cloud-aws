@@ -17,13 +17,7 @@ package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
-import io.awspring.cloud.sqs.listener.AsyncMessageListener;
-import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
-import io.awspring.cloud.sqs.listener.MessageListener;
-import io.awspring.cloud.sqs.listener.SqsContainerOptions;
-import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
-import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
+import io.awspring.cloud.sqs.listener.*;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
@@ -34,6 +28,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
+import io.awspring.cloud.sqs.support.filter.DefaultMessageFilter;
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -146,7 +143,14 @@ public class SqsMessageListenerContainerFactory<T> extends
 				endpoint.getId() != null ? endpoint.getId() : endpoint.getLogicalNames());
 		Assert.notNull(this.sqsAsyncClientSupplier, "asyncClientSupplier not set");
 		SqsAsyncClient asyncClient = getSqsAsyncClientInstance();
-		return new SqsMessageListenerContainer<>(asyncClient, containerOptions);
+
+		SqsMessageListenerContainer<T> container = new SqsMessageListenerContainer<>(asyncClient, containerOptions);
+		MessageFilter<T> filter = (MessageFilter<T>) containerOptions.getMessageFilter();
+		if (!(filter instanceof DefaultMessageFilter)) {
+			container.setMessageListener(new FilteringMessageListenerAdapter<>(container.getMessageListener(), filter));
+		}
+
+		return container;
 	}
 
 	protected SqsAsyncClient getSqsAsyncClientInstance() {

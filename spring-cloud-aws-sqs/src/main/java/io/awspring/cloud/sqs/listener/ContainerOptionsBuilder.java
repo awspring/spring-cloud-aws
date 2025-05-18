@@ -19,6 +19,8 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import java.time.Duration;
+
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.retry.backoff.BackOffPolicy;
 
@@ -186,6 +188,14 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	 * @return this instance.
 	 */
 	B messageConverter(MessagingMessageConverter<?> messageConverter);
+
+	/**
+	 * Set the {@link MessagingMessageConverter} for this container.
+	 *
+	 * @param messageFilter the message filter.
+	 * @return this instance.
+	 */
+	B messageFilter(MessageFilter<?> messageFilter);
 
 	/**
 	 * Create the {@link ContainerOptions} instance.

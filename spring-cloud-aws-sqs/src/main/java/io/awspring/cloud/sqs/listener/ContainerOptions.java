@@ -20,6 +20,8 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMod
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import java.time.Duration;
 import java.util.Collection;
+
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.retry.backoff.BackOffPolicy;
@@ -138,6 +140,11 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	 * @return the message converter.
 	 */
 	MessagingMessageConverter<?> getMessageConverter();
+
+	/** Return the message filter applied before message processing.
+	 *  @return the message filter.
+	 * */
+	MessageFilter<?> getMessageFilter();
 
 	/**
 	 * Return the maximum interval between acknowledgements for batch acknowledgements.
