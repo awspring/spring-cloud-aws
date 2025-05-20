@@ -16,26 +16,22 @@
 package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.ConfigUtils;
-import io.awspring.cloud.sqs.listener.AbstractMessageListenerContainer;
-import io.awspring.cloud.sqs.listener.AsyncComponentAdapters;
-import io.awspring.cloud.sqs.listener.AsyncMessageListener;
-import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
-import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
-import io.awspring.cloud.sqs.listener.MessageListener;
-import io.awspring.cloud.sqs.listener.MessageListenerContainer;
+import io.awspring.cloud.sqs.listener.*;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.support.filter.DefaultMessageFilter;
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
+import org.springframework.messaging.Message;
+import org.springframework.util.Assert;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Consumer;
-import org.springframework.messaging.Message;
-import org.springframework.util.Assert;
 
 /**
  * Base implementation for a {@link MessageListenerContainerFactory}. Contains the components and
@@ -180,6 +176,7 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 		B options = this.containerOptionsBuilder.createCopy();
 		configure(endpoint, options);
 		C container = createContainerInstance(endpoint, options.build());
+
 		endpoint.setupContainer(container);
 		configureContainer(container, endpoint);
 		return container;

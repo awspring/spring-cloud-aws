@@ -27,6 +27,8 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
+
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
@@ -74,6 +76,10 @@ public class AsyncComponentAdapters {
 	 */
 	public static <T> AsyncMessageListener<T> adapt(MessageListener<T> messageListener) {
 		return new BlockingMessageListenerAdapter<>(messageListener);
+	}
+
+	public static <T> AsyncMessageListener<T> adaptFilter(MessageListener<T> messageListener, MessageFilter<T> messageFilter) {
+		return new FilteredMessageListenerAdapter<>(messageListener, messageFilter);
 	}
 
 	public static <T> AsyncAcknowledgementResultCallback<T> adapt(
@@ -213,6 +219,44 @@ public class AsyncComponentAdapters {
 			return execute(() -> this.blockingMessageListener.onMessage(messages));
 		}
 	}
+
+	private static class FilteredMessageListenerAdapter<T> extends AbstractThreadingComponentAdapter
+		implements AsyncMessageListener<T> {
+
+		private final MessageListener<T> filteredMessageListener;
+		private final MessageFilter<T> filter;
+
+		public FilteredMessageListenerAdapter(MessageListener<T> filteredMessageListener, MessageFilter<T> filter) {
+			this.filteredMessageListener = filteredMessageListener;
+			this.filter = filter;
+		}
+
+		@Override
+		public CompletableFuture<Void> onMessage(Message<T> message) {
+			if (filter.process(message)) {
+				return execute(() -> this.filteredMessageListener.onMessage(message));
+			}
+			else {
+				logger.debug("Message filtered out: {}", message.getPayload());
+				return CompletableFuture.completedFuture(null);
+			}
+		}
+
+		@Override
+		public CompletableFuture<Void> onMessage(Collection<Message<T>> messages) {
+			Collection<Message<T>> filteredMessages = messages.stream()
+															  .filter(filter::process)
+															  .toList();
+
+			if (filteredMessages.isEmpty()) {
+				logger.debug("All messages were filtered out.");
+				return CompletableFuture.completedFuture(null);
+			}
+
+			return execute(() -> this.filteredMessageListener.onMessage(filteredMessages));
+		}
+	}
+
 
 	private static class BlockingErrorHandlerAdapter<T> extends AbstractThreadingComponentAdapter
 			implements AsyncErrorHandler<T> {

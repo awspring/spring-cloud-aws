@@ -24,18 +24,16 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import io.awspring.cloud.sqs.support.filter.DefaultMessageFilter;
-import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * {@link MessageListenerContainerFactory} implementation for creating {@link SqsMessageListenerContainer} instances. A
@@ -143,14 +141,7 @@ public class SqsMessageListenerContainerFactory<T> extends
 				endpoint.getId() != null ? endpoint.getId() : endpoint.getLogicalNames());
 		Assert.notNull(this.sqsAsyncClientSupplier, "asyncClientSupplier not set");
 		SqsAsyncClient asyncClient = getSqsAsyncClientInstance();
-
-		SqsMessageListenerContainer<T> container = new SqsMessageListenerContainer<>(asyncClient, containerOptions);
-		MessageFilter<T> filter = (MessageFilter<T>) containerOptions.getMessageFilter();
-		if (!(filter instanceof DefaultMessageFilter)) {
-			container.setMessageListener(new FilteringMessageListenerAdapter<>(container.getMessageListener(), filter));
-		}
-
-		return container;
+		return new SqsMessageListenerContainer<>(asyncClient, containerOptions);
 	}
 
 	protected SqsAsyncClient getSqsAsyncClientInstance() {

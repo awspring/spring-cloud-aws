@@ -48,7 +48,7 @@ public class SqsMessageFilterIntegrationTests extends BaseSqsIntegrationTest {
 	record SampleRecord(String propertyOne, String propertyTwo) {}
 
 	@Test
-	void shouldReceiveMessageThatPassesFilter() throws Exception {
+	void shouldReceiveMessageThatPassesProcess() throws Exception {
 		sqsTemplate.send(FILTER_QUEUE_NAME, new SampleRecord("Hello!", "Filtered In"));
 		assertThat(latchContainer.messageReceivedLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
@@ -84,7 +84,6 @@ public class SqsMessageFilterIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
-	// --- Message Filter implementation ---
 	static class SampleRecordFilter implements MessageFilter<SampleRecord> {
 		@Override
 		public boolean process(Message<SampleRecord> message) {
@@ -94,7 +93,6 @@ public class SqsMessageFilterIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
-	// --- Listener that receives filtered message ---
 	static class FilteringListener {
 
 		@Autowired
@@ -107,7 +105,6 @@ public class SqsMessageFilterIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
-	// --- Shared Latch for test synchronization ---
 	static class LatchContainer {
 		CountDownLatch messageReceivedLatch = new CountDownLatch(1);
 	}

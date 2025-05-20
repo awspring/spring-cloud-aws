@@ -21,17 +21,20 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.function.Consumer;
+import io.awspring.cloud.sqs.support.filter.DefaultMessageFilter;
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.function.Consumer;
 
 /**
  * Base implementation for {@link MessageListenerContainer} with {@link SmartLifecycle} and component management
@@ -132,7 +135,11 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	@Override
 	public void setMessageListener(MessageListener<T> messageListener) {
 		Assert.notNull(messageListener, "messageListener cannot be null");
-		this.messageListener = AsyncComponentAdapters.adapt(messageListener);
+		if(containerOptions.getMessageFilter() instanceof DefaultMessageFilter) {
+			this.messageListener = AsyncComponentAdapters.adapt(messageListener);
+		} else {
+			this.messageListener = AsyncComponentAdapters.adaptFilter(messageListener, (MessageFilter<T>) containerOptions.getMessageFilter());
+		}
 	}
 
 	@Override
