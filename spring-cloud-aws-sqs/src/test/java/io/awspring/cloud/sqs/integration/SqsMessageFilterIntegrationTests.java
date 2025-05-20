@@ -6,6 +6,7 @@ import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +28,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public class SqsMessageFilterIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsMessageFilterIntegrationTests.class);
-	private static final String FILTER_QUEUE_NAME = "test-filter-queue";
+	private static final String FILTER_QUEUE_PASS = "filter-queue-pass";
+	private static final String FILTER_QUEUE_BLOCK = "filter-queue-block";
 
-	static final String MESSAGE_FILTERED_FACTORY = "messageFilteredFactory";
+	private static final String FILTERING_FACTORY = "filteringFactory";
 
 	@Autowired
 	LatchContainer latchContainer;
@@ -38,30 +40,37 @@ public class SqsMessageFilterIntegrationTests extends BaseSqsIntegrationTest {
 	SqsTemplate sqsTemplate;
 
 	@BeforeAll
-	static void beforeTests() {
+	static void setupQueues() {
 		SqsAsyncClient client = createAsyncClient();
 		CompletableFuture.allOf(
-			createQueue(client, FILTER_QUEUE_NAME)
+			createQueue(client, FILTER_QUEUE_PASS),
+			createQueue(client, FILTER_QUEUE_BLOCK)
 		).join();
 	}
 
 	record SampleRecord(String propertyOne, String propertyTwo) {}
 
 	@Test
-	void shouldReceiveMessageThatPassesProcess() throws Exception {
-		sqsTemplate.send(FILTER_QUEUE_NAME, new SampleRecord("Hello!", "Filtered In"));
-		assertThat(latchContainer.messageReceivedLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	void shouldReceiveMessageThatPassesFilter() throws Exception {
+		sqsTemplate.send(FILTER_QUEUE_PASS, new SampleRecord("Hello", "Accepted"));
+		assertThat(latchContainer.latchForPass.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
-	// --- Configuration for test environment ---
+	@Test
+	void shouldNotReceiveMessageThatFailsFilter() throws Exception {
+		sqsTemplate.send(FILTER_QUEUE_BLOCK, new SampleRecord("NotHello", "Rejected"));
+		assertThat(latchContainer.latchForBlock.await(10, TimeUnit.SECONDS)).isFalse();
+	}
+
+	// Configuration
 	@Import(SqsBootstrapConfiguration.class)
 	@Configuration
 	static class FilterTestConfig {
 
-		@Bean(name = MESSAGE_FILTERED_FACTORY)
-		public SqsMessageListenerContainerFactory<SampleRecord> filteredFactory() {
+		@Bean(name = FILTERING_FACTORY)
+		public SqsMessageListenerContainerFactory<SampleRecord> messageFilterFactory() {
 			return SqsMessageListenerContainerFactory.<SampleRecord>builder()
-													 .configure(options -> options.messageFilter(new SampleRecordFilter()))
+													 .configure(options -> options.messageFilter(new AllowHelloOnlyFilter()))
 													 .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
 													 .build();
 		}
@@ -74,8 +83,13 @@ public class SqsMessageFilterIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
-		public FilteringListener filteringListener() {
-			return new FilteringListener();
+		public FilteringListenerPass filteringListenerPass() {
+			return new FilteringListenerPass();
+		}
+
+		@Bean
+		public FilteringListenerBlock filteringListenerBlock() {
+			return new FilteringListenerBlock();
 		}
 
 		@Bean
@@ -84,28 +98,44 @@ public class SqsMessageFilterIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
-	static class SampleRecordFilter implements MessageFilter<SampleRecord> {
+	// Sample Filter
+	static class AllowHelloOnlyFilter implements MessageFilter<SampleRecord> {
 		@Override
 		public boolean process(Message<SampleRecord> message) {
 			logger.info("Filtering message: {}", message.getPayload());
-			logger.info(String.valueOf("Hello".equals(message.getPayload().propertyOne())));
 			return "Hello".equals(message.getPayload().propertyOne());
 		}
 	}
 
-	static class FilteringListener {
+	// Listener for PASS case
+	static class FilteringListenerPass {
 
 		@Autowired
 		LatchContainer latchContainer;
 
-		@SqsListener(queueNames = FILTER_QUEUE_NAME, id = "filter-test-listener", factory = MESSAGE_FILTERED_FACTORY)
+		@SqsListener(queueNames = FILTER_QUEUE_PASS, id = "filter-pass", factory = FILTERING_FACTORY)
 		void listen(SampleRecord record) {
-			logger.info("Received message: {}", record);
-			latchContainer.messageReceivedLatch.countDown();
+			logger.info("Received (pass): {}", record);
+			latchContainer.latchForPass.countDown();
 		}
 	}
 
+	// Listener for BLOCK case
+	static class FilteringListenerBlock {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@SqsListener(queueNames = FILTER_QUEUE_BLOCK, id = "filter-block", factory = FILTERING_FACTORY)
+		void listen(SampleRecord record) {
+			logger.info("Received (block): {}", record);
+			latchContainer.latchForBlock.countDown();
+		}
+	}
+
+	// Shared latch
 	static class LatchContainer {
-		CountDownLatch messageReceivedLatch = new CountDownLatch(1);
+		final CountDownLatch latchForPass = new CountDownLatch(1);
+		final CountDownLatch latchForBlock = new CountDownLatch(1);
 	}
 }
