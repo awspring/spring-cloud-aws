@@ -54,6 +54,7 @@
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-ses</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sns</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sqs</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-imds</module>
 		<module>spring-cloud-aws-samples</module>
 		<module>spring-cloud-aws-test</module>
 		<module>spring-cloud-aws-modulith</module>
