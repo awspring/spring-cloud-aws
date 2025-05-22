@@ -22,16 +22,14 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
+import io.awspring.cloud.autoconfigure.imds.ImdsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.S3ClientCustomizer;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.BootstrapRegistry;
-import org.springframework.boot.BootstrapRegistryInitializer;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -229,8 +227,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 		}
 	}
 
-	@SpringBootApplication
-	@EnableAutoConfiguration
+	@SpringBootConfiguration
+	@EnableAutoConfiguration(exclude = ImdsAutoConfiguration.class)
 	static class App {
 
 	}

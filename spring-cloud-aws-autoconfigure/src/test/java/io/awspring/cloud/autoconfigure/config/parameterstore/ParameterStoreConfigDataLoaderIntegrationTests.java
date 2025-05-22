@@ -26,6 +26,8 @@ import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
 import java.time.Duration;
+
+import io.awspring.cloud.autoconfigure.imds.ImdsAutoConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -440,7 +442,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	}
 
 	@SpringBootConfiguration
-	@EnableAutoConfiguration
+	@EnableAutoConfiguration(exclude = ImdsAutoConfiguration.class)
 	static class App {
 
 	}
