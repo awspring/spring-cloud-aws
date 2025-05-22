@@ -20,6 +20,9 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMod
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import java.time.Duration;
+
+import io.awspring.cloud.sqs.support.filter.DefaultMessageFilter;
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.retry.backoff.BackOffPolicy;
@@ -59,6 +62,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	private final AcknowledgementMode acknowledgementMode;
 
+	private final MessageFilter<?> messageFilter;
+
 	@Nullable
 	private final AcknowledgementOrdering acknowledgementOrdering;
 
@@ -92,6 +97,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.acknowledgementThreshold = builder.acknowledgementThreshold;
 		this.componentsTaskExecutor = builder.componentsTaskExecutor;
 		this.acknowledgementResultTaskExecutor = builder.acknowledgementResultTaskExecutor;
+		this.messageFilter = builder.messageFilter;
+
 		Assert.isTrue(this.maxMessagesPerPoll <= this.maxConcurrentMessages, String.format(
 				"messagesPerPoll should be less than or equal to maxConcurrentMessages. Values provided: %s and %s respectively",
 				this.maxMessagesPerPoll, this.maxConcurrentMessages));
@@ -162,6 +169,11 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	@Override
 	public MessagingMessageConverter<?> getMessageConverter() {
 		return this.messageConverter;
+	}
+
+	@Override
+	public MessageFilter<?> getMessageFilter() {
+		return this.messageFilter;
 	}
 
 	@Nullable
@@ -244,6 +256,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private AcknowledgementMode acknowledgementMode = DEFAULT_ACKNOWLEDGEMENT_MODE;
 
+		private MessageFilter<?> messageFilter = new DefaultMessageFilter<>();
+
 		@Nullable
 		private AcknowledgementOrdering acknowledgementOrdering;
 
@@ -280,6 +294,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.acknowledgementThreshold = options.acknowledgementThreshold;
 			this.componentsTaskExecutor = options.componentsTaskExecutor;
 			this.acknowledgementResultTaskExecutor = options.acknowledgementResultTaskExecutor;
+			this.messageFilter = options.messageFilter;
 		}
 
 		@Override
@@ -397,6 +412,13 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		public B messageConverter(MessagingMessageConverter<?> messageConverter) {
 			Assert.notNull(messageConverter, "messageConverter cannot be null");
 			this.messageConverter = messageConverter;
+			return self();
+		}
+
+		@Override
+		public B messageFilter(MessageFilter<?> messageFilter) {
+			Assert.notNull(messageFilter, "messageFilter cannot be null");
+			this.messageFilter = messageFilter;
 			return self();
 		}
 

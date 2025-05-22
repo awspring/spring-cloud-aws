@@ -17,28 +17,23 @@ package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
-import io.awspring.cloud.sqs.listener.AsyncMessageListener;
-import io.awspring.cloud.sqs.listener.ContainerComponentFactory;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
-import io.awspring.cloud.sqs.listener.MessageListener;
-import io.awspring.cloud.sqs.listener.SqsContainerOptions;
-import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
-import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
+import io.awspring.cloud.sqs.listener.*;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * {@link MessageListenerContainerFactory} implementation for creating {@link SqsMessageListenerContainer} instances. A
