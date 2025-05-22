@@ -45,7 +45,7 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
  * @since 3.0
  */
 @AutoConfiguration
-@ConditionalOnClass({ S3Client.class, S3AsyncClient.class, AwsCrtHttpClient.class})
+@ConditionalOnClass({ S3Client.class, S3AsyncClient.class, AwsCrtHttpClient.class })
 @EnableConfigurationProperties({ S3Properties.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 @AutoConfigureBefore(S3TransferManagerAutoConfiguration.class)
