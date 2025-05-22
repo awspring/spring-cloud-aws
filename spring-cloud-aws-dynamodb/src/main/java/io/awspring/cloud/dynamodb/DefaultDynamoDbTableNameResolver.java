@@ -36,17 +36,26 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 	@Nullable
 	private final String tableSuffix;
 
-	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix) {
-		this(tablePrefix, null);
-	}
+	@Nullable
+	private final String tableSeparator;
 
 	public DefaultDynamoDbTableNameResolver() {
-		this(null, null);
+		this(null, null, null);
+	}
+
+	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix) {
+		this(tablePrefix, null, null);
 	}
 
 	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix) {
+		this(tablePrefix, tableSuffix, null);
+	}
+
+	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix,
+											@Nullable String tableSeparator) {
 		this.tablePrefix = tablePrefix;
 		this.tableSuffix = tableSuffix;
+		this.tableSeparator = tableSeparator;
 	}
 
 	@Override
@@ -55,9 +64,11 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 
 		String prefix = StringUtils.hasText(tablePrefix) ? tablePrefix : "";
 		String suffix = StringUtils.hasText(tableSuffix) ? tableSuffix : "";
+		String separator = StringUtils.hasText(tableSeparator) ? tableSeparator : "_";
 
-		return prefix.concat(clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT))
-				.concat(suffix);
+		return prefix
+			.concat(clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1" + separator + "$2").toLowerCase(Locale.ROOT))
+			.concat(suffix);
 	}
 
 }
