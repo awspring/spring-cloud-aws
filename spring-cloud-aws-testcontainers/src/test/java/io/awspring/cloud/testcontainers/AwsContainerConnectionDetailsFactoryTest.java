@@ -29,6 +29,7 @@ import io.awspring.cloud.autoconfigure.s3.S3CrtAsyncClientAutoConfiguration;
 import io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration;
+import io.awspring.cloud.s3.S3Template;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -45,6 +46,9 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+
+import java.net.URL;
+import java.time.Duration;
 
 @SpringJUnitConfig
 @Testcontainers(disabledWithoutDocker = true)
@@ -88,6 +92,14 @@ class AwsContainerConnectionDetailsFactoryTest {
 	@Test
 	void configuresS3ClientWithServiceConnection(@Autowired S3Client client) {
 		assertThatCode(client::listBuckets).doesNotThrowAnyException();
+	}
+
+	@Test
+	void configuresS3PresignedWithServiceConnection(@Autowired S3Template s3Template) {
+		URL signedGetURL = s3Template.createSignedGetURL("foo", "bar", Duration.ofMinutes(1));
+		assertThat(signedGetURL.getHost()).isNotNull()
+			.isNotEqualTo("foo.s3.amazonaws.com")
+			.as("Signed URL does not point to AWS as the endpoint has been overwritten by @ServiceConnection");
 	}
 
 	@Test
