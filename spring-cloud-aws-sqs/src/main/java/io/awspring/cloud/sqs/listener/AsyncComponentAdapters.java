@@ -78,6 +78,15 @@ public class AsyncComponentAdapters {
 		return new BlockingMessageListenerAdapter<>(messageListener);
 	}
 
+	/**
+	 * Adapt the provided {@link MessageListener} and {@link MessageFilter} into a single {@link AsyncMessageListener}
+	 * that only forwards messages passing the filter.
+	 *
+	 * @param messageListener the message listener to be adapted
+	 * @param messageFilter the filter used to evaluate incoming messages
+	 * @param <T> the message payload type
+	 * @return the adapted and filtered async message listener
+	 */
 	public static <T> AsyncMessageListener<T> adaptFilter(MessageListener<T> messageListener, MessageFilter<T> messageFilter) {
 		return new FilteredMessageListenerAdapter<>(messageListener, messageFilter);
 	}
@@ -237,7 +246,6 @@ public class AsyncComponentAdapters {
 				return execute(() -> this.filteredMessageListener.onMessage(message));
 			}
 			else {
-				logger.debug("Message filtered out: {}", message.getPayload());
 				return CompletableFuture.completedFuture(null);
 			}
 		}
@@ -249,7 +257,6 @@ public class AsyncComponentAdapters {
 															  .toList();
 
 			if (filteredMessages.isEmpty()) {
-				logger.debug("All messages were filtered out.");
 				return CompletableFuture.completedFuture(null);
 			}
 

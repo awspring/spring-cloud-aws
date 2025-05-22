@@ -135,7 +135,7 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	@Override
 	public void setMessageListener(MessageListener<T> messageListener) {
 		Assert.notNull(messageListener, "messageListener cannot be null");
-		if(containerOptions.getMessageFilter() instanceof DefaultMessageFilter) {
+		if (containerOptions.getMessageFilter() instanceof DefaultMessageFilter) {
 			this.messageListener = AsyncComponentAdapters.adapt(messageListener);
 		} else {
 			this.messageListener = AsyncComponentAdapters.adaptFilter(messageListener, (MessageFilter<T>) containerOptions.getMessageFilter());

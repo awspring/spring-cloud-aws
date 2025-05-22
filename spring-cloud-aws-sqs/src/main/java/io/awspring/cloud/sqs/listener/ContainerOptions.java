@@ -143,7 +143,7 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 
 	/** Return the message filter applied before message processing.
 	 *  @return the message filter.
-	 * */
+	 */
 	MessageFilter<?> getMessageFilter();
 
 	/**

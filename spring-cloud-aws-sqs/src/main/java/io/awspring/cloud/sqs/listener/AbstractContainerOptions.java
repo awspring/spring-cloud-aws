@@ -64,7 +64,6 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	private final MessageFilter<?> messageFilter;
 
-
 	@Nullable
 	private final AcknowledgementOrdering acknowledgementOrdering;
 
@@ -173,7 +172,9 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	}
 
 	@Override
-	public MessageFilter<?> getMessageFilter() {return this.messageFilter; }
+	public MessageFilter<?> getMessageFilter() {
+		return this.messageFilter;
+	}
 
 	@Nullable
 	@Override
@@ -420,7 +421,6 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.messageFilter = messageFilter;
 			return self();
 		}
-
 
 		@SuppressWarnings("unchecked")
 		private B self() {
