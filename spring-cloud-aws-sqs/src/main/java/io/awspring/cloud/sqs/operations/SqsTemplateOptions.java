@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.operations;
 
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
+import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import java.util.Collection;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
@@ -78,4 +79,11 @@ public interface SqsTemplateOptions extends MessagingTemplateOptions<SqsTemplate
 	 * @return the options instance.
 	 */
 	SqsTemplateOptions contentBasedDeduplication(TemplateContentBasedDeduplication contentBasedDeduplication);
+
+	/**
+	 * Set a custom {@link io.micrometer.observation.ObservationConvention} to be used by this template.
+	 * @param observationConvention the custom observation convention.
+	 * @return the options instance.
+	 */
+	SqsTemplateOptions observationConvention(SqsTemplateObservation.Convention observationConvention);
 }

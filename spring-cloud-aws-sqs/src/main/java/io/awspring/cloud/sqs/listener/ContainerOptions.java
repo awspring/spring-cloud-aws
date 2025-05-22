@@ -18,6 +18,8 @@ package io.awspring.cloud.sqs.listener;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.micrometer.observation.ObservationConvention;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.Collection;
 import org.springframework.core.task.TaskExecutor;
@@ -165,6 +167,18 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	 */
 	@Nullable
 	AcknowledgementOrdering getAcknowledgementOrdering();
+
+	/**
+	 * Return the {@link ObservationRegistry} to use in this container.
+	 * @return the observation Registry.
+	 */
+	ObservationRegistry getObservationRegistry();
+
+	/**
+	 * Return a custom {@link ObservationConvention} to use with this container.
+	 * @return the observation convention.
+	 */
+	ObservationConvention<?> getObservationConvention();
 
 	/**
 	 * Configure a {@link ConfigurableContainerComponent} with this options. Internal use mostly.

@@ -37,6 +37,9 @@ class DynamoDbTableNameResolverTest {
 	private static final DefaultDynamoDbTableNameResolver prefixedAndSuffixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
 			"my_prefix_", "_my_suffix");
 
+	private static final DefaultDynamoDbTableNameResolver prefixedAndSuffixedTableAndSeparatorTableNameResolver = new DefaultDynamoDbTableNameResolver(
+			"prefix-", "-suffix", "-");
+
 	@Test
 	void resolveTableNameSuccessfully() {
 		assertThat(tableNameResolver.resolve(MoreComplexPerson.class)).isEqualTo("more_complex_person");
@@ -58,6 +61,14 @@ class DynamoDbTableNameResolverTest {
 	}
 
 	@Test
+	void resolvePrefixedAndSuffixedAndSeparatorTableNameSuccessfully() {
+		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.resolve(MoreComplexPerson.class))
+				.isEqualTo("prefix-more-complex-person-suffix");
+		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.resolve(Person.class))
+				.isEqualTo("prefix-person-suffix");
+	}
+
+	@Test
 	void resolvesTableNameFromRecord() {
 		assertThat(tableNameResolver.resolve(PersonRecord.class)).isEqualTo("person_record");
 	}
@@ -65,6 +76,12 @@ class DynamoDbTableNameResolverTest {
 	@Test
 	void resolvesPrefixedTableNameFromRecord() {
 		assertThat(prefixedTableNameResolver.resolve(PersonRecord.class)).isEqualTo("my_prefix_person_record");
+	}
+
+	@Test
+	void resolvePrefixedAndSuffixedAndSeparatorTableNameFromRecord() {
+		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.resolve(PersonRecord.class))
+				.isEqualTo("prefix-person-record-suffix");
 	}
 
 	record PersonRecord(String name) {

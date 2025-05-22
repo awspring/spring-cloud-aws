@@ -80,17 +80,16 @@ class AsyncMessagingMessageListenerAdapterTests {
 		MessageHeaders headers = new MessageHeaders(null);
 		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
 		Message<Object> message = mock(Message.class);
-		Error error = new Error(
-			"Expected exception from shouldReturnFailedFutureOnThrownError");
+		Error error = new Error("Expected exception from shouldReturnFailedFutureOnThrownError");
 		given(message.getHeaders()).willReturn(headers);
 		given(handlerMethod.invoke(message)).willThrow(error);
 		AsyncMessageListener<Object> adapter = new AsyncMessagingMessageListenerAdapter<>(handlerMethod);
 		CompletableFuture<Void> result = adapter.onMessage(message);
 		assertThat(result).isCompletedExceptionally();
 		assertThatThrownBy(result::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
-			.isInstanceOf(ListenerExecutionFailedException.class)
-			.asInstanceOf(type(ListenerExecutionFailedException.class))
-			.extracting(ListenerExecutionFailedException::getFailedMessage).isEqualTo(message);
+				.isInstanceOf(ListenerExecutionFailedException.class)
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessage).isEqualTo(message);
 	}
 
 	@Test
@@ -122,9 +121,9 @@ class AsyncMessagingMessageListenerAdapterTests {
 		CompletableFuture<Void> result = adapter.onMessage(message);
 		assertThat(result).isCompletedExceptionally();
 		assertThatThrownBy(result::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
-			.isInstanceOf(ListenerExecutionFailedException.class)
-			.asInstanceOf(type(ListenerExecutionFailedException.class))
-			.extracting(ListenerExecutionFailedException::getFailedMessage).isEqualTo(message);
+				.isInstanceOf(ListenerExecutionFailedException.class)
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessage).isEqualTo(message);
 	}
 
 	@Test
@@ -192,8 +191,7 @@ class AsyncMessagingMessageListenerAdapterTests {
 		List<Message<Object>> messages = Arrays.asList(message1, message2, message3);
 		MessageHeaders headers = new MessageHeaders(null);
 		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
-		Error error = new Error(
-			"Expected exception from shouldReturnFailedFutureOnErrorBatch");
+		Error error = new Error("Expected exception from shouldReturnFailedFutureOnErrorBatch");
 		given(message1.getHeaders()).willReturn(headers);
 		given(message2.getHeaders()).willReturn(headers);
 		given(message3.getHeaders()).willReturn(headers);
@@ -202,9 +200,9 @@ class AsyncMessagingMessageListenerAdapterTests {
 		CompletableFuture<Void> result = adapter.onMessage(messages);
 		assertThat(result).isCompletedExceptionally();
 		assertThatThrownBy(result::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
-			.isInstanceOf(ListenerExecutionFailedException.class)
-			.asInstanceOf(type(ListenerExecutionFailedException.class))
-			.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(messages);
+				.isInstanceOf(ListenerExecutionFailedException.class)
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(messages);
 	}
 
 	@Test
@@ -246,9 +244,9 @@ class AsyncMessagingMessageListenerAdapterTests {
 		CompletableFuture<Void> result = adapter.onMessage(messages);
 		assertThat(result).isCompletedExceptionally();
 		assertThatThrownBy(result::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
-			.isInstanceOf(ListenerExecutionFailedException.class)
-			.asInstanceOf(type(ListenerExecutionFailedException.class))
-			.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(messages);
+				.isInstanceOf(ListenerExecutionFailedException.class)
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(messages);
 	}
 
 	@Test

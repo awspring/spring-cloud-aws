@@ -47,6 +47,12 @@ public class DynamoDbProperties extends AwsClientProperties {
 	private String tableSuffix;
 
 	/**
+	 * The word separator used to resolve table names.
+	 */
+	@Nullable
+	private String tableSeparator;
+
+	/**
 	 * Properties that are used to configure {@link software.amazon.dax.ClusterDaxClient}.
 	 */
 	@NestedConfigurationProperty
@@ -60,12 +66,20 @@ public class DynamoDbProperties extends AwsClientProperties {
 		return tableSuffix;
 	}
 
+	public String getTableSeparator() {
+		return tableSeparator;
+	}
+
 	public void setTablePrefix(String tablePrefix) {
 		this.tablePrefix = tablePrefix;
 	}
 
 	public void setTableSuffix(String tableSuffix) {
 		this.tableSuffix = tableSuffix;
+	}
+
+	public void setTableSeparator(String tableSeparator) {
+		this.tableSeparator = tableSeparator;
 	}
 
 	public DaxProperties getDax() {

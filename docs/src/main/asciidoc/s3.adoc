@@ -211,7 +211,7 @@ public class MyAesProvider implements S3AesProvider {
 ----
 
 
-==== S3 Output Stream
+=== S3 Output Stream
 
 Under the hood by default `S3Resource` uses a `io.awspring.cloud.s3.InMemoryBufferingS3OutputStream`. When data is written to the resource, is gets sent to S3 using multipart upload.
 If a network error occurs during upload, `S3Client` has a built-in retry mechanism that will retry each failed part. If the upload fails after retries, multipart upload gets aborted and `S3Resource` throws `io.awspring.cloud.s3.S3Exception`.
@@ -231,7 +231,7 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
 
 If you are using the `S3TransferManager`, the default implementation will switch to `io.awspring.cloud.s3.TransferManagerS3OutputStream`. This OutputStream also uses a temporary file to write it on disk before uploading it to S3, but it may be faster as it uses a multi-part upload under the hood.
 
-==== Searching resources
+=== Searching resources
 
 The Spring resource loader also supports collecting resources based on an Ant-style path specification. Spring Cloud AWS
 offers the same support to resolve resources within a bucket and even throughout buckets. The actual resource loader needs

@@ -116,6 +116,11 @@ public class S3AutoConfiguration {
 		else if (awsProperties.getEndpoint() != null) {
 			builder.endpointOverride(awsProperties.getEndpoint());
 		}
+		connectionDetails.ifAvailable(it -> {
+			if (it.getEndpoint() != null) {
+				builder.endpointOverride(it.getEndpoint());
+			}
+		});
 		Optional.ofNullable(awsProperties.getFipsEnabled()).ifPresent(builder::fipsEnabled);
 		Optional.ofNullable(awsProperties.getDualstackEnabled()).ifPresent(builder::dualstackEnabled);
 		return builder.build();
