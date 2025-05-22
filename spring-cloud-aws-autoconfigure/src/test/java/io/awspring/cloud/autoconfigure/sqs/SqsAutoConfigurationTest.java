@@ -38,6 +38,11 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
+import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
+import io.micrometer.common.KeyValues;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistry;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
@@ -124,6 +129,85 @@ class SqsAutoConfigurationTest {
 			assertThat(context).hasSingleBean(SqsTemplate.class);
 			assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
 			assertThat(sqsProperties.getQueueNotFoundStrategy()).isEqualTo(QueueNotFoundStrategy.FAIL);
+		});
+	}
+
+	@Test
+	void withObservationEnabled() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.observation-enabled=true")
+				.withUserConfiguration(TestObservationRegistryConfiguration.class).run(context -> {
+					assertThat(context).hasSingleBean(SqsProperties.class);
+					SqsProperties sqsProperties = context.getBean(SqsProperties.class);
+					assertThat(context).hasSingleBean(SqsAsyncClient.class);
+					assertThat(context).hasSingleBean(SqsTemplate.class);
+					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+					assertThat(context).hasSingleBean(TestObservationRegistry.class);
+					assertThat(sqsProperties.isObservationEnabled()).isTrue();
+
+					// Verify SqsTemplate has the observation registry configured
+					SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
+					assertThat(sqsTemplate).extracting("observationRegistry")
+							.isEqualTo(context.getBean(ObservationRegistry.class));
+
+					// Verify SqsMessageListenerContainerFactory has the observation registry configured
+					SqsMessageListenerContainerFactory<?> factory = context
+							.getBean(SqsMessageListenerContainerFactory.class);
+					assertThat(factory).extracting("containerOptionsBuilder")
+							.asInstanceOf(type(ContainerOptionsBuilder.class))
+							.extracting(ContainerOptionsBuilder::build).extracting("observationRegistry")
+							.isEqualTo(context.getBean(ObservationRegistry.class));
+				});
+	}
+
+	@Test
+	void withCustomObservationConventions() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.observation-enabled=true")
+				.withUserConfiguration(TestObservationRegistryConfiguration.class,
+						CustomObservationConventionConfiguration.class)
+				.run(context -> {
+					assertThat(context).hasSingleBean(SqsProperties.class);
+					assertThat(context).hasSingleBean(SqsTemplate.class);
+					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+					assertThat(context).hasSingleBean(TestObservationRegistry.class);
+					assertThat(context).hasSingleBean(SqsTemplateObservation.Convention.class);
+					assertThat(context).hasSingleBean(SqsListenerObservation.Convention.class);
+
+					// Verify SqsTemplate has the custom observation convention configured
+					SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
+					assertThat(sqsTemplate).extracting("customObservationConvention")
+							.isEqualTo(context.getBean(SqsTemplateObservation.Convention.class));
+
+					// Verify SqsMessageListenerContainerFactory has the custom observation convention configured
+					SqsMessageListenerContainerFactory<?> factory = context
+							.getBean(SqsMessageListenerContainerFactory.class);
+					assertThat(factory).extracting("containerOptionsBuilder")
+							.asInstanceOf(type(ContainerOptionsBuilder.class))
+							.extracting(ContainerOptionsBuilder::build).extracting("observationConvention")
+							.isEqualTo(context.getBean(SqsListenerObservation.Convention.class));
+				});
+	}
+
+	@Test
+	void withObservationDisabled() {
+		this.contextRunner.withUserConfiguration(TestObservationRegistryConfiguration.class).run(context -> {
+			assertThat(context).hasSingleBean(SqsProperties.class);
+			SqsProperties sqsProperties = context.getBean(SqsProperties.class);
+			assertThat(sqsProperties.isObservationEnabled()).isFalse();
+
+			// Verify SqsTemplate has the default NOOP observation registry
+			SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
+			assertThat(sqsTemplate).extracting("observationRegistry")
+					.isNotEqualTo(context.getBean(ObservationRegistry.class))
+					.asInstanceOf(type(ObservationRegistry.class)).extracting(ObservationRegistry::isNoop)
+					.isEqualTo(true);
+
+			// Verify SqsMessageListenerContainerFactory has the default NOOP observation registry
+			SqsMessageListenerContainerFactory<?> factory = context.getBean(SqsMessageListenerContainerFactory.class);
+			assertThat(factory).extracting("containerOptionsBuilder").asInstanceOf(type(ContainerOptionsBuilder.class))
+					.extracting(ContainerOptionsBuilder::build).extracting("observationRegistry")
+					.isNotEqualTo(context.getBean(ObservationRegistry.class))
+					.asInstanceOf(type(ObservationRegistry.class)).extracting(ObservationRegistry::isNoop)
+					.isEqualTo(true);
 		});
 	}
 
@@ -260,6 +344,40 @@ class SqsAutoConfigurationTest {
 			};
 		}
 
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class TestObservationRegistryConfiguration {
+
+		@Bean
+		TestObservationRegistry observationRegistry() {
+			return TestObservationRegistry.create();
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomObservationConventionConfiguration {
+
+		@Bean
+		SqsTemplateObservation.Convention customSqsTemplateObservationConvention() {
+			return new SqsTemplateObservation.DefaultConvention() {
+				@Override
+				protected KeyValues getCustomHighCardinalityKeyValues(SqsTemplateObservation.Context context) {
+					return KeyValues.of("payment.id", "test-payment-id");
+				}
+			};
+		}
+
+		@Bean
+		SqsListenerObservation.Convention customSqsListenerObservationConvention() {
+			return new SqsListenerObservation.DefaultConvention() {
+				@Override
+				protected KeyValues getCustomHighCardinalityKeyValues(SqsListenerObservation.Context context) {
+					return KeyValues.of("order.id", "test-order-id");
+				}
+			};
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)

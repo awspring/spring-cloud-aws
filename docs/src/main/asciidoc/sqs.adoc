@@ -219,6 +219,18 @@ Such attributes are available as `MessageHeaders` in received messages.
 #AUTO
 |Set the ContentBasedDeduplication queue attribute value of the queues the template is sending messages to.
 With `ContentBasedDeduplication#AUTO`, the queue attribute value will be resolved automatically.
+
+|`observationRegistry`
+|ObservationRegistry
+|ObservationRegistry.NOOP
+|Set the `ObservationRegistry` to be used for recording observations during message sending and receiving operations.
+See <<Observability Support>> for more information.
+
+|`observationConvention`
+|ObservationConvention
+|null
+|Sets a custom `ObservationConvention` to be used for customizing observation key-value pairs.
+See <<Observability Support>> for more information.
 |===
 
 [[sqs-send-message]]
@@ -819,6 +831,7 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 | <<pollTimeout, `spring.cloud.aws.sqs.listener.poll-timeout`>> | Maximum amount of time to wait for messages in a poll. | No | 10 seconds
 | <<maxDelayBetweenPolls, `spring.cloud.aws.sqs.listener.max-delay-between-polls`>> | Maximum amount of time to wait between polls. | No | 10 seconds
 | `spring.cloud.aws.sqs.queue-not-found-strategy`  | The strategy to be used by SqsTemplate and SqsListeners when a queue does not exist. | No | CREATE
+| `spring.cloud.aws.sqs.observation-enabled` | Enables observability support for SQS operations. | No | false
 |===
 
 
@@ -975,6 +988,18 @@ See <<Providing a TaskExecutor>>.
 For `FIFO` queues, visibility is extended for all messages in a message group before each message is processed.
 See <<FIFO Support>>.
 Otherwise, visibility is specified once when polling SQS.
+
+|`observationRegistry`
+|`ObservationRegistry`
+|`ObservationRegistry.NOOP`
+|Sets the `ObservationRegistry` to be used for recording observations during message processing.
+See <<Observability Support>>.
+
+|`observationConvention`
+|`ObservationConvention`
+|`null`
+|Sets a custom `ObservationConvention` to be used for customizing observation key-value pairs.
+See <<Observability Support>>.
 
 |`queueNotFoundStrategy`
 |`FAIL`, `CREATE`
@@ -1802,6 +1827,152 @@ There can be multiple `SqsAsyncClientCustomizer` beans present in single applica
 
 Note that `SqsAsyncClientCustomizer` beans are applied **after** `AwsAsyncClientCustomizer` beans and therefore can overwrite previously set configurations.
 
+
+=== Observability Support
+
+Spring Cloud AWS SQS supports observability through Micrometer's Observation API. This integration provides the ability to monitor and trace SQS operations throughout your application.
+
+==== Enabling Observability
+
+Observability can be enabled in a Spring Boot application by:
+
+1. Setting the `spring.cloud.aws.sqs.observation-enabled` property to `true`
+2. Having a `ObservationRegistry` bean in your application context
+
+When using direct SQS component configuration, observability can be enabled by:
+
+1. Setting an `ObservationRegistry` in the container options or template options
+2. Optionally providing a custom `ObservationConvention` to customize the key-value pairs
+
+```java
+@Bean
+SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObservationRegistry observationRegistry) {
+    return SqsTemplate.builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .configure(options -> options.observationRegistry(observationRegistry))
+            .build();
+}
+
+@Bean
+SqsMessageListenerContainerFactory<Object> sqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient, ObservationRegistry observationRegistry) {
+    return SqsMessageListenerContainerFactory.builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .configure(options -> options.observationRegistry(observationRegistry))
+            .build();
+}
+```
+
+==== Available Observations
+
+Spring Cloud AWS SQS provides the following observations:
+
+1. `spring.aws.sqs.template` - Records SQS operations performed through the `SqsTemplate`
+2. `spring.aws.sqs.listener` - Records message processing through the `SqsMessageListenerContainer`
+
+Both observations include the following common tags:
+
+Low cardinality tags:
+- `messaging.system`: "sqs"
+- `messaging.operation`: "publish" (template) or "receive" (listener)
+- `messaging.destination.name` or `messaging.source.name`: The queue name
+- `messaging.destination.kind` or `messaging.source.kind`: "queue"
+
+High cardinality tags:
+- `messaging.message.id`: The SQS message ID from AWS.
+
+For FIFO queues, the following additional high cardinality tags are included:
+- `messaging.message.message-group.id`: The message group ID
+- `messaging.message.message-deduplication.id`: The message deduplication ID
+
+==== Customizing Observations
+
+Custom observation conventions can be provided to add custom tags or replace the default ones with custom ones.
+
+===== Adding Custom Tags
+
+To add custom tags while preserving all default tags, the `DefaultConvention` classes can be extended and the `getCustomLowCardinalityKeyValues` and / or getCustomHighCardinalityKeyValues method overridden:
+
+```java
+@Bean
+SqsTemplateObservation.Convention sqsTemplateObservationConvention() {
+    return new SqsTemplateObservation.DefaultConvention() {
+        @Override
+        protected KeyValues getCustomHighCardinalityKeyValues(SqsTemplateObservation.Context context) {
+            String paymentId = MessageHeaderUtils.getHeaderAsString(context.getMessage(), "payment-id-header-name");
+            return KeyValues.of("payment.id", paymentId);
+        }
+    };
+}
+```
+
+===== Replacing Default Tags
+
+For complete control over the observation tags, the `Convention` interfaces can be implemented directly:
+
+```java
+@Bean
+SqsListenerObservation.Convention sqsListenerObservationConvention() {
+    return new SqsListenerObservation.Convention() {
+
+        @Override
+        public KeyValues getLowCardinalityKeyValues(SqsListenerObservation.Context context) {
+            return KeyValues.of("messaging.system", "sqs")
+                   .and("messaging.operation", "receive")
+                   .and("custom.tag", "custom-value");
+        }
+        
+        @Override
+        public KeyValues getHighCardinalityKeyValues(SqsListenerObservation.Context context) {
+            String paymentId = MessageHeaderUtils.getHeaderAsString(context.getMessage(), "payment-id-header-name");
+            return KeyValues.of("payment.id", paymentId);
+        }
+    };
+}
+```
+
+Custom convention beans defined in the application context will be automatically wired by Spring Boot auto-configuration. For manual configuration:
+
+```java
+@Bean
+SqsTemplate sqsTemplateWithCustomConvention(SqsAsyncClient sqsAsyncClient, 
+                                          ObservationRegistry observationRegistry,
+                                          SqsTemplateObservation.Convention convention) {
+    return SqsTemplate.builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .configure(options -> options
+                .observationRegistry(observationRegistry)
+                .observationConvention(convention))
+            .build();
+}
+```
+
+==== Context Propagation
+
+For regular blocking components such as message listeners, interceptors, and error handlers, observation scopes are automatically managed, and no further action is required.
+
+Remote baggage propagation is supported through the "baggage" message header.
+
+For asynchronous variants of these components, the observation context is not automatically propagated between threads.
+However, the Observation object is injected in the message headers under the key `ObservationThreadLocalAccessor.KEY`.
+A scope can be manually opened in the new thread with the following approach:
+
+```java
+// Set up the context registry with the appropriate accessors
+ContextRegistry registry = new ContextRegistry();
+registry.registerContextAccessor(new MessageHeaderContextAccessor());
+registry.registerThreadLocalAccessor(new ObservationThreadLocalAccessor());
+
+// Create a scope and ensure it's closed when done
+try (Scope scope = ContextSnapshotFactory.builder()
+        .contextRegistry(registry)
+        .build()
+        .captureFrom(message.getHeaders())
+        .setThreadLocals()) {
+    // Your logic here - the observation context is now available in this thread
+}
+```
+
+IMPORTANT: The scope should be closed in the same thread where it was opened to prevent thread local leakage.
 
 === IAM Permissions
 Following IAM permissions are required by Spring Cloud AWS SQS:
