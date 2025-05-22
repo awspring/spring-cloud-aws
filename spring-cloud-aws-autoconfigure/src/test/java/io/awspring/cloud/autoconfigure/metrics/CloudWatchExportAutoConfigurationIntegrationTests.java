@@ -18,14 +18,16 @@ package io.awspring.cloud.autoconfigure.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import io.awspring.cloud.autoconfigure.imds.ImdsAutoConfiguration;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -98,7 +100,8 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 		}
 	}
 
-	@SpringBootApplication
+	@SpringBootConfiguration
+	@EnableAutoConfiguration(exclude = ImdsAutoConfiguration.class)
 	@AutoConfigureObservability(tracing = false)
 	static class Application {
 

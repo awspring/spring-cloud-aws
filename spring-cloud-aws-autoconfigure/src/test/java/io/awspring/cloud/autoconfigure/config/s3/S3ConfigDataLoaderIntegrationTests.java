@@ -16,12 +16,14 @@
 package io.awspring.cloud.autoconfigure.config.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
+import io.awspring.cloud.autoconfigure.imds.ImdsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.S3ClientCustomizer;
 import java.io.IOException;
 import java.time.Duration;
@@ -31,9 +33,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.BootstrapRegistry;
 import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -229,8 +231,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 		}
 	}
 
-	@SpringBootApplication
-	@EnableAutoConfiguration
+	@SpringBootConfiguration
+	@EnableAutoConfiguration(exclude = ImdsAutoConfiguration.class)
 	static class App {
 
 	}

@@ -24,6 +24,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
+import io.awspring.cloud.autoconfigure.imds.ImdsAutoConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -491,7 +492,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	@SpringBootConfiguration
-	@EnableAutoConfiguration
+	@EnableAutoConfiguration(exclude = ImdsAutoConfiguration.class)
 	static class App {
 	}
 
