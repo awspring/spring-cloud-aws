@@ -52,7 +52,7 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 	}
 
 	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix,
-											@Nullable String tableSeparator) {
+			@Nullable String tableSeparator) {
 		this.tablePrefix = tablePrefix;
 		this.tableSuffix = tableSuffix;
 		this.tableSeparator = tableSeparator;
@@ -66,9 +66,9 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 		String suffix = StringUtils.hasText(tableSuffix) ? tableSuffix : "";
 		String separator = StringUtils.hasText(tableSeparator) ? tableSeparator : "_";
 
-		return prefix
-			.concat(clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1" + separator + "$2").toLowerCase(Locale.ROOT))
-			.concat(suffix);
+		return prefix.concat(
+				clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1" + separator + "$2").toLowerCase(Locale.ROOT))
+				.concat(suffix);
 	}
 
 }

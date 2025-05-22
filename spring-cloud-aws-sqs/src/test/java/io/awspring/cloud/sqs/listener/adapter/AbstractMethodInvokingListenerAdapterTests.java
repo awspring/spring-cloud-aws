@@ -80,11 +80,11 @@ class AbstractMethodInvokingListenerAdapterTests {
 		Error error = new Error("Expected exception from shouldWrapError");
 		when(handlerMethod.invoke(message)).thenThrow(error);
 		AbstractMethodInvokingListenerAdapter<Object> adapter = new AbstractMethodInvokingListenerAdapter<Object>(
-			handlerMethod) {
+				handlerMethod) {
 		};
 		assertThatThrownBy(() -> adapter.invokeHandler(message)).isInstanceOf(ListenerExecutionFailedException.class)
-			.asInstanceOf(type(ListenerExecutionFailedException.class))
-			.extracting(ListenerExecutionFailedException::getFailedMessage).isEqualTo(message);
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessage).isEqualTo(message);
 	}
 
 	@Test
@@ -144,11 +144,11 @@ class AbstractMethodInvokingListenerAdapterTests {
 		Error error = new Error("Expected exception from shouldWrapErrorBatch");
 		when(handlerMethod.invoke(any(Message.class))).thenThrow(error);
 		AbstractMethodInvokingListenerAdapter<Object> adapter = new AbstractMethodInvokingListenerAdapter<Object>(
-			handlerMethod) {
+				handlerMethod) {
 		};
 		assertThatThrownBy(() -> adapter.invokeHandler(batch)).isInstanceOf(ListenerExecutionFailedException.class)
-			.asInstanceOf(type(ListenerExecutionFailedException.class))
-			.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(batch);
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(batch);
 	}
 
 }
