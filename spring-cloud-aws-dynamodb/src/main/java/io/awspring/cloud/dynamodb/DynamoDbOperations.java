@@ -17,9 +17,12 @@ package io.awspring.cloud.dynamodb;
 
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 
 /**
  * Interface for simple DynamoDB template operations.
@@ -38,12 +41,34 @@ public interface DynamoDbOperations {
 	<T> T save(T entity);
 
 	/**
+	 * Saves an item in DynamoDB using the provided PutItemEnhancedRequest.
+	 *
+	 * @param putItemEnhancedRequest the request object containing the item to be saved
+	 * @param clazz the class type of the item to be saved so
+	 *     {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
+	 * 
+	 * @see PutItemEnhancedRequest
+	 */
+	<T> void save(PutItemEnhancedRequest<T> putItemEnhancedRequest, Class<T> clazz);
+
+	/**
 	 * Updates Entity to DynamoDB table.
 	 *
 	 * @param entity - Entity to be saved.
 	 * @param <T> Type of Entity object.
 	 */
 	<T> T update(T entity);
+
+	/**
+	 * Updates an item in DynamoDB using the provided UpdateItemEnhancedRequest.
+	 *
+	 * @param updateItemEnhancedRequest the request object containing the item to be updated
+	 * @param clazz the class type of the item to be updated so
+	 *     {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
+	 * 
+	 * @see UpdateItemEnhancedRequest
+	 */
+	<T> T update(UpdateItemEnhancedRequest<T> updateItemEnhancedRequest, Class<T> clazz);
 
 	/**
 	 * Deletes a record for a given Key.
@@ -60,6 +85,17 @@ public interface DynamoDbOperations {
 	 * @param entity Entity object for deletion.
 	 */
 	<T> T delete(T entity);
+
+	/**
+	 * Deletes a record for a given DeleteItemEnhancedRequest.
+	 *
+	 * @param deleteItemEnhancedRequest the request object containing the item to be deleted
+	 * @param clazz the class type of the item to be deleted so
+	 *     {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
+	 * 
+	 * @see DeleteItemEnhancedRequest
+	 */
+	<T> T delete(DeleteItemEnhancedRequest deleteItemEnhancedRequest, Class<T> clazz);
 
 	/**
 	 * Loads entity for a given Key.
