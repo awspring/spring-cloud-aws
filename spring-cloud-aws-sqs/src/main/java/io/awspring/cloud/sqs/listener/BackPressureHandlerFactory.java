@@ -169,8 +169,7 @@ public interface BackPressureHandlerFactory {
 	 * @return the created ThroughputBackPressureHandler.
 	 */
 	static ThroughputBackPressureHandler throughputBackPressureHandler(ContainerOptions<?, ?> options) {
-		return ThroughputBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
-				.totalPermits(options.getMaxConcurrentMessages()).build();
+		return ThroughputBackPressureHandler.builder().build();
 	}
 
 	/**
