@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * @see PollingMessageSource
  */
 public class ConcurrencyLimiterBlockingBackPressureHandler
-		implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
+		implements BlockingBackPressureHandler, BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConcurrencyLimiterBlockingBackPressureHandler.class);
 
