@@ -61,7 +61,7 @@ class AbstractPollingMessageSourceTests {
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 				.maxDelayBetweenPolls(Duration.ofMillis(200)).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactory
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
 				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
 
 		ExecutorService threadPool = Executors.newCachedThreadPool();
@@ -119,7 +119,7 @@ class AbstractPollingMessageSourceTests {
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 				.maxDelayBetweenPolls(Duration.ofMillis(150)).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactory
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
 				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
 
 		ExecutorService threadPool = Executors.newCachedThreadPool();
@@ -205,7 +205,7 @@ class AbstractPollingMessageSourceTests {
 		String testName = "shouldAcquireAndReleasePartialPermits";
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofMillis(150)).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactory
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
 				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(200L));
 
 		ExecutorService threadPool = Executors
@@ -296,7 +296,7 @@ class AbstractPollingMessageSourceTests {
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 				.maxDelayBetweenPolls(Duration.ofMillis(150)).messageConverter(converter).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactory
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
 				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
 
 		AtomicInteger messagesInSink = new AtomicInteger(0);
@@ -349,7 +349,7 @@ class AbstractPollingMessageSourceTests {
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(40)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 				.maxDelayBetweenPolls(Duration.ofMillis(200)).pollBackOffPolicy(policy).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactory
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
 				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
 
 		var currentPoll = new AtomicInteger(0);

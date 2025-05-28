@@ -132,9 +132,9 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 						options -> options.maxMessagesPerPoll(5).maxConcurrentMessages(5)
 								.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofSeconds(1))
 								.pollTimeout(Duration.ofSeconds(1))
-								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactory
+								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactories
 										.compositeBackPressureHandler(containerOptions, Duration.ofMillis(50L),
-												List.of(limiter, BackPressureHandlerFactory
+												List.of(limiter, BackPressureHandlerFactories
 														.concurrencyLimiterBackPressureHandler(containerOptions)))))
 				.messageListener(msg -> {
 					int concurrentRqs = concurrentRequest.incrementAndGet();
@@ -170,9 +170,9 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 						options -> options.maxMessagesPerPoll(5).maxConcurrentMessages(5)
 								.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofSeconds(1))
 								.pollTimeout(Duration.ofSeconds(1))
-								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactory
+								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactories
 										.compositeBackPressureHandler(containerOptions, Duration.ofMillis(50L),
-												List.of(limiter, BackPressureHandlerFactory
+												List.of(limiter, BackPressureHandlerFactories
 														.concurrencyLimiterBackPressureHandler(containerOptions)))))
 				.messageListener(msg -> {
 					int concurrentRqs = concurrentRequest.incrementAndGet();
@@ -214,9 +214,9 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 						options -> options.maxMessagesPerPoll(5).maxConcurrentMessages(5)
 								.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofSeconds(1))
 								.pollTimeout(Duration.ofSeconds(1))
-								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactory
+								.backPressureHandlerFactory(containerOptions -> BackPressureHandlerFactories
 										.compositeBackPressureHandler(containerOptions, Duration.ofMillis(50L),
-												List.of(limiter, BackPressureHandlerFactory
+												List.of(limiter, BackPressureHandlerFactories
 														.concurrencyLimiterBackPressureHandler(containerOptions)))))
 				.messageListener(msg -> {
 					try {
@@ -441,9 +441,9 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 								.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofSeconds(1))
 								.pollTimeout(Duration.ofSeconds(1))
 								.backPressureHandlerFactory(containerOptions -> new StatisticsBphDecorator(
-										BackPressureHandlerFactory.compositeBackPressureHandler(containerOptions,
+										BackPressureHandlerFactories.compositeBackPressureHandler(containerOptions,
 												Duration.ofMillis(50L),
-												List.of(limiter, BackPressureHandlerFactory
+												List.of(limiter, BackPressureHandlerFactories
 														.concurrencyLimiterBackPressureHandler(containerOptions))),
 										eventsCsvWriter)))
 				.messageListener(msg -> {
