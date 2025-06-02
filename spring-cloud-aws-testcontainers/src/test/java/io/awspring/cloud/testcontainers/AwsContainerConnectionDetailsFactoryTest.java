@@ -56,7 +56,7 @@ class AwsContainerConnectionDetailsFactoryTest {
 	@Container
 	@ServiceConnection
 	static final LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.8.1"));
+			DockerImageName.parse("localstack/localstack:4.4.0"));
 
 	@Autowired(required = false)
 	private AwsConnectionDetails connectionDetails;
