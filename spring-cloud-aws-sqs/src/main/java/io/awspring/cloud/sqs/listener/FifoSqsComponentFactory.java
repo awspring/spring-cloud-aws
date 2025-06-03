@@ -22,9 +22,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.ImmediateAcknowledgementProcessor;
-import io.awspring.cloud.sqs.listener.sink.BatchMessageSink;
-import io.awspring.cloud.sqs.listener.sink.MessageSink;
-import io.awspring.cloud.sqs.listener.sink.OrderedMessageSink;
+import io.awspring.cloud.sqs.listener.sink.*;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageGroupingSinkAdapter;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityExtendingSinkAdapter;
 import io.awspring.cloud.sqs.listener.source.FifoSqsMessageSource;
@@ -32,6 +30,9 @@ import io.awspring.cloud.sqs.listener.source.MessageSource;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.function.Function;
+
+import io.awspring.cloud.sqs.support.filter.DefaultMessageFilter;
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -69,7 +70,7 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 
 	@Override
 	public MessageSink<T> createMessageSink(SqsContainerOptions options) {
-		MessageSink<T> deliverySink = createDeliverySink(options.getListenerMode());
+		MessageSink<T> deliverySink = createDeliverySink(options.getListenerMode(), options);
 		MessageSink<T> wrappedDeliverySink = maybeWrapWithVisibilityAdapter(deliverySink,
 				options.getMessageVisibility());
 		return maybeWrapWithMessageGroupingAdapter(options, wrappedDeliverySink);
@@ -84,10 +85,11 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 	}
 
 	// @formatter:off
-	private MessageSink<T> createDeliverySink(ListenerMode listenerMode) {
+	private MessageSink<T> createDeliverySink(ListenerMode listenerMode, SqsContainerOptions options) {
+		MessageFilter<T> filter = (MessageFilter<T>) options.getMessageFilter();
 		return ListenerMode.SINGLE_MESSAGE.equals(listenerMode)
-			? new OrderedMessageSink<>()
-			: new BatchMessageSink<>();
+			? new FilteredOrderedMessageSink<>(filter)
+			: new FilteredBatchMessageSink<>(filter);
 	}
 
 	private MessageSink<T> maybeWrapWithVisibilityAdapter(MessageSink<T> deliverySink, @Nullable Duration messageVisibility) {

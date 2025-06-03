@@ -21,8 +21,6 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
-import io.awspring.cloud.sqs.support.filter.DefaultMessageFilter;
-import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
@@ -135,11 +133,7 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	@Override
 	public void setMessageListener(MessageListener<T> messageListener) {
 		Assert.notNull(messageListener, "messageListener cannot be null");
-		if (containerOptions.getMessageFilter() instanceof DefaultMessageFilter) {
-			this.messageListener = AsyncComponentAdapters.adapt(messageListener);
-		} else {
-			this.messageListener = AsyncComponentAdapters.adaptFilter(messageListener, (MessageFilter<T>) containerOptions.getMessageFilter());
-		}
+		this.messageListener = AsyncComponentAdapters.adapt(messageListener);
 	}
 
 	@Override

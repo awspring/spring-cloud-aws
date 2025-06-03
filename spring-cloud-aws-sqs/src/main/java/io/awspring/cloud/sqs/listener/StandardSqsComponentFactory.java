@@ -21,13 +21,14 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.ImmediateAcknowledgementProcessor;
-import io.awspring.cloud.sqs.listener.sink.BatchMessageSink;
-import io.awspring.cloud.sqs.listener.sink.FanOutMessageSink;
-import io.awspring.cloud.sqs.listener.sink.MessageSink;
+import io.awspring.cloud.sqs.listener.sink.*;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.StandardSqsMessageSource;
 import java.time.Duration;
 import java.util.Collection;
+
+import io.awspring.cloud.sqs.support.filter.DefaultMessageFilter;
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.springframework.util.Assert;
 
 /**
@@ -57,12 +58,12 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 	// @formatter:off
 	@Override
 	public MessageSink<T> createMessageSink(SqsContainerOptions options) {
+		MessageFilter<T> filter = (MessageFilter<T>) options.getMessageFilter();
 		return ListenerMode.SINGLE_MESSAGE.equals(options.getListenerMode())
-			? new FanOutMessageSink<>()
-			: new BatchMessageSink<>();
+				? new FilteredFanOutMessageSink<>(filter) : new FilteredBatchMessageSink<>(filter);
 	}
-	// @formatter:on
 
+	// @formatter:on
 	@Override
 	public AcknowledgementProcessor<T> createAcknowledgementProcessor(SqsContainerOptions options) {
 		validateAcknowledgementOrdering(options);
