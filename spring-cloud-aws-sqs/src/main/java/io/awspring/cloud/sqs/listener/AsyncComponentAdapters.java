@@ -23,7 +23,10 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
@@ -81,7 +84,6 @@ public class AsyncComponentAdapters {
 	/**
 	 * Adapt the provided {@link MessageListener} and {@link MessageFilter} into a single {@link AsyncMessageListener}
 	 * that only forwards messages passing the filter.
-	 *
 	 * @param messageListener the message listener to be adapted
 	 * @param messageFilter the filter used to evaluate incoming messages
 	 * @param <T> the message payload type
@@ -252,9 +254,12 @@ public class AsyncComponentAdapters {
 
 		@Override
 		public CompletableFuture<Void> onMessage(Collection<Message<T>> messages) {
-			Collection<Message<T>> filteredMessages = messages.stream()
-															  .filter(filter::process)
-															  .toList();
+			List<Message<T>> filteredMessages = new ArrayList<>();
+			for (Message<T> message : messages) {
+				if (filter.process(message)) {
+					filteredMessages.add(message);
+				}
+			}
 
 			if (filteredMessages.isEmpty()) {
 				return CompletableFuture.completedFuture(null);
