@@ -67,7 +67,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 	private static String BUCKET = "test-bucket";
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:1.4.0")).withServices(S3).withReuse(true);
+			DockerImageName.parse("localstack/localstack:4.4.0")).withServices(S3).withReuse(true);
 
 	@BeforeAll
 	static void beforeAll() {
