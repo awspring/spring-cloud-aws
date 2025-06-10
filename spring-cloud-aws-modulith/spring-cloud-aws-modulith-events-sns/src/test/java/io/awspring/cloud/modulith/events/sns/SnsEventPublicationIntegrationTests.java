@@ -17,6 +17,7 @@ package io.awspring.cloud.modulith.events.sns;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.*;
+import static org.springframework.modulith.events.EventExternalizationConfiguration.*;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.modulith.events.ApplicationModuleListener;
+import org.springframework.modulith.events.EventExternalizationConfiguration;
 import org.springframework.modulith.events.Externalized;
 import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,8 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
@@ -66,7 +70,7 @@ class SnsEventPublicationIntegrationTests {
 
 		@Bean
 		LocalStackContainer localStackContainer() {
-			return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.8.1"));
+			return new LocalStackContainer(DockerImageName.parse("localstack/localstack:4.4.0"));
 		}
 
 		@Bean
@@ -77,6 +81,13 @@ class SnsEventPublicationIntegrationTests {
 		@Bean
 		TestListener testListener() {
 			return new TestListener();
+		}
+
+		@Bean
+		EventExternalizationConfiguration eventExternalizationConfiguration() {
+
+			return externalizing().select(annotatedAsExternalized())
+					.headers(Object.class, __ -> Map.of("testKey", "testValue")).build();
 		}
 	}
 
@@ -91,15 +102,20 @@ class SnsEventPublicationIntegrationTests {
 				.getQueueAttributes(r -> r.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN)).join()
 				.attributes().get(QueueAttributeName.QUEUE_ARN);
 
-		snsClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueArn));
+		snsClient.subscribe(r -> r.attributes(Map.of("RawMessageDelivery", "true")).topicArn(topicArn).protocol("sqs")
+				.endpoint(queueArn));
 
 		publisher.publishEvent();
 
 		await().untilAsserted(() -> {
-
-			var response = sqsAsyncClient.receiveMessage(r -> r.queueUrl(queueUrl)).join();
+			var response = sqsAsyncClient.receiveMessage(r -> r.queueUrl(queueUrl).messageAttributeNames("testKey"))
+					.join();
 
 			assertThat(response.hasMessages()).isTrue();
+
+			// Assert header added
+			assertThat(response.messages()).extracting(Message::messageAttributes).extracting(it -> it.get("testKey"))
+					.extracting(MessageAttributeValue::stringValue).containsExactly("testValue");
 		});
 	}
 

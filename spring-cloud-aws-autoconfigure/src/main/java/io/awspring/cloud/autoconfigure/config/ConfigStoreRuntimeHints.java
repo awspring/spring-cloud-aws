@@ -52,12 +52,12 @@ public class ConfigStoreRuntimeHints implements RuntimeHintsRegistrar {
 
 		if (ClassUtils.isPresent("io.awspring.cloud.s3.S3PropertySource", classLoader)) {
 			hints.reflection().registerType(TypeReference.of(S3PropertySources.class),
-				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-					MemberCategory.INTROSPECT_DECLARED_METHODS, MemberCategory.DECLARED_FIELDS));
+					hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+							MemberCategory.INTROSPECT_DECLARED_METHODS, MemberCategory.DECLARED_FIELDS));
 
 			hints.reflection().registerType(TypeReference.of(S3PropertySource.class),
-				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-					MemberCategory.INTROSPECT_DECLARED_METHODS, MemberCategory.DECLARED_FIELDS));
+					hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+							MemberCategory.INTROSPECT_DECLARED_METHODS, MemberCategory.DECLARED_FIELDS));
 		}
 	}
 }

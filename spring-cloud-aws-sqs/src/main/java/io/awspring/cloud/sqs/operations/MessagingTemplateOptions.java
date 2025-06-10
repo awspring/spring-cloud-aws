@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.operations;
 
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.Map;
 
@@ -84,4 +85,11 @@ public interface MessagingTemplateOptions<O extends MessagingTemplateOptions<O>>
 	 */
 	O additionalHeadersForReceive(Map<String, Object> defaultAdditionalHeaders);
 
+	/**
+	 * Set the {@link ObservationRegistry} to be used with this template.
+	 *
+	 * @param observationRegistry the observation registry.
+	 * @return the options instance.
+	 */
+	O observationRegistry(ObservationRegistry observationRegistry);
 }

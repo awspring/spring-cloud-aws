@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.listener;
 
+import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
 import java.time.Duration;
 import java.util.Collection;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
@@ -73,5 +74,12 @@ public interface SqsContainerOptionsBuilder
 	 * @return this instance.
 	 */
 	SqsContainerOptionsBuilder queueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy);
+
+	/**
+	 * Set a custom SqsListenerObservation.Convention to be used in this container.
+	 * @param observationConvention the custom observation convention.
+	 * @return this instance.
+	 */
+	SqsContainerOptionsBuilder observationConvention(SqsListenerObservation.Convention observationConvention);
 
 }
