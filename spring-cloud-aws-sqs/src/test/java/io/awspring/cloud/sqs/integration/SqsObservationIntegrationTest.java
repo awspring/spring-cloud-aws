@@ -15,6 +15,9 @@
  */
 package io.awspring.cloud.sqs.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
@@ -36,6 +39,18 @@ import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccess
 import io.micrometer.observation.tck.ObservationContextAssert;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistryAssert;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,22 +66,6 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 /**
  * Integration tests for the SQS Observation API.
@@ -100,7 +99,7 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Autowired(required = false)
 	ReceivesChangedPayloadOnErrorListener receivesChangedPayloadOnErrorListener;
-	
+
 	@Autowired
 	TestObservationRegistry observationRegistry;
 
@@ -119,88 +118,69 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.receivesChangedMessageOnErrorLatch.await(20, TimeUnit.SECONDS)).isTrue();
 		assertThat(receivesChangedPayloadOnErrorListener.receivedMessages).containsExactly(CHANGED_PAYLOAD);
 		assertThat(latchContainer.receivesChangedMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		await()
-			.atMost(10, TimeUnit.SECONDS)
-			.untilAsserted(() ->
-				TestObservationRegistryAssert.then(observationRegistry)
+		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
 				.hasHandledContextsThatSatisfy(contexts -> {
 
 					assertThat(contexts).hasSizeGreaterThanOrEqualTo(8);
-					
+
 					Optional<Observation.Context> templateWithoutParent = contexts.stream()
-						.filter(ctx -> ctx.getName().equals("spring.aws.sqs.template") && ctx.getParentObservation() == null)
-						.findFirst();
+							.filter(ctx -> ctx.getName().equals("spring.aws.sqs.template")
+									&& ctx.getParentObservation() == null)
+							.findFirst();
 					assertThat(templateWithoutParent).isPresent();
-					ObservationContextAssert.then(templateWithoutParent.get())
-						.hasNameEqualTo("spring.aws.sqs.template")
-						.doesNotHaveParentObservation();
-					
+					ObservationContextAssert.then(templateWithoutParent.get()).hasNameEqualTo("spring.aws.sqs.template")
+							.doesNotHaveParentObservation();
+
 					Observation.Context listenerContext = getContextWithNameAndQueueName(contexts,
-							"spring.aws.sqs.listener",
-						SYNC_CONTEXT_PROPAGATION_QUEUE_NAME);
-					
-					ObservationContextAssert.then(listenerContext)
-						.hasNameEqualTo("spring.aws.sqs.listener")
-						.doesNotHaveParentObservation();
-					
+							"spring.aws.sqs.listener", SYNC_CONTEXT_PROPAGATION_QUEUE_NAME);
+
+					ObservationContextAssert.then(listenerContext).hasNameEqualTo("spring.aws.sqs.listener")
+							.doesNotHaveParentObservation();
+
 					List<String> childObservationNames = contexts.stream()
-						.filter(ctx -> ctx.getParentObservation() != null &&
-								ctx.getParentObservation().getContextView().getName().equals("spring.aws.sqs.listener"))
-						.peek(childCtx -> ObservationContextAssert.then(childCtx)
-								.hasParentObservationContextMatching(
-										parentCtx -> parentCtx.getName().equals("spring.aws.sqs.listener")))
-						.map(Observation.Context::getName)
-						.collect(Collectors.toList());
-					
-					List<String> expectedChildObservations = Arrays.asList(
-						"blockingInterceptor.intercept",
-						"listener.listen", 
-						"spring.aws.sqs.template", 
-						"errorHandler.handle", 
-						"interceptor1.afterProcessing", 
-						"interceptor2.afterProcessing"
-					);
-					
+							.filter(ctx -> ctx.getParentObservation() != null && ctx.getParentObservation()
+									.getContextView().getName().equals("spring.aws.sqs.listener"))
+							.peek(childCtx -> ObservationContextAssert.then(childCtx)
+									.hasParentObservationContextMatching(
+											parentCtx -> parentCtx.getName().equals("spring.aws.sqs.listener")))
+							.map(Observation.Context::getName).collect(Collectors.toList());
+
+					List<String> expectedChildObservations = Arrays.asList("blockingInterceptor.intercept",
+							"listener.listen", "spring.aws.sqs.template", "errorHandler.handle",
+							"interceptor1.afterProcessing", "interceptor2.afterProcessing");
+
 					assertThat(childObservationNames).containsAll(expectedChildObservations);
-				})
-			);
+				}));
 	}
-	
+
 	@Test
 	@DisplayName("Should propagate context in asynchronous listener with scope")
 	void shouldPropagateContextInAsyncListener() throws Exception {
 		// When
 		String payload = "test-async-context-propagation";
 		sqsTemplate.send(ASYNC_CONTEXT_PROPAGATION_QUEUE_NAME, payload);
-		
+
 		// Then
 		assertThat(latchContainer.asyncContextPropagationLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		
-		await()
-			.atMost(10, TimeUnit.SECONDS)
-			.untilAsserted(() ->
-				TestObservationRegistryAssert.then(observationRegistry)
-					.hasHandledContextsThatSatisfy(contexts -> {
 
-						assertThat(getContextWithNameAndQueueName(contexts,
-								"spring.aws.sqs.listener", 
-								ASYNC_CONTEXT_PROPAGATION_QUEUE_NAME)).isNotNull();
+		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
+				.hasHandledContextsThatSatisfy(contexts -> {
 
-						Optional<Observation.Context> childContext = contexts.stream()
-							.filter(ctx -> ctx.getName().equals("async.child.operation"))
-							.findFirst();
+					assertThat(getContextWithNameAndQueueName(contexts, "spring.aws.sqs.listener",
+							ASYNC_CONTEXT_PROPAGATION_QUEUE_NAME)).isNotNull();
 
-						assertThat(childContext).isPresent();
-						
-						// Verify the child has the correct parent
-						ObservationContextAssert.then(childContext.get())
-							.hasNameEqualTo("async.child.operation")
+					Optional<Observation.Context> childContext = contexts.stream()
+							.filter(ctx -> ctx.getName().equals("async.child.operation")).findFirst();
+
+					assertThat(childContext).isPresent();
+
+					// Verify the child has the correct parent
+					ObservationContextAssert.then(childContext.get()).hasNameEqualTo("async.child.operation")
 							.hasParentObservationContextMatching(
-								parentCtx -> parentCtx.getName().equals("spring.aws.sqs.listener") &&
-								parentCtx.getContextualName() != null &&
-								parentCtx.getContextualName().contains(ASYNC_CONTEXT_PROPAGATION_QUEUE_NAME));
-					})
-			);
+									parentCtx -> parentCtx.getName().equals("spring.aws.sqs.listener")
+											&& parentCtx.getContextualName() != null && parentCtx.getContextualName()
+													.contains(ASYNC_CONTEXT_PROPAGATION_QUEUE_NAME));
+				}));
 	}
 
 	static class ReceivesChangedPayloadOnErrorListener {
@@ -296,7 +276,7 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 			});
 		}
 	}
-	
+
 	static class AsyncContextPropagationListener {
 
 		@Autowired
@@ -311,24 +291,22 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 			ContextRegistry contextRegistry = new ContextRegistry();
 			contextRegistry.registerContextAccessor(new MessageHeaderContextAccessor());
 			contextRegistry.registerThreadLocalAccessor(new ObservationThreadLocalAccessor());
-			this.snapshotFactory = ContextSnapshotFactory.builder()
-				.contextRegistry(contextRegistry)
-				.build();
+			this.snapshotFactory = ContextSnapshotFactory.builder().contextRegistry(contextRegistry).build();
 		}
 
 		@SqsListener(queueNames = ASYNC_CONTEXT_PROPAGATION_QUEUE_NAME, id = "async-context-propagation", factory = "asyncSqsListenerContainerFactory")
 		CompletableFuture<Void> listen(Message<String> message) {
 			logger.debug("Received message in async listener: {}", message.getPayload());
 
-			try (ContextSnapshot.Scope scope = snapshotFactory
-					.captureFrom(message.getHeaders())
-					.setThreadLocals()) {
-				
-				Observation childObservation = Observation.createNotStarted("async.child.operation", observationRegistry);
-				childObservation.observe(() -> logger.debug("Executing task in child observation with propagated context"));
+			try (ContextSnapshot.Scope scope = snapshotFactory.captureFrom(message.getHeaders()).setThreadLocals()) {
+
+				Observation childObservation = Observation.createNotStarted("async.child.operation",
+						observationRegistry);
+				childObservation
+						.observe(() -> logger.debug("Executing task in child observation with propagated context"));
 				latchContainer.asyncContextPropagationLatch.countDown();
 			}
-			
+
 			return CompletableFuture.completedFuture(null);
 		}
 	}
@@ -356,7 +334,7 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 		final CountDownLatch receivesChangedMessageLatch = new CountDownLatch(1);
 
 		final CountDownLatch receivesChangedMessageOnErrorLatch = new CountDownLatch(3);
-		
+
 		final CountDownLatch asyncContextPropagationLatch = new CountDownLatch(1);
 
 	}
@@ -441,7 +419,7 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 		BlockingInterceptor blockingInterceptor() {
 			return new BlockingInterceptor();
 		}
-		
+
 		@Bean
 		AsyncContextPropagationListener asyncContextPropagationListener() {
 			return new AsyncContextPropagationListener();
@@ -453,14 +431,14 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 		return message != null && message.getPayload().equals(CHANGED_PAYLOAD)
 				&& MessageHeaderUtils.getId(message).equals(CHANGED_ID.toString());
 	}
-	
-	private Observation.Context getContextWithNameAndQueueName(List<Observation.Context> contexts, String name, String queueName) {
+
+	private Observation.Context getContextWithNameAndQueueName(List<Observation.Context> contexts, String name,
+			String queueName) {
 		return contexts.stream()
-				.filter(ctx -> ctx.getName().equals(name) && 
-					ctx.getContextualName() != null && 
-					ctx.getContextualName().contains(queueName))
-				.findFirst()
-				.orElseThrow(() -> new AssertionError("Could not find context with name " + name + " and queue " + queueName));
+				.filter(ctx -> ctx.getName().equals(name) && ctx.getContextualName() != null
+						&& ctx.getContextualName().contains(queueName))
+				.findFirst().orElseThrow(() -> new AssertionError(
+						"Could not find context with name " + name + " and queue " + queueName));
 	}
 
 }
