@@ -128,4 +128,26 @@ public class MessageHeaderUtils {
 		return new MessagingMessageHeaders(accessor.toMessageHeaders(), headers.getId(), headers.getTimestamp());
 	}
 
+	/**
+	 * Remove the provided header key from the {@link Message} if present. Note that a new {@link Message} instance will
+	 * be returned.
+	 *
+	 * @param message the message from which the header should be removed.
+	 * @param key the header key to be removed.
+	 * @return a new {@link Message} instance with the header removed.
+	 * @param <T> the message type.
+	 */
+	public static <T> Message<T> removeHeaderIfPresent(Message<T> message, String key) {
+		if (!message.getHeaders().containsKey(key)) {
+			return message;
+		}
+		MessageHeaderAccessor accessor = new MessageHeaderAccessor();
+		MessageHeaders headers = message.getHeaders();
+		accessor.copyHeaders(headers);
+		accessor.removeHeader(key);
+		MessagingMessageHeaders newHeaders = new MessagingMessageHeaders(accessor.toMessageHeaders(), headers.getId(),
+				headers.getTimestamp());
+		return new GenericMessage<>(message.getPayload(), newHeaders);
+	}
+
 }

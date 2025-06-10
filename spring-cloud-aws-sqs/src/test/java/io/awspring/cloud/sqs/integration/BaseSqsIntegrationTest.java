@@ -48,7 +48,7 @@ abstract class BaseSqsIntegrationTest {
 
 	protected static boolean waitForPurge = false;
 
-	private static final String LOCAL_STACK_VERSION = "localstack/localstack:3.8.1";
+	private static final String LOCAL_STACK_VERSION = "localstack/localstack:4.4.0";
 
 	static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse(LOCAL_STACK_VERSION));
 

@@ -70,7 +70,7 @@ class SnsEventPublicationIntegrationTests {
 
 		@Bean
 		LocalStackContainer localStackContainer() {
-			return new LocalStackContainer(DockerImageName.parse("localstack/localstack:3.8.1"));
+			return new LocalStackContainer(DockerImageName.parse("localstack/localstack:4.4.0"));
 		}
 
 		@Bean

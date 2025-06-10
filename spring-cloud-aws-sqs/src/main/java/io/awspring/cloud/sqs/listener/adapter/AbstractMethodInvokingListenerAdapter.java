@@ -55,8 +55,8 @@ public abstract class AbstractMethodInvokingListenerAdapter<T> {
 		try {
 			return this.handlerMethod.invoke(message);
 		}
-		catch (Exception e) {
-			throw createListenerException(message, e);
+		catch (Throwable t) {
+			throw createListenerException(message, t);
 		}
 	}
 
@@ -69,8 +69,8 @@ public abstract class AbstractMethodInvokingListenerAdapter<T> {
 		try {
 			return this.handlerMethod.invoke(MessageBuilder.withPayload(messages).build());
 		}
-		catch (Exception e) {
-			throw createListenerException(messages, e);
+		catch (Throwable t) {
+			throw createListenerException(messages, t);
 		}
 	}
 

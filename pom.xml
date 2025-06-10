@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>4.2.0</version>
+		<version>4.3.0</version>
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>3.3.1-SNAPSHOT</version>
+	<version>3.4.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 
@@ -140,7 +140,7 @@
 					</links>
 					<author>true</author>
 					<header>${project.name}</header>
-					<reportOutputDirectory>${project.build.directory}/site/${project.version}/apidocs</reportOutputDirectory>
+					<outputDirectory>${project.build.directory}/site/${project.version}/</outputDirectory>
 					<source>17</source>
 				</configuration>
 			</plugin>
