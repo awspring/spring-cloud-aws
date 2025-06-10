@@ -27,7 +27,8 @@ import org.slf4j.LoggerFactory;
  * <p>
  * <strong>Throughput modes</strong>
  * <ul>
- * <li>In low-throughput mode, a single batch can be requested at a time.</li>
+ * <li>In low-throughput mode, a single batch can be requested at a time. The number of permits that will be * delivered
+ * is the requested amount or 0 is a batch is already in-flight.</li>
  * <li>In high-throughput mode, multiple batches can be requested at a time. The number of permits that will be
  * delivered is the requested amount.</li>
  * </ul>
@@ -55,7 +56,7 @@ public class ThroughputBackPressureHandler implements BackPressureHandler, Ident
 
 	private String id = getClass().getSimpleName();
 
-	private ThroughputBackPressureHandler(Builder builder) {
+	private ThroughputBackPressureHandler() {
 		logger.debug("ThroughputBackPressureHandler created");
 	}
 
@@ -79,15 +80,16 @@ public class ThroughputBackPressureHandler implements BackPressureHandler, Ident
 			return 0;
 		}
 		CurrentThroughputMode throughputMode = this.currentThroughputMode.get();
-		if (throughputMode == CurrentThroughputMode.LOW && this.occupied.get()) {
-			logger.debug("[{}] No permits acquired because a batch already being processed in low throughput mode",
-					this.id);
-			return 0;
+		if (throughputMode == CurrentThroughputMode.LOW) {
+			if (this.occupied.get()) {
+				logger.debug("[{}] No permits acquired because a batch already being processed in low throughput mode",
+						this.id);
+				return 0;
+			}
+			this.occupied.set(true);
 		}
-		else {
-			logger.debug("[{}] Acquired {} permits ({} mode)", this.id, amount, throughputMode);
-			return amount;
-		}
+		logger.debug("[{}] Acquired {} permits ({} mode)", this.id, amount, throughputMode);
+		return amount;
 	}
 
 	@Override
@@ -97,8 +99,14 @@ public class ThroughputBackPressureHandler implements BackPressureHandler, Ident
 		}
 		logger.debug("[{}] Releasing {} permits ({})", this.id, amount, reason);
 		switch (reason) {
-		case NONE_FETCHED -> updateThroughputMode(CurrentThroughputMode.HIGH, CurrentThroughputMode.LOW);
-		case PARTIAL_FETCH -> updateThroughputMode(CurrentThroughputMode.LOW, CurrentThroughputMode.HIGH);
+		case NONE_FETCHED -> {
+			this.occupied.compareAndSet(true, false);
+			updateThroughputMode(CurrentThroughputMode.HIGH, CurrentThroughputMode.LOW);
+		}
+		case PARTIAL_FETCH -> {
+			this.occupied.compareAndSet(true, false);
+			updateThroughputMode(CurrentThroughputMode.LOW, CurrentThroughputMode.HIGH);
+		}
 		case LIMITED, PROCESSED -> {
 			// No need to switch throughput mode
 		}
@@ -129,7 +137,7 @@ public class ThroughputBackPressureHandler implements BackPressureHandler, Ident
 	public static class Builder {
 
 		public ThroughputBackPressureHandler build() {
-			return new ThroughputBackPressureHandler(this);
+			return new ThroughputBackPressureHandler();
 		}
 	}
 }

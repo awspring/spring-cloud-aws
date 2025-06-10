@@ -43,8 +43,8 @@ public interface BackPressureHandler {
 	 * <p>
 	 * This method can be called in the following use cases:
 	 * <ul>
-	 * <li>{@link ReleaseReason#LIMITED}: all/some permits were not used because another BackPressureHandler has a lower permits
-	 * limit and the difference in permits needs to be returned.</li>
+	 * <li>{@link ReleaseReason#LIMITED}: all/some permits were not used because another BackPressureHandler has a lower
+	 * permits limit and the difference in permits needs to be returned.</li>
 	 * <li>{@link ReleaseReason#NONE_FETCHED}: none of the permits were actually used because no messages were retrieved
 	 * from SQS. Permits need to be returned.</li>
 	 * <li>{@link ReleaseReason#PARTIAL_FETCH}: some of the permits were used (some messages were retrieved from SQS).
@@ -82,8 +82,8 @@ public interface BackPressureHandler {
 
 	enum ReleaseReason {
 		/**
-		 * All/Some permits were not used because another BackPressureHandler has a lower permits limit and the
-		 * permits difference need to be aligned across all handlers.
+		 * All/Some permits were not used because another BackPressureHandler has a lower permits limit and the permits
+		 * difference need to be aligned across all handlers.
 		 */
 		LIMITED,
 		/**

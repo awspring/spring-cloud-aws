@@ -18,9 +18,9 @@ package io.awspring.cloud.sqs.listener;
 /**
  * Factory interface for creating {@link BackPressureHandler} instances to manage queue consumption backpressure.
  * <p>
- * Implementations of this interface are responsible for producing a new {@link BackPressureHandler} for each
- * container, configured according to the provided {@link ContainerOptions}. This ensures that internal resources
- * (such as counters or semaphores) are not shared across containers, which could lead to unintended side effects.
+ * Implementations of this interface are responsible for producing a new {@link BackPressureHandler} for each container,
+ * configured according to the provided {@link ContainerOptions}. This ensures that internal resources (such as counters
+ * or semaphores) are not shared across containers, which could lead to unintended side effects.
  * <p>
  * Default factory implementations can be found in the {@link BackPressureHandlerFactories} class.
  */
