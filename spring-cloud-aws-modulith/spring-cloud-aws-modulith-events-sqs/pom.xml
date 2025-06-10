@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>io.awspring.cloud</groupId>
 		<artifactId>spring-cloud-aws-modulith</artifactId>
-		<version>3.4.0</version>
+		<version>3.4.1-SNAPSHOT</version>
 	</parent>
 
 	<name>Spring Cloud AWS Modulith - Events - SQS support</name>
