@@ -21,14 +21,13 @@ import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.micrometer.common.KeyValue;
 import io.micrometer.common.KeyValues;
 import io.micrometer.common.docs.KeyName;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Tests for {@link SqsListenerObservation}.
@@ -50,7 +49,7 @@ class SqsListenerObservationTest {
 	void shouldCreateContextWithQueueNameAndMessageId() {
 		// given
 		Message<String> message = MessageBuilder.withPayload("test-payload")
-			.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, queueName).build();
+				.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, queueName).build();
 
 		// when
 		SqsListenerObservation.Context context = sqsSpecifics.createContext(message);
@@ -68,10 +67,10 @@ class SqsListenerObservationTest {
 		String deduplicationId = "test-dedup-id";
 
 		Message<String> message = MessageBuilder.withPayload("test-payload")
-			.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, queueName)
-			.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, groupId)
-			.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, deduplicationId)
-			.build();
+				.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, queueName)
+				.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, groupId)
+				.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, deduplicationId)
+				.build();
 
 		// when
 		SqsListenerObservation.Context context = sqsSpecifics.createContext(message);
@@ -85,21 +84,21 @@ class SqsListenerObservationTest {
 		KeyValues highCardinalityKeys = convention.getHighCardinalityKeyValues(context);
 
 		assertThat(highCardinalityKeys.stream()
-			.anyMatch(keyValue -> keyValue.getKey().equals("messaging.message.message-group.id")
-				&& keyValue.getValue().equals(groupId)))
-			.isTrue();
+				.anyMatch(keyValue -> keyValue.getKey().equals("messaging.message.message-group.id")
+						&& keyValue.getValue().equals(groupId)))
+				.isTrue();
 
 		assertThat(highCardinalityKeys.stream()
-			.anyMatch(keyValue -> keyValue.getKey().equals("messaging.message.message-deduplication.id")
-				&& keyValue.getValue().equals(deduplicationId)))
-			.isTrue();
+				.anyMatch(keyValue -> keyValue.getKey().equals("messaging.message.message-deduplication.id")
+						&& keyValue.getValue().equals(deduplicationId)))
+				.isTrue();
 	}
 
 	@Test
 	void shouldReturnEmptyValuesForNonFifoQueue() {
 		// given
 		Message<String> message = MessageBuilder.withPayload("test-payload")
-			.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, queueName).build();
+				.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, queueName).build();
 
 		// when
 		SqsListenerObservation.Context context = sqsSpecifics.createContext(message);
@@ -135,11 +134,9 @@ class SqsListenerObservationTest {
 	void shouldSupportCustomKeyValues() {
 		// given
 		Message<String> message = MessageBuilder.withPayload("test-payload")
-			.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, queueName)
-			.setHeader("order-id", "12345")
-			.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, "abcd")
-			.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, "efgh")
-			.build();
+				.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, queueName).setHeader("order-id", "12345")
+				.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, "abcd")
+				.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, "efgh").build();
 
 		SqsListenerObservation.Context context = sqsSpecifics.createContext(message);
 
@@ -161,34 +158,32 @@ class SqsListenerObservationTest {
 
 		// Verify custom key is included
 		assertThat(highCardinalityKeys.stream()
-			.anyMatch(keyValue -> keyValue.getKey().equals("order.id")
-				&& keyValue.getValue().equals("12345")))
-			.isTrue();
+				.anyMatch(keyValue -> keyValue.getKey().equals("order.id") && keyValue.getValue().equals("12345")))
+				.isTrue();
 
 		// Verify it still includes default keys
-		Set<String> allHighCardinalityKeys = highCardinalityKeys.stream().map(KeyValue::getKey).collect(Collectors.toSet());
+		Set<String> allHighCardinalityKeys = highCardinalityKeys.stream().map(KeyValue::getKey)
+				.collect(Collectors.toSet());
 
-		assertThat(Arrays.stream(SqsListenerObservation.Documentation.HighCardinalityTags.values())
-			.map(KeyName::asString))
-			.allMatch(allHighCardinalityKeys::contains);
+		assertThat(
+				Arrays.stream(SqsListenerObservation.Documentation.HighCardinalityTags.values()).map(KeyName::asString))
+				.allMatch(allHighCardinalityKeys::contains);
 		assertThat(Arrays.stream(AbstractListenerObservation.Documentation.HighCardinalityTags.values())
-			.map(KeyName::asString))
-			.allMatch(allHighCardinalityKeys::contains);
+				.map(KeyName::asString)).allMatch(allHighCardinalityKeys::contains);
 
 		KeyValues lowCardinalityKeyValues = customConvention.getLowCardinalityKeyValues(context);
 
 		// Verify custom value is included
-		assertThat(lowCardinalityKeyValues.stream()
-				.anyMatch(keyValue -> keyValue.getKey().equals("order.type") 
-					&& keyValue.getValue().equals("custom order")))
+		assertThat(lowCardinalityKeyValues.stream().anyMatch(
+				keyValue -> keyValue.getKey().equals("order.type") && keyValue.getValue().equals("custom order")))
 				.isTrue();
 
 		// Verify it still includes default keys
-		Set<String> allLowCardinalityKeys = lowCardinalityKeyValues.stream().map(KeyValue::getKey).collect(Collectors.toSet());
+		Set<String> allLowCardinalityKeys = lowCardinalityKeyValues.stream().map(KeyValue::getKey)
+				.collect(Collectors.toSet());
 
 		assertThat(Arrays.stream(AbstractListenerObservation.Documentation.LowCardinalityTags.values())
-			.map(KeyName::asString))
-			.allMatch(allLowCardinalityKeys::contains);
+				.map(KeyName::asString)).allMatch(allLowCardinalityKeys::contains);
 
 	}
 }

@@ -50,8 +50,7 @@ public abstract class AbstractListenerObservation {
 									.withValue(context.getSourceName()),
 							AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SOURCE_KIND
 									.withValue(getSourceKind()))
-					.and(getSpecificLowCardinalityKeyValues(context))
-					.and(getCustomLowCardinalityKeyValues(context));
+					.and(getSpecificLowCardinalityKeyValues(context)).and(getCustomLowCardinalityKeyValues(context));
 		}
 
 		protected KeyValues getSpecificLowCardinalityKeyValues(ContextType context) {
@@ -59,8 +58,8 @@ public abstract class AbstractListenerObservation {
 		}
 
 		/**
-		 * Return custom low cardinality key values for the observation. This method is intended to 
-		 * be overridden by subclasses to add custom low cardinality tags to the observation.
+		 * Return custom low cardinality key values for the observation. This method is intended to be overridden by
+		 * subclasses to add custom low cardinality tags to the observation.
 		 * 
 		 * @param context the context for which to get key values.
 		 * @return key values to add to the observation, empty by default.
@@ -81,8 +80,8 @@ public abstract class AbstractListenerObservation {
 		}
 
 		/**
-		 * Return custom high cardinality key values for the observation. This method is intended to 
-		 * be overridden by subclasses to add custom high cardinality tags to the observation.
+		 * Return custom high cardinality key values for the observation. This method is intended to be overridden by
+		 * subclasses to add custom high cardinality tags to the observation.
 		 * 
 		 * @param context the context for which to get key values.
 		 * @return key values to add to the observation, empty by default.

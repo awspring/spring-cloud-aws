@@ -24,7 +24,6 @@ import io.micrometer.observation.docs.ObservationDocumentation;
 import io.micrometer.observation.transport.SenderContext;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -62,8 +61,8 @@ public abstract class AbstractTemplateObservation {
 		}
 
 		/**
-		 * Return custom low cardinality key values for the observation. This method is intended to 
-		 * be overridden by subclasses to add custom low cardinality tags to the observation.
+		 * Return custom low cardinality key values for the observation. This method is intended to be overridden by
+		 * subclasses to add custom low cardinality tags to the observation.
 		 * 
 		 * @param context the context for which to get key values.
 		 * @return key values to add to the observation, empty by default.
@@ -75,16 +74,14 @@ public abstract class AbstractTemplateObservation {
 		@Override
 		@NonNull
 		public KeyValues getHighCardinalityKeyValues(@NonNull ContextType context) {
-			return getMessageIdKeyValue(context)
-				.and(getSpecificHighCardinalityKeyValues(context))
-				.and(getCustomHighCardinalityKeyValues(context));
+			return getMessageIdKeyValue(context).and(getSpecificHighCardinalityKeyValues(context))
+					.and(getCustomHighCardinalityKeyValues(context));
 		}
 
 		private KeyValues getMessageIdKeyValue(ContextType context) {
 			String messageId = context.getMessageId();
-			return messageId != null ? KeyValues
-				.of(Documentation.HighCardinalityTags.MESSAGE_ID
-					.withValue(messageId)) : KeyValues.empty();
+			return messageId != null ? KeyValues.of(Documentation.HighCardinalityTags.MESSAGE_ID.withValue(messageId))
+					: KeyValues.empty();
 		}
 
 		protected KeyValues getSpecificHighCardinalityKeyValues(ContextType context) {
@@ -92,8 +89,8 @@ public abstract class AbstractTemplateObservation {
 		}
 
 		/**
-		 * Return custom high cardinality key values for the observation. This method is intended to 
-		 * be overridden by subclasses to add custom high cardinality tags to the observation.
+		 * Return custom high cardinality key values for the observation. This method is intended to be overridden by
+		 * subclasses to add custom high cardinality tags to the observation.
 		 * 
 		 * @param context the context for which to get key values.
 		 * @return key values to add to the observation, empty by default.
@@ -263,7 +260,8 @@ public abstract class AbstractTemplateObservation {
 		}
 
 		private static boolean isAllowedKey(String key) {
-			return BAGGAGE_KEY.equals(key) || TRACEPARENT_KEY.equals(key) || TRACESTATE_KEY.equals(key) || B3_KEY.equals(key);
+			return BAGGAGE_KEY.equals(key) || TRACEPARENT_KEY.equals(key) || TRACESTATE_KEY.equals(key)
+					|| B3_KEY.equals(key);
 		}
 
 		/**

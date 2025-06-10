@@ -28,6 +28,10 @@ import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
 import io.awspring.cloud.sqs.listener.sink.adapter.AbstractDelegatingMessageListeningSinkAdapter;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageGroupingSinkAdapter;
+import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationConvention;
+import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,11 +40,6 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
-
-import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
-import io.micrometer.observation.Observation;
-import io.micrometer.observation.ObservationConvention;
-import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -52,7 +51,7 @@ import org.springframework.messaging.support.MessageBuilder;
  *
  * @author Tomaz Fernandes
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 class MessageGroupingSinkTests {
 
 	@Test
@@ -87,7 +86,8 @@ class MessageGroupingSinkTests {
 				catch (InterruptedException e) {
 					throw new RuntimeException(e);
 				}
-				Message<Integer> messageWithoutObservation = MessageHeaderUtils.removeHeaderIfPresent(message, ObservationThreadLocalAccessor.KEY);
+				Message<Integer> messageWithoutObservation = MessageHeaderUtils.removeHeaderIfPresent(message,
+						ObservationThreadLocalAccessor.KEY);
 				received.add(messageWithoutObservation);
 				return CompletableFuture.completedFuture(messageWithoutObservation);
 			}
@@ -120,7 +120,5 @@ class MessageGroupingSinkTests {
 		given(documentation.start(any(), any(), any(), any())).willReturn(observation);
 		sink.setObservationSpecifics(specifics);
 	}
-
-
 
 }

@@ -268,11 +268,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER);
 		logger.debug("Sent message to queue {} with messageBody {}", OBSERVES_MESSAGE_FIFO_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.observesFifoMessageLatch.await(10, TimeUnit.MINUTES)).isTrue();
-		await()
-			.atMost(10, TimeUnit.SECONDS)
-			.untilAsserted(() ->
-				TestObservationRegistryAssert.then(observationRegistry).hasNumberOfObservationsEqualTo(3)
-				.hasHandledContextsThatSatisfy(contexts -> {
+		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
+				.hasNumberOfObservationsEqualTo(3).hasHandledContextsThatSatisfy(contexts -> {
 					ObservationContextAssert.then(contexts.get(0)).hasNameEqualTo("spring.aws.sqs.template")
 							.isInstanceOf(SqsTemplateObservation.Context.class)
 							.hasContextualNameEqualTo(OBSERVES_MESSAGE_FIFO_QUEUE_NAME + " send")
@@ -338,8 +335,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 					ObservationContextAssert.then(contexts.get(2)).hasNameEqualTo("listener.process")
 							.hasParentObservationContextMatching(
 									contextView -> contextView.getName().equals("spring.aws.sqs.listener"));
-				})
-			);
+				}));
 	}
 
 	@Test
@@ -730,20 +726,17 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
-		public SqsMessageListenerContainerFactory<String> observationSqsListenerContainerFactory(ObservationRegistry observationRegistry) {
+		public SqsMessageListenerContainerFactory<String> observationSqsListenerContainerFactory(
+				ObservationRegistry observationRegistry) {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
-			factory.configure(options -> options
-				.maxConcurrentMessages(10)
-				.acknowledgementThreshold(10)
-				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
-				.acknowledgementInterval(Duration.ofSeconds(1))
-				.observationRegistry(observationRegistry)
-			);
+			factory.configure(options -> options.maxConcurrentMessages(10).acknowledgementThreshold(10)
+					.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
+					.acknowledgementInterval(Duration.ofSeconds(1)).observationRegistry(observationRegistry));
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createHighThroughputAsyncClient);
 			return factory;
 		}
 
-			// @formatter:off
+		// @formatter:off
 		@Bean
 		public SqsMessageListenerContainerFactory<String> defaultSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();

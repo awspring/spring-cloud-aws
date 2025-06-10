@@ -74,7 +74,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -205,75 +204,80 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	void observesMessage() throws Exception {
 		String messageBody = "observesMessage-payload";
 		SendResult<Object> sendResult = sqsTemplate
-			.send(to -> to.queue(OBSERVES_MESSAGE_QUEUE_NAME).payload(messageBody));
+				.send(to -> to.queue(OBSERVES_MESSAGE_QUEUE_NAME).payload(messageBody));
 		logger.debug("Sent message to queue {} with messageBody {}", OBSERVES_MESSAGE_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.observesMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		await()
-			.atMost(10, TimeUnit.SECONDS)
-			.untilAsserted(() ->
-				TestObservationRegistryAssert.then(observationRegistry)
-					.hasHandledContextsThatSatisfy(contexts -> {
-						ObservationContextAssert.then(getContextWithContextualNameEqualTo(contexts, "observes_message_test_queue send"))
+		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
+				.hasHandledContextsThatSatisfy(contexts -> {
+					ObservationContextAssert
+							.then(getContextWithContextualNameEqualTo(contexts, "observes_message_test_queue send"))
 							.hasNameEqualTo("spring.aws.sqs.template")
 							.isInstanceOf(SqsTemplateObservation.Context.class)
 							.hasLowCardinalityKeyValue(
-								AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_OPERATION
-									.asString(),
-								"publish")
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_OPERATION
+											.asString(),
+									"publish")
 							.hasLowCardinalityKeyValue(
-								AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_DESTINATION_NAME
-									.asString(),
-								OBSERVES_MESSAGE_QUEUE_NAME)
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_DESTINATION_NAME
+											.asString(),
+									OBSERVES_MESSAGE_QUEUE_NAME)
 							.hasLowCardinalityKeyValue(
-								AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_DESTINATION_KIND
-									.asString(),
-								"queue")
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_DESTINATION_KIND
+											.asString(),
+									"queue")
 							.hasLowCardinalityKeyValue(
-								AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_SYSTEM
-									.asString(),
-								"sqs")
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_SYSTEM
+											.asString(),
+									"sqs")
 							.hasHighCardinalityKeyValue(
-								AbstractTemplateObservation.Documentation.HighCardinalityTags.MESSAGE_ID.asString(),
-								sendResult.messageId().toString())
+									AbstractTemplateObservation.Documentation.HighCardinalityTags.MESSAGE_ID.asString(),
+									sendResult.messageId().toString())
 							.doesNotHaveParentObservation();
-						ObservationContextAssert.then(getContextWithContextualNameEqualTo(contexts, "observes_message_test_queue receive"))
+					ObservationContextAssert
+							.then(getContextWithContextualNameEqualTo(contexts, "observes_message_test_queue receive"))
 							.hasNameEqualTo("spring.aws.sqs.listener")
 							.isInstanceOf(SqsListenerObservation.Context.class)
 							.hasLowCardinalityKeyValue(
-								AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_OPERATION
-									.asString(),
-								"receive")
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_OPERATION
+											.asString(),
+									"receive")
 							.hasLowCardinalityKeyValue(
-								AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SOURCE_NAME
-									.asString(),
-								"observes_message_test_queue")
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SOURCE_NAME
+											.asString(),
+									"observes_message_test_queue")
 							.hasLowCardinalityKeyValue(
-								AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SOURCE_KIND
-									.asString(),
-								"queue")
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SOURCE_KIND
+											.asString(),
+									"queue")
 							.hasLowCardinalityKeyValue(
-								AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SYSTEM
-									.asString(),
-								"sqs")
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SYSTEM
+											.asString(),
+									"sqs")
 							.hasHighCardinalityKeyValue(
-								AbstractListenerObservation.Documentation.HighCardinalityTags.MESSAGE_ID.asString(),
-								sendResult.messageId().toString())
+									AbstractListenerObservation.Documentation.HighCardinalityTags.MESSAGE_ID.asString(),
+									sendResult.messageId().toString())
 							.doesNotHaveHighCardinalityKeyValueWithKey(
-								SqsListenerObservation.Documentation.HighCardinalityTags.MESSAGE_GROUP_ID
-									.asString())
+									SqsListenerObservation.Documentation.HighCardinalityTags.MESSAGE_GROUP_ID
+											.asString())
 							.doesNotHaveParentObservation();
-						ObservationContextAssert.then(getContextWithName(contexts, "listener.process"))
+					ObservationContextAssert.then(getContextWithName(contexts, "listener.process"))
 							.hasParentObservationContextMatching(
-								contextView -> contextView.getName().equals("spring.aws.sqs.listener"));
-					}));
+									contextView -> contextView.getName().equals("spring.aws.sqs.listener"));
+				}));
 	}
 
 	private Observation.@NotNull Context getContextWithName(List<Observation.Context> contexts, String name) {
-		return contexts.stream().filter(context -> context.getName().equals(name)).findFirst().orElseThrow(() -> new AssertionError("Could not find context with name " + name));
+		return contexts.stream().filter(context -> context.getName().equals(name)).findFirst()
+				.orElseThrow(() -> new AssertionError("Could not find context with name " + name));
 	}
 
-	private Observation.@NotNull Context getContextWithContextualNameEqualTo(List<Observation.Context> contexts, String contextualName) {
-		return contexts.stream().filter(context -> context.getContextualName() != null && context.getContextualName().equals(contextualName)).findFirst().orElseThrow(() -> new AssertionError("Could not find context with contextual name " + contextualName));
+	private Observation.@NotNull Context getContextWithContextualNameEqualTo(List<Observation.Context> contexts,
+			String contextualName) {
+		return contexts.stream()
+				.filter(context -> context.getContextualName() != null
+						&& context.getContextualName().equals(contextualName))
+				.findFirst()
+				.orElseThrow(() -> new AssertionError("Could not find context with contextual name " + contextualName));
 	}
 
 	@Test
@@ -282,27 +286,25 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(to -> to.queue(OBSERVES_ERROR_QUEUE_NAME).payload(messageBody));
 		logger.debug("Sent message to queue {} with messageBody {}", OBSERVES_ERROR_QUEUE_NAME, messageBody);
 		assertThat(latchContainer.observesErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		await()
-			.atMost(10, TimeUnit.SECONDS)
-			.untilAsserted(() ->
-				TestObservationRegistryAssert.then(observationRegistry)
-					.hasHandledContextsThatSatisfy(contexts -> {
-						ObservationContextAssert.then(getContextWithContextualNameEqualTo(contexts, "observes_error_test_queue send")).hasNameEqualTo("spring.aws.sqs.template")
-							.isInstanceOf(AbstractTemplateObservation.Context.class)
-							.doesNotHaveParentObservation();
-						List<Observation.Context> receivingContexts = contexts.stream()
-							.filter(context -> context.getContextualName() != null && context.getContextualName().equals("observes_error_test_queue receive"))
+		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
+				.hasHandledContextsThatSatisfy(contexts -> {
+					ObservationContextAssert
+							.then(getContextWithContextualNameEqualTo(contexts, "observes_error_test_queue send"))
+							.hasNameEqualTo("spring.aws.sqs.template")
+							.isInstanceOf(AbstractTemplateObservation.Context.class).doesNotHaveParentObservation();
+					List<Observation.Context> receivingContexts = contexts.stream()
+							.filter(context -> context.getContextualName() != null
+									&& context.getContextualName().equals("observes_error_test_queue receive"))
 							.toList();
-						ObservationContextAssert.then(receivingContexts.get(0)).hasNameEqualTo("spring.aws.sqs.listener")
-							.isInstanceOf(AbstractListenerObservation.Context.class)
-							.doesNotHaveParentObservation().assertThatError().isInstanceOf(RuntimeException.class)
+					ObservationContextAssert.then(receivingContexts.get(0)).hasNameEqualTo("spring.aws.sqs.listener")
+							.isInstanceOf(AbstractListenerObservation.Context.class).doesNotHaveParentObservation()
+							.assertThatError().isInstanceOf(RuntimeException.class)
 							.hasMessage("Expected exception from observes-error");
-						ObservationContextAssert.then(receivingContexts.get(1)).hasNameEqualTo("spring.aws.sqs.listener")
+					ObservationContextAssert.then(receivingContexts.get(1)).hasNameEqualTo("spring.aws.sqs.listener")
 							.isInstanceOf(AbstractListenerObservation.Context.class)
 							.hasContextualNameEqualTo("observes_error_test_queue receive")
 							.doesNotHaveParentObservation().doesNotHaveError();
-					})
-			);
+				}));
 	}
 
 	@Test

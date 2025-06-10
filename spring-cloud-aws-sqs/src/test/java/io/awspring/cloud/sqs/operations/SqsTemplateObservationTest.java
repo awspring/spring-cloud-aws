@@ -15,11 +15,17 @@
  */
 package io.awspring.cloud.sqs.operations;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import io.micrometer.common.KeyValues;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistryAssert;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
@@ -29,13 +35,6 @@ import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
-
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link SqsTemplate} observation support.
@@ -169,51 +168,46 @@ class SqsTemplateObservationTest {
 		// given
 		String payload = "test-payload";
 		UUID messageId = UUID.randomUUID();
-		
+
 		// Mock responses for the SQS client
 		given(mockSqsAsyncClient.sendMessage(any(SendMessageRequest.class))).willReturn(CompletableFuture
 				.completedFuture(SendMessageResponse.builder().messageId(messageId.toString()).build()));
-        
-		given(mockSqsAsyncClient.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(CompletableFuture
-				.completedFuture(GetQueueUrlResponse.builder().queueUrl(queueName).build()));
-		
+
+		given(mockSqsAsyncClient.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(
+				CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl(queueName).build()));
+
 		// Create registry to capture observations
 		TestObservationRegistry customRegistry = TestObservationRegistry.create();
-		
+
 		// Create a custom convention extending the default one
 		SqsTemplateObservation.DefaultConvention customConvention = new SqsTemplateObservation.DefaultConvention() {
 			@Override
 			protected KeyValues getCustomHighCardinalityKeyValues(SqsTemplateObservation.Context context) {
 				return KeyValues.of("order.id", "order-123");
 			}
-			
+
 			@Override
 			protected KeyValues getCustomLowCardinalityKeyValues(SqsTemplateObservation.Context context) {
 				return KeyValues.of("order.type", "electronics");
 			}
 		};
-		
+
 		// Create message with FIFO headers
 		Message<String> message = MessageBuilder.withPayload(payload)
 				.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, "group-xyz")
-				.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-abc")
-				.build();
-		
+				.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-abc").build();
+
 		// Create a template with the custom convention
-		SqsTemplate templateWithCustomConvention = SqsTemplate.builder()
-				.sqsAsyncClient(mockSqsAsyncClient)
-				.configure(options -> options
-						.observationRegistry(customRegistry)
-						.observationConvention(customConvention))
+		SqsTemplate templateWithCustomConvention = SqsTemplate.builder().sqsAsyncClient(mockSqsAsyncClient)
+				.configure(
+						options -> options.observationRegistry(customRegistry).observationConvention(customConvention))
 				.build();
-		
+
 		// when - send the message
 		templateWithCustomConvention.send(queueName, message);
-		
+
 		// then - verify the observations contain the expected values
-		TestObservationRegistryAssert.then(customRegistry)
-				.hasNumberOfObservationsEqualTo(1)
-				.hasSingleObservationThat()
+		TestObservationRegistryAssert.then(customRegistry).hasNumberOfObservationsEqualTo(1).hasSingleObservationThat()
 				// Custom values
 				.hasLowCardinalityKeyValue("order.type", "electronics")
 				// Default values
