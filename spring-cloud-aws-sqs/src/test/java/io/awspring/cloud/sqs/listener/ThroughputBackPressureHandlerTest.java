@@ -40,7 +40,7 @@ class ThroughputBackPressureHandlerTest {
 		int batchSize = 5;
 		assertThat(handler.request(batchSize)).isEqualTo(batchSize);
 		// When a second batch is requested, it should return zero permits (because low throughput mode)
-		assertThat(handler.request(batchSize)).isEqualTo(0);
+		assertThat(handler.request(batchSize)).isZero();
 		// When a batch is requested after a release, the expected permits should be
 		// returned depending on the release reason
 		handler.release(1, releaseReason);
@@ -64,13 +64,13 @@ class ThroughputBackPressureHandlerTest {
 		handler.release(5, BackPressureHandler.ReleaseReason.NONE_FETCHED);
 		assertThat(handler.request(batchSize)).isEqualTo(batchSize);
 		// And subsequent requests should return zero permits until the current batch finishes with NONE_FETCHED
-		assertThat(handler.request(batchSize)).isEqualTo(0);
-		assertThat(handler.request(batchSize)).isEqualTo(0);
+		assertThat(handler.request(batchSize)).isZero();
+		assertThat(handler.request(batchSize)).isZero();
 		handler.release(5, BackPressureHandler.ReleaseReason.NONE_FETCHED);
 		assertThat(handler.request(batchSize)).isEqualTo(5);
 		// or until it (the current batch) finishes with PARTIAL_FETCH
-		assertThat(handler.request(batchSize)).isEqualTo(0);
-		assertThat(handler.request(batchSize)).isEqualTo(0);
+		assertThat(handler.request(batchSize)).isZero();
+		assertThat(handler.request(batchSize)).isZero();
 		handler.release(3, BackPressureHandler.ReleaseReason.PARTIAL_FETCH);
 		assertThat(handler.request(batchSize)).isEqualTo(5);
 	}
@@ -79,7 +79,7 @@ class ThroughputBackPressureHandlerTest {
 	void drain_shouldSetDrainedAndReturnTrue() throws InterruptedException {
 		boolean result = handler.drain(Duration.ofSeconds(1));
 		assertThat(result).isTrue();
-		assertThat(handler.request(5)).isEqualTo(0);
+		assertThat(handler.request(5)).isZero();
 	}
 
 }

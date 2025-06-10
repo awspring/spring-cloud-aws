@@ -147,7 +147,7 @@ public class BackPressureHandlerFactories {
 	public static ConcurrencyLimiterBlockingBackPressureHandler concurrencyLimiterBackPressureHandler(
 			ContainerOptions<?, ?> options) {
 		return ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
-				.totalPermits(options.getMaxConcurrentMessages()).throughputConfiguration(options.getBackPressureMode())
+				.totalPermits(options.getMaxConcurrentMessages())
 				.acquireTimeout(options.getMaxDelayBetweenPolls()).build();
 	}
 

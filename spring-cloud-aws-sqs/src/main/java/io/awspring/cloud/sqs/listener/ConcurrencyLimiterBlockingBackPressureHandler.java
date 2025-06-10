@@ -126,8 +126,6 @@ public class ConcurrencyLimiterBlockingBackPressureHandler
 
 		private Duration acquireTimeout;
 
-		private BackPressureMode backPressureMode;
-
 		public Builder batchSize(int batchSize) {
 			this.batchSize = batchSize;
 			return this;
@@ -143,14 +141,9 @@ public class ConcurrencyLimiterBlockingBackPressureHandler
 			return this;
 		}
 
-		public Builder throughputConfiguration(BackPressureMode backPressureConfiguration) {
-			this.backPressureMode = backPressureConfiguration;
-			return this;
-		}
-
 		public ConcurrencyLimiterBlockingBackPressureHandler build() {
 			Assert.noNullElements(
-					Arrays.asList(this.batchSize, this.totalPermits, this.acquireTimeout, this.backPressureMode),
+					Arrays.asList(this.batchSize, this.totalPermits, this.acquireTimeout),
 					"Missing configuration");
 			Assert.isTrue(this.batchSize > 0, "The batch size must be greater than 0");
 			Assert.isTrue(this.totalPermits >= this.batchSize, "Total permits must be greater than the batch size");
