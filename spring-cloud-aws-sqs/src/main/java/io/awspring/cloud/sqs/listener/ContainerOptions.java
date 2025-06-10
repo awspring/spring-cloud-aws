@@ -130,7 +130,7 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	BackPressureMode getBackPressureMode();
 
 	/**
-	 * Return the a {@link BackPressureHandlerFactory} to create a {@link BackPressureHandler} for this container.
+	 * Return the {@link BackPressureHandlerFactory} to create a {@link BackPressureHandler} for this container.
 	 * @return the BackPressureHandlerFactory.
 	 */
 	BackPressureHandlerFactory getBackPressureHandlerFactory();

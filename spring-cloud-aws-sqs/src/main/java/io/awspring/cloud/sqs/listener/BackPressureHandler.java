@@ -41,9 +41,9 @@ public interface BackPressureHandler {
 	 * Releases the specified amount of permits for processed messages. Each message that has been processed should
 	 * release one permit, whether processing was successful or not.
 	 * <p>
-	 * This method can is called in the following use cases:
+	 * This method can be called in the following use cases:
 	 * <ul>
-	 * <li>{@link ReleaseReason#LIMITED}: permits were not used because another BackPressureHandler has a lower permits
+	 * <li>{@link ReleaseReason#LIMITED}: all/some permits were not used because another BackPressureHandler has a lower permits
 	 * limit and the difference in permits needs to be returned.</li>
 	 * <li>{@link ReleaseReason#NONE_FETCHED}: none of the permits were actually used because no messages were retrieved
 	 * from SQS. Permits need to be returned.</li>
@@ -82,8 +82,8 @@ public interface BackPressureHandler {
 
 	enum ReleaseReason {
 		/**
-		 * Permits were not used because another BackPressureHandler has a lower permits limit and the difference need
-		 * to be aligned across all handlers.
+		 * All/Some permits were not used because another BackPressureHandler has a lower permits limit and the
+		 * permits difference need to be aligned across all handlers.
 		 */
 		LIMITED,
 		/**
@@ -91,7 +91,7 @@ public interface BackPressureHandler {
 		 */
 		NONE_FETCHED,
 		/**
-		 * Some messages were fetched from SQS. Unused permits need to be returned.
+		 * Some messages were fetched from SQS. Unused permits if any need to be returned.
 		 */
 		PARTIAL_FETCH,
 		/**
