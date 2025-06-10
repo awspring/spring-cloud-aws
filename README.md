@@ -8,6 +8,7 @@ For a deep dive into the project, refer to the Spring Cloud AWS documentation:
 
 | Version                | Reference Docs                                                                                   | API Docs                                                                            |
 |------------------------|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| Spring Cloud AWS 3.4.0 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.4.0/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.4.0/apidocs/index.html) | 
 | Spring Cloud AWS 3.3.1 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.3.1/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.3.1/apidocs/index.html) | 
 | Spring Cloud AWS 3.2.1 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.2.1/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.2.1/apidocs/index.html) | 
 | Spring Cloud AWS 3.1.1 | [Reference Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.1.1/reference/html/index.html) | [API Docs](https://docs.awspring.io/spring-cloud-aws/docs/3.1.1/apidocs/index.html) | 
@@ -33,6 +34,7 @@ This project has dependency and transitive dependencies on Spring Projects. The 
 | 3.1.x                       | [2023.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2023.0-Release-Notes) (4.0/Kilburn) | 3.2.x        | 6.1.x            | 2.x          |
 | 3.2.x                       | [2023.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2023.0-Release-Notes) (4.0/Kilburn) | 3.2.x, 3.3.x | 6.1.x            | 2.x          |
 | 3.3.x                       | [2024.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2024.0-Release-Notes)               | 3.4.x        | 6.2.x            | 2.x          |
+| 3.4.x                       | [2025.0.x](https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2025.0-Release-Notes)               | 3.5.x        | 6.2.x            | 2.x          |
 
 **Note**: 3.0.0-M2 is the last version compatible with Spring Boot 2.7.x and Spring Cloud 3.1. Starting from 3.0.0-M3, project has switched to Spring Boot 3.0.
 
