@@ -75,7 +75,7 @@ class S3TemplateIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.8.1")).withEnv("S3_SKIP_SIGNATURE_VALIDATION", "0");
+			DockerImageName.parse("localstack/localstack:4.4.0")).withEnv("S3_SKIP_SIGNATURE_VALIDATION", "0");
 
 	private static S3Client client;
 
