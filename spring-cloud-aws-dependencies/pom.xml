@@ -32,7 +32,6 @@
 		<jakarta.mail.version>2.1.0</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>1.0.0</eclipse.jakarta.mail.version>
 		<spring-modulith.version>1.4.0</spring-modulith.version>
-		<wiremock-standalone.version>3.3.1</wiremock-standalone.version>
 		<amazon.s3.accessgrants>2.3.0</amazon.s3.accessgrants>
 	</properties>
 
@@ -225,12 +224,6 @@
 				<groupId>org.eclipse.angus</groupId>
 				<artifactId>jakarta.mail</artifactId>
 				<version>${eclipse.jakarta.mail.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.wiremock</groupId>
-				<artifactId>wiremock-standalone</artifactId>
-				<version>${wiremock-standalone.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
