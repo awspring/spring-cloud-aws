@@ -23,6 +23,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 /**
  * Composite {@link BackPressureHandler} implementation that delegates the back-pressure handling to a list of
@@ -50,23 +51,23 @@ public class CompositeBackPressureHandler implements BatchAwareBackPressureHandl
 
 	private static final Logger logger = LoggerFactory.getLogger(CompositeBackPressureHandler.class);
 
-	private final List<BackPressureHandler> backPressureHandlers;
+	private String id;
 
 	private final int batchSize;
+
+	private final Duration noPermitsReturnedWaitTimeout;
+
+	private final List<BackPressureHandler> backPressureHandlers;
 
 	private final ReentrantLock noPermitsReturnedWaitLock = new ReentrantLock();
 
 	private final Condition permitsReleasedCondition = noPermitsReturnedWaitLock.newCondition();
 
-	private final Duration noPermitsReturnedWaitTimeout;
+	private CompositeBackPressureHandler(Builder builder) {
+		this.batchSize = builder.batchSize;
+		this.noPermitsReturnedWaitTimeout = builder.noPermitsReturnedWaitTimeout;
+		this.backPressureHandlers = List.copyOf(builder.backPressureHandlers);
 
-	private String id;
-
-	public CompositeBackPressureHandler(List<BackPressureHandler> backPressureHandlers, int batchSize,
-			Duration noPermitsReturnedWaitTimeout) {
-		this.backPressureHandlers = backPressureHandlers;
-		this.batchSize = batchSize;
-		this.noPermitsReturnedWaitTimeout = noPermitsReturnedWaitTimeout;
 	}
 
 	@Override
@@ -167,5 +168,38 @@ public class CompositeBackPressureHandler implements BatchAwareBackPressureHandl
 
 	private static Duration maxDuration(Duration first, Duration second) {
 		return first.compareTo(second) > 0 ? first : second;
+	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	public static class Builder {
+
+		private int batchSize;
+		private Duration noPermitsReturnedWaitTimeout;
+		private List<BackPressureHandler> backPressureHandlers;
+
+		public Builder backPressureHandlers(List<BackPressureHandler> backPressureHandlers) {
+			this.backPressureHandlers = backPressureHandlers;
+			return this;
+		}
+
+		public Builder batchSize(int batchSize) {
+			this.batchSize = batchSize;
+			return this;
+		}
+
+		public Builder noPermitsReturnedWaitTimeout(Duration noPermitsReturnedWaitTimeout) {
+			this.noPermitsReturnedWaitTimeout = noPermitsReturnedWaitTimeout;
+			return this;
+		}
+
+		public CompositeBackPressureHandler build() {
+			Assert.notNull(this.batchSize, "Missing configuration for batch size");
+			Assert.notNull(this.noPermitsReturnedWaitTimeout, "Missing configuration for noPermitsReturnedWaitTimeout");
+			Assert.noNullElements(this.backPressureHandlers, "backPressureHandlers must not be null");
+			return new CompositeBackPressureHandler(this);
+		}
 	}
 }

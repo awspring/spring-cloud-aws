@@ -36,7 +36,6 @@ import io.awspring.cloud.sqs.listener.source.AcknowledgementProcessingMessageSou
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

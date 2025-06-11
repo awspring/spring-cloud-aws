@@ -142,8 +142,7 @@ public class ConcurrencyLimiterBlockingBackPressureHandler
 		}
 
 		public ConcurrencyLimiterBlockingBackPressureHandler build() {
-			Assert.noNullElements(
-					Arrays.asList(this.batchSize, this.totalPermits, this.acquireTimeout),
+			Assert.noNullElements(Arrays.asList(this.batchSize, this.totalPermits, this.acquireTimeout),
 					"Missing configuration");
 			Assert.isTrue(this.batchSize > 0, "The batch size must be greater than 0");
 			Assert.isTrue(this.totalPermits >= this.batchSize, "Total permits must be greater than the batch size");

@@ -133,8 +133,8 @@ public class BackPressureHandlerFactories {
 	 */
 	public static CompositeBackPressureHandler compositeBackPressureHandler(ContainerOptions<?, ?> options,
 			Duration maxIdleWaitTime, List<BackPressureHandler> backPressureHandlers) {
-		return new CompositeBackPressureHandler(List.copyOf(backPressureHandlers), options.getMaxMessagesPerPoll(),
-				maxIdleWaitTime);
+		return CompositeBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
+				.noPermitsReturnedWaitTimeout(maxIdleWaitTime).backPressureHandlers(backPressureHandlers).build();
 	}
 
 	/**
@@ -147,8 +147,8 @@ public class BackPressureHandlerFactories {
 	public static ConcurrencyLimiterBlockingBackPressureHandler concurrencyLimiterBackPressureHandler(
 			ContainerOptions<?, ?> options) {
 		return ConcurrencyLimiterBlockingBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
-				.totalPermits(options.getMaxConcurrentMessages())
-				.acquireTimeout(options.getMaxDelayBetweenPolls()).build();
+				.totalPermits(options.getMaxConcurrentMessages()).acquireTimeout(options.getMaxDelayBetweenPolls())
+				.build();
 	}
 
 	/**
