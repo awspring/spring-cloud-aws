@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.annotation.SqsHandler;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
@@ -104,6 +105,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * @author Mikhail Strokov
  * @author Michael Sosa
  * @author gustavomonarin
+ * @author José Iêdo
  */
 @SpringBootTest
 @TestPropertySource(properties = { "property.one=1", "property.five.seconds=5s",
@@ -116,6 +118,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	static final String RECEIVES_MESSAGE_QUEUE_NAME = "receives_message_test_queue";
 
 	static final String RECEIVES_MESSAGE_BATCH_QUEUE_NAME = "receives_message_batch_test_queue";
+
+	static final String RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME = "receives_message_multi_method_test_queue";
 
 	static final String RECEIVES_MESSAGE_ASYNC_QUEUE_NAME = "receives_message_async_test_queue";
 
@@ -198,6 +202,25 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.receivesMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.invocableHandlerMethodLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.acknowledgementCallbackSuccessLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void receivesMessageOnMultiMethod() throws Exception {
+		String message1 = "receivesMessageOnMultiMethod-payload-1";
+		Integer message2 = 2;
+		Double message3 = 0.5;
+
+		sqsTemplate.send(RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME, message1);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME,
+				message1);
+		sqsTemplate.send(RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME, message2);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME,
+				message2);
+		sqsTemplate.send(RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME, message3);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME,
+				message3);
+
+		assertThat(latchContainer.receivesMessageMultiMethodLatch.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -484,6 +507,31 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	@SqsListener(queueNames = RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME, pollTimeoutSeconds = "${property.one}", maxMessagesPerPoll = "${property.one}", maxConcurrentMessages = "${missing.property:5}", id = "receivesMessageMultiMethodListener")
+	static class ReceivesMessageMultiMethodListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@SqsHandler
+		void handle(String message) {
+			logger.debug("Received String message in Listener Method: " + message);
+			latchContainer.receivesMessageMultiMethodLatch.countDown();
+		}
+
+		@SqsHandler
+		void handle(Integer message) {
+			logger.debug("Received Integer message in Listener Method: " + message);
+			latchContainer.receivesMessageMultiMethodLatch.countDown();
+		}
+
+		@SqsHandler(isDefault = true)
+		void handle(Object message) {
+			logger.debug("Received Object message in Listener Method: " + message);
+			latchContainer.receivesMessageMultiMethodLatch.countDown();
+		}
+	}
+
 	static class ReceivesMessageBatchListener {
 
 		@Autowired
@@ -661,6 +709,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		final CountDownLatch receivesMessageLatch = new CountDownLatch(1);
 		final CountDownLatch receivesMessageBatchLatch = new CountDownLatch(20);
 		final CountDownLatch receivesMessageAsyncLatch = new CountDownLatch(1);
+		final CountDownLatch receivesMessageMultiMethodLatch = new CountDownLatch(3);
 		final CountDownLatch doesNotAckLatch = new CountDownLatch(2);
 		final CountDownLatch doesNotAckAsyncLatch = new CountDownLatch(2);
 		final CountDownLatch doesNotAckBatchLatch = new CountDownLatch(20);
@@ -888,6 +937,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		ReceivesMessageAsyncListener receivesMessageAsyncListener() {
 			return new ReceivesMessageAsyncListener();
+		}
+
+		@Bean
+		ReceivesMessageMultiMethodListener receivesMessageMultiMethodListener() {
+			return new ReceivesMessageMultiMethodListener();
 		}
 
 		@Bean

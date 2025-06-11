@@ -27,10 +27,15 @@ import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
  * @param <T> the {@link Message} payload type.
  *
  * @author Tomaz Fernandes
+ * @author José Iêdo
  * @since 3.0
  */
 public class MessagingMessageListenerAdapter<T> extends AbstractMethodInvokingListenerAdapter<T>
 		implements MessageListener<T> {
+
+	public MessagingMessageListenerAdapter(CompositeInvocableHandler compositeInvocableHandler) {
+		super(compositeInvocableHandler);
+	}
 
 	public MessagingMessageListenerAdapter(InvocableHandlerMethod handlerMethod) {
 		super(handlerMethod);
