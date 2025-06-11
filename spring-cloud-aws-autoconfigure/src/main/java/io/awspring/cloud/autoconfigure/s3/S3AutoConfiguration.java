@@ -18,7 +18,6 @@ package io.awspring.cloud.autoconfigure.s3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
@@ -73,12 +72,11 @@ public class S3AutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	S3ClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<S3ClientBuilder>> configurer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
 			ObjectProvider<S3ClientCustomizer> s3ClientCustomizers,
 			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
 		S3ClientBuilder builder = awsClientBuilderConfigurer.configureSyncClient(S3Client.builder(), this.properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), s3ClientCustomizers.orderedStream(),
+				connectionDetails.getIfAvailable(), s3ClientCustomizers.orderedStream(),
 				awsSyncClientCustomizers.orderedStream());
 
 		if (ClassUtils.isPresent("software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin", null)) {
@@ -142,15 +140,13 @@ public class S3AutoConfiguration {
 		@ConditionalOnMissingBean
 		S3EncryptionClient.Builder s3EncrpytionClientBuilder(S3Properties properties,
 				AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-				ObjectProvider<AwsClientCustomizer<S3EncryptionClient.Builder>> configurer,
 				ObjectProvider<AwsConnectionDetails> connectionDetails,
 				ObjectProvider<S3EncryptionClientCustomizer> s3ClientCustomizers,
 				ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers,
 				ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider) {
 			S3EncryptionClient.Builder builder = awsClientBuilderConfigurer.configureSyncClient(
 					S3EncryptionClient.builder(), properties, connectionDetails.getIfAvailable(),
-					configurer.getIfAvailable(), s3ClientCustomizers.orderedStream(),
-					awsSyncClientCustomizers.orderedStream());
+					s3ClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream());
 
 			Optional.ofNullable(properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
 			builder.serviceConfiguration(properties.toS3Configuration());

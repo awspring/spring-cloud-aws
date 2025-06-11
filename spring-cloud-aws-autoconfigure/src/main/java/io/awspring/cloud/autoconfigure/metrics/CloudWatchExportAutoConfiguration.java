@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.metrics;
 
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -38,7 +37,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
-import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
 
 /**
  * Configuration for exporting metrics to CloudWatch.
@@ -69,13 +67,13 @@ public class CloudWatchExportAutoConfiguration {
 	@ConditionalOnMissingBean
 	public CloudWatchAsyncClient cloudWatchAsyncClient(CloudWatchProperties properties,
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
 			ObjectProvider<CloudWatchAsyncClientCustomizer> cloudWatchAsyncClientCustomizers,
 			ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers) {
-		return awsClientBuilderConfigurer.configureAsyncClient(CloudWatchAsyncClient.builder(), properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable(),
-				cloudWatchAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream()).build();
+		return awsClientBuilderConfigurer
+				.configureAsyncClient(CloudWatchAsyncClient.builder(), properties, connectionDetails.getIfAvailable(),
+						cloudWatchAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream())
+				.build();
 	}
 
 	@Bean
