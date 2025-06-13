@@ -16,14 +16,14 @@
 package io.awspring.cloud.autoconfigure.ses;
 
 import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
-import software.amazon.awssdk.services.ses.SesClientBuilder;
+import software.amazon.awssdk.services.sesv2.SesV2ClientBuilder;
 
 /**
- * Callback interface that can be used to customize a {@link SesClientBuilder}.
+ * Callback interface that can be used to customize a {@link SesV2ClientBuilder}.
  *
  * @author Maciej Walkowiak
  * @since 3.3.0
  */
 @FunctionalInterface
-public interface SesClientCustomizer extends AwsClientCustomizer<SesClientBuilder> {
+public interface SesClientCustomizer extends AwsClientCustomizer<SesV2ClientBuilder> {
 }
