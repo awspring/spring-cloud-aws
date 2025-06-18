@@ -19,9 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,6 +40,8 @@ import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -100,7 +105,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 				super.registerEndpoint(endpoint);
 			}
 		};
-		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor() {
+		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor(Optional.empty()) {
 			@Override
 			protected EndpointRegistrar createEndpointRegistrar() {
 				return registrar;
@@ -150,7 +155,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 
 		EndpointRegistrar registrar = new EndpointRegistrar();
 
-		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor() {
+		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor(Optional.empty()) {
 			@Override
 			protected EndpointRegistrar createEndpointRegistrar() {
 				return registrar;
@@ -183,7 +188,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		when(beanFactory.containsBean(EndpointRegistrar.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME))
 				.thenReturn(false);
 
-		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor();
+		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor(Optional.empty());
 
 		Listener bean = new Listener();
 		StringValueResolver valueResolver = mock(StringValueResolver.class);
@@ -206,7 +211,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		SqsQueueNameReader sqsQueueNameReader = new SqsQueueNameReader();
 		beanFactory.registerSingleton("sqsQueueNameReader", sqsQueueNameReader);
 
-		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor();
+		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor(Optional.empty());
 
 		ManyQueuesListener bean = new ManyQueuesListener(sqsQueueNameReader);
 		processor.setBeanFactory(beanFactory);
@@ -220,6 +225,45 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		assertThat(endpoint.getLogicalNames()).containsExactly(SqsQueueNameReader.QUEUE_NAME_1,
 				SqsQueueNameReader.QUEUE_NAME_2);
 
+	}
+
+	@Test
+	void shouldApplyFiltersThatPrevent() {
+		EndpointRegistrar registrar = mock(EndpointRegistrar.class);
+		List<SqsListenerFilter> filters = List.of(
+											annotation -> true,		// Passes all annotations
+											annotation -> false		// Denies all annotations
+											);
+
+		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor(Optional.of(filters)) {
+			@Override
+			protected EndpointRegistrar createEndpointRegistrar() {
+				return registrar;
+			}
+		};
+
+		Listener bean = new Listener();
+		processor.postProcessAfterInitialization(bean, "listener");
+
+		verifyNoInteractions(registrar);
+	}
+
+	@Test
+	void shouldApplyFiltersThatAllow() {
+		EndpointRegistrar registrar = mock(EndpointRegistrar.class);
+		List<SqsListenerFilter> filters = List.of(annotation -> true);		// Passes all annotations
+
+		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor(Optional.of(filters)) {
+			@Override
+			protected EndpointRegistrar createEndpointRegistrar() {
+				return registrar;
+			}
+		};
+
+		Listener bean = new Listener();
+		processor.postProcessAfterInitialization(bean, "listener");
+
+		verify(registrar).registerEndpoint(isNotNull());
 	}
 
 	static class Listener {

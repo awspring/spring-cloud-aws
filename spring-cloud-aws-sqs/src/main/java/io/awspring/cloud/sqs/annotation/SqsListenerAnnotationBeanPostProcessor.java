@@ -29,7 +29,10 @@ import io.awspring.cloud.sqs.support.resolver.VisibilityHandlerMethodArgumentRes
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
@@ -44,12 +47,23 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	private static final String GENERATED_ID_PREFIX = "io.awspring.cloud.sqs.sqsListenerEndpointContainer#";
 
+	private final List<SqsListenerFilter> filters;
+
+	public SqsListenerAnnotationBeanPostProcessor(Optional<List<SqsListenerFilter>> filters) {
+		this.filters = filters.orElseGet(Collections::emptyList);
+	}
+
 	@Override
 	protected Class<SqsListener> getAnnotationClass() {
 		return SqsListener.class;
 	}
 
+	@Override
 	protected Endpoint createEndpoint(SqsListener sqsListenerAnnotation) {
+		if (filters.stream().anyMatch(f -> !f.createEndpoint(sqsListenerAnnotation))) {
+			return null;
+		}
+
 		return SqsEndpoint.builder().queueNames(resolveEndpointNames(sqsListenerAnnotation.value()))
 				.factoryBeanName(resolveAsString(sqsListenerAnnotation.factory(), "factory"))
 				.id(getEndpointId(sqsListenerAnnotation.id()))

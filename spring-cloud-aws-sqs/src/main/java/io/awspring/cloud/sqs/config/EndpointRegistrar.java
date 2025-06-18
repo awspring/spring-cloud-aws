@@ -206,7 +206,9 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 * @param endpoint the endpoint.
 	 */
 	public void registerEndpoint(Endpoint endpoint) {
-		this.endpoints.add(endpoint);
+		if (endpoint != null) {
+			this.endpoints.add(endpoint);
+		}
 	}
 
 	@Override

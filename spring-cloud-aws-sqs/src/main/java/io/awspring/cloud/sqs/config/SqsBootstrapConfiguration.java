@@ -35,7 +35,7 @@ public class SqsBootstrapConfiguration implements ImportBeanDefinitionRegistrar 
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(SqsBeanNames.SQS_LISTENER_ANNOTATION_BEAN_POST_PROCESSOR_BEAN_NAME)) {
 			registry.registerBeanDefinition(SqsBeanNames.SQS_LISTENER_ANNOTATION_BEAN_POST_PROCESSOR_BEAN_NAME,
-					new RootBeanDefinition(SqsListenerAnnotationBeanPostProcessor.class));
+					new RootBeanDefinition(SqsListenerAnnotationBeanPostProcessor.class, RootBeanDefinition.AUTOWIRE_BY_TYPE, true));
 		}
 
 		if (!registry.containsBeanDefinition(SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME)) {
