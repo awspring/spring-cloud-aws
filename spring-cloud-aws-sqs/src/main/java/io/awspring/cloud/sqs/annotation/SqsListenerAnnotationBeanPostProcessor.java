@@ -65,15 +65,15 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 		}
 
 		return SqsEndpoint.builder().queueNames(resolveEndpointNames(sqsListenerAnnotation.value()))
-					.factoryBeanName(resolveAsString(sqsListenerAnnotation.factory(), "factory"))
-					.id(getEndpointId(sqsListenerAnnotation.id()))
-					.pollTimeoutSeconds(resolveAsInteger(sqsListenerAnnotation.pollTimeoutSeconds(), "pollTimeoutSeconds"))
-					.maxMessagesPerPoll(resolveAsInteger(sqsListenerAnnotation.maxMessagesPerPoll(), "maxMessagesPerPoll"))
-					.maxConcurrentMessages(
-							resolveAsInteger(sqsListenerAnnotation.maxConcurrentMessages(), "maxConcurrentMessages"))
-					.messageVisibility(
-							resolveAsInteger(sqsListenerAnnotation.messageVisibilitySeconds(), "messageVisibility"))
-					.acknowledgementMode(resolveAcknowledgement(sqsListenerAnnotation.acknowledgementMode())).build();
+				.factoryBeanName(resolveAsString(sqsListenerAnnotation.factory(), "factory"))
+				.id(getEndpointId(sqsListenerAnnotation.id()))
+				.pollTimeoutSeconds(resolveAsInteger(sqsListenerAnnotation.pollTimeoutSeconds(), "pollTimeoutSeconds"))
+				.maxMessagesPerPoll(resolveAsInteger(sqsListenerAnnotation.maxMessagesPerPoll(), "maxMessagesPerPoll"))
+				.maxConcurrentMessages(
+						resolveAsInteger(sqsListenerAnnotation.maxConcurrentMessages(), "maxConcurrentMessages"))
+				.messageVisibility(
+						resolveAsInteger(sqsListenerAnnotation.messageVisibilitySeconds(), "messageVisibility"))
+				.acknowledgementMode(resolveAcknowledgement(sqsListenerAnnotation.acknowledgementMode())).build();
 	}
 
 	@Override
