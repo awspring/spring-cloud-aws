@@ -632,6 +632,34 @@ Any number of `@SqsListener` annotations can be used in a bean class, and each a
 
 NOTE: Queues declared in the same annotation will share the container, though each will have separate throughput and acknowledgement controls.
 
+===== Handling Different Payload In The Same Listener
+
+It's possible to handle different payloads in the same listener by annotating handler methods with the `@SqsHandler` annotation.
+Here's a sample:
+[source, java]
+----
+@SqsListener("myQueue")
+public class MyListener {
+
+	@SqsHandler
+	public void handle(String message) {
+		System.out.println(message);
+	}
+
+	@SqsHandler
+	public void handle(MyPojo pojo) {
+		System.out.println(pojo);
+	}
+
+	@SqsHandler(isDefault = true)
+	public void handle(Object message) {
+		System.out.println(message);
+	}
+}
+----
+
+The `isDefault = true` parameter designates a method as the fallback handler for messages that don't match any other handler's parameter type.
+
 ===== SNS Messages
 
 Since 3.1.1, when receiving SNS messages through the `@SqsListener`, the message includes all attributes of the `SnsNotification`. To only receive need the `Message` part of the payload, you can utilize the `@SnsNotificationMessage` annotation.
