@@ -147,6 +147,16 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	B backPressureMode(BackPressureMode backPressureMode);
 
 	/**
+	 * Sets the {@link BackPressureHandlerFactory} for this container. Default is
+	 * {@code AbstractContainerOptions.DEFAULT_BACKPRESSURE_FACTORY} which results in a default
+	 * {@link SemaphoreBackPressureHandler} to be instantiated.
+	 *
+	 * @param backPressureHandlerFactory the BackPressureHandler supplier.
+	 * @return this instance.
+	 */
+	B backPressureHandlerFactory(BackPressureHandlerFactory backPressureHandlerFactory);
+
+	/**
 	 * Set the maximum interval between acknowledgements for batch acknowledgements. The default depends on the specific
 	 * {@link ContainerComponentFactory} implementation.
 	 *

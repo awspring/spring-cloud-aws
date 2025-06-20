@@ -55,6 +55,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	private final BackPressureMode backPressureMode;
 
+	private final BackPressureHandlerFactory backPressureHandlerFactory;
+
 	private final ListenerMode listenerMode;
 
 	private final MessagingMessageConverter<?> messageConverter;
@@ -90,6 +92,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.listenerShutdownTimeout = builder.listenerShutdownTimeout;
 		this.acknowledgementShutdownTimeout = builder.acknowledgementShutdownTimeout;
 		this.backPressureMode = builder.backPressureMode;
+		this.backPressureHandlerFactory = builder.backPressureHandlerFactory;
 		this.listenerMode = builder.listenerMode;
 		this.messageConverter = builder.messageConverter;
 		this.acknowledgementMode = builder.acknowledgementMode;
@@ -163,6 +166,11 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	}
 
 	@Override
+	public BackPressureHandlerFactory getBackPressureHandlerFactory() {
+		return this.backPressureHandlerFactory;
+	}
+
+	@Override
 	public ListenerMode getListenerMode() {
 		return this.listenerMode;
 	}
@@ -232,6 +240,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final BackPressureMode DEFAULT_THROUGHPUT_CONFIGURATION = BackPressureMode.AUTO;
 
+		private static final BackPressureHandlerFactory DEFAULT_BACKPRESSURE_FACTORY = BackPressureHandlerFactories::semaphoreBackPressureHandler;
+
 		private static final ListenerMode DEFAULT_MESSAGE_DELIVERY_STRATEGY = ListenerMode.SINGLE_MESSAGE;
 
 		private static final MessagingMessageConverter<?> DEFAULT_MESSAGE_CONVERTER = new SqsMessagingMessageConverter();
@@ -253,6 +263,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private Duration maxDelayBetweenPolls = DEFAULT_SEMAPHORE_TIMEOUT;
 
 		private BackPressureMode backPressureMode = DEFAULT_THROUGHPUT_CONFIGURATION;
+
+		private BackPressureHandlerFactory backPressureHandlerFactory = DEFAULT_BACKPRESSURE_FACTORY;
 
 		private Duration listenerShutdownTimeout = DEFAULT_LISTENER_SHUTDOWN_TIMEOUT;
 
@@ -296,6 +308,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.listenerShutdownTimeout = options.listenerShutdownTimeout;
 			this.acknowledgementShutdownTimeout = options.acknowledgementShutdownTimeout;
 			this.backPressureMode = options.backPressureMode;
+			this.backPressureHandlerFactory = options.backPressureHandlerFactory;
 			this.listenerMode = options.listenerMode;
 			this.messageConverter = options.messageConverter;
 			this.acknowledgementMode = options.acknowledgementMode;
@@ -387,6 +400,12 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		public B backPressureMode(BackPressureMode backPressureMode) {
 			Assert.notNull(backPressureMode, "backPressureMode cannot be null");
 			this.backPressureMode = backPressureMode;
+			return self();
+		}
+
+		@Override
+		public B backPressureHandlerFactory(BackPressureHandlerFactory backPressureHandlerFactory) {
+			this.backPressureHandlerFactory = backPressureHandlerFactory;
 			return self();
 		}
 
