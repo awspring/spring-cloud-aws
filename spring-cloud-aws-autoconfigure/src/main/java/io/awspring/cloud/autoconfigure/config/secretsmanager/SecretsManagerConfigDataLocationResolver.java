@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.config.secretsmanager;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
@@ -100,15 +99,6 @@ public class SecretsManagerConfigDataLocationResolver
 	protected SecretsManagerClient createAwsSecretsManagerClient(BootstrapContext context) {
 		SecretsManagerClientBuilder builder = configure(SecretsManagerClient.builder(),
 				context.get(SecretsManagerProperties.class), context);
-		try {
-			AwsSecretsManagerClientCustomizer configurer = context.get(AwsSecretsManagerClientCustomizer.class);
-			if (configurer != null) {
-				AwsClientCustomizer.apply(configurer, builder);
-			}
-		}
-		catch (IllegalStateException e) {
-			log.debug("Bean of type AwsParameterStoreClientCustomizer is not registered: " + e.getMessage());
-		}
 
 		try {
 			AwsSyncClientCustomizer awsSyncClientCustomizer = context.get(AwsSyncClientCustomizer.class);

@@ -18,7 +18,6 @@ package io.awspring.cloud.autoconfigure.config.parameterstore;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -31,7 +30,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import software.amazon.awssdk.services.ssm.SsmClient;
-import software.amazon.awssdk.services.ssm.SsmClientBuilder;
 
 /**
  * {@link AutoConfiguration Auto-Configuration} for AWS Parameter Store integration.
@@ -51,13 +49,13 @@ public class ParameterStoreAutoConfiguration {
 	@ConditionalOnMissingBean
 	public SsmClient ssmClient(ParameterStoreProperties properties,
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SsmClientBuilder>> customizers,
 			ObjectProvider<SsmClientCustomizer> ssmClientCustomizers,
 			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers,
 			ObjectProvider<AwsConnectionDetails> connectionDetails) {
-		return awsClientBuilderConfigurer.configureSyncClient(SsmClient.builder(), properties,
-				connectionDetails.getIfAvailable(), customizers.getIfAvailable(), ssmClientCustomizers.orderedStream(),
-				awsSyncClientCustomizers.orderedStream()).build();
+		return awsClientBuilderConfigurer
+				.configureSyncClient(SsmClient.builder(), properties, connectionDetails.getIfAvailable(),
+						ssmClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream())
+				.build();
 	}
 
 }
