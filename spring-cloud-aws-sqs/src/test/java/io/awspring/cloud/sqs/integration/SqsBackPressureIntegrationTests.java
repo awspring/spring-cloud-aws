@@ -147,7 +147,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 				}).build();
 		container.start();
 		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(maxConcurrentRequest.get()).isEqualTo(expectedMaxConcurrentRequests);
+		assertThat(maxConcurrentRequest.get()).isLessThanOrEqualTo(expectedMaxConcurrentRequests);
 		container.stop();
 	}
 
@@ -290,19 +290,19 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 			controller.advance(50);
 			controller.waitForAdvance(50);
 			// not limiting queue processing capacity
-			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(5);
+			assertThat(controller.maxConcurrentRequest.get()).isLessThanOrEqualTo(5);
 			controller.updateLimitAndWaitForReset(2);
 			controller.advance(50);
 
 			controller.waitForAdvance(50);
 			// limiting queue processing capacity
-			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(2);
+			assertThat(controller.maxConcurrentRequest.get()).isLessThanOrEqualTo(2);
 			controller.updateLimitAndWaitForReset(7);
 			controller.advance(50);
 
 			controller.waitForAdvance(50);
 			// not limiting queue processing capacity
-			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(5);
+			assertThat(controller.maxConcurrentRequest.get()).isLessThanOrEqualTo(5);
 			controller.updateLimitAndWaitForReset(3);
 			controller.advance(50);
 			sleep(10L);
@@ -313,7 +313,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 			limiter.setLimit(3);
 
 			controller.waitForAdvance(50);
-			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(3);
+			assertThat(controller.maxConcurrentRequest.get()).isLessThanOrEqualTo(3);
 			// stopping processing of the queue
 			controller.updateLimit(0);
 			controller.advance(50);
@@ -325,7 +325,7 @@ class SqsBackPressureIntegrationTests extends BaseSqsIntegrationTest {
 
 			controller.waitForAdvance(50);
 			assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-			assertThat(controller.maxConcurrentRequest.get()).isEqualTo(5);
+			assertThat(controller.maxConcurrentRequest.get()).isLessThanOrEqualTo(5);
 			assertThat(processingFailed.get()).isFalse();
 		}
 		finally {

@@ -40,7 +40,6 @@ import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
 import org.springframework.retry.backoff.BackOffContext;
 import org.springframework.retry.backoff.BackOffPolicy;
@@ -60,7 +59,7 @@ class AbstractPollingMessageSourceTests {
 		String testName = "shouldAcquireAndReleaseFullPermits";
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
-				.maxDelayBetweenPolls(Duration.ofMillis(200)).build();
+				.maxDelayBetweenPolls(Duration.ofMillis(200)).listenerShutdownTimeout(Duration.ZERO).build();
 		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
 				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
 
@@ -108,9 +107,15 @@ class AbstractPollingMessageSourceTests {
 		source.configure(options);
 		source.setTaskExecutor(createTaskExecutor(testName));
 		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
-		source.start();
-		assertThat(doAwait(pollingCounter)).isTrue();
-		assertThat(doAwait(processingCounter)).isTrue();
+		try {
+			source.start();
+			assertThat(doAwait(pollingCounter)).isTrue();
+			assertThat(doAwait(processingCounter)).isTrue();
+		}
+		finally {
+			source.stop();
+			threadPool.shutdownNow();
+		}
 	}
 
 	@Test
@@ -118,7 +123,7 @@ class AbstractPollingMessageSourceTests {
 		String testName = "shouldAdaptThroughputMode";
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
-				.maxDelayBetweenPolls(Duration.ofMillis(150)).build();
+				.maxDelayBetweenPolls(Duration.ofMillis(150)).listenerShutdownTimeout(Duration.ZERO).build();
 		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
 				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
 
@@ -204,10 +209,10 @@ class AbstractPollingMessageSourceTests {
 	void shouldAcquireAndReleasePartialPermits() {
 		String testName = "shouldAcquireAndReleasePartialPermits";
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
-				.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofMillis(150)).build();
+				.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofMillis(150))
+				.listenerShutdownTimeout(Duration.ZERO).build();
 		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
 				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(200L));
-
 		ExecutorService threadPool = Executors
 				.newCachedThreadPool(new MessageExecutionThreadFactory("test " + testCounter.incrementAndGet()));
 		CountDownLatch pollingCounter = new CountDownLatch(4);
@@ -267,12 +272,16 @@ class AbstractPollingMessageSourceTests {
 		source.configure(options);
 		source.setTaskExecutor(createTaskExecutor(testName));
 		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
-		source.start();
-		assertThat(doAwait(processingCounter)).isTrue();
-		assertThat(doAwait(pollingCounter)).isTrue();
-		source.stop();
-		assertThat(hasThrownError.get()).isFalse();
-		threadPool.shutdownNow();
+		try {
+			source.start();
+			assertThat(doAwait(processingCounter)).isTrue();
+			assertThat(doAwait(pollingCounter)).isTrue();
+			assertThat(hasThrownError.get()).isFalse();
+		}
+		finally {
+			threadPool.shutdownNow();
+			source.stop();
+		}
 	}
 
 	@Test
@@ -295,7 +304,8 @@ class AbstractPollingMessageSourceTests {
 
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
-				.maxDelayBetweenPolls(Duration.ofMillis(150)).messageConverter(converter).build();
+				.maxDelayBetweenPolls(Duration.ofMillis(150)).messageConverter(converter)
+				.listenerShutdownTimeout(Duration.ZERO).build();
 		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
 				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
 
@@ -330,13 +340,19 @@ class AbstractPollingMessageSourceTests {
 		source.setId(testName + " source");
 		source.configure(options);
 		source.setPollingEndpointName("shouldReleasePermitsOnConversionErrors-queue");
-		source.setTaskExecutor(createTaskExecutor(testName));
+		ThreadPoolTaskExecutor taskExecutor = createTaskExecutor(testName);
+		source.setTaskExecutor(taskExecutor);
 		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
-		source.start();
-		Awaitility.waitAtMost(Duration.ofSeconds(10)).until(() -> convertedMessages.get() == 30);
-		assertThat(hasFailed).isFalse();
-		assertThat(messagesInSink).hasValue(27);
-		source.stop();
+		try {
+			source.start();
+			Awaitility.waitAtMost(Duration.ofSeconds(10)).until(() -> convertedMessages.get() == 30);
+			assertThat(hasFailed).isFalse();
+			assertThat(messagesInSink).hasValue(27);
+		}
+		finally {
+			source.stop();
+			taskExecutor.shutdown();
+		}
 	}
 
 	@Test
@@ -348,7 +364,8 @@ class AbstractPollingMessageSourceTests {
 		given(policy.start(null)).willReturn(backOffContext);
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(40)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
-				.maxDelayBetweenPolls(Duration.ofMillis(200)).pollBackOffPolicy(policy).build();
+				.maxDelayBetweenPolls(Duration.ofMillis(200)).pollBackOffPolicy(policy)
+				.listenerShutdownTimeout(Duration.ZERO).build();
 		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
 				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
 
@@ -383,15 +400,21 @@ class AbstractPollingMessageSourceTests {
 		source.setId(testName + " source");
 		source.configure(options);
 
-		source.setTaskExecutor(createTaskExecutor(testName));
+		ThreadPoolTaskExecutor taskExecutor = createTaskExecutor(testName);
+		source.setTaskExecutor(taskExecutor);
 		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
-		source.start();
+		try {
+			source.start();
 
-		doAwait(waitThirdPollLatch);
+			doAwait(waitThirdPollLatch);
 
-		then(policy).should().start(null);
-		then(policy).should(times(2)).backOff(backOffContext);
-
+			then(policy).should().start(null);
+			then(policy).should(times(2)).backOff(backOffContext);
+		}
+		finally {
+			source.stop();
+			taskExecutor.shutdown();
+		}
 	}
 
 	private static boolean doAwait(CountDownLatch processingLatch) {
@@ -454,7 +477,7 @@ class AbstractPollingMessageSourceTests {
 		}
 	}
 
-	protected TaskExecutor createTaskExecutor(String testName) {
+	protected ThreadPoolTaskExecutor createTaskExecutor(String testName) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		int poolSize = 10;
 		executor.setMaxPoolSize(poolSize);
