@@ -158,7 +158,7 @@ public class BackPressureHandlerFactories {
 	 * @return the created ThroughputBackPressureHandler.
 	 */
 	public static ThroughputBackPressureHandler throughputBackPressureHandler(ContainerOptions<?, ?> options) {
-		return ThroughputBackPressureHandler.builder().build();
+		return ThroughputBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll()).build();
 	}
 
 	/**

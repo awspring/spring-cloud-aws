@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 /**
  * Non-blocking {@link BackPressureHandler} implementation that uses a switch between high and low throughput modes.
@@ -54,10 +55,13 @@ public class ThroughputBackPressureHandler implements BackPressureHandler, Ident
 
 	private final AtomicBoolean drained = new AtomicBoolean(false);
 
+	private final int batchSize;
+
 	private String id = getClass().getSimpleName();
 
-	private ThroughputBackPressureHandler() {
-		logger.debug("ThroughputBackPressureHandler created");
+	private ThroughputBackPressureHandler(Builder builder) {
+		this.batchSize = builder.batchSize;
+		logger.debug("ThroughputBackPressureHandler created with batch size: {}", this.batchSize);
 	}
 
 	public static Builder builder() {
@@ -89,7 +93,7 @@ public class ThroughputBackPressureHandler implements BackPressureHandler, Ident
 			this.occupied.set(true);
 		}
 		logger.debug("[{}] Acquired {} permits ({} mode)", this.id, amount, throughputMode);
-		return amount;
+		return Math.min(amount, this.batchSize);
 	}
 
 	@Override
@@ -136,8 +140,16 @@ public class ThroughputBackPressureHandler implements BackPressureHandler, Ident
 
 	public static class Builder {
 
+		private int batchSize;
+
+		public Builder batchSize(int batchSize) {
+			this.batchSize = batchSize;
+			return this;
+		}
+
 		public ThroughputBackPressureHandler build() {
-			return new ThroughputBackPressureHandler();
+			Assert.isTrue(this.batchSize > 0, "The batch size must be greater than 0");
+			return new ThroughputBackPressureHandler(this);
 		}
 	}
 }

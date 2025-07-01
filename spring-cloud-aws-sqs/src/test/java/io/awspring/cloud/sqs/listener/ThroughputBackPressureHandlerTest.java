@@ -24,12 +24,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 class ThroughputBackPressureHandlerTest {
-
 	private ThroughputBackPressureHandler handler;
 
 	@BeforeEach
 	void setUp() {
-		handler = new ThroughputBackPressureHandler.Builder().build();
+		handler = new ThroughputBackPressureHandler.Builder().batchSize(5).build();
+	}
+
+	@ParameterizedTest
+	@CsvSource({ "4,4", "5,5", "6,5", })
+	void amountIsCappedAtBatchSize(int requestedAmount, int expectedPermits) throws InterruptedException {
+		assertThat(handler.request(requestedAmount)).isEqualTo(expectedPermits);
 	}
 
 	@ParameterizedTest
@@ -81,5 +86,4 @@ class ThroughputBackPressureHandlerTest {
 		assertThat(result).isTrue();
 		assertThat(handler.request(5)).isZero();
 	}
-
 }
