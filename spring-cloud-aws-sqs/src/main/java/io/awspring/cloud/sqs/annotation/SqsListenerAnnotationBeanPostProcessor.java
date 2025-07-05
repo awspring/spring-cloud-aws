@@ -25,6 +25,7 @@ import io.awspring.cloud.sqs.support.resolver.BatchVisibilityHandlerMethodArgume
 import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.NotificationSubjectArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
+import io.awspring.cloud.sqs.support.resolver.SnsNotificationArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.VisibilityHandlerMethodArgumentResolver;
 import java.lang.reflect.Method;
@@ -110,6 +111,7 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 		if (objectMapper != null) {
 			argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
 			argumentResolvers.add(new NotificationSubjectArgumentResolver(objectMapper));
+			argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, objectMapper));
 		}
 		return argumentResolvers;
 	}

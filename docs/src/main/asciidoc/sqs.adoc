@@ -694,6 +694,20 @@ public void listen(@SnsNotificationSubject String subject, @SnsNotificationMessa
 }
 ----
 
+Since 3.4.1, you can receive the complete SNS notification with all its metadata using the `SnsNotification<T>` wrapper class. This provides access to both the message payload and all the metadata such as messageId, topicArn, subject, timestamp, and message attributes.
+
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(SnsNotification<Pojo> notification) {
+    String messageId = notification.getMessageId();
+    String topicArn = notification.getTopicArn();
+    notification.getSubject().ifPresent(subject -> System.out.println("Subject: " + subject));
+    Pojo message = notification.getMessage();
+    System.out.println("Message from topic " + topicArn + " with ID " + messageId + ": " + message);
+}
+----
+
 ===== Specifying a MessageListenerContainerFactory
 A `MessageListenerContainerFactory` can be specified through the `factory` property.
 Such factory will then be used to create the container for the annotated method.
@@ -738,6 +752,8 @@ A number of possible argument types are allowed in the listener method's signatu
 - `Message<MyPojo>` - Provides a `Message<MyPojo>` instance with the deserialized payload and `MessageHeaders`.
 - `List<MyPojo>` - Enables batch mode and receives the batch that was polled from SQS.
 - `List<Message<MyPojo>>` - Enables batch mode and receives the batch that was polled from SQS along with headers.
+- `SnsNotification<MyPojo>` - Provides access to both the message payload and all the metadata of an SNS notification.
+See <<SNS Messages>> for more information.
 - `@Header(String headerName)` - provides the specified header.
 - `@Headers` - provides the `MessageHeaders` or a `Map<String, Object>`
 - `Acknowledgement` - provides methods for manually acknowledging messages for single message listeners.
@@ -1948,7 +1964,7 @@ SqsListenerObservation.Convention sqsListenerObservationConvention() {
                    .and("messaging.operation", "receive")
                    .and("custom.tag", "custom-value");
         }
-        
+
         @Override
         public KeyValues getHighCardinalityKeyValues(SqsListenerObservation.Context context) {
             String paymentId = MessageHeaderUtils.getHeaderAsString(context.getMessage(), "payment-id-header-name");
