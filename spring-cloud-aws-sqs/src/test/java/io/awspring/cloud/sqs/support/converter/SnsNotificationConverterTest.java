@@ -49,7 +49,7 @@ class SnsNotificationConverterTest {
     @Mock
     private MethodParameter methodParameter;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
@@ -59,61 +59,46 @@ class SnsNotificationConverterTest {
 
     @Test
     void shouldConvertSnsNotification() {
-        String snsJson = "{"
-                + "\"Type\": \"Notification\","
-                + "\"MessageId\": \"message-id\","
-                + "\"TopicArn\": \"topic-arn\","
-                + "\"Subject\": \"subject\","
-                + "\"Message\": \"message\","
-                + "\"Timestamp\": \"2023-01-01T00:00:00Z\","
-                + "\"MessageAttributes\": {"
-                + "  \"key\": {"
-                + "    \"Type\": \"String\","
-                + "    \"Value\": \"value\""
-                + "  }"
-                + "}"
-                + "}";
-        Message<String> message = new GenericMessage<>(snsJson);
-        
-        when(payloadConverter.fromMessage(any(), eq(String.class))).thenReturn("message");
-        
-        Object result = converter.fromMessage(message, SnsNotification.class);
-        
-        assertThat(result).isInstanceOf(SnsNotification.class);
-        SnsNotification<String> notification = (SnsNotification<String>) result;
-        assertThat(notification.getMessageId()).isEqualTo("message-id");
-        assertThat(notification.getTopicArn()).isEqualTo("topic-arn");
-        assertThat(notification.getSubject()).isEqualTo(Optional.of("subject"));
-        assertThat(notification.getMessage()).isEqualTo("message");
-        assertThat(notification.getTimestamp()).isEqualTo(Instant.parse("2023-01-01T00:00:00Z"));
-        assertThat(notification.getMessageAttributes()).hasSize(1);
-        assertThat(notification.getMessageAttributes().get("key").getType()).isEqualTo("String");
-        assertThat(notification.getMessageAttributes().get("key").getValue()).isEqualTo("value");
-    }
+		String snsJson = "{"
+			+ "\"Type\": \"Notification\","
+			+ "\"MessageId\": \"message-id\","
+			+ "\"TopicArn\": \"topic-arn\","
+			+ "\"Subject\": \"subject\","
+			+ "\"Message\": \"message\","
+			+ "\"Timestamp\": \"2023-01-01T00:00:00Z\","
+			+ "\"SequenceNumber\": \"123456789\","
+			+ "\"UnsubscribeURL\": \"https://sns.us-east-1.amazonaws.com/unsubscribe\","
+			+ "\"Signature\": \"signature-value\","
+			+ "\"SignatureVersion\": \"1\","
+			+ "\"SigningCertURL\": \"https://sns.us-east-1.amazonaws.com/cert\","
+			+ "\"MessageAttributes\": {"
+			+ "  \"key\": {"
+			+ "    \"Type\": \"String\","
+			+ "    \"Value\": \"value\""
+			+ "  }"
+			+ "}"
+			+ "}";
+		Message<String> message = new GenericMessage<>(snsJson);
 
-    @Test
-    void shouldConvertSnsNotificationWithoutSubject() {
-        String snsJson = "{"
-                + "\"Type\": \"Notification\","
-                + "\"MessageId\": \"message-id\","
-                + "\"TopicArn\": \"topic-arn\","
-                + "\"Message\": \"message\","
-                + "\"Timestamp\": \"2023-01-01T00:00:00Z\""
-                + "}";
-        Message<String> message = new GenericMessage<>(snsJson);
-        
-        when(payloadConverter.fromMessage(any(), eq(String.class))).thenReturn("message");
-        
-        Object result = converter.fromMessage(message, SnsNotification.class);
-        
-        assertThat(result).isInstanceOf(SnsNotification.class);
-        SnsNotification<String> notification = (SnsNotification<String>) result;
-        assertThat(notification.getMessageId()).isEqualTo("message-id");
-        assertThat(notification.getTopicArn()).isEqualTo("topic-arn");
-        assertThat(notification.getSubject()).isEmpty();
-        assertThat(notification.getMessage()).isEqualTo("message");
-        assertThat(notification.getTimestamp()).isEqualTo(Instant.parse("2023-01-01T00:00:00Z"));
-        assertThat(notification.getMessageAttributes()).isEmpty();
+		when(payloadConverter.fromMessage(any(), eq(String.class))).thenReturn("message");
+
+		Object result = converter.fromMessage(message, SnsNotification.class);
+
+		assertThat(result).isInstanceOf(SnsNotification.class);
+		SnsNotification<String> notification = (SnsNotification<String>) result;
+		assertThat(notification.getMessageId()).isEqualTo("message-id");
+		assertThat(notification.getTopicArn()).isEqualTo("topic-arn");
+		assertThat(notification.getSubject()).isEqualTo(Optional.of("subject"));
+		assertThat(notification.getMessage()).isEqualTo("message");
+		assertThat(notification.getTimestamp()).isEqualTo(Instant.parse("2023-01-01T00:00:00Z"));
+		assertThat(notification.getSequenceNumber()).isEqualTo(Optional.of("123456789"));
+		assertThat(notification.getUnsubscribeUrl()).isEqualTo(Optional.of("https://sns.us-east-1.amazonaws.com/unsubscribe"));
+		assertThat(notification.getSignature()).isEqualTo(Optional.of("signature-value"));
+		assertThat(notification.getSignatureVersion()).isEqualTo(Optional.of("1"));
+		assertThat(notification.getSigningCertURL()).isEqualTo(Optional.of("https://sns.us-east-1.amazonaws.com/cert"));
+		assertThat(notification.getMessageAttributes()).hasSize(1);
+		assertThat(notification.getMessageAttributes().get("key").getType()).isEqualTo("String");
+		assertThat(notification.getMessageAttributes().get("key").getValue()).isEqualTo("value");
     }
 
     @Test
@@ -127,11 +112,11 @@ class SnsNotificationConverterTest {
                 + "\"Timestamp\": \"2023-01-01T00:00:00Z\""
                 + "}";
         Message<String> message = new GenericMessage<>(snsJson);
-        
+
         when(payloadConverter.fromMessage(any(), eq(String.class))).thenReturn("message");
-        
+
         Object result = converter.fromMessage(message, SnsNotification.class);
-        
+
         assertThat(result).isInstanceOf(SnsNotification.class);
         SnsNotification<String> notification = (SnsNotification<String>) result;
         assertThat(notification.getMessageId()).isEqualTo("message-id");
@@ -153,7 +138,7 @@ class SnsNotificationConverterTest {
                 + "\"Timestamp\": \"2023-01-01T00:00:00Z\""
                 + "}";
         Message<String> message = new GenericMessage<>(snsJson);
-        
+
         assertThatThrownBy(() -> converter.fromMessage(message, SnsNotification.class))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Not an SNS notification");

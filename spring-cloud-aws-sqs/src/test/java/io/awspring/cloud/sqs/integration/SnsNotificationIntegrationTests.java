@@ -83,17 +83,59 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
-	void shouldReceiveSnsNotificationWithStringPayloadInListener() {
+	void shouldReceiveSnsNotificationWithRequiredFieldsOnly() {
 		String type = "Notification";
-		String messageId = "message-id";
+		String messageId = "message-id-required-only";
+		String topicArn = "topic-arn";
+		String messageContent = "test-message";
+		Instant timestamp = Instant.parse("2023-01-01T00:00:00Z");
+
+		// Create SNS notification with String payload - required fields only
+		String snsJson = "{"
+			+ "\"Type\": \"" + type + "\","
+			+ "\"MessageId\": \"" + messageId + "\","
+			+ "\"TopicArn\": \"" + topicArn + "\","
+			+ "\"Message\": \"" + messageContent + "\","
+			+ "\"Timestamp\": \"" + timestamp + "\""
+			+ "}";
+
+		sqsTemplate.send(SNS_NOTIFICATION_STRING_QUEUE_NAME, snsJson);
+		await().atMost(Duration.ofSeconds(10))
+			.untilAsserted(() -> assertThat(latchContainer.requiredFieldsLatch.await(10, TimeUnit.SECONDS)).isTrue());
+
+		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer.getNotification(messageId);
+		assertThat(receivedNotification).isNotNull();
+		assertThat(receivedNotification.getMessageId()).isEqualTo(messageId);
+		assertThat(receivedNotification.getTopicArn()).isEqualTo(topicArn);
+		assertThat(receivedNotification.getMessage()).isEqualTo(messageContent);
+		assertThat(receivedNotification.getTimestamp()).isEqualTo(timestamp);
+		assertThat(receivedNotification.getType()).isEqualTo(type);
+
+		// Optional fields should be empty
+		assertThat(receivedNotification.getSubject()).isEmpty();
+		assertThat(receivedNotification.getSequenceNumber()).isEmpty();
+		assertThat(receivedNotification.getUnsubscribeUrl()).isEmpty();
+		assertThat(receivedNotification.getMessageAttributes()).isEmpty();
+		assertThat(receivedNotification.getSignature()).isEmpty();
+		assertThat(receivedNotification.getSignatureVersion()).isEmpty();
+		assertThat(receivedNotification.getSigningCertURL()).isEmpty();
+	}
+
+	@Test
+	void shouldReceiveSnsNotificationWithAllFields() {
+		String type = "Notification";
+		String messageId = "message-id-all-fields";
 		String sequenceNumber = "10000000000000003000";
 		String topicArn = "topic-arn";
 		String messageContent = "test-message";
 		Instant timestamp = Instant.parse("2023-01-01T00:00:00Z");
 		String unsubscribeUrl = "https://sns.region.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:region:accountId:topicName:uuid";
 		String subject = "subject";
+		String signatureVersion = "1";
+		String signature = "signature-value";
+		String signingCertURL = "https://sns.region.amazonaws.com/SimpleNotificationService-certificate.pem";
 
-		// Create SNS notification with String payload
+		// Create SNS notification with String payload - all fields (required and optional)
 		String snsJson = "{"
 			+ "\"Type\": \"" + type + "\","
 			+ "\"MessageId\": \"" + messageId + "\","
@@ -102,7 +144,10 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 			+ "\"Message\": \"" + messageContent + "\","
 			+ "\"Timestamp\": \"" + timestamp + "\","
 			+ "\"UnsubscribeURL\": \"" + unsubscribeUrl + "\","
-			+ "\"Subject\": \"" + subject + "\"," // TODO: validate how optional fields are managed by AWS (subject, message attributes, sequence number, signature fields)
+			+ "\"Subject\": \"" + subject + "\","
+			+ "\"SignatureVersion\": \"" + signatureVersion + "\","
+			+ "\"Signature\": \"" + signature + "\","
+			+ "\"SigningCertURL\": \"" + signingCertURL + "\","
 			+ "\"MessageAttributes\": {"
 			+ "  \"key\": {"
 			+ "    \"Type\": \"String\","
@@ -113,22 +158,32 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 
 		sqsTemplate.send(SNS_NOTIFICATION_STRING_QUEUE_NAME, snsJson);
 		await().atMost(Duration.ofSeconds(10))
-			.untilAsserted(() -> assertThat(latchContainer.stringPayloadLatch.await(10, TimeUnit.SECONDS)).isTrue());
+			.untilAsserted(() -> assertThat(latchContainer.allFieldsLatch.await(10, TimeUnit.SECONDS)).isTrue());
 
 		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer.getNotification(messageId);
 		assertThat(receivedNotification).isNotNull();
+
+		// Required fields
 		assertThat(receivedNotification.getMessageId()).isEqualTo(messageId);
 		assertThat(receivedNotification.getTopicArn()).isEqualTo(topicArn);
-		assertThat(receivedNotification.getSubject()).isEqualTo(Optional.of(subject));
 		assertThat(receivedNotification.getMessage()).isEqualTo(messageContent);
 		assertThat(receivedNotification.getTimestamp()).isEqualTo(timestamp);
+		assertThat(receivedNotification.getType()).isEqualTo(type);
+
+		// Optional fields
+		assertThat(receivedNotification.getSubject()).isEqualTo(Optional.of(subject));
+		assertThat(receivedNotification.getSequenceNumber()).isEqualTo(Optional.of(sequenceNumber));
+		assertThat(receivedNotification.getUnsubscribeUrl()).isEqualTo(Optional.of(unsubscribeUrl));
+		assertThat(receivedNotification.getSignatureVersion()).isEqualTo(Optional.of(signatureVersion));
+		assertThat(receivedNotification.getSignature()).isEqualTo(Optional.of(signature));
+		assertThat(receivedNotification.getSigningCertURL()).isEqualTo(Optional.of(signingCertURL));
 		assertThat(receivedNotification.getMessageAttributes()).hasSize(1);
 		assertThat(receivedNotification.getMessageAttributes().get("key").getType()).isEqualTo("String");
 		assertThat(receivedNotification.getMessageAttributes().get("key").getValue()).isEqualTo("value");
 	}
 
 	@Test
-	void shouldReceiveSnsNotificationWithJsonPayloadInListener() throws Exception {
+	void shouldReceiveSnsNotificationWithJsonPayload() throws Exception {
 		String type = "Notification";
 		String messageId = "006cae73-2988-5eee-b877-ce9349bbb029";
 		String sequenceNumber = "10000000000000003000";
@@ -189,7 +244,15 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 			LOGGER.info("Received String SNS notification: {}", notification);
 			String messageId = notification.getMessageId();
 			latchContainer.storeNotification(messageId, notification);
-			latchContainer.stringPayloadLatch.countDown();
+
+			// Count down the appropriate latch based on the message ID
+			if (messageId.equals("message-id-required-only")) {
+				LOGGER.info("Counting down requiredFieldsLatch for message ID: {}", messageId);
+				latchContainer.requiredFieldsLatch.countDown();
+			} else if (messageId.equals("message-id-all-fields")) {
+				LOGGER.info("Counting down allFieldsLatch for message ID: {}", messageId);
+				latchContainer.allFieldsLatch.countDown();
+			}
 		}
 
 		@SqsListener("${sns.notification.json.queue.name}")
@@ -202,9 +265,11 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	static class LatchContainer {
-		// Two specific latches for the two test methods
-		public final CountDownLatch stringPayloadLatch = new CountDownLatch(1);
+		// Latches for the test methods
+		public final CountDownLatch stringPayloadLatch = new CountDownLatch(1); // Legacy latch, kept for backward compatibility
 		public final CountDownLatch jsonPayloadLatch = new CountDownLatch(1);
+		public final CountDownLatch requiredFieldsLatch = new CountDownLatch(1);
+		public final CountDownLatch allFieldsLatch = new CountDownLatch(1);
 
 		// Keep the notification storage by message ID for verification
 		private final ConcurrentHashMap<String, SnsNotification<?>> receivedSnsNotifications = new ConcurrentHashMap<>();

@@ -91,18 +91,15 @@ public class SnsNotificationConverter implements SmartMessageConverter {
     private Object fromGenericMessage(GenericMessage<?> message, Class<?> targetClass,
             @Nullable Object conversionHint) {
         try {
-            // Parse the SNS notification JSON
             JsonNode jsonNode = jsonMapper.readTree(message.getPayload().toString());
 
-            // Validate that this is an SNS notification
             if (!jsonNode.has("Type") || !"Notification".equals(jsonNode.get("Type").asText())) {
                 throw new IllegalArgumentException("Not an SNS notification: " + message.getPayload());
             }
 
-            // Extract the message content
+			// Extract message
             String messageContent = jsonNode.get("Message").asText();
 
-            // Convert the message content to the target type
             Type payloadType = getPayloadType(targetClass, conversionHint);
             Class<?> payloadClass = ResolvableType.forType(payloadType).resolve();
 
@@ -111,32 +108,38 @@ public class SnsNotificationConverter implements SmartMessageConverter {
                     ? smartMessageConverter.fromMessage(genericMessage, payloadClass, conversionHint)
                     : payloadConverter.fromMessage(genericMessage, payloadClass);
 
-            // Extract other metadata
+            // Extract metadata
 			String type = jsonNode.get("Type").asText();
-			String sequenceNumber = jsonNode.get("SequenceNumber").asText();
 			String messageId = jsonNode.get("MessageId").asText();
             String topicArn = jsonNode.get("TopicArn").asText();
             String subject = jsonNode.has("Subject") ?
                     jsonNode.get("Subject").asText() : null;
-			String unsubscribeUrl = jsonNode.get("UnsubscribeURL").asText();
+			String sequenceNumber = jsonNode.has("SequenceNumber") ?
+                    jsonNode.get("SequenceNumber").asText() : null;
+			String unsubscribeUrl = jsonNode.has("UnsubscribeURL") ?
+                    jsonNode.get("UnsubscribeURL").asText() : null;
 			Instant timestamp = Instant.parse(jsonNode.get("Timestamp").asText());
 
-            // Extract message attributes
+			String signature = jsonNode.has("Signature") ?
+                    jsonNode.get("Signature").asText() : null;
+			String signatureVersion = jsonNode.has("SignatureVersion") ?
+                    jsonNode.get("SignatureVersion").asText() : null;
+			String signingCertURL = jsonNode.has("SigningCertURL") ?
+                    jsonNode.get("SigningCertURL").asText() : null;
+
             Map<String, SnsNotification.MessageAttribute> messageAttributes = new HashMap<>();
             if (jsonNode.has("MessageAttributes")) {
                 JsonNode attributesNode = jsonNode.get("MessageAttributes");
-                Iterator<Map.Entry<String, JsonNode>> fields = attributesNode.fields();
-                while (fields.hasNext()) {
-                    Map.Entry<String, JsonNode> field = fields.next();
-                    String name = field.getKey();
-                    JsonNode attributeNode = field.getValue();
-                    String attributeType = attributeNode.get("Type").asText();
-                    String value = attributeNode.get("Value").asText();
-                    messageAttributes.put(name, new SnsNotification.MessageAttribute(attributeType, value));
-                }
+				for (Map.Entry<String, JsonNode> field : attributesNode.properties()) {
+					String name = field.getKey();
+					JsonNode attributeNode = field.getValue();
+					String attributeType = attributeNode.get("Type").asText();
+					String value = attributeNode.get("Value").asText();
+					messageAttributes.put(name, new SnsNotification.MessageAttribute(attributeType, value));
+				}
             }
 
-            // Create and return the SnsNotificationWrapper object
+            // Create and return the SnsNotification object
 			return new SnsNotification<>(
 				type,
 				messageId,
@@ -146,7 +149,10 @@ public class SnsNotificationConverter implements SmartMessageConverter {
 				convertedPayload,
 				timestamp,
 				unsubscribeUrl,
-				messageAttributes
+				messageAttributes,
+				signature,
+				signatureVersion,
+				signingCertURL
 			);
 
 		}

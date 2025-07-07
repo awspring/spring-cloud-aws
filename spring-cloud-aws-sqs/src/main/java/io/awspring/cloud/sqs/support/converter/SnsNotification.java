@@ -47,25 +47,36 @@ import java.util.Optional;
  * @see io.awspring.cloud.sqs.support.converter.SnsNotificationConverter
  */
 public class SnsNotification<T> {
-
+	// Required
 	private final String type;
 	private final String messageId;
-	private final String sequenceNumber;
     private final String topicArn;
-	private final String subject;
 	private final T message;
     private final Instant timestamp;
+	// Optional
+	private final String sequenceNumber;
+	private final String subject;
 	private final String unsubscribeUrl;
     private final Map<String, MessageAttribute> messageAttributes;
+	private final String signatureVersion;
+	private final String signature;
+	private final String signingCertURL;
 
     /**
      * Creates a new SNS notification.
-     * @param messageId the message ID
-     * @param topicArn the topic ARN
-     * @param subject the subject (optional)
-     * @param message the message payload
-     * @param timestamp the timestamp
-     * @param messageAttributes the message attributes
+     * 
+     * @param type the notification type (required, always "Notification" for standard SNS messages)
+     * @param messageId the message ID (required, unique identifier assigned by SNS)
+     * @param topicArn the topic ARN (required, ARN of the topic that published the message)
+     * @param subject the subject (optional, title/subject set when publishing)
+     * @param sequenceNumber the sequence number (optional, present only for FIFO topics)
+     * @param message the message payload (required, the actual content)
+     * @param timestamp the timestamp (required, when the notification was published)
+     * @param unsubscribeUrl the unsubscribe URL (optional, URL to unsubscribe from the topic)
+     * @param messageAttributes the message attributes (optional, custom attributes attached to the message)
+     * @param signature the signature (optional, present when message signing is enabled)
+     * @param signatureVersion the signature version (optional, present when message signing is enabled)
+     * @param signingCertURL the signing certificate URL (optional, present when message signing is enabled)
      */
 	@JsonCreator
 	public SnsNotification(
@@ -77,7 +88,11 @@ public class SnsNotification<T> {
             @JsonProperty("Message") T message,
             @JsonProperty("Timestamp") Instant timestamp,
             @JsonProperty("UnsubscribeURL") String unsubscribeUrl,
-            @JsonProperty("MessageAttributes") Map<String, MessageAttribute> messageAttributes) {
+            @JsonProperty("MessageAttributes") Map<String, MessageAttribute> messageAttributes,
+			@JsonProperty("Signature") String signature,
+			@JsonProperty("SignatureVersion") String signatureVersion,
+			@JsonProperty("SigningCertURL") String signingCertURL
+	) {
         this.type = type;
         this.messageId = messageId;
         this.topicArn = topicArn;
@@ -87,13 +102,16 @@ public class SnsNotification<T> {
         this.message = message;
         this.timestamp = timestamp;
         this.messageAttributes = messageAttributes;
+		this.signature = signature;
+		this.signatureVersion = signatureVersion;
+		this.signingCertURL = signingCertURL;
     }
-    
-    
+
+
 
     /**
      * Gets the message ID.
-     * @return the message ID
+     * @return the message ID (required field, unique identifier assigned by SNS)
      */
     public String getMessageId() {
         return messageId;
@@ -101,23 +119,15 @@ public class SnsNotification<T> {
 
     /**
      * Gets the topic ARN.
-     * @return the topic ARN
+     * @return the topic ARN (required field, ARN of the topic that published the message)
      */
     public String getTopicArn() {
         return topicArn;
     }
 
     /**
-     * Gets the subject.
-     * @return the subject, or empty if not present
-     */
-    public Optional<String> getSubject() {
-        return Optional.ofNullable(subject);
-    }
-
-    /**
      * Gets the message payload.
-     * @return the message payload
+     * @return the message payload (required field, the actual content of the notification)
      */
     public T getMessage() {
         return message;
@@ -125,7 +135,7 @@ public class SnsNotification<T> {
 
     /**
      * Gets the timestamp.
-     * @return the timestamp
+     * @return the timestamp (required field, when the notification was published in ISO-8601 format)
      */
     public Instant getTimestamp() {
         return timestamp;
@@ -133,7 +143,7 @@ public class SnsNotification<T> {
 
     /**
      * Gets the message attributes.
-     * @return the message attributes
+     * @return the message attributes (optional field, custom attributes attached to the message)
      */
     public Map<String, MessageAttribute> getMessageAttributes() {
         return messageAttributes;
@@ -141,32 +151,61 @@ public class SnsNotification<T> {
 
     /**
      * Gets the notification type.
-     *
-     * @return the notification type
+     * @return the notification type (required field, always "Notification" for standard SNS messages)
      */
     public String getType() {
         return type;
     }
 
+	/**
+	 * Gets the subject.
+	 * @return the subject (optional field, title/subject set when publishing), or empty if not present
+	 */
+	public Optional<String> getSubject() {
+		return Optional.ofNullable(subject);
+	}
+
     /**
      * Gets the sequence number.
-     *
-     * @return the sequence number
+     * @return the sequence number (optional field, present only for FIFO topics), or empty if not present
      */
-    public String getSequenceNumber() {
-        return sequenceNumber;
+    public Optional<String> getSequenceNumber() {
+        return Optional.ofNullable(sequenceNumber);
     }
 
     /**
      * Gets the unsubscribe URL.
-     *
-     * @return the unsubscribe URL
+     * @return the unsubscribe URL (optional field, URL to unsubscribe from the topic), or empty if not present
      */
-    public String getUnsubscribeUrl() {
-        return unsubscribeUrl;
+    public Optional<String> getUnsubscribeUrl() {
+        return Optional.ofNullable(unsubscribeUrl);
     }
 
-    /**
+	/**
+	 * Gets the signature version.
+	 * @return the signature version (optional field, present when message signing is enabled), or empty if not present
+	 */
+	public Optional<String> getSignatureVersion() {
+		return Optional.ofNullable(signatureVersion);
+	}
+
+	/**
+	 * Gets the signature.
+	 * @return the signature (optional field, present when message signing is enabled), or empty if not present
+	 */
+	public Optional<String> getSignature() {
+		return Optional.ofNullable(signature);
+	}
+
+	/**
+	 * Gets the signing certificate URL.
+	 * @return the signing certificate URL (optional field, present when message signing is enabled), or empty if not present
+	 */
+	public Optional<String> getSigningCertURL() {
+		return Optional.ofNullable(signingCertURL);
+	}
+
+	/**
      * Represents an SNS message attribute.
      */
     public static class MessageAttribute {
