@@ -16,8 +16,8 @@
 package io.awspring.cloud.sqs.support.resolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.sqs.support.converter.SnsNotificationConverter;
 import io.awspring.cloud.sqs.support.converter.SnsNotification;
+import io.awspring.cloud.sqs.support.converter.SnsNotificationConverter;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
@@ -32,24 +32,24 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
  */
 public class SnsNotificationArgumentResolver implements HandlerMethodArgumentResolver {
 
-    private final SmartMessageConverter converter;
+	private final SmartMessageConverter converter;
 
-    /**
-     * Creates a new resolver with the given converter and JSON mapper.
-     * @param converter the message converter to use for the message payload
-     * @param jsonMapper the JSON mapper to use for parsing the SNS notification
-     */
-    public SnsNotificationArgumentResolver(MessageConverter converter, ObjectMapper jsonMapper) {
-        this.converter = new SnsNotificationConverter(converter, jsonMapper);
-    }
+	/**
+	 * Creates a new resolver with the given converter and JSON mapper.
+	 * @param converter the message converter to use for the message payload
+	 * @param jsonMapper the JSON mapper to use for parsing the SNS notification
+	 */
+	public SnsNotificationArgumentResolver(MessageConverter converter, ObjectMapper jsonMapper) {
+		this.converter = new SnsNotificationConverter(converter, jsonMapper);
+	}
 
-    @Override
-    public boolean supportsParameter(MethodParameter parameter) {
-        return SnsNotification.class.isAssignableFrom(parameter.getParameterType());
-    }
+	@Override
+	public boolean supportsParameter(MethodParameter parameter) {
+		return SnsNotification.class.isAssignableFrom(parameter.getParameterType());
+	}
 
-    @Override
-    public Object resolveArgument(MethodParameter parameter, Message<?> message) {
-        return this.converter.fromMessage(message, parameter.getParameterType(), parameter);
-    }
+	@Override
+	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
+		return this.converter.fromMessage(message, parameter.getParameterType(), parameter);
+	}
 }

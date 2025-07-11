@@ -15,16 +15,10 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
@@ -44,166 +38,107 @@ import org.springframework.util.Assert;
  */
 public class SnsNotificationConverter implements SmartMessageConverter {
 
-    private final ObjectMapper jsonMapper;
+	private final ObjectMapper jsonMapper;
 
-    private final MessageConverter payloadConverter;
+	private final MessageConverter payloadConverter;
 
-    /**
-     * Creates a new converter with the given payload converter and JSON mapper.
-     * @param payloadConverter the converter to use for the message payload
-     * @param jsonMapper the JSON mapper to use for parsing the SNS notification
-     */
-    public SnsNotificationConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
-        Assert.notNull(payloadConverter, "payloadConverter must not be null");
-        Assert.notNull(jsonMapper, "jsonMapper must not be null");
-        this.payloadConverter = payloadConverter;
-        this.jsonMapper = jsonMapper;
-    }
+	/**
+	 * Creates a new converter with the given payload converter and JSON mapper.
+	 * @param payloadConverter the converter to use for the message payload
+	 * @param jsonMapper the JSON mapper to use for parsing the SNS notification
+	 */
+	public SnsNotificationConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
+		Assert.notNull(payloadConverter, "payloadConverter must not be null");
+		Assert.notNull(jsonMapper, "jsonMapper must not be null");
+		this.payloadConverter = payloadConverter;
+		this.jsonMapper = jsonMapper;
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public Object fromMessage(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint) {
-        Assert.notNull(message, "message must not be null");
-        Assert.notNull(targetClass, "target class must not be null");
+	@Override
+	@SuppressWarnings("unchecked")
+	public Object fromMessage(Message<?> message, Class<?> targetClass, @Nullable Object conversionHint) {
+		Assert.notNull(message, "message must not be null");
+		Assert.notNull(targetClass, "target class must not be null");
 
-        Object payload = message.getPayload();
+		Object payload = message.getPayload();
 
-        if (payload instanceof List messages) {
-            return fromGenericMessages(messages, targetClass, conversionHint);
-        }
-        else {
-            return fromGenericMessage((GenericMessage<?>) message, targetClass, conversionHint);
-        }
-    }
-
-    private Object fromGenericMessages(List<GenericMessage<?>> messages, Class<?> targetClass,
-            @Nullable Object conversionHint) {
-        Type resolvedType = getResolvedType(targetClass, conversionHint);
-        Class<?> resolvedClazz = ResolvableType.forType(resolvedType).resolve();
-
-        Object hint = targetClass.isAssignableFrom(List.class) && conversionHint instanceof MethodParameter mp
-                ? mp.nested()
-                : conversionHint;
-
-        return messages.stream().map(message -> fromGenericMessage(message, resolvedClazz, hint)).toList();
-    }
-
-    private Object fromGenericMessage(GenericMessage<?> message, Class<?> targetClass,
-            @Nullable Object conversionHint) {
-        try {
-            JsonNode jsonNode = jsonMapper.readTree(message.getPayload().toString());
-
-            if (!jsonNode.has("Type") || !"Notification".equals(jsonNode.get("Type").asText())) {
-                throw new IllegalArgumentException("Not an SNS notification: " + message.getPayload());
-            }
-
-			// Extract message
-            String messageContent = jsonNode.get("Message").asText();
-
-            Type payloadType = getPayloadType(targetClass, conversionHint);
-            Class<?> payloadClass = ResolvableType.forType(payloadType).resolve();
-
-            GenericMessage<String> genericMessage = new GenericMessage<>(messageContent);
-            Object convertedPayload = payloadConverter instanceof SmartMessageConverter smartMessageConverter
-                    ? smartMessageConverter.fromMessage(genericMessage, payloadClass, conversionHint)
-                    : payloadConverter.fromMessage(genericMessage, payloadClass);
-
-            // Extract metadata
-			String type = jsonNode.get("Type").asText();
-			String messageId = jsonNode.get("MessageId").asText();
-            String topicArn = jsonNode.get("TopicArn").asText();
-            String subject = jsonNode.has("Subject") ?
-                    jsonNode.get("Subject").asText() : null;
-			String sequenceNumber = jsonNode.has("SequenceNumber") ?
-                    jsonNode.get("SequenceNumber").asText() : null;
-			String unsubscribeUrl = jsonNode.has("UnsubscribeURL") ?
-                    jsonNode.get("UnsubscribeURL").asText() : null;
-			Instant timestamp = Instant.parse(jsonNode.get("Timestamp").asText());
-
-			String signature = jsonNode.has("Signature") ?
-                    jsonNode.get("Signature").asText() : null;
-			String signatureVersion = jsonNode.has("SignatureVersion") ?
-                    jsonNode.get("SignatureVersion").asText() : null;
-			String signingCertURL = jsonNode.has("SigningCertURL") ?
-                    jsonNode.get("SigningCertURL").asText() : null;
-
-            Map<String, SnsNotification.MessageAttribute> messageAttributes = new HashMap<>();
-            if (jsonNode.has("MessageAttributes")) {
-                JsonNode attributesNode = jsonNode.get("MessageAttributes");
-				for (Map.Entry<String, JsonNode> field : attributesNode.properties()) {
-					String name = field.getKey();
-					JsonNode attributeNode = field.getValue();
-					String attributeType = attributeNode.get("Type").asText();
-					String value = attributeNode.get("Value").asText();
-					messageAttributes.put(name, new SnsNotification.MessageAttribute(attributeType, value));
-				}
-            }
-
-            // Create and return the SnsNotification object
-			return new SnsNotification<>(
-				type,
-				messageId,
-				topicArn,
-				subject,
-				sequenceNumber,
-				convertedPayload,
-				timestamp,
-				unsubscribeUrl,
-				messageAttributes,
-				signature,
-				signatureVersion,
-				signingCertURL
-			);
-
+		if (payload instanceof List messages) {
+			return fromGenericMessages(messages, targetClass, conversionHint);
 		}
-        catch (Exception e) {
-            throw new IllegalArgumentException("Error converting SNS notification: " + e.getMessage(), e);
-        }
-    }
+		else {
+			return fromGenericMessage((GenericMessage<?>) message, targetClass, conversionHint);
+		}
+	}
 
-    private Type getPayloadType(Class<?> targetClass, @Nullable Object conversionHint) {
-        if (conversionHint instanceof MethodParameter parameter) {
-            ResolvableType resolvableType = ResolvableType.forMethodParameter(parameter);
-            if (resolvableType.isAssignableFrom(SnsNotification.class)) {
-                return resolvableType.getGeneric(0).getType();
-            }
-        }
-        return String.class;
-    }
+	private Object fromGenericMessages(List<GenericMessage<?>> messages, Class<?> targetClass,
+			@Nullable Object conversionHint) {
+		Type resolvedType = getResolvedType(targetClass, conversionHint);
+		Class<?> resolvedClazz = ResolvableType.forType(resolvedType).resolve();
 
-    @Override
-    public Object fromMessage(Message<?> message, Class<?> targetClass) {
-        return fromMessage(message, targetClass, null);
-    }
+		Object hint = targetClass.isAssignableFrom(List.class) && conversionHint instanceof MethodParameter mp
+				? mp.nested()
+				: conversionHint;
 
-    @Override
-    public Message<?> toMessage(Object payload, MessageHeaders headers) {
-        throw new UnsupportedOperationException(
-                "This converter only supports reading SNS notifications and not writing them");
-    }
+		return messages.stream().map(message -> fromGenericMessage(message, resolvedClazz, hint)).toList();
+	}
 
-    @Override
-    public Message<?> toMessage(Object payload, MessageHeaders headers, Object conversionHint) {
-        throw new UnsupportedOperationException(
-                "This converter only supports reading SNS notifications and not writing them");
-    }
+	private Object fromGenericMessage(GenericMessage<?> message, Class<?> targetClass,
+			@Nullable Object conversionHint) {
+		try {
+			Type payloadType = getPayloadType(targetClass, conversionHint);
+			Class<?> payloadClass = ResolvableType.forType(payloadType).resolve();
 
-    private static Type getResolvedType(Class<?> targetClass, @Nullable Object conversionHint) {
-        if (conversionHint instanceof MethodParameter param) {
-            param = param.nestedIfOptional();
-            if (Message.class.isAssignableFrom(param.getParameterType())) {
-                param = param.nested();
-            }
-            Type genericParameterType = param.getNestedGenericParameterType();
-            Class<?> contextClass = param.getContainingClass();
-            Type resolveType = GenericTypeResolver.resolveType(genericParameterType, contextClass);
-            if (resolveType instanceof ParameterizedType parameterizedType) {
-                return parameterizedType.getActualTypeArguments()[0];
-            }
-            else {
-                return resolveType;
-            }
-        }
-        return targetClass;
-    }
+			return jsonMapper.readValue(message.getPayload().toString(),
+					jsonMapper.getTypeFactory().constructParametricType(SnsNotification.class, payloadClass));
+		}
+		catch (Exception e) {
+			throw new IllegalArgumentException("Error converting SNS notification: " + e.getMessage(), e);
+		}
+	}
+
+	private Type getPayloadType(Class<?> targetClass, @Nullable Object conversionHint) {
+		if (conversionHint instanceof MethodParameter parameter) {
+			ResolvableType resolvableType = ResolvableType.forMethodParameter(parameter);
+			if (resolvableType.isAssignableFrom(SnsNotification.class)) {
+				return resolvableType.getGeneric(0).getType();
+			}
+		}
+		return String.class;
+	}
+
+	@Override
+	public Object fromMessage(Message<?> message, Class<?> targetClass) {
+		return fromMessage(message, targetClass, null);
+	}
+
+	@Override
+	public Message<?> toMessage(Object payload, MessageHeaders headers) {
+		throw new UnsupportedOperationException(
+				"This converter only supports reading SNS notifications and not writing them");
+	}
+
+	@Override
+	public Message<?> toMessage(Object payload, MessageHeaders headers, Object conversionHint) {
+		throw new UnsupportedOperationException(
+				"This converter only supports reading SNS notifications and not writing them");
+	}
+
+	private static Type getResolvedType(Class<?> targetClass, @Nullable Object conversionHint) {
+		if (conversionHint instanceof MethodParameter param) {
+			param = param.nestedIfOptional();
+			if (Message.class.isAssignableFrom(param.getParameterType())) {
+				param = param.nested();
+			}
+			Type genericParameterType = param.getNestedGenericParameterType();
+			Class<?> contextClass = param.getContainingClass();
+			Type resolveType = GenericTypeResolver.resolveType(genericParameterType, contextClass);
+			if (resolveType instanceof ParameterizedType parameterizedType) {
+				return parameterizedType.getActualTypeArguments()[0];
+			}
+			else {
+				return resolveType;
+			}
+		}
+		return targetClass;
+	}
 }

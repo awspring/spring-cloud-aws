@@ -29,8 +29,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
  * <p>
  * Each payload type must have exactly one corresponding method.
  * <p>
- * If no method matches the payload type, a method marked as the default (using {@code isDefault = true}) will be invoked.
- * Only one method can be designated as the default.
+ * If no method matches the payload type, a method marked as the default (using {@code isDefault = true}) will be
+ * invoked. Only one method can be designated as the default.
  *
  * @author José Iêdo
  */
@@ -41,8 +41,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 public @interface SqsHandler {
 
 	/**
-	 * Indicates whether this method should be used as the default fallback method if no other {@link SqsHandler}
-	 * method matches the payload type.
+	 * Indicates whether this method should be used as the default fallback method if no other {@link SqsHandler} method
+	 * matches the payload type.
 	 *
 	 * @return {@code true} if this is the default method, {@code false} otherwise
 	 */

@@ -15,6 +15,11 @@
  */
 package io.awspring.cloud.sqs.integration;
 
+import static io.awspring.cloud.sqs.integration.SnsNotificationIntegrationTests.SNS_NOTIFICATION_JSON_QUEUE_NAME;
+import static io.awspring.cloud.sqs.integration.SnsNotificationIntegrationTests.SNS_NOTIFICATION_STRING_QUEUE_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
@@ -23,6 +28,13 @@ import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.SnsNotification;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -36,29 +48,14 @@ import org.springframework.test.context.TestPropertySource;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static io.awspring.cloud.sqs.integration.SnsNotificationIntegrationTests.SNS_NOTIFICATION_JSON_QUEUE_NAME;
-import static io.awspring.cloud.sqs.integration.SnsNotificationIntegrationTests.SNS_NOTIFICATION_STRING_QUEUE_NAME;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-
 /**
  * Integration tests for SNS notifications in SQS.
  *
  * @author Damien Chomat
  */
 @SpringBootTest
-@TestPropertySource(properties = {
-	"sns.notification.string.queue.name=" + SNS_NOTIFICATION_STRING_QUEUE_NAME,
-	"sns.notification.json.queue.name=" + SNS_NOTIFICATION_JSON_QUEUE_NAME,
-})
+@TestPropertySource(properties = { "sns.notification.string.queue.name=" + SNS_NOTIFICATION_STRING_QUEUE_NAME,
+		"sns.notification.json.queue.name=" + SNS_NOTIFICATION_JSON_QUEUE_NAME, })
 class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SnsNotificationIntegrationTests.class);
@@ -88,22 +85,19 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		String messageId = "message-id-required-only";
 		String topicArn = "topic-arn";
 		String messageContent = "test-message";
-		Instant timestamp = Instant.parse("2023-01-01T00:00:00Z");
+		String timestamp = "2023-01-01T00:00:00Z";
 
 		// Create SNS notification with String payload - required fields only
-		String snsJson = "{"
-			+ "\"Type\": \"" + type + "\","
-			+ "\"MessageId\": \"" + messageId + "\","
-			+ "\"TopicArn\": \"" + topicArn + "\","
-			+ "\"Message\": \"" + messageContent + "\","
-			+ "\"Timestamp\": \"" + timestamp + "\""
-			+ "}";
+		String snsJson = "{" + "\"Type\": \"" + type + "\"," + "\"MessageId\": \"" + messageId + "\","
+				+ "\"TopicArn\": \"" + topicArn + "\"," + "\"Message\": \"" + messageContent + "\","
+				+ "\"Timestamp\": \"" + timestamp + "\"" + "}";
 
 		sqsTemplate.send(SNS_NOTIFICATION_STRING_QUEUE_NAME, snsJson);
-		await().atMost(Duration.ofSeconds(10))
-			.untilAsserted(() -> assertThat(latchContainer.requiredFieldsLatch.await(10, TimeUnit.SECONDS)).isTrue());
+		await().atMost(Duration.ofSeconds(10)).untilAsserted(
+				() -> assertThat(latchContainer.requiredFieldsLatch.await(10, TimeUnit.SECONDS)).isTrue());
 
-		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer.getNotification(messageId);
+		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer
+				.getNotification(messageId);
 		assertThat(receivedNotification).isNotNull();
 		assertThat(receivedNotification.getMessageId()).isEqualTo(messageId);
 		assertThat(receivedNotification.getTopicArn()).isEqualTo(topicArn);
@@ -128,7 +122,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		String sequenceNumber = "10000000000000003000";
 		String topicArn = "topic-arn";
 		String messageContent = "test-message";
-		Instant timestamp = Instant.parse("2023-01-01T00:00:00Z");
+		String timestamp = "2023-01-01T00:00:00Z";
 		String unsubscribeUrl = "https://sns.region.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:region:accountId:topicName:uuid";
 		String subject = "subject";
 		String signatureVersion = "1";
@@ -136,31 +130,20 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		String signingCertURL = "https://sns.region.amazonaws.com/SimpleNotificationService-certificate.pem";
 
 		// Create SNS notification with String payload - all fields (required and optional)
-		String snsJson = "{"
-			+ "\"Type\": \"" + type + "\","
-			+ "\"MessageId\": \"" + messageId + "\","
-			+ "\"SequenceNumber\": \"" + sequenceNumber + "\","
-			+ "\"TopicArn\": \"" + topicArn + "\","
-			+ "\"Message\": \"" + messageContent + "\","
-			+ "\"Timestamp\": \"" + timestamp + "\","
-			+ "\"UnsubscribeURL\": \"" + unsubscribeUrl + "\","
-			+ "\"Subject\": \"" + subject + "\","
-			+ "\"SignatureVersion\": \"" + signatureVersion + "\","
-			+ "\"Signature\": \"" + signature + "\","
-			+ "\"SigningCertURL\": \"" + signingCertURL + "\","
-			+ "\"MessageAttributes\": {"
-			+ "  \"key\": {"
-			+ "    \"Type\": \"String\","
-			+ "    \"Value\": \"value\""
-			+ "  }"
-			+ "}"
-			+ "}";
+		String snsJson = "{" + "\"Type\": \"" + type + "\"," + "\"MessageId\": \"" + messageId + "\","
+				+ "\"SequenceNumber\": \"" + sequenceNumber + "\"," + "\"TopicArn\": \"" + topicArn + "\","
+				+ "\"Message\": \"" + messageContent + "\"," + "\"Timestamp\": \"" + timestamp + "\","
+				+ "\"UnsubscribeURL\": \"" + unsubscribeUrl + "\"," + "\"Subject\": \"" + subject + "\","
+				+ "\"SignatureVersion\": \"" + signatureVersion + "\"," + "\"Signature\": \"" + signature + "\","
+				+ "\"SigningCertURL\": \"" + signingCertURL + "\"," + "\"MessageAttributes\": {" + "  \"key\": {"
+				+ "    \"Type\": \"String\"," + "    \"Value\": \"value\"" + "  }" + "}" + "}";
 
 		sqsTemplate.send(SNS_NOTIFICATION_STRING_QUEUE_NAME, snsJson);
 		await().atMost(Duration.ofSeconds(10))
-			.untilAsserted(() -> assertThat(latchContainer.allFieldsLatch.await(10, TimeUnit.SECONDS)).isTrue());
+				.untilAsserted(() -> assertThat(latchContainer.allFieldsLatch.await(10, TimeUnit.SECONDS)).isTrue());
 
-		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer.getNotification(messageId);
+		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer
+				.getNotification(messageId);
 		assertThat(receivedNotification).isNotNull();
 
 		// Required fields
@@ -195,28 +178,34 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		String subject = "subject-json";
 
 		// Create SNS notification with JSON payload
-		String snsJson = "{"
-			+ "\"Type\": \"" + type + "\","
-			+ "\"MessageId\": \"" + messageId + "\","
-			+ "\"SequenceNumber\": \"" + sequenceNumber + "\","
-			+ "\"TopicArn\": \"" + topicArn + "\","
-			+ "\"Message\": \"" + messageContent.replace("\"", "\\\"") + "\","
-			+ "\"Timestamp\": \"" + timestamp + "\","
-			+ "\"UnsubscribeURL\": \"" + unsubscribeUrl + "\","
-			+ "\"Subject\": \"" + subject + "\"," // TODO: validate how optional fields are managed by AWS (subject, message attributes, sequence number, signature fields)
-			+ "\"MessageAttributes\": {"
-			+ "  \"key\": {"
-			+ "    \"Type\": \"String\","
-			+ "    \"Value\": \"value\""
-			+ "  }"
-			+ "}"
-			+ "}";
+		String snsJson = "{" + "\"Type\": \"" + type + "\"," + "\"MessageId\": \"" + messageId + "\","
+				+ "\"SequenceNumber\": \"" + sequenceNumber + "\"," + "\"TopicArn\": \"" + topicArn + "\","
+				+ "\"Message\": \"" + messageContent.replace("\"", "\\\"") + "\"," + "\"Timestamp\": \"" + timestamp
+				+ "\"," + "\"UnsubscribeURL\": \"" + unsubscribeUrl + "\"," + "\"Subject\": \"" + subject + "\"," // TODO:
+																													// validate
+																													// how
+																													// optional
+																													// fields
+																													// are
+																													// managed
+																													// by
+																													// AWS
+																													// (subject,
+																													// message
+																													// attributes,
+																													// sequence
+																													// number,
+																													// signature
+																													// fields)
+				+ "\"MessageAttributes\": {" + "  \"key\": {" + "    \"Type\": \"String\"," + "    \"Value\": \"value\""
+				+ "  }" + "}" + "}";
 
 		sqsTemplate.send(SNS_NOTIFICATION_JSON_QUEUE_NAME, snsJson);
 		await().atMost(Duration.ofSeconds(10))
-			.untilAsserted(() -> assertThat(latchContainer.jsonPayloadLatch.await(10, TimeUnit.SECONDS)).isTrue());
+				.untilAsserted(() -> assertThat(latchContainer.jsonPayloadLatch.await(10, TimeUnit.SECONDS)).isTrue());
 
-		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer.getNotification(messageId);
+		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer
+				.getNotification(messageId);
 		assertThat(receivedNotification).isNotNull();
 		assertThat(receivedNotification.getMessageId()).isEqualTo(messageId);
 		assertThat(receivedNotification.getTopicArn()).isEqualTo(topicArn);
@@ -249,7 +238,8 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 			if (messageId.equals("message-id-required-only")) {
 				LOGGER.info("Counting down requiredFieldsLatch for message ID: {}", messageId);
 				latchContainer.requiredFieldsLatch.countDown();
-			} else if (messageId.equals("message-id-all-fields")) {
+			}
+			else if (messageId.equals("message-id-all-fields")) {
 				LOGGER.info("Counting down allFieldsLatch for message ID: {}", messageId);
 				latchContainer.allFieldsLatch.countDown();
 			}
@@ -266,7 +256,8 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 
 	static class LatchContainer {
 		// Latches for the test methods
-		public final CountDownLatch stringPayloadLatch = new CountDownLatch(1); // Legacy latch, kept for backward compatibility
+		public final CountDownLatch stringPayloadLatch = new CountDownLatch(1); // Legacy latch, kept for backward
+																				// compatibility
 		public final CountDownLatch jsonPayloadLatch = new CountDownLatch(1);
 		public final CountDownLatch requiredFieldsLatch = new CountDownLatch(1);
 		public final CountDownLatch allFieldsLatch = new CountDownLatch(1);
@@ -320,15 +311,13 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 
 		@Bean
 		public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
-			return SqsMessageListenerContainerFactory
-				.builder()
-				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
-				.acknowledgementResultCallback(getAcknowledgementResultCallback())
-				.configure(options -> options
-					.maxDelayBetweenPolls(Duration.ofSeconds(5))
-					.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
-					.pollTimeout(Duration.ofSeconds(5)))
-				.build();
+			return SqsMessageListenerContainerFactory.builder()
+					.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+					.acknowledgementResultCallback(getAcknowledgementResultCallback())
+					.configure(options -> options.maxDelayBetweenPolls(Duration.ofSeconds(5))
+							.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
+							.pollTimeout(Duration.ofSeconds(5)))
+					.build();
 		}
 
 		private AcknowledgementResultCallback<Object> getAcknowledgementResultCallback() {
@@ -358,9 +347,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 
 		@Bean
 		SqsTemplate sqsTemplate() {
-			return SqsTemplate.builder()
-				.sqsAsyncClient(createAsyncClient())
-				.build();
+			return SqsTemplate.builder().sqsAsyncClient(createAsyncClient()).build();
 		}
 	}
 }

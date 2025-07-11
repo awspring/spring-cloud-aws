@@ -29,65 +29,65 @@ import org.springframework.stereotype.Component;
 @Component
 public class SnsNotificationSample {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SnsNotificationSample.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SnsNotificationSample.class);
 
-    /**
-     * Receives SNS notifications from the "sns-notification-queue" SQS queue.
-     * The message payload is automatically converted to a String.
-     *
-     * @param notification the SNS notification wrapper containing the message and metadata
-     */
-    @SqsListener("sns-notification-queue")
-    public void receiveStringMessage(SnsNotification<String> notification) {
-        LOGGER.info("Received SNS notification with ID: {}", notification.getMessageId());
-        LOGGER.info("From topic: {}", notification.getTopicArn());
-        notification.getSubject().ifPresent(subject -> LOGGER.info("Subject: {}", subject));
-        LOGGER.info("Message: {}", notification.getMessage());
-        LOGGER.info("Timestamp: {}", notification.getTimestamp());
-        LOGGER.info("Message attributes: {}", notification.getMessageAttributes());
-    }
+	/**
+	 * Receives SNS notifications from the "sns-notification-queue" SQS queue. The message payload is automatically
+	 * converted to a String.
+	 *
+	 * @param notification the SNS notification wrapper containing the message and metadata
+	 */
+	@SqsListener("sns-notification-queue")
+	public void receiveStringMessage(SnsNotification<String> notification) {
+		LOGGER.info("Received SNS notification with ID: {}", notification.getMessageId());
+		LOGGER.info("From topic: {}", notification.getTopicArn());
+		notification.getSubject().ifPresent(subject -> LOGGER.info("Subject: {}", subject));
+		LOGGER.info("Message: {}", notification.getMessage());
+		LOGGER.info("Timestamp: {}", notification.getTimestamp());
+		LOGGER.info("Message attributes: {}", notification.getMessageAttributes());
+	}
 
-    /**
-     * Receives SNS notifications from the "sns-notification-queue" SQS queue.
-     * The message payload is automatically converted to a CustomMessage object.
-     *
-     * @param notification the SNS notification wrapper containing the message and metadata
-     */
-    @SqsListener("sns-notification-custom-queue")
-    public void receiveCustomMessage(SnsNotification<CustomMessage> notification) {
-        LOGGER.info("Received SNS notification with ID: {}", notification.getMessageId());
-        LOGGER.info("From topic: {}", notification.getTopicArn());
-        notification.getSubject().ifPresent(subject -> LOGGER.info("Subject: {}", subject));
+	/**
+	 * Receives SNS notifications from the "sns-notification-queue" SQS queue. The message payload is automatically
+	 * converted to a CustomMessage object.
+	 *
+	 * @param notification the SNS notification wrapper containing the message and metadata
+	 */
+	@SqsListener("sns-notification-custom-queue")
+	public void receiveCustomMessage(SnsNotification<CustomMessage> notification) {
+		LOGGER.info("Received SNS notification with ID: {}", notification.getMessageId());
+		LOGGER.info("From topic: {}", notification.getTopicArn());
+		notification.getSubject().ifPresent(subject -> LOGGER.info("Subject: {}", subject));
 
-        CustomMessage message = notification.getMessage();
-        LOGGER.info("Message content: {}", message.getContent());
-        LOGGER.info("Message timestamp: {}", message.getTimestamp());
+		CustomMessage message = notification.getMessage();
+		LOGGER.info("Message content: {}", message.getContent());
+		LOGGER.info("Message timestamp: {}", message.getTimestamp());
 
-        LOGGER.info("Notification timestamp: {}", notification.getTimestamp());
-        LOGGER.info("Message attributes: {}", notification.getMessageAttributes());
-    }
+		LOGGER.info("Notification timestamp: {}", notification.getTimestamp());
+		LOGGER.info("Message attributes: {}", notification.getMessageAttributes());
+	}
 
-    /**
-     * A custom message class for demonstration purposes.
-     */
-    public static class CustomMessage {
-        private String content;
-        private long timestamp;
+	/**
+	 * A custom message class for demonstration purposes.
+	 */
+	public static class CustomMessage {
+		private String content;
+		private long timestamp;
 
-        public String getContent() {
-            return content;
-        }
+		public String getContent() {
+			return content;
+		}
 
-        public void setContent(String content) {
-            this.content = content;
-        }
+		public void setContent(String content) {
+			this.content = content;
+		}
 
-        public long getTimestamp() {
-            return timestamp;
-        }
+		public long getTimestamp() {
+			return timestamp;
+		}
 
-        public void setTimestamp(long timestamp) {
-            this.timestamp = timestamp;
-        }
-    }
+		public void setTimestamp(long timestamp) {
+			this.timestamp = timestamp;
+		}
+	}
 }

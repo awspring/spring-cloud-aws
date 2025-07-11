@@ -15,8 +15,14 @@
  */
 package io.awspring.cloud.sqs.support.resolver;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.support.converter.SnsNotification;
+import java.lang.reflect.Method;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -25,13 +31,6 @@ import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.GenericMessage;
-
-import java.lang.reflect.Method;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link SnsNotificationArgumentResolver}.
@@ -42,65 +41,61 @@ class SnsNotificationArgumentResolverTest {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private SnsNotificationArgumentResolver resolver;
+	private SnsNotificationArgumentResolver resolver;
 
-    @Mock
-    private MessageConverter messageConverter;
+	@Mock
+	private MessageConverter messageConverter;
 
+	@BeforeEach
+	void setUp() {
+		MockitoAnnotations.openMocks(this);
+		resolver = new SnsNotificationArgumentResolver(messageConverter, objectMapper);
+	}
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        resolver = new SnsNotificationArgumentResolver(messageConverter, objectMapper);
-    }
+	@Test
+	void shouldSupportParameter() throws Exception {
+		// Arrange
+		Method method = TestController.class.getMethod("handleMessage",
+				io.awspring.cloud.sqs.support.converter.SnsNotification.class);
+		MethodParameter parameter = new MethodParameter(method, 0);
 
-    @Test
-    void shouldSupportParameter() throws Exception {
-        // Arrange
-        Method method = TestController.class.getMethod("handleMessage", io.awspring.cloud.sqs.support.converter.SnsNotification.class);
-        MethodParameter parameter = new MethodParameter(method, 0);
+		// Act
+		boolean result = resolver.supportsParameter(parameter);
 
-        // Act
-        boolean result = resolver.supportsParameter(parameter);
+		// Assert
+		assertThat(result).isTrue();
+	}
 
-        // Assert
-        assertThat(result).isTrue();
-    }
+	@Test
+	void shouldResolveArgument() throws Exception {
+		// Arrange
+		Method method = TestController.class.getMethod("handleMessage",
+				io.awspring.cloud.sqs.support.converter.SnsNotification.class);
+		MethodParameter parameter = new MethodParameter(method, 0);
 
-    @Test
-    void shouldResolveArgument() throws Exception {
-        // Arrange
-        Method method = TestController.class.getMethod("handleMessage", io.awspring.cloud.sqs.support.converter.SnsNotification.class);
-        MethodParameter parameter = new MethodParameter(method, 0);
+		String snsJson = "{" + "\"Type\": \"Notification\"," + "\"MessageId\": \"message-id\","
+				+ "\"TopicArn\": \"topic-arn\"," + "\"Subject\": \"subject\"," + "\"Message\": \"message\","
+				+ "\"Timestamp\": \"2023-01-01T00:00:00Z\"" + "}";
 
-        String snsJson = "{"
-                + "\"Type\": \"Notification\","
-                + "\"MessageId\": \"message-id\","
-                + "\"TopicArn\": \"topic-arn\","
-                + "\"Subject\": \"subject\","
-                + "\"Message\": \"message\","
-                + "\"Timestamp\": \"2023-01-01T00:00:00Z\""
-                + "}";
+		Message<String> message = new GenericMessage<>(snsJson);
 
-        Message<String> message = new GenericMessage<>(snsJson);
+		when(messageConverter.fromMessage(any(), any())).thenReturn("message");
 
-        when(messageConverter.fromMessage(any(), any())).thenReturn("message");
+		// Act
+		Object result = resolver.resolveArgument(parameter, message);
 
-        // Act
-        Object result = resolver.resolveArgument(parameter, message);
+		// Assert
+		assertThat(result).isInstanceOf(SnsNotification.class);
+		SnsNotification<String> notification = (SnsNotification<String>) result;
+		assertThat(notification.getMessageId()).isEqualTo("message-id");
+		assertThat(notification.getTopicArn()).isEqualTo("topic-arn");
+		assertThat(notification.getSubject()).isEqualTo(Optional.of("subject"));
+		assertThat(notification.getMessage()).isEqualTo("message");
+	}
 
-        // Assert
-        assertThat(result).isInstanceOf(SnsNotification.class);
-        SnsNotification<String> notification = (SnsNotification<String>) result;
-        assertThat(notification.getMessageId()).isEqualTo("message-id");
-        assertThat(notification.getTopicArn()).isEqualTo("topic-arn");
-        assertThat(notification.getSubject()).isEqualTo(Optional.of("subject"));
-        assertThat(notification.getMessage()).isEqualTo("message");
-    }
-
-    static class TestController {
-        public void handleMessage(SnsNotification<String> notification) {
-            // Method for testing
-        }
-    }
+	static class TestController {
+		public void handleMessage(SnsNotification<String> notification) {
+			// Method for testing
+		}
+	}
 }
