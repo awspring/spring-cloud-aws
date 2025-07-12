@@ -88,9 +88,14 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		String timestamp = "2023-01-01T00:00:00Z";
 
 		// Create SNS notification with String payload - required fields only
-		String snsJson = "{" + "\"Type\": \"" + type + "\"," + "\"MessageId\": \"" + messageId + "\","
-				+ "\"TopicArn\": \"" + topicArn + "\"," + "\"Message\": \"" + messageContent + "\","
-				+ "\"Timestamp\": \"" + timestamp + "\"" + "}";
+		String snsJson = """
+				{
+					"Type": "%s",
+					"MessageId": "%s",
+					"TopicArn": "%s",
+					"Message": "%s",
+					"Timestamp": "%s"
+				}""".formatted(type, messageId, topicArn, messageContent, timestamp);
 
 		sqsTemplate.send(SNS_NOTIFICATION_STRING_QUEUE_NAME, snsJson);
 		await().atMost(Duration.ofSeconds(10)).untilAsserted(
@@ -130,13 +135,27 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		String signingCertURL = "https://sns.region.amazonaws.com/SimpleNotificationService-certificate.pem";
 
 		// Create SNS notification with String payload - all fields (required and optional)
-		String snsJson = "{" + "\"Type\": \"" + type + "\"," + "\"MessageId\": \"" + messageId + "\","
-				+ "\"SequenceNumber\": \"" + sequenceNumber + "\"," + "\"TopicArn\": \"" + topicArn + "\","
-				+ "\"Message\": \"" + messageContent + "\"," + "\"Timestamp\": \"" + timestamp + "\","
-				+ "\"UnsubscribeURL\": \"" + unsubscribeUrl + "\"," + "\"Subject\": \"" + subject + "\","
-				+ "\"SignatureVersion\": \"" + signatureVersion + "\"," + "\"Signature\": \"" + signature + "\","
-				+ "\"SigningCertURL\": \"" + signingCertURL + "\"," + "\"MessageAttributes\": {" + "  \"key\": {"
-				+ "    \"Type\": \"String\"," + "    \"Value\": \"value\"" + "  }" + "}" + "}";
+		String snsJson = """
+				{
+				  "Type": "%s",
+				  "MessageId": "%s",
+				  "SequenceNumber": "%s",
+				  "TopicArn": "%s",
+				  "Message": "%s",
+				  "Timestamp": "%s",
+				  "UnsubscribeURL": "%s",
+				  "Subject": "%s",
+				  "SignatureVersion": "%s",
+				  "Signature": "%s",
+				  "SigningCertURL": "%s",
+				  "MessageAttributes": {
+					"key": {
+					  "Type": "String",
+					  "Value": "value"
+					}
+				  }
+				}""".formatted(type, messageId, sequenceNumber, topicArn, messageContent, timestamp, unsubscribeUrl,
+				subject, signatureVersion, signature, signingCertURL);
 
 		sqsTemplate.send(SNS_NOTIFICATION_STRING_QUEUE_NAME, snsJson);
 		await().atMost(Duration.ofSeconds(10))
@@ -178,27 +197,24 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		String subject = "subject-json";
 
 		// Create SNS notification with JSON payload
-		String snsJson = "{" + "\"Type\": \"" + type + "\"," + "\"MessageId\": \"" + messageId + "\","
-				+ "\"SequenceNumber\": \"" + sequenceNumber + "\"," + "\"TopicArn\": \"" + topicArn + "\","
-				+ "\"Message\": \"" + messageContent.replace("\"", "\\\"") + "\"," + "\"Timestamp\": \"" + timestamp
-				+ "\"," + "\"UnsubscribeURL\": \"" + unsubscribeUrl + "\"," + "\"Subject\": \"" + subject + "\"," // TODO:
-																													// validate
-																													// how
-																													// optional
-																													// fields
-																													// are
-																													// managed
-																													// by
-																													// AWS
-																													// (subject,
-																													// message
-																													// attributes,
-																													// sequence
-																													// number,
-																													// signature
-																													// fields)
-				+ "\"MessageAttributes\": {" + "  \"key\": {" + "    \"Type\": \"String\"," + "    \"Value\": \"value\""
-				+ "  }" + "}" + "}";
+		String snsJson = """
+				{
+				  "Type": "%s",
+				  "MessageId": "%s",
+				  "SequenceNumber": "%s",
+				  "TopicArn": "%s",
+				  "Message": "%s",
+				  "Timestamp": "%s",
+				  "UnsubscribeURL": "%s",
+				  "Subject": "%s",
+				  "MessageAttributes": {
+					"key": {
+					  "Type": "String",
+					  "Value": "value"
+					}
+				  }
+				}""".formatted(type, messageId, sequenceNumber, topicArn, messageContent.replace("\"", "\\\""),
+				timestamp, unsubscribeUrl, subject);
 
 		sqsTemplate.send(SNS_NOTIFICATION_JSON_QUEUE_NAME, snsJson);
 		await().atMost(Duration.ofSeconds(10))

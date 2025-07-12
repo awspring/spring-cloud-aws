@@ -694,7 +694,7 @@ public void listen(@SnsNotificationSubject String subject, @SnsNotificationMessa
 }
 ----
 
-Since 3.4.1, you can receive the complete SNS notification with all its metadata using the `SnsNotification<T>` wrapper class. This provides access to both the message payload and all the metadata such as messageId, topicArn, subject, timestamp, and message attributes.
+Since 3.4.1, the complete SNS notification can be received with all its metadata using the `SnsNotification<T>` wrapper class. This provides access to both the message payload and all the metadata such as messageId, topicArn, subject, timestamp, and message attributes.
 
 [source, java]
 ----

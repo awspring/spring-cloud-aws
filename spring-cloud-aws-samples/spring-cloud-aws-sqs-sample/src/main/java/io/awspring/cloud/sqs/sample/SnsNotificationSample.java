@@ -16,9 +16,12 @@
 package io.awspring.cloud.sqs.sample;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.SnsNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,24 +35,8 @@ public class SnsNotificationSample {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SnsNotificationSample.class);
 
 	/**
-	 * Receives SNS notifications from the "sns-notification-queue" SQS queue. The message payload is automatically
-	 * converted to a String.
-	 *
-	 * @param notification the SNS notification wrapper containing the message and metadata
-	 */
-	@SqsListener("sns-notification-queue")
-	public void receiveStringMessage(SnsNotification<String> notification) {
-		LOGGER.info("Received SNS notification with ID: {}", notification.getMessageId());
-		LOGGER.info("From topic: {}", notification.getTopicArn());
-		notification.getSubject().ifPresent(subject -> LOGGER.info("Subject: {}", subject));
-		LOGGER.info("Message: {}", notification.getMessage());
-		LOGGER.info("Timestamp: {}", notification.getTimestamp());
-		LOGGER.info("Message attributes: {}", notification.getMessageAttributes());
-	}
-
-	/**
-	 * Receives SNS notifications from the "sns-notification-queue" SQS queue. The message payload is automatically
-	 * converted to a CustomMessage object.
+	 * Receives SNS notifications from the "sns-notification-custom-queue" SQS queue. The message payload is
+	 * automatically converted to a CustomMessage object.
 	 *
 	 * @param notification the SNS notification wrapper containing the message and metadata
 	 */
@@ -60,34 +47,50 @@ public class SnsNotificationSample {
 		notification.getSubject().ifPresent(subject -> LOGGER.info("Subject: {}", subject));
 
 		CustomMessage message = notification.getMessage();
-		LOGGER.info("Message content: {}", message.getContent());
-		LOGGER.info("Message timestamp: {}", message.getTimestamp());
+		LOGGER.info("Message content: {}", message.content());
+		LOGGER.info("Message timestamp: {}", message.timestamp());
 
 		LOGGER.info("Notification timestamp: {}", notification.getTimestamp());
 		LOGGER.info("Message attributes: {}", notification.getMessageAttributes());
 	}
 
 	/**
-	 * A custom message class for demonstration purposes.
+	 * ApplicationRunner to send sample SNS messages to the queues for demonstration purposes. This simulates SNS
+	 * notifications being sent to SQS queues that are subscribed to SNS topics.
 	 */
-	public static class CustomMessage {
-		private String content;
-		private long timestamp;
+	@Bean
+	public ApplicationRunner sendSnsNotificationMessage(SqsTemplate sqsTemplate) {
+		return args -> {
+			// Simulate an SNS notification for an order processing topic
+			String orderNotificationMessage = """
+					{
+						"Type": "Notification",
+						"MessageId": "order-12345-notification",
+						"TopicArn": "arn:aws:sns:us-east-1:123456789012:order-processing-topic",
+						"Subject": "Order Processing Update",
+						"Message": "{\\"content\\": \\"Order #12345 has been processed successfully\\", \\"timestamp\\": 1672531200000}",
+						"Timestamp": "2023-01-01T12:00:00Z",
+						"MessageAttributes": {
+							"eventType": {
+								"Type": "String",
+								"Value": "ORDER_PROCESSED"
+							},
+							"priority": {
+								"Type": "String",
+								"Value": "high"
+							}
+						}
+					}
+					""";
 
-		public String getContent() {
-			return content;
-		}
+			LOGGER.info("Sending SNS notification messages to subscribed SQS queue...");
+			sqsTemplate.send("sns-notification-custom-queue", orderNotificationMessage);
+		};
+	}
 
-		public void setContent(String content) {
-			this.content = content;
-		}
-
-		public long getTimestamp() {
-			return timestamp;
-		}
-
-		public void setTimestamp(long timestamp) {
-			this.timestamp = timestamp;
-		}
+	/**
+	 * A custom message record for demonstration purposes.
+	 */
+	public record CustomMessage(String content, long timestamp) {
 	}
 }
