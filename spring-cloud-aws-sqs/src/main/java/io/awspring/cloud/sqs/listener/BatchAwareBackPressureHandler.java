@@ -41,7 +41,6 @@ public interface BatchAwareBackPressureHandler extends BackPressureHandler {
 	 */
 	@Deprecated
 	default void releaseBatch() {
-		release(getBatchSize(), ReleaseReason.NONE_FETCHED);
 	}
 
 	@Override
