@@ -762,6 +762,96 @@ NOTE: The same factory can be used to create both `single message` and `batch` c
 
 IMPORTANT: In case the same factory is shared by both delivery methods, any supplied `ErrorHandler`, `MessageInterceptor` or `MessageListener` should implement the proper methods.
 
+[[container-backpressure-handler-factory]]
+==== Backpressure management
+
+Backpressure is a mechanism to control the rate at which messages are polled and processed, helping to avoid overwhelming downstream systems or exceeding resource limits.
+The `ContainerOptions` class provides the `backPressureHandlerFactory` property, which allows you to select which `BackPressureHandler` to use.
+
+By default, the framework provides sensible backpressure strategies (see `BackPressureHandlerFactories#adaptativeThroughputBackPressureHandler`).
+But you can supply your own to customize how backpressure is applied to SQS message consumption.
+This is achieved by setting a custom `BackPressureHandlerFactory` in the `ContainerOptions`.
+
+===== What is a BackPressureHandler?
+
+A `BackPressureHandler` is an interface that determines whether the container should apply backpressure (i.e., slow down or pause polling) based on the current state of the system. It is invoked before each poll to SQS and can prevent polling or poll for less messages if certain conditions are met (e.g., too many inflight messages, custom resource constraints, etc.).
+
+===== Creating a custom BackPressureHandler
+
+To implement your own backpressure logic, create a class that implements the `BackPressureHandler` interface:
+
+```java
+public class CustomBackPressureHandler implements BackPressureHandler {
+
+    @Override
+    public int request(int amount) throws InterruptedException {
+        // Custom logic to determine how many permits to grant for polling.
+        // Returning 0 will prevent the polling of messages from SQS.
+        // Returning a positive number (<= amount) will allow that many messages to be polled.
+        // This #request(amount) method is called before each poll.
+    }
+
+    @Override
+    public void release(int amount, ReleaseReason reason) {
+        // Custom logic to handle the release of permits.
+        // This logic depends on the request method and should most of the time be symmetric.
+        // For example, if semaphore permits were acquired in request, they should be released here.
+    }
+
+    @Override
+    public boolean drain(Duration timeout) {
+        // Custom logic to determine if the backpressure handler is ready to drain.
+    }
+}
+```
+
+===== Registering a custom BackPressureHandler
+
+A SqsMessageListenerContainer can be configured to use the desired  `BackPressureHandler` by setting the `backPressureHandlerFactory` on the `ContainerOptions`.
+
+```java
+SqsMessageListenerContainer container = SqsMessageListenerContainer.builder()
+    .configure(options -> options
+        .backPressureHandlerFactory(containerOptions -> new CustomBackPressureHandler())
+        // ... other options
+    )
+    // ... other container settings ...
+    .build();
+```
+
+===== Combining Multiple BackPressureHandlers
+
+If you want to combine several backpressure strategies, use the `CompositeBackPressureHandler`.
+Each of the `BackPressureHandler` (which we'll call delegates) are chained in the order they are provided.
+The first delegate will be requested the initial amount of permits and will return the number of permits it accepts to grant.
+The second delegate will get that potentially reduced number of permits as a request and might in turn reduce it further.
+The process continues until all delegates have been requested or one of them returns 0, which will prevent the polling of messages from SQS.
+
+For example, to combine a concurrency limiter, an adaptative throughput handler, and a full batch only handler, you can use the `CompositeBackPressureHandler` as below:
+
+```java
+Duration maxIdleWaitTime = Duration.ofMillis(50L);
+List<BackPressureHandler> backPressureHandlers = List.of(
+    BackPressureHandlerFactories.concurrencyLimiterBackPressureHandler(options),
+    BackPressureHandlerFactories.throughputBackPressureHandler(options),
+    BackPressureHandlerFactories.fullBatchBackPressureHandler(options)
+);
+CompositeBackPressureHandler composite = BackPressureHandlerFactories.compositeBackPressureHandler(
+    options, maxIdleWaitTime, backPressureHandlers);
+```
+
+===== Built-in BackPressureHandlers
+
+Spring Cloud AWS provides several built-in `BackPressureHandler` implementations:
+
+- `ConcurrencyLimiterBackPressureHandler`: Limits the number of messages being processed concurrently.
+- `ThroughputBackPressureHandler`: Switch between high and low throughput modes. In high throughput mode, multiple polls do be done parallel. In low throughput mode, only one poll is done at a time.
+- `FullBatchBackPressureHandler`: Ensure polls will always be done with a full batch of messages, meaning that the number of messages polled will always be equal to `maxMessagesPerPoll` if possible or `0` if not possible.
+
+The `BackPressureHandlerFactories` class provides factory methods to create these handlers easily.
+
+
+You can use these handlers directly or combine them with your custom ones using the `CompositeBackPressureHandler` to fit your application's needs.
 
 ==== Container Options
 
