@@ -41,6 +41,8 @@ public interface BatchAwareBackPressureHandler extends BackPressureHandler {
 	 */
 	@Deprecated
 	default void releaseBatch() {
+		// Do not implement this method. It is not called anymore outside of backward compatibility use cases.
+		// Implement `#release(int amount, ReleaseReason reason)` instead.
 	}
 
 	@Override

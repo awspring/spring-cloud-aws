@@ -69,7 +69,8 @@ public interface BackPressureHandler {
 	 */
 	@Deprecated
 	default void release(int amount) {
-		release(amount, ReleaseReason.PROCESSED);
+		// Do not implement this method. It is not called anymore outside of backward compatibility use cases.
+		// Implement `#release(int amount, ReleaseReason reason)` instead.
 	}
 
 	/**
