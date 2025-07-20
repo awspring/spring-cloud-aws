@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.MessageListenerContainerFactory;
+import io.awspring.cloud.sqs.config.MultiMethodSqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
@@ -57,6 +58,7 @@ import org.springframework.validation.Validator;
  * Tests for {@link SqsListenerAnnotationBeanPostProcessor}.
  *
  * @author Tomaz Fernandes
+ * @author José Iêdo
  */
 class SqsListenerAnnotationBeanPostProcessorTests {
 
@@ -222,12 +224,65 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 
 	}
 
+	@Test
+	void shouldRegisterClassLevelSqsListenerWithSqsHandlers() {
+		ListableBeanFactory beanFactory = mock(ListableBeanFactory.class);
+		MessageListenerContainerRegistry registry = mock(MessageListenerContainerRegistry.class);
+		MessageListenerContainerFactory<?> factory = mock(MessageListenerContainerFactory.class);
+
+		when(beanFactory.getBean(SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME, MessageListenerContainerRegistry.class))
+				.thenReturn(registry);
+		when(beanFactory.containsBean(EndpointRegistrar.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME)).thenReturn(true);
+		when(beanFactory.getBean(EndpointRegistrar.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME,
+				MessageListenerContainerFactory.class)).thenReturn(factory);
+
+		EndpointRegistrar registrar = new EndpointRegistrar();
+
+		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor() {
+			@Override
+			protected EndpointRegistrar createEndpointRegistrar() {
+				return registrar;
+			}
+		};
+
+		ClassLevelListener bean = new ClassLevelListener();
+		processor.setBeanFactory(beanFactory);
+		processor.postProcessAfterInitialization(bean, "classLevelListener");
+		processor.afterSingletonsInstantiated();
+
+		ArgumentCaptor<Endpoint> captor = ArgumentCaptor.forClass(Endpoint.class);
+
+		then(factory).should().createContainer(captor.capture());
+		Endpoint endpoint = captor.getValue();
+		assertThat(endpoint.getLogicalNames()).containsExactly("classLevelQueue");
+		assertThat(endpoint).isInstanceOfSatisfying(MultiMethodSqsEndpoint.class, multiMethodSqsEndpoint -> {
+			assertThat(multiMethodSqsEndpoint.getMethods()).hasSize(2);
+			assertThat(multiMethodSqsEndpoint.getMethods().get(0))
+					.isEqualTo(ClassLevelListener.class.getDeclaredMethods()[0]);
+			assertThat(multiMethodSqsEndpoint.getMethods().get(1))
+					.isEqualTo(ClassLevelListener.class.getDeclaredMethods()[1]);
+		});
+	}
+
 	static class Listener {
 
 		@SqsListener("myQueue")
 		void listen(String message) {
 		}
 
+	}
+
+	@SqsListener("classLevelQueue")
+	static class ClassLevelListener {
+		@SqsHandler
+		void handle(String message) {
+
+		}
+
+		@SqsHandler
+		void handle(Integer message) {
+
+		}
 	}
 
 	static class ManyQueuesListener {

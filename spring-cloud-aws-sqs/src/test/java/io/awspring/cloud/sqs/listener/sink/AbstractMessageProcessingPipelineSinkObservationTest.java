@@ -150,7 +150,7 @@ class AbstractMessageProcessingPipelineSinkObservationTest {
 				.hasHighCardinalityKeyValue("messaging.message.message-group.id", "test-group")
 				.hasHighCardinalityKeyValue("messaging.message.message-deduplication.id", "test-dedup-id");
 	}
-	
+
 	@Test
 	void shouldHandleMessageWithoutTraceparentHeader() throws Exception {
 
@@ -172,12 +172,11 @@ class AbstractMessageProcessingPipelineSinkObservationTest {
 		result.get();
 
 		then(messagePipeline).should().process(org.mockito.ArgumentMatchers
-				.<Message>argThat(msg -> msg.getHeaders().containsKey(ObservationThreadLocalAccessor.KEY)), any());
-		
+				.<Message> argThat(msg -> msg.getHeaders().containsKey(ObservationThreadLocalAccessor.KEY)), any());
+
 		// Verify an observation was created despite lack of traceparent
 		TestObservationRegistryAssert.then(observationRegistry).hasNumberOfObservationsEqualTo(1)
-				.hasSingleObservationThat().hasNameEqualTo("spring.aws.sqs.listener")
-			.doesNotHaveParentObservation();
+				.hasSingleObservationThat().hasNameEqualTo("spring.aws.sqs.listener").doesNotHaveParentObservation();
 	}
 
 	private static class TestMessageProcessingPipelineSink extends AbstractMessageProcessingPipelineSink<String> {

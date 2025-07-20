@@ -24,15 +24,14 @@ import static org.mockito.Mockito.mock;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.IntStream;
-
 import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.contextpropagation.ObservationThreadLocalAccessor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -42,7 +41,7 @@ import org.springframework.messaging.support.MessageBuilder;
  *
  * @author Tomaz Fernandes
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 class OrderedMessageListeningSinkTests {
 
 	@Test
@@ -81,7 +80,8 @@ class OrderedMessageListeningSinkTests {
 			@Override
 			public CompletableFuture<Message<Integer>> process(Message<Integer> message,
 					MessageProcessingContext<Integer> context) {
-				Message<Integer> messageWithoutObservation = MessageHeaderUtils.removeHeaderIfPresent(message, ObservationThreadLocalAccessor.KEY);
+				Message<Integer> messageWithoutObservation = MessageHeaderUtils.removeHeaderIfPresent(message,
+						ObservationThreadLocalAccessor.KEY);
 				received.add(messageWithoutObservation);
 				return CompletableFuture.completedFuture(messageWithoutObservation);
 			}

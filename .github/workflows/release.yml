@@ -9,6 +9,7 @@ on:
       - v3.1.*
       - v3.2.*
       - v3.3.*
+      - v3.4.*
 
 env:
   # https://github.com/actions/checkout/issues/440#issuecomment-854240996

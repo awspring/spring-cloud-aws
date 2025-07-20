@@ -38,6 +38,7 @@ import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
  * Tests for {@link AbstractMethodInvokingListenerAdapter}.
  *
  * @author Tomaz Fernandes
+ * @author José Iêdo
  */
 @SuppressWarnings("unchecked")
 class AbstractMethodInvokingListenerAdapterTests {
@@ -50,6 +51,19 @@ class AbstractMethodInvokingListenerAdapterTests {
 		when(handlerMethod.invoke(message)).thenReturn(expectedResult);
 		AbstractMethodInvokingListenerAdapter<Object> adapter = new AbstractMethodInvokingListenerAdapter<Object>(
 				handlerMethod) {
+		};
+		Object actualResult = adapter.invokeHandler(message);
+		assertThat(actualResult).isEqualTo(expectedResult);
+	}
+
+	@Test
+	void shouldInvokeCompositeInvocableHandler() throws Exception {
+		CompositeInvocableHandler compositeInvocableHandler = mock(CompositeInvocableHandler.class);
+		Message<Object> message = mock(Message.class);
+		Object expectedResult = new Object();
+		when(compositeInvocableHandler.invoke(message)).thenReturn(expectedResult);
+		AbstractMethodInvokingListenerAdapter<Object> adapter = new AbstractMethodInvokingListenerAdapter<Object>(
+				compositeInvocableHandler) {
 		};
 		Object actualResult = adapter.invokeHandler(message);
 		assertThat(actualResult).isEqualTo(expectedResult);
