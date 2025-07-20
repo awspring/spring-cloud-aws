@@ -34,7 +34,7 @@ public class S3VectorClientAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	S3VectorsClientBuilder s3ClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+	S3VectorsClientBuilder s3VectorsClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 										   ObjectProvider<AwsClientCustomizer<S3VectorsClientBuilder>> configurer,
 										   ObjectProvider<AwsConnectionDetails> connectionDetails,
 										   ObjectProvider<S3VectorClientCustomizer> s3ClientCustomizers,
