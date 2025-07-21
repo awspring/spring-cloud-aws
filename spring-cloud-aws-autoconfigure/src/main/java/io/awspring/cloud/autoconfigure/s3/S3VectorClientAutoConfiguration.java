@@ -1,13 +1,11 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
-import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
-import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
-import io.awspring.cloud.autoconfigure.core.AwsProperties;
+import io.awspring.cloud.autoconfigure.core.*;
 import io.awspring.cloud.autoconfigure.s3.properties.S3VectorProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,6 +21,7 @@ import software.amazon.awssdk.services.s3vectors.S3VectorsClientBuilder;
 @AutoConfiguration
 @ConditionalOnClass({S3VectorsClient.class})
 @EnableConfigurationProperties({S3VectorProperties.class, AwsProperties.class})
+@AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.vector.enabled", havingValue = "true", matchIfMissing = true)
 public class S3VectorClientAutoConfiguration {
 
