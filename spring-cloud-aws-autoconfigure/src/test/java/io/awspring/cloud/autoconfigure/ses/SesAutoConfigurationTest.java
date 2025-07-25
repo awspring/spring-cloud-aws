@@ -35,8 +35,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.SesClientBuilder;
+import software.amazon.awssdk.services.sesv2.SesV2Client;
+import software.amazon.awssdk.services.sesv2.SesV2ClientBuilder;
 
 /**
  * Tests for class {@link SesAutoConfiguration}.
@@ -63,7 +63,7 @@ class SesAutoConfigurationTest {
 
 	@Test
 	void mailSenderWithoutSesClientInTheClasspath() {
-		this.contextRunner.withClassLoader(new FilteredClassLoader(software.amazon.awssdk.services.ses.SesClient.class))
+		this.contextRunner.withClassLoader(new FilteredClassLoader(software.amazon.awssdk.services.sesv2.SesV2Client.class))
 				.run(context -> {
 					assertThat(context).doesNotHaveBean(MailSender.class);
 					assertThat(context).doesNotHaveBean(JavaMailSender.class);
@@ -89,7 +89,7 @@ class SesAutoConfigurationTest {
 	@Test
 	void withCustomEndpoint() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.ses.endpoint:http://localhost:8090").run(context -> {
-			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesClient.class));
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesV2Client.class));
 			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
 			assertThat(client.isEndpointOverridden()).isTrue();
 		});
@@ -98,7 +98,7 @@ class SesAutoConfigurationTest {
 	@Test
 	void withCustomGlobalEndpoint() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090").run(context -> {
-			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesClient.class));
+			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesV2Client.class));
 			assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:8090"));
 			assertThat(client.isEndpointOverridden()).isTrue();
 		});
@@ -108,7 +108,7 @@ class SesAutoConfigurationTest {
 	void withCustomGlobalEndpointAndSesEndpoint() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.endpoint:http://localhost:8090",
 				"spring.cloud.aws.ses.endpoint:http://localhost:9999").run(context -> {
-					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesClient.class));
+					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SesV2Client.class));
 					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
 					assertThat(client.isEndpointOverridden()).isTrue();
 				});
@@ -117,7 +117,7 @@ class SesAutoConfigurationTest {
 	@Test
 	void customSesClientConfigurer() {
 		this.contextRunner.withUserConfiguration(CustomAwsClientConfig.class).run(context -> {
-			ConfiguredAwsClient sesClient = new ConfiguredAwsClient(context.getBean(SesClient.class));
+			ConfiguredAwsClient sesClient = new ConfiguredAwsClient(context.getBean(SesV2Client.class));
 			assertThat(sesClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2000));
 			assertThat(sesClient.getSyncHttpClient()).isNotNull();
 		});
@@ -127,11 +127,11 @@ class SesAutoConfigurationTest {
 	static class CustomAwsClientConfig {
 
 		@Bean
-		AwsClientCustomizer<SesClientBuilder> snsClientBuilderAwsClientConfigurer() {
+		AwsClientCustomizer<SesV2ClientBuilder> snsClientBuilderAwsClientConfigurer() {
 			return new CustomAwsClientConfig.SesAwsClientConfigurer();
 		}
 
-		static class SesAwsClientConfigurer implements AwsClientCustomizer<SesClientBuilder> {
+		static class SesAwsClientConfigurer implements AwsClientCustomizer<SesV2ClientBuilder> {
 			@Override
 			public ClientOverrideConfiguration overrideConfiguration() {
 				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2000)).build();

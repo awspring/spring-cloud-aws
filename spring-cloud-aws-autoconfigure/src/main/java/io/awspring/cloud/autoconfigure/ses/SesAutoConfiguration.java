@@ -35,8 +35,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.SesClientBuilder;
+import software.amazon.awssdk.services.sesv2.SesV2Client;
+import software.amazon.awssdk.services.sesv2.SesV2ClientBuilder;
 
 /**
  * {@link EnableAutoConfiguration} for {@link SimpleEmailServiceMailSender} and
@@ -45,37 +45,38 @@ import software.amazon.awssdk.services.ses.SesClientBuilder;
  * @author Agim Emruli
  * @author Eddú Meléndez
  * @author Arun Patra
+ * @author Dominik Kovács
  */
 @AutoConfiguration
 @EnableConfigurationProperties(SesProperties.class)
-@ConditionalOnClass({ SesClient.class, MailSender.class, SimpleEmailServiceJavaMailSender.class })
+@ConditionalOnClass({ SesV2Client.class, MailSender.class, SimpleEmailServiceJavaMailSender.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.ses.enabled", havingValue = "true", matchIfMissing = true)
 public class SesAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public SesClient sesClient(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer,
+	public SesV2Client sesClient(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+			ObjectProvider<AwsClientCustomizer<SesV2ClientBuilder>> configurer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
 			ObjectProvider<SesClientCustomizer> sesClientCustomizers,
 			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
-		return awsClientBuilderConfigurer.configureSyncClient(SesClient.builder(), properties,
+		return awsClientBuilderConfigurer.configureSyncClient(SesV2Client.builder(), properties,
 				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), sesClientCustomizers.orderedStream(),
 				awsSyncClientCustomizers.orderedStream()).build();
 	}
 
 	@Bean
 	@ConditionalOnMissingClass("jakarta.mail.Session")
-	public MailSender simpleMailSender(SesClient sesClient, SesProperties properties) {
-		return new SimpleEmailServiceMailSender(sesClient, properties.getSourceArn(),
+	public MailSender simpleMailSender(SesV2Client sesClient, SesProperties properties) {
+		return new SimpleEmailServiceMailSender(sesClient, properties.getIdentityArn(),
 				properties.getConfigurationSetName());
 	}
 
 	@Bean
 	@ConditionalOnClass(name = "jakarta.mail.Session")
-	public JavaMailSender javaMailSender(SesClient sesClient, SesProperties properties) {
-		return new SimpleEmailServiceJavaMailSender(sesClient, properties.getSourceArn(),
+	public JavaMailSender javaMailSender(SesV2Client sesClient, SesProperties properties) {
+		return new SimpleEmailServiceJavaMailSender(sesClient, properties.getIdentityArn(),
 				properties.getConfigurationSetName());
 	}
 
