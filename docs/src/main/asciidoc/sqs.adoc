@@ -1396,6 +1396,181 @@ public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFac
 }
 ----
 
+==== Exponential Backoff Full Jitter Error Handler
+This error handler applies an exponential backoff strategy with *full jitter*
+when retrying failed message processing. After calculating the exponential
+visibility timeout using the `ApproximateReceiveCount` message attribute, a
+random value between zero and the computed timeout is selected. The selected
+value becomes the new visibility timeout, spreading retries and helping to
+avoid spikes caused by synchronized retries.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default
+| `initialVisibilityTimeoutSeconds` | Starting visibility timeout (in seconds)
+used on the first receive attempt. | No | 100
+| `multiplier` | Factor applied to the visibility timeout after each retry. A
+value greater than 1 increases the delay exponentially. | No | 2.0
+| `maxVisibilityTimeoutSeconds` | Maximum allowed visibility timeout in seconds.
+| No | 43200
+| `randomSupplier` | Supplier for the random value used to calculate the
+jitter. | No | `ThreadLocalRandom::current`
+|===
+
+NOTE: The maximum visibility timeout allowed by SQS is 43200 seconds (12 hours).
+If the value provided to the `maxVisibilityTimeoutSeconds` parameter exceeds
+this limit, an `IllegalArgumentException` will be thrown.
+
+When using auto-configured factory, simply declare a `@Bean` and the error
+handler will be set
+
+[source, java]
+----
+@Bean
+public ExponentialBackoffErrorHandlerWithFullJitter<Object> asyncErrorHandler() {
+        return ExponentialBackoffErrorHandlerWithFullJitter
+                .builder()
+                .initialVisibilityTimeoutSeconds(1)
+                .multiplier(2)
+                .maxVisibilityTimeoutSeconds(10)
+                .build();
+}
+----
+
+Alternatively, `ExponentialBackoffErrorHandlerWithFullJitter` can be set in the
+`MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+        return SqsMessageListenerContainerFactory
+                .builder()
+                .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+                .errorHandler(ExponentialBackoffErrorHandlerWithFullJitter
+                        .builder()
+                        .initialVisibilityTimeoutSeconds(1)
+                        .multiplier(2)
+                        .maxVisibilityTimeoutSeconds(10)
+                        .build())
+                .build();
+}
+----
+
+==== Exponential Backoff Half Jitter Error Handler
+This variant also computes the visibility timeout exponentially but applies
+*half jitter*. The exponential delay is halved and a random value between zero
+and this half is added to it. The resulting timeout is then used to change the
+message visibility.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default
+| `initialVisibilityTimeoutSeconds` | Starting visibility timeout (in seconds)
+used on the first receive attempt. | No | 100
+| `multiplier` | Factor applied to the visibility timeout after each retry. A
+value greater than 1 increases the delay exponentially. | No | 2.0
+| `maxVisibilityTimeoutSeconds` | Maximum allowed visibility timeout in seconds.
+| No | 43200
+| `randomSupplier` | Supplier for the random value used to calculate the
+jitter. | No | `ThreadLocalRandom::current`
+|===
+
+NOTE: The maximum visibility timeout allowed by SQS is 43200 seconds (12 hours).
+If the value provided to the `maxVisibilityTimeoutSeconds` parameter exceeds
+this limit, an `IllegalArgumentException` will be thrown.
+
+When using auto-configured factory, simply declare a `@Bean` and the error
+handler will be set
+
+[source, java]
+----
+@Bean
+public ExponentialBackoffErrorHandlerWithHalfJitter<Object> asyncErrorHandler() {
+        return ExponentialBackoffErrorHandlerWithHalfJitter
+                .builder()
+                .initialVisibilityTimeoutSeconds(1)
+                .multiplier(2)
+                .maxVisibilityTimeoutSeconds(10)
+                .build();
+}
+----
+
+Alternatively, `ExponentialBackoffErrorHandlerWithHalfJitter` can be set in the
+`MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+        return SqsMessageListenerContainerFactory
+                .builder()
+                .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+                .errorHandler(ExponentialBackoffErrorHandlerWithHalfJitter
+                        .builder()
+                        .initialVisibilityTimeoutSeconds(1)
+                        .multiplier(2)
+                        .maxVisibilityTimeoutSeconds(10)
+                        .build())
+                .build();
+}
+----
+
+==== Linear Backoff Error Handler
+`LinearBackoffErrorHandler` increases the visibility timeout linearly whenever a
+message processing attempt fails. Instead of exponential growth, the timeout is
+incremented by a fixed value on each retry until the maximum is reached.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default
+| `initialVisibilityTimeoutSeconds` | Initial visibility timeout (in seconds) for
+the first processing attempt. | No | 100
+| `increment` | Amount of seconds added to the visibility timeout after each
+retry. | No | 2
+| `maxVisibilityTimeoutSeconds` | Maximum allowed visibility timeout in seconds.
+| No | 43200
+|===
+
+NOTE: The maximum visibility timeout allowed by SQS is 43200 seconds (12 hours).
+If the value provided to the `maxVisibilityTimeoutSeconds` parameter exceeds
+this limit, an `IllegalArgumentException` will be thrown.
+
+When using auto-configured factory, simply declare a `@Bean` and the error
+handler will be set
+
+[source, java]
+----
+@Bean
+public LinearBackoffErrorHandler<Object> asyncErrorHandler() {
+        return LinearBackoffErrorHandler
+                .builder()
+                .initialVisibilityTimeoutSeconds(1)
+                .increment(2)
+                .maxVisibilityTimeoutSeconds(10)
+                .build();
+}
+----
+
+Alternatively, `LinearBackoffErrorHandler` can be set in the
+`MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+        return SqsMessageListenerContainerFactory
+                .builder()
+                .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+                .errorHandler(LinearBackoffErrorHandler
+                        .builder()
+                        .initialVisibilityTimeoutSeconds(1)
+                        .increment(2)
+                        .maxVisibilityTimeoutSeconds(10)
+                        .build())
+                .build();
+}
+----
 === Message Conversion and Payload Deserialization
 
 Payloads are automatically deserialized from `JSON` for `@SqsListener` annotated methods using a `MappingJackson2MessageConverter`.

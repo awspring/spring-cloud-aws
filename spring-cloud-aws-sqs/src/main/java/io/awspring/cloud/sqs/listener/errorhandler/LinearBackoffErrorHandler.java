@@ -26,11 +26,11 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * An implementation of an Exponential Backoff error handler for asynchronous message processing.
+ * An implementation of a Linear Backoff error handler for asynchronous message processing.
  *
  * <p>
- * This error handler sets the SQS message visibility timeout exponentially based on the number of received attempts
- * whenever an exception occurs.
+ * This error handler sets the SQS message visibility timeout linearly based on the number of received attempts whenever
+ * an exception occurs.
  *
  * <p>
  * When AcknowledgementMode is set to ON_SUCCESS (the default), returning a failed future prevents the message from
@@ -40,33 +40,31 @@ import org.springframework.util.Assert;
  * @author Rafael Pavarini
  */
 
-public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
-	private static final Logger logger = LoggerFactory.getLogger(ExponentialBackoffErrorHandler.class);
+public class LinearBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
+	private static final Logger logger = LoggerFactory.getLogger(LinearBackoffErrorHandler.class);
 
 	private final int initialVisibilityTimeoutSeconds;
-	private final double multiplier;
+	private final int increment;
 	private final int maxVisibilityTimeoutSeconds;
 
-	private ExponentialBackoffErrorHandler(int initialVisibilityTimeoutSeconds, double multiplier,
+	private LinearBackoffErrorHandler(int initialVisibilityTimeoutSeconds, int increment,
 			int maxVisibilityTimeoutSeconds) {
 		this.initialVisibilityTimeoutSeconds = initialVisibilityTimeoutSeconds;
-		this.multiplier = multiplier;
+		this.increment = increment;
 		this.maxVisibilityTimeoutSeconds = maxVisibilityTimeoutSeconds;
 	}
 
 	@Override
 	public CompletableFuture<Void> handle(Message<T> message, Throwable t) {
-		return applyExponentialBackoffVisibilityTimeout(message)
-				.thenCompose(theVoid -> CompletableFuture.failedFuture(t));
+		return applyLinearBackoffVisibilityTimeout(message).thenCompose(theVoid -> CompletableFuture.failedFuture(t));
 	}
 
 	@Override
 	public CompletableFuture<Void> handle(Collection<Message<T>> messages, Throwable t) {
-		return applyExponentialBackoffVisibilityTimeout(messages)
-				.thenCompose(theVoid -> CompletableFuture.failedFuture(t));
+		return applyLinearBackoffVisibilityTimeout(messages).thenCompose(theVoid -> CompletableFuture.failedFuture(t));
 	}
 
-	private CompletableFuture<Void> applyExponentialBackoffVisibilityTimeout(Collection<Message<T>> messages) {
+	private CompletableFuture<Void> applyLinearBackoffVisibilityTimeout(Collection<Message<T>> messages) {
 		CompletableFuture<?>[] futures = ErrorHandlerVisibilityHelper.groupMessagesByReceiveMessageCount(messages)
 				.entrySet().stream().map(entry -> {
 					int timeout = calculateTimeout(entry.getKey());
@@ -87,7 +85,7 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 		});
 	}
 
-	private CompletableFuture<Void> applyExponentialBackoffVisibilityTimeout(Message<T> message) {
+	private CompletableFuture<Void> applyLinearBackoffVisibilityTimeout(Message<T> message) {
 		int timeout = calculateTimeout(message);
 		Visibility visibility = ErrorHandlerVisibilityHelper.getVisibility(message);
 		logger.debug("Changing visibility timeout to {} - Message Id {}", timeout, message.getHeaders().getId());
@@ -104,8 +102,8 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 	}
 
 	private int calculateTimeout(long receiveMessageCount) {
-		return ErrorHandlerVisibilityHelper.calculateVisibilityTimeoutExponentially(receiveMessageCount,
-				initialVisibilityTimeoutSeconds, multiplier, maxVisibilityTimeoutSeconds);
+		return ErrorHandlerVisibilityHelper.calculateVisibilityTimeoutLinearly(receiveMessageCount,
+				initialVisibilityTimeoutSeconds, increment, maxVisibilityTimeoutSeconds);
 	}
 
 	public static <T> Builder<T> builder() {
@@ -115,7 +113,7 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 	public static class Builder<T> {
 
 		private int initialVisibilityTimeoutSeconds = BackoffVisibilityConstants.DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS;
-		private double multiplier = BackoffVisibilityConstants.DEFAULT_MULTIPLIER;
+		private int increment = BackoffVisibilityConstants.DEFAULT_INCREMENT;
 		private int maxVisibilityTimeoutSeconds = BackoffVisibilityConstants.DEFAULT_MAX_VISIBILITY_TIMEOUT_SECONDS;
 
 		public Builder<T> initialVisibilityTimeoutSeconds(int initialVisibilityTimeoutSeconds) {
@@ -124,10 +122,10 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 			return this;
 		}
 
-		public Builder<T> multiplier(double multiplier) {
-			Assert.isTrue(multiplier >= 1,
-					() -> "Invalid multiplier '" + multiplier + "'. Should be greater than " + "or equal to 1.");
-			this.multiplier = multiplier;
+		public Builder<T> increment(int increment) {
+			Assert.isTrue(increment >= 1,
+					() -> "Invalid increment '" + increment + "'. Should be greater than " + "or equal to 1.");
+			this.increment = increment;
 			return this;
 		}
 
@@ -137,10 +135,10 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 			return this;
 		}
 
-		public ExponentialBackoffErrorHandler<T> build() {
+		public LinearBackoffErrorHandler<T> build() {
 			Assert.isTrue(initialVisibilityTimeoutSeconds <= maxVisibilityTimeoutSeconds,
 					"Initial visibility timeout must not exceed max visibility timeout");
-			return new ExponentialBackoffErrorHandler<>(initialVisibilityTimeoutSeconds, multiplier,
+			return new LinearBackoffErrorHandler<>(initialVisibilityTimeoutSeconds, increment,
 					maxVisibilityTimeoutSeconds);
 		}
 	}
