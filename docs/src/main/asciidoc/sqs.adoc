@@ -9,7 +9,7 @@ Compared to JMS or other message services Amazon SQS has limitations that should
 
 * Amazon SQS allows only `String` payloads, so any `Object` must be transformed into a String representation.
 Spring Cloud AWS has dedicated support to transfer Java objects with Amazon SQS messages by converting them to JSON.
-* Amazon SQS has a maximum message size of 256kb per message, so bigger messages will fail to be sent.
+* Amazon SQS has a maximum message size of 1MiB per message, so bigger messages will fail to be sent.
 
 A Spring Boot starter is provided to auto-configure SQS integration beans.
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
