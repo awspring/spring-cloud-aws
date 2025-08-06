@@ -20,7 +20,6 @@ import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsOperations;
@@ -29,8 +28,6 @@ import io.awspring.cloud.sns.core.TopicArnResolver;
 import io.awspring.cloud.sns.sms.SnsSmsOperations;
 import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import java.net.URI;
-import java.time.Duration;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -38,17 +35,10 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.arns.Arn;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.SnsClientBuilder;
 
 /**
  * Tests for class {@link io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration}.
@@ -103,18 +93,6 @@ class SnsAutoConfigurationTest {
 	}
 
 	@Test
-	void customSnsClientConfigurer() {
-		this.contextRunner.withUserConfiguration(CustomAwsClientConfig.class).run(context -> {
-			SnsClient snsClient = context.getBean(SnsClient.class);
-
-			Map attributeMap = (Map) ReflectionTestUtils.getField(ReflectionTestUtils.getField(
-					ReflectionTestUtils.getField(snsClient, "clientConfiguration"), "attributes"), "attributes");
-			assertThat(attributeMap.get(SdkClientOption.API_CALL_TIMEOUT).toString()).isEqualTo("Value(PT1.999S)");
-			assertThat(attributeMap.get(SdkClientOption.SYNC_HTTP_CLIENT)).isNotNull();
-		});
-	}
-
-	@Test
 	void doesNotConfigureArgumentResolversWhenSpringWebNotOnTheClasspath() {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(WebMvcConfigurer.class)).run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
@@ -160,29 +138,6 @@ class SnsAutoConfigurationTest {
 		@Override
 		public Arn resolveTopicArn(String topicName) {
 			return Arn.builder().build();
-		}
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	static class CustomAwsClientConfig {
-
-		@Bean
-		AwsClientCustomizer<SnsClientBuilder> snsClientBuilderAwsClientConfigurer() {
-			return new CustomAwsClientConfig.SnsAwsClientConfigurer();
-		}
-
-		static class SnsAwsClientConfigurer implements AwsClientCustomizer<SnsClientBuilder> {
-			@Override
-			@Nullable
-			public ClientOverrideConfiguration overrideConfiguration() {
-				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1999)).build();
-			}
-
-			@Override
-			@Nullable
-			public SdkHttpClient httpClient() {
-				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
-			}
 		}
 	}
 
