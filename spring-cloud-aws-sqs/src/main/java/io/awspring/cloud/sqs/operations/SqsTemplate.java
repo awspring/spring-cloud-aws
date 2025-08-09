@@ -73,6 +73,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
  *
  * @author Tomaz Fernandes
  * @author Zhong Xi Lu
+ * @author Jeongmin Kim
  *
  * @since 3.0
  */

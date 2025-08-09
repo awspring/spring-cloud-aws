@@ -21,6 +21,7 @@ package io.awspring.cloud.sqs.listener;
  * {@link org.springframework.messaging.MessageHeaders#get} or
  * {@link org.springframework.messaging.handler.annotation.Header} parameter annotations.
  * @author Tomaz Fernandes
+ * @author jeongmin Kim
  * @since 3.0
  * @see io.awspring.cloud.sqs.support.converter.SqsHeaderMapper
  */

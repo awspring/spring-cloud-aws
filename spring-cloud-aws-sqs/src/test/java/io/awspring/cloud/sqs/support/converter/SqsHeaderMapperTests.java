@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
  *
  * @author Tomaz Fernandes
  * @author Maciej Walkowiak
+ * @author Jeongmin Kim
  */
 class SqsHeaderMapperTests {
 
