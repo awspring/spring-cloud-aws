@@ -17,9 +17,13 @@ package io.awspring.cloud.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.sqs.listener.SqsHeaders;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Tests for {@link MessageHeaderUtils}.
@@ -92,5 +96,55 @@ class MessageHeaderUtilsTest {
 		assertThat(result.getHeaders().get(headerToKeep)).isEqualTo("keep-value");
 		assertThat(result.getHeaders().get("another-header")).isEqualTo("another-value");
 		assertThat(result.getHeaders().size()).isEqualTo(message.getHeaders().size() - 1);
+	}
+
+	@Test
+	void shouldReturnAwsMessageIdWhenHeaderPresent() {
+		// given
+		String awsMessageId = "92898073-7bd6a160-5797b060-54a7e539";
+		Message<String> message = MessageBuilder.withPayload("test-payload")
+			.setHeader(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER, awsMessageId)
+			.build();
+
+		// when
+		String result = MessageHeaderUtils.getAwsMessageId(message);
+
+		// then
+		assertThat(result).isEqualTo(awsMessageId);
+	}
+
+	@Test
+	void shouldFallbackToSpringMessageIdWhenAwsHeaderNotPresent() {
+		// given
+		Message<String> message = MessageBuilder.withPayload("test-payload").build();
+		String expectedId = message.getHeaders().getId().toString();
+
+		// when
+		String result = MessageHeaderUtils.getAwsMessageId(message);
+
+		// then
+		assertThat(result).isEqualTo(expectedId);
+	}
+
+	@Test
+	void shouldConcatenateAwsMessageIdsFromCollection() {
+		// given
+		String awsMessageId1 = "aws-id-1";
+		String awsMessageId2 = "aws-id-2";
+
+		Message<String> message1 = MessageBuilder.withPayload("payload1")
+			.setHeader(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER, awsMessageId1)
+			.build();
+		Message<String> message2 = MessageBuilder.withPayload("payload2")
+			.setHeader(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER, awsMessageId2)
+			.build();
+
+		Collection<Message<String>> messages = List.of(message1, message2);
+
+		// when
+		String result = MessageHeaderUtils.getAwsMessageId(messages);
+
+		// then
+		assertThat(result).isEqualTo("aws-id-1; aws-id-2");
 	}
 }

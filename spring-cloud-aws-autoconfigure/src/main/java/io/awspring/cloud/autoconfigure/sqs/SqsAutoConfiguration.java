@@ -33,6 +33,7 @@ import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.SqsHeaderMapper;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
@@ -146,7 +147,13 @@ public class SqsAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public MessagingMessageConverter<Message> messageConverter() {
-		return new SqsMessagingMessageConverter();
+		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+
+		SqsHeaderMapper headerMapper = new SqsHeaderMapper();
+		headerMapper.setConvertMessageIdToUuid(this.sqsProperties.getConvertMessageIdToUuid());
+		converter.setHeaderMapper(headerMapper);
+
+		return converter;
 	}
 
 	private void configureProperties(SqsContainerOptionsBuilder options) {
