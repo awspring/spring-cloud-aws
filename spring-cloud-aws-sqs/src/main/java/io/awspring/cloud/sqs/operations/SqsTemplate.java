@@ -73,6 +73,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
  *
  * @author Tomaz Fernandes
  * @author Zhong Xi Lu
+ * @author Jeongmin Kim
  *
  * @since 3.0
  */
@@ -355,7 +356,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		logger.debug("Sending messages {} to endpoint {}", messages, endpointName);
 		return createSendMessageBatchRequest(endpointName, messages).thenCompose(this.sqsAsyncClient::sendMessageBatch)
 				.thenApply(response -> createSendResultBatch(response, endpointName,
-						originalMessages.stream().collect(Collectors.toMap(MessageHeaderUtils::getId, msg -> msg))));
+						originalMessages.stream().collect(Collectors.toMap(MessageHeaderUtils::getAwsMessageId, msg -> msg))));
 	}
 
 	private <T> SendResult.Batch<T> createSendResultBatch(SendMessageBatchResponse response, String endpointName,
@@ -526,7 +527,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private CompletableFuture<Void> deleteMessages(String endpointName,
 			Collection<org.springframework.messaging.Message<?>> messages) {
 		logger.trace("Acknowledging in queue {} messages {}", endpointName,
-				MessageHeaderUtils.getId(addTypeToMessages(messages)));
+				MessageHeaderUtils.getAwsMessageId(addTypeToMessages(messages)));
 		return getQueueAttributes(endpointName)
 				.thenCompose(attributes -> this.sqsAsyncClient.deleteMessageBatch(DeleteMessageBatchRequest.builder()
 						.queueUrl(attributes.getQueueUrl()).entries(createDeleteMessageEntries(messages)).build()))
@@ -545,7 +546,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<?>> messages,
 			String endpointName) {
 		return response.failed().stream().map(BatchResultErrorEntry::id)
-				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst()
+				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getAwsMessageId(msg).equals(id)).findFirst()
 						.orElseThrow(() -> new SqsAcknowledgementException(
 								"Could not correlate ids for acknowledgement failure", Collections.emptyList(),
 								messages, endpointName)))
@@ -556,7 +557,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<?>> messages,
 			String endpointName) {
 		return response.successful().stream().map(DeleteMessageBatchResultEntry::id)
-				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst()
+				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getAwsMessageId(msg).equals(id)).findFirst()
 						.orElseThrow(() -> new SqsAcknowledgementException(
 								"Could not correlate ids for acknowledgement failure", Collections.emptyList(),
 								messages, endpointName)))
@@ -574,7 +575,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			DeleteMessageBatchResponse response, @Nullable Throwable t) {
 		if (t != null) {
 			logger.error("Error acknowledging in queue {} messages {}", endpointName,
-					MessageHeaderUtils.getId(addTypeToMessages(messages)));
+					MessageHeaderUtils.getAwsMessageId(addTypeToMessages(messages)));
 		}
 		else if (!response.failed().isEmpty()) {
 			logger.warn("Some messages could not be acknowledged in queue {}: {}", endpointName,
@@ -582,14 +583,14 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		}
 		else {
 			logger.trace("Acknowledged messages in queue {}: {}", endpointName,
-					MessageHeaderUtils.getId(addTypeToMessages(messages)));
+					MessageHeaderUtils.getAwsMessageId(addTypeToMessages(messages)));
 		}
 	}
 
 	private Collection<DeleteMessageBatchRequestEntry> createDeleteMessageEntries(
 			Collection<org.springframework.messaging.Message<?>> messages) {
 		return messages.stream()
-				.map(message -> DeleteMessageBatchRequestEntry.builder().id(MessageHeaderUtils.getId(message))
+				.map(message -> DeleteMessageBatchRequestEntry.builder().id(MessageHeaderUtils.getAwsMessageId(message))
 						.receiptHandle(
 								MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER))
 						.build())
