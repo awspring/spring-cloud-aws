@@ -62,10 +62,16 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 	private BiFunction<Message, MessageHeaderAccessor, MessageHeaders> additionalHeadersFunction = ((message,
 			accessor) -> accessor.toMessageHeaders());
 
+	private boolean convertMessageIdToUuid = true;
+
 	public void setAdditionalHeadersFunction(
 			BiFunction<Message, MessageHeaderAccessor, MessageHeaders> headerFunction) {
 		Assert.notNull(headerFunction, "headerFunction cannot be null");
 		this.additionalHeadersFunction = headerFunction;
+	}
+
+	public void setConvertMessageIdToUuid(boolean convertMessageIdToUuid) {
+		this.convertMessageIdToUuid = convertMessageIdToUuid;
 	}
 
 	@Override
@@ -157,9 +163,27 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		accessor.copyHeadersIfAbsent(getMessageAttributesAsHeaders(source));
 		accessor.copyHeadersIfAbsent(createDefaultHeaders(source));
 		accessor.copyHeadersIfAbsent(createAdditionalHeaders(source));
-		MessageHeaders messageHeaders = accessor.toMessageHeaders();
-		logger.trace("Mapped headers {} for message {}", messageHeaders, source.messageId());
-		return new MessagingMessageHeaders(messageHeaders, UUID.fromString(source.messageId()));
+
+		if (convertMessageIdToUuid && isValidUuid(source.messageId())) {
+			MessageHeaders messageHeaders = accessor.toMessageHeaders();
+			logger.trace("Mapped headers {} for message {}", messageHeaders, source.messageId());
+			return new MessagingMessageHeaders(messageHeaders, UUID.fromString(source.messageId()));
+		} else {
+			accessor.setHeader(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER, source.messageId());
+			MessageHeaders messageHeaders = accessor.toMessageHeaders();
+			logger.trace("Mapped headers {} for message {}", messageHeaders, source.messageId());
+			return new MessagingMessageHeaders(messageHeaders, UUID.randomUUID());
+		}
+
+	}
+
+	private boolean isValidUuid(String messageId) {
+		try {
+			UUID.fromString(messageId);
+			return true;
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
 	}
 
 	private MessageHeaders createAdditionalHeaders(Message source) {

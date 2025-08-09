@@ -51,6 +51,16 @@ public class SqsProperties extends AwsClientProperties {
 
 	private Boolean observationEnabled = false;
 
+	private Boolean convertMessageIdToUuid = true;
+
+	public Boolean getConvertMessageIdToUuid() {
+		return convertMessageIdToUuid;
+	}
+
+	public void setConvertMessageIdToUuid(Boolean convertMessageIdToUuid) {
+		this.convertMessageIdToUuid = convertMessageIdToUuid;
+	}
+
 	/**
 	 * Return the strategy to use if the queue is not found.
 	 * @return the {@link QueueNotFoundStrategy}
