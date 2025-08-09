@@ -65,6 +65,7 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Maciej Walkowiak
  * @author Wei Jiang
  * @author Dongha Kim
+ * @author Jeongmin Kim
  * @since 3.0
  */
 @AutoConfiguration

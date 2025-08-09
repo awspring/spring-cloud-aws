@@ -26,6 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @author Tomaz Fernandes
  * @author Wei Jiang
+ * @author Jeongmin Kim
  * @since 3.0
  */
 @ConfigurationProperties(prefix = SqsProperties.PREFIX)

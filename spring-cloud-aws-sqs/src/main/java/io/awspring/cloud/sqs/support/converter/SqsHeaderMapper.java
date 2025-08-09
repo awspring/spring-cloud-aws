@@ -51,6 +51,7 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
  * @author Tomaz Fernandes
  * @author Alain Sahli
  * @author Maciej Walkowiak
+ * @author Jeongmin Kim
  *
  * @since 3.0
  * @see LegacyJackson2SqsMessagingMessageConverter

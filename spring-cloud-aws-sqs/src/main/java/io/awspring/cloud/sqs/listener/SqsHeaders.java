@@ -23,6 +23,7 @@ package io.awspring.cloud.sqs.listener;
  *
  * @author Tomaz Fernandes
  * @author Artem Bilan
+ * @author Jeongmin Kim
  *
  * @since 3.0
  *

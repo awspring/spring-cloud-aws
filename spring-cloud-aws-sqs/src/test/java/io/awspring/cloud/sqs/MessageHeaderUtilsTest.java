@@ -29,6 +29,7 @@ import java.util.List;
  * Tests for {@link MessageHeaderUtils}.
  *
  * @author Tomaz Fernandes
+ * @author Jeongmin Kim
  */
 class MessageHeaderUtilsTest {
 

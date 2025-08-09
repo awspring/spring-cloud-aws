@@ -31,6 +31,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
  * Utility class for extracting {@link MessageHeaders} from a {@link Message}.
  *
  * @author Tomaz Fernandes
+ * @author Jeongmin Kim
  * @since 3.0
  */
 public class MessageHeaderUtils {
