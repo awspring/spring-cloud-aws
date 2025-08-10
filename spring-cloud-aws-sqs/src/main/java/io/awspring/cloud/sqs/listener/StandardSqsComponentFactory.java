@@ -26,9 +26,6 @@ import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.StandardSqsMessageSource;
 import java.time.Duration;
 import java.util.Collection;
-
-import io.awspring.cloud.sqs.support.filter.DefaultMessageFilter;
-import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.springframework.util.Assert;
 
 /**
@@ -58,9 +55,8 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 	// @formatter:off
 	@Override
 	public MessageSink<T> createMessageSink(SqsContainerOptions options) {
-		MessageFilter<T> filter = (MessageFilter<T>) options.getMessageFilter();
 		return ListenerMode.SINGLE_MESSAGE.equals(options.getListenerMode())
-				? new FilteredFanOutMessageSink<>(filter) : new FilteredBatchMessageSink<>(filter);
+				? new FanOutMessageSink<>() : new BatchMessageSink<>();
 	}
 
 	// @formatter:on

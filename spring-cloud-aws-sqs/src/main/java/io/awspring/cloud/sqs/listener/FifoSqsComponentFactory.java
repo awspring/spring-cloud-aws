@@ -30,9 +30,6 @@ import io.awspring.cloud.sqs.listener.source.MessageSource;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.function.Function;
-
-import io.awspring.cloud.sqs.support.filter.DefaultMessageFilter;
-import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -86,10 +83,9 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 
 	// @formatter:off
 	private MessageSink<T> createDeliverySink(ListenerMode listenerMode, SqsContainerOptions options) {
-		MessageFilter<T> filter = (MessageFilter<T>) options.getMessageFilter();
 		return ListenerMode.SINGLE_MESSAGE.equals(listenerMode)
-			? new FilteredOrderedMessageSink<>(filter)
-			: new FilteredBatchMessageSink<>(filter);
+			? new OrderedMessageSink<>()
+			: new BatchMessageSink<>();
 	}
 
 	private MessageSink<T> maybeWrapWithVisibilityAdapter(MessageSink<T> deliverySink, @Nullable Duration messageVisibility) {

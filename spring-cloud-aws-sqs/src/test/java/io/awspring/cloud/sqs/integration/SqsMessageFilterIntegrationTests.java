@@ -6,7 +6,6 @@ import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +17,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.messaging.Message;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -51,13 +52,13 @@ public class SqsMessageFilterIntegrationTests extends BaseSqsIntegrationTest {
 	record SampleRecord(String propertyOne, String propertyTwo) {}
 
 	@Test
-	void shouldReceiveMessageThatPassesFilter() throws Exception {
+	void shouldReceiveMessageThatPassesProcess() throws Exception {
 		sqsTemplate.send(FILTER_QUEUE_PASS, new SampleRecord("Hello", "Accepted"));
 		assertThat(latchContainer.latchForPass.await(10, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
-	void shouldNotReceiveMessageThatFailsFilter() throws Exception {
+	void shouldNotReceiveMessageThatFailsProcess() throws Exception {
 		sqsTemplate.send(FILTER_QUEUE_BLOCK, new SampleRecord("NotHello", "Rejected"));
 		assertThat(latchContainer.latchForBlock.await(10, TimeUnit.SECONDS)).isFalse();
 	}
@@ -101,9 +102,14 @@ public class SqsMessageFilterIntegrationTests extends BaseSqsIntegrationTest {
 	// Sample Filter
 	static class AllowHelloOnlyFilter implements MessageFilter<SampleRecord> {
 		@Override
-		public boolean process(Message<SampleRecord> message) {
-			logger.info("Filtering message: {}", message.getPayload());
-			return "Hello".equals(message.getPayload().propertyOne());
+		public Collection<Message<SampleRecord>> process(Collection<Message<SampleRecord>> messages) {
+			return messages.stream()
+						   .filter(msg -> {
+							   SampleRecord p = msg.getPayload();
+							   logger.info("Filtering message: {}", p);
+							   return "Hello".equals(p.propertyOne());
+						   })
+						   .collect(Collectors.toList());
 		}
 	}
 

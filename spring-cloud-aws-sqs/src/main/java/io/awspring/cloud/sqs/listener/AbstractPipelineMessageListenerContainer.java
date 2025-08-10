@@ -30,6 +30,7 @@ import io.awspring.cloud.sqs.listener.pipeline.MessageListenerExecutionStage;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingConfiguration;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipelineBuilder;
+import io.awspring.cloud.sqs.listener.sink.AbstractMessageProcessingPipelineSink;
 import io.awspring.cloud.sqs.listener.sink.MessageProcessingPipelineSink;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.AcknowledgementProcessingMessageSource;
@@ -42,6 +43,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -174,7 +177,10 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 				.acceptIfInstance(this.messageSink, TaskExecutorAware.class,
 						teac -> teac.setTaskExecutor(getComponentsTaskExecutor()))
 				.acceptIfInstance(this.messageSink, MessageProcessingPipelineSink.class,
-						mls -> mls.setMessagePipeline(messageProcessingPipeline));
+						mls -> mls.setMessagePipeline(messageProcessingPipeline))
+				.acceptIfInstance(this.messageSink, AbstractMessageProcessingPipelineSink.class,
+					s -> s.setMessageFilter(getContainerOptions().getMessageFilter()));
+
 		doConfigureMessageSink(this.messageSink);
 	}
 

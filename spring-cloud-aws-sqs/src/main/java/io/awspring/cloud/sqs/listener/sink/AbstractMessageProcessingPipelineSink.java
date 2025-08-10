@@ -25,6 +25,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+
+import io.awspring.cloud.sqs.support.filter.MessageFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
@@ -56,6 +58,8 @@ public abstract class AbstractMessageProcessingPipelineSink<T>
 
 	private MessageProcessingPipeline<T> messageProcessingPipeline;
 
+	protected MessageFilter<T> messageFilter;
+
 	private String id;
 
 	@Override
@@ -68,6 +72,11 @@ public abstract class AbstractMessageProcessingPipelineSink<T>
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		Assert.notNull(taskExecutor, "executor cannot be null");
 		this.taskExecutor = taskExecutor;
+	}
+
+	public void setMessageFilter(MessageFilter<T> messageFilter) {
+		Assert.notNull(messageFilter, "messageFilter must not be null.");
+		this.messageFilter = messageFilter;
 	}
 
 	@Override
@@ -86,6 +95,10 @@ public abstract class AbstractMessageProcessingPipelineSink<T>
 
 	protected abstract CompletableFuture<Void> doEmit(Collection<Message<T>> messages,
 			MessageProcessingContext<T> context);
+
+	protected CompletableFuture<Collection<Message<T>>> filterAsync(Collection<Message<T>> messages) {
+		return CompletableFuture.supplyAsync(() -> this.messageFilter.process(messages), this.taskExecutor);
+	}
 
 	/**
 	 * Send the provided {@link Message} to the {@link TaskExecutor} as a unit of work.
