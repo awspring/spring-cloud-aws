@@ -237,7 +237,8 @@ class SqsAutoConfigurationTest {
 						"spring.cloud.aws.sqs.listener.max-concurrent-messages:19",
 						"spring.cloud.aws.sqs.listener.max-messages-per-poll:8",
 						"spring.cloud.aws.sqs.listener.poll-timeout:6s",
-						"spring.cloud.aws.sqs.listener.max-delay-between-polls:15s")
+						"spring.cloud.aws.sqs.listener.max-delay-between-polls:15s",
+						"spring.cloud.aws.sqs.listener.auto-startup=false")
 				.withUserConfiguration(CustomComponentsConfiguration.class, ObjectMapperConfiguration.class).run(context -> {
 					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
 					SqsMessageListenerContainerFactory<?> factory = context
@@ -254,6 +255,7 @@ class SqsAutoConfigurationTest {
 						assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);
 						assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
 						assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(15));
+						assertThat(options.isAutoStartup()).isEqualTo(false);
 					})
 					.extracting("messageConverter")
 					.asInstanceOf(type(SqsMessagingMessageConverter.class))
@@ -282,6 +284,7 @@ class SqsAutoConfigurationTest {
 					assertThat(options.getMaxMessagesPerPoll()).isEqualTo(10);
 					assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(10));
 					assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(10));
+					assertThat(options.isAutoStartup()).isTrue();
 				})
 				.extracting("messageConverter")
 				.asInstanceOf(type(SqsMessagingMessageConverter.class))
