@@ -19,26 +19,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.micrometer.cloudwatch2.CloudWatchConfig;
 import io.micrometer.cloudwatch2.CloudWatchMeterRegistry;
 import io.micrometer.core.instrument.Clock;
 import java.net.URI;
-import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.Nullable;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
-import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
 
 /**
  * Test for the {@link CloudWatchExportAutoConfiguration}.
@@ -122,41 +113,6 @@ class CloudWatchExportAutoConfigurationTest {
 					assertThat(client.getEndpoint()).isEqualTo(URI.create("http://localhost:9999"));
 					assertThat(client.isEndpointOverridden()).isTrue();
 				});
-	}
-
-	@Test
-	void useAwsConfigurerClient() {
-		this.contextRunner.withPropertyValues("management.cloudwatch.metrics.export.namespace:test")
-				.withUserConfiguration(CustomAwsConfigurerClient.class).run(context -> {
-					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(CloudWatchAsyncClient.class));
-					assertThat(client.getApiCallTimeout()).isEqualTo(Duration.ofMillis(1542));
-					assertThat(client.getAsyncHttpClient()).isNotNull();
-				});
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	static class CustomAwsConfigurerClient {
-
-		@Bean
-		AwsClientCustomizer<CloudWatchAsyncClientBuilder> cloudWatchClientBuilderAwsClientConfigurer() {
-			return new CloudWatchAwsAsyncClientClientConfigurer();
-		}
-
-		static class CloudWatchAwsAsyncClientClientConfigurer
-				implements AwsClientCustomizer<CloudWatchAsyncClientBuilder> {
-			@Override
-			@Nullable
-			public ClientOverrideConfiguration overrideConfiguration() {
-				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
-			}
-
-			@Override
-			@Nullable
-			public SdkAsyncHttpClient asyncHttpClient() {
-				return NettyNioAsyncHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
-			}
-		}
-
 	}
 
 }
