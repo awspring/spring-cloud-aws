@@ -27,14 +27,10 @@ import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.Body;
-import software.amazon.awssdk.services.ses.model.Content;
-import software.amazon.awssdk.services.ses.model.Destination;
-import software.amazon.awssdk.services.ses.model.Message;
-import software.amazon.awssdk.services.ses.model.SendEmailRequest;
-import software.amazon.awssdk.services.ses.model.SendEmailResponse;
-import software.amazon.awssdk.services.ses.model.SesException;
+import software.amazon.awssdk.services.sesv2.SesV2Client;
+import software.amazon.awssdk.services.sesv2.model.SendEmailRequest;
+import software.amazon.awssdk.services.sesv2.model.SendEmailResponse;
+import software.amazon.awssdk.services.sesv2.model.SesV2Exception;
 
 /**
  * Simple MailSender implementation to send E-Mails with the Amazon Simple Email Service. This implementation has no
@@ -44,31 +40,32 @@ import software.amazon.awssdk.services.ses.model.SesException;
  * @author Agim Emruli
  * @author Eddú Meléndez
  * @author Arun Patra
+ * @author Dominik Kovács
  */
 public class SimpleEmailServiceMailSender implements MailSender, DisposableBean {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleEmailServiceMailSender.class);
 
-	private final SesClient sesClient;
+	private final SesV2Client sesClient;
 
 	@Nullable
-	private final String sourceArn;
+	private final String identityArn;
 
 	@Nullable
 	private final String configurationSetName;
 
-	public SimpleEmailServiceMailSender(SesClient sesClient) {
+	public SimpleEmailServiceMailSender(SesV2Client sesClient) {
 		this(sesClient, null);
 	}
 
-	public SimpleEmailServiceMailSender(SesClient sesClient, @Nullable String sourceArn) {
-		this(sesClient, sourceArn, null);
+	public SimpleEmailServiceMailSender(SesV2Client sesClient, @Nullable String identityArn) {
+		this(sesClient, identityArn, null);
 	}
 
-	public SimpleEmailServiceMailSender(SesClient sesClient, @Nullable String sourceArn,
+	public SimpleEmailServiceMailSender(SesV2Client sesClient, @Nullable String identityArn,
 			@Nullable String configurationSetName) {
 		this.sesClient = sesClient;
-		this.sourceArn = sourceArn;
+		this.identityArn = identityArn;
 		this.configurationSetName = configurationSetName;
 	}
 
@@ -95,7 +92,7 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 					LOGGER.debug("Message with id: {} successfully send", sendEmailResult.messageId());
 				}
 			}
-			catch (SesException e) {
+			catch (SesV2Exception e) {
 				// Ignore Exception because we are collecting and throwing all if any
 				// noinspection ThrowableResultOfMethodCallIgnored
 				failedMessages.put(simpleMessage, e);
@@ -108,13 +105,13 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 
 	}
 
-	protected SesClient getEmailService() {
+	protected SesV2Client getEmailService() {
 		return this.sesClient;
 	}
 
 	@Nullable
-	protected String getSourceArn() {
-		return sourceArn;
+	protected String getIdentityArn() {
+		return identityArn;
 	}
 
 	@Nullable
@@ -124,26 +121,22 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 
 	private SendEmailRequest prepareMessage(SimpleMailMessage simpleMailMessage) {
 		Assert.notNull(simpleMailMessage, "simpleMailMessage are required");
-		Destination.Builder destinationBuilder = Destination.builder();
-		if (simpleMailMessage.getTo() != null) {
-			destinationBuilder.toAddresses(simpleMailMessage.getTo());
-		}
 
-		if (simpleMailMessage.getCc() != null) {
-			destinationBuilder.ccAddresses(simpleMailMessage.getCc());
-		}
-
-		if (simpleMailMessage.getBcc() != null) {
-			destinationBuilder.bccAddresses(simpleMailMessage.getBcc());
-		}
-
-		Content subject = Content.builder().data(simpleMailMessage.getSubject()).build();
-		Body body = Body.builder().text(Content.builder().data(simpleMailMessage.getText()).build()).build();
-		Message message = Message.builder().body(body).subject(subject).build();
-
-		SendEmailRequest.Builder emailRequestBuilder = SendEmailRequest.builder()
-				.destination(destinationBuilder.build()).source(simpleMailMessage.getFrom()).sourceArn(getSourceArn())
-				.configurationSetName(getConfigurationSetName()).message(message);
+		SendEmailRequest.Builder emailRequestBuilder = SendEmailRequest.builder().destination(destination -> {
+			if (simpleMailMessage.getTo() != null) {
+				destination.toAddresses(simpleMailMessage.getTo());
+			}
+			if (simpleMailMessage.getCc() != null) {
+				destination.ccAddresses(simpleMailMessage.getCc());
+			}
+			if (simpleMailMessage.getBcc() != null) {
+				destination.bccAddresses(simpleMailMessage.getBcc());
+			}
+		}).fromEmailAddress(simpleMailMessage.getFrom()).configurationSetName(getConfigurationSetName())
+				.fromEmailAddressIdentityArn(getIdentityArn())
+				.content(content -> content
+						.simple(message -> message.subject(subject -> subject.data(simpleMailMessage.getSubject()))
+								.body(body -> body.text(text -> text.data(simpleMailMessage.getText())))));
 
 		if (StringUtils.hasText(simpleMailMessage.getReplyTo())) {
 			emailRequestBuilder.replyToAddresses(simpleMailMessage.getReplyTo());
