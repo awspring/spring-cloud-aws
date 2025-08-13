@@ -68,6 +68,8 @@ import java.util.List;
  * 			standbyLimitPollingInterval
  * 		);
  * }}</pre>
+ *
+ * @author Loïc Rouchon
  */
 public class BackPressureHandlerFactories {
 

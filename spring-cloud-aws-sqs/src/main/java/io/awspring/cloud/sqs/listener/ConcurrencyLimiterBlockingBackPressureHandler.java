@@ -29,6 +29,8 @@ import org.springframework.util.Assert;
  * concurrent messages being processed.
  *
  * @see PollingMessageSource
+ *
+ * @author Loïc Rouchon
  */
 public class ConcurrencyLimiterBlockingBackPressureHandler
 		implements BlockingBackPressureHandler, BatchAwareBackPressureHandler, IdentifiableContainerComponent {

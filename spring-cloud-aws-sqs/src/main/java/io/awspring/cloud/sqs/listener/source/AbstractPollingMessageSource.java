@@ -58,6 +58,7 @@ import org.springframework.util.StringUtils;
  * {@link MessageProcessingContext} and executed downstream when applicable.
  *
  * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  * @since 3.0
  */
 public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessageConvertingMessageSource<T, S>

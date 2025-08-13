@@ -43,6 +43,8 @@ import org.springframework.util.Assert;
  * application in a blocking way.
  *
  * @see PollingMessageSource
+ *
+ * @author Loïc Rouchon
  */
 public class ThroughputBackPressureHandler implements BackPressureHandler, IdentifiableContainerComponent {
 

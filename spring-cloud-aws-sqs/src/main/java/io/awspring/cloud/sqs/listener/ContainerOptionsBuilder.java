@@ -27,6 +27,9 @@ import org.springframework.retry.backoff.BackOffPolicy;
  * A builder for creating a {@link ContainerOptions} instance.
  * @param <B> the concrete {@link ContainerOptionsBuilder} type.
  * @param <O> the concrete {@link ContainerOptions} type.
+ *
+ * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  */
 public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>, O extends ContainerOptions<O, B>> {
 

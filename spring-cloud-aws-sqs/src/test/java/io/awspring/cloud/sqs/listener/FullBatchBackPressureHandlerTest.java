@@ -20,6 +20,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link FullBatchBackPressureHandler}.
+ *
+ * @author Loïc Rouchon
+ */
 class FullBatchBackPressureHandlerTest {
 
 	private FullBatchBackPressureHandler handler;

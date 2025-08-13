@@ -21,6 +21,11 @@ import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link ConcurrencyLimiterBlockingBackPressureHandler}.
+ *
+ * @author Loïc Rouchon
+ */
 class ConcurrencyLimiterBlockingBackPressureHandlerTest {
 
 	private static final int BATCH_SIZE = 5;

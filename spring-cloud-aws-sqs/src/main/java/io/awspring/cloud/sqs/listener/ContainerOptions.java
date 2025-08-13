@@ -34,6 +34,7 @@ import org.springframework.retry.backoff.BackOffPolicy;
  * original instance and the copy.
  *
  * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  * @since 3.0
  */
 public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>> {

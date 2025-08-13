@@ -20,6 +20,7 @@ package io.awspring.cloud.sqs.listener;
  * configured by the implementations.
  *
  * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  * @since 3.0
  */
 public interface BatchAwareBackPressureHandler extends BackPressureHandler {

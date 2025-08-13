@@ -25,6 +25,11 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests for {@link CompositeBackPressureHandler}.
+ *
+ * @author Loïc Rouchon
+ */
 class CompositeBackPressureHandlerTest {
 
 	private BackPressureHandler handler1;

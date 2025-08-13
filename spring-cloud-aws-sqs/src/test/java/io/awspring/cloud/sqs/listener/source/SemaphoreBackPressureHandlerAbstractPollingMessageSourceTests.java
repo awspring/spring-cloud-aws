@@ -58,6 +58,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
  * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  */
 class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 

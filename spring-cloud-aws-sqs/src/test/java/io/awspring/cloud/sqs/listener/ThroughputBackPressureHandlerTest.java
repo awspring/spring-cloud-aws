@@ -23,6 +23,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+/**
+ * Tests for {@link ThroughputBackPressureHandler}.
+ *
+ * @author Loïc Rouchon
+ */
 class ThroughputBackPressureHandlerTest {
 	private ThroughputBackPressureHandler handler;
 

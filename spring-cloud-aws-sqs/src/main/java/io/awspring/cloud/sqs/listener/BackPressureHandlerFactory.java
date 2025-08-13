@@ -23,6 +23,8 @@ package io.awspring.cloud.sqs.listener;
  * or semaphores) are not shared across containers, which could lead to unintended side effects.
  * <p>
  * Default factory implementations can be found in the {@link BackPressureHandlerFactories} class.
+ *
+ * @author Loïc Rouchon
  */
 public interface BackPressureHandlerFactory {
 

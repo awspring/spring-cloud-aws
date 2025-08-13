@@ -29,6 +29,8 @@ import org.springframework.util.Assert;
  * {@link BackPressureHandler} and be the last one in the chain of the {@link CompositeBackPressureHandler}
  *
  * @see PollingMessageSource
+ *
+ * @author Loïc Rouchon
  */
 public class FullBatchBackPressureHandler implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 

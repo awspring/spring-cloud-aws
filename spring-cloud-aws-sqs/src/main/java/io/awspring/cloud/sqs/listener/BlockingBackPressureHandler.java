@@ -18,6 +18,8 @@ package io.awspring.cloud.sqs.listener;
 /**
  * Marker interface for a blocking {@link BackPressureHandler}. This handler is used to control the flow of messages in
  * a blocking manner.
+ *
+ * @author Loïc Rouchon
  */
 public interface BlockingBackPressureHandler extends BackPressureHandler {
 

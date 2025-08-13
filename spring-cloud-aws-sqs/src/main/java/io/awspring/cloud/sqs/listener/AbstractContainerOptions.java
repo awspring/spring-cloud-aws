@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * Base implementation for {@link ContainerOptions}.
  *
  * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  * @since 3.0
  */
 public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>>

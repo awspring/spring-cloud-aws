@@ -24,6 +24,7 @@ import java.time.Duration;
  * semaphore-based, rate limiter-based, a mix of both, or any other.
  *
  * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  * @since 3.0
  */
 public interface BackPressureHandler {

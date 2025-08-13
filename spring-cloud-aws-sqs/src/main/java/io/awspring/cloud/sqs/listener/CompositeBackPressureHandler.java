@@ -46,6 +46,8 @@ import org.springframework.util.Assert;
  * <p>
  * If no permits were obtained, the {@link #request(int)} method will wait up to {@code noPermitsReturnedWaitTimeout}
  * for a release of permits before returning.
+ *
+ * @author Loïc Rouchon
  */
 public class CompositeBackPressureHandler implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 
