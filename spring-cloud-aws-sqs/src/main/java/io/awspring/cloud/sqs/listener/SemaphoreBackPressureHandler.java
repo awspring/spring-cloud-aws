@@ -31,7 +31,8 @@ import org.springframework.util.Assert;
  * @since 3.0
  * @see io.awspring.cloud.sqs.listener.source.PollingMessageSource
  */
-public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
+public class SemaphoreBackPressureHandler
+		implements BlockingBackPressureHandler, BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 
 	private static final Logger logger = LoggerFactory.getLogger(SemaphoreBackPressureHandler.class);
 
