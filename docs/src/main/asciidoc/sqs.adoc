@@ -806,6 +806,131 @@ NOTE: The same factory can be used to create both `single message` and `batch` c
 
 IMPORTANT: In case the same factory is shared by both delivery methods, any supplied `ErrorHandler`, `MessageInterceptor` or `MessageListener` should implement the proper methods.
 
+==== Automatic Batching with AWS SDK
+
+Spring Cloud AWS supports automatic message batching using AWS SDK's `SqsAsyncBatchManager`. This feature optimizes SQS operations by automatically batching requests under the hood to improve performance and reduce AWS API calls.
+
+IMPORTANT: This is different from the <<Batch Processing,Batch Processing>> feature described above. Batch Processing refers to processing multiple messages in a single listener method call, while Automatic Batching refers to the AWS SDK automatically combining multiple SQS API calls into batched requests for efficiency.
+
+===== Enabling Automatic Batching
+
+To enable automatic batching, set the following property:
+
+[source,properties]
+----
+spring.cloud.aws.sqs.batch.enabled=true
+----
+
+When enabled, Spring Cloud AWS will automatically wrap the `SqsAsyncClient` with a `BatchingSqsClientAdapter` that uses `SqsAsyncBatchManager` internally.
+
+===== Configuration Properties
+
+The following properties can be used to configure the batching behavior:
+
+[source,properties]
+----
+# Enable automatic batching (default: false)
+spring.cloud.aws.sqs.batch.enabled=true
+
+# Maximum number of messages in a batch (default: AWS SDK default, max: 10)
+spring.cloud.aws.sqs.batch.max-number-of-messages=10
+
+# Frequency at which batched requests are sent (default: AWS SDK default)
+spring.cloud.aws.sqs.batch.send-batch-frequency=PT0.2S
+
+# Visibility timeout for received messages (default: queue default)
+spring.cloud.aws.sqs.batch.visibility-timeout=PT30S
+
+# Wait time for receiveMessage requests (default: AWS SDK default)
+spring.cloud.aws.sqs.batch.wait-time-seconds=PT5S
+
+# System attributes to request for receiveMessage calls
+spring.cloud.aws.sqs.batch.system-attribute-names=SentTimestamp,ApproximateReceiveCount
+
+# Message attributes to request for receiveMessage calls
+spring.cloud.aws.sqs.batch.attribute-names=MessageGroupId,MessageDeduplicationId
+----
+
+===== Important Considerations
+
+WARNING: When using automatic batching, operations are processed asynchronously by the AWS SDK. This means that a method call may return successfully, but the actual request to AWS SQS might fail later during the batching process. This can result in **false positives** where operations appear to succeed locally but fail during transmission.
+
+Applications should:
+
+- **Always handle the returned `CompletableFuture`** to detect actual transmission errors
+- **Implement appropriate error handling and monitoring** to detect delayed failures
+- **Consider retry mechanisms** for critical operations
+
+IMPORTANT: **Batch Manager Bypass**: The AWS SDK batch manager will bypass batching and send regular asynchronous requests when `receiveMessage` is called with any of the following parameters:
+
+- `messageAttributeNames`
+- `messageSystemAttributeNames`
+- `messageSystemAttributeNamesWithStrings` (not used in Spring Cloud AWS `ReceiveMessageRequest`)
+- `overrideConfiguration` (not used in Spring Cloud AWS `ReceiveMessageRequest`)
+
+When these parameters are used, the performance benefits of batching are lost for those specific requests.
+
+**Note**: When using Spring Cloud AWS's automatic batching feature, `SqsTemplate` automatically excludes `messageAttributeNames` and `messageSystemAttributeNames` from individual `receiveMessage` requests to maintain batching efficiency. These attributes should be configured globally in the batch configuration instead:
+
+[source,properties]
+----
+# Configure globally for batched requests
+spring.cloud.aws.sqs.batch.system-attribute-names=SentTimestamp,ApproximateReceiveCount
+spring.cloud.aws.sqs.batch.attribute-names=MessageGroupId,MessageDeduplicationId
+----
+
+If you need to use different attribute configurations per request, consider disabling automatic batching and using the standard `SqsAsyncClient` instead.
+
+Example of proper error handling:
+
+[source,java]
+----
+@Service
+public class MessageService {
+
+    private final SqsTemplate sqsTemplate;
+
+    public MessageService(SqsTemplate sqsTemplate) {
+        this.sqsTemplate = sqsTemplate;
+    }
+
+    public void sendMessage(String queueName, String message) {
+        CompletableFuture<SendResult<String>> future = sqsTemplate.sendAsync(queueName, message);
+
+        future.whenComplete((result, throwable) -> {
+            if (throwable != null) {
+                // Handle actual transmission error
+                log.error("Failed to send message to queue {}: {}", queueName, throwable.getMessage());
+                // Implement retry or alternative handling logic
+            } else {
+                // Message sent successfully
+                log.info("Message sent successfully with ID: {}", result.messageId());
+            }
+        });
+    }
+}
+----
+
+===== Performance Benefits
+
+Automatic batching provides several benefits:
+
+- **Reduced API calls**: Multiple operations are combined into single API calls
+- **Lower costs**: Fewer API calls result in reduced AWS charges
+- **Improved throughput**: Batching reduces network overhead and latency
+- **Better resource utilization**: More efficient use of network and AWS resources
+
+===== Compatibility
+
+Automatic batching is compatible with:
+
+- `SqsTemplate` for sending and receiving messages
+- `@SqsListener` methods for message processing
+- Both standard and FIFO queues
+- All message conversion and error handling features
+
+The batching is transparent to application code - existing `SqsTemplate` and `@SqsListener` code continues to work without changes.
+
 ==== Container Options
 
 Each `MessageListenerContainer` can have a different set of options.
