@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
 import software.amazon.awssdk.services.sqs.model.*;
 
 /**
- * @author khc41
+ * @author Heechul Kang
  */
 @ExtendWith(MockitoExtension.class)
 class BatchingSqsClientAdapterTests {

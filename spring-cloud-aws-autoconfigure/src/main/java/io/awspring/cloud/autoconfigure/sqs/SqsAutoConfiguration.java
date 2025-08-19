@@ -61,7 +61,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
  * @author Maciej Walkowiak
  * @author Wei Jiang
  * @author Dongha Kim
- * @author khc41
+ * @author Heechul Kang
  * @since 3.0
  */
 @AutoConfiguration

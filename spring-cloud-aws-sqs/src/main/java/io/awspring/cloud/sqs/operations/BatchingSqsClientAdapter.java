@@ -70,7 +70,7 @@ import software.amazon.awssdk.services.sqs.model.*;
  * <p>
  * Once enabled, all {@code SqsTemplate} operations will automatically use batching transparently.
  * 
- * @author khc41
+ * @author Heechul Kang
  * @since 3.2
  * @see SqsAsyncBatchManager
  * @see SqsAsyncClient

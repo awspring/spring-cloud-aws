@@ -70,7 +70,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
  *
  * @author Tomaz Fernandes
  * @author Wei Jiang
- * @author khc41
+ * @author Heechul Kang
  */
 class SqsAutoConfigurationTest {
 

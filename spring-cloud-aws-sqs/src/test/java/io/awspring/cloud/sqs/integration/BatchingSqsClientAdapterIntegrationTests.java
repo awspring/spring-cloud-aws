@@ -34,7 +34,7 @@ import software.amazon.awssdk.services.sqs.model.*;
 /**
  * Integration tests for the Sqs Batching Client Adapter.
  *
- * @author khc41
+ * @author Heechul Kang
  */
 @SpringBootTest
 public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegrationTest {
