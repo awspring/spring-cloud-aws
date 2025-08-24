@@ -17,11 +17,7 @@ package io.awspring.cloud.autoconfigure.sqs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
-import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
-import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
-import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.*;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
@@ -30,6 +26,7 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.operations.BatchingSqsClientAdapter;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
@@ -37,6 +34,8 @@ import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import io.micrometer.observation.ObservationRegistry;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -48,8 +47,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
+import software.amazon.awssdk.services.sqs.batchmanager.BatchOverrideConfiguration;
+import software.amazon.awssdk.services.sqs.batchmanager.SqsAsyncBatchManager;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
@@ -59,6 +61,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
  * @author Maciej Walkowiak
  * @author Wei Jiang
  * @author Dongha Kim
+ * @author Heechul Kang
  * @since 3.0
  */
 @AutoConfiguration
@@ -85,6 +88,44 @@ public class SqsAutoConfiguration {
 		return awsClientBuilderConfigurer.configureAsyncClient(SqsAsyncClient.builder(), this.sqsProperties,
 				connectionDetails.getIfAvailable(), configurer.getIfAvailable(),
 				sqsAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream()).build();
+	}
+
+	@ConditionalOnProperty(name = "spring.cloud.aws.sqs.batch.enabled", havingValue = "true")
+	@Bean
+	@Primary
+	public SqsAsyncClient batchSqsAsyncClient(SqsAsyncClient sqsAsyncClient,
+			ScheduledExecutorService sqsBatchingScheduledExecutor) {
+		SqsAsyncBatchManager batchManager = createBatchManager(sqsAsyncClient, sqsBatchingScheduledExecutor);
+		return new BatchingSqsClientAdapter(batchManager);
+	}
+
+	@ConditionalOnProperty(name = "spring.cloud.aws.sqs.batch.enabled", havingValue = "true")
+	@ConditionalOnMissingBean(name = "sqsBatchingScheduledExecutor")
+	@Bean
+	public ScheduledExecutorService sqsBatchingScheduledExecutor() {
+		int poolSize = this.sqsProperties.getBatch().getScheduledExecutorPoolSize();
+		if (poolSize <= 0) {
+			throw new IllegalArgumentException(
+					"scheduledExecutorPoolSize must be greater than 0, but was: " + poolSize);
+		}
+		return Executors.newScheduledThreadPool(poolSize);
+	}
+
+	private SqsAsyncBatchManager createBatchManager(SqsAsyncClient sqsAsyncClient,
+			ScheduledExecutorService scheduledExecutor) {
+		return SqsAsyncBatchManager.builder().client(sqsAsyncClient).scheduledExecutor(scheduledExecutor)
+				.overrideConfiguration(this::configurationProperties).build();
+	}
+
+	private void configurationProperties(BatchOverrideConfiguration.Builder options) {
+		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
+		mapper.from(this.sqsProperties.getBatch().getMaxNumberOfMessages()).to(options::maxBatchSize);
+		mapper.from(this.sqsProperties.getBatch().getSendBatchFrequency()).to(options::sendRequestFrequency);
+		mapper.from(this.sqsProperties.getBatch().getWaitTimeSeconds()).to(options::receiveMessageMinWaitDuration);
+		mapper.from(this.sqsProperties.getBatch().getVisibilityTimeout()).to(options::receiveMessageVisibilityTimeout);
+		mapper.from(this.sqsProperties.getBatch().getSystemAttributeNames())
+				.to(options::receiveMessageSystemAttributeNames);
+		mapper.from(this.sqsProperties.getBatch().getAttributeNames()).to(options::receiveMessageAttributeNames);
 	}
 
 	@ConditionalOnMissingBean
