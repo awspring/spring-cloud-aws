@@ -103,6 +103,12 @@ public class SqsProperties extends AwsClientProperties {
 		@Nullable
 		private Duration maxDelayBetweenPolls;
 
+		/**
+		 * Defines whether SQS listeners will start automatically or not.
+		 */
+		@Nullable
+		private Boolean autoStartup;
+
 		@Nullable
 		public Integer getMaxConcurrentMessages() {
 			return this.maxConcurrentMessages;
@@ -137,6 +143,15 @@ public class SqsProperties extends AwsClientProperties {
 
 		public void setMaxDelayBetweenPolls(Duration maxDelayBetweenPolls) {
 			this.maxDelayBetweenPolls = maxDelayBetweenPolls;
+		}
+
+		@Nullable
+		public Boolean getAutoStartup() {
+			return autoStartup;
+		}
+
+		public void setAutoStartup(Boolean autoStartup) {
+			this.autoStartup = autoStartup;
 		}
 	}
 
