@@ -1,4 +1,4 @@
-org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
+org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration
 io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration
 io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration
 io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration
