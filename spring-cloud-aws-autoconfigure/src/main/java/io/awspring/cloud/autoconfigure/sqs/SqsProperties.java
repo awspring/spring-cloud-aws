@@ -157,7 +157,7 @@ public class SqsProperties extends AwsClientProperties {
 			this.maxDelayBetweenPolls = maxDelayBetweenPolls;
 		}
     
-    @Nullable
+        @Nullable
 		public Boolean getAutoStartup() {
 			return autoStartup;
 		}
