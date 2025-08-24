@@ -19,6 +19,9 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.CompletableFutures;
@@ -81,6 +84,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
@@ -116,7 +121,10 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String OBSERVES_MESSAGE_FIFO_QUEUE_NAME = "observes_fifo_message_test_queue.fifo";
 
+	static final String FIFO_VISIBILITY_TIMEOUT_EXTENSION_QUEUE_NAME = "fifo_visibility_timeout_extension_test_queue.fifo";
+
 	private static final String ERROR_ON_ACK_FACTORY = "errorOnAckFactory";
+	private static final String VISIBILITY_TIMEOUT_EXTENSION_FACTORY = "visibilityTimeoutExtensionFactory";
 
 	@Autowired
 	LatchContainer latchContainer;
@@ -165,6 +173,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME),
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME),
 				createFifoQueue(client, OBSERVES_MESSAGE_FIFO_QUEUE_NAME),
+				createFifoQueue(client, FIFO_VISIBILITY_TIMEOUT_EXTENSION_QUEUE_NAME, getVisibilityAttribute("5")),
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME)).join();
 	}
 
@@ -461,6 +470,26 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
+	void visibilityTimeoutExtensionWorksForFifoBatch() throws Exception {
+		final int messageCount = this.settings.messagesPerMessageGroup;
+		// There will be messageCount - 1 requests to change visibility, before each message except the first one
+		latchContainer.visibilityTimeoutExtensionLatch = new CountDownLatch(messageCount - 1);
+
+		List<String> values = IntStream.range(0, messageCount).mapToObj(String::valueOf).toList();
+		String messageGroupId = UUID.randomUUID().toString();
+		sqsTemplate.sendMany(FIFO_VISIBILITY_TIMEOUT_EXTENSION_QUEUE_NAME,
+				createMessagesFromValues(messageGroupId, values));
+
+		assertThat(latchContainer.visibilityTimeoutExtensionLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+				.isTrue();
+		List<Integer> expectedRequestEntryCounts = IntStream.range(1, messageCount).map(i -> messageCount - i).boxed()
+				.toList();
+		assertThat(messagesContainer.visibilityTimeoutExtensionBatchRequests).as(
+				"Number of entries in each ChangeMessageVisibilityBatchRequest should decrease by 1 on each message")
+				.extracting(List::size).containsExactlyElementsOf(expectedRequestEntryCounts);
+	}
+
+	@Test
 	void manuallyCreatesContainer() throws Exception {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
@@ -657,6 +686,13 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	}
 
+	static class VisibilityTimeoutExtensionListener {
+		@SqsListener(queueNames = FIFO_VISIBILITY_TIMEOUT_EXTENSION_QUEUE_NAME, messageVisibilitySeconds = "5", factory = VISIBILITY_TIMEOUT_EXTENSION_FACTORY)
+		void listen(String message) {
+			logger.debug("Processing message: {}", message);
+		}
+	}
+
 	static class LatchContainer {
 
 		Settings settings;
@@ -678,6 +714,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		CountDownLatch stopsProcessingOnAckErrorHasThrown;
 		CountDownLatch receivesBatchManyGroupsLatch;
 		CountDownLatch receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchLatch;
+		CountDownLatch visibilityTimeoutExtensionLatch;
 
 		LatchContainer(Settings settings) {
 			this.settings = settings;
@@ -698,6 +735,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			this.receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchLatch = new CountDownLatch(1);
 			this.stopsProcessingOnAckErrorHasThrown = new CountDownLatch(1);
 			this.observesFifoMessageLatch = new CountDownLatch(1);
+			this.visibilityTimeoutExtensionLatch = new CountDownLatch(1);
 		}
 
 	}
@@ -711,6 +749,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		List<String> manuallyCreatedBatchFactoryMessages = Collections.synchronizedList(new ArrayList<>());
 		List<String> stopsProcessingOnAckErrorBeforeThrown = Collections.synchronizedList(new ArrayList<>());
 		List<String> stopsProcessingOnAckErrorAfterThrown = Collections.synchronizedList(new ArrayList<>());
+		List<List<String>> visibilityTimeoutExtensionBatchRequests = Collections.synchronizedList(new ArrayList<>());
 
 	}
 
@@ -817,6 +856,28 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 					};
 				}
 			}));
+			return factory;
+		}
+
+		@Bean(VISIBILITY_TIMEOUT_EXTENSION_FACTORY)
+		SqsMessageListenerContainerFactory<String> visibilityTrackingSqsListenerContainerFactory() {
+			SqsAsyncClient spyAsyncClient = spy(createAsyncClient());
+
+			doAnswer(invocation -> {
+				ChangeMessageVisibilityBatchRequest request = invocation.getArgument(0);
+				messagesContainer.visibilityTimeoutExtensionBatchRequests.add(request.entries().stream().map(ChangeMessageVisibilityBatchRequestEntry::receiptHandle).toList());
+				latchContainer.visibilityTimeoutExtensionLatch.countDown();
+
+				return invocation.callRealMethod();
+			}).when(spyAsyncClient).changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class));
+
+			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
+			factory.configure(options -> options
+				.maxConcurrentMessages(10)
+				.acknowledgementThreshold(10)
+				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
+				.messageVisibility(Duration.ofSeconds(5)));
+			factory.setSqsAsyncClientSupplier(() -> spyAsyncClient);
 			return factory;
 		}
 
@@ -929,6 +990,11 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		ReceivesBatchesFromManyGroupsListener receiveBatchesFromManyGroupsListener() {
 			return new ReceivesBatchesFromManyGroupsListener();
+		}
+
+		@Bean
+		VisibilityTimeoutExtensionListener visibilityTimeoutExtensionListener() {
+			return new VisibilityTimeoutExtensionListener();
 		}
 
 		@Bean

@@ -154,6 +154,7 @@ public class SqsAutoConfiguration {
 		mapper.from(this.sqsProperties.getListener().getMaxMessagesPerPoll()).to(options::maxMessagesPerPoll);
 		mapper.from(this.sqsProperties.getListener().getPollTimeout()).to(options::pollTimeout);
 		mapper.from(this.sqsProperties.getListener().getMaxDelayBetweenPolls()).to(options::maxDelayBetweenPolls);
+		mapper.from(this.sqsProperties.getListener().getAutoStartup()).to(options::autoStartup);
 	}
 
 	@Bean

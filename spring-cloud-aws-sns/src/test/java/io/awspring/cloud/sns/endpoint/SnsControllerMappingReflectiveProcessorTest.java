@@ -48,7 +48,7 @@ public class SnsControllerMappingReflectiveProcessorTest {
 				.isEqualTo(TypeReference.of(ComplexNotificationTestController.class)), typeHint -> {
 					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(NotificationStatus.class));
 					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
-							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.DECLARED_FIELDS);
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.ACCESS_DECLARED_FIELDS);
 				});
 	}
 
@@ -63,7 +63,7 @@ public class SnsControllerMappingReflectiveProcessorTest {
 				}, typeHint -> {
 					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(Person.class));
 					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
-							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.DECLARED_FIELDS);
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.ACCESS_DECLARED_FIELDS);
 					assertThat(typeHint.methods()).satisfiesExactlyInAnyOrder(
 							hint -> assertThat(hint.getName()).isEqualTo("getFirstName"),
 							hint -> assertThat(hint.getName()).isEqualTo("setFirstName"),
@@ -81,7 +81,7 @@ public class SnsControllerMappingReflectiveProcessorTest {
 				.isEqualTo(TypeReference.of(ComplexNotificationTestController.class)), typeHint -> {
 					assertThat(typeHint.getType()).isEqualTo(TypeReference.of(NotificationStatus.class));
 					assertThat(typeHint.getMemberCategories()).containsExactlyInAnyOrder(
-							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.DECLARED_FIELDS);
+							MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.ACCESS_DECLARED_FIELDS);
 				});
 	}
 

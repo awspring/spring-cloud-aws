@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sqs.listener.errorhandler;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -28,6 +28,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
@@ -37,6 +39,7 @@ import org.springframework.messaging.MessageHeaders;
  * @author Bruno Garcia
  * @author Rafael Pavarini
  */
+@SuppressWarnings("unchecked")
 class ErrorHandlerVisibilityHelperTest {
 
 	@Test
@@ -130,5 +133,133 @@ class ErrorHandlerVisibilityHelperTest {
 		assertThat(grouped).hasSize(2);
 		assertThat(grouped.get(1L)).containsExactly(lowMsg);
 		assertThat(grouped.get(30L)).containsExactly(highMsg1, highMsg2);
+	}
+
+	@Test
+	void checkVisibilityTimeout() {
+		assertThatNoException().isThrownBy(() -> ErrorHandlerVisibilityHelper.checkVisibilityTimeout(1));
+		assertThatThrownBy(() -> ErrorHandlerVisibilityHelper.checkVisibilityTimeout(0))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("Should be greater than 0");
+
+		assertThatThrownBy(() -> ErrorHandlerVisibilityHelper
+				.checkVisibilityTimeout(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS + 1))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("Should be less than or equal to " + Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS);
+	}
+
+	@ParameterizedTest
+	@MethodSource("testCases")
+	void calculateVisibilityTimeoutExponentially(VisibilityTimeoutTestCase testCase) {
+		assertThat(testCase.calculateVisibilityTimeout(CalculationType.EXPONENTIAL))
+				.isEqualTo(testCase.timeoutExpectedExponentially);
+	}
+
+	@ParameterizedTest
+	@MethodSource("testCases")
+	void calculateVisibilityTimeoutLinearly(VisibilityTimeoutTestCase testCase) {
+		assertThat(testCase.calculateVisibilityTimeout(CalculationType.LINEAR))
+				.isEqualTo(testCase.timeoutExpectedLinearly);
+	}
+
+	private static Collection<VisibilityTimeoutTestCase> testCases() {
+		return List.of(minTestCase(), maxTestCase(), defaultTestCase(),
+				defaultVisibilityTimeoutSetup().receiveMessageCount(2).timeoutExpectedExponentially(200)
+						.timeoutExpectedLinearly(102),
+				defaultVisibilityTimeoutSetup().receiveMessageCount(3).timeoutExpectedExponentially(400)
+						.timeoutExpectedLinearly(104),
+				defaultVisibilityTimeoutSetup().receiveMessageCount(5).timeoutExpectedExponentially(1600)
+						.timeoutExpectedLinearly(108),
+				defaultVisibilityTimeoutSetup().receiveMessageCount(7).timeoutExpectedExponentially(6400)
+						.timeoutExpectedLinearly(112),
+				defaultVisibilityTimeoutSetup().receiveMessageCount(11)
+						.timeoutExpectedExponentially(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS)
+						.timeoutExpectedLinearly(120),
+				defaultVisibilityTimeoutSetup().receiveMessageCount(13)
+						.timeoutExpectedExponentially(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS)
+						.timeoutExpectedLinearly(124),
+				defaultVisibilityTimeoutSetup().receiveMessageCount(21551)
+						.timeoutExpectedExponentially(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS)
+						.timeoutExpectedLinearly(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS));
+	}
+
+	private static VisibilityTimeoutTestCase minTestCase() {
+		return new VisibilityTimeoutTestCase().initialVisibilityTimeoutSeconds(1)
+				.maxVisibilityTimeoutSeconds(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS).multiplier(2.0)
+				.receiveMessageCount(1).timeoutExpectedExponentially(1).timeoutExpectedLinearly(1);
+	}
+
+	private static VisibilityTimeoutTestCase defaultTestCase() {
+		return defaultVisibilityTimeoutSetup().receiveMessageCount(1)
+				.timeoutExpectedExponentially(BackoffVisibilityConstants.DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS)
+				.timeoutExpectedLinearly(BackoffVisibilityConstants.DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS);
+	}
+
+	private static VisibilityTimeoutTestCase defaultVisibilityTimeoutSetup() {
+		return new VisibilityTimeoutTestCase()
+				.initialVisibilityTimeoutSeconds(BackoffVisibilityConstants.DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS)
+				.maxVisibilityTimeoutSeconds(BackoffVisibilityConstants.DEFAULT_MAX_VISIBILITY_TIMEOUT_SECONDS)
+				.multiplier(BackoffVisibilityConstants.DEFAULT_MULTIPLIER);
+	}
+
+	private static VisibilityTimeoutTestCase maxTestCase() {
+		return new VisibilityTimeoutTestCase().initialVisibilityTimeoutSeconds(Integer.MAX_VALUE)
+				.maxVisibilityTimeoutSeconds(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS).multiplier(2.0)
+				.receiveMessageCount(1).timeoutExpectedExponentially(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS)
+				.timeoutExpectedLinearly(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS);
+	}
+
+	private static class VisibilityTimeoutTestCase {
+		int receiveMessageCount;
+		int initialVisibilityTimeoutSeconds;
+		double multiplier;
+		int maxVisibilityTimeoutSeconds;
+		int timeoutExpectedExponentially;
+		int timeoutExpectedLinearly;
+
+		VisibilityTimeoutTestCase receiveMessageCount(int receiveMessageCount) {
+			this.receiveMessageCount = receiveMessageCount;
+			return this;
+		}
+
+		VisibilityTimeoutTestCase timeoutExpectedLinearly(int timeoutExpected) {
+			this.timeoutExpectedLinearly = timeoutExpected;
+			return this;
+		}
+
+		VisibilityTimeoutTestCase timeoutExpectedExponentially(int timeoutExpected) {
+			this.timeoutExpectedExponentially = timeoutExpected;
+			return this;
+		}
+
+		VisibilityTimeoutTestCase initialVisibilityTimeoutSeconds(int initialVisibilityTimeoutSeconds) {
+			this.initialVisibilityTimeoutSeconds = initialVisibilityTimeoutSeconds;
+			return this;
+		}
+
+		VisibilityTimeoutTestCase maxVisibilityTimeoutSeconds(int maxVisibilityTimeoutSeconds) {
+			this.maxVisibilityTimeoutSeconds = maxVisibilityTimeoutSeconds;
+			return this;
+		}
+
+		VisibilityTimeoutTestCase multiplier(double multiplier) {
+			this.multiplier = multiplier;
+			return this;
+		}
+
+		int calculateVisibilityTimeout(CalculationType calculationType) {
+			return switch (calculationType) {
+			case EXPONENTIAL ->
+				ErrorHandlerVisibilityHelper.calculateVisibilityTimeoutExponentially(this.receiveMessageCount,
+						this.initialVisibilityTimeoutSeconds, this.multiplier, this.maxVisibilityTimeoutSeconds);
+			case LINEAR -> ErrorHandlerVisibilityHelper.calculateVisibilityTimeoutLinearly(this.receiveMessageCount,
+					this.initialVisibilityTimeoutSeconds, (int) this.multiplier, this.maxVisibilityTimeoutSeconds);
+			};
+		}
+
+	}
+
+	private enum CalculationType {
+		EXPONENTIAL, LINEAR
+
 	}
 }

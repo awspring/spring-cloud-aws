@@ -9,7 +9,7 @@ Compared to JMS or other message services Amazon SQS has limitations that should
 
 * Amazon SQS allows only `String` payloads, so any `Object` must be transformed into a String representation.
 Spring Cloud AWS has dedicated support to transfer Java objects with Amazon SQS messages by converting them to JSON.
-* Amazon SQS has a maximum message size of 256kb per message, so bigger messages will fail to be sent.
+* Amazon SQS has a maximum message size of 1MiB per message, so bigger messages will fail to be sent.
 
 A Spring Boot starter is provided to auto-configure SQS integration beans.
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
@@ -632,6 +632,34 @@ Any number of `@SqsListener` annotations can be used in a bean class, and each a
 
 NOTE: Queues declared in the same annotation will share the container, though each will have separate throughput and acknowledgement controls.
 
+===== Handling Different Payload In The Same Listener
+
+It's possible to handle different payloads in the same listener by annotating handler methods with the `@SqsHandler` annotation.
+Here's a sample:
+[source, java]
+----
+@SqsListener("myQueue")
+public class MyListener {
+
+	@SqsHandler
+	public void handle(String message) {
+		System.out.println(message);
+	}
+
+	@SqsHandler
+	public void handle(MyPojo pojo) {
+		System.out.println(pojo);
+	}
+
+	@SqsHandler(isDefault = true)
+	public void handle(Object message) {
+		System.out.println(message);
+	}
+}
+----
+
+The `isDefault = true` parameter designates a method as the fallback handler for messages that don't match any other handler's parameter type.
+
 ===== SNS Messages
 
 Since 3.1.1, when receiving SNS messages through the `@SqsListener`, the message includes all attributes of the `SnsNotification`. To only receive need the `Message` part of the payload, you can utilize the `@SnsNotificationMessage` annotation.
@@ -663,6 +691,20 @@ Since 3.3.1 you can also retrieve the subject of the SNS message through the `@S
 @SqsListener("my-queue")
 public void listen(@SnsNotificationSubject String subject, @SnsNotificationMessage Pojo pojo) {
 	System.out.println("received message for subject %s: %s".formatted(subject, pojo));
+}
+----
+
+Since 3.4.1, the complete SNS notification can be received with all its metadata using the `SnsNotification<T>` wrapper class. This provides access to both the message payload and all the metadata such as messageId, topicArn, subject, timestamp, and message attributes.
+
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(SnsNotification<Pojo> notification) {
+    String messageId = notification.getMessageId();
+    String topicArn = notification.getTopicArn();
+    notification.getSubject().ifPresent(subject -> System.out.println("Subject: " + subject));
+    Pojo message = notification.getMessage();
+    System.out.println("Message from topic " + topicArn + " with ID " + messageId + ": " + message);
 }
 ----
 
@@ -710,6 +752,8 @@ A number of possible argument types are allowed in the listener method's signatu
 - `Message<MyPojo>` - Provides a `Message<MyPojo>` instance with the deserialized payload and `MessageHeaders`.
 - `List<MyPojo>` - Enables batch mode and receives the batch that was polled from SQS.
 - `List<Message<MyPojo>>` - Enables batch mode and receives the batch that was polled from SQS along with headers.
+- `SnsNotification<MyPojo>` - Provides access to both the message payload and all the metadata of an SNS notification.
+See <<SNS Messages>> for more information.
 - `@Header(String headerName)` - provides the specified header.
 - `@Headers` - provides the `MessageHeaders` or a `Map<String, Object>`
 - `Acknowledgement` - provides methods for manually acknowledging messages for single message listeners.
@@ -830,6 +874,7 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 | <<maxMessagesPerPoll, `spring.cloud.aws.sqs.listener.max-messages-per-poll`>> | Maximum number of messages to be received per poll. | No | 10
 | <<pollTimeout, `spring.cloud.aws.sqs.listener.poll-timeout`>> | Maximum amount of time to wait for messages in a poll. | No | 10 seconds
 | <<maxDelayBetweenPolls, `spring.cloud.aws.sqs.listener.max-delay-between-polls`>> | Maximum amount of time to wait between polls. | No | 10 seconds
+| `spring.cloud.aws.sqs.listener.auto-startup` | Defines whether SQS listeners are started automatically or not. | No | true
 | `spring.cloud.aws.sqs.queue-not-found-strategy`  | The strategy to be used by SqsTemplate and SqsListeners when a queue does not exist. | No | CREATE
 | `spring.cloud.aws.sqs.observation-enabled` | Enables observability support for SQS operations. | No | false
 |===
@@ -1352,6 +1397,181 @@ public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFac
 }
 ----
 
+==== Exponential Backoff Full Jitter Error Handler
+This error handler applies an exponential backoff strategy with *full jitter*
+when retrying failed message processing. After calculating the exponential
+visibility timeout using the `ApproximateReceiveCount` message attribute, a
+random value between zero and the computed timeout is selected. The selected
+value becomes the new visibility timeout, spreading retries and helping to
+avoid spikes caused by synchronized retries.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default
+| `initialVisibilityTimeoutSeconds` | Starting visibility timeout (in seconds)
+used on the first receive attempt. | No | 100
+| `multiplier` | Factor applied to the visibility timeout after each retry. A
+value greater than 1 increases the delay exponentially. | No | 2.0
+| `maxVisibilityTimeoutSeconds` | Maximum allowed visibility timeout in seconds.
+| No | 43200
+| `randomSupplier` | Supplier for the random value used to calculate the
+jitter. | No | `ThreadLocalRandom::current`
+|===
+
+NOTE: The maximum visibility timeout allowed by SQS is 43200 seconds (12 hours).
+If the value provided to the `maxVisibilityTimeoutSeconds` parameter exceeds
+this limit, an `IllegalArgumentException` will be thrown.
+
+When using auto-configured factory, simply declare a `@Bean` and the error
+handler will be set
+
+[source, java]
+----
+@Bean
+public ExponentialBackoffErrorHandlerWithFullJitter<Object> asyncErrorHandler() {
+        return ExponentialBackoffErrorHandlerWithFullJitter
+                .builder()
+                .initialVisibilityTimeoutSeconds(1)
+                .multiplier(2)
+                .maxVisibilityTimeoutSeconds(10)
+                .build();
+}
+----
+
+Alternatively, `ExponentialBackoffErrorHandlerWithFullJitter` can be set in the
+`MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+        return SqsMessageListenerContainerFactory
+                .builder()
+                .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+                .errorHandler(ExponentialBackoffErrorHandlerWithFullJitter
+                        .builder()
+                        .initialVisibilityTimeoutSeconds(1)
+                        .multiplier(2)
+                        .maxVisibilityTimeoutSeconds(10)
+                        .build())
+                .build();
+}
+----
+
+==== Exponential Backoff Half Jitter Error Handler
+This variant also computes the visibility timeout exponentially but applies
+*half jitter*. The exponential delay is halved and a random value between zero
+and this half is added to it. The resulting timeout is then used to change the
+message visibility.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default
+| `initialVisibilityTimeoutSeconds` | Starting visibility timeout (in seconds)
+used on the first receive attempt. | No | 100
+| `multiplier` | Factor applied to the visibility timeout after each retry. A
+value greater than 1 increases the delay exponentially. | No | 2.0
+| `maxVisibilityTimeoutSeconds` | Maximum allowed visibility timeout in seconds.
+| No | 43200
+| `randomSupplier` | Supplier for the random value used to calculate the
+jitter. | No | `ThreadLocalRandom::current`
+|===
+
+NOTE: The maximum visibility timeout allowed by SQS is 43200 seconds (12 hours).
+If the value provided to the `maxVisibilityTimeoutSeconds` parameter exceeds
+this limit, an `IllegalArgumentException` will be thrown.
+
+When using auto-configured factory, simply declare a `@Bean` and the error
+handler will be set
+
+[source, java]
+----
+@Bean
+public ExponentialBackoffErrorHandlerWithHalfJitter<Object> asyncErrorHandler() {
+        return ExponentialBackoffErrorHandlerWithHalfJitter
+                .builder()
+                .initialVisibilityTimeoutSeconds(1)
+                .multiplier(2)
+                .maxVisibilityTimeoutSeconds(10)
+                .build();
+}
+----
+
+Alternatively, `ExponentialBackoffErrorHandlerWithHalfJitter` can be set in the
+`MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+        return SqsMessageListenerContainerFactory
+                .builder()
+                .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+                .errorHandler(ExponentialBackoffErrorHandlerWithHalfJitter
+                        .builder()
+                        .initialVisibilityTimeoutSeconds(1)
+                        .multiplier(2)
+                        .maxVisibilityTimeoutSeconds(10)
+                        .build())
+                .build();
+}
+----
+
+==== Linear Backoff Error Handler
+`LinearBackoffErrorHandler` increases the visibility timeout linearly whenever a
+message processing attempt fails. Instead of exponential growth, the timeout is
+incremented by a fixed value on each retry until the maximum is reached.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default
+| `initialVisibilityTimeoutSeconds` | Initial visibility timeout (in seconds) for
+the first processing attempt. | No | 100
+| `increment` | Amount of seconds added to the visibility timeout after each
+retry. | No | 2
+| `maxVisibilityTimeoutSeconds` | Maximum allowed visibility timeout in seconds.
+| No | 43200
+|===
+
+NOTE: The maximum visibility timeout allowed by SQS is 43200 seconds (12 hours).
+If the value provided to the `maxVisibilityTimeoutSeconds` parameter exceeds
+this limit, an `IllegalArgumentException` will be thrown.
+
+When using auto-configured factory, simply declare a `@Bean` and the error
+handler will be set
+
+[source, java]
+----
+@Bean
+public LinearBackoffErrorHandler<Object> asyncErrorHandler() {
+        return LinearBackoffErrorHandler
+                .builder()
+                .initialVisibilityTimeoutSeconds(1)
+                .increment(2)
+                .maxVisibilityTimeoutSeconds(10)
+                .build();
+}
+----
+
+Alternatively, `LinearBackoffErrorHandler` can be set in the
+`MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+        return SqsMessageListenerContainerFactory
+                .builder()
+                .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+                .errorHandler(LinearBackoffErrorHandler
+                        .builder()
+                        .initialVisibilityTimeoutSeconds(1)
+                        .increment(2)
+                        .maxVisibilityTimeoutSeconds(10)
+                        .build())
+                .build();
+}
+----
 === Message Conversion and Payload Deserialization
 
 Payloads are automatically deserialized from `JSON` for `@SqsListener` annotated methods using a `MappingJackson2MessageConverter`.
@@ -1920,7 +2140,7 @@ SqsListenerObservation.Convention sqsListenerObservationConvention() {
                    .and("messaging.operation", "receive")
                    .and("custom.tag", "custom-value");
         }
-        
+
         @Override
         public KeyValues getHighCardinalityKeyValues(SqsListenerObservation.Context context) {
             String paymentId = MessageHeaderUtils.getHeaderAsString(context.getMessage(), "payment-id-header-name");
