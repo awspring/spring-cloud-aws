@@ -191,6 +191,22 @@ class S3TemplateIntegrationTests {
 	}
 
 	@Test
+	void listAllObjects() throws IOException {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("hello-en.txt"), RequestBody.fromString("hello"));
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("hello-fr.txt"), RequestBody.fromString("bonjour"));
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("bye.txt"), RequestBody.fromString("bye"));
+
+		List<S3Resource> resources = s3Template.listAllObjects(BUCKET_NAME);
+		assertThat(resources.size()).isEqualTo(3);
+
+		// According to the S3Client doc : "Objects are returned sorted in an ascending order of the respective key
+		// names in the list."
+		assertThat(resources).extracting(S3Resource::getInputStream)
+				.map(is -> new String(is.readAllBytes(), StandardCharsets.UTF_8))
+				.containsExactly("bye", "hello", "bonjour");
+	}
+
+	@Test
 	void listObjects() throws IOException {
 		client.putObject(r -> r.bucket(BUCKET_NAME).key("hello-en.txt"), RequestBody.fromString("hello"));
 		client.putObject(r -> r.bucket(BUCKET_NAME).key("hello-fr.txt"), RequestBody.fromString("bonjour"));

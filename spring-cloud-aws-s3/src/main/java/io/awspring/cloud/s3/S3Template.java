@@ -117,6 +117,11 @@ public class S3Template implements S3Operations {
 	}
 
 	@Override
+	public List<S3Resource> listAllObjects(String bucketName) {
+		return listObjects(bucketName, "");
+	}
+
+	@Override
 	public List<S3Resource> listObjects(String bucketName, String prefix) {
 		Assert.notNull(bucketName, "bucketName is required");
 		Assert.notNull(prefix, "prefix is required");
