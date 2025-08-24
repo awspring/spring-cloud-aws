@@ -22,8 +22,8 @@ import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 @SqsTest(listeners = SqsSampleListener.class, properties = { "spring.cloud.aws.credentials.access-key=noop",
@@ -36,7 +36,7 @@ class SqsTestListenersDefinedTest extends BaseSqsIntegrationTest {
 	@Autowired
 	private SqsAsyncClient sqsAsyncClient;
 
-	@MockBean
+	@MockitoBean
 	private SampleComponent sampleComponent;
 
 	@Test
