@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
  *
  * @author Tomaz Fernandes
  * @author Maciej Walkowiak
+ * @author Jeongmin Kim
  */
 class SqsHeaderMapperTests {
 
@@ -175,6 +176,35 @@ class SqsHeaderMapperTests {
 				.build();
 		MessageHeaders headers = new SqsHeaderMapper().toHeaders(message);
 		assertThat(headers.get(headerName)).isEqualTo(expected);
+	}
+
+	@Test
+	void shouldConvertUuidMessageIdWhenConvertMessageIdToUuidIsTrue() {
+		SqsHeaderMapper mapper = new SqsHeaderMapper();
+		mapper.setConvertMessageIdToUuid(true);
+		String uuidMessageId = "550e8400-e29b-41d4-a716-446655440000";
+		Message message = Message.builder()
+			.body("payload")
+			.messageId(uuidMessageId)
+			.build();
+		MessageHeaders headers = mapper.toHeaders(message);
+		assertThat(headers.getId()).isEqualTo(UUID.fromString(uuidMessageId));
+		assertThat(headers.get(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER)).isNull();
+	}
+
+	@Test
+	void shouldStoreAwsMessageIdInHeaderWhenConvertMessageIdToUuidIsFalse() {
+		SqsHeaderMapper mapper = new SqsHeaderMapper();
+		mapper.setConvertMessageIdToUuid(false);
+		String nonUuidMessageId = "92898073-7bd6a160-5797b060-54a7e539";
+		Message message = Message.builder()
+			.body("payload")
+			.messageId(nonUuidMessageId)
+			.build();
+		MessageHeaders headers = mapper.toHeaders(message);
+		assertThat(headers.get(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER)).isEqualTo(nonUuidMessageId);
+		assertThat(headers.getId()).isNotEqualTo(nonUuidMessageId);
+		assertThat(headers.getId()).isNotNull();
 	}
 
 	private static Stream<Arguments> validArguments() {
