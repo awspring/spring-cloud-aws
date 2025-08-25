@@ -20,6 +20,7 @@ package io.awspring.cloud.sqs.listener;
  * configured by the implementations.
  *
  * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  * @since 3.0
  */
 public interface BatchAwareBackPressureHandler extends BackPressureHandler {
@@ -35,13 +36,35 @@ public interface BatchAwareBackPressureHandler extends BackPressureHandler {
 	 * Release a batch of permits. This has the semantics of letting the {@link BackPressureHandler} know that all
 	 * permits from a batch are being released, in opposition to {@link #release(int)} in which any number of permits
 	 * can be specified.
+	 *
+	 * @deprecated This method is deprecated and will not be called by the Spring Cloud AWS SQS listener anymore.
+	 * Implement {@link BackPressureHandler#release(int, ReleaseReason)} instead.
 	 */
-	void releaseBatch();
+	@Deprecated
+	default void releaseBatch() {
+		// Do not implement this method. It is not called anymore outside of backward compatibility use cases.
+		// Implement `#release(int amount, ReleaseReason reason)` instead.
+	}
+
+	@Override
+	default void release(int amount, ReleaseReason reason) {
+		if (amount == getBatchSize() && reason == ReleaseReason.NONE_FETCHED) {
+			releaseBatch();
+		}
+		else {
+			release(amount);
+		}
+	}
 
 	/**
 	 * Return the configured batch size for this handler.
 	 * @return the batch size.
+	 *
+	 * @deprecated This method is deprecated and will not be used by the Spring Cloud AWS SQS listener anymore.
 	 */
-	int getBatchSize();
+	@Deprecated
+	default int getBatchSize() {
+		return 0;
+	}
 
 }

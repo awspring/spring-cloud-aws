@@ -415,6 +415,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME,
 				messageBody);
 		assertThat(latchContainer.manuallyInactiveCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		inactiveMessageListenerContainer.stop();
 	}
 
 	// @formatter:off

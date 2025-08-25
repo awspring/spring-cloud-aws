@@ -27,6 +27,9 @@ import org.springframework.retry.backoff.BackOffPolicy;
  * A builder for creating a {@link ContainerOptions} instance.
  * @param <B> the concrete {@link ContainerOptionsBuilder} type.
  * @param <O> the concrete {@link ContainerOptions} type.
+ *
+ * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  */
 public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>, O extends ContainerOptions<O, B>> {
 
@@ -145,6 +148,16 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	 * @return this instance.
 	 */
 	B backPressureMode(BackPressureMode backPressureMode);
+
+	/**
+	 * Sets the {@link BackPressureHandlerFactory} for this container. Default is
+	 * {@code AbstractContainerOptions.DEFAULT_BACKPRESSURE_FACTORY} which results in a default
+	 * {@link SemaphoreBackPressureHandler} to be instantiated.
+	 *
+	 * @param backPressureHandlerFactory the BackPressureHandler supplier.
+	 * @return this instance.
+	 */
+	B backPressureHandlerFactory(BackPressureHandlerFactory backPressureHandlerFactory);
 
 	/**
 	 * Set the maximum interval between acknowledgements for batch acknowledgements. The default depends on the specific
