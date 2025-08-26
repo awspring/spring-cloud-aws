@@ -173,7 +173,7 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 			accessor.setHeader(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER, source.messageId());
 			MessageHeaders messageHeaders = accessor.toMessageHeaders();
 			logger.trace("Mapped headers {} for message {}", messageHeaders, source.messageId());
-			return new MessagingMessageHeaders(messageHeaders, UUID.randomUUID());
+			return new MessagingMessageHeaders(messageHeaders, source.messageId());
 		}
 
 	}
