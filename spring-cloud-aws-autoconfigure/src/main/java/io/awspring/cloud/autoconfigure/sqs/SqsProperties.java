@@ -26,6 +26,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Tomaz Fernandes
  * @author Wei Jiang
+ * @author Jeongmin Kim
  * @since 3.0
  */
 @ConfigurationProperties(prefix = SqsProperties.PREFIX)
@@ -50,6 +51,16 @@ public class SqsProperties extends AwsClientProperties {
 	private QueueNotFoundStrategy queueNotFoundStrategy;
 
 	private Boolean observationEnabled = false;
+
+	private Boolean convertMessageIdToUuid = true;
+
+	public Boolean getConvertMessageIdToUuid() {
+		return convertMessageIdToUuid;
+	}
+
+	public void setConvertMessageIdToUuid(Boolean convertMessageIdToUuid) {
+		this.convertMessageIdToUuid = convertMessageIdToUuid;
+	}
 
 	/**
 	 * Return the strategy to use if the queue is not found.
