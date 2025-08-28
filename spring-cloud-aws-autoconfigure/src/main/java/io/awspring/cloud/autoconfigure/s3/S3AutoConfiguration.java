@@ -17,10 +17,7 @@ package io.awspring.cloud.autoconfigure.s3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
-import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
-import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
-import io.awspring.cloud.autoconfigure.core.AwsProperties;
+import io.awspring.cloud.autoconfigure.core.*;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
 import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
 import io.awspring.cloud.s3.Jackson2JsonS3ObjectConverter;
@@ -34,6 +31,7 @@ import io.awspring.cloud.s3.S3Template;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -56,11 +54,13 @@ import software.amazon.encryption.s3.S3EncryptionClient;
  *
  * @author Maciej Walkowiak
  * @author Matej Nedic
+ * @author Ayeshmantha Perera
  */
 @AutoConfiguration
 @ConditionalOnClass({ S3Client.class, S3OutputStreamProvider.class })
 @EnableConfigurationProperties({ S3Properties.class, AwsProperties.class })
 @Import(S3ProtocolResolver.class)
+@AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class, AwsAutoConfiguration.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 public class S3AutoConfiguration {
 
