@@ -24,6 +24,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Eddú Meléndez
  * @author Arun Patra
+ * @author Dominik Kovács
  */
 @ConfigurationProperties(prefix = SesProperties.PREFIX)
 public class SesProperties extends AwsClientProperties {
@@ -34,10 +35,10 @@ public class SesProperties extends AwsClientProperties {
 	public static final String PREFIX = "spring.cloud.aws.ses";
 
 	/**
-	 * Configures source ARN. Used only for sending authorization.
+	 * Configures identity ARN. Used only for sending authorization.
 	 */
 	@Nullable
-	private String sourceArn;
+	private String identityArn;
 
 	/**
 	 * Configures configuration set name.
@@ -45,15 +46,9 @@ public class SesProperties extends AwsClientProperties {
 	@Nullable
 	private String configurationSetName;
 
-	/**
-	 * Configures from ARN. Only applies to SendRawEmail operation.
-	 */
 	@Nullable
-	private String fromArn;
-
-	@Nullable
-	public String getSourceArn() {
-		return sourceArn;
+	public String getIdentityArn() {
+		return identityArn;
 	}
 
 	@Nullable
@@ -61,21 +56,12 @@ public class SesProperties extends AwsClientProperties {
 		return configurationSetName;
 	}
 
-	@Nullable
-	public String getFromArn() {
-		return fromArn;
-	}
-
-	public void setSourceArn(@Nullable String sourceArn) {
-		this.sourceArn = sourceArn;
+	public void setIdentityArn(@Nullable String identityArn) {
+		this.identityArn = identityArn;
 	}
 
 	public void setConfigurationSetName(@Nullable String configurationSetName) {
 		this.configurationSetName = configurationSetName;
-	}
-
-	public void setFromArn(@Nullable String fromArn) {
-		this.fromArn = fromArn;
 	}
 
 }

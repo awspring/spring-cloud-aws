@@ -42,10 +42,10 @@ import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.RawMessage;
-import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
-import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
+import software.amazon.awssdk.services.sesv2.SesV2Client;
+import software.amazon.awssdk.services.sesv2.model.RawMessage;
+import software.amazon.awssdk.services.sesv2.model.SendEmailRequest;
+import software.amazon.awssdk.services.sesv2.model.SendEmailResponse;
 
 /**
  * {@link JavaMailSender} implementation that allows to send {@link MimeMessage} using the Simple E-Mail Service. In
@@ -55,6 +55,7 @@ import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
  * @author Agim Emruli
  * @author Eddú Meléndez
  * @author Arun Patra
+ * @author Dominik Kovács
  * @since 1.0
  */
 public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSender implements JavaMailSender {
@@ -74,26 +75,17 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 	@Nullable
 	private FileTypeMap defaultFileTypeMap;
 
-	@Nullable
-	private String fromArn;
-
-	public SimpleEmailServiceJavaMailSender(SesClient sesClient) {
+	public SimpleEmailServiceJavaMailSender(SesV2Client sesClient) {
 		this(sesClient, null);
 	}
 
-	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn) {
-		this(sesClient, sourceArn, null);
+	public SimpleEmailServiceJavaMailSender(SesV2Client sesClient, @Nullable String identityArn) {
+		this(sesClient, identityArn, null);
 	}
 
-	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn,
+	public SimpleEmailServiceJavaMailSender(SesV2Client sesClient, @Nullable String identityArn,
 			@Nullable String configurationSetName) {
-		super(sesClient, sourceArn, configurationSetName);
-	}
-
-	public SimpleEmailServiceJavaMailSender(SesClient sesClient, @Nullable String sourceArn,
-			@Nullable String configurationSetName, @Nullable String fromArn) {
-		super(sesClient, sourceArn, configurationSetName);
-		this.fromArn = fromArn;
+		super(sesClient, identityArn, configurationSetName);
 	}
 
 	/**
@@ -215,19 +207,18 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 	public void send(MimeMessage... mimeMessages) throws MailException {
 		Assert.notNull(mimeMessages, "mimeMessages are required");
 		Map<Object, Exception> failedMessages = new HashMap<>();
-
 		for (MimeMessage mimeMessage : mimeMessages) {
 			try {
-				RawMessage rawMessage = createRawMessage(mimeMessage);
+				SendEmailRequest request = SendEmailRequest.builder().fromEmailAddressIdentityArn(getIdentityArn())
+						.configurationSetName(getConfigurationSetName())
+						.content(content -> content.raw(createRawMessage(mimeMessage))).build();
 
-				SendRawEmailResponse sendRawEmailResponse = getEmailService()
-						.sendRawEmail(SendRawEmailRequest.builder().sourceArn(getSourceArn()).fromArn(this.fromArn)
-								.configurationSetName(getConfigurationSetName()).rawMessage(rawMessage).build());
+				SendEmailResponse sendEmailResponse = getEmailService().sendEmail(request);
 
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Message with id: {} successfully sent", sendRawEmailResponse.messageId());
+					LOGGER.debug("Message with id: {} successfully sent", sendEmailResponse.messageId());
 				}
-				mimeMessage.setHeader("Message-ID", sendRawEmailResponse.messageId());
+				mimeMessage.setHeader("Message-ID", sendEmailResponse.messageId());
 			}
 			catch (Exception e) {
 				// Ignore Exception because we are collecting and throwing all if any

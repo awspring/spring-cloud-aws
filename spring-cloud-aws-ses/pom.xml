@@ -23,7 +23,7 @@
 		</dependency>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
-			<artifactId>ses</artifactId>
+			<artifactId>sesv2</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>jakarta.mail</groupId>

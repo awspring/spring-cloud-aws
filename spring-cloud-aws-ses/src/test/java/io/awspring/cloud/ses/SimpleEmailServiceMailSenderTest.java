@@ -28,10 +28,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.SendEmailRequest;
-import software.amazon.awssdk.services.ses.model.SendEmailResponse;
-import software.amazon.awssdk.services.ses.model.SesException;
+import software.amazon.awssdk.services.sesv2.SesV2Client;
+import software.amazon.awssdk.services.sesv2.model.SendEmailRequest;
+import software.amazon.awssdk.services.sesv2.model.SendEmailResponse;
+import software.amazon.awssdk.services.sesv2.model.SesV2Exception;
 
 /**
  * Tests for {@link SimpleEmailServiceMailSender}.
@@ -39,12 +39,13 @@ import software.amazon.awssdk.services.ses.model.SesException;
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
  * @author Arun Patra
+ * @author Dominik Kovács
  */
 class SimpleEmailServiceMailSenderTest {
 
 	@Test
 	void testSendSimpleMailWithMinimalProperties() {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService,
 				"arn:aws:ses:us-east-1:00000000:identity/domain.com");
 
@@ -57,19 +58,20 @@ class SimpleEmailServiceMailSenderTest {
 		mailSender.send(simpleMailMessage);
 
 		SendEmailRequest sendEmailRequest = request.getValue();
-		assertThat(sendEmailRequest.source()).isEqualTo(simpleMailMessage.getFrom());
+		assertThat(sendEmailRequest.fromEmailAddress()).isEqualTo(simpleMailMessage.getFrom());
 		assertThat(sendEmailRequest.destination().toAddresses().get(0))
 				.isEqualTo(Objects.requireNonNull(simpleMailMessage.getTo())[0]);
-		assertThat(sendEmailRequest.message().subject().data()).isEqualTo(simpleMailMessage.getSubject());
-		assertThat(sendEmailRequest.message().body().text().data()).isEqualTo(simpleMailMessage.getText());
-		assertThat(sendEmailRequest.destination().ccAddresses().size()).isEqualTo(0);
-		assertThat(sendEmailRequest.destination().bccAddresses().size()).isEqualTo(0);
-		assertThat(sendEmailRequest.sourceArn()).isEqualTo("arn:aws:ses:us-east-1:00000000:identity/domain.com");
+		assertThat(sendEmailRequest.content().simple().subject().data()).isEqualTo(simpleMailMessage.getSubject());
+		assertThat(sendEmailRequest.content().simple().body().text().data()).isEqualTo(simpleMailMessage.getText());
+		assertThat(sendEmailRequest.destination().ccAddresses()).isEmpty();
+		assertThat(sendEmailRequest.destination().bccAddresses()).isEmpty();
+		assertThat(sendEmailRequest.fromEmailAddressIdentityArn())
+				.isEqualTo("arn:aws:ses:us-east-1:00000000:identity/domain.com");
 	}
 
 	@Test
 	void testSendSimpleMailWithConfigurationSetNameSet() {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService, null,
 				"Configuration Set");
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
@@ -85,7 +87,7 @@ class SimpleEmailServiceMailSenderTest {
 
 	@Test
 	void testSendSimpleMailWithCCandBCC() {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage simpleMailMessage = createSimpleMailMessage();
@@ -99,11 +101,11 @@ class SimpleEmailServiceMailSenderTest {
 		mailSender.send(simpleMailMessage);
 
 		SendEmailRequest sendEmailRequest = request.getValue();
-		assertThat(sendEmailRequest.source()).isEqualTo(simpleMailMessage.getFrom());
+		assertThat(sendEmailRequest.fromEmailAddress()).isEqualTo(simpleMailMessage.getFrom());
 		assertThat(sendEmailRequest.destination().toAddresses().get(0))
 				.isEqualTo(Objects.requireNonNull(simpleMailMessage.getTo())[0]);
-		assertThat(sendEmailRequest.message().subject().data()).isEqualTo(simpleMailMessage.getSubject());
-		assertThat(sendEmailRequest.message().body().text().data()).isEqualTo(simpleMailMessage.getText());
+		assertThat(sendEmailRequest.content().simple().subject().data()).isEqualTo(simpleMailMessage.getSubject());
+		assertThat(sendEmailRequest.content().simple().body().text().data()).isEqualTo(simpleMailMessage.getText());
 		assertThat(sendEmailRequest.destination().ccAddresses().get(0))
 				.isEqualTo(Objects.requireNonNull(simpleMailMessage.getCc())[0]);
 		assertThat(sendEmailRequest.destination().bccAddresses().get(0))
@@ -112,7 +114,7 @@ class SimpleEmailServiceMailSenderTest {
 
 	@Test
 	void testSendSimpleMailWithNoTo() {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		// Not using createSimpleMailMessage as we don't want the to address set.
@@ -130,15 +132,15 @@ class SimpleEmailServiceMailSenderTest {
 		mailSender.send(simpleMailMessage);
 
 		SendEmailRequest sendEmailRequest = request.getValue();
-		assertThat(sendEmailRequest.message().subject().data()).isEqualTo(simpleMailMessage.getSubject());
-		assertThat(sendEmailRequest.message().body().text().data()).isEqualTo(simpleMailMessage.getText());
+		assertThat(sendEmailRequest.content().simple().subject().data()).isEqualTo(simpleMailMessage.getSubject());
+		assertThat(sendEmailRequest.content().simple().body().text().data()).isEqualTo(simpleMailMessage.getText());
 		assertThat(sendEmailRequest.destination().bccAddresses().get(0))
 				.isEqualTo(Objects.requireNonNull(simpleMailMessage.getBcc())[0]);
 	}
 
 	@Test
 	void testSendMultipleMails() {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		ArgumentCaptor<SendEmailRequest> request = ArgumentCaptor.forClass(SendEmailRequest.class);
@@ -151,7 +153,7 @@ class SimpleEmailServiceMailSenderTest {
 
 	@Test
 	void testSendMultipleMailsWithExceptionWhileSending() {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		SimpleMailMessage firstMessage = createSimpleMailMessage();
@@ -160,7 +162,7 @@ class SimpleEmailServiceMailSenderTest {
 		SimpleMailMessage failureMail = createSimpleMailMessage();
 		when(emailService.sendEmail(ArgumentMatchers.isA(SendEmailRequest.class)))
 				.thenReturn(SendEmailResponse.builder().build())
-				.thenThrow(SesException.builder().message("error").build())
+				.thenThrow(SesV2Exception.builder().message("error").build())
 				.thenReturn(SendEmailResponse.builder().build());
 
 		SimpleMailMessage thirdMessage = createSimpleMailMessage();
@@ -170,14 +172,14 @@ class SimpleEmailServiceMailSenderTest {
 			fail("Exception expected due to error while sending mail");
 		}
 		catch (MailSendException e) {
-			assertThat(e.getFailedMessages().size()).isEqualTo(1);
-			assertThat(e.getFailedMessages().containsKey(failureMail)).isTrue();
+			assertThat(e.getFailedMessages()).hasSize(1);
+			assertThat(e.getFailedMessages()).containsKey(failureMail);
 		}
 	}
 
 	@Test
 	void testShutDownOfResources() {
-		SesClient emailService = mock(SesClient.class);
+		SesV2Client emailService = mock(SesV2Client.class);
 		SimpleEmailServiceMailSender mailSender = new SimpleEmailServiceMailSender(emailService);
 
 		mailSender.destroy();
