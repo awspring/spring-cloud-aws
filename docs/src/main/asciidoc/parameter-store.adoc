@@ -251,6 +251,49 @@ public class MyBean {
 The reload feature periodically re-creates the configuration from config maps and secrets to see if it has changed.
 You can configure the polling period by using the `spring.cloud.aws.parameter.reload.period` (default value is 1 minute).
 
+=== Loading properties using profiles
+
+When using `spring.config.import` feature it is not possible to `bind` profile specific values from properties.
+This is very important design specification to have in mind when working with Parameterstore integration and profile specific configuration properties.
+
+Let's say you have 3 profiles `dev`, `uat` and `prod`.
+In `dev` profile you don't want to have loading from Parameterstore, but in other profiles you want load to happen.
+
+Our recommended way is to use `spring.config.import=aws-parameterstore:/` in profile `application-${profile}.properties` specific configuration files.
+
+`application.properties`
+[source,properties]
+----
+#Shared region value for example
+spring.cloud.aws.parameterstore.region=us-east-1
+----
+
+`application-dev.properties`
+[source,properties]
+----
+#Other custom values
+----
+
+`application-uat.properties`
+[source,properties]
+----
+spring.config.import=aws-parameterstore:/config/spring/
+spring.cloud.aws.parameterstore.reload.max-wait-time-for-restart=10s
+----
+
+`application-prod.properties`
+[source,properties]
+----
+spring.config.import=aws-parameterstore:/config/spring/
+spring.cloud.aws.parameterstore.reload.max-wait-time-for-restart=60s
+----
+
+
+With this setup in place you won't be using integration in `dev` profile, but you would be using it in other active profiles.
+This means you want to place `spring.config.import` in profile specific configuration property.
+
+
+
 === Configuration
 
 The Spring Boot Starter for Parameter Store provides the following configuration options:
