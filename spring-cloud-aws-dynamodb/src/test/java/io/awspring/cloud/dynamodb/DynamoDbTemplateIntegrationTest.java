@@ -26,18 +26,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.*;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
@@ -46,9 +39,9 @@ import software.amazon.awssdk.services.dynamodb.model.*;
  *
  * @author Matej Nedic
  * @author Arun Patra
+ * @author Artem Bilan
  */
-@Testcontainers
-public class DynamoDbTemplateIntegrationTest {
+public class DynamoDbTemplateIntegrationTest implements LocalstackContainerTest {
 
 	private static DynamoDbTable<PersonEntity> dynamoDbTable;
 	private static DynamoDbTable<PersonEntity> prefixedDynamoDbTable;
@@ -57,17 +50,9 @@ public class DynamoDbTemplateIntegrationTest {
 	private static final String indexName = "gsiPersonEntityTable";
 	private static final String nameOfGSPK = "gsPk";
 
-	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:4.4.0"));
-
 	@BeforeAll
 	public static void createTable() {
-		DynamoDbClient dynamoDbClient = DynamoDbClient.builder().endpointOverride(localstack.getEndpoint())
-				.region(Region.of(localstack.getRegion()))
-				.credentialsProvider(StaticCredentialsProvider
-						.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())))
-				.build();
+		DynamoDbClient dynamoDbClient = LocalstackContainerTest.dynamoDbClient();
 		DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
 
 		dynamoDbTemplate = new DynamoDbTemplate(enhancedClient);
