@@ -48,6 +48,7 @@
 		<module>spring-cloud-aws-testcontainers</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-dynamodb</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-dynamodb</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-metrics</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-parameter-store</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-s3</module>
