@@ -45,6 +45,7 @@
 		<module>spring-cloud-aws-sqs</module>
 		<module>spring-cloud-aws-dynamodb</module>
 		<module>spring-cloud-aws-s3</module>
+        <module>spring-cloud-aws-cognito</module>
 		<module>spring-cloud-aws-testcontainers</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-dynamodb</module>
@@ -56,6 +57,7 @@
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-ses</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sns</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sqs</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-cognito</module>
 		<module>spring-cloud-aws-samples</module>
 		<module>spring-cloud-aws-test</module>
 		<module>spring-cloud-aws-modulith</module>

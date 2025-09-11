@@ -23,6 +23,7 @@
 		<module>spring-cloud-aws-ses-sample</module>
 		<module>spring-cloud-aws-sns-sample</module>
 		<module>spring-cloud-aws-sqs-sample</module>
+		<module>spring-cloud-aws-cognito-sample</module>
     </modules>
 
 	<properties>
