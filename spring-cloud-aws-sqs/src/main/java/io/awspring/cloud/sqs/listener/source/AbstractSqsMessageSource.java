@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import io.awspring.cloud.sqs.operations.BatchingSqsClientAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -61,6 +63,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
  * @param <T> the {@link Message} payload type.
  *
  * @author Tomaz Fernandes
+ * @author Heechul Kang
  * @since 3.0
  */
 public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessageSource<T, Message>
@@ -177,13 +180,15 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 			.builder()
 			.queueUrl(this.queueUrl)
 			.maxNumberOfMessages(maxNumberOfMessages)
-			.attributeNamesWithStrings(this.messageSystemAttributeNames)
-			.messageAttributeNames(this.messageAttributeNames)
 			.waitTimeSeconds(this.pollTimeout);
 		customizeRequest(builder);
 		if (this.messageVisibility >= 0) {
 			builder.visibilityTimeout(this.messageVisibility);
 		}
+        if (!(this.sqsAsyncClient instanceof BatchingSqsClientAdapter)) {
+            builder.messageAttributeNames(this.messageAttributeNames)
+                    .attributeNamesWithStrings(this.messageSystemAttributeNames);
+        }
 		return builder.build();
 	}
 	// @formatter:on
