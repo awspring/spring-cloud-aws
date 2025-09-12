@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.awspring.cloud.sqs.integration;
 
 import io.awspring.cloud.sqs.CompletableFutures;
@@ -37,7 +38,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 abstract class BaseSqsIntegrationTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(BaseSqsIntegrationTest.class);
