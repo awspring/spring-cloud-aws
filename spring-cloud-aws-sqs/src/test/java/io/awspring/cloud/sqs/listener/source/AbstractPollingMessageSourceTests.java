@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -416,6 +416,47 @@ class AbstractPollingMessageSourceTests {
 			source.stop();
 			taskExecutor.shutdown();
 		}
+	}
+
+	@Test
+	void shouldRemovePollingFutureOnException() throws InterruptedException {
+		String testName = "shouldClearPollingFuturesOnException";
+
+		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
+			.acquireTimeout(Duration.ofMillis(100)).batchSize(10).totalPermits(10)
+			.throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).build();
+
+		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
+			@Override
+			protected CompletableFuture<Collection<Message>> doPollForMessages(int messagesToRequest) {
+				return CompletableFuture.failedFuture(new RuntimeException("Simulating a polling error"));
+			}
+		};
+
+		BackOffPolicy policy = mock(BackOffPolicy.class);
+		BackOffContext ctx = mock(BackOffContext.class);
+		given(policy.start(null)).willReturn(ctx);
+
+		source.setBackPressureHandler(backPressureHandler);
+		source.setMessageSink((msgs, context) -> CompletableFuture.completedFuture(null));
+		source.setId(testName + " source");
+		source.setPollingEndpointName("test-queue");
+		source.configure(SqsContainerOptions.builder().pollBackOffPolicy(policy).build());
+		source.setTaskExecutor(createTaskExecutor(testName));
+		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
+
+		@SuppressWarnings("unchecked")
+		Collection<CompletableFuture<?>> futures = (Collection<CompletableFuture<?>>) ReflectionTestUtils
+			.getField(source, "pollingFutures");
+		// Verify that the pollingFutures collection is initially empty
+		assertThat(futures).isEmpty();
+
+		source.start();
+
+		// Verify that the pollingFutures collection is empty after the exceptional completion
+		assertThat(futures).isEmpty();
+
+		source.stop();
 	}
 
 	private static boolean doAwait(CountDownLatch processingLatch) {
