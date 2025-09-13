@@ -21,6 +21,7 @@ package io.awspring.cloud.sqs.listener;
  * {@link org.springframework.messaging.MessageHeaders#get} or
  * {@link org.springframework.messaging.handler.annotation.Header} parameter annotations.
  * @author Tomaz Fernandes
+ * @author jeongmin Kim
  * @since 3.0
  * @see io.awspring.cloud.sqs.support.converter.SqsHeaderMapper
  */
@@ -83,6 +84,11 @@ public class SqsHeaders {
 	 * Header containing the FQCN of the {@link Class} that the message's payload should be deserialized to.
 	 */
 	public static final String SQS_DEFAULT_TYPE_HEADER = "JavaType";
+
+	/**
+	 * Header for the original AWS MessageId when not using UUID conversion.
+	 */
+	public static final String SQS_AWS_MESSAGE_ID_HEADER = SQS_HEADER_PREFIX + "AWSMessageId";
 
 	public static class MessageSystemAttributes {
 
