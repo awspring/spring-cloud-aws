@@ -423,8 +423,8 @@ class AbstractPollingMessageSourceTests {
 		String testName = "shouldClearPollingFuturesOnException";
 
 		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
-			.acquireTimeout(Duration.ofMillis(100)).batchSize(10).totalPermits(10)
-			.throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).build();
+				.acquireTimeout(Duration.ofMillis(100)).batchSize(10).totalPermits(10)
+				.throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).build();
 
 		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
 			@Override
@@ -447,7 +447,7 @@ class AbstractPollingMessageSourceTests {
 
 		@SuppressWarnings("unchecked")
 		Collection<CompletableFuture<?>> futures = (Collection<CompletableFuture<?>>) ReflectionTestUtils
-			.getField(source, "pollingFutures");
+				.getField(source, "pollingFutures");
 		// Verify that the pollingFutures collection is initially empty
 		assertThat(futures).isEmpty();
 

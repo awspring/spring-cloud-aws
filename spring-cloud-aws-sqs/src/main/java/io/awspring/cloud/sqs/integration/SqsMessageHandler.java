@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-2025 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sqs.integration;
 
+import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.operations.SendResult;
+import io.awspring.cloud.sqs.operations.SqsAsyncOperations;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import io.awspring.cloud.sqs.listener.SqsHeaders;
-import io.awspring.cloud.sqs.operations.SendResult;
-import io.awspring.cloud.sqs.operations.SqsAsyncOperations;
-
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.common.LiteralExpression;
@@ -37,17 +34,16 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
- * The {@link AbstractMessageProducingHandler} implementation for the Amazon SQS.
- * All the logic based on the {@link SqsAsyncOperations#sendAsync(String, Message)}
- * or {@link SqsAsyncOperations#sendManyAsync(String, Collection)} if the request message's payload
- * is a collection of {@link Message} instances.
+ * The {@link AbstractMessageProducingHandler} implementation for the Amazon SQS. All the logic based on the
+ * {@link SqsAsyncOperations#sendAsync(String, Message)} or {@link SqsAsyncOperations#sendManyAsync(String, Collection)}
+ * if the request message's payload is a collection of {@link Message} instances.
  * <p>
- * All the SQS-specific message attributes have to be provided in the respective message headers
- * via {@link SqsHeaders.MessageSystemAttributes} constant values or with the {@link SqsAsyncOperations}.
+ * All the SQS-specific message attributes have to be provided in the respective message headers via
+ * {@link SqsHeaders.MessageSystemAttributes} constant values or with the {@link SqsAsyncOperations}.
  * <p>
- * This {@link AbstractMessageProducingHandler} produces a reply only in the {@link #isAsync()} mode.
- * For a single request message the {@link SendResult} is converted to the reply message with respective headers.
- * The {@link SendResult.Batch} is sent as a reply message's payload as is.
+ * This {@link AbstractMessageProducingHandler} produces a reply only in the {@link #isAsync()} mode. For a single
+ * request message the {@link SendResult} is converted to the reply message with respective headers. The
+ * {@link SendResult.Batch} is sent as a reply message's payload as is.
  *
  * @author Artem Bilan
  *
@@ -120,21 +116,18 @@ public class SqsMessageHandler extends AbstractMessageProducingHandler {
 			Assert.notEmpty(collection, "The payload with a collection of messages must not be empty.");
 			Object next = collection.iterator().next();
 			Assert.isInstanceOf(Message.class, next,
-				"The payload with a collection of messages must contain 'Message' instances only.");
+					"The payload with a collection of messages must contain 'Message' instances only.");
 			Collection<Message<Object>> messages = (Collection<Message<Object>>) collection;
 
 			resultFuture = this.sqsAsyncOperations.sendManyAsync(queueName, messages)
-				.thenApply((batchResult) -> getMessageBuilderFactory().withPayload(batchResult).build());
+					.thenApply((batchResult) -> getMessageBuilderFactory().withPayload(batchResult).build());
 		}
 		else {
 			resultFuture = this.sqsAsyncOperations.sendAsync(queueName, message)
-				.thenApply((sendResult) ->
-					getMessageBuilderFactory()
-						.fromMessage(sendResult.message())
-						.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, sendResult.endpoint())
-						.setHeader(SqsHeaders.MessageSystemAttributes.MESSAGE_ID, sendResult.messageId())
-						.copyHeaders(sendResult.additionalInformation())
-						.build());
+					.thenApply((sendResult) -> getMessageBuilderFactory().fromMessage(sendResult.message())
+							.setHeader(SqsHeaders.SQS_QUEUE_NAME_HEADER, sendResult.endpoint())
+							.setHeader(SqsHeaders.MessageSystemAttributes.MESSAGE_ID, sendResult.messageId())
+							.copyHeaders(sendResult.additionalInformation()).build());
 		}
 
 		if (isAsync()) {

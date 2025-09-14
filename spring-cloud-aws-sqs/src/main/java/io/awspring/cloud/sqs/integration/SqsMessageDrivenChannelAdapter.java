@@ -1,5 +1,5 @@
 /*
- * Copyright 2025-2025 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sqs.integration;
-
-import java.util.Arrays;
-import java.util.Collection;
 
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.MessageListener;
 import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.SqsMessageListenerContainer;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-
+import java.util.Arrays;
+import java.util.Collection;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.management.IntegrationManagedResource;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -32,11 +28,11 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 /**
- * The {@link MessageProducerSupport} implementation for the Amazon SQS
- * {@code receiveMessage}. Works in 'listener' manner and delegates hard work to the
- * {@link SqsMessageListenerContainer}.
+ * The {@link MessageProducerSupport} implementation for the Amazon SQS {@code receiveMessage}. Works in 'listener'
+ * manner and delegates hard work to the {@link SqsMessageListenerContainer}.
  *
  * @author Artem Bilan
  * @author Patrick Fitzsimons
@@ -50,8 +46,8 @@ import org.springframework.util.Assert;
 @IntegrationManagedResource
 public class SqsMessageDrivenChannelAdapter extends MessageProducerSupport {
 
-	private final SqsMessageListenerContainerFactory.Builder<Object> sqsMessageListenerContainerFactory =
-		SqsMessageListenerContainerFactory.builder();
+	private final SqsMessageListenerContainerFactory.Builder<Object> sqsMessageListenerContainerFactory = SqsMessageListenerContainerFactory
+			.builder();
 
 	private final String[] queues;
 
@@ -73,8 +69,8 @@ public class SqsMessageDrivenChannelAdapter extends MessageProducerSupport {
 	protected void onInit() {
 		super.onInit();
 		if (this.sqsContainerOptions != null) {
-			this.sqsMessageListenerContainerFactory.configure(sqsContainerOptionsBuilder ->
-				sqsContainerOptionsBuilder.fromBuilder(this.sqsContainerOptions.toBuilder()));
+			this.sqsMessageListenerContainerFactory.configure(sqsContainerOptionsBuilder -> sqsContainerOptionsBuilder
+					.fromBuilder(this.sqsContainerOptions.toBuilder()));
 		}
 		this.sqsMessageListenerContainerFactory.messageListener(new IntegrationMessageListener());
 		this.listenerContainer = this.sqsMessageListenerContainerFactory.build().createContainer(this.queues);
