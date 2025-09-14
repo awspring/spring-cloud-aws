@@ -18,6 +18,10 @@ package io.awspring.cloud.sqs.integration;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.CompletableFutures;
@@ -38,7 +42,17 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.OnSuccessAcknowledgementHandler;
+import io.awspring.cloud.sqs.operations.SendResult;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
+import io.awspring.cloud.sqs.support.observation.AbstractTemplateObservation;
+import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
+import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.tck.ObservationContextAssert;
+import io.micrometer.observation.tck.TestObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -70,6 +84,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
 /**
@@ -103,7 +119,12 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME = "fifo_manually_create_batch_factory_test_queue.fifo";
 
+	static final String OBSERVES_MESSAGE_FIFO_QUEUE_NAME = "observes_fifo_message_test_queue.fifo";
+
+	static final String FIFO_VISIBILITY_TIMEOUT_EXTENSION_QUEUE_NAME = "fifo_visibility_timeout_extension_test_queue.fifo";
+
 	private static final String ERROR_ON_ACK_FACTORY = "errorOnAckFactory";
+	private static final String VISIBILITY_TIMEOUT_EXTENSION_FACTORY = "visibilityTimeoutExtensionFactory";
 
 	@Autowired
 	LatchContainer latchContainer;
@@ -130,6 +151,9 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	LoadSimulator loadSimulator;
 
 	@Autowired
+	TestObservationRegistry observationRegistry;
+
+	@Autowired
 	Settings settings;
 
 	@Autowired
@@ -148,6 +172,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_CONTAINER_QUEUE_NAME),
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_FACTORY_QUEUE_NAME),
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME),
+				createFifoQueue(client, OBSERVES_MESSAGE_FIFO_QUEUE_NAME),
+				createFifoQueue(client, FIFO_VISIBILITY_TIMEOUT_EXTENSION_QUEUE_NAME, getVisibilityAttribute("5")),
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME)).join();
 	}
 
@@ -238,6 +264,87 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		double totalTimeSeconds = watch.getTotalTimeSeconds();
 		logger.debug("{}s for processing {} messages in {} message groups. Messages / seconds: {}", totalTimeSeconds,
 				messagesPerTest, numberOfMessageGroups, messagesPerTest / totalTimeSeconds);
+	}
+
+	@Test
+	void observesMessageFifo() throws Exception {
+		String messageBody = "observesMessage-payload";
+		SendResult<Object> sendResult = sqsTemplate
+				.send(to -> to.queue(OBSERVES_MESSAGE_FIFO_QUEUE_NAME).payload(messageBody));
+		String messageGroupId = MessageHeaderUtils.getHeaderAsString(sendResult.message(),
+				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER);
+		String messageDeduplicationId = MessageHeaderUtils.getHeaderAsString(sendResult.message(),
+				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER);
+		logger.debug("Sent message to queue {} with messageBody {}", OBSERVES_MESSAGE_FIFO_QUEUE_NAME, messageBody);
+		assertThat(latchContainer.observesFifoMessageLatch.await(10, TimeUnit.MINUTES)).isTrue();
+		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
+				.hasNumberOfObservationsEqualTo(3).hasHandledContextsThatSatisfy(contexts -> {
+					ObservationContextAssert.then(contexts.get(0)).hasNameEqualTo("spring.aws.sqs.template")
+							.isInstanceOf(SqsTemplateObservation.Context.class)
+							.hasContextualNameEqualTo(OBSERVES_MESSAGE_FIFO_QUEUE_NAME + " send")
+							.hasLowCardinalityKeyValue(
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_OPERATION
+											.asString(),
+									"publish")
+							.hasLowCardinalityKeyValue(
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_DESTINATION_NAME
+											.asString(),
+									OBSERVES_MESSAGE_FIFO_QUEUE_NAME)
+							.hasLowCardinalityKeyValue(
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_DESTINATION_KIND
+											.asString(),
+									"queue")
+							.hasLowCardinalityKeyValue(
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_SYSTEM
+											.asString(),
+									"sqs")
+							.hasHighCardinalityKeyValue(
+									AbstractTemplateObservation.Documentation.HighCardinalityTags.MESSAGE_ID.asString(),
+									sendResult.messageId().toString())
+							.hasHighCardinalityKeyValue(
+									SqsTemplateObservation.Documentation.HighCardinalityTags.MESSAGE_GROUP_ID
+											.asString(),
+									messageGroupId)
+							.hasHighCardinalityKeyValue(
+									SqsTemplateObservation.Documentation.HighCardinalityTags.MESSAGE_DEDUPLICATION_ID
+											.asString(),
+									messageDeduplicationId)
+							.doesNotHaveParentObservation();
+					ObservationContextAssert.then(contexts.get(1)).hasNameEqualTo("spring.aws.sqs.listener")
+							.isInstanceOf(SqsListenerObservation.Context.class)
+							.hasContextualNameEqualTo(OBSERVES_MESSAGE_FIFO_QUEUE_NAME + " receive")
+							.hasLowCardinalityKeyValue(
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_OPERATION
+											.asString(),
+									"receive")
+							.hasLowCardinalityKeyValue(
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SOURCE_NAME
+											.asString(),
+									OBSERVES_MESSAGE_FIFO_QUEUE_NAME)
+							.hasLowCardinalityKeyValue(
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SOURCE_KIND
+											.asString(),
+									"queue")
+							.hasLowCardinalityKeyValue(
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SYSTEM
+											.asString(),
+									"sqs")
+							.hasHighCardinalityKeyValue(
+									AbstractListenerObservation.Documentation.HighCardinalityTags.MESSAGE_ID.asString(),
+									sendResult.messageId().toString())
+							.hasHighCardinalityKeyValue(
+									SqsListenerObservation.Documentation.HighCardinalityTags.MESSAGE_GROUP_ID
+											.asString(),
+									messageGroupId)
+							.hasHighCardinalityKeyValue(
+									SqsListenerObservation.Documentation.HighCardinalityTags.MESSAGE_DEDUPLICATION_ID
+											.asString(),
+									messageDeduplicationId)
+							.doesNotHaveParentObservation();
+					ObservationContextAssert.then(contexts.get(2)).hasNameEqualTo("listener.process")
+							.hasParentObservationContextMatching(
+									contextView -> contextView.getName().equals("spring.aws.sqs.listener"));
+				}));
 	}
 
 	@Test
@@ -363,6 +470,26 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
+	void visibilityTimeoutExtensionWorksForFifoBatch() throws Exception {
+		final int messageCount = this.settings.messagesPerMessageGroup;
+		// There will be messageCount - 1 requests to change visibility, before each message except the first one
+		latchContainer.visibilityTimeoutExtensionLatch = new CountDownLatch(messageCount - 1);
+
+		List<String> values = IntStream.range(0, messageCount).mapToObj(String::valueOf).toList();
+		String messageGroupId = UUID.randomUUID().toString();
+		sqsTemplate.sendMany(FIFO_VISIBILITY_TIMEOUT_EXTENSION_QUEUE_NAME,
+				createMessagesFromValues(messageGroupId, values));
+
+		assertThat(latchContainer.visibilityTimeoutExtensionLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
+				.isTrue();
+		List<Integer> expectedRequestEntryCounts = IntStream.range(1, messageCount).map(i -> messageCount - i).boxed()
+				.toList();
+		assertThat(messagesContainer.visibilityTimeoutExtensionBatchRequests).as(
+				"Number of entries in each ChangeMessageVisibilityBatchRequest should decrease by 1 on each message")
+				.extracting(List::size).containsExactlyElementsOf(expectedRequestEntryCounts);
+	}
+
+	@Test
 	void manuallyCreatesContainer() throws Exception {
 		List<String> values = IntStream.range(0, this.settings.messagesPerTest).mapToObj(String::valueOf)
 				.collect(toList());
@@ -437,6 +564,25 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			loadSimulator.runLoad();
 			receivedMessages.add(message.getPayload());
 			latchContainer.receivesMessageLatch.countDown();
+		}
+	}
+
+	static class ObservesFifoMessageListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@Autowired
+		ObservationRegistry observationRegistry;
+
+		@SqsListener(queueNames = OBSERVES_MESSAGE_FIFO_QUEUE_NAME, id = "observes-fifo-message-container", factory = "observationSqsListenerContainerFactory")
+		void listen(String message) {
+			Observation.createNotStarted("listener.process", observationRegistry).observe(() -> {
+				logger.debug("Observed message in Listener Method: {}", message);
+				latchContainer.observesFifoMessageLatch.countDown();
+			});
+
+			logger.debug("Received observed message in Listener Method: " + message);
 		}
 	}
 
@@ -540,7 +686,15 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 
 	}
 
+	static class VisibilityTimeoutExtensionListener {
+		@SqsListener(queueNames = FIFO_VISIBILITY_TIMEOUT_EXTENSION_QUEUE_NAME, messageVisibilitySeconds = "5", factory = VISIBILITY_TIMEOUT_EXTENSION_FACTORY)
+		void listen(String message) {
+			logger.debug("Processing message: {}", message);
+		}
+	}
+
 	static class LatchContainer {
+
 		Settings settings;
 
 		final CountDownLatch manuallyCreatedContainerLatch;
@@ -552,6 +706,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		CountDownLatch receivesMessageLatch;
 		CountDownLatch receivesMessageManyGroupsLatch;
 		CountDownLatch manyGroupsAcks;
+		CountDownLatch observesFifoMessageLatch;
 		CountDownLatch stopsProcessingOnErrorLatch1;
 		CountDownLatch stopsProcessingOnErrorLatch2;
 		CountDownLatch stopsProcessingOnAckErrorLatch1;
@@ -559,6 +714,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		CountDownLatch stopsProcessingOnAckErrorHasThrown;
 		CountDownLatch receivesBatchManyGroupsLatch;
 		CountDownLatch receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchLatch;
+		CountDownLatch visibilityTimeoutExtensionLatch;
 
 		LatchContainer(Settings settings) {
 			this.settings = settings;
@@ -578,6 +734,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			this.receivesBatchManyGroupsLatch = new CountDownLatch(1);
 			this.receivesFifoBatchGroupingStrategyMultipleGroupsInSameBatchLatch = new CountDownLatch(1);
 			this.stopsProcessingOnAckErrorHasThrown = new CountDownLatch(1);
+			this.observesFifoMessageLatch = new CountDownLatch(1);
+			this.visibilityTimeoutExtensionLatch = new CountDownLatch(1);
 		}
 
 	}
@@ -591,6 +749,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		List<String> manuallyCreatedBatchFactoryMessages = Collections.synchronizedList(new ArrayList<>());
 		List<String> stopsProcessingOnAckErrorBeforeThrown = Collections.synchronizedList(new ArrayList<>());
 		List<String> stopsProcessingOnAckErrorAfterThrown = Collections.synchronizedList(new ArrayList<>());
+		List<List<String>> visibilityTimeoutExtensionBatchRequests = Collections.synchronizedList(new ArrayList<>());
 
 	}
 
@@ -605,6 +764,17 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			return this.messagesContainer;
 		}
 
+		@Bean
+		public SqsMessageListenerContainerFactory<String> observationSqsListenerContainerFactory(
+				ObservationRegistry observationRegistry) {
+			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
+			factory.configure(options -> options.maxConcurrentMessages(10).acknowledgementThreshold(10)
+					.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
+					.acknowledgementInterval(Duration.ofSeconds(1)).observationRegistry(observationRegistry));
+			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createHighThroughputAsyncClient);
+			return factory;
+		}
+
 		// @formatter:off
 		@Bean
 		public SqsMessageListenerContainerFactory<String> defaultSqsListenerContainerFactory() {
@@ -613,7 +783,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				.maxConcurrentMessages(10)
 				.acknowledgementThreshold(10)
 				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
-				.acknowledgementInterval(Duration.ofSeconds(1)));
+				.acknowledgementInterval(Duration.ofSeconds(1))
+			);
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createHighThroughputAsyncClient);
 			factory.setAcknowledgementResultCallback(new AcknowledgementResultCallback<String>() {
 
@@ -685,6 +856,28 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 					};
 				}
 			}));
+			return factory;
+		}
+
+		@Bean(VISIBILITY_TIMEOUT_EXTENSION_FACTORY)
+		SqsMessageListenerContainerFactory<String> visibilityTrackingSqsListenerContainerFactory() {
+			SqsAsyncClient spyAsyncClient = spy(createAsyncClient());
+
+			doAnswer(invocation -> {
+				ChangeMessageVisibilityBatchRequest request = invocation.getArgument(0);
+				messagesContainer.visibilityTimeoutExtensionBatchRequests.add(request.entries().stream().map(ChangeMessageVisibilityBatchRequestEntry::receiptHandle).toList());
+				latchContainer.visibilityTimeoutExtensionLatch.countDown();
+
+				return invocation.callRealMethod();
+			}).when(spyAsyncClient).changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class));
+
+			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
+			factory.configure(options -> options
+				.maxConcurrentMessages(10)
+				.acknowledgementThreshold(10)
+				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
+				.messageVisibility(Duration.ofSeconds(5)));
+			factory.setSqsAsyncClientSupplier(() -> spyAsyncClient);
 			return factory;
 		}
 
@@ -799,6 +992,21 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			return new ReceivesBatchesFromManyGroupsListener();
 		}
 
+		@Bean
+		VisibilityTimeoutExtensionListener visibilityTimeoutExtensionListener() {
+			return new VisibilityTimeoutExtensionListener();
+		}
+
+		@Bean
+		ObservesFifoMessageListener observesFifoMessageListener() {
+			return new ObservesFifoMessageListener();
+		}
+
+		@Bean
+		ObservationRegistry observationRegistry() {
+			return TestObservationRegistry.create();
+		}
+
 		Settings settings = new Settings();
 		LatchContainer latchContainer = new LatchContainer(settings);
 
@@ -823,9 +1031,9 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
-		SqsTemplate sqsTemplate() {
-			return SqsTemplate.builder().sqsAsyncClient(BaseSqsIntegrationTest.createHighThroughputAsyncClient())
-					.build();
+		SqsTemplate sqsTemplate(ObservationRegistry observationRegistry) {
+			return SqsTemplate.builder().configure(options -> options.observationRegistry(observationRegistry))
+					.sqsAsyncClient(BaseSqsIntegrationTest.createHighThroughputAsyncClient()).build();
 		}
 
 	}

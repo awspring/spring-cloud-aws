@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,12 @@ package io.awspring.cloud.sqs.listener;
  * instances created from SQS messages. Can be used to retrieve headers from messages either through
  * {@link org.springframework.messaging.MessageHeaders#get} or
  * {@link org.springframework.messaging.handler.annotation.Header} parameter annotations.
+ *
  * @author Tomaz Fernandes
+ * @author Artem Bilan
+ *
  * @since 3.0
+ *
  * @see io.awspring.cloud.sqs.support.converter.SqsHeaderMapper
  */
 public class SqsHeaders {
@@ -127,14 +131,19 @@ public class SqsHeaders {
 		public static final String SQS_SENDER_ID = SQS_MSA_HEADER_PREFIX + "SenderId";
 
 		/**
-		 * SenderId header in a SQS message.
+		 * Sequence number header from an SQS send result.
 		 */
 		public static final String SQS_SEQUENCE_NUMBER = SQS_MSA_HEADER_PREFIX + "SequenceNumber";
 
 		/**
-		 * SenderId header in a SQS message.
+		 * Tracing header in the SQS message request.
 		 */
 		public static final String SQS_AWS_TRACE_HEADER = SQS_MSA_HEADER_PREFIX + "AWSTraceHeader";
+
+		/**
+		 * Message ID header from an SQS send result.
+		 */
+		public static final String MESSAGE_ID = SQS_MSA_HEADER_PREFIX + "messageId";
 
 	}
 

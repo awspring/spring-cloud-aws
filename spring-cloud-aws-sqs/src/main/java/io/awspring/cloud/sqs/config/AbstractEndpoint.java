@@ -42,6 +42,7 @@ import org.springframework.util.Assert;
  * Base class for implementing a {@link HandlerMethodEndpoint}.
  *
  * @author Tomaz Fernandes
+ * @author José Iêdo
  * @since 3.0
  */
 public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
@@ -91,6 +92,14 @@ public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 	}
 
 	/**
+	 * Get the bean instance to be used when handling a message for this endpoint.
+	 * @return the bean instance.
+	 */
+	public Object getBean() {
+		return this.bean;
+	}
+
+	/**
 	 * Set the method to be used when handling a message for this endpoint.
 	 * @param method the method.
 	 */
@@ -107,6 +116,15 @@ public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 	public void setHandlerMethodFactory(MessageHandlerMethodFactory handlerMethodFactory) {
 		Assert.notNull(handlerMethodFactory, "handlerMethodFactory cannot be null");
 		this.handlerMethodFactory = handlerMethodFactory;
+	}
+
+	/**
+	 * Get the {@link MessageHandlerMethodFactory} to be used for handling messages in this endpoint.
+	 * @return the factory.
+	 */
+	@Nullable
+	public MessageHandlerMethodFactory getMessageHandlerMethodFactory() {
+		return this.handlerMethodFactory;
 	}
 
 	@Override

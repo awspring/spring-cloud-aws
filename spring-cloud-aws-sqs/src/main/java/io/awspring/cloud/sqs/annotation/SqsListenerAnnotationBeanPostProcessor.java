@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.annotation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.config.Endpoint;
+import io.awspring.cloud.sqs.config.MultiMethodSqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
@@ -24,20 +25,28 @@ import io.awspring.cloud.sqs.support.resolver.BatchVisibilityHandlerMethodArgume
 import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.NotificationSubjectArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
+import io.awspring.cloud.sqs.support.resolver.SnsNotificationArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.VisibilityHandlerMethodArgumentResolver;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import org.springframework.core.MethodIntrospector;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * {@link AbstractListenerAnnotationBeanPostProcessor} implementation for {@link SqsListener @SqsListener}.
  *
  * @author Tomaz Fernandes
  * @author Joao Calassio
+ * @author José Iêdo
  * @since 3.0
  */
 public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnnotationBeanPostProcessor<SqsListener> {
@@ -60,6 +69,22 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 				.messageVisibility(
 						resolveAsInteger(sqsListenerAnnotation.messageVisibilitySeconds(), "messageVisibility"))
 				.acknowledgementMode(resolveAcknowledgement(sqsListenerAnnotation.acknowledgementMode())).build();
+	}
+
+	@Override
+	protected Endpoint createMultiMethodEndpoint(SqsListener sqsListenerAnnotation, List<Method> methods,
+			@Nullable Method defaultMethod, Object bean) {
+		return MultiMethodSqsEndpoint.builder()
+				.factoryBeanName(resolveAsString(sqsListenerAnnotation.factory(), "factory"))
+				.queueNames(resolveEndpointNames(sqsListenerAnnotation.value())).bean(bean).methods(methods)
+				.defaultMethod(defaultMethod).id(getEndpointId(sqsListenerAnnotation.id()))
+				.sqsEndpoint(createEndpoint(sqsListenerAnnotation)).build();
+	}
+
+	@Override
+	protected Set<Method> getHandlerMethods(Class<?> targetClass) {
+		return MethodIntrospector.selectMethods(targetClass, (ReflectionUtils.MethodFilter) method -> AnnotationUtils
+				.findAnnotation(method, SqsHandler.class) != null);
 	}
 
 	@Override
@@ -86,8 +111,26 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 		if (objectMapper != null) {
 			argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
 			argumentResolvers.add(new NotificationSubjectArgumentResolver(objectMapper));
+			argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, objectMapper));
 		}
 		return argumentResolvers;
 	}
 
+	@Override
+	protected Method getDefaultHandlerMethod(Class<?> targetClass, List<Method> handlerMethods) {
+		Method defaultMethod = null;
+		for (Method method : handlerMethods) {
+			SqsHandler annotation = method.getAnnotation(SqsHandler.class);
+			if (annotation.isDefault()) {
+				if (defaultMethod != null) {
+					throw new IllegalArgumentException(
+							"There is more than one default method for the same listener in class: " + targetClass);
+				}
+				else {
+					defaultMethod = method;
+				}
+			}
+		}
+		return defaultMethod;
+	}
 }

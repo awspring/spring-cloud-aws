@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.annotation.SqsHandler;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
@@ -48,7 +49,17 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.AbstractSqsMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
+import io.awspring.cloud.sqs.operations.SendResult;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
+import io.awspring.cloud.sqs.support.observation.AbstractTemplateObservation;
+import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
+import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.tck.ObservationContextAssert;
+import io.micrometer.observation.tck.TestObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -64,6 +75,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -93,6 +105,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * @author Mikhail Strokov
  * @author Michael Sosa
  * @author gustavomonarin
+ * @author José Iêdo
  */
 @SpringBootTest
 @TestPropertySource(properties = { "property.one=1", "property.five.seconds=5s",
@@ -105,6 +118,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	static final String RECEIVES_MESSAGE_QUEUE_NAME = "receives_message_test_queue";
 
 	static final String RECEIVES_MESSAGE_BATCH_QUEUE_NAME = "receives_message_batch_test_queue";
+
+	static final String RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME = "receives_message_multi_method_test_queue";
 
 	static final String RECEIVES_MESSAGE_ASYNC_QUEUE_NAME = "receives_message_async_test_queue";
 
@@ -138,6 +153,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String ACK_AFTER_SECOND_ERROR_FACTORY = "ackAfterSecondErrorFactory";
 
+	static final String OBSERVES_MESSAGE_QUEUE_NAME = "observes_message_test_queue";
+
+	static final String OBSERVES_ERROR_QUEUE_NAME = "observes_error_test_queue";
+
 	@BeforeAll
 	static void beforeTests() {
 		SqsAsyncClient client = createAsyncClient();
@@ -158,6 +177,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME),
 				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME),
 				createQueue(client, CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME),
+				createQueue(client, OBSERVES_MESSAGE_QUEUE_NAME), createQueue(client, OBSERVES_ERROR_QUEUE_NAME),
 				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME)).join();
 	}
 
@@ -168,7 +188,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	SqsTemplate sqsTemplate;
 
 	@Autowired
-	ObjectMapper objectMapper;
+	TestObservationRegistry observationRegistry;
 
 	@Autowired
 	@Qualifier("inactiveContainer")
@@ -182,6 +202,132 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(latchContainer.receivesMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.invocableHandlerMethodLatch.await(10, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.acknowledgementCallbackSuccessLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void receivesMessageOnMultiMethod() throws Exception {
+		String message1 = "receivesMessageOnMultiMethod-payload-1";
+		Integer message2 = 2;
+		Double message3 = 0.5;
+
+		sqsTemplate.send(RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME, message1);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME,
+				message1);
+		sqsTemplate.send(RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME, message2);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME,
+				message2);
+		sqsTemplate.send(RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME, message3);
+		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME,
+				message3);
+
+		assertThat(latchContainer.receivesMessageMultiMethodLatch.await(10, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void observesMessage() throws Exception {
+		String messageBody = "observesMessage-payload";
+		SendResult<Object> sendResult = sqsTemplate
+				.send(to -> to.queue(OBSERVES_MESSAGE_QUEUE_NAME).payload(messageBody));
+		logger.debug("Sent message to queue {} with messageBody {}", OBSERVES_MESSAGE_QUEUE_NAME, messageBody);
+		assertThat(latchContainer.observesMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
+				.hasHandledContextsThatSatisfy(contexts -> {
+					ObservationContextAssert
+							.then(getContextWithContextualNameEqualTo(contexts, "observes_message_test_queue send"))
+							.hasNameEqualTo("spring.aws.sqs.template")
+							.isInstanceOf(SqsTemplateObservation.Context.class)
+							.hasLowCardinalityKeyValue(
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_OPERATION
+											.asString(),
+									"publish")
+							.hasLowCardinalityKeyValue(
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_DESTINATION_NAME
+											.asString(),
+									OBSERVES_MESSAGE_QUEUE_NAME)
+							.hasLowCardinalityKeyValue(
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_DESTINATION_KIND
+											.asString(),
+									"queue")
+							.hasLowCardinalityKeyValue(
+									AbstractTemplateObservation.Documentation.LowCardinalityTags.MESSAGING_SYSTEM
+											.asString(),
+									"sqs")
+							.hasHighCardinalityKeyValue(
+									AbstractTemplateObservation.Documentation.HighCardinalityTags.MESSAGE_ID.asString(),
+									sendResult.messageId().toString())
+							.doesNotHaveParentObservation();
+					ObservationContextAssert
+							.then(getContextWithContextualNameEqualTo(contexts, "observes_message_test_queue receive"))
+							.hasNameEqualTo("spring.aws.sqs.listener")
+							.isInstanceOf(SqsListenerObservation.Context.class)
+							.hasLowCardinalityKeyValue(
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_OPERATION
+											.asString(),
+									"receive")
+							.hasLowCardinalityKeyValue(
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SOURCE_NAME
+											.asString(),
+									"observes_message_test_queue")
+							.hasLowCardinalityKeyValue(
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SOURCE_KIND
+											.asString(),
+									"queue")
+							.hasLowCardinalityKeyValue(
+									AbstractListenerObservation.Documentation.LowCardinalityTags.MESSAGING_SYSTEM
+											.asString(),
+									"sqs")
+							.hasHighCardinalityKeyValue(
+									AbstractListenerObservation.Documentation.HighCardinalityTags.MESSAGE_ID.asString(),
+									sendResult.messageId().toString())
+							.doesNotHaveHighCardinalityKeyValueWithKey(
+									SqsListenerObservation.Documentation.HighCardinalityTags.MESSAGE_GROUP_ID
+											.asString())
+							.doesNotHaveParentObservation();
+					ObservationContextAssert.then(getContextWithName(contexts, "listener.process"))
+							.hasParentObservationContextMatching(
+									contextView -> contextView.getName().equals("spring.aws.sqs.listener"));
+				}));
+	}
+
+	private Observation.@NotNull Context getContextWithName(List<Observation.Context> contexts, String name) {
+		return contexts.stream().filter(context -> context.getName().equals(name)).findFirst()
+				.orElseThrow(() -> new AssertionError("Could not find context with name " + name));
+	}
+
+	private Observation.@NotNull Context getContextWithContextualNameEqualTo(List<Observation.Context> contexts,
+			String contextualName) {
+		return contexts.stream()
+				.filter(context -> context.getContextualName() != null
+						&& context.getContextualName().equals(contextualName))
+				.findFirst()
+				.orElseThrow(() -> new AssertionError("Could not find context with contextual name " + contextualName));
+	}
+
+	@Test
+	void observesError() throws Exception {
+		String messageBody = "observesMessage-payload";
+		sqsTemplate.send(to -> to.queue(OBSERVES_ERROR_QUEUE_NAME).payload(messageBody));
+		logger.debug("Sent message to queue {} with messageBody {}", OBSERVES_ERROR_QUEUE_NAME, messageBody);
+		assertThat(latchContainer.observesErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
+				.hasHandledContextsThatSatisfy(contexts -> {
+					ObservationContextAssert
+							.then(getContextWithContextualNameEqualTo(contexts, "observes_error_test_queue send"))
+							.hasNameEqualTo("spring.aws.sqs.template")
+							.isInstanceOf(AbstractTemplateObservation.Context.class).doesNotHaveParentObservation();
+					List<Observation.Context> receivingContexts = contexts.stream()
+							.filter(context -> context.getContextualName() != null
+									&& context.getContextualName().equals("observes_error_test_queue receive"))
+							.toList();
+					ObservationContextAssert.then(receivingContexts.get(0)).hasNameEqualTo("spring.aws.sqs.listener")
+							.isInstanceOf(AbstractListenerObservation.Context.class).doesNotHaveParentObservation()
+							.assertThatError().isInstanceOf(RuntimeException.class)
+							.hasMessage("Expected exception from observes-error");
+					ObservationContextAssert.then(receivingContexts.get(1)).hasNameEqualTo("spring.aws.sqs.listener")
+							.isInstanceOf(AbstractListenerObservation.Context.class)
+							.hasContextualNameEqualTo("observes_error_test_queue receive")
+							.doesNotHaveParentObservation().doesNotHaveError();
+				}));
 	}
 
 	@Test
@@ -269,6 +415,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME,
 				messageBody);
 		assertThat(latchContainer.manuallyInactiveCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		inactiveMessageListenerContainer.stop();
 	}
 
 	// @formatter:off
@@ -358,6 +505,31 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		void listen(String message) {
 			logger.debug("Received message in Listener Method: " + message);
 			latchContainer.receivesMessageLatch.countDown();
+		}
+	}
+
+	@SqsListener(queueNames = RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME, pollTimeoutSeconds = "${property.one}", maxMessagesPerPoll = "${property.one}", maxConcurrentMessages = "${missing.property:5}", id = "receivesMessageMultiMethodListener")
+	static class ReceivesMessageMultiMethodListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@SqsHandler
+		void handle(String message) {
+			logger.debug("Received String message in Listener Method: " + message);
+			latchContainer.receivesMessageMultiMethodLatch.countDown();
+		}
+
+		@SqsHandler
+		void handle(Integer message) {
+			logger.debug("Received Integer message in Listener Method: " + message);
+			latchContainer.receivesMessageMultiMethodLatch.countDown();
+		}
+
+		@SqsHandler(isDefault = true)
+		void handle(Object message) {
+			logger.debug("Received Object message in Listener Method: " + message);
+			latchContainer.receivesMessageMultiMethodLatch.countDown();
 		}
 	}
 
@@ -497,11 +669,48 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	static class ObservesMessageListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@Autowired
+		ObservationRegistry observationRegistry;
+
+		@SqsListener(queueNames = OBSERVES_MESSAGE_QUEUE_NAME, id = "observesMessageContainer")
+		void listen(String message) {
+			Observation.createNotStarted("listener.process", observationRegistry).observe(() -> {
+				logger.debug("Observed message in Listener Method: {}", message);
+				latchContainer.observesMessageLatch.countDown();
+			});
+
+			logger.debug("Received observed message in Listener Method: " + message);
+		}
+	}
+
+	static class ObservesErrorListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		AtomicBoolean hasThrown = new AtomicBoolean(false);
+
+		@SqsListener(queueNames = OBSERVES_ERROR_QUEUE_NAME, id = "observes-error", messageVisibilitySeconds = "1")
+		void listen(String message, @Header(SqsHeaders.SQS_QUEUE_NAME_HEADER) String queueName) {
+			logger.debug("Received message {} from queue {}", message, queueName);
+			if (hasThrown.compareAndSet(false, true)) {
+				throw new RuntimeException("Expected exception from observes-error");
+			}
+			latchContainer.observesErrorLatch.countDown();
+		}
+	}
+
 	static class LatchContainer {
 
 		final CountDownLatch receivesMessageLatch = new CountDownLatch(1);
 		final CountDownLatch receivesMessageBatchLatch = new CountDownLatch(20);
 		final CountDownLatch receivesMessageAsyncLatch = new CountDownLatch(1);
+		final CountDownLatch receivesMessageMultiMethodLatch = new CountDownLatch(3);
 		final CountDownLatch doesNotAckLatch = new CountDownLatch(2);
 		final CountDownLatch doesNotAckAsyncLatch = new CountDownLatch(2);
 		final CountDownLatch doesNotAckBatchLatch = new CountDownLatch(20);
@@ -520,6 +729,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		final CountDownLatch acknowledgementCallbackBatchLatch = new CountDownLatch(1);
 		final CountDownLatch acknowledgementCallbackErrorLatch = new CountDownLatch(1);
 		final CountDownLatch manuallyInactiveCreatedContainerLatch = new CountDownLatch(1);
+		final CountDownLatch observesMessageLatch = new CountDownLatch(1);
+		final CountDownLatch observesErrorLatch = new CountDownLatch(1);
 		final CyclicBarrier maxConcurrentMessagesBarrier = new CyclicBarrier(21);
 
 	}
@@ -530,7 +741,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 		// @formatter:off
 		@Bean
-		public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+		public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(ObservationRegistry observationRegistry) {
 			return SqsMessageListenerContainerFactory
 				.builder()
 				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
@@ -538,6 +749,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				.configure(options -> options
 					.maxDelayBetweenPolls(Duration.ofSeconds(5))
 					.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
+					.observationRegistry(observationRegistry)
 					.pollTimeout(Duration.ofSeconds(5)))
 				.build();
 		}
@@ -729,6 +941,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
+		ReceivesMessageMultiMethodListener receivesMessageMultiMethodListener() {
+			return new ReceivesMessageMultiMethodListener();
+		}
+
+		@Bean
 		DoesNotAckOnErrorListener doesNotAckOnErrorListener() {
 			return new DoesNotAckOnErrorListener();
 		}
@@ -759,6 +976,16 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
+		ObservesMessageListener observesMessageListener() {
+			return new ObservesMessageListener();
+		}
+
+		@Bean
+		ObservesErrorListener observesErrorListener() {
+			return new ObservesErrorListener();
+		}
+
+		@Bean
 		SqsListenerConfigurer customizer() {
 			return registrar -> {
 				registrar.setMessageHandlerMethodFactory(new DefaultMessageHandlerMethodFactory() {
@@ -782,12 +1009,18 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
-		SqsTemplate sqsTemplate() {
-			return SqsTemplate.builder().sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient()).build();
+		SqsTemplate sqsTemplate(ObservationRegistry observationRegistry) {
+			return SqsTemplate.builder().configure(options -> options.observationRegistry(observationRegistry))
+					.sqsAsyncClient(BaseSqsIntegrationTest.createAsyncClient()).build();
+		}
+
+		@Bean
+		ObservationRegistry observationRegistry() {
+			return TestObservationRegistry.create();
 		}
 
 		private AsyncMessageInterceptor<Object> testInterceptor() {
-			return new AsyncMessageInterceptor<Object>() {
+			return new AsyncMessageInterceptor<>() {
 				@Override
 				public CompletableFuture<Message<Object>> intercept(Message<Object> message) {
 					latchContainer.interceptorLatch.countDown();

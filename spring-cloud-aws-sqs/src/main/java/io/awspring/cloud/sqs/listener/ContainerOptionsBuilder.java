@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.listener;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.retry.backoff.BackOffPolicy;
@@ -26,6 +27,9 @@ import org.springframework.retry.backoff.BackOffPolicy;
  * A builder for creating a {@link ContainerOptions} instance.
  * @param <B> the concrete {@link ContainerOptionsBuilder} type.
  * @param <O> the concrete {@link ContainerOptions} type.
+ *
+ * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  */
 public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>, O extends ContainerOptions<O, B>> {
 
@@ -146,6 +150,16 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	B backPressureMode(BackPressureMode backPressureMode);
 
 	/**
+	 * Sets the {@link BackPressureHandlerFactory} for this container. Default is
+	 * {@code AbstractContainerOptions.DEFAULT_BACKPRESSURE_FACTORY} which results in a default
+	 * {@link SemaphoreBackPressureHandler} to be instantiated.
+	 *
+	 * @param backPressureHandlerFactory the BackPressureHandler supplier.
+	 * @return this instance.
+	 */
+	B backPressureHandlerFactory(BackPressureHandlerFactory backPressureHandlerFactory);
+
+	/**
 	 * Set the maximum interval between acknowledgements for batch acknowledgements. The default depends on the specific
 	 * {@link ContainerComponentFactory} implementation.
 	 *
@@ -186,6 +200,14 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	 * @return this instance.
 	 */
 	B messageConverter(MessagingMessageConverter<?> messageConverter);
+
+	/**
+	 * Set the {@link ObservationRegistry} for this container.
+	 *
+	 * @param observationRegistry the observation registry.
+	 * @return this instance.
+	 */
+	B observationRegistry(ObservationRegistry observationRegistry);
 
 	/**
 	 * Create the {@link ContainerOptions} instance.

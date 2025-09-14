@@ -32,6 +32,7 @@
 |spring.cloud.aws.dynamodb.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.dynamodb.region |  | Overrides the default region.
 |spring.cloud.aws.dynamodb.table-prefix |  | The prefix used to resolve table names.
+|spring.cloud.aws.dynamodb.table-separator |  | The word separator used to resolve table names.
 |spring.cloud.aws.dynamodb.table-suffix |  | The suffix used to resolve table names.
 |spring.cloud.aws.endpoint |  | Overrides the default endpoint for all auto-configured AWS clients.
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
@@ -92,7 +93,9 @@
 |spring.cloud.aws.sqs.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.sqs.enabled | `+++true+++` | Enables SQS integration.
 |spring.cloud.aws.sqs.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.sqs.listener.auto-startup |  | Configure whether SQS listeners are started automatically or not. If set to false, the listener containers need to be started manually.
 |spring.cloud.aws.sqs.listener.max-concurrent-messages |  | The maximum concurrent messages that can be processed simultaneously for each queue. Note that if acknowledgement batching is being used, the actual maximum number of messages inflight might be higher.
+|spring.cloud.aws.sqs.listener.max-delay-between-polls |  | The maximum amount of time to wait between consecutive polls to SQS.
 |spring.cloud.aws.sqs.listener.max-messages-per-poll |  | The maximum number of messages to be retrieved in a single poll to SQS.
 |spring.cloud.aws.sqs.listener.poll-timeout |  | The maximum amount of time for a poll to SQS.
 |spring.cloud.aws.sqs.queue-not-found-strategy |  | 

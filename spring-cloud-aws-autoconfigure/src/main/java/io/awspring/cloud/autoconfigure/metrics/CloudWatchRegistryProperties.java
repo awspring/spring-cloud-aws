@@ -15,8 +15,8 @@
  */
 package io.awspring.cloud.autoconfigure.metrics;
 
-import org.springframework.boot.actuate.autoconfigure.metrics.export.properties.StepRegistryProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.metrics.autoconfigure.export.properties.StepRegistryProperties;
 
 /**
  * {@link ConfigurationProperties} for configuring CloudWatch metrics export.

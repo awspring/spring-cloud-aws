@@ -31,11 +31,12 @@ import org.springframework.util.Assert;
  * Also handles wrapping the failed messages into a {@link ListenerExecutionFailedException}.
  *
  * @author Tomaz Fernandes
+ * @author José Iêdo
  * @since 3.0
  */
 public abstract class AbstractMethodInvokingListenerAdapter<T> {
 
-	private final InvocableHandlerMethod handlerMethod;
+	private final CompositeInvocableHandler compositeInvocableHandler;
 
 	/**
 	 * Create an instance with the provided {@link InvocableHandlerMethod}.
@@ -43,7 +44,16 @@ public abstract class AbstractMethodInvokingListenerAdapter<T> {
 	 */
 	protected AbstractMethodInvokingListenerAdapter(InvocableHandlerMethod handlerMethod) {
 		Assert.notNull(handlerMethod, "handlerMethod cannot be null");
-		this.handlerMethod = handlerMethod;
+		this.compositeInvocableHandler = new CompositeInvocableHandler(handlerMethod);
+	}
+
+	/**
+	 * Create an instance with the provided {@link CompositeInvocableHandler}.
+	 * @param compositeInvocableHandler the composite of invocable handlers.
+	 */
+	protected AbstractMethodInvokingListenerAdapter(CompositeInvocableHandler compositeInvocableHandler) {
+		Assert.notNull(compositeInvocableHandler, "compositeInvocableHandler cannot be null");
+		this.compositeInvocableHandler = compositeInvocableHandler;
 	}
 
 	/**
@@ -53,10 +63,10 @@ public abstract class AbstractMethodInvokingListenerAdapter<T> {
 	 */
 	protected final Object invokeHandler(Message<T> message) {
 		try {
-			return this.handlerMethod.invoke(message);
+			return this.compositeInvocableHandler.invoke(message);
 		}
-		catch (Exception e) {
-			throw createListenerException(message, e);
+		catch (Throwable t) {
+			throw createListenerException(message, t);
 		}
 	}
 
@@ -67,10 +77,10 @@ public abstract class AbstractMethodInvokingListenerAdapter<T> {
 	 */
 	protected final Object invokeHandler(Collection<Message<T>> messages) {
 		try {
-			return this.handlerMethod.invoke(MessageBuilder.withPayload(messages).build());
+			return this.compositeInvocableHandler.invoke(MessageBuilder.withPayload(messages).build());
 		}
-		catch (Exception e) {
-			throw createListenerException(messages, e);
+		catch (Throwable t) {
+			throw createListenerException(messages, t);
 		}
 	}
 

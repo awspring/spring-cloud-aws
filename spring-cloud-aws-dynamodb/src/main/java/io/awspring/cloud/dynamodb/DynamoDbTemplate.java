@@ -34,9 +34,11 @@ import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
  * @author Matej Nedic
  * @author Arun Patra
  * @author Maciej Walkowiak
+ * @author Marcus Voltolim
  * @since 3.0
  */
 public class DynamoDbTemplate implements DynamoDbOperations {
+
 	private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
 	private final DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver;
 	private final DynamoDbTableNameResolver tableNameResolver;
@@ -75,10 +77,10 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 		return prepareTable(entity).updateItem(entity);
 	}
 
-	public <T> T update(UpdateItemEnhancedRequest<T> updateItemEnhancedRequest, Class<T> clazz) {
-		Assert.notNull(updateItemEnhancedRequest, "updateItemEnhancedRequest is required");
-		Assert.notNull(clazz, "clazz is required");
-		return prepareTable(clazz).updateItem(updateItemEnhancedRequest);
+	@Override
+	public <T> T update(UpdateItemEnhancedRequest<T> request) {
+		Assert.notNull(request, "updateItemEnhancedRequest is required");
+		return prepareTable(request.item()).updateItem(request);
 	}
 
 	public <T> T delete(Key key, Class<T> clazz) {

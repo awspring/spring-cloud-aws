@@ -35,6 +35,7 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.source.AcknowledgementProcessingMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
+import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -174,9 +175,13 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 				.acceptIfInstance(this.messageSink, TaskExecutorAware.class,
 						teac -> teac.setTaskExecutor(getComponentsTaskExecutor()))
 				.acceptIfInstance(this.messageSink, MessageProcessingPipelineSink.class,
-						mls -> mls.setMessagePipeline(messageProcessingPipeline));
+						mls -> mls.setMessagePipeline(messageProcessingPipeline))
+				.acceptIfInstance(this.messageSink, ObservableComponent.class,
+						oc -> oc.setObservationSpecifics(createMessagingObservationSpecifics()));
 		doConfigureMessageSink(this.messageSink);
 	}
+
+	protected abstract AbstractListenerObservation.Specifics<?> createMessagingObservationSpecifics();
 
 	protected void doConfigureMessageSink(MessageSink<T> messageSink) {
 	}
@@ -225,10 +230,9 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 	}
 
 	protected BackPressureHandler createBackPressureHandler() {
-		return SemaphoreBackPressureHandler.builder().batchSize(getContainerOptions().getMaxMessagesPerPoll())
-				.totalPermits(getContainerOptions().getMaxConcurrentMessages())
-				.acquireTimeout(getContainerOptions().getMaxDelayBetweenPolls())
-				.throughputConfiguration(getContainerOptions().getBackPressureMode()).build();
+		O containerOptions = getContainerOptions();
+		BackPressureHandlerFactory factory = containerOptions.getBackPressureHandlerFactory();
+		return factory.createBackPressureHandler(containerOptions);
 	}
 
 	protected TaskExecutor createSourcesTaskExecutor() {

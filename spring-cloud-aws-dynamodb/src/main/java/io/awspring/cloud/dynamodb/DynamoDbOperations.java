@@ -28,6 +28,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
  * Interface for simple DynamoDB template operations.
  *
  * @author Matej Nedic
+ * @author Marcus Voltolim
  * @since 3.0.0
  */
 public interface DynamoDbOperations {
@@ -46,7 +47,7 @@ public interface DynamoDbOperations {
 	 * @param putItemEnhancedRequest the request object containing the item to be saved
 	 * @param clazz the class type of the item to be saved so
 	 *     {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
-	 * 
+	 *
 	 * @see PutItemEnhancedRequest
 	 */
 	<T> void save(PutItemEnhancedRequest<T> putItemEnhancedRequest, Class<T> clazz);
@@ -60,15 +61,12 @@ public interface DynamoDbOperations {
 	<T> T update(T entity);
 
 	/**
-	 * Updates an item in DynamoDB using the provided UpdateItemEnhancedRequest.
+	 * Updates Entity with configurations like ignore null to DynamoDB table.
 	 *
-	 * @param updateItemEnhancedRequest the request object containing the item to be updated
-	 * @param clazz the class type of the item to be updated so
-	 *     {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
-	 * 
-	 * @see UpdateItemEnhancedRequest
+	 * @param request - UpdateItemEnhancedRequest with entity and configurations to be saved.
+	 * @param <T> Type of Entity object.
 	 */
-	<T> T update(UpdateItemEnhancedRequest<T> updateItemEnhancedRequest, Class<T> clazz);
+	<T> T update(UpdateItemEnhancedRequest<T> request);
 
 	/**
 	 * Deletes a record for a given Key.
@@ -92,7 +90,7 @@ public interface DynamoDbOperations {
 	 * @param deleteItemEnhancedRequest the request object containing the item to be deleted
 	 * @param clazz the class type of the item to be deleted so
 	 *     {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
-	 * 
+	 *
 	 * @see DeleteItemEnhancedRequest
 	 */
 	<T> T delete(DeleteItemEnhancedRequest deleteItemEnhancedRequest, Class<T> clazz);

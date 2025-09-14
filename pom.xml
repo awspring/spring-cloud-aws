@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>4.2.0</version>
+		<version>5.0.0-M1</version>
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>3.3.1-SNAPSHOT</version>
+	<version>4.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 
@@ -30,6 +30,7 @@
 		<spotless.version>2.40.0</spotless.version>
 		<jacoco.version>0.8.8</jacoco.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<wiremock-standalone.version>3.13.0</wiremock-standalone.version>
 	</properties>
 
 	<modules>
@@ -47,6 +48,7 @@
 		<module>spring-cloud-aws-testcontainers</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-dynamodb</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-dynamodb</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-metrics</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-parameter-store</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-s3</module>
@@ -68,6 +70,11 @@
 				<version>${project.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.wiremock</groupId>
+				<artifactId>wiremock-standalone</artifactId>
+				<version>${wiremock-standalone.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -134,7 +141,7 @@
 					</links>
 					<author>true</author>
 					<header>${project.name}</header>
-					<reportOutputDirectory>${project.build.directory}/site/${project.version}/apidocs</reportOutputDirectory>
+					<outputDirectory>${project.build.directory}/site/${project.version}/</outputDirectory>
 					<source>17</source>
 				</configuration>
 			</plugin>
