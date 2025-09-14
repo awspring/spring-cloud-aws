@@ -2241,7 +2241,7 @@ Sample IAM policy granting access to SQS:
 Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon SQS.
 
 The `SqsMessageHandler` is for publishing a single message (or their batch) to SQS queue configured explicitly on the `SqsMessageHandler` or resolved via SpEL expression against the request message.
-The logic of this `MessageHandler` is to consume Spring Integration messages from an `inputChannel` and internally it is heavily base on the `SqsAsyncOperations` mentioned above.
+The logic of this `MessageHandler` is to consume Spring Integration messages from an `inputChannel` and internally it is heavily based on the `SqsAsyncOperations` mentioned above.
 When the `SqsMessageHandler` is set into an `async` mode, the result of the send operation is produced as a reply message into the `outputChannel`.
 For a single request, the reply message is created based on the `SendResult`.
 With request message payload as a `Collection<Message<?>>`, the `SqsAsyncOperations.sendManyAsync()` is performed; the `SendResult.Batch` is produced as is as a payload of the reply message.
@@ -2276,5 +2276,5 @@ MessageProducer sqsMessageDrivenChannelAdapter(SqsAsyncClient sqsAsyncClient) {
 }
 ----
 
-The Spring Integration dependency in the `spring-cloud-aws-sqs` module is `optinal` to avoid unnecessary artifacts on classpath when Spring Integration is not used.
+The Spring Integration dependency in the `spring-cloud-aws-sqs` module is `optional` to avoid unnecessary artifacts on classpath when Spring Integration is not used.
 For convenience, a dedicated `spring-cloud-aws-starter-integration-sqs` is provided managing all the required dependencies for Spring Integration support with Amazon SQS.
