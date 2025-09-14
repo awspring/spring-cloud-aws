@@ -22,7 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsPresigner;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
+import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
@@ -41,18 +43,26 @@ import java.util.Objects;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsIdentityProvider;
 import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -67,6 +77,7 @@ import software.amazon.encryption.s3.S3EncryptionClient;
  * @author Maciej Walkowiak
  * @author Matej Nedic
  * @author Giacomo Baso
+ * @author Ayeshmantha Perera
  */
 class S3AutoConfigurationTests {
 
@@ -443,6 +454,179 @@ class S3AutoConfigurationTests {
 			return new CustomS3OutputStreamProvider();
 		}
 
+	}
+
+	@Nested
+	class AutoConfigurationOrderingTests {
+
+		@Test
+		void awsAutoConfigurationCreatesRequiredBeansBeforeS3() {
+			new ApplicationContextRunner()
+					.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+					.withConfiguration(AutoConfigurations.of(
+							CredentialsProviderAutoConfiguration.class,
+							RegionProviderAutoConfiguration.class,
+							AwsAutoConfiguration.class
+					))
+					.run(context -> {
+						assertThat(context).hasSingleBean(AwsCredentialsProvider.class);
+						assertThat(context).hasSingleBean(AwsRegionProvider.class);
+						assertThat(context).hasSingleBean(AwsClientBuilderConfigurer.class);
+					});
+		}
+
+		@Test
+		void s3AutoConfigurationUsesAwsClientBuilderConfigurer() {
+			contextRunner.run(context -> {
+				assertThat(context).hasSingleBean(AwsCredentialsProvider.class);
+				assertThat(context).hasSingleBean(AwsRegionProvider.class);
+				assertThat(context).hasSingleBean(AwsClientBuilderConfigurer.class);
+				assertThat(context).hasSingleBean(S3ClientBuilder.class);
+				assertThat(context).hasSingleBean(S3Client.class);
+
+				AwsClientBuilderConfigurer configurer = context.getBean(AwsClientBuilderConfigurer.class);
+				S3ClientBuilder s3Builder = context.getBean(S3ClientBuilder.class);
+				
+				assertThat(configurer).isNotNull();
+				assertThat(s3Builder).isNotNull();
+			});
+		}
+
+		@Test
+		void s3ClientBuilderReceivesProperlyConfiguredAwsClientBuilderConfigurer() {
+			contextRunner
+					.withPropertyValues(
+							"spring.cloud.aws.region.static:eu-central-1",
+							"spring.cloud.aws.credentials.access-key:config-test-key",
+							"spring.cloud.aws.credentials.secret-key:config-test-secret"
+					)
+					.run(context -> {
+						S3Client s3Client = context.getBean(S3Client.class);
+
+						ConfiguredAwsClient client = new ConfiguredAwsClient(s3Client);
+						assertThat(client.getRegion()).isEqualTo(Region.of("eu-central-1"));
+						assertThat(client.getAwsCredentialsProvider()).isNotNull();
+					});
+		}
+
+		@Test
+		void s3AutoConfigurationFailsGracefullyWithoutAwsAutoConfiguration() {
+			new ApplicationContextRunner()
+					.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+					.withConfiguration(AutoConfigurations.of(
+							CredentialsProviderAutoConfiguration.class,
+							RegionProviderAutoConfiguration.class,
+							S3AutoConfiguration.class
+					))
+					.run(context -> {
+						assertThat(context).hasFailed();
+						assertThat(context.getStartupFailure())
+								.hasMessageContaining("AwsClientBuilderConfigurer")
+								.isInstanceOf(UnsatisfiedDependencyException.class);
+					});
+		}
+	}
+
+	@Nested
+	class CredentialTypesTests {
+
+		@Test
+		void s3ClientSupportsWebIdentityTokenCredentials() {
+			// Simulate EKS Web Identity Token environment
+			contextRunner
+					.withSystemProperties(
+							"aws.webIdentityTokenFile", "/tmp/test-token",
+							"aws.roleArn", "arn:aws:iam::123456789012:role/test-eks-role",
+							"aws.roleSessionName", "test-session"
+					)
+					.withPropertyValues("spring.cloud.aws.region.static:us-east-1")
+					.run(context -> {
+						assertThat(context).hasSingleBean(AwsCredentialsProvider.class);
+						assertThat(context).hasSingleBean(S3Client.class);
+						
+						AwsCredentialsProvider provider = context.getBean(AwsCredentialsProvider.class);
+						assertThat(provider).isNotNull()
+								.isInstanceOf(StsWebIdentityTokenFileCredentialsProvider.class);
+
+						S3Client s3Client = context.getBean(S3Client.class);
+						assertThat(s3Client).isNotNull();
+					});
+		}
+
+		@Test
+		void s3ClientWithInstanceProfileCredentials() {
+			contextRunner
+					.withPropertyValues(
+							"spring.cloud.aws.region.static:us-east-1",
+							"spring.cloud.aws.credentials.instance-profile:true"
+					)
+					.run(context -> {
+						assertThat(context).hasSingleBean(AwsCredentialsProvider.class);
+						assertThat(context).hasSingleBean(S3Client.class);
+						
+						AwsCredentialsProvider provider = context.getBean(AwsCredentialsProvider.class);
+						assertThat(provider).isNotNull()
+								.isInstanceOf(InstanceProfileCredentialsProvider.class);
+						
+						S3Client s3Client = context.getBean(S3Client.class);
+						assertThat(s3Client).isNotNull();
+					});
+		}
+
+		@Test
+		void s3ClientWithProfileBasedCredentials() {
+			contextRunner
+					.withPropertyValues(
+							"spring.cloud.aws.region.static:us-east-1",
+							"spring.cloud.aws.credentials.profile.name:test-profile"
+					)
+					.run(context -> {
+						assertThat(context).hasSingleBean(AwsCredentialsProvider.class);
+						assertThat(context).hasSingleBean(S3Client.class);
+						
+						AwsCredentialsProvider provider = context.getBean(AwsCredentialsProvider.class);
+						assertThat(provider).isNotNull()
+								.isInstanceOf(ProfileCredentialsProvider.class);
+						
+						S3Client s3Client = context.getBean(S3Client.class);
+						assertThat(s3Client).isNotNull();
+					});
+		}
+	}
+
+	@Nested
+	class CustomConfigurationTests {
+
+		@Test
+		void customAwsClientBuilderConfigurerIsRespected() {
+			contextRunner
+					.withUserConfiguration(CustomAwsClientBuilderConfigurerConfiguration.class)
+					.run(context -> {
+						assertThat(context).hasBean("awsClientBuilderConfigurer");
+						assertThat(context).hasBean("customAwsClientBuilderConfigurer");
+						assertThat(context).hasSingleBean(S3Client.class);
+						
+						AwsClientBuilderConfigurer configurer = context.getBean(AwsClientBuilderConfigurer.class);
+						assertThat(configurer).isInstanceOf(CustomAwsClientBuilderConfigurerConfiguration.TestAwsClientBuilderConfigurer.class);
+					});
+		}
+
+		@TestConfiguration
+		static class CustomAwsClientBuilderConfigurerConfiguration {
+			@Bean
+			@Primary
+			AwsClientBuilderConfigurer customAwsClientBuilderConfigurer(AwsCredentialsProvider credentialsProvider,
+					AwsRegionProvider regionProvider, AwsProperties awsProperties) {
+				return new TestAwsClientBuilderConfigurer(credentialsProvider, regionProvider, awsProperties);
+			}
+			
+			static class TestAwsClientBuilderConfigurer extends AwsClientBuilderConfigurer {
+				public TestAwsClientBuilderConfigurer(AwsCredentialsProvider credentialsProvider,
+						AwsRegionProvider regionProvider, AwsProperties awsProperties) {
+					super(credentialsProvider, regionProvider, awsProperties);
+				}
+			}
+		}
 	}
 
 	private static AttributeMap.Builder resolveAttributeMap(S3ClientBuilder s3ClientBuilder) {
