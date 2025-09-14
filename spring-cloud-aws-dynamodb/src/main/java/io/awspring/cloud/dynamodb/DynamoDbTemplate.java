@@ -16,10 +16,8 @@
 package io.awspring.cloud.dynamodb;
 
 import java.util.Collections;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -54,7 +52,7 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	}
 
 	public DynamoDbTemplate(DynamoDbEnhancedClient dynamoDbEnhancedClient,
-							DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver, DynamoDbTableNameResolver tableNameResolver) {
+			DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver, DynamoDbTableNameResolver tableNameResolver) {
 		this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
 		this.dynamoDbTableSchemaResolver = dynamoDbTableSchemaResolver;
 		this.tableNameResolver = tableNameResolver;

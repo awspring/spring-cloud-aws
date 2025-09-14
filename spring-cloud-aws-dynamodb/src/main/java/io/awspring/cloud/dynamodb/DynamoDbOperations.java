@@ -16,7 +16,6 @@
 package io.awspring.cloud.dynamodb;
 
 import org.springframework.lang.Nullable;
-
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -52,7 +51,7 @@ public interface DynamoDbOperations {
 	 * Updates Entity with configurations like ignore null to DynamoDB table.
 	 *
 	 * @param request - UpdateItemEnhancedRequest with entity and configurations to be saved.
-	 * @param <T>     Type of Entity object.
+	 * @param <T> Type of Entity object.
 	 */
 	<T> T update(UpdateItemEnhancedRequest<T> request);
 

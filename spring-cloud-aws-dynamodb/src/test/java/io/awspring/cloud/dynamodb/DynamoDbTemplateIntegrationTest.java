@@ -28,12 +28,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.enhanced.dynamodb.*;
+import software.amazon.awssdk.enhanced.dynamodb.model.*;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
-import software.amazon.awssdk.enhanced.dynamodb.model.*;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
@@ -96,7 +95,7 @@ public class DynamoDbTemplateIntegrationTest implements LocalstackContainerTest 
 	@ParameterizedTest
 	@MethodSource("argumentSource")
 	void dynamoDbTemplate_saveUpdateAndRead_entitySuccessful(DynamoDbTable<PersonEntity> dynamoDbTable,
-															 DynamoDbTemplate dynamoDbTemplate) {
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
@@ -104,12 +103,10 @@ public class DynamoDbTemplateIntegrationTest implements LocalstackContainerTest 
 		personEntity.setLastName("xxx");
 		dynamoDbTemplate.update(personEntity);
 
-
 		Key key = Key.builder().partitionValue(personEntity.getUuid().toString()).build();
 
 		assertThat(dynamoDbTemplate.load(key, PersonEntity.class))
-				.extracting(PersonEntity::getName, PersonEntity::getLastName)
-				.containsExactly(null, "xxx");
+				.extracting(PersonEntity::getName, PersonEntity::getLastName).containsExactly(null, "xxx");
 
 		// clean up
 		cleanUp(dynamoDbTable, personEntity.getUuid());
@@ -118,23 +115,20 @@ public class DynamoDbTemplateIntegrationTest implements LocalstackContainerTest 
 	@ParameterizedTest
 	@MethodSource("argumentSource")
 	void dynamoDbTemplate_saveUpdateIgnoreNullAndRead_entitySuccessful(DynamoDbTable<PersonEntity> dynamoDbTable,
-																	   DynamoDbTemplate dynamoDbTemplate) {
+			DynamoDbTemplate dynamoDbTemplate) {
 		PersonEntity personEntity = new PersonEntity(UUID.randomUUID(), "foo", "bar");
 		dynamoDbTemplate.save(personEntity);
 
 		personEntity.setName(null);
 		personEntity.setLastName("xxx");
 		UpdateItemEnhancedRequest<PersonEntity> request = UpdateItemEnhancedRequest.builder(PersonEntity.class)
-				.item(personEntity)
-				.ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY)
-				.build();
+				.item(personEntity).ignoreNullsMode(IgnoreNullsMode.SCALAR_ONLY).build();
 		dynamoDbTemplate.update(request);
 
 		Key key = Key.builder().partitionValue(personEntity.getUuid().toString()).build();
 
 		assertThat(dynamoDbTemplate.load(key, PersonEntity.class))
-				.extracting(PersonEntity::getName, PersonEntity::getLastName)
-				.containsExactly("foo", "xxx");
+				.extracting(PersonEntity::getName, PersonEntity::getLastName).containsExactly("foo", "xxx");
 
 		// clean up
 		cleanUp(dynamoDbTable, personEntity.getUuid());
@@ -333,10 +327,8 @@ public class DynamoDbTemplateIntegrationTest implements LocalstackContainerTest 
 	}
 
 	private static Stream<Arguments> argumentSource() {
-		return Stream.of(
-				Arguments.of(dynamoDbTable, dynamoDbTemplate),
-				Arguments.of(prefixedDynamoDbTable, prefixedDynamoDbTemplate)
-		);
+		return Stream.of(Arguments.of(dynamoDbTable, dynamoDbTemplate),
+				Arguments.of(prefixedDynamoDbTable, prefixedDynamoDbTemplate));
 	}
 
 	private static void describeAndCreateTable(DynamoDbClient dynamoDbClient, @Nullable String tablePrefix) {
