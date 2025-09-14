@@ -2299,3 +2299,46 @@ Sample IAM policy granting access to SQS:
             "Resource": "yourARN"
         }
 ----
+
+=== Spring Integration Support
+
+Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon SQS.
+
+The `SqsMessageHandler` is for publishing a single message (or their batch) to SQS queue configured explicitly on the `SqsMessageHandler` or resolved via SpEL expression against the request message.
+The logic of this `MessageHandler` is to consume Spring Integration messages from an `inputChannel` and internally it is heavily based on the `SqsAsyncOperations` mentioned above.
+When the `SqsMessageHandler` is set into an `async` mode, the result of the send operation is produced as a reply message into the `outputChannel`.
+For a single request, the reply message is created based on the `SendResult`.
+With request message payload as a `Collection<Message<?>>`, the `SqsAsyncOperations.sendManyAsync()` is performed; the `SendResult.Batch` is produced as is as a payload of the reply message.
+The minimal configuration for this channel adapter is as follows:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "sqsSendChannel")
+MessageHandler sqsMessageHandler(SqsAsyncOperations sqsAsyncOperations) {
+    SqsMessageHandler sqsMessageHandler = new SqsMessageHandler(sqsAsyncOperations);
+    sqsMessageHandler.setQueue("queue1");
+    return sqsMessageHandler;
+}
+----
+
+The `SqsMessageDrivenChannelAdapter` is for consuming messages from one or more SQS queues.
+This channel adapter requires an `SqsAsyncClient` and internally is heavily based on the `SqsMessageListenerContainer` mentioned above.
+The `SqsContainerOptions` can be injected for further listener container customization.
+The consumed messages are then produced to the `outputChannel` for further Spring Integration processing.
+If the `ListenerMode` on the `SqsContainerOptions` is set to `BATCH`, the received `Collection<Message<?>>` is wrapped into a single message to produce.
+The Spring Integration https://docs.spring.io/spring-integration/reference/splitter.html[splitter] pattern could be used downstream for per-message processing.
+The minimal configuration for this channel adapter is as follows:
+
+[source,java]
+----
+@Bean
+MessageProducer sqsMessageDrivenChannelAdapter(SqsAsyncClient sqsAsyncClient) {
+    SqsMessageDrivenChannelAdapter adapter = new SqsMessageDrivenChannelAdapter(sqsAsyncClient, "testQueue");
+    adapter.setOutputChannelName("inputChannel");
+    return adapter;
+}
+----
+
+The Spring Integration dependency in the `spring-cloud-aws-sqs` module is `optional` to avoid unnecessary artifacts on classpath when Spring Integration is not used.
+For convenience, a dedicated `spring-cloud-aws-starter-integration-sqs` is provided managing all the required dependencies for Spring Integration support with Amazon SQS.
