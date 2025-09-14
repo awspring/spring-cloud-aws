@@ -9,7 +9,7 @@ Compared to JMS or other message services Amazon SQS has limitations that should
 
 * Amazon SQS allows only `String` payloads, so any `Object` must be transformed into a String representation.
 Spring Cloud AWS has dedicated support to transfer Java objects with Amazon SQS messages by converting them to JSON.
-* Amazon SQS has a maximum message size of 256kb per message, so bigger messages will fail to be sent.
+* Amazon SQS has a maximum message size of 1MiB per message, so bigger messages will fail to be sent.
 
 A Spring Boot starter is provided to auto-configure SQS integration beans.
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
@@ -694,6 +694,20 @@ public void listen(@SnsNotificationSubject String subject, @SnsNotificationMessa
 }
 ----
 
+Since 3.4.1, the complete SNS notification can be received with all its metadata using the `SnsNotification<T>` wrapper class. This provides access to both the message payload and all the metadata such as messageId, topicArn, subject, timestamp, and message attributes.
+
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(SnsNotification<Pojo> notification) {
+    String messageId = notification.getMessageId();
+    String topicArn = notification.getTopicArn();
+    notification.getSubject().ifPresent(subject -> System.out.println("Subject: " + subject));
+    Pojo message = notification.getMessage();
+    System.out.println("Message from topic " + topicArn + " with ID " + messageId + ": " + message);
+}
+----
+
 ===== Specifying a MessageListenerContainerFactory
 A `MessageListenerContainerFactory` can be specified through the `factory` property.
 Such factory will then be used to create the container for the annotated method.
@@ -738,6 +752,8 @@ A number of possible argument types are allowed in the listener method's signatu
 - `Message<MyPojo>` - Provides a `Message<MyPojo>` instance with the deserialized payload and `MessageHeaders`.
 - `List<MyPojo>` - Enables batch mode and receives the batch that was polled from SQS.
 - `List<Message<MyPojo>>` - Enables batch mode and receives the batch that was polled from SQS along with headers.
+- `SnsNotification<MyPojo>` - Provides access to both the message payload and all the metadata of an SNS notification.
+See <<SNS Messages>> for more information.
 - `@Header(String headerName)` - provides the specified header.
 - `@Headers` - provides the `MessageHeaders` or a `Map<String, Object>`
 - `Acknowledgement` - provides methods for manually acknowledging messages for single message listeners.
@@ -789,7 +805,6 @@ Alternatively, `SqsContainerOptions` can be set to `ListenerMode.BATCH` in the `
 NOTE: The same factory can be used to create both `single message` and `batch` containers for `@SqsListener` methods.
 
 IMPORTANT: In case the same factory is shared by both delivery methods, any supplied `ErrorHandler`, `MessageInterceptor` or `MessageListener` should implement the proper methods.
-
 
 ==== Container Options
 
@@ -858,6 +873,7 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 | <<maxMessagesPerPoll, `spring.cloud.aws.sqs.listener.max-messages-per-poll`>> | Maximum number of messages to be received per poll. | No | 10
 | <<pollTimeout, `spring.cloud.aws.sqs.listener.poll-timeout`>> | Maximum amount of time to wait for messages in a poll. | No | 10 seconds
 | <<maxDelayBetweenPolls, `spring.cloud.aws.sqs.listener.max-delay-between-polls`>> | Maximum amount of time to wait between polls. | No | 10 seconds
+| `spring.cloud.aws.sqs.listener.auto-startup` | Defines whether SQS listeners are started automatically or not. | No | true
 | `spring.cloud.aws.sqs.queue-not-found-strategy`  | The strategy to be used by SqsTemplate and SqsListeners when a queue does not exist. | No | CREATE
 | `spring.cloud.aws.sqs.observation-enabled` | Enables observability support for SQS operations. | No | false
 |===
@@ -1380,6 +1396,181 @@ public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFac
 }
 ----
 
+==== Exponential Backoff Full Jitter Error Handler
+This error handler applies an exponential backoff strategy with *full jitter*
+when retrying failed message processing. After calculating the exponential
+visibility timeout using the `ApproximateReceiveCount` message attribute, a
+random value between zero and the computed timeout is selected. The selected
+value becomes the new visibility timeout, spreading retries and helping to
+avoid spikes caused by synchronized retries.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default
+| `initialVisibilityTimeoutSeconds` | Starting visibility timeout (in seconds)
+used on the first receive attempt. | No | 100
+| `multiplier` | Factor applied to the visibility timeout after each retry. A
+value greater than 1 increases the delay exponentially. | No | 2.0
+| `maxVisibilityTimeoutSeconds` | Maximum allowed visibility timeout in seconds.
+| No | 43200
+| `randomSupplier` | Supplier for the random value used to calculate the
+jitter. | No | `ThreadLocalRandom::current`
+|===
+
+NOTE: The maximum visibility timeout allowed by SQS is 43200 seconds (12 hours).
+If the value provided to the `maxVisibilityTimeoutSeconds` parameter exceeds
+this limit, an `IllegalArgumentException` will be thrown.
+
+When using auto-configured factory, simply declare a `@Bean` and the error
+handler will be set
+
+[source, java]
+----
+@Bean
+public ExponentialBackoffErrorHandlerWithFullJitter<Object> asyncErrorHandler() {
+        return ExponentialBackoffErrorHandlerWithFullJitter
+                .builder()
+                .initialVisibilityTimeoutSeconds(1)
+                .multiplier(2)
+                .maxVisibilityTimeoutSeconds(10)
+                .build();
+}
+----
+
+Alternatively, `ExponentialBackoffErrorHandlerWithFullJitter` can be set in the
+`MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+        return SqsMessageListenerContainerFactory
+                .builder()
+                .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+                .errorHandler(ExponentialBackoffErrorHandlerWithFullJitter
+                        .builder()
+                        .initialVisibilityTimeoutSeconds(1)
+                        .multiplier(2)
+                        .maxVisibilityTimeoutSeconds(10)
+                        .build())
+                .build();
+}
+----
+
+==== Exponential Backoff Half Jitter Error Handler
+This variant also computes the visibility timeout exponentially but applies
+*half jitter*. The exponential delay is halved and a random value between zero
+and this half is added to it. The resulting timeout is then used to change the
+message visibility.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default
+| `initialVisibilityTimeoutSeconds` | Starting visibility timeout (in seconds)
+used on the first receive attempt. | No | 100
+| `multiplier` | Factor applied to the visibility timeout after each retry. A
+value greater than 1 increases the delay exponentially. | No | 2.0
+| `maxVisibilityTimeoutSeconds` | Maximum allowed visibility timeout in seconds.
+| No | 43200
+| `randomSupplier` | Supplier for the random value used to calculate the
+jitter. | No | `ThreadLocalRandom::current`
+|===
+
+NOTE: The maximum visibility timeout allowed by SQS is 43200 seconds (12 hours).
+If the value provided to the `maxVisibilityTimeoutSeconds` parameter exceeds
+this limit, an `IllegalArgumentException` will be thrown.
+
+When using auto-configured factory, simply declare a `@Bean` and the error
+handler will be set
+
+[source, java]
+----
+@Bean
+public ExponentialBackoffErrorHandlerWithHalfJitter<Object> asyncErrorHandler() {
+        return ExponentialBackoffErrorHandlerWithHalfJitter
+                .builder()
+                .initialVisibilityTimeoutSeconds(1)
+                .multiplier(2)
+                .maxVisibilityTimeoutSeconds(10)
+                .build();
+}
+----
+
+Alternatively, `ExponentialBackoffErrorHandlerWithHalfJitter` can be set in the
+`MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+        return SqsMessageListenerContainerFactory
+                .builder()
+                .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+                .errorHandler(ExponentialBackoffErrorHandlerWithHalfJitter
+                        .builder()
+                        .initialVisibilityTimeoutSeconds(1)
+                        .multiplier(2)
+                        .maxVisibilityTimeoutSeconds(10)
+                        .build())
+                .build();
+}
+----
+
+==== Linear Backoff Error Handler
+`LinearBackoffErrorHandler` increases the visibility timeout linearly whenever a
+message processing attempt fails. Instead of exponential growth, the timeout is
+incremented by a fixed value on each retry until the maximum is reached.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default
+| `initialVisibilityTimeoutSeconds` | Initial visibility timeout (in seconds) for
+the first processing attempt. | No | 100
+| `increment` | Amount of seconds added to the visibility timeout after each
+retry. | No | 2
+| `maxVisibilityTimeoutSeconds` | Maximum allowed visibility timeout in seconds.
+| No | 43200
+|===
+
+NOTE: The maximum visibility timeout allowed by SQS is 43200 seconds (12 hours).
+If the value provided to the `maxVisibilityTimeoutSeconds` parameter exceeds
+this limit, an `IllegalArgumentException` will be thrown.
+
+When using auto-configured factory, simply declare a `@Bean` and the error
+handler will be set
+
+[source, java]
+----
+@Bean
+public LinearBackoffErrorHandler<Object> asyncErrorHandler() {
+        return LinearBackoffErrorHandler
+                .builder()
+                .initialVisibilityTimeoutSeconds(1)
+                .increment(2)
+                .maxVisibilityTimeoutSeconds(10)
+                .build();
+}
+----
+
+Alternatively, `LinearBackoffErrorHandler` can be set in the
+`MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
+@Bean
+public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory() {
+        return SqsMessageListenerContainerFactory
+                .builder()
+                .sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+                .errorHandler(LinearBackoffErrorHandler
+                        .builder()
+                        .initialVisibilityTimeoutSeconds(1)
+                        .increment(2)
+                        .maxVisibilityTimeoutSeconds(10)
+                        .build())
+                .build();
+}
+----
 === Message Conversion and Payload Deserialization
 
 Payloads are automatically deserialized from `JSON` for `@SqsListener` annotated methods using a `MappingJackson2MessageConverter`.
@@ -1785,6 +1976,7 @@ If after the 5 seconds for `maxDelayBetweenPolls` 6 messages have been processed
 If the queue is depleted and a poll returns no messages, it'll enter `low throughput` mode again and perform only one poll at a time.
 
 ==== Configuring BackPressureMode
+The default `BackPressureHandler` can be configured to optimize the polling behavior based on the application's throughput requirements.
 The following `BackPressureMode` values can be set in `SqsContainerOptions` to configure polling behavior:
 
 * `AUTO` - The default mode, as described in the previous section.
@@ -1794,6 +1986,70 @@ Useful for optimizing for fewer polls at the expense of throughput.
 Useful for really high throughput scenarios where the risk of making parallel polls to an idle queue is preferable to an eventual switch to `low throughput mode` .
 
 NOTE: The `AUTO` setting should be balanced for most use cases, including high throughput ones.
+
+==== Advanced Backpressure management
+
+Even though the default `BackPressureHandler` should be enough for most use cases, there are scenarios where more fine-grained control over message consumption is required not to overwhelm downstream systems or exceed resource limits.
+In such a case, it is necessary to replace the default `BackPressureHandler` with a custom one that implements the `BackPressureHandler` interface.
+A `backPressureHandlerFactory` can be set in  `SqsContainerOptions` to configure which `BackPressureHandler` to use.
+
+===== What is a BackPressureHandler?
+
+A `BackPressureHandler` is an interface that determines whether the container should apply backpressure (i.e., slow down or pause polling) based on the current state of the system.
+It is invoked before each poll to SQS and can prevent polling or poll for fewer messages if certain conditions are met, e.g., too many inflight messages, custom resource constraints, etc.
+
+===== Creating a custom BackPressureHandler
+
+To implement a custom backpressure logic, the `BackPressureHandler` interface must be implemented.
+
+A `SqsMessageListenerContainer` can be configured to use the desired  `BackPressureHandler` by setting the `backPressureHandlerFactory` on the `ContainerOptions`.
+
+```java
+SqsMessageListenerContainer container = SqsMessageListenerContainer.builder()
+    .configure(options -> options
+        .backPressureHandlerFactory(containerOptions -> new CustomBackPressureHandler())
+        // ... other options
+    )
+    // ... other container settings ...
+    .build();
+```
+
+===== Combining Multiple BackPressureHandlers
+
+If necessary, multiple `BackPressureHandler` can be combined by using the `CompositeBackPressureHandler`.
+Each of the `BackPressureHandler` (which we'll call delegates) are chained in the order they are provided.
+The first delegate will be requested the initial amount of permits and will return the number of permits it accepts to grant.
+The second delegate will get that potentially reduced number of permits as a request and might in turn reduce it further.
+The process continues until all delegates have been called or one of them returns 0, which will prevent the polling of messages from SQS.
+
+For example, to implement the `BackPressureMode.ALWAYS_POLL_MAX_MESSAGES` strategy, we can combine a concurrency limiter, an adaptative throughput handler, and a "full batch only" handler.
+The resulting `CompositeBackPressureHandler` looks like this:
+
+```java
+Duration maxIdleWaitTime = Duration.ofMillis(50L);
+List<BackPressureHandler> backPressureHandlers = List.of(
+    BackPressureHandlerFactories.concurrencyLimiterBackPressureHandler(options),
+    BackPressureHandlerFactories.throughputBackPressureHandler(options),
+    BackPressureHandlerFactories.fullBatchBackPressureHandler(options)
+);
+CompositeBackPressureHandler backPressureHandler = BackPressureHandlerFactories.compositeBackPressureHandler(
+    options, maxIdleWaitTime, backPressureHandlers);
+```
+
+===== Built-in BackPressureHandlers
+
+Spring Cloud AWS provides several built-in `BackPressureHandler` implementations:
+
+- `ConcurrencyLimiterBackPressureHandler`: Limits the number of messages being processed concurrently.
+- `ThroughputBackPressureHandler`: Switches between high and low throughput modes. In high throughput mode, multiple polls can be done in parallel.
+In low throughput mode, only one poll is done at a time.
+- `FullBatchBackPressureHandler`: Ensure polls will always be done with a full batch of messages, meaning that the number of messages polled will always be equal to `maxMessagesPerPoll` if possible or `0` if not possible.
+This `FullBatchBackPressureHandler` must always be the last in the chain for it to work properly.
+
+The `BackPressureHandlerFactories` class provides factory methods to create these handlers easily.
+These handlers can be used directly or combined with custom ones using the `CompositeBackPressureHandler` to fit the application's needs.
+
+Additionally, the `BackPressureHandlerFactories#adaptativeThroughputBackPressureHandler` factory method combines the `ConcurrencyLimiterBackPressureHandler`, `ThroughputBackPressureHandler`, and `FullBatchBackPressureHandler` as per the desired `BackPressureMode`.
 
 === Blocking and Non-Blocking (Async) Components
 
@@ -1948,7 +2204,7 @@ SqsListenerObservation.Convention sqsListenerObservationConvention() {
                    .and("messaging.operation", "receive")
                    .and("custom.tag", "custom-value");
         }
-        
+
         @Override
         public KeyValues getHighCardinalityKeyValues(SqsListenerObservation.Context context) {
             String paymentId = MessageHeaderUtils.getHeaderAsString(context.getMessage(), "payment-id-header-name");
@@ -2043,3 +2299,46 @@ Sample IAM policy granting access to SQS:
             "Resource": "yourARN"
         }
 ----
+
+=== Spring Integration Support
+
+Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon SQS.
+
+The `SqsMessageHandler` is for publishing a single message (or their batch) to SQS queue configured explicitly on the `SqsMessageHandler` or resolved via SpEL expression against the request message.
+The logic of this `MessageHandler` is to consume Spring Integration messages from an `inputChannel` and internally it is heavily based on the `SqsAsyncOperations` mentioned above.
+When the `SqsMessageHandler` is set into an `async` mode, the result of the send operation is produced as a reply message into the `outputChannel`.
+For a single request, the reply message is created based on the `SendResult`.
+With request message payload as a `Collection<Message<?>>`, the `SqsAsyncOperations.sendManyAsync()` is performed; the `SendResult.Batch` is produced as is as a payload of the reply message.
+The minimal configuration for this channel adapter is as follows:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "sqsSendChannel")
+MessageHandler sqsMessageHandler(SqsAsyncOperations sqsAsyncOperations) {
+    SqsMessageHandler sqsMessageHandler = new SqsMessageHandler(sqsAsyncOperations);
+    sqsMessageHandler.setQueue("queue1");
+    return sqsMessageHandler;
+}
+----
+
+The `SqsMessageDrivenChannelAdapter` is for consuming messages from one or more SQS queues.
+This channel adapter requires an `SqsAsyncClient` and internally is heavily based on the `SqsMessageListenerContainer` mentioned above.
+The `SqsContainerOptions` can be injected for further listener container customization.
+The consumed messages are then produced to the `outputChannel` for further Spring Integration processing.
+If the `ListenerMode` on the `SqsContainerOptions` is set to `BATCH`, the received `Collection<Message<?>>` is wrapped into a single message to produce.
+The Spring Integration https://docs.spring.io/spring-integration/reference/splitter.html[splitter] pattern could be used downstream for per-message processing.
+The minimal configuration for this channel adapter is as follows:
+
+[source,java]
+----
+@Bean
+MessageProducer sqsMessageDrivenChannelAdapter(SqsAsyncClient sqsAsyncClient) {
+    SqsMessageDrivenChannelAdapter adapter = new SqsMessageDrivenChannelAdapter(sqsAsyncClient, "testQueue");
+    adapter.setOutputChannelName("inputChannel");
+    return adapter;
+}
+----
+
+The Spring Integration dependency in the `spring-cloud-aws-sqs` module is `optional` to avoid unnecessary artifacts on classpath when Spring Integration is not used.
+For convenience, a dedicated `spring-cloud-aws-starter-integration-sqs` is provided managing all the required dependencies for Spring Integration support with Amazon SQS.

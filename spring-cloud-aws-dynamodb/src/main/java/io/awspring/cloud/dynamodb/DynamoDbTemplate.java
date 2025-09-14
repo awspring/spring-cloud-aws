@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 
 /**
  * Default implementation of {@link DynamoDbOperations}.
@@ -31,9 +32,11 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
  * @author Matej Nedic
  * @author Arun Patra
  * @author Maciej Walkowiak
+ * @author Marcus Voltolim
  * @since 3.0
  */
 public class DynamoDbTemplate implements DynamoDbOperations {
+
 	private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
 	private final DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver;
 	private final DynamoDbTableNameResolver tableNameResolver;
@@ -64,6 +67,12 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	public <T> T update(T entity) {
 		Assert.notNull(entity, "entity is required");
 		return prepareTable(entity).updateItem(entity);
+	}
+
+	@Override
+	public <T> T update(UpdateItemEnhancedRequest<T> request) {
+		Assert.notNull(request, "updateItemEnhancedRequest is required");
+		return prepareTable(request.item()).updateItem(request);
 	}
 
 	public <T> T delete(Key key, Class<T> clazz) {

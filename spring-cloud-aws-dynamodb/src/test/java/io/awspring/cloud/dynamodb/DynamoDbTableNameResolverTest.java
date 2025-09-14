@@ -28,22 +28,22 @@ import org.junit.jupiter.api.Test;
  */
 class DynamoDbTableNameResolverTest {
 
-	private static final DefaultDynamoDbTableNameResolver tableNameResolver = new DefaultDynamoDbTableNameResolver(
-			null);
+	private final DefaultDynamoDbTableNameResolver tableNameResolver = new DefaultDynamoDbTableNameResolver();
 
-	private static final DefaultDynamoDbTableNameResolver prefixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
+	private final DefaultDynamoDbTableNameResolver prefixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
 			"my_prefix_");
 
-	private static final DefaultDynamoDbTableNameResolver prefixedAndSuffixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
+	private final DefaultDynamoDbTableNameResolver prefixedAndSuffixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
 			"my_prefix_", "_my_suffix");
 
-	private static final DefaultDynamoDbTableNameResolver prefixedAndSuffixedTableAndSeparatorTableNameResolver = new DefaultDynamoDbTableNameResolver(
+	private final DefaultDynamoDbTableNameResolver prefixedAndSuffixedTableAndSeparatorTableNameResolver = new DefaultDynamoDbTableNameResolver(
 			"prefix-", "-suffix", "-");
 
 	@Test
 	void resolveTableNameSuccessfully() {
 		assertThat(tableNameResolver.resolve(MoreComplexPerson.class)).isEqualTo("more_complex_person");
 		assertThat(tableNameResolver.resolve(Person.class)).isEqualTo("person");
+		assertThat(tableNameResolver.getTableNameCache()).hasSize(2);
 	}
 
 	@Test
@@ -51,6 +51,7 @@ class DynamoDbTableNameResolverTest {
 		assertThat(prefixedTableNameResolver.resolve(MoreComplexPerson.class))
 				.isEqualTo("my_prefix_more_complex_person");
 		assertThat(prefixedTableNameResolver.resolve(Person.class)).isEqualTo("my_prefix_person");
+		assertThat(prefixedTableNameResolver.getTableNameCache()).hasSize(2);
 	}
 
 	@Test
@@ -58,6 +59,7 @@ class DynamoDbTableNameResolverTest {
 		assertThat(prefixedAndSuffixedTableNameResolver.resolve(MoreComplexPerson.class))
 				.isEqualTo("my_prefix_more_complex_person_my_suffix");
 		assertThat(prefixedAndSuffixedTableNameResolver.resolve(Person.class)).isEqualTo("my_prefix_person_my_suffix");
+		assertThat(prefixedAndSuffixedTableNameResolver.getTableNameCache()).hasSize(2);
 	}
 
 	@Test
@@ -66,22 +68,35 @@ class DynamoDbTableNameResolverTest {
 				.isEqualTo("prefix-more-complex-person-suffix");
 		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.resolve(Person.class))
 				.isEqualTo("prefix-person-suffix");
+		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.getTableNameCache()).hasSize(2);
 	}
 
 	@Test
 	void resolvesTableNameFromRecord() {
 		assertThat(tableNameResolver.resolve(PersonRecord.class)).isEqualTo("person_record");
+		assertThat(tableNameResolver.getTableNameCache()).hasSize(1);
 	}
 
 	@Test
 	void resolvesPrefixedTableNameFromRecord() {
 		assertThat(prefixedTableNameResolver.resolve(PersonRecord.class)).isEqualTo("my_prefix_person_record");
+		assertThat(prefixedTableNameResolver.getTableNameCache()).hasSize(1);
 	}
 
 	@Test
 	void resolvePrefixedAndSuffixedAndSeparatorTableNameFromRecord() {
 		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.resolve(PersonRecord.class))
 				.isEqualTo("prefix-person-record-suffix");
+		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.getTableNameCache()).hasSize(1);
+	}
+
+	@Test
+	void resolveSameTableNameSuccessfully() {
+		assertThat(tableNameResolver.getTableNameCache()).isEmpty();
+		assertThat(tableNameResolver.resolve(MoreComplexPerson.class)).isEqualTo("more_complex_person");
+		assertThat(tableNameResolver.resolve(MoreComplexPerson.class)).isEqualTo("more_complex_person");
+		assertThat(tableNameResolver.resolve(MoreComplexPerson.class)).isEqualTo("more_complex_person");
+		assertThat(tableNameResolver.getTableNameCache()).hasSize(1);
 	}
 
 	record PersonRecord(String name) {
@@ -92,4 +107,5 @@ class DynamoDbTableNameResolverTest {
 
 	private static class MoreComplexPerson {
 	}
+
 }

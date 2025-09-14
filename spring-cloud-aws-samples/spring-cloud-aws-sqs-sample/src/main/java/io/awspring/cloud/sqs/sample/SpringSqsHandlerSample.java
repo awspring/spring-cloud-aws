@@ -25,8 +25,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Sample class to demonstrate how to handle multiple message types in a single listener
- * with {@link SqsHandler} annotation.
+ * Sample class to demonstrate how to handle multiple message types in a single listener with {@link SqsHandler}
+ * annotation.
  *
  * @author José Iêdo
  */
@@ -37,8 +37,12 @@ public class SpringSqsHandlerSample {
 	public static final String QUEUE_NAME = "multi-method-queue";
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpringSqsHandlerSample.class);
 
-	private interface BaseMessage { }
-	private record SampleRecord(String propertyOne, String propertyTwo) { }
+	private interface BaseMessage {
+	}
+
+	private record SampleRecord(String propertyOne, String propertyTwo) {
+	}
+
 	private record AnotherSampleRecord(String propertyOne, String propertyTwo) implements BaseMessage { }
 
 	@SqsHandler
@@ -55,7 +59,6 @@ public class SpringSqsHandlerSample {
 	void handleMessage(Object message) {
 		LOGGER.info("Received message of type Object: {}", message);
 	}
-
 
 	@Bean
 	public ApplicationRunner sendMessageToQueueWithMultipleHandlers(SqsTemplate sqsTemplate) {

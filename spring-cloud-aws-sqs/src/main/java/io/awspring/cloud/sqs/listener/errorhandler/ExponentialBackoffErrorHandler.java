@@ -104,9 +104,8 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 	}
 
 	private int calculateTimeout(long receiveMessageCount) {
-		double exponential = initialVisibilityTimeoutSeconds * Math.pow(multiplier, receiveMessageCount - 1);
-		int seconds = (int) Math.min(exponential, (long) Integer.MAX_VALUE);
-		return Math.min(seconds, maxVisibilityTimeoutSeconds);
+		return ErrorHandlerVisibilityHelper.calculateVisibilityTimeoutExponentially(receiveMessageCount,
+				initialVisibilityTimeoutSeconds, multiplier, maxVisibilityTimeoutSeconds);
 	}
 
 	public static <T> Builder<T> builder() {
@@ -115,22 +114,12 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 
 	public static class Builder<T> {
 
-		/**
-		 * The default initial visibility timeout.
-		 */
-		private static final int DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS = 100;
-
-		/**
-		 * The default multiplier, which doubles the visibility timeout.
-		 */
-		private static final double DEFAULT_MULTIPLIER = 2.0;
-
-		private int initialVisibilityTimeoutSeconds = DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS;
-		private double multiplier = DEFAULT_MULTIPLIER;
-		private int maxVisibilityTimeoutSeconds = Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS;
+		private int initialVisibilityTimeoutSeconds = BackoffVisibilityConstants.DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS;
+		private double multiplier = BackoffVisibilityConstants.DEFAULT_MULTIPLIER;
+		private int maxVisibilityTimeoutSeconds = BackoffVisibilityConstants.DEFAULT_MAX_VISIBILITY_TIMEOUT_SECONDS;
 
 		public Builder<T> initialVisibilityTimeoutSeconds(int initialVisibilityTimeoutSeconds) {
-			checkVisibilityTimeout(initialVisibilityTimeoutSeconds);
+			ErrorHandlerVisibilityHelper.checkVisibilityTimeout(initialVisibilityTimeoutSeconds);
 			this.initialVisibilityTimeoutSeconds = initialVisibilityTimeoutSeconds;
 			return this;
 		}
@@ -143,7 +132,7 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 		}
 
 		public Builder<T> maxVisibilityTimeoutSeconds(int maxVisibilityTimeoutSeconds) {
-			checkVisibilityTimeout(maxVisibilityTimeoutSeconds);
+			ErrorHandlerVisibilityHelper.checkVisibilityTimeout(maxVisibilityTimeoutSeconds);
 			this.maxVisibilityTimeoutSeconds = maxVisibilityTimeoutSeconds;
 			return this;
 		}
@@ -151,16 +140,8 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 		public ExponentialBackoffErrorHandler<T> build() {
 			Assert.isTrue(initialVisibilityTimeoutSeconds <= maxVisibilityTimeoutSeconds,
 					"Initial visibility timeout must not exceed max visibility timeout");
-			return new ExponentialBackoffErrorHandler<T>(initialVisibilityTimeoutSeconds, multiplier,
+			return new ExponentialBackoffErrorHandler<>(initialVisibilityTimeoutSeconds, multiplier,
 					maxVisibilityTimeoutSeconds);
-		}
-
-		private void checkVisibilityTimeout(long visibilityTimeout) {
-			Assert.isTrue(visibilityTimeout > 0,
-					() -> "Invalid visibility timeout '" + visibilityTimeout + "'. Should be greater than 0 ");
-			Assert.isTrue(visibilityTimeout <= Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS,
-					() -> "Invalid visibility timeout '" + visibilityTimeout + "'. Should be less than or equal to "
-							+ Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS);
 		}
 	}
 }

@@ -140,7 +140,8 @@ public class MultiMethodSqsEndpoint extends AbstractEndpoint {
 		container.setMessageListener(createMessageListenerInstance(compositeInvocableHandler));
 	}
 
-	protected <T> MessageListener<T> createMessageListenerInstance(CompositeInvocableHandler compositeInvocableHandler) {
+	protected <T> MessageListener<T> createMessageListenerInstance(
+			CompositeInvocableHandler compositeInvocableHandler) {
 		return new MessagingMessageListenerAdapter<>(compositeInvocableHandler);
 	}
 }

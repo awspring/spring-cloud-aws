@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
-		<version>4.3.0</version>
+		<version>5.0.0-M1</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -19,19 +19,19 @@
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws-dependencies</artifactId>
 	<name>Spring Cloud AWS Dependencies</name>
-	<version>3.4.1-SNAPSHOT</version>
+	<version>4.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<properties>
 		<spotless.version>2.31.0</spotless.version>
-		<awssdk-v2.version>2.32.4</awssdk-v2.version>
+		<awssdk-v2.version>2.32.28</awssdk-v2.version>
 		<amazon.dax.version>2.0.5</amazon.dax.version>
 		<amazon.encryption.s3.version>3.3.5</amazon.encryption.s3.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<spring-cloud-commons.version>4.3.0</spring-cloud-commons.version>
+		<spring-cloud-commons.version>5.0.0-M1</spring-cloud-commons.version>
 		<jakarta.mail.version>2.1.3</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>2.0.3</eclipse.jakarta.mail.version>
-		<spring-modulith.version>1.4.0</spring-modulith.version>
+		<spring-modulith.version>2.0.0-M2</spring-modulith.version>
 		<amazon.s3.accessgrants>2.3.0</amazon.s3.accessgrants>
 	</properties>
 
@@ -174,6 +174,12 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-integration-dynamodb</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter-imds</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -205,6 +211,12 @@
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter-sqs</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-integration-sqs</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
