@@ -57,12 +57,4 @@ public class ParameterStorePropertySources {
 		return null;
 	}
 
-	static class AwsParameterPropertySourceNotFoundException extends RuntimeException {
-
-		AwsParameterPropertySourceNotFoundException(Exception source) {
-			super(source);
-		}
-
-	}
-
 }
