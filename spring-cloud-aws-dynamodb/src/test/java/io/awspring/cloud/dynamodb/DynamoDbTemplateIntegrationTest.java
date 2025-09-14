@@ -339,7 +339,7 @@ public class DynamoDbTemplateIntegrationTest implements LocalstackContainerTest 
 		// save a person with lastName "bar"
 		dynamoDbTemplate.save(personEntity);
 		// attempt to replace person with lastName "jar"
-		dynamoDbTemplate.save(putItemEnhancedRequest, PersonEntity.class);
+		dynamoDbTemplate.save(putItemEnhancedRequest);
 		PersonEntity savedPersonEntity = dynamoDbTemplate.load(
 				Key.builder().partitionValue(secondPersonEntity.getUuid().toString()).build(), PersonEntity.class);
 		assertThat(savedPersonEntity).isEqualTo(secondPersonEntity);
@@ -361,7 +361,7 @@ public class DynamoDbTemplateIntegrationTest implements LocalstackContainerTest 
 		dynamoDbTemplate.save(personEntity);
 		// try to save new lastName "jar" for the same person
 		assertThrows(DynamoDbException.class, () -> {
-			dynamoDbTemplate.save(putItemEnhancedRequest, PersonEntity.class);
+			dynamoDbTemplate.save(putItemEnhancedRequest);
 		});
 
 		cleanUp(dynamoDbTable, personEntity.getUuid());

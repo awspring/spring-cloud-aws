@@ -44,13 +44,11 @@ public interface DynamoDbOperations {
 	/**
 	 * Saves an item in DynamoDB using the provided PutItemEnhancedRequest.
 	 *
-	 * @param putItemEnhancedRequest the request object containing the item to be saved
-	 * @param clazz the class type of the item to be saved so
-	 *     {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
+	 * @param request the request object containing the item to be saved
 	 *
 	 * @see PutItemEnhancedRequest
 	 */
-	<T> void save(PutItemEnhancedRequest<T> putItemEnhancedRequest, Class<T> clazz);
+	<T> void save(PutItemEnhancedRequest<T> request);
 
 	/**
 	 * Updates Entity to DynamoDB table.
@@ -87,13 +85,13 @@ public interface DynamoDbOperations {
 	/**
 	 * Deletes a record for a given DeleteItemEnhancedRequest.
 	 *
-	 * @param deleteItemEnhancedRequest the request object containing the item to be deleted
+	 * @param request the request object containing the item to be deleted
 	 * @param clazz the class type of the item to be deleted so
 	 *     {@link software.amazon.awssdk.enhanced.dynamodb.TableSchema} can be generated.
 	 *
 	 * @see DeleteItemEnhancedRequest
 	 */
-	<T> T delete(DeleteItemEnhancedRequest deleteItemEnhancedRequest, Class<T> clazz);
+	<T> T delete(DeleteItemEnhancedRequest request, Class<T> clazz);
 
 	/**
 	 * Loads entity for a given Key.
