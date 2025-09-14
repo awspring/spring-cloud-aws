@@ -85,6 +85,15 @@ public interface S3Operations {
 	 * you should use {@link S3PathMatchingResourcePatternResolver} or {@link S3Client}
 	 *
 	 * @param bucketName - the bucket name
+	 * @return list of {@link S3Resource}
+	 */
+	List<S3Resource> listAllObjects(String bucketName);
+
+	/**
+	 * Returns some or all (up to 1,000) of the objects in a bucket. Does not handle pagination. If you need pagination
+	 * you should use {@link S3PathMatchingResourcePatternResolver} or {@link S3Client}
+	 *
+	 * @param bucketName - the bucket name
 	 * @param prefix - objects prefix
 	 * @return list of {@link S3Resource}
 	 */
