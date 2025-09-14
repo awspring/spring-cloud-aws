@@ -18,7 +18,6 @@ package io.awspring.cloud.dynamodb;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
@@ -51,7 +50,8 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 		this(tablePrefix, tableSuffix, null);
 	}
 
-	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix, @Nullable String tableSeparator) {
+	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix,
+			@Nullable String tableSeparator) {
 		this.tablePrefix = StringUtils.hasText(tablePrefix) ? tablePrefix : "";
 		this.tableSuffix = StringUtils.hasText(tableSuffix) ? tableSuffix : "";
 		this.tableSeparator = StringUtils.hasText(tableSeparator) ? tableSeparator : "_";
