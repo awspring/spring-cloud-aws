@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.awspring.cloud.sqs.integration;
 
-import java.util.Map;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
-import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,8 +30,9 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
 
 /**
  * @author Artem Bilan
@@ -59,25 +56,14 @@ class SqsMessageDrivenChannelAdapterTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void sqsMessageDrivenChannelAdapter() {
-		Map<String, MessageAttributeValue> attributes =
-			Map.of("someAttribute",
-				MessageAttributeValue.builder()
-					.stringValue("someValue")
-					.dataType("String")
-					.build());
+		Map<String, MessageAttributeValue> attributes = Map.of("someAttribute",
+				MessageAttributeValue.builder().stringValue("someValue").dataType("String").build());
 
-		AMAZON_SQS.sendMessageBatch(request ->
-			request.queueUrl(testQueueUrl)
-				.entries(SendMessageBatchRequestEntry.builder()
-						.messageBody("messageContent")
-						.id("messageContent_id")
-						.messageAttributes(attributes)
-						.build(),
-					SendMessageBatchRequestEntry.builder()
-						.messageBody("messageContent2")
-						.id("messageContent2_id")
-						.messageAttributes(attributes)
-						.build()));
+		AMAZON_SQS.sendMessageBatch(request -> request.queueUrl(testQueueUrl).entries(
+				SendMessageBatchRequestEntry.builder().messageBody("messageContent").id("messageContent_id")
+						.messageAttributes(attributes).build(),
+				SendMessageBatchRequestEntry.builder().messageBody("messageContent2").id("messageContent2_id")
+						.messageAttributes(attributes).build()));
 
 		org.springframework.messaging.Message<?> receive = this.inputChannel.receive(10000);
 		assertThat(receive).isNotNull();
