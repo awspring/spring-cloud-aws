@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs.listener.backpressure;
 
+import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
 import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import java.time.Duration;
 import java.util.Arrays;
@@ -25,15 +26,30 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 /**
- * Blocking {@link BackPressureHandler} implementation that uses a {@link Semaphore} for handling the number of
- * concurrent messages being processed.
+ * A blocking {@link BackPressureHandler} that limits concurrency using a {@link Semaphore}. Suitable for scenarios
+ * requiring strict control over the number of concurrently processed messages.
+ *
+ * <p>
+ * Designed to be used stand-alone or in conjunction with other {@link BackPressureHandler}s within a
+ * {@link CompositeBackPressureHandler}.
+ *
+ * <p>
+ * This handler builds on the original <a href=
+ * "https://github.com/awspring/spring-cloud-aws/blob/v3.4.0/spring-cloud-aws-sqs/src/main/java/io/awspring/cloud/sqs/listener/SemaphoreBackPressureHandler.java">
+ * SemaphoreBackPressureHandler</a>, separating specific responsibilities into a more modular form and enabling
+ * composition with other handlers as part of an extensible backpressure strategy.
  *
  * @see PollingMessageSource
+ * @see BackPressureHandlerFactories
+ * @see CompositeBackPressureHandler
  *
  * @author Loïc Rouchon
+ * @author Tomaz Fernandes
+ *
+ * @since 4.0.0
  */
 public class ConcurrencyLimiterBlockingBackPressureHandler
-		implements BlockingBackPressureHandler, BatchAwareBackPressureHandler, IdentifiableContainerComponent {
+		implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 
 	private static final Logger logger = LoggerFactory.getLogger(ConcurrencyLimiterBlockingBackPressureHandler.class);
 

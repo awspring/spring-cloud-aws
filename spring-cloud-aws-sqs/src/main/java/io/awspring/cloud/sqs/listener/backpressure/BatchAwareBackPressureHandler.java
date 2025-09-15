@@ -13,14 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs.listener.backpressure;
 
 /**
- * Marker interface for a blocking {@link BackPressureHandler}. This handler is used to control the flow of messages in
- * a blocking manner.
+ * {@link BackPressureHandler} specialization that allows requesting batches.
  *
+ * @author Tomaz Fernandes
  * @author Loïc Rouchon
+ * @since 3.0
  */
-public interface BlockingBackPressureHandler extends BackPressureHandler {
+public interface BatchAwareBackPressureHandler extends BackPressureHandler {
+
+	/**
+	 * Request a batch of permits.
+	 * @return the number of permits acquired.
+	 * @throws InterruptedException if the Thread is interrupted while waiting for permits.
+	 */
+	int requestBatch() throws InterruptedException;
 
 }

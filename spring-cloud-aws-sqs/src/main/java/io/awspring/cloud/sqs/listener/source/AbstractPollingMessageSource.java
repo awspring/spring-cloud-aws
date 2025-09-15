@@ -16,9 +16,6 @@
 package io.awspring.cloud.sqs.listener.source;
 
 import io.awspring.cloud.sqs.ConfigUtils;
-import io.awspring.cloud.sqs.listener.BackPressureHandler;
-import io.awspring.cloud.sqs.listener.BackPressureHandler.ReleaseReason;
-import io.awspring.cloud.sqs.listener.BatchAwareBackPressureHandler;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
@@ -27,6 +24,9 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.ExecutingAcknowledgementProcessor;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler.ReleaseReason;
+import io.awspring.cloud.sqs.listener.backpressure.BatchAwareBackPressureHandler;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import java.time.Duration;
 import java.util.ArrayList;

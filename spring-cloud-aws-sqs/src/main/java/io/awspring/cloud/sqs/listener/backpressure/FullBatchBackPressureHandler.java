@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs.listener.backpressure;
 
+import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
 import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import java.time.Duration;
 import org.slf4j.Logger;
@@ -28,9 +29,19 @@ import org.springframework.util.Assert;
  * this limiting mechanism to work, the {@link FullBatchBackPressureHandler} must be used in combination with another
  * {@link BackPressureHandler} and be the last one in the chain of the {@link CompositeBackPressureHandler}
  *
+ * <p>
+ * This handler builds on the original <a href=
+ * "https://github.com/awspring/spring-cloud-aws/blob/v3.4.0/spring-cloud-aws-sqs/src/main/java/io/awspring/cloud/sqs/listener/SemaphoreBackPressureHandler.java">
+ * SemaphoreBackPressureHandler</a>, separating specific responsibilities into a more modular form and enabling
+ * composition with other handlers as part of an extensible backpressure strategy.
+ *
  * @see PollingMessageSource
+ * @see CompositeBackPressureHandler
  *
  * @author Loïc Rouchon
+ * @author Tomaz Fernandes
+ *
+ * @since 4.0.0
  */
 public class FullBatchBackPressureHandler implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 

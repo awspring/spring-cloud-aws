@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs.listener.backpressure;
 
 import java.time.Duration;
 
 /**
  * Abstraction to handle backpressure within a {@link io.awspring.cloud.sqs.listener.source.PollingMessageSource}.
- *
  * Release methods must be thread-safe so that many messages can be processed asynchronously. Example strategies are
  * semaphore-based, rate limiter-based, a mix of both, or any other.
  *
@@ -56,23 +55,7 @@ public interface BackPressureHandler {
 	 * @param amount the amount of permits to release.
 	 * @param reason the reason why the permits were released.
 	 */
-	default void release(int amount, ReleaseReason reason) {
-		release(amount);
-	}
-
-	/**
-	 * Release the specified amount of permits. Each message that has been processed should release one permit, whether
-	 * processing was successful or not.
-	 * @param amount the amount of permits to release.
-	 *
-	 * @deprecated This method is deprecated and will not be called by the Spring Cloud AWS SQS listener anymore.
-	 * Implement {@link #release(int, ReleaseReason)} instead.
-	 */
-	@Deprecated
-	default void release(int amount) {
-		// Do not implement this method. It is not called anymore outside of backward compatibility use cases.
-		// Implement `#release(int amount, ReleaseReason reason)` instead.
-	}
+	void release(int amount, ReleaseReason reason);
 
 	/**
 	 * Attempts to acquire all permits up to the specified timeout. If successful, means all permits were returned and
@@ -82,6 +65,10 @@ public interface BackPressureHandler {
 	 */
 	boolean drain(Duration timeout);
 
+	/**
+	 * @author Loïc Rouchon
+	 * @since 4.0.0
+	 */
 	enum ReleaseReason {
 		/**
 		 * All/Some permits were not used because another BackPressureHandler has a lower permits limit and the permits
