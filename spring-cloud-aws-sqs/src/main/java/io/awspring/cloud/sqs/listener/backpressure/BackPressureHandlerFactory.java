@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs.listener.backpressure;
+
+import io.awspring.cloud.sqs.listener.ContainerOptions;
 
 /**
  * Factory interface for creating {@link BackPressureHandler} instances to manage queue consumption backpressure.
@@ -25,7 +27,11 @@ package io.awspring.cloud.sqs.listener;
  * Default factory implementations can be found in the {@link BackPressureHandlerFactories} class.
  *
  * @author Loïc Rouchon
+ * @author Tomaz Fernandes
+ *
+ * @see BackPressureHandlerFactories
  */
+@FunctionalInterface
 public interface BackPressureHandlerFactory {
 
 	/**
@@ -33,7 +39,7 @@ public interface BackPressureHandlerFactory {
 	 * <p>
 	 * <strong>NOTE:</strong> <em>it is important for the factory to always return a new instance as otherwise it might
 	 * result in a BackPressureHandler internal resources (counters, semaphores, ...) to be shared by multiple
-	 * containers which is very likely not the desired behavior.</em>
+	 * containers, unless that's the desired behavior.</em>
 	 *
 	 * @param containerOptions the container options to use for creating the BackPressureHandler.
 	 * @return the created BackPressureHandler

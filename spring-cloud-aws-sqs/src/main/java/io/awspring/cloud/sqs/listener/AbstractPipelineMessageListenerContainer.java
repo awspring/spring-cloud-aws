@@ -20,6 +20,8 @@ import io.awspring.cloud.sqs.LifecycleHandler;
 import io.awspring.cloud.sqs.MessageExecutionThread;
 import io.awspring.cloud.sqs.MessageExecutionThreadFactory;
 import io.awspring.cloud.sqs.UnsupportedThreadFactoryException;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactory;
 import io.awspring.cloud.sqs.listener.pipeline.AcknowledgementHandlerExecutionStage;
 import io.awspring.cloud.sqs.listener.pipeline.AfterProcessingContextInterceptorExecutionStage;
 import io.awspring.cloud.sqs.listener.pipeline.AfterProcessingInterceptorExecutionStage;

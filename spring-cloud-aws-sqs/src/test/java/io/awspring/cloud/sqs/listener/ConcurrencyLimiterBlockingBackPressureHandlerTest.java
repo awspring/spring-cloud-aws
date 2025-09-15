@@ -17,6 +17,8 @@ package io.awspring.cloud.sqs.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
+import io.awspring.cloud.sqs.listener.backpressure.ConcurrencyLimiterBlockingBackPressureHandler;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

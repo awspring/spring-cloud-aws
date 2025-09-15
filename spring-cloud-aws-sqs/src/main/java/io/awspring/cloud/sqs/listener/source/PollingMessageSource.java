@@ -15,8 +15,8 @@
  */
 package io.awspring.cloud.sqs.listener.source;
 
-import io.awspring.cloud.sqs.listener.BackPressureHandler;
 import io.awspring.cloud.sqs.listener.TaskExecutorAware;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
 import org.springframework.context.SmartLifecycle;
 
 /**

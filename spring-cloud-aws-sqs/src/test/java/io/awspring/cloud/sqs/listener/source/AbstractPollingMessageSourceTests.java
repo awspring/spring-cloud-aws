@@ -23,14 +23,34 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
 import io.awspring.cloud.sqs.MessageExecutionThreadFactory;
-import io.awspring.cloud.sqs.listener.*;
+import io.awspring.cloud.sqs.listener.BackPressureMode;
+import io.awspring.cloud.sqs.listener.ContainerOptions;
+import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactories;
+import io.awspring.cloud.sqs.listener.backpressure.CompositeBackPressureHandler;
+import io.awspring.cloud.sqs.listener.backpressure.ConcurrencyLimiterBlockingBackPressureHandler;
+import io.awspring.cloud.sqs.listener.backpressure.ThroughputBackPressureHandler;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.NoSuchElementException;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -61,8 +81,8 @@ class AbstractPollingMessageSourceTests {
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 				.maxDelayBetweenPolls(Duration.ofMillis(200)).listenerShutdownTimeout(Duration.ZERO).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
-				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.adaptiveThroughputBackPressureHandler()
+				.createBackPressureHandler(options);
 
 		ExecutorService threadPool = Executors.newCachedThreadPool();
 		CountDownLatch pollingCounter = new CountDownLatch(3);
@@ -125,8 +145,8 @@ class AbstractPollingMessageSourceTests {
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 				.maxDelayBetweenPolls(Duration.ofMillis(150)).listenerShutdownTimeout(Duration.ZERO).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
-				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.adaptiveThroughputBackPressureHandler()
+				.createBackPressureHandler(options);
 
 		ExecutorService threadPool = Executors.newCachedThreadPool();
 		CountDownLatch pollingCounter = new CountDownLatch(3);
@@ -212,8 +232,8 @@ class AbstractPollingMessageSourceTests {
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofMillis(150))
 				.listenerShutdownTimeout(Duration.ZERO).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
-				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(200L));
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.adaptiveThroughputBackPressureHandler()
+				.createBackPressureHandler(options);
 		ExecutorService threadPool = Executors
 				.newCachedThreadPool(new MessageExecutionThreadFactory("test " + testCounter.incrementAndGet()));
 		CountDownLatch pollingCounter = new CountDownLatch(4);
@@ -307,8 +327,8 @@ class AbstractPollingMessageSourceTests {
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 				.maxDelayBetweenPolls(Duration.ofMillis(150)).messageConverter(converter)
 				.listenerShutdownTimeout(Duration.ZERO).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
-				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.adaptiveThroughputBackPressureHandler()
+				.createBackPressureHandler(options);
 
 		AtomicInteger messagesInSink = new AtomicInteger(0);
 		AtomicBoolean hasFailed = new AtomicBoolean(false);
@@ -367,8 +387,8 @@ class AbstractPollingMessageSourceTests {
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 				.maxDelayBetweenPolls(Duration.ofMillis(200)).pollBackOffPolicy(policy)
 				.listenerShutdownTimeout(Duration.ZERO).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
-				.adaptativeThroughputBackPressureHandler(options, Duration.ofMillis(100L));
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.adaptiveThroughputBackPressureHandler()
+				.createBackPressureHandler(options);
 
 		var currentPoll = new AtomicInteger(0);
 		var waitThirdPollLatch = new CountDownLatch(4);
@@ -422,9 +442,10 @@ class AbstractPollingMessageSourceTests {
 	void shouldRemovePollingFutureOnException() throws InterruptedException {
 		String testName = "shouldClearPollingFuturesOnException";
 
-		SemaphoreBackPressureHandler backPressureHandler = SemaphoreBackPressureHandler.builder()
-				.acquireTimeout(Duration.ofMillis(100)).batchSize(10).totalPermits(10)
-				.throughputConfiguration(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).build();
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
+			.adaptiveThroughputBackPressureHandler()
+			.createBackPressureHandler(SqsContainerOptions.builder()
+				.maxDelayBetweenPolls(Duration.ofMillis(100)).backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).build());
 
 		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
 			@Override

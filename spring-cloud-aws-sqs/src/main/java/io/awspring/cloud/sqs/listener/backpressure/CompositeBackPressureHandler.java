@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs.listener.backpressure;
 
+import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
+import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -47,7 +49,19 @@ import org.springframework.util.Assert;
  * If no permits were obtained, the {@link #request(int)} method will wait up to {@code noPermitsReturnedWaitTimeout}
  * for a release of permits before returning.
  *
+ * <p>
+ * This handler builds on the original <a href=
+ * "https://github.com/awspring/spring-cloud-aws/blob/v3.4.0/spring-cloud-aws-sqs/src/main/java/io/awspring/cloud/sqs/listener/SemaphoreBackPressureHandler.java">
+ * SemaphoreBackPressureHandler</a>, separating specific responsibilities into a more modular form and enabling
+ * composition with other handlers as part of an extensible backpressure strategy.
+ *
  * @author Loïc Rouchon
+ * @author Tomaz Fernandes
+ *
+ * @see PollingMessageSource
+ * @see BackPressureHandlerFactories
+ *
+ * @since 4.0.0
  */
 public class CompositeBackPressureHandler implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 

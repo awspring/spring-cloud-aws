@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactory;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
@@ -152,7 +153,8 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	/**
 	 * Sets the {@link BackPressureHandlerFactory} for this container. Default is
 	 * {@code AbstractContainerOptions.DEFAULT_BACKPRESSURE_FACTORY} which results in a default
-	 * {@link SemaphoreBackPressureHandler} to be instantiated.
+	 * {@link io.awspring.cloud.sqs.listener.backpressure.CompositeBackPressureHandler} to be instantiated,
+	 * with behavior analogous to the original {@code SemaphoreBackPressureHandler}.
 	 *
 	 * @param backPressureHandlerFactory the BackPressureHandler supplier.
 	 * @return this instance.

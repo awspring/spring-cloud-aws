@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.listener;
+package io.awspring.cloud.sqs.listener.backpressure;
 
+import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
 import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -24,27 +25,40 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 /**
- * Non-blocking {@link BackPressureHandler} implementation that uses a switch between high and low throughput modes.
+ * A non-blocking {@link BackPressureHandler} that dynamically switches between high- and low-throughput modes to
+ * optimize polling behavior based on recent message availability.
+ *
  * <p>
  * <strong>Throughput modes</strong>
  * <ul>
- * <li>In low-throughput mode, a single batch can be requested at a time. The number of permits that will be * delivered
- * is the requested amount or 0 is a batch is already in-flight.</li>
- * <li>In high-throughput mode, multiple batches can be requested at a time. The number of permits that will be
- * delivered is the requested amount.</li>
+ * <li><strong>Low-throughput mode</strong>: Only a single batch may be requested at a time. If a batch is already
+ * in-flight, zero permits are granted.</li>
+ * <li><strong>High-throughput mode</strong>: Multiple batches may be requested concurrently. All requested permits are
+ * granted.</li>
  * </ul>
+ *
  * <p>
- * <strong>Throughput mode switch:</strong> The initial throughput mode is the low-throughput mode. If some messages are
- * fetched, then the throughput mode is switched to high-throughput mode. If no messages are returned fetched by a poll,
- * the throughput mode is switched back to low-throughput mode.
+ * <strong>Throughput mode switching</strong>: The handler starts in low-throughput mode. It switches to high-throughput
+ * mode if messages are returned from a poll, and reverts to low-throughput mode if no messages are returned.
+ *
  * <p>
- * This {@link BackPressureHandler} is designed to be used in combination with another {@link BackPressureHandler} like
- * the {@link ConcurrencyLimiterBlockingBackPressureHandler} that will handle the maximum concurrency level within the
- * application in a blocking way.
+ * Typically used in conjunction with a concurrency-limiting {@link BackPressureHandler} such as
+ * {@link ConcurrencyLimiterBlockingBackPressureHandler}.
+ *
+ * <p>
+ * This handler builds on the original <a href=
+ * "https://github.com/awspring/spring-cloud-aws/blob/v3.4.0/spring-cloud-aws-sqs/src/main/java/io/awspring/cloud/sqs/listener/SemaphoreBackPressureHandler.java">
+ * SemaphoreBackPressureHandler</a>, separating specific responsibilities into a more modular form and enabling
+ * composition with other handlers as part of an extensible backpressure strategy.
  *
  * @see PollingMessageSource
+ * @see CompositeBackPressureHandler
+ * @see BackPressureHandlerFactories
  *
  * @author Loïc Rouchon
+ * @author Tomaz Fernandes
+ *
+ * @since 4.0.0
  */
 public class ThroughputBackPressureHandler implements BackPressureHandler, IdentifiableContainerComponent {
 
