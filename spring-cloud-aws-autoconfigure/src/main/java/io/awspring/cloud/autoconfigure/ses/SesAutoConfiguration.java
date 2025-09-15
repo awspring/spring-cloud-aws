@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.ses;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -36,7 +35,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.javamail.JavaMailSender;
 import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.SesClientBuilder;
 
 /**
  * {@link EnableAutoConfiguration} for {@link SimpleEmailServiceMailSender} and
@@ -56,13 +54,13 @@ public class SesAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public SesClient sesClient(SesProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SesClientBuilder>> configurer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
 			ObjectProvider<SesClientCustomizer> sesClientCustomizers,
 			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
-		return awsClientBuilderConfigurer.configureSyncClient(SesClient.builder(), properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), sesClientCustomizers.orderedStream(),
-				awsSyncClientCustomizers.orderedStream()).build();
+		return awsClientBuilderConfigurer
+				.configureSyncClient(SesClient.builder(), properties, connectionDetails.getIfAvailable(),
+						sesClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream())
+				.build();
 	}
 
 	@Bean

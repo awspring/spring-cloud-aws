@@ -47,8 +47,6 @@ import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
@@ -122,20 +120,6 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			assertThat(context.getEnvironment().getProperty("second.secondMessage"))
 					.isEqualTo("second value from tests");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
-		}
-	}
-
-	@Test
-	void clientIsConfiguredWithConfigurerProvidedToBootstrapRegistry() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
-		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
-
-		try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-parameterstore:/config/spring/")) {
-			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SsmClient.class));
-			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
-			assertThat(ssmClient.getSyncHttpClient()).isNotNull();
 		}
 	}
 
@@ -443,27 +427,6 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	@EnableAutoConfiguration
 	static class App {
 
-	}
-
-	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
-
-		@Override
-		public void initialize(BootstrapRegistry registry) {
-			registry.register(AwsParameterStoreClientCustomizer.class,
-					context -> new AwsParameterStoreClientCustomizer() {
-
-						@Override
-						public ClientOverrideConfiguration overrideConfiguration() {
-							return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828))
-									.build();
-						}
-
-						@Override
-						public SdkHttpClient httpClient() {
-							return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
-						}
-					});
-		}
 	}
 
 	static class CustomizerConfiguration implements BootstrapRegistryInitializer {
