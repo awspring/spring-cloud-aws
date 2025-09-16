@@ -18,10 +18,8 @@ package io.awspring.cloud.autoconfigure.sqs;
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import java.time.Duration;
-import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.Nullable;
-import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 
 /**
  * Properties related to AWS SQS.
@@ -40,22 +38,12 @@ public class SqsProperties extends AwsClientProperties {
 
 	private Listener listener = new Listener();
 
-	private Batch batch = new Batch();
-
 	public Listener getListener() {
 		return this.listener;
 	}
 
 	public void setListener(Listener listener) {
 		this.listener = listener;
-	}
-
-	public Batch getBatch() {
-		return batch;
-	}
-
-	public void setBatch(Batch batch) {
-		this.batch = batch;
 	}
 
 	@Nullable
@@ -165,155 +153,6 @@ public class SqsProperties extends AwsClientProperties {
 		public void setAutoStartup(Boolean autoStartup) {
 			this.autoStartup = autoStartup;
 		}
-
-	}
-
-	/**
-	 * Configuration properties for SQS automatic batching using AWS SDK's {@code SqsAsyncBatchManager}.
-	 * 
-	 * <p>
-	 * Automatic batching improves performance and reduces costs by combining multiple SQS requests into fewer AWS API
-	 * calls. When enabled, Spring Cloud AWS will use a {@code BatchingSqsClientAdapter} that wraps the standard
-	 * {@code SqsAsyncClient} with batching capabilities.
-	 * 
-	 * <p>
-	 * <strong>Important:</strong> Batched operations are processed asynchronously, which may result in false positives
-	 * where method calls appear to succeed locally but fail during actual transmission to AWS. Applications should
-	 * handle the returned {@code CompletableFuture} objects to detect actual transmission errors.
-	 * 
-	 * @since 3.2
-	 */
-	public static class Batch {
-
-		/**
-		 * Enables SQS automatic batching using AWS SDK's SqsAsyncBatchManager.
-		 * 
-		 * <p>
-		 * When set to {@code true}, the {@code SqsAsyncClient} bean will be wrapped with a
-		 * {@code BatchingSqsClientAdapter} that automatically batches requests to improve performance and reduce AWS
-		 * API calls.
-		 * 
-		 * <p>
-		 * Default is {@code false}.
-		 */
-		private boolean enabled = false;
-
-		/**
-		 * The maximum number of messages that can be processed in a single batch. The maximum is 10.
-		 */
-		@Nullable
-		private Integer maxNumberOfMessages;
-
-		/**
-		 * The frequency at which requests are sent to SQS when processing messages in a batch.
-		 */
-		@Nullable
-		private Duration sendBatchFrequency;
-
-		/**
-		 * The visibility timeout to set for messages received in a batch. If unset, the queue default is used.
-		 */
-		@Nullable
-		private Duration visibilityTimeout;
-
-		/**
-		 * The minimum wait duration for a receiveMessage request in a batch. To avoid unnecessary CPU usage, do not set
-		 * this value to 0.
-		 */
-		@Nullable
-		private Duration waitTimeSeconds;
-
-		/**
-		 * The list of system attribute names to request for receiveMessage calls.
-		 */
-		@Nullable
-		private List<MessageSystemAttributeName> systemAttributeNames;
-
-		/**
-		 * The list of attribute names to request for receiveMessage calls.
-		 */
-		@Nullable
-		private List<String> attributeNames;
-
-		/**
-		 * The size of the scheduled thread pool used for batching operations. This thread pool handles periodic batch
-		 * sending and other scheduled tasks.
-		 * 
-		 * <p>
-		 * Default is {@code 5}.
-		 */
-		private int scheduledExecutorPoolSize = 5;
-
-		public boolean isEnabled() {
-			return enabled;
-		}
-
-		public void setEnabled(boolean enabled) {
-			this.enabled = enabled;
-		}
-
-		@Nullable
-		public Integer getMaxNumberOfMessages() {
-			return maxNumberOfMessages;
-		}
-
-		public void setMaxNumberOfMessages(Integer maxNumberOfMessages) {
-			this.maxNumberOfMessages = maxNumberOfMessages;
-		}
-
-		@Nullable
-		public Duration getSendBatchFrequency() {
-			return sendBatchFrequency;
-		}
-
-		public void setSendBatchFrequency(Duration sendBatchFrequency) {
-			this.sendBatchFrequency = sendBatchFrequency;
-		}
-
-		@Nullable
-		public Duration getVisibilityTimeout() {
-			return visibilityTimeout;
-		}
-
-		public void setVisibilityTimeout(Duration visibilityTimeout) {
-			this.visibilityTimeout = visibilityTimeout;
-		}
-
-		@Nullable
-		public Duration getWaitTimeSeconds() {
-			return waitTimeSeconds;
-		}
-
-		public void setWaitTimeSeconds(Duration waitTimeSeconds) {
-			this.waitTimeSeconds = waitTimeSeconds;
-		}
-
-		@Nullable
-		public List<MessageSystemAttributeName> getSystemAttributeNames() {
-			return systemAttributeNames;
-		}
-
-		public void setSystemAttributeNames(List<MessageSystemAttributeName> systemAttributeNames) {
-			this.systemAttributeNames = systemAttributeNames;
-		}
-
-		@Nullable
-		public List<String> getAttributeNames() {
-			return attributeNames;
-		}
-
-		public void setAttributeNames(List<String> attributeNames) {
-			this.attributeNames = attributeNames;
-		}
-
-		public int getScheduledExecutorPoolSize() {
-			return scheduledExecutorPoolSize;
-		}
-
-		public void setScheduledExecutorPoolSize(int scheduledExecutorPoolSize) {
-			this.scheduledExecutorPoolSize = scheduledExecutorPoolSize;
-		}
-
 	}
 
 }

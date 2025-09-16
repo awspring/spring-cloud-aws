@@ -605,7 +605,9 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private ReceiveMessageRequest doCreateReceiveMessageRequest(Duration pollTimeout, Integer maxNumberOfMessages,
 			QueueAttributes attributes, Map<String, Object> additionalHeaders) {
 		ReceiveMessageRequest.Builder builder = ReceiveMessageRequest.builder().queueUrl(attributes.getQueueUrl())
-				.maxNumberOfMessages(maxNumberOfMessages).waitTimeSeconds(toInt(pollTimeout.toSeconds()));
+				.maxNumberOfMessages(maxNumberOfMessages).messageAttributeNames(this.messageAttributeNames)
+				.attributeNamesWithStrings(this.messageSystemAttributeNames)
+				.waitTimeSeconds(toInt(pollTimeout.toSeconds()));
 		if (additionalHeaders.containsKey(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER)) {
 			builder.visibilityTimeout(
 					toInt(getValueAs(additionalHeaders, SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER, Duration.class)
@@ -615,10 +617,6 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			builder.receiveRequestAttemptId(
 					getValueAs(additionalHeaders, SqsHeaders.SQS_RECEIVE_REQUEST_ATTEMPT_ID_HEADER, UUID.class)
 							.toString());
-		}
-		if (!(this.sqsAsyncClient instanceof BatchingSqsClientAdapter)) {
-			builder.messageAttributeNames(this.messageAttributeNames)
-					.attributeNamesWithStrings(this.messageSystemAttributeNames);
 		}
 		return builder.build();
 	}
