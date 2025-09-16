@@ -37,13 +37,14 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 	private final String tablePrefix;
 	private final String tableSuffix;
 	private final String tableSeparator;
+	private final String classNameRemove;
 
 	public DefaultDynamoDbTableNameResolver() {
-		this(null, null, null);
+		this(null);
 	}
 
 	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix) {
-		this(tablePrefix, null, null);
+		this(tablePrefix, null);
 	}
 
 	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix) {
@@ -51,10 +52,17 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 	}
 
 	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix,
-			@Nullable String tableSeparator) {
+											@Nullable String tableSeparator) {
+		this(tablePrefix, tableSuffix, tableSeparator, null);
+	}
+
+	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix,
+											@Nullable String tableSeparator, @Nullable String classNameRemove
+	) {
 		this.tablePrefix = StringUtils.hasText(tablePrefix) ? tablePrefix : "";
 		this.tableSuffix = StringUtils.hasText(tableSuffix) ? tableSuffix : "";
 		this.tableSeparator = StringUtils.hasText(tableSeparator) ? tableSeparator : "_";
+		this.classNameRemove = StringUtils.hasText(classNameRemove) ? classNameRemove : "";
 	}
 
 	@Override
@@ -63,8 +71,11 @@ public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolv
 	}
 
 	private <T> String resolveInternal(Class<T> clazz) {
-		final String className = clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1" + tableSeparator + "$2");
-		return tablePrefix + className.toLowerCase(Locale.ROOT) + tableSuffix;
+		final String className = clazz.getSimpleName()
+									  .replaceFirst(classNameRemove, "")
+									  .replaceAll("(.)(\\p{Lu})", "$1" + tableSeparator + "$2")
+									  .toLowerCase(Locale.ROOT);
+		return tablePrefix + className + tableSuffix;
 	}
 
 	Map<Class<?>, String> getTableNameCache() {
