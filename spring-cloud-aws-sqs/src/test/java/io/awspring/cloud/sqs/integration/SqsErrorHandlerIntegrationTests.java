@@ -214,7 +214,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.sendManyAsync(SUCCESS_EXPONENTIAL_HALF_JITTER_BACKOFF_ERROR_HANDLER_BATCH_QUEUE, messages);
 		logger.debug("Sent message to queue {} with messageBody {}",
 				SUCCESS_EXPONENTIAL_HALF_JITTER_BACKOFF_ERROR_HANDLER_BATCH_QUEUE, messages);
-		await().atLeast(50, TimeUnit.SECONDS).atMost(64, TimeUnit.SECONDS)
+		await().atLeast(32, TimeUnit.SECONDS).atMost(64, TimeUnit.SECONDS)
 				.until(() -> latchContainer.receivesRetryBatchMessageHalfJitterLatch.getCount() == 0);
 	}
 
@@ -638,10 +638,11 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 					.maxMessagesPerPoll(10)
 					.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 					.maxDelayBetweenPolls(Duration.ofSeconds(15)))
-				.errorHandler(ExponentialBackoffErrorHandlerWithFullJitter.builder()
+				.errorHandler(ExponentialBackoffErrorHandler.builder()
 					.initialVisibilityTimeoutSeconds(ExponentialBackOffJitterErrorHandlerListener.initialValueSeconds)
 					.multiplier(ExponentialBackOffJitterErrorHandlerListener.multiplier)
 					.randomSupplier(() -> new MockedRandomNextInt(getRandomFunction()))
+					.jitter(Jitter.FULL)
 					.build())
 				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
 				.build();
@@ -659,10 +660,11 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 					.maxMessagesPerPoll(10)
 					.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 					.maxDelayBetweenPolls(Duration.ofSeconds(15)))
-				.errorHandler(ExponentialBackoffErrorHandlerWithHalfJitter.builder()
+				.errorHandler(ExponentialBackoffErrorHandler.builder()
 					.initialVisibilityTimeoutSeconds(ExponentialBackOffJitterErrorHandlerListener.initialValueSeconds)
 					.multiplier(ExponentialBackOffJitterErrorHandlerListener.multiplier)
 					.randomSupplier(() -> new MockedRandomNextInt(getRandomFunction()))
+					.jitter(Jitter.HALF)
 					.build())
 				.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
 				.build();
@@ -774,13 +776,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		for (int i = 0; i < receiveCount - 1; i++) {
 			long timeout = (long) (ExponentialBackOffJitterErrorHandlerListener.initialValueSeconds
 					* Math.pow(ExponentialBackOffJitterErrorHandlerListener.multiplier, i));
-			if (halfJitter) {
-				long half = timeout / 2;
-				sum += half + (half + 1) / 2;
-			}
-			else {
-				sum += (timeout + 1) / 2;
-			}
+			sum += timeout / 2;
 		}
 		return sum;
 	}
