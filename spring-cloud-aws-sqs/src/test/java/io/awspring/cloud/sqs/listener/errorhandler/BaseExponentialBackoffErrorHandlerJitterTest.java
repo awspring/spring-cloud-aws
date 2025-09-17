@@ -62,39 +62,39 @@ public abstract class BaseExponentialBackoffErrorHandlerJitterTest {
 		}
 
 		CompletableFuture<Void> calculateWithVisibilityTimeoutExpectedHalfJitter(Message<Object> message, Throwable t) {
-			ExponentialBackoffErrorHandlerWithHalfJitter<Object> handler = ExponentialBackoffErrorHandlerWithHalfJitter
-					.builder().randomSupplier(this.randomSupplier)
+			ExponentialBackoffErrorHandler<Object> handler = ExponentialBackoffErrorHandler.builder()
+					.randomSupplier(this.randomSupplier)
 					.initialVisibilityTimeoutSeconds(this.initialVisibilityTimeoutSeconds).multiplier(this.multiplier)
-					.build();
+					.jitter(Jitter.HALF).build();
 
 			return handler.handle(message, t);
 		}
 
 		CompletableFuture<Void> calculateWithVisibilityTimeoutExpectedHalfJitter(Collection<Message<Object>> messages,
 				Throwable t) {
-			ExponentialBackoffErrorHandlerWithHalfJitter<Object> handler = ExponentialBackoffErrorHandlerWithHalfJitter
-					.builder().randomSupplier(this.randomSupplier)
+			ExponentialBackoffErrorHandler<Object> handler = ExponentialBackoffErrorHandler.builder()
+					.randomSupplier(this.randomSupplier)
 					.initialVisibilityTimeoutSeconds(this.initialVisibilityTimeoutSeconds).multiplier(this.multiplier)
-					.build();
+					.jitter(Jitter.HALF).build();
 
 			return handler.handle(messages, t);
 		}
 
 		CompletableFuture<Void> calculateWithVisibilityTimeoutExpectedFullJitter(Message<Object> message, Throwable t) {
-			ExponentialBackoffErrorHandlerWithFullJitter<Object> handler = ExponentialBackoffErrorHandlerWithFullJitter
-					.builder().randomSupplier(this.randomSupplier)
+			ExponentialBackoffErrorHandler<Object> handler = ExponentialBackoffErrorHandler.builder()
+					.randomSupplier(this.randomSupplier)
 					.initialVisibilityTimeoutSeconds(this.initialVisibilityTimeoutSeconds).multiplier(this.multiplier)
-					.build();
+					.jitter(Jitter.FULL).build();
 
 			return handler.handle(message, t);
 		}
 
 		CompletableFuture<Void> calculateWithVisibilityTimeoutExpectedFullJitter(Collection<Message<Object>> messages,
 				Throwable t) {
-			ExponentialBackoffErrorHandlerWithFullJitter<Object> handler = ExponentialBackoffErrorHandlerWithFullJitter
-					.builder().randomSupplier(this.randomSupplier)
+			ExponentialBackoffErrorHandler<Object> handler = ExponentialBackoffErrorHandler.builder()
+					.randomSupplier(this.randomSupplier)
 					.initialVisibilityTimeoutSeconds(this.initialVisibilityTimeoutSeconds).multiplier(this.multiplier)
-					.build();
+					.jitter(Jitter.FULL).build();
 
 			return handler.handle(messages, t);
 		}
@@ -114,7 +114,7 @@ public abstract class BaseExponentialBackoffErrorHandlerJitterTest {
 
 		@Override
 		public int nextInt(int origin, int bound) {
-			return nextInt.apply(bound);
+			return nextInt.apply(bound - origin) + origin;
 		}
 	}
 }
