@@ -296,3 +296,93 @@ Sample IAM policy granting access to SNS:
     ]
 }
 ----
+
+=== Spring Integration Support
+
+Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon SNS.
+
+The `SnsInboundChannelAdapter` is an extension of `HttpRequestHandlingMessagingGateway` and must be as a part of Spring MVC application.
+Its URL must be used from the AWS Management Console to add this endpoint as a subscriber to the SNS Topic.
+However, before receiving any notification itself, this HTTP endpoint must confirm the subscription.
+
+See `SnsInboundChannelAdapter` JavaDocs for more information.
+
+An important option of this adapter to consider is `handleNotificationStatus`.
+This `boolean` flag indicates if the adapter should send `SubscriptionConfirmation/UnsubscribeConfirmation` message to the `output-channel` or not.
+If that is a case, the `SnsHeaders.NOTIFICATION_STATUS_HEADER` message header is present in the message with the `NotificationStatus` object, which can be used in the downstream flow to confirm subscription or not.
+Or "re-confirm" it in the case of `UnsubscribeConfirmation` message.
+
+In addition, the `SnsHeaders.SNS_MESSAGE_TYPE_HEADER` message header is represented to simplify a routing in the downstream flow.
+
+The Java Configuration is pretty simple:
+
+[source,java]
+----
+@SpringBootApplication
+public static class MyConfiguration {
+
+	@Autowired
+	private SnsClient amazonSns;
+
+	@Bean
+    public PollableChannel inputChannel() {
+    	return new QueueChannel();
+    }
+
+    @Bean
+    public HttpRequestHandler sqsMessageDrivenChannelAdapter(PollableChannel inputChannel) {
+    	SnsInboundChannelAdapter adapter = new SnsInboundChannelAdapter(amazonSns(), "/mySampleTopic");
+    	adapter.setRequestChannel(inputChannel);
+    	adapter.setHandleNotificationStatus(true);
+    	return adapter;
+    }
+}
+----
+
+Note: by default, the message `payload` is a `Map` converted from the received Topic JSON message.
+For the convenience a `payload-expression` is provided with the `Message` as a root object of the evaluation context.
+Hence, even some HTTP headers, populated by the `DefaultHttpHeaderMapper`, are available for the evaluation context.
+
+
+The `SnsMessageHandler` is a simple one-way Outbound Channel Adapter to send Topic Notification using `SnsAsyncClient` service.
+
+This Channel Adapter (`MessageHandler`) accepts these options:
+
+- `topic-arn` (`topic-arn-expression`) - the SNS Topic to send notification for.
+- `subject` (`subject-expression`) - the SNS Notification Subject;
+- `body-expression` - the SpEL expression to evaluate the `message` property for the `software.amazon.awssdk.services.sns.model.PublishRequest`.
+- `resource-id-resolver` - a `ResourceIdResolver` bean reference to resolve logical topic names to physical resource ids;
+
+See `SnsMessageHandler` JavaDocs for more information.
+
+The Java Config looks like:
+
+[source,java]
+----
+@Bean
+public MessageHandler snsMessageHandler() {
+    SnsMessageHandler handler = new SnsMessageHandler(amazonSns());
+    handler.setTopicArn("arn:aws:sns:eu-west:123456789012:test");
+    String bodyExpression = "T(SnsBodyBuilder).withDefault(payload).forProtocols(payload.substring(0, 140), 'sms')";
+    handler.setBodyExpression(spelExpressionParser.parseExpression(bodyExpression));
+
+    // message-group ID and deduplication ID are used for FIFO topics
+    handler.setMessageGroupId("foo-messages");
+    String deduplicationExpression = "headers.id";
+    handler.setMessageDeduplicationIdExpression(new FunctionExpression<Message<?>>(m -> m.getHeaders().get(MessageHeaders.ID)));
+    return handler;
+}
+----
+
+NOTE: the `bodyExpression` can be evaluated to a `io.awspring.cloud.sns.integration.SnsBodyBuilder` allowing the configuration of a `json` `messageStructure` for the `PublishRequest` and provide separate messages for different protocols.
+The same `SnsBodyBuilder` rule is applied for the raw `payload` if the `bodyExpression` hasn't been configured.
+
+NOTE: if the `payload` of `requestMessage` is a `software.amazon.awssdk.services.sns.model.PublishRequest` already, the `SnsMessageHandler` doesn't do anything with it, and it is sent as-is.
+
+The `SnsMessageHandler` can be configured with the `HeaderMapper` to map message headers to the SNS message attributes.
+See `SnsHeaderMapper` implementation for more information and also consult with https://docs.aws.amazon.com/sns/latest/dg/SNSMessageAttributes.html[Amazon SNS Message Attributes] about value types and restrictions.
+
+The `SnsMessageHandler` supports sending to SNS FIFO topics using the `messageGroupId`/`messageGroupIdExpression` and `messageDeduplicationIdExpression` properties.
+
+The Spring Integration dependency in the `spring-cloud-aws-sns` module is `optional` to avoid unnecessary artifacts on classpath when Spring Integration is not used.
+For convenience, a dedicated `spring-cloud-aws-starter-integration-sns` is provided managing all the required dependencies for Spring Integration support with Amazon SNS.
