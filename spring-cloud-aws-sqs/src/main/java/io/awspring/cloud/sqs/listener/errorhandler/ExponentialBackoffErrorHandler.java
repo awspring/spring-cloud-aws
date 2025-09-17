@@ -19,7 +19,10 @@ import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.BatchVisibility;
 import io.awspring.cloud.sqs.listener.Visibility;
 import java.util.Collection;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -38,6 +41,8 @@ import org.springframework.util.Assert;
  *
  * @author Bruno Garcia
  * @author Rafael Pavarini
+ * @author Tomaz Fernandes
+ *
  */
 
 public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
@@ -46,12 +51,16 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 	private final int initialVisibilityTimeoutSeconds;
 	private final double multiplier;
 	private final int maxVisibilityTimeoutSeconds;
+	private final Supplier<Random> randomSupplier;
+	private final Jitter jitter;
 
 	private ExponentialBackoffErrorHandler(int initialVisibilityTimeoutSeconds, double multiplier,
-			int maxVisibilityTimeoutSeconds) {
+			int maxVisibilityTimeoutSeconds, Supplier<Random> randomSupplier, Jitter jitter) {
 		this.initialVisibilityTimeoutSeconds = initialVisibilityTimeoutSeconds;
 		this.multiplier = multiplier;
 		this.maxVisibilityTimeoutSeconds = maxVisibilityTimeoutSeconds;
+		this.randomSupplier = randomSupplier;
+		this.jitter = jitter;
 	}
 
 	@Override
@@ -104,8 +113,12 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 	}
 
 	private int calculateTimeout(long receiveMessageCount) {
-		return ErrorHandlerVisibilityHelper.calculateVisibilityTimeoutExponentially(receiveMessageCount,
+		int timeout = ErrorHandlerVisibilityHelper.calculateVisibilityTimeoutExponentially(receiveMessageCount,
 				initialVisibilityTimeoutSeconds, multiplier, maxVisibilityTimeoutSeconds);
+		int jitteredTimeout = jitter.applyJitter(new Jitter.Context(timeout, randomSupplier));
+		logger.debug("Exponential backoff jitter applied: original={}, jittered={}, receiveCount={}, jitterType={}",
+				timeout, jitteredTimeout, receiveMessageCount, jitter.getClass().getSimpleName());
+		return jitteredTimeout;
 	}
 
 	public static <T> Builder<T> builder() {
@@ -117,6 +130,8 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 		private int initialVisibilityTimeoutSeconds = BackoffVisibilityConstants.DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS;
 		private double multiplier = BackoffVisibilityConstants.DEFAULT_MULTIPLIER;
 		private int maxVisibilityTimeoutSeconds = BackoffVisibilityConstants.DEFAULT_MAX_VISIBILITY_TIMEOUT_SECONDS;
+		private Supplier<Random> randomSupplier = ThreadLocalRandom::current;
+		private Jitter jitter = Jitter.NONE;
 
 		public Builder<T> initialVisibilityTimeoutSeconds(int initialVisibilityTimeoutSeconds) {
 			ErrorHandlerVisibilityHelper.checkVisibilityTimeout(initialVisibilityTimeoutSeconds);
@@ -137,11 +152,23 @@ public class ExponentialBackoffErrorHandler<T> implements AsyncErrorHandler<T> {
 			return this;
 		}
 
+		public Builder<T> randomSupplier(Supplier<Random> randomSupplier) {
+			Assert.notNull(randomSupplier, "randomSupplier cannot be null");
+			this.randomSupplier = randomSupplier;
+			return this;
+		}
+
+		public Builder<T> jitter(Jitter jitter) {
+			Assert.notNull(jitter, "jitter cannot be null");
+			this.jitter = jitter;
+			return this;
+		}
+
 		public ExponentialBackoffErrorHandler<T> build() {
 			Assert.isTrue(initialVisibilityTimeoutSeconds <= maxVisibilityTimeoutSeconds,
 					"Initial visibility timeout must not exceed max visibility timeout");
 			return new ExponentialBackoffErrorHandler<>(initialVisibilityTimeoutSeconds, multiplier,
-					maxVisibilityTimeoutSeconds);
+					maxVisibilityTimeoutSeconds, randomSupplier, jitter);
 		}
 	}
 }

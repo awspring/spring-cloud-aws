@@ -36,8 +36,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 
 /**
- * Tests for {@link ExponentialBackoffErrorHandlerWithFullJitter} and
- * {@link ExponentialBackoffErrorHandlerWithHalfJitter}.
+ * Tests for {@link ExponentialBackoffErrorHandler} with different {@link Jitter} implementations.
  *
  * @author Bruno Garcia
  * @author Rafael Pavarini
@@ -143,10 +142,8 @@ class ExponentialBackoffErrorHandlerJitterTest extends BaseExponentialBackoffErr
 
 	private static Collection<BaseTestCase> testCases() {
 		return List.of(
-				baseTestCaseMidRandomSupplier().sqsApproximateReceiveCount("1").VisibilityTimeoutExpectedHalfJitter(
-						(int) ((BackoffVisibilityConstants.DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS * 1.5) / 2))
-						.VisibilityTimeoutExpectedFullJitter(
-								BackoffVisibilityConstants.DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS / 2),
+				baseTestCaseMidRandomSupplier().sqsApproximateReceiveCount("1").VisibilityTimeoutExpectedHalfJitter(75)
+						.VisibilityTimeoutExpectedFullJitter(50),
 
 				baseTestCaseMidRandomSupplier().sqsApproximateReceiveCount("2").VisibilityTimeoutExpectedHalfJitter(150)
 						.VisibilityTimeoutExpectedFullJitter(100),
@@ -161,20 +158,13 @@ class ExponentialBackoffErrorHandlerJitterTest extends BaseExponentialBackoffErr
 						.VisibilityTimeoutExpectedHalfJitter(4800).VisibilityTimeoutExpectedFullJitter(3200),
 
 				baseTestCaseMidRandomSupplier().sqsApproximateReceiveCount("11")
-						.VisibilityTimeoutExpectedHalfJitter(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS / 2
-								+ Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS / 4)
-						.VisibilityTimeoutExpectedFullJitter(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS / 2),
+						.VisibilityTimeoutExpectedHalfJitter(32400).VisibilityTimeoutExpectedFullJitter(21600),
 
 				baseTestCaseMidRandomSupplier().sqsApproximateReceiveCount("13")
-						.VisibilityTimeoutExpectedHalfJitter(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS / 2
-								+ Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS / 4)
-						.VisibilityTimeoutExpectedFullJitter(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS / 2),
+						.VisibilityTimeoutExpectedHalfJitter(32400).VisibilityTimeoutExpectedFullJitter(21600),
 
-				baseTestCaseMaxRandomSupplier().sqsApproximateReceiveCount("1")
-						.VisibilityTimeoutExpectedHalfJitter(
-								BackoffVisibilityConstants.DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS)
-						.VisibilityTimeoutExpectedFullJitter(
-								BackoffVisibilityConstants.DEFAULT_INITIAL_VISIBILITY_TIMEOUT_SECONDS),
+				baseTestCaseMaxRandomSupplier().sqsApproximateReceiveCount("1").VisibilityTimeoutExpectedHalfJitter(100)
+						.VisibilityTimeoutExpectedFullJitter(100),
 
 				baseTestCaseMaxRandomSupplier().sqsApproximateReceiveCount("2").VisibilityTimeoutExpectedHalfJitter(200)
 						.VisibilityTimeoutExpectedFullJitter(200),
@@ -189,12 +179,10 @@ class ExponentialBackoffErrorHandlerJitterTest extends BaseExponentialBackoffErr
 						.VisibilityTimeoutExpectedHalfJitter(6400).VisibilityTimeoutExpectedFullJitter(6400),
 
 				baseTestCaseMaxRandomSupplier().sqsApproximateReceiveCount("11")
-						.VisibilityTimeoutExpectedHalfJitter(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS)
-						.VisibilityTimeoutExpectedFullJitter(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS),
+						.VisibilityTimeoutExpectedHalfJitter(43200).VisibilityTimeoutExpectedFullJitter(43200),
 
 				baseTestCaseMaxRandomSupplier().sqsApproximateReceiveCount("13")
-						.VisibilityTimeoutExpectedHalfJitter(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS)
-						.VisibilityTimeoutExpectedFullJitter(Visibility.MAX_VISIBILITY_TIMEOUT_SECONDS));
+						.VisibilityTimeoutExpectedHalfJitter(43200).VisibilityTimeoutExpectedFullJitter(43200));
 	}
 
 	private static BaseTestCase baseTestCaseMidRandomSupplier() {
