@@ -15,9 +15,11 @@
  */
 package io.awspring.cloud.dynamodb;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for {@link DynamoDbTableNameResolver}.
@@ -25,19 +27,22 @@ import org.junit.jupiter.api.Test;
  * @author Matej Nedic
  * @author Arun Patra
  * @author Volodymyr Ivakhnenko
+ * @author Marcus Voltolim
  */
 class DynamoDbTableNameResolverTest {
 
 	private final DefaultDynamoDbTableNameResolver tableNameResolver = new DefaultDynamoDbTableNameResolver();
 
-	private final DefaultDynamoDbTableNameResolver prefixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
-			"my_prefix_");
+	private final DefaultDynamoDbTableNameResolver prefixedTableNameResolver = new DefaultDynamoDbTableNameResolver("my_prefix_");
 
 	private final DefaultDynamoDbTableNameResolver prefixedAndSuffixedTableNameResolver = new DefaultDynamoDbTableNameResolver(
-			"my_prefix_", "_my_suffix");
+		"my_prefix_", "_my_suffix");
 
-	private final DefaultDynamoDbTableNameResolver prefixedAndSuffixedTableAndSeparatorTableNameResolver = new DefaultDynamoDbTableNameResolver(
-			"prefix-", "-suffix", "-");
+	private final DefaultDynamoDbTableNameResolver prefixedAndSuffixedTableAndSeparatorTableNameResolver =
+		new DefaultDynamoDbTableNameResolver("prefix-", "-suffix", "-");
+
+	private final DefaultDynamoDbTableNameResolver classNameRemoveTableNameResolver =
+		new DefaultDynamoDbTableNameResolver(null, null, null, "DynamoEntity");
 
 	@Test
 	void resolveTableNameSuccessfully() {
@@ -49,7 +54,7 @@ class DynamoDbTableNameResolverTest {
 	@Test
 	void resolvePrefixedTableNameSuccessfully() {
 		assertThat(prefixedTableNameResolver.resolve(MoreComplexPerson.class))
-				.isEqualTo("my_prefix_more_complex_person");
+			.isEqualTo("my_prefix_more_complex_person");
 		assertThat(prefixedTableNameResolver.resolve(Person.class)).isEqualTo("my_prefix_person");
 		assertThat(prefixedTableNameResolver.getTableNameCache()).hasSize(2);
 	}
@@ -57,7 +62,7 @@ class DynamoDbTableNameResolverTest {
 	@Test
 	void resolvePrefixedAndSuffixedTableNameSuccessfully() {
 		assertThat(prefixedAndSuffixedTableNameResolver.resolve(MoreComplexPerson.class))
-				.isEqualTo("my_prefix_more_complex_person_my_suffix");
+			.isEqualTo("my_prefix_more_complex_person_my_suffix");
 		assertThat(prefixedAndSuffixedTableNameResolver.resolve(Person.class)).isEqualTo("my_prefix_person_my_suffix");
 		assertThat(prefixedAndSuffixedTableNameResolver.getTableNameCache()).hasSize(2);
 	}
@@ -65,9 +70,9 @@ class DynamoDbTableNameResolverTest {
 	@Test
 	void resolvePrefixedAndSuffixedAndSeparatorTableNameSuccessfully() {
 		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.resolve(MoreComplexPerson.class))
-				.isEqualTo("prefix-more-complex-person-suffix");
+			.isEqualTo("prefix-more-complex-person-suffix");
 		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.resolve(Person.class))
-				.isEqualTo("prefix-person-suffix");
+			.isEqualTo("prefix-person-suffix");
 		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.getTableNameCache()).hasSize(2);
 	}
 
@@ -86,7 +91,7 @@ class DynamoDbTableNameResolverTest {
 	@Test
 	void resolvePrefixedAndSuffixedAndSeparatorTableNameFromRecord() {
 		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.resolve(PersonRecord.class))
-				.isEqualTo("prefix-person-record-suffix");
+			.isEqualTo("prefix-person-record-suffix");
 		assertThat(prefixedAndSuffixedTableAndSeparatorTableNameResolver.getTableNameCache()).hasSize(1);
 	}
 
@@ -99,13 +104,43 @@ class DynamoDbTableNameResolverTest {
 		assertThat(tableNameResolver.getTableNameCache()).hasSize(1);
 	}
 
-	record PersonRecord(String name) {
+	@Test
+	void resolvedPrefixedAndSuffixedTableAndSeparatorAndClassNameRemoveTableNameSuccessfully() {
+		Stream.of(Person.class, PersonDynamoEntity.class, DynamoEntityPerson.class)
+			  .forEach(clazz -> assertThat(classNameRemoveTableNameResolver.resolve(clazz))
+				  .isEqualTo("person"));
+
+		Stream.of(MoreComplexPerson.class, MoreComplexPersonDynamoEntity.class, DynamoEntityMoreComplexPerson.class)
+			  .forEach(clazz -> assertThat(classNameRemoveTableNameResolver.resolve(clazz))
+				  .isEqualTo("more_complex_person"));
+
+		Stream.of(PersonRecord.class, PersonRecordDynamoEntity.class, DynamoEntityPersonRecord.class)
+			  .forEach(clazz -> assertThat(classNameRemoveTableNameResolver.resolve(clazz))
+				  .isEqualTo("person_record"));
+
+		assertThat(classNameRemoveTableNameResolver.getTableNameCache()).hasSize(9);
+
+		assertThat(classNameRemoveTableNameResolver.getTableNameCache())
+			.values()
+			.containsOnly("person", "more_complex_person", "person_record");
 	}
 
-	private static class Person {
-	}
+	record PersonRecord() { }
 
-	private static class MoreComplexPerson {
-	}
+	record PersonRecordDynamoEntity() { }
+
+	record DynamoEntityPersonRecord() { }
+
+	private static class Person { }
+
+	private static class PersonDynamoEntity { }
+
+	private static class DynamoEntityPerson { }
+
+	private static class MoreComplexPerson { }
+
+	private static class MoreComplexPersonDynamoEntity { }
+
+	private static class DynamoEntityMoreComplexPerson { }
 
 }
