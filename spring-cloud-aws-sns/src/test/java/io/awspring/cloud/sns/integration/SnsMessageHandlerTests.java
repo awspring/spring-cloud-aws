@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import io.awspring.cloud.sns.core.SnsHeaders;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +42,7 @@ import org.springframework.messaging.PollableChannel;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import software.amazon.awssdk.services.sns.SnsAsyncClient;
+import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
@@ -110,13 +110,12 @@ class SnsMessageHandlerTests {
 	public static class ContextConfiguration {
 
 		@Bean
-		@SuppressWarnings("unchecked")
 		public SnsAsyncClient amazonSNS() {
 			SnsAsyncClient mock = mock();
 
 			willAnswer(invocation -> CompletableFuture.completedFuture(
 					CreateTopicResponse.builder().topicArn("arn:aws:sns:eu-west-1:111111111111:topic.fifo").build()))
-					.given(mock).createTopic(any(Consumer.class));
+					.given(mock).createTopic(any(CreateTopicRequest.class));
 
 			willAnswer(
 					invocation -> CompletableFuture.completedFuture(PublishResponse.builder().messageId("111").build()))

@@ -331,7 +331,7 @@ public static class MyConfiguration {
 
     @Bean
     public HttpRequestHandler sqsMessageDrivenChannelAdapter(PollableChannel inputChannel) {
-    	SnsInboundChannelAdapter adapter = new SnsInboundChannelAdapter(amazonSns(), "/mySampleTopic");
+    	SnsInboundChannelAdapter adapter = new SnsInboundChannelAdapter(this.amazonSns, "/mySampleTopic");
     	adapter.setRequestChannel(inputChannel);
     	adapter.setHandleNotificationStatus(true);
     	return adapter;
@@ -360,8 +360,8 @@ The Java Config looks like:
 [source,java]
 ----
 @Bean
-public MessageHandler snsMessageHandler() {
-    SnsMessageHandler handler = new SnsMessageHandler(amazonSns());
+public MessageHandler snsMessageHandler(SnsAsyncClient amazonSns) {
+    SnsMessageHandler handler = new SnsMessageHandler(amazonSns);
     handler.setTopicArn("arn:aws:sns:eu-west:123456789012:test");
     String bodyExpression = "T(SnsBodyBuilder).withDefault(payload).forProtocols(payload.substring(0, 140), 'sms')";
     handler.setBodyExpression(spelExpressionParser.parseExpression(bodyExpression));

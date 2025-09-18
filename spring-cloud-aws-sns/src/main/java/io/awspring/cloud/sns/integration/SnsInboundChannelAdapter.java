@@ -94,8 +94,8 @@ public class SnsInboundChannelAdapter extends HttpRequestHandlingMessagingGatewa
 	}
 
 	/**
-	 * The flag indicating if the adapter should send {@code SubscriptionConfirmation/UnsubscribeConfirmation}
-	 * message to the `output-channel` or not.
+	 * The flag indicating if the adapter should send {@code SubscriptionConfirmation/UnsubscribeConfirmation} message
+	 * to the `output-channel` or not.
 	 * @param handleNotificationStatus the flag to set. Default is {@code false}.
 	 */
 	public void setHandleNotificationStatus(boolean handleNotificationStatus) {

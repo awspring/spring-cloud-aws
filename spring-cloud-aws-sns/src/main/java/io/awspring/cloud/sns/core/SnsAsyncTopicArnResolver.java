@@ -15,9 +15,11 @@
  */
 package io.awspring.cloud.sns.core;
 
+import java.util.Map;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.services.sns.SnsAsyncClient;
+import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 
 /**
  * A {@link TopicArnResolver} implementation to determine topic ARN by name against an {@link SnsAsyncClient}.
@@ -27,6 +29,7 @@ import software.amazon.awssdk.services.sns.SnsAsyncClient;
  * @since 4.0
  */
 public class SnsAsyncTopicArnResolver implements TopicArnResolver {
+
 	private final SnsAsyncClient snsClient;
 
 	public SnsAsyncTopicArnResolver(SnsAsyncClient snsClient) {
@@ -36,7 +39,7 @@ public class SnsAsyncTopicArnResolver implements TopicArnResolver {
 
 	/**
 	 * Resolve topic ARN by topic name. If topicName is already an ARN, it returns {@link Arn}. If topicName is just a
-	 * string with a topic name, it attempts to create a topic or if the topic already exists, just returns its ARN.
+	 * string with a topic name, it attempts to create a topic, or if the topic already exists, just returns its ARN.
 	 */
 	@Override
 	public Arn resolveTopicArn(String topicName) {
@@ -45,8 +48,15 @@ public class SnsAsyncTopicArnResolver implements TopicArnResolver {
 			return Arn.fromString(topicName);
 		}
 		else {
+			CreateTopicRequest.Builder builder = CreateTopicRequest.builder().name(topicName);
+
+			// fix for https://github.com/awspring/spring-cloud-aws/issues/707
+			if (topicName.endsWith(".fifo")) {
+				builder.attributes(Map.of("FifoTopic", "true"));
+			}
+
 			// if the topic exists, createTopic returns a successful response with the topic arn
-			return Arn.fromString(this.snsClient.createTopic(request -> request.name(topicName)).join().topicArn());
+			return Arn.fromString(this.snsClient.createTopic(builder.build()).join().topicArn());
 		}
 	}
 

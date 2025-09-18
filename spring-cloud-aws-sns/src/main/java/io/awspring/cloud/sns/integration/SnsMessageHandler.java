@@ -57,14 +57,14 @@ import software.amazon.awssdk.services.sns.model.PublishResponse;
  * from there and the {@code messageStructure} of the {@link PublishRequest} is set to {@code json}. For the convenience
  * the package {@code org.springframework.integration.aws.support} is imported to the {@link #evaluationContext} to
  * allow bypassing it for the {@link SnsBodyBuilder} from the {@link #bodyExpression} definition. For example:
- * 
+ *
  * <pre class="code">
  * {@code
  * String bodyExpression = "SnsBodyBuilder.withDefault(payload).forProtocols(payload.substring(0, 140), 'sms')";
  * snsMessageHandler.setBodyExpression(spelExpressionParser.parseExpression(bodyExpression));
  * }
  * </pre>
- * 
+ *
  * </li>
  * <li>Otherwise the {@code payload} (or the {@link #bodyExpression} evaluation result) is converted to the
  * {@link String} using {@link #getConversionService()}.</li>
@@ -245,24 +245,23 @@ public class SnsMessageHandler extends AbstractMessageProducingHandler {
 		}
 
 		Long sendTimeout = this.sendTimeoutExpression.getValue(this.evaluationContext, message, Long.class);
-		if (sendTimeout == null || sendTimeout < 0) {
-			try {
+		try {
+			if (sendTimeout == null || sendTimeout < 0) {
 				resultFuture.get();
 			}
-			catch (InterruptedException | ExecutionException ex) {
-				throw new IllegalStateException(ex);
-			}
-		}
-		else {
-			try {
+			else {
 				resultFuture.get(sendTimeout, TimeUnit.MILLISECONDS);
 			}
-			catch (TimeoutException te) {
-				throw new MessageTimeoutException(message, "Timeout waiting for response from AmazonKinesis", te);
-			}
-			catch (InterruptedException | ExecutionException ex) {
-				throw new IllegalStateException(ex);
-			}
+		}
+		catch (TimeoutException te) {
+			throw new MessageTimeoutException(message, "Timeout waiting for response from AmazonKinesis", te);
+		}
+		catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException(ex);
+		}
+		catch (ExecutionException ex) {
+			throw new IllegalStateException(ex);
 		}
 	}
 

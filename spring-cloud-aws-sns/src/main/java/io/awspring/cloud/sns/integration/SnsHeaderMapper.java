@@ -40,7 +40,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
  *
  * @author Artem Bilan
  *
- * @since 2.0
+ * @since 4.0
  */
 public class SnsHeaderMapper implements HeaderMapper<Map<String, MessageAttributeValue>> {
 
@@ -55,7 +55,7 @@ public class SnsHeaderMapper implements HeaderMapper<Map<String, MessageAttribut
 	 * Spring Integration Message's headers. The values can also contain simple wildcard patterns (e.g. "foo*" or
 	 * "*foo") to be matched. Also supports negated ('!') patterns. First match wins (positive or negative). To match
 	 * the names starting with {@code !} symbol, you have to escape it prepending with the {@code \} symbol in the
-	 * pattern definition. Defaults to map all ({@code *}) if the type is supported by SQS. The
+	 * pattern definition. Defaults to map all ({@code *}) if the type is supported by SNS. The
 	 * {@link MessageHeaders#ID}, {@link MessageHeaders#TIMESTAMP}, {@link NativeMessageHeaderAccessor#NATIVE_HEADERS},
 	 * {@link SnsHeaders#MESSAGE_ID_HEADER and {@link SnsHeaders#TOPIC_HEADER} are ignored by default.
 	 * @param outboundHeaderNames The inbound header names.
@@ -101,22 +101,23 @@ public class SnsHeaderMapper implements HeaderMapper<Map<String, MessageAttribut
 		}
 	}
 
-	private MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {
+	private static MessageAttributeValue getBinaryMessageAttribute(ByteBuffer messageHeaderValue) {
 		return buildMessageAttribute("Binary", messageHeaderValue);
 	}
 
-	private MessageAttributeValue getStringMessageAttribute(String messageHeaderValue) {
+	private static MessageAttributeValue getStringMessageAttribute(String messageHeaderValue) {
 		return buildMessageAttribute("String", messageHeaderValue);
 	}
 
-	private MessageAttributeValue getNumberMessageAttribute(Object messageHeaderValue) {
-		Assert.isTrue(NumberUtils.STANDARD_NUMBER_TYPES.contains(messageHeaderValue.getClass()),
+	private static MessageAttributeValue getNumberMessageAttribute(Object messageHeaderValue) {
+		Class<?> messageHeaderValueClass = messageHeaderValue.getClass();
+		Assert.isTrue(NumberUtils.STANDARD_NUMBER_TYPES.contains(messageHeaderValueClass),
 				"Only standard number types are accepted as message header.");
 
-		return buildMessageAttribute("Number." + messageHeaderValue.getClass().getName(), messageHeaderValue);
+		return buildMessageAttribute("Number." + messageHeaderValueClass.getName(), messageHeaderValue);
 	}
 
-	private MessageAttributeValue buildMessageAttribute(String dataType, Object value) {
+	private static MessageAttributeValue buildMessageAttribute(String dataType, Object value) {
 		MessageAttributeValue.Builder messageAttributeValue = MessageAttributeValue.builder().dataType(dataType);
 		if (value instanceof ByteBuffer byteBuffer) {
 			messageAttributeValue.binaryValue(SdkBytes.fromByteBuffer(byteBuffer));
