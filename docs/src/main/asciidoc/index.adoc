@@ -140,6 +140,8 @@ include::core.adoc[]
 
 include::dynamodb.adoc[]
 
+include::kinesis.adoc[]
+
 include::s3.adoc[]
 
 include::ses.adoc[]

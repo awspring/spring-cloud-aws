@@ -1,0 +1,50 @@
+[#spring-cloud-aws-kinesis]
+== Kinesis Integration
+
+The https://aws.amazon.com/kinesis/[Kinesis] is a platform for streaming data on AWS, making it easy to load and analyze streaming data and also providing the ability for you to build custom streaming data applications for specialized needs.
+
+// TODO: auto-configuration
+
+=== Spring Integration Support
+
+Also, starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon Kinesis.
+
+The `KinesisMessageHandler` is an `AbstractMessageHandler` to perform put record(s) to the Kinesis stream.
+The stream, partition key (or explicit hash key) and sequence number can be determined against a request message via evaluation provided expressions or can be specified statically.
+They also can be specified as `KinesisHeaders.STREAM`, `KinesisHeaders.PARTITION_KEY` and `KinesisHeaders.SEQUENCE_NUMBER` respectively.
+
+The `KinesisMessageHandler` can be configured with the `outputChannel` for sending a `Message` on successful put operation.
+The payload is the original request and additional `KinesisHeaders.SHARD` and `KinesisHeaders.SEQUENCE_NUMBER` headers are populated from the `PutRecordResposne`.
+If the request payload is a `PutRecordsRequest`, the full `PutRecordsResponse` is populated in the `KinesisHeaders.SERVICE_RESULT` header instead.
+
+When an async failure is happened on the put operation, the `ErrorMessage` is sent to the `errorChannel` header or global one.
+The payload is an `MessageHandlingException`.
+
+The `payload` of request message can be:
+
+- `PutRecordsRequest` to perform `KinesisAsyncClient.putRecords`
+- `PutRecordRequest` to perform `KinesisAsyncClient.putRecord`
+- `ByteBuffer` to represent data of the `PutRecordRequest`
+- `byte[]` which is wrapped to the `ByteBuffer`
+- any other type that is converted to the `byte[]` by the provided `Converter`; the `SerializingConverter` is used by default.
+
+The Java Configuration for the message handler is:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "kinesisSendChannel")
+public MessageHandler kinesisMessageHandler(KinesisAsyncClient amazonKinesis,
+                                            MessageChannel channel) {
+    KinesisMessageHandler kinesisMessageHandler = new KinesisMessageHandler(amazonKinesis);
+    kinesisMessageHandler.setPartitionKey("1");
+    kinesisMessageHandler.setOutputChannel(channel);
+    return kinesisMessageHandler;
+}
+----
+
+The Kinesis service does not provide a "headers"(attributes) abstraction, so the `KinesisMessageHandler` can be configured with the `OutboundMessageMapper` to embed message headers into the record data alongside the payload.
+See `EmbeddedHeadersJsonMessageMapper` implementation for more information.
+
+The Spring Integration dependency in the `spring-cloud-aws-kinesis` module is `optional` to avoid unnecessary artifacts on classpath when Spring Integration is not used.
+For convenience, a dedicated `spring-cloud-aws-starter-integration-kinesis` is provided managing all the required dependencies for Spring Integration support with a classical Amazon Kinesis client.
