@@ -43,33 +43,21 @@ import software.amazon.awssdk.services.sqs.model.*;
  * </ul>
  * 
  * <p>
- * <strong>Batch Optimization:</strong> The AWS SDK bypasses batching when {@code receiveMessage} is called with any of
- * the following parameters: {@code messageAttributeNames}, {@code messageSystemAttributeNames},
- * {@code messageSystemAttributeNamesWithStrings}, or {@code overrideConfiguration}. To maintain consistent batching
- * performance, Spring Cloud AWS handles these parameters as follows:
+ * <strong>Batch Optimization:</strong> The underlying {@code SqsAsyncBatchManager} from the AWS SDK bypasses
+ * batching for {@code receiveMessage} calls that include per-request configurations for certain parameters.
+ * To ensure batching is not bypassed, it is recommended to configure these settings globally on the
+ * {@code SqsAsyncBatchManager} builder instead of on each {@code ReceiveMessageRequest}.
+ * The parameters that trigger this bypass are:
  * <ul>
- * <li>{@code messageAttributeNames} - excluded from per-request, configured globally via
- * {@code spring.cloud.aws.sqs.batch.attribute-names}</li>
- * <li>{@code messageSystemAttributeNames} - excluded from per-request, configured globally via
- * {@code spring.cloud.aws.sqs.batch.system-attribute-names}</li>
- * <li>{@code messageSystemAttributeNamesWithStrings} - not used in Spring Cloud AWS {@code ReceiveMessageRequest}</li>
- * <li>{@code overrideConfiguration} - not used in Spring Cloud AWS {@code ReceiveMessageRequest}</li>
+ * <li>{@code messageAttributeNames}</li>
+ * <li>{@code messageSystemAttributeNames}</li>
+ * <li>{@code messageSystemAttributeNamesWithStrings}</li>
+ * <li>{@code overrideConfiguration}</li>
  * </ul>
  * <p>
- * This design prevents batch bypass and ensures optimal performance. If per-request attribute configuration is
- * required, consider disabling automatic batching.
- * 
- * <p>
- * This adapter is automatically configured by Spring Cloud AWS when automatic batching is enabled. Users do not need to
- * create instances directly - instead, enable batching through configuration:
- * 
- * <pre>
- * spring.cloud.aws.sqs.batch.enabled = true
- * </pre>
- * 
- * <p>
- * Once enabled, all {@code SqsTemplate} operations will automatically use batching transparently.
- * 
+ * By configuring these globally on the manager, you ensure consistent batching performance. If you require
+ * per-request attribute configurations, using the standard {@code SqsAsyncClient} without this adapter may be
+ * more appropriate.
  * @author Heechul Kang
  * @since 3.2
  * @see SqsAsyncBatchManager
