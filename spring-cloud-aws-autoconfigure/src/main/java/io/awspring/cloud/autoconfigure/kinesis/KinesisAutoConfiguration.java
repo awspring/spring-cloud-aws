@@ -1,13 +1,11 @@
 package io.awspring.cloud.autoconfigure.kinesis;
 
 
-import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
+import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
-import io.awspring.cloud.autoconfigure.sns.SnsClientCustomizer;
-import io.awspring.cloud.autoconfigure.sns.SnsProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -16,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 
 @AutoConfiguration
 @ConditionalOnClass({ KinesisAsyncClient.class})
@@ -26,13 +25,13 @@ public class KinesisAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public KinesisAsyncClient kinesisAsyncClient(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-							   ObjectProvider<AwsConnectionDetails> connectionDetails,
-							   ObjectProvider<SnsClientCustomizer> snsClientCustomizers,
-							   ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
+	public KinesisAsyncClient kinesisAsyncClient(KinesisProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+												 ObjectProvider<AwsConnectionDetails> connectionDetails,
+												 ObjectProvider<KinesisAsyncClientCustomizer> kinesisAsyncClientCustomizer,
+												 ObjectProvider<AwsAsyncClientCustomizer> awsSyncClientCustomizers) {
 		return awsClientBuilderConfigurer
-			.configureSyncClient(KinesisAsyncClient.builder(), properties, connectionDetails.getIfAvailable(),
-				snsClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream())
+			.configureAsyncClient(KinesisAsyncClient.builder(), properties, connectionDetails.getIfAvailable(),
+				kinesisAsyncClientCustomizer.orderedStream(), awsSyncClientCustomizers.orderedStream())
 			.build();
 	}
 }
