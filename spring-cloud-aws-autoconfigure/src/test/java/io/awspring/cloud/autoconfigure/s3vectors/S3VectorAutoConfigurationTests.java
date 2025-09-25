@@ -1,4 +1,4 @@
-package io.awspring.cloud.autoconfigure.s3;
+package io.awspring.cloud.autoconfigure.s3vectors;
 
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.s3vectors.S3VectorsClient;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Test for {@link S3AutoConfiguration} class
+ * Test for {@link S3VectorAutoConfigurationTests} class
  *
  * @author Matej Nedic
  */

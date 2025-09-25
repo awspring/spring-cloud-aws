@@ -1,4 +1,4 @@
-package io.awspring.cloud.autoconfigure.s3.properties;
+package io.awspring.cloud.autoconfigure.s3vectors;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;

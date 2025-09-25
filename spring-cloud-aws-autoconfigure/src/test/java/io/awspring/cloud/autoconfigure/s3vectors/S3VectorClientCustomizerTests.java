@@ -1,4 +1,4 @@
-package io.awspring.cloud.autoconfigure.s3;
+package io.awspring.cloud.autoconfigure.s3vectors;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;

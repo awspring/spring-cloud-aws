@@ -1,8 +1,7 @@
-package io.awspring.cloud.autoconfigure.s3;
+package io.awspring.cloud.autoconfigure.s3vectors;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.*;
-import io.awspring.cloud.autoconfigure.s3.properties.S3VectorProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
