@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author Matej Nedic
+ * @since 4.0.0
  */
 @ConfigurationProperties(prefix = S3VectorProperties.PREFIX)
 public class S3VectorProperties extends AwsClientProperties {

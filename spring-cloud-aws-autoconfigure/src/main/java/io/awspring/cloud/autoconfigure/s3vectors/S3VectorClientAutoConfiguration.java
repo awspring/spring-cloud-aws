@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.s3vectors.S3VectorsClientBuilder;
 
 /**
  * @author Matej Nedic
- * @since 3.5.0
+ * @since 4.0.0
  */
 @AutoConfiguration
 @ConditionalOnClass({S3VectorsClient.class})
