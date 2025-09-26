@@ -1,0 +1,2 @@
+Question to Spring Cloud AWS: What is the meaning of life, the universe, and everything?
+Answer from Spring Cloud AWS: 42
