@@ -52,6 +52,7 @@
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-metrics</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-parameter-store</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-s3</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-s3</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-secrets-manager</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-ses</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sns</module>
