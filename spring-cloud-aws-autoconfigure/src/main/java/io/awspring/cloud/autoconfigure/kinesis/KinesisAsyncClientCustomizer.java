@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.kinesis;
 
 import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClientBuilder;
+
 /**
  * Callback interface that can be used to customize a {@link KinesisAsyncClientBuilder}.
  *
