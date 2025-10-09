@@ -43,11 +43,10 @@ import software.amazon.awssdk.services.sqs.model.*;
  * </ul>
  * 
  * <p>
- * <strong>Batch Optimization:</strong> The underlying {@code SqsAsyncBatchManager} from the AWS SDK bypasses
- * batching for {@code receiveMessage} calls that include per-request configurations for certain parameters.
- * To ensure batching is not bypassed, it is recommended to configure these settings globally on the
- * {@code SqsAsyncBatchManager} builder instead of on each {@code ReceiveMessageRequest}.
- * The parameters that trigger this bypass are:
+ * <strong>Batch Optimization:</strong> The underlying {@code SqsAsyncBatchManager} from the AWS SDK bypasses batching
+ * for {@code receiveMessage} calls that include per-request configurations for certain parameters. To ensure batching
+ * is not bypassed, it is recommended to configure these settings globally on the {@code SqsAsyncBatchManager} builder
+ * instead of on each {@code ReceiveMessageRequest}. The parameters that trigger this bypass are:
  * <ul>
  * <li>{@code messageAttributeNames}</li>
  * <li>{@code messageSystemAttributeNames}</li>
@@ -55,9 +54,8 @@ import software.amazon.awssdk.services.sqs.model.*;
  * <li>{@code overrideConfiguration}</li>
  * </ul>
  * <p>
- * By configuring these globally on the manager, you ensure consistent batching performance. If you require
- * per-request attribute configurations, using the standard {@code SqsAsyncClient} without this adapter may be
- * more appropriate.
+ * By configuring these globally on the manager, you ensure consistent batching performance. If you require per-request
+ * attribute configurations, using the standard {@code SqsAsyncClient} without this adapter may be more appropriate.
  * @author Heechul Kang
  * @since 3.2
  * @see SqsAsyncBatchManager

@@ -808,7 +808,7 @@ IMPORTANT: In case the same factory is shared by both delivery methods, any supp
 
 ==== Automatic Batching with AWS SDK
 
-Spring Cloud AWS supports automatic message batching using AWS SDK's `SqsAsyncBatchManager`. This feature optimizes SQS operations by automatically batching requests under the hood to improve performance and reduce AWS API calls.
+Spring Cloud AWS supports automatic message batching using AWS SDK's `SqsAsyncBatchManager`. This feature optimizes SQS operations by automatically batching requests under the hood to improve performance and reduce AWS API calls. Please note that this feature is primarily intended for use with `SqsTemplate` and is not recommended for use with `@SqsListener` due to the complexities involved in message acknowledgment and processing.
 
 IMPORTANT: This is different from the <<Batch Processing,Batch Processing>> feature described above. Batch Processing refers to processing multiple messages in a single listener method call, while Automatic Batching refers to the AWS SDK automatically combining multiple SQS API calls into batched requests for efficiency.
 

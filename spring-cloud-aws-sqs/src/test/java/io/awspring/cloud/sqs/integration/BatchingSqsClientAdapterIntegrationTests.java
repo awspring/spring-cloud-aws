@@ -59,10 +59,10 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 
 		try (BatchingSqsClientAdapter adapter = createBatchingAdapter()) {
 			String messageBody = "Test message for batching";
-			SendMessageRequest request = SendMessageRequest.builder().queueUrl(queueName).messageBody(messageBody)
-					.build();
 
-			SendMessageResponse response = adapter.sendMessage(request).join();
+			SendMessageResponse response = adapter
+					.sendMessage(SendMessageRequest.builder().queueUrl(queueName).messageBody(messageBody).build())
+					.join();
 
 			assertThat(response.messageId()).isNotNull();
 
@@ -276,14 +276,37 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 		}
 	}
 
+	@Test
+	void shouldSendMessageJoinCompletesAfterFrequency() {
+		String queueName = createUniqueQueueName();
+		createQueue(this.asyncClient, queueName).join();
+
+		try (BatchingSqsClientAdapter adapter = createBatchingAdapterWithFrequency(Duration.ofSeconds(3))) {
+			long startTime = System.nanoTime();
+
+			String messageBody = "Test message for join frequency";
+
+			adapter.sendMessage(SendMessageRequest.builder().queueUrl(queueName).messageBody(messageBody).build())
+					.join();
+
+			long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
+
+			assertThat(elapsedMillis).isGreaterThanOrEqualTo(3000L);
+		}
+	}
+
 	private String createUniqueQueueName() {
 		return BASE_QUEUE_NAME + "-" + UUID.randomUUID().toString().substring(0, 8);
 	}
 
 	private BatchingSqsClientAdapter createBatchingAdapter() {
+		return createBatchingAdapterWithFrequency(Duration.ofMillis(100));
+	}
+
+	private BatchingSqsClientAdapter createBatchingAdapterWithFrequency(Duration sendRequestFrequency) {
 		SqsAsyncBatchManager batchManager = SqsAsyncBatchManager.builder().client(this.asyncClient)
 				.scheduledExecutor(Executors.newScheduledThreadPool(2))
-				.overrideConfiguration(builder -> builder.maxBatchSize(10).sendRequestFrequency(Duration.ofMillis(100)))
+				.overrideConfiguration(builder -> builder.maxBatchSize(10).sendRequestFrequency(sendRequestFrequency))
 				.build();
 
 		return new BatchingSqsClientAdapter(batchManager);
