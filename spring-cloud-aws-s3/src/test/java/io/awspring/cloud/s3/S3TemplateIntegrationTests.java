@@ -42,12 +42,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.StreamUtils;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.HttpStatusCode;
@@ -67,31 +61,24 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
  * @author Yuki Yoshida
  * @author Ziemowit Stolarczyk
  * @author Hardik Singh Behl
+ * @author Artem Bilan
  */
-@Testcontainers
-class S3TemplateIntegrationTests {
+class S3TemplateIntegrationTests implements LocalstackContainerTest {
 
 	private static final String BUCKET_NAME = "test-bucket";
-
-	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:4.4.0")).withEnv("S3_SKIP_SIGNATURE_VALIDATION", "0");
 
 	private static S3Client client;
 
 	private static S3Presigner presigner;
+
 	private S3Template s3Template;
 
 	@BeforeAll
 	static void beforeAll() {
-		// region and credentials are irrelevant for test, but must be added to make
-		// test work on environments without AWS cli configured
-		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
-				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
-		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpoint()).build();
-		presigner = S3Presigner.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint()).build();
+		client = LocalstackContainerTest.s3Client();
+		presigner = S3Presigner.builder().region(Region.of(LocalstackContainerTest.LOCAL_STACK_CONTAINER.getRegion()))
+				.credentialsProvider(LocalstackContainerTest.credentialsProvider())
+				.endpointOverride(LocalstackContainerTest.LOCAL_STACK_CONTAINER.getEndpoint()).build();
 	}
 
 	@BeforeEach
@@ -363,7 +350,9 @@ class S3TemplateIntegrationTests {
 	}
 
 	static class Person {
+
 		private String firstName;
+
 		private String lastName;
 
 		public Person() {
@@ -389,6 +378,7 @@ class S3TemplateIntegrationTests {
 		public void setFirstName(String firstName) {
 			this.firstName = firstName;
 		}
+
 	}
 
 }
