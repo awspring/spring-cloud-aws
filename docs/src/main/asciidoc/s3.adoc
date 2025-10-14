@@ -604,17 +604,51 @@ The Spring Boot Starter for S3 provides the following configuration options:
 | `spring.cloud.aws.s3.config.reload.max-wait-time-for-restart` | `Duration`| `2s` | The maximum time between the detection of changes in property source and the application context restart when `restart_context` strategy is used.
 |===
 
+=== S3 Vector Client support
+
+https://aws.amazon.com/blogs/aws/introducing-amazon-s3-vectors-first-cloud-storage-with-native-vector-support-at-scale/[S3 Vector Store] is a vector storage which supports uploading, storing and querying vectors.
+To allow users simpler use of `S3VectorsClient` with https://github.com/spring-projects/spring-ai[Spring AI] project or use of a plain client, we support autoconfiguration of the `S3VectorsClient`.
+
+To enable autoconfiguration you should add the following dependencies
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter</artifactId>
+</dependency>
+
+<dependency>
+	<groupId>software.amazon.awssdk</groupId>
+	<artifactId>s3vectors</artifactId>
+</dependency>
+----
+
+After dependencies are introduced Spring Cloud AWS will automatically create a `S3VectorsClient` bean which can than be autowired and used.
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.s3.vector.config.enabled` | Enables the S3 config import integration. | No | `true`
+| `spring.cloud.aws.s3.config.reload.strategy` | `Enum` | `refresh` | The strategy to use when firing a reload (`refresh`, `restart_context`)
+| `spring.cloud.aws.s3.config.reload.period` | `Duration`| `15s` | The period for verifying changes
+| `spring.cloud.aws.s3.config.reload.max-wait-time-for-restart` | `Duration`| `2s` | The maximum time between the detection of changes in property source and the application context restart when `restart_context` strategy is used.
+|===
 
 === IAM Permissions
 
 Following IAM permissions are required by Spring Cloud AWS:
 
-[cols="2,1"]
+[cols="2,3,1,1"]
 |===
-| Downloading files | `s3:GetObject`
-| Searching files | `s3:ListObjects`
-| Uploading files | `s3:PutObject`
-|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.s3.vector.enabled` | Enables the S3VectorsClient autoconfiguration. | No | `true`
+| `spring.cloud.aws.s3.vector.endpoint` | Configures endpoint used by `S3VectorsClient`. | No | `http://localhost:4566`
+| `spring.cloud.aws.s3.vector.region` | Configures region used by `S3VectorsClient`. | No | `eu-west-1`
+
+
+
+
+=== Example of IAM policy for Spring Cloud AWS demo bucket
 
 Sample IAM policy granting access to `spring-cloud-aws-demo` bucket:
 
