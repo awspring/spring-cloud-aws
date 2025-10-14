@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.s3vectors;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.*;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -49,13 +48,12 @@ public class S3VectorClientAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	S3VectorsClientBuilder s3VectorsClientBuilder(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<S3VectorsClientBuilder>> configurer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
 			ObjectProvider<S3VectorClientCustomizer> s3ClientCustomizers,
 			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
 
 		return awsClientBuilderConfigurer.configureSyncClient(S3VectorsClient.builder(), this.properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), s3ClientCustomizers.orderedStream(),
+				connectionDetails.getIfAvailable(), s3ClientCustomizers.orderedStream(),
 				awsSyncClientCustomizers.orderedStream());
 	}
 
