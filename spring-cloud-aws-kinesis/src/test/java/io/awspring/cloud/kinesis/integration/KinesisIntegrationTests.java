@@ -158,7 +158,7 @@ class KinesisIntegrationTests implements LocalstackContainerTest {
 		}
 
 		@Bean
-		public LockRegistry lockRegistry() {
+		public LockRegistry<?> lockRegistry() {
 			return new DefaultLockRegistry();
 		}
 
