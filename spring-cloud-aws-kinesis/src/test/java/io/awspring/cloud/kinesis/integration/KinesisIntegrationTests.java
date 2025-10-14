@@ -22,6 +22,8 @@ import io.awspring.cloud.kinesis.LocalstackContainerTest;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -41,9 +43,12 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.PollableChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
+import software.amazon.awssdk.services.kinesis.model.Record;
 
 /**
  * @author Artem Bilan
@@ -82,7 +87,11 @@ class KinesisIntegrationTests implements LocalstackContainerTest {
 	}
 
 	@Test
-	void kinesisInboundOutbound() {
+	void kinesisInboundOutbound() throws InterruptedException {
+		// We have to wait until an active shard iterator on stream.
+		// Otherwise, the record might be lost.
+		Thread.sleep(2000);
+
 		this.kinesisSendChannel
 				.send(MessageBuilder.withPayload("test").setHeader(KinesisHeaders.STREAM, TEST_STREAM).build());
 
@@ -102,6 +111,14 @@ class KinesisIntegrationTests implements LocalstackContainerTest {
 		assertThat(((Exception) errorMessage.getPayload()).getMessage())
 				.contains("Channel 'kinesisReceiveChannel' expected one of the following data types "
 						+ "[class java.util.Date], but received [class java.lang.String]");
+
+		String errorSequenceNumber = errorMessage.getHeaders().get(KinesisHeaders.RAW_RECORD, Record.class).sequenceNumber();
+
+		// Second exception for the same record since we have requested via bubbling exception up to the consumer
+		errorMessage = this.errorChannel.receive(30_000);
+		assertThat(errorMessage).isNotNull();
+		assertThat(errorMessage.getHeaders().get(KinesisHeaders.RAW_RECORD, Record.class).sequenceNumber())
+			.isEqualTo(errorSequenceNumber);
 
 		for (int i = 0; i < 2; i++) {
 			this.kinesisSendChannel
@@ -197,7 +214,20 @@ class KinesisIntegrationTests implements LocalstackContainerTest {
 
 		@Bean
 		public PollableChannel errorChannel() {
-			return new QueueChannel();
+			QueueChannel queueChannel = new QueueChannel();
+			queueChannel.addInterceptor(new ChannelInterceptor() {
+
+				private final AtomicBoolean thrown = new AtomicBoolean();
+
+				@Override
+				public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
+					if (message instanceof ErrorMessage errorMessage && this.thrown.compareAndSet(false, true)) {
+						throw (RuntimeException) errorMessage.getPayload();
+					}
+				}
+
+			});
+			return queueChannel;
 		}
 
 	}
