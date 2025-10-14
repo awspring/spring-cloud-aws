@@ -154,7 +154,7 @@ class KinesisIntegrationTests implements LocalstackContainerTest {
 			KinesisMessageDrivenChannelAdapter adapter = new KinesisMessageDrivenChannelAdapter(AMAZON_KINESIS_ASYNC,
 					TEST_STREAM);
 			adapter.setOutputChannel(kinesisReceiveChannel());
-			adapter.setErrorChannel(errorChannel());
+			adapter.setErrorChannelName("errorChannel");
 			adapter.setErrorMessageStrategy(new KinesisMessageHeaderErrorMessageStrategy());
 			adapter.setCheckpointStore(checkpointStore());
 			adapter.setLockRegistry(lockRegistry());
