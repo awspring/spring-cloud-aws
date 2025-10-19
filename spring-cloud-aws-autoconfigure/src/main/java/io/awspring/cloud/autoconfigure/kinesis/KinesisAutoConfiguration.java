@@ -58,7 +58,7 @@ public class KinesisAutoConfiguration {
 	@ConditionalOnClass(name = { "com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration",
 			"com.amazonaws.services.kinesis.producer.KinesisProducer" })
 	@Configuration
-	public static class KinesisKplAndKclConfiguration {
+	public static class KinesisProducerAutoConfiguration {
 
 		@ConditionalOnMissingBean
 		@Bean
