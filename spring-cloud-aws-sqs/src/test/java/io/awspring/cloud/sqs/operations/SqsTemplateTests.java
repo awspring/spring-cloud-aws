@@ -1285,7 +1285,7 @@ class SqsTemplateTests {
 
 	@Test
 	void shouldCacheSuccessfulQueueAttributesWithAttributeNames() {
-		// Given - queueAttributeNames를 명시적으로 설정
+		// Given - Template with queueAttributeNames configured
 		String queue = "test-queue";
 		String payload1 = "test-payload-1";
 		String payload2 = "test-payload-2";
