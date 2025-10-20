@@ -1240,7 +1240,7 @@ class SqsTemplateTests {
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
 			.willReturn(CompletableFuture.completedFuture(urlResponse));
 
-		mockQueueAttributes(mockClient, Map.of()); // Include this for safety
+		mockQueueAttributes(mockClient, Map.of());
 
 		SendMessageResponse sendResponse = SendMessageResponse.builder().messageId(UUID.randomUUID().toString())
 			.build();
