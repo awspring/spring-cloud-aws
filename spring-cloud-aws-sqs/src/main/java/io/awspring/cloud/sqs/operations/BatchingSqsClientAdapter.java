@@ -30,18 +30,20 @@ import software.amazon.awssdk.services.sqs.model.*;
  * This adapter automatically batches SQS operations to improve performance and reduce costs by combining multiple
  * requests into fewer AWS API calls. All standard SQS operations are supported: send message, receive message, delete
  * message, and change message visibility.
- * 
+ *
  * <p>
- * <strong>Important - False Positives Warning:</strong> This adapter processes requests asynchronously through
- * batching. Method calls may return successfully before the actual request is sent to AWS SQS. This can result in false
- * positives where the operation appears to succeed locally but fails during the actual transmission to AWS.
- * Applications should:
+ * <strong>Important - Asynchronous Behavior:</strong> This adapter processes requests asynchronously through
+ * batching. The returned {@link CompletableFuture} reflects the batching operation,
+ * not the final transmission to AWS SQS. This can lead to false positives where the operation appears successful locally but fails during actual transmission.
+ * The actual transmission happens in a background thread, up to the configured {@code sendRequestFrequency} after enqueuing.
+ * Applications must:
  * <ul>
- * <li>Always handle the returned {@link CompletableFuture} to detect actual transmission errors</li>
- * <li>Implement appropriate error handling and monitoring</li>
- * <li>Consider retry mechanisms for critical operations</li>
+ * <li>Handle the returned {@link CompletableFuture} to detect transmission errors.
+ * Calling {@code .join()} will block until the batch is sent (up to {@code sendRequestFrequency}),
+ * while {@code .exceptionally()} or {@code .handle()} are required for non-blocking error handling.</li>
+ * <li>Implement appropriate error handling, monitoring, and retry mechanisms for critical operations.</li>
  * </ul>
- * 
+ *
  * <p>
  * <strong>Batch Optimization:</strong> The underlying {@code SqsAsyncBatchManager} from the AWS SDK bypasses batching
  * for {@code receiveMessage} calls that include per-request configurations for certain parameters. To ensure batching
@@ -57,7 +59,7 @@ import software.amazon.awssdk.services.sqs.model.*;
  * By configuring these globally on the manager, you ensure consistent batching performance. If you require per-request
  * attribute configurations, using the standard {@code SqsAsyncClient} without this adapter may be more appropriate.
  * @author Heechul Kang
- * @since 3.2
+ * @since 4.0.0
  * @see SqsAsyncBatchManager
  * @see SqsAsyncClient
  */
