@@ -1219,4 +1219,104 @@ class SqsTemplateTests {
 				value -> assertThat(value.stringValue()).isEqualTo("abc"));
 	}
 
+	@Test
+	void shouldRemoveFailedQueueAttributesFromCache() {
+		// Given - First attempt will fail
+		String queue = "test-queue";
+		String payload = "test-payload";
+
+		CompletableFuture<GetQueueUrlResponse> failedFuture = new CompletableFuture<>();
+		failedFuture.completeExceptionally(new RuntimeException("Queue attributes resolution failed"));
+
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(failedFuture);
+
+		SqsOperations template = SqsTemplate.newTemplate(mockClient);
+
+		// When - First attempt should fail
+		assertThatThrownBy(() -> template.send(queue, payload)).isInstanceOf(MessagingOperationFailedException.class);
+
+		// Then - Setup successful response for retry
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+			.willReturn(CompletableFuture.completedFuture(urlResponse));
+
+		mockQueueAttributes(mockClient, Map.of()); // Include this for safety
+
+		SendMessageResponse sendResponse = SendMessageResponse.builder().messageId(UUID.randomUUID().toString())
+			.build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+			.willReturn(CompletableFuture.completedFuture(sendResponse));
+
+		// When - Retry should work (not use cached failure)
+		SendResult<String> result = template.send(queue, payload);
+
+		// Then - Verify getQueueUrl was called twice (failure was not cached)
+		then(mockClient).should(times(2)).getQueueUrl(any(GetQueueUrlRequest.class));
+		assertThat(result.endpoint()).isEqualTo(queue);
+		assertThat(result.message().getPayload()).isEqualTo(payload);
+	}
+
+	@Test
+	void shouldCacheSuccessfulQueueAttributes() {
+		// Given - Setup successful responses
+		String queue = "test-queue";
+		String payload1 = "test-payload-1";
+		String payload2 = "test-payload-2";
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+			.willReturn(CompletableFuture.completedFuture(urlResponse));
+
+		SendMessageResponse sendResponse = SendMessageResponse.builder().messageId(UUID.randomUUID().toString())
+			.build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+			.willReturn(CompletableFuture.completedFuture(sendResponse));
+
+		SqsOperations template = SqsTemplate.newTemplate(mockClient);
+
+		// When - Send twice to same queue
+		SendResult<String> result1 = template.send(queue, payload1);
+		SendResult<String> result2 = template.send(queue, payload2);
+
+		// Then - Queue URL should be cached (only called once)
+		then(mockClient).should(times(1)).getQueueUrl(any(GetQueueUrlRequest.class));
+		then(mockClient).should(times(2)).sendMessage(any(SendMessageRequest.class));
+	}
+
+	@Test
+	void shouldCacheSuccessfulQueueAttributesWithAttributeNames() {
+		// Given - queueAttributeNames를 명시적으로 설정
+		String queue = "test-queue";
+		String payload1 = "test-payload-1";
+		String payload2 = "test-payload-2";
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+			.willReturn(CompletableFuture.completedFuture(urlResponse));
+
+		GetQueueAttributesResponse attributesResponse = GetQueueAttributesResponse.builder()
+			.attributes(Map.of(QueueAttributeName.QUEUE_ARN, "test-arn")).build();
+		given(mockClient.getQueueAttributes(any(Consumer.class)))
+			.willReturn(CompletableFuture.completedFuture(attributesResponse));
+
+		SendMessageResponse sendResponse = SendMessageResponse.builder().messageId(UUID.randomUUID().toString())
+			.build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+			.willReturn(CompletableFuture.completedFuture(sendResponse));
+
+		// Create template with queueAttributeNames configured
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient)
+			.configure(
+				options -> options.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN)))
+			.buildSyncTemplate();
+
+		// When - Send twice to same queue
+		template.send(queue, payload1);
+		template.send(queue, payload2);
+
+		// Then - Queue attributes should be cached (only called once each)
+		then(mockClient).should(times(1)).getQueueUrl(any(GetQueueUrlRequest.class));
+		then(mockClient).should(times(1)).getQueueAttributes(any(Consumer.class));
+		then(mockClient).should(times(2)).sendMessage(any(SendMessageRequest.class));
+	}
 }
