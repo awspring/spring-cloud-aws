@@ -57,66 +57,18 @@ public class KinesisAutoConfiguration {
 
 	@ConditionalOnClass(name = { "com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration",
 			"com.amazonaws.services.kinesis.producer.KinesisProducer" })
-	@Configuration
 	public static class KinesisProducerAutoConfiguration {
-
-		@ConditionalOnMissingBean
-		@Bean
-		public KinesisProducerConfiguration kinesisProducerConfiguration(KinesisProperties kinesisProperties,
-				AwsRegionProvider awsRegionProvider, ObjectProvider<AwsConnectionDetails> connectionDetails) {
-			PropertyMapper propertyMapper = PropertyMapper.get();
-			KinesisProducerConfiguration config = new KinesisProducerConfiguration();
-			KinesisProducerProperties prop = kinesisProperties.getProducer();
-			propertyMapper.from(prop::getAggregationEnabled).whenNonNull().to(config::setAggregationEnabled);
-			propertyMapper.from(prop::getAggregationMaxCount).whenNonNull().to(config::setAggregationMaxCount);
-			propertyMapper.from(prop::getAggregationMaxSize).whenNonNull().to(config::setAggregationMaxSize);
-			propertyMapper.from(prop::getCloudwatchEndpoint).whenHasText().to(config::setCloudwatchEndpoint);
-			propertyMapper.from(prop::getCloudwatchPort).whenNonNull().to(config::setCloudwatchPort);
-			propertyMapper.from(prop::getCollectionMaxCount).whenNonNull().to(config::setCollectionMaxCount);
-			propertyMapper.from(prop::getCollectionMaxSize).whenNonNull().to(config::setCollectionMaxSize);
-			propertyMapper.from(prop::getConnectTimeout).whenNonNull().to(config::setConnectTimeout);
-			propertyMapper.from(prop::getCredentialsRefreshDelay).whenNonNull().to(config::setCredentialsRefreshDelay);
-			propertyMapper.from(prop::getEnableCoreDumps).whenNonNull().to(config::setEnableCoreDumps);
-			propertyMapper.from(prop::getFailIfThrottled).whenNonNull().to(config::setFailIfThrottled);
-			propertyMapper.from(prop::getLogLevel).whenHasText().to(config::setLogLevel);
-			propertyMapper.from(prop::getMaxConnections).whenNonNull().to(config::setMaxConnections);
-			propertyMapper.from(prop::getMetricsGranularity).whenHasText().to(config::setMetricsGranularity);
-			propertyMapper.from(prop::getMetricsLevel).whenHasText().to(config::setMetricsLevel);
-			propertyMapper.from(prop::getMetricsNamespace).whenHasText().to(config::setMetricsNamespace);
-			propertyMapper.from(prop::getMetricsUploadDelay).whenNonNull().to(config::setMetricsUploadDelay);
-			propertyMapper.from(prop::getMinConnections).whenNonNull().to(config::setMinConnections);
-			propertyMapper.from(prop::getNativeExecutable).whenNonNull().to(config::setNativeExecutable);
-			propertyMapper.from(prop::getRateLimit).whenNonNull().to(config::setRateLimit);
-			propertyMapper.from(prop::getRecordMaxBufferedTime).whenNonNull().to(config::setRecordMaxBufferedTime);
-			propertyMapper.from(prop::getRecordTtl).whenNonNull().to(config::setRecordTtl);
-			propertyMapper.from(prop::getRequestTimeout).whenNonNull().to(config::setRequestTimeout);
-			propertyMapper.from(prop::getTempDirectory).whenNonNull().to(config::setTempDirectory);
-			propertyMapper.from(prop::getVerifyCertificate).whenNonNull().to(config::setVerifyCertificate);
-			propertyMapper.from(prop.getProxyHost()).whenNonNull().to(config::setProxyHost);
-			propertyMapper.from(prop.getProxyPort()).whenNonNull().to(config::setProxyPort);
-			propertyMapper.from(prop.getProxyUserName()).whenHasText().to(config::setProxyUserName);
-			propertyMapper.from(prop.getProxyPassword()).whenHasText().to(config::setProxyPassword);
-			propertyMapper.from(prop.getStsEndpoint()).whenHasText().to(config::setStsEndpoint);
-			propertyMapper.from(prop.getStsPort()).whenNonNull().to(config::setStsPort);
-			propertyMapper.from(prop.getThreadingModel()).whenNonNull().to(config::setThreadingModel);
-			propertyMapper.from(prop.getThreadPoolSize()).whenNonNull().to(config::setThreadPoolSize);
-			propertyMapper.from(prop.getUserRecordTimeoutInMillis()).whenNonNull()
-					.to(config::setUserRecordTimeoutInMillis);
-
-			config.setRegion(AwsClientBuilderConfigurer
-					.resolveRegion(kinesisProperties, connectionDetails.getIfAvailable(), awsRegionProvider)
-					.toString());
-			connectionDetails.ifAvailable(cd -> {
-				config.setKinesisPort(cd.getEndpoint().getPort());
-				config.setKinesisEndpoint(cd.getEndpoint().getHost());
-			});
-			return config;
-		}
-
-		@ConditionalOnMissingBean
-		@Bean
-		public KinesisProducer kinesisProducer(KinesisProducerConfiguration kinesisProducerConfiguration) {
-			return new KinesisProducer(kinesisProducerConfiguration);
-		}
 	}
+
+	// In your configs
+	ConfigsBuilder configsBuilder = new ConfigsBuilder(
+		streamName,
+		applicationName,
+		KinesisClientUtil.createKinesisAsyncClient(kinesisAsyncClient), // <-- Use your bean
+		dynamoDbClient,
+		cloudWatchClient,
+		workerId,
+		recordProcessorFactory
+	);
+
 }
