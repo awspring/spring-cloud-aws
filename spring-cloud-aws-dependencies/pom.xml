@@ -25,6 +25,8 @@
 	<properties>
 		<spotless.version>2.31.0</spotless.version>
 		<awssdk-v2.version>2.32.28</awssdk-v2.version>
+		<kcl.version>3.1.2</kcl.version>
+		<kpl.version>1.0.4</kpl.version>
 		<amazon.dax.version>2.0.5</amazon.dax.version>
 		<amazon.encryption.s3.version>3.3.5</amazon.encryption.s3.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
@@ -127,6 +129,16 @@
 				<artifactId>spring-cloud-aws-dynamodb</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-kinesis</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-integration-kinesis</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
@@ -220,7 +232,19 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-integration-s3</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter-sns</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-integration-sns</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -253,6 +277,17 @@
 				<artifactId>jakarta.mail</artifactId>
 				<version>${eclipse.jakarta.mail.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>software.amazon.kinesis</groupId>
+				<artifactId>amazon-kinesis-client</artifactId>
+				<version>${kcl.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>software.amazon.kinesis</groupId>
+				<artifactId>amazon-kinesis-producer</artifactId>
+				<version>${kpl.version}</version>
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 

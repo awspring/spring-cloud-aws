@@ -44,6 +44,8 @@
 		<module>spring-cloud-aws-sns</module>
 		<module>spring-cloud-aws-sqs</module>
 		<module>spring-cloud-aws-dynamodb</module>
+		<module>spring-cloud-aws-kinesis</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis</module>
 		<module>spring-cloud-aws-s3</module>
 		<module>spring-cloud-aws-testcontainers</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter</module>
@@ -52,16 +54,19 @@
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-metrics</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-parameter-store</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-s3</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-s3</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-secrets-manager</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-ses</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sns</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-sns</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sqs</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-sqs</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-kinesis</module>
 		<module>spring-cloud-aws-samples</module>
 		<module>spring-cloud-aws-test</module>
 		<module>spring-cloud-aws-modulith</module>
 		<module>docs</module>
-    </modules>
+	</modules>
 
 	<dependencyManagement>
 		<dependencies>
