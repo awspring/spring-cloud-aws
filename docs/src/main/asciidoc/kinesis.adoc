@@ -114,8 +114,42 @@ public PollableChannel errorChannel() {
 }
 ----
 
+The `KplMessageHandler` is an `AbstractMessageHandler` to perform put record to the Kinesis stream using https://docs.aws.amazon.com/streams/latest/dev/developing-producers-with-kpl.html[Kinesis Producer Library (KPL)].
+The configuration and behavior are similar to the `KinesisMessageHandler` described above, with the difference that it supports only a single `UserRecord` production according to KPL API.
+The request message payload could be as a `UserRecord`.
+Otherwise, such an instance is built against request messages and respective `KplMessageHandler` options, include https://docs.aws.amazon.com/streams/latest/dev/kpl-with-schemaregistry.html[AWS Glue Schema] for the record serialization.
+
+Due to asynchronous behavior and buffer of the `KinesisProducer`, a `KplBackpressureException` could be thrown from the  `KplMessageHandler` when `backPressureThreshold` as the number of outstanding records is provided.
+
+The configuration of the `KplMessageHandler` is straightforward:
+
+[source,java]
+----
+@Bean
+RequestHandlerRetryAdvice retryAdvice() {
+    RequestHandlerRetryAdvice requestHandlerRetryAdvice = new RequestHandlerRetryAdvice();
+    requestHandlerRetryAdvice.setRetryTemplate(RetryTemplate.builder()
+        .retryOn(KplBackpressureException.class)
+        .exponentialBackoff(100, 2.0, 1000)
+        .maxAttempts(3)
+        .build());
+    return requestHandlerRetryAdvice;
+}
+
+@Bean
+@ServiceActivator(inputChannel = "kinesisSendChannel", adviceChain = "retryAdvice")
+MessageHandler kplMessageHandler(KinesisProducer kinesisProducer, Schema schema) {
+    KplMessageHandler kplMessageHandler = new KplMessageHandler(kinesisProducer);
+    kplMessageHandler.setAsync(true);
+    kplMessageHandler.setStream("someStream");
+	kplMessageHandler.setBackPressureThreshold(2);
+    kplMessageHandler.setGlueSchema(schema);
+    return kplMessageHandler;
+}
+----
 
 === Spring Integration Starters
 
 The Spring Integration dependency in the `spring-cloud-aws-kinesis` module is `optional` to avoid unnecessary artifacts on classpath when Spring Integration is not used.
 For convenience, a dedicated `spring-cloud-aws-starter-integration-kinesis` is provided managing all the required dependencies for Spring Integration support with a classical Amazon Kinesis client.
+The `spring-cloud-aws-starter-integration-kinesis-producer` artifact is dedicated for dependencies related to the Kinesis Producer Library.
