@@ -30,7 +30,7 @@
 			<artifactId>amazon-kinesis-client</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.amazonaws</groupId>
+			<groupId>software.amazon.kinesis</groupId>
 			<artifactId>amazon-kinesis-producer</artifactId>
 		</dependency>
 	</dependencies>
