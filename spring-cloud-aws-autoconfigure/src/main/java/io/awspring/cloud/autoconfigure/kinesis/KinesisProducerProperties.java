@@ -15,12 +15,11 @@
  */
 package io.awspring.cloud.autoconfigure.kinesis;
 
+import static io.awspring.cloud.autoconfigure.kinesis.KinesisProducerProperties.PREFIX;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import software.amazon.kinesis.producer.KinesisProducerConfiguration;
-
-import static io.awspring.cloud.autoconfigure.kinesis.KinesisProducerProperties.PREFIX;
 
 /**
  * Properties related to KinesisProducer

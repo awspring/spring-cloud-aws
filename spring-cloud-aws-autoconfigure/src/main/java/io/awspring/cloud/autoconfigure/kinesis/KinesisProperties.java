@@ -19,7 +19,6 @@ import static io.awspring.cloud.autoconfigure.kinesis.KinesisProperties.PREFIX;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.lang.Nullable;
 
 /**
  * Properties related to KinesisClient

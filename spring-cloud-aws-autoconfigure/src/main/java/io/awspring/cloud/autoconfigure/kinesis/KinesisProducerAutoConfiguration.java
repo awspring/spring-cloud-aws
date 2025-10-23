@@ -1,8 +1,20 @@
+/*
+ * Copyright 2013-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.awspring.cloud.autoconfigure.kinesis;
 
-
-import software.amazon.kinesis.producer.KinesisProducer;
-import software.amazon.kinesis.producer.KinesisProducerConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -18,6 +30,8 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.kinesis.producer.KinesisProducer;
+import software.amazon.kinesis.producer.KinesisProducerConfiguration;
 
 @AutoConfiguration
 @ConditionalOnClass({ KinesisProducer.class, KinesisProducerConfiguration.class })
@@ -29,8 +43,8 @@ public class KinesisProducerAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public KinesisProducerConfiguration kinesisProducerConfiguration(KinesisProducerProperties prop,
-																	 AwsCredentialsProvider credentialsProvider,
-																	 AwsRegionProvider awsRegionProvider, ObjectProvider<AwsConnectionDetails> connectionDetails) {
+			AwsCredentialsProvider credentialsProvider, AwsRegionProvider awsRegionProvider,
+			ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		PropertyMapper propertyMapper = PropertyMapper.get();
 		KinesisProducerConfiguration config = new KinesisProducerConfiguration();
 		propertyMapper.from(prop::getAggregationEnabled).whenNonNull().to(config::setAggregationEnabled);
@@ -66,13 +80,11 @@ public class KinesisProducerAutoConfiguration {
 		propertyMapper.from(prop.getStsPort()).whenNonNull().to(config::setStsPort);
 		propertyMapper.from(prop.getThreadingModel()).whenNonNull().to(config::setThreadingModel);
 		propertyMapper.from(prop.getThreadPoolSize()).whenNonNull().to(config::setThreadPoolSize);
-		propertyMapper.from(prop.getUserRecordTimeoutInMillis()).whenNonNull()
-			.to(config::setUserRecordTimeoutInMillis);
+		propertyMapper.from(prop.getUserRecordTimeoutInMillis()).whenNonNull().to(config::setUserRecordTimeoutInMillis);
 
 		config.setCredentialsProvider(credentialsProvider);
 		config.setRegion(AwsClientBuilderConfigurer
-			.resolveRegion(prop, connectionDetails.getIfAvailable(), awsRegionProvider)
-			.toString());
+				.resolveRegion(prop, connectionDetails.getIfAvailable(), awsRegionProvider).toString());
 		connectionDetails.ifAvailable(cd -> {
 			config.setKinesisPort(cd.getEndpoint().getPort());
 			config.setKinesisEndpoint(cd.getEndpoint().getHost());
