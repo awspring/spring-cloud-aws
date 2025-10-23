@@ -88,6 +88,30 @@ With such config, properties `spring.datasource.url` and `spring.datasource.user
 NOTE: Prefixes are added as-is to all property names returned by Parameter Store. If you want key names to be separated with a dot between the prefix and key name, make sure to add a trailing dot to the prefix.
 
 
+Sometimes it is useful to group multiple properties in a text-based format, similar to application.properties. With Spring Cloud AWS, you can load a Parameter Store parameter as a text-based key/value configuration by using the spring.config.import property with the ?properties suffix:
+
+[source,properties]
+----
+spring.config.import=aws-parameterstore:/config/my-datasource/?properties
+----
+
+All parameters stored under this path will be interpreted as key/value pairs. For example, if the value of a parameter is:
+
+[source,properties]
+----
+spring.cloud.aws.region=eu-central-1
+spring.cloud.aws.endpoint=randomEndpoint
+----
+
+Spring Cloud AWS will automatically load these as:
+Key: `spring.cloud.aws.region`, Value: `eu-central-1`
+Key: `spring.cloud.aws.endpoint`, Value: `randomEndpoint`
+
+NOTE: Standard Parameter Store parameters are limited to 4 KB of data.
+
+This approach allows you to maintain multiple related properties in a single parameter, making configuration management simpler and more organized.
+
+
 === Using SsmClient
 
 The starter automatically configures and registers a `SsmClient` bean in the Spring application context. The `SsmClient` bean can be used to create or retrieve parameters from Parameter Store.

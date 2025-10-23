@@ -16,8 +16,11 @@
 package io.awspring.cloud.parameterstore;
 
 import io.awspring.cloud.core.config.AwsPropertySource;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
@@ -41,6 +44,8 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	// ParameterStoreConfigDataLoader
 	private static Log LOG = LogFactory.getLog(ParameterStorePropertySource.class);
 	private static final String PREFIX_PART = "?prefix=";
+
+	private static final String PREFIX_PROPERTIES_LOAD = "?properties";
 	private final String context;
 
 	private final String parameterPath;
@@ -51,6 +56,8 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	 */
 	@Nullable
 	private final String prefix;
+
+	private Boolean propertiesType = false;
 
 	private final Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -87,11 +94,20 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	private void getParameters(GetParametersByPathRequest paramsRequest) {
 		GetParametersByPathResponse paramsResult = this.source.getParametersByPath(paramsRequest);
 		for (Parameter parameter : paramsResult.parameters()) {
-			String key = parameter.name().replace(this.parameterPath, "").replace('/', '.').replaceAll("_(\\d)_",
-					"[$1]");
-			LOG.debug("Populating property retrieved from AWS Parameter Store: " + key);
-			String propertyKey = prefix != null ? prefix + key : key;
-			this.properties.put(propertyKey, parameter.value());
+			if (propertiesType) {
+				Arrays.stream(parameter.value().split("\\n")).map(line -> line.split("=", 2)).forEach(keyValue -> {
+					if (keyValue.length == 2) {
+						this.properties.put(keyValue[0].trim(), keyValue[1].trim());
+					}
+				});
+			}
+			else {
+				String key = parameter.name().replace(this.parameterPath, "").replace('/', '.').replaceAll("_(\\d)_",
+						"[$1]");
+				LOG.debug("Populating property retrieved from AWS Parameter Store: " + key);
+				String propertyKey = prefix != null ? prefix + key : key;
+				this.properties.put(propertyKey, parameter.value());
+			}
 		}
 		if (paramsResult.nextToken() != null) {
 			getParameters(paramsRequest.toBuilder().nextToken(paramsResult.nextToken()).build());
@@ -112,7 +128,7 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	}
 
 	@Nullable
-	private static String resolvePrefix(String context) {
+	private String resolvePrefix(String context) {
 		int prefixIndex = context.indexOf(PREFIX_PART);
 		if (prefixIndex != -1) {
 			return context.substring(prefixIndex + PREFIX_PART.length());
@@ -120,12 +136,28 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 		return null;
 	}
 
-	private static String resolveParameterPath(String context) {
+	private String resolveParameterPath(String context) {
 		int prefixIndex = context.indexOf(PREFIX_PART);
 		if (prefixIndex != -1) {
 			return context.substring(0, prefixIndex);
 		}
+		prefixIndex = context.indexOf(PREFIX_PROPERTIES_LOAD);
+		if (prefixIndex != -1) {
+			this.propertiesType = true;
+			return context.substring(0, prefixIndex);
+		}
 		return context;
+	}
+
+	private Properties readProperties(InputStream inputStream) {
+		Properties properties = new Properties();
+		try (InputStream in = inputStream) {
+			properties.load(in);
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Cannot load environment", e);
+		}
+		return properties;
 	}
 
 }
