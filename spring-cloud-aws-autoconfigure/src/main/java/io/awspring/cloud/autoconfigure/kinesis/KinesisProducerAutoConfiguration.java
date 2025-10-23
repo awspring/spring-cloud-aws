@@ -1,8 +1,8 @@
 package io.awspring.cloud.autoconfigure.kinesis;
 
 
-import com.amazonaws.services.kinesis.producer.KinesisProducer;
-import com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration;
+import software.amazon.kinesis.producer.KinesisProducer;
+import software.amazon.kinesis.producer.KinesisProducerConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -20,7 +20,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
 @AutoConfiguration
-@ConditionalOnClass({ KinesisProducer.class })
+@ConditionalOnClass({ KinesisProducer.class, KinesisProducerConfiguration.class })
 @EnableConfigurationProperties({ KinesisProducerProperties.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnProperty(value = "spring.cloud.aws.kinesis.producer.enabled", havingValue = "true", matchIfMissing = true)
@@ -28,12 +28,11 @@ public class KinesisProducerAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public KinesisProducerConfiguration kinesisProducerConfiguration(KinesisProperties kinesisProperties,
+	public KinesisProducerConfiguration kinesisProducerConfiguration(KinesisProducerProperties prop,
 																	 AwsCredentialsProvider credentialsProvider,
 																	 AwsRegionProvider awsRegionProvider, ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		PropertyMapper propertyMapper = PropertyMapper.get();
 		KinesisProducerConfiguration config = new KinesisProducerConfiguration();
-		KinesisProducerProperties prop = kinesisProperties.getProducer();
 		propertyMapper.from(prop::getAggregationEnabled).whenNonNull().to(config::setAggregationEnabled);
 		propertyMapper.from(prop::getAggregationMaxCount).whenNonNull().to(config::setAggregationMaxCount);
 		propertyMapper.from(prop::getAggregationMaxSize).whenNonNull().to(config::setAggregationMaxSize);
@@ -70,9 +69,9 @@ public class KinesisProducerAutoConfiguration {
 		propertyMapper.from(prop.getUserRecordTimeoutInMillis()).whenNonNull()
 			.to(config::setUserRecordTimeoutInMillis);
 
-		config.setCredentialsProvider()
+		config.setCredentialsProvider(credentialsProvider);
 		config.setRegion(AwsClientBuilderConfigurer
-			.resolveRegion(kinesisProperties, connectionDetails.getIfAvailable(), awsRegionProvider)
+			.resolveRegion(prop, connectionDetails.getIfAvailable(), awsRegionProvider)
 			.toString());
 		connectionDetails.ifAvailable(cd -> {
 			config.setKinesisPort(cd.getEndpoint().getPort());

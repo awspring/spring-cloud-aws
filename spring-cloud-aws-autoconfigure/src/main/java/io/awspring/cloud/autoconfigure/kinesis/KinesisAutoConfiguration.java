@@ -15,8 +15,6 @@
  */
 package io.awspring.cloud.autoconfigure.kinesis;
 
-import com.amazonaws.services.kinesis.producer.KinesisProducer;
-import com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration;
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -29,10 +27,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 
 @AutoConfiguration
@@ -54,21 +49,4 @@ public class KinesisAutoConfiguration {
 						kinesisAsyncClientCustomizer.orderedStream(), awsSyncClientCustomizers.orderedStream())
 				.build();
 	}
-
-	@ConditionalOnClass(name = { "com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration",
-			"com.amazonaws.services.kinesis.producer.KinesisProducer" })
-	public static class KinesisProducerAutoConfiguration {
-	}
-
-	// In your configs
-	ConfigsBuilder configsBuilder = new ConfigsBuilder(
-		streamName,
-		applicationName,
-		KinesisClientUtil.createKinesisAsyncClient(kinesisAsyncClient), // <-- Use your bean
-		dynamoDbClient,
-		cloudWatchClient,
-		workerId,
-		recordProcessorFactory
-	);
-
 }

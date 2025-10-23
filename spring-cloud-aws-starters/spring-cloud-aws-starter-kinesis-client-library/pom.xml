@@ -12,14 +12,18 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-cloud-aws-starter-kinesis</artifactId>
-	<name>Spring Cloud AWS Kinesis Starter</name>
-	<description>Spring Cloud AWS Kinesis Starter</description>
+	<artifactId>spring-cloud-aws-starter-kinesis-client-library</artifactId>
+	<name>Spring Cloud AWS Kinesis Client Library</name>
+	<description>Spring Cloud AWS Kinesis Client Library</description>
 
 	<dependencies>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.kinesis</groupId>
+			<artifactId>amazon-kinesis-client</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>

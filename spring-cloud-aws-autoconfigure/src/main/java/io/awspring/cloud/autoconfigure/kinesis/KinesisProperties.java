@@ -33,15 +33,4 @@ public class KinesisProperties extends AwsClientProperties {
 	 * The prefix used for AWS Kinesis configuration.
 	 */
 	public static final String PREFIX = "spring.cloud.aws.kinesis";
-
-	@Nullable
-	private KinesisProducerProperties producer = new KinesisProducerProperties();
-
-	public KinesisProducerProperties getProducer() {
-		return producer;
-	}
-
-	public void setProducer(KinesisProducerProperties producer) {
-		this.producer = producer;
-	}
 }
