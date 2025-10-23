@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.kinesis;
 
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.autoconfigure.metrics.CloudWatchExportAutoConfiguration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -35,14 +36,15 @@ import software.amazon.kinesis.processor.ShardRecordProcessorFactory;
 @ConditionalOnClass({ KinesisAsyncClient.class, Scheduler.class })
 @EnableConfigurationProperties({ KinesisClientLibraryProperties.class })
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class,
-		KinesisAutoConfiguration.class })
+		KinesisAutoConfiguration.class, CloudWatchExportAutoConfiguration.class})
 @ConditionalOnProperty(value = "spring.cloud.aws.kinesis.client.library.enabled", havingValue = "true", matchIfMissing = true)
 public class KinesisClientLibraryAutoConfiguration {
+	z
 
 	@ConditionalOnMissingBean
 	@Bean
-	public Scheduler scheduler(ObjectProvider<DynamoDbAsyncClient> dynamoDbClient,
-			ObjectProvider<CloudWatchAsyncClient> cloudWatchClient, KinesisAsyncClient kinesisAsyncClient,
+	public Scheduler scheduler(DynamoDbAsyncClient dynamoDbClient,
+			CloudWatchAsyncClient cloudWatchClient, KinesisAsyncClient kinesisAsyncClient,
 			KinesisClientLibraryProperties properties, ShardRecordProcessorFactory processorFactory) {
 		return null;
 	}
