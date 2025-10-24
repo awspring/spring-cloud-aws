@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,17 +79,8 @@ class KinesisIntegrationTests implements LocalstackContainerTest {
 				.join();
 	}
 
-	@AfterAll
-	static void tearDown() {
-		AMAZON_KINESIS_ASYNC.deleteStream(request -> request.streamName(TEST_STREAM));
-	}
-
 	@Test
 	void kinesisInboundOutbound() throws InterruptedException {
-		// We have to wait until an active shard iterator on stream.
-		// Otherwise, the record might be lost.
-		Thread.sleep(2000);
-
 		this.kinesisSendChannel
 				.send(MessageBuilder.withPayload("test").setHeader(KinesisHeaders.STREAM, TEST_STREAM).build());
 
@@ -170,6 +160,7 @@ class KinesisIntegrationTests implements LocalstackContainerTest {
 		private KinesisMessageDrivenChannelAdapter kinesisMessageDrivenChannelAdapter() {
 			KinesisMessageDrivenChannelAdapter adapter = new KinesisMessageDrivenChannelAdapter(AMAZON_KINESIS_ASYNC,
 					TEST_STREAM);
+			adapter.setStreamInitialSequence(KinesisShardOffset.trimHorizon());
 			adapter.setOutputChannel(kinesisReceiveChannel());
 			adapter.setErrorChannelName("errorChannel");
 			adapter.setErrorMessageStrategy(new KinesisMessageHeaderErrorMessageStrategy());

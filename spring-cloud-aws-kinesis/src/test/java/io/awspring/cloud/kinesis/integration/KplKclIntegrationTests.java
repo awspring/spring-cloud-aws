@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.awspring.cloud.kinesis.LocalstackContainerTest;
 import java.net.URI;
 import java.util.Date;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
@@ -87,11 +86,6 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 		AMAZON_KINESIS.createStream(request -> request.streamName(TEST_STREAM).shardCount(1)).thenCompose(
 				result -> AMAZON_KINESIS.waiter().waitUntilStreamExists(request -> request.streamName(TEST_STREAM)))
 				.join();
-	}
-
-	@AfterAll
-	static void tearDown() {
-		AMAZON_KINESIS.deleteStream(request -> request.streamName(TEST_STREAM));
 	}
 
 	@Test

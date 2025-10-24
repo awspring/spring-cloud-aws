@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.awspring.cloud.kinesis.LocalstackContainerTest;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,21 +78,6 @@ class KclMessageDrivenChannelAdapterMultiStreamTests implements LocalstackContai
 				.createStream(request -> request.streamName(TEST_STREAM2).shardCount(1))
 				.thenCompose(result -> AMAZON_KINESIS.waiter()
 						.waitUntilStreamExists(request -> request.streamName(TEST_STREAM2)));
-
-		CompletableFuture.allOf(completableFuture1, completableFuture2).join();
-	}
-
-	@AfterAll
-	static void tearDown() {
-		CompletableFuture<?> completableFuture1 = AMAZON_KINESIS
-				.deleteStream(request -> request.streamName(TEST_STREAM1).enforceConsumerDeletion(true))
-				.thenCompose(result -> AMAZON_KINESIS.waiter()
-						.waitUntilStreamNotExists(request -> request.streamName(TEST_STREAM1)));
-
-		CompletableFuture<?> completableFuture2 = AMAZON_KINESIS
-				.deleteStream(request -> request.streamName(TEST_STREAM2).enforceConsumerDeletion(true))
-				.thenCompose(result -> AMAZON_KINESIS.waiter()
-						.waitUntilStreamNotExists(request -> request.streamName(TEST_STREAM2)));
 
 		CompletableFuture.allOf(completableFuture1, completableFuture2).join();
 	}

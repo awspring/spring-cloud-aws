@@ -43,7 +43,7 @@ import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 public interface LocalstackContainerTest {
 
 	LocalStackContainer LOCAL_STACK_CONTAINER = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:4.4.0"));
+			DockerImageName.parse("localstack/localstack:4.4.0")).withEnv("USE_SSL", "true");
 
 	@BeforeAll
 	static void startContainer() {

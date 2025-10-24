@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,14 +91,6 @@ public class KclMessageDrivenChannelAdapterTests implements LocalstackContainerT
 		CLOUD_WATCH = LocalstackContainerTest.cloudWatchClient();
 
 		CompletableFuture.allOf(initializeStream(TEST_STREAM), initializeLeaseTableFor(LEASE_TABLE_NAME)).join();
-	}
-
-	@AfterAll
-	static void tearDown() {
-		AMAZON_KINESIS.deleteStream(request -> request.streamName(TEST_STREAM).enforceConsumerDeletion(true))
-				.thenCompose(result -> AMAZON_KINESIS.waiter()
-						.waitUntilStreamNotExists(request -> request.streamName(TEST_STREAM)))
-				.join();
 	}
 
 	@Test
