@@ -47,6 +47,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.kinesis.common.InitialPositionInStream;
 import software.amazon.kinesis.common.InitialPositionInStreamExtended;
+import software.amazon.kinesis.metrics.MetricsLevel;
 import software.amazon.kinesis.producer.KinesisProducer;
 import software.amazon.kinesis.producer.KinesisProducerConfiguration;
 
@@ -136,12 +137,15 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 					.getEndpointOverride(LocalStackContainer.Service.KINESIS);
 			URI cloudWatchUri = LocalstackContainerTest.LOCAL_STACK_CONTAINER
 					.getEndpointOverride(LocalStackContainer.Service.CLOUDWATCH);
+			URI stsUri = LocalstackContainerTest.LOCAL_STACK_CONTAINER
+					.getEndpointOverride(LocalStackContainer.Service.STS);
 
 			return new KinesisProducerConfiguration()
 					.setCredentialsProvider(LocalstackContainerTest.credentialsProvider())
 					.setRegion(LocalstackContainerTest.LOCAL_STACK_CONTAINER.getRegion())
 					.setKinesisEndpoint(kinesisUri.getHost()).setKinesisPort(kinesisUri.getPort())
 					.setCloudwatchEndpoint(cloudWatchUri.getHost()).setCloudwatchPort(cloudWatchUri.getPort())
+					.setStsEndpoint(stsUri.getHost()).setStsPort(stsUri.getPort())
 					.setVerifyCertificate(false);
 		}
 
@@ -172,6 +176,9 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 			adapter.setStreamInitialSequence(
 					InitialPositionInStreamExtended.newInitialPosition(InitialPositionInStream.TRIM_HORIZON));
 			adapter.setBindSourceRecord(true);
+			adapter.setMetricsLevel(MetricsLevel.NONE);
+			adapter.setLeaseManagementConfigCustomizer(leaseManagementConfig -> leaseManagementConfig
+				.workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
 			return adapter;
 		}
 
