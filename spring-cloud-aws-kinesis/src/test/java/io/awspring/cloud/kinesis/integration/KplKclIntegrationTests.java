@@ -139,8 +139,8 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 					.setRegion(LocalstackContainerTest.LOCAL_STACK_CONTAINER.getRegion())
 					.setKinesisEndpoint(kinesisUri.getHost()).setKinesisPort(kinesisUri.getPort())
 					.setCloudwatchEndpoint(cloudWatchUri.getHost()).setCloudwatchPort(cloudWatchUri.getPort())
-					.setStsEndpoint(stsUri.getHost()).setStsPort(stsUri.getPort())
-					.setVerifyCertificate(false);
+					.setStsEndpoint(stsUri.getHost()).setStsPort(stsUri.getPort()).setVerifyCertificate(false)
+					.setCredentialsRefreshDelay(300000L);
 		}
 
 		@Bean
@@ -172,7 +172,7 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 			adapter.setBindSourceRecord(true);
 			adapter.setMetricsLevel(MetricsLevel.NONE);
 			adapter.setLeaseManagementConfigCustomizer(leaseManagementConfig -> leaseManagementConfig
-				.workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
+					.workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
 			return adapter;
 		}
 

@@ -23,6 +23,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
@@ -43,7 +44,8 @@ import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 public interface LocalstackContainerTest {
 
 	LocalStackContainer LOCAL_STACK_CONTAINER = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:4.4.0")).withEnv("USE_SSL", "true");
+			DockerImageName.parse("localstack/localstack:4.4.0"))
+			.withEnv(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.environmentVariable(), "true");
 
 	@BeforeAll
 	static void startContainer() {
