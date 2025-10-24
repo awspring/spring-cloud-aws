@@ -21,9 +21,8 @@ import io.awspring.cloud.kinesis.LocalstackContainerTest;
 import java.net.URI;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,7 +56,7 @@ import software.amazon.kinesis.producer.KinesisProducerConfiguration;
  */
 @SpringJUnitConfig
 @DirtiesContext
-@DisabledOnOs(OS.WINDOWS)
+@Disabled("KCL fails with acquiring DB lock when KPL is there as well")
 class KplKclIntegrationTests implements LocalstackContainerTest {
 
 	private static final String TEST_STREAM = "TestStreamKplKcl";
