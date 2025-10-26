@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.support.converter.SnsNotification;
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -31,6 +30,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.GenericMessage;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests for {@link SnsNotificationArgumentResolver}.
@@ -39,7 +39,7 @@ import org.springframework.messaging.support.GenericMessage;
  */
 class SnsNotificationArgumentResolverTest {
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final JsonMapper jsonMapper = new JsonMapper();
 
 	private SnsNotificationArgumentResolver resolver;
 
@@ -49,7 +49,7 @@ class SnsNotificationArgumentResolverTest {
 	@BeforeEach
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
-		resolver = new SnsNotificationArgumentResolver(messageConverter, objectMapper);
+		resolver = new SnsNotificationArgumentResolver(messageConverter, jsonMapper);
 	}
 
 	@Test

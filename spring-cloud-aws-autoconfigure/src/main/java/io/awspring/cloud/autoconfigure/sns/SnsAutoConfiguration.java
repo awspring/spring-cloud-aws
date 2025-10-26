@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.sns;
 
 import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -40,11 +39,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.services.sns.SnsClient;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SNS integration.
@@ -78,11 +78,16 @@ public class SnsAutoConfiguration {
 
 	@ConditionalOnMissingBean(SnsOperations.class)
 	@Bean
-	public SnsTemplate snsTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper,
+	public SnsTemplate snsTemplate(SnsClient snsClient, Optional<JsonMapper> jsonMapper,
 			Optional<TopicArnResolver> topicArnResolver, ObjectProvider<ChannelInterceptor> interceptors) {
-		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+		JacksonJsonMessageConverter converter;
+		if (jsonMapper.isPresent()) {
+			converter = new JacksonJsonMessageConverter(jsonMapper.get());
+		}
+		else {
+			converter = new JacksonJsonMessageConverter();
+		}
 		converter.setSerializedPayloadClass(String.class);
-		objectMapper.ifPresent(converter::setObjectMapper);
 		SnsTemplate snsTemplate = topicArnResolver.map(it -> new SnsTemplate(snsClient, it, converter))
 				.orElseGet(() -> new SnsTemplate(snsClient, converter));
 		interceptors.forEach(snsTemplate::addChannelInterceptor);

@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.support.resolver;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SnsNotificationSubject;
 import io.awspring.cloud.sqs.support.converter.SnsSubjectConverter;
 import java.lang.reflect.Executable;
@@ -27,6 +26,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.ClassUtils;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Alexander Nebel
@@ -38,7 +38,7 @@ public class NotificationSubjectArgumentResolver implements HandlerMethodArgumen
 
 	private final MessageConverter converter;
 
-	public NotificationSubjectArgumentResolver(ObjectMapper jsonMapper) {
+	public NotificationSubjectArgumentResolver(JsonMapper jsonMapper) {
 		this.converter = new SnsSubjectConverter(jsonMapper);
 	}
 

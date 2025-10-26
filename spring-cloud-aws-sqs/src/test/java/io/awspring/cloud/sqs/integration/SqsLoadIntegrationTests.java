@@ -18,7 +18,6 @@ package io.awspring.cloud.sqs.integration;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
@@ -60,6 +59,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Load test for SQS integration.
@@ -380,8 +380,8 @@ class SqsLoadIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
-		ObjectMapper objectMapper() {
-			return new ObjectMapper();
+		JsonMapper objectMapper() {
+			return new JsonMapper();
 		}
 
 		@Bean

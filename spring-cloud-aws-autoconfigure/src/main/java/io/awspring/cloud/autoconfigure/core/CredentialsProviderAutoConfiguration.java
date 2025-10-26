@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.core;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -159,10 +160,11 @@ public class CredentialsProviderAutoConfiguration {
 
 			if (stsProperties != null) {
 				builder.asyncCredentialUpdateEnabled(stsProperties.isAsyncCredentialsUpdate());
-				propertyMapper.from(stsProperties::getRoleArn).whenNonNull().to(builder::roleArn);
-				propertyMapper.from(stsProperties::getWebIdentityTokenFile).whenNonNull()
+				propertyMapper.from(stsProperties::getRoleArn).to(builder::roleArn);
+				propertyMapper.from(stsProperties::getWebIdentityTokenFile)
 						.to(b -> builder.webIdentityTokenFile(Paths.get(b)));
-				propertyMapper.from(stsProperties::getRoleSessionName).whenNonNull().to(builder::roleSessionName);
+				propertyMapper.from(stsProperties::getRoleSessionName)
+						.to(builder::roleSessionName);
 			}
 			return builder.build();
 		}

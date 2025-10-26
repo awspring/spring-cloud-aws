@@ -20,7 +20,6 @@ import static io.awspring.cloud.sqs.integration.SnsNotificationIntegrationTests.
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
@@ -47,6 +46,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration tests for SNS notifications in SQS.
@@ -70,7 +70,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 	SqsTemplate sqsTemplate;
 
 	@Autowired
-	ObjectMapper objectMapper;
+	JsonMapper jsonMapper;
 
 	@BeforeAll
 	static void beforeTests() {
@@ -191,7 +191,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		String sequenceNumber = "10000000000000003000";
 		String topicArn = "topic-arn-json";
 		TestPayload payload = new TestPayload("test", 123);
-		String messageContent = objectMapper.writeValueAsString(payload);
+		String messageContent = jsonMapper.writeValueAsString(payload);
 		Instant timestamp = Instant.parse("2023-01-01T00:00:00Z");
 		String unsubscribeUrl = "https://sns.region.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:region:accountId:topicName:uuid";
 		String subject = "subject-json";
@@ -228,7 +228,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(receivedNotification.getSubject()).isEqualTo(Optional.of(subject));
 
 		String jsonMessage = receivedNotification.getMessage();
-		TestPayload resultPayload = objectMapper.readValue(jsonMessage, TestPayload.class);
+		TestPayload resultPayload = jsonMapper.readValue(jsonMessage, TestPayload.class);
 		assertThat(resultPayload.getName()).isEqualTo(payload.getName());
 		assertThat(resultPayload.getValue()).isEqualTo(payload.getValue());
 
@@ -352,13 +352,13 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
-		ObjectMapper objectMapper() {
-			return new ObjectMapper();
+		JsonMapper jsonMapper() {
+			return new JsonMapper();
 		}
 
 		@Bean
-		SqsListenerConfigurer sqsListenerConfigurer(ObjectMapper objectMapper) {
-			return registrar -> registrar.setObjectMapper(objectMapper);
+		SqsListenerConfigurer sqsListenerConfigurer(JsonMapper jsonMapper) {
+			return registrar -> registrar.setJsonMapper(jsonMapper);
 		}
 
 		@Bean

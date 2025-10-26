@@ -15,10 +15,6 @@
  */
 package io.awspring.cloud.secretsmanager;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,6 +27,9 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Retrieves secret value under the given context / path from the AWS Secrets Manager using the provided Secrets Manager
@@ -48,7 +47,7 @@ public class SecretsManagerPropertySource
 	private static Log LOG = LogFactory.getLog(SecretsManagerPropertySource.class);
 	private static final String PREFIX_PART = "?prefix=";
 
-	private final ObjectMapper jsonMapper = new ObjectMapper();
+	private final JsonMapper jsonMapper = new JsonMapper();
 
 	/**
 	 * Full secret path containing both secret id and prefix.
@@ -112,7 +111,7 @@ public class SecretsManagerPropertySource
 					properties.put(propertyKey, secretEntry.getValue());
 				}
 			}
-			catch (JsonParseException e) {
+			catch (JacksonException e) {
 				// If the secret is not a JSON string, then it is a simple "plain text" string
 				String[] parts = secretValueResponse.name().split("/");
 				String secretName = parts[parts.length - 1];
@@ -120,7 +119,7 @@ public class SecretsManagerPropertySource
 				String propertyKey = prefix != null ? prefix + secretName : secretName;
 				properties.put(propertyKey, secretValueResponse.secretString());
 			}
-			catch (JsonProcessingException e) {
+			catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}

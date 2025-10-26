@@ -28,6 +28,7 @@ import io.awspring.cloud.dynamodb.DynamoDbTableSchemaResolver;
 import io.awspring.cloud.dynamodb.DynamoDbTemplate;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -77,24 +78,25 @@ public class DynamoDbAutoConfiguration {
 
 			PropertyMapper propertyMapper = PropertyMapper.get();
 			software.amazon.dax.Configuration.Builder configuration = software.amazon.dax.Configuration.builder();
-			propertyMapper.from(daxProperties.getIdleTimeoutMillis()).whenNonNull()
+			propertyMapper.from(daxProperties.getIdleTimeoutMillis())
 					.to(configuration::idleTimeoutMillis);
-			propertyMapper.from(daxProperties.getConnectionTtlMillis()).whenNonNull()
+			propertyMapper.from(daxProperties.getConnectionTtlMillis())
 					.to(configuration::connectionTtlMillis);
-			propertyMapper.from(daxProperties.getConnectTimeoutMillis()).whenNonNull()
+			propertyMapper.from(daxProperties.getConnectTimeoutMillis())
 					.to(configuration::connectTimeoutMillis);
-			propertyMapper.from(daxProperties.getRequestTimeoutMillis()).whenNonNull()
+			propertyMapper.from(daxProperties.getRequestTimeoutMillis())
 					.to(configuration::requestTimeoutMillis);
-			propertyMapper.from(daxProperties.getWriteRetries()).whenNonNull().to(configuration::writeRetries);
-			propertyMapper.from(daxProperties.getReadRetries()).whenNonNull().to(configuration::readRetries);
-			propertyMapper.from(daxProperties.getClusterUpdateIntervalMillis()).whenNonNull()
+			propertyMapper.from(daxProperties.getWriteRetries()).to(configuration::writeRetries);
+			propertyMapper.from(daxProperties.getReadRetries()).to(configuration::readRetries);
+			propertyMapper.from(daxProperties.getClusterUpdateIntervalMillis())
 					.to(configuration::clusterUpdateIntervalMillis);
-			propertyMapper.from(daxProperties.getEndpointRefreshTimeoutMillis()).whenNonNull()
+			propertyMapper.from(daxProperties.getEndpointRefreshTimeoutMillis())
 					.to(configuration::endpointRefreshTimeoutMillis);
-			propertyMapper.from(daxProperties.getMaxConcurrency()).whenNonNull().to(configuration::maxConcurrency);
-			propertyMapper.from(daxProperties.getMaxPendingConnectionAcquires()).whenNonNull()
+			propertyMapper.from(daxProperties.getMaxConcurrency())
+					.to(configuration::maxConcurrency);
+			propertyMapper.from(daxProperties.getMaxPendingConnectionAcquires())
 					.to(configuration::maxPendingConnectionAcquires);
-			propertyMapper.from(daxProperties.getSkipHostNameVerification()).whenNonNull()
+			propertyMapper.from(daxProperties.getSkipHostNameVerification())
 					.to(configuration::skipHostNameVerification);
 
 			configuration.region(AwsClientBuilderConfigurer.resolveRegion(properties,

@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.s3.properties;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import java.util.Objects;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.context.properties.PropertyMapper;
@@ -202,11 +203,12 @@ public class S3Properties extends AwsClientProperties {
 	public S3Configuration toS3Configuration() {
 		S3Configuration.Builder config = S3Configuration.builder();
 		PropertyMapper propertyMapper = PropertyMapper.get();
-		propertyMapper.from(this::getAccelerateModeEnabled).whenNonNull().to(config::accelerateModeEnabled);
-		propertyMapper.from(this::getChecksumValidationEnabled).whenNonNull().to(config::checksumValidationEnabled);
-		propertyMapper.from(this::getChunkedEncodingEnabled).whenNonNull().to(config::chunkedEncodingEnabled);
-		propertyMapper.from(this::getPathStyleAccessEnabled).whenNonNull().to(config::pathStyleAccessEnabled);
-		propertyMapper.from(this::getUseArnRegionEnabled).whenNonNull().to(config::useArnRegionEnabled);
+		propertyMapper.from(this::getAccelerateModeEnabled).to(config::accelerateModeEnabled);
+		propertyMapper.from(this::getChecksumValidationEnabled)
+				.to(config::checksumValidationEnabled);
+		propertyMapper.from(this::getChunkedEncodingEnabled).to(config::chunkedEncodingEnabled);
+		propertyMapper.from(this::getPathStyleAccessEnabled).to(config::pathStyleAccessEnabled);
+		propertyMapper.from(this::getUseArnRegionEnabled).to(config::useArnRegionEnabled);
 		return config.build();
 	}
 

@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.annotation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.MultiMethodSqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsBeanNames;
@@ -40,6 +39,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.ReflectionUtils;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link AbstractListenerAnnotationBeanPostProcessor} implementation for {@link SqsListener @SqsListener}.
@@ -106,12 +106,12 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, ObjectMapper objectMapper) {
+			MessageConverter messageConverter, JsonMapper jsonMapper) {
 		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
-		if (objectMapper != null) {
-			argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
-			argumentResolvers.add(new NotificationSubjectArgumentResolver(objectMapper));
-			argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, objectMapper));
+		if (jsonMapper != null) {
+			argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, jsonMapper));
+			argumentResolvers.add(new NotificationSubjectArgumentResolver(jsonMapper));
+			argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, jsonMapper));
 		}
 		return argumentResolvers;
 	}

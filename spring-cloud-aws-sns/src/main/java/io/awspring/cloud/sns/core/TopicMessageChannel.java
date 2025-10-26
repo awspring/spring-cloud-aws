@@ -19,7 +19,6 @@ import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEA
 import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_GROUP_ID_HEADER;
 import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
 
-import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +37,7 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
+import tools.jackson.core.io.JsonStringEncoder;
 
 /**
  * Implementation of {@link AbstractMessageChannel} which is used for converting and sending messages via
@@ -134,10 +134,11 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 	}
 
 	private <T> MessageAttributeValue getStringArrayMessageAttribute(List<T> messageHeaderValue) {
-
-		String stringValue = "[" + messageHeaderValue.stream()
-				.map(item -> "\"" + String.valueOf(jsonStringEncoder.quoteAsString(item.toString())) + "\"")
-				.collect(Collectors.joining(", ")) + "]";
+		String stringValue = messageHeaderValue.stream().map(item -> {
+			StringBuilder sb = new StringBuilder();
+			JsonStringEncoder.getInstance().quoteAsString(item.toString(), sb);
+			return "\"" + sb + "\"";
+		}).collect(Collectors.joining(", ", "[", "]"));
 
 		return MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING_ARRAY).stringValue(stringValue)
 				.build();

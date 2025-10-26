@@ -31,12 +31,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.JsonNode;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -47,6 +45,8 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration tests for {@link SnsTemplate}.
@@ -59,7 +59,7 @@ class SnsTemplateIntegrationTest {
 	private static final String TOPIC_NAME = "my_topic_name";
 	private static SnsTemplate snsTemplate;
 	private static SnsClient snsClient;
-	private static final ObjectMapper objectMapper = new ObjectMapper();
+	private static final JsonMapper jsonMapper = new JsonMapper();
 	private static SqsClient sqsClient;
 
 	@Container
@@ -76,7 +76,7 @@ class SnsTemplateIntegrationTest {
 				.region(Region.of(localstack.getRegion()))
 				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
 				.build();
-		MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
+		JacksonJsonMessageConverter mappingJackson2MessageConverter = new JacksonJsonMessageConverter();
 		mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
 		snsTemplate = new SnsTemplate(snsClient, mappingJackson2MessageConverter);
 	}
@@ -113,7 +113,7 @@ class SnsTemplateIntegrationTest {
 			await().untilAsserted(() -> {
 				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
 				assertThat(response.hasMessages()).isTrue();
-				JsonNode body = objectMapper.readTree(response.messages().get(0).body());
+				JsonNode body = jsonMapper.readTree(response.messages().get(0).body());
 				assertThat(body.get("Message").asText()).isEqualTo("message");
 			});
 		}
@@ -147,8 +147,8 @@ class SnsTemplateIntegrationTest {
 			await().untilAsserted(() -> {
 				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
 				assertThat(response.hasMessages()).isTrue();
-				JsonNode body = objectMapper.readTree(response.messages().get(0).body());
-				assertThat(body.get("Message").asText()).isEqualTo("message");
+				JsonNode body = jsonMapper.readTree(response.messages().get(0).body());
+				assertThat(body.get("Message").asString()).isEqualTo("message");
 			});
 		}
 
@@ -163,8 +163,8 @@ class SnsTemplateIntegrationTest {
 			await().untilAsserted(() -> {
 				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
 				assertThat(response.hasMessages()).isTrue();
-				Person person = objectMapper.readValue(
-						objectMapper.readTree(response.messages().get(0).body()).get("Message").asText(), Person.class);
+				Person person = jsonMapper.readValue(
+						jsonMapper.readTree(response.messages().get(0).body()).get("Message").asText(), Person.class);
 				assertThat(person.getName()).isEqualTo("foo");
 			});
 		}

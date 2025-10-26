@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.support.resolver;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.support.converter.SnsNotification;
 import io.awspring.cloud.sqs.support.converter.SnsNotificationConverter;
 import org.springframework.core.MethodParameter;
@@ -23,6 +22,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Resolves method parameters with {@link SnsNotification} object.
@@ -39,7 +39,7 @@ public class SnsNotificationArgumentResolver implements HandlerMethodArgumentRes
 	 * @param converter the message converter to use for the message payload
 	 * @param jsonMapper the JSON mapper to use for parsing the SNS notification
 	 */
-	public SnsNotificationArgumentResolver(MessageConverter converter, ObjectMapper jsonMapper) {
+	public SnsNotificationArgumentResolver(MessageConverter converter, JsonMapper jsonMapper) {
 		this.converter = new SnsNotificationConverter(converter, jsonMapper);
 	}
 

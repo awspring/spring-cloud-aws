@@ -22,7 +22,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.QueueAttributesResolvingException;
 import io.awspring.cloud.sqs.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
@@ -47,6 +46,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.*;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Tomaz Fernandes
@@ -659,7 +659,7 @@ class SqsTemplateTests {
 	void shouldConvertToPayloadClass() throws Exception {
 		String queue = "test-queue";
 		SampleRecord payload = new SampleRecord("first-prop", "second-prop");
-		String payloadString = new ObjectMapper().writeValueAsString(payload);
+		String payloadString = new JsonMapper().writeValueAsString(payload);
 
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
@@ -687,7 +687,7 @@ class SqsTemplateTests {
 	void shouldConvertToDefaultClass() throws Exception {
 		String queue = "test-queue";
 		SampleRecord payload = new SampleRecord("first-prop", "second-prop");
-		String payloadString = new ObjectMapper().writeValueAsString(payload);
+		String payloadString = new JsonMapper().writeValueAsString(payload);
 
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))

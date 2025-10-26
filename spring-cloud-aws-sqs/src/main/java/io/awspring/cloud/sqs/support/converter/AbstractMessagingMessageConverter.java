@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.ArrayList;
@@ -28,18 +27,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.converter.*;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Base {@link MessagingMessageConverter} implementation.
  *
  * @author Tomaz Fernandes
  * @author Dongha Kim
+ * @au
  *
  * @since 3.0
  * @see SqsHeaderMapper
@@ -88,25 +86,24 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	}
 
 	/**
-	 * Set the {@link ObjectMapper} instance to be used for converting the {@link Message} instances payloads.
-	 * @param objectMapper the object mapper instance.
+	 * Tomaz I don't see point in this anympore Set the {@link JsonMapper} instance to be used for converting the
+	 * {@link Message} instances payloads.
+	 * @param jsonMapper the object mapper instance.
 	 */
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "messageConverter cannot be null");
-		MappingJackson2MessageConverter converter = getMappingJackson2MessageConverter().orElseThrow(
+	public void setObjectMapper(JsonMapper jsonMapper) {
+		Assert.notNull(jsonMapper, "messageConverter cannot be null");
+		JacksonJsonMessageConverter converter = getMappingJackson2MessageConverter().orElseThrow(
 				() -> new IllegalStateException("%s can only be set in %s instances, or %s containing one.".formatted(
-						ObjectMapper.class.getSimpleName(), MappingJackson2MessageConverter.class.getSimpleName(),
+						JsonMapper.class.getSimpleName(), JacksonJsonMessageConverter.class.getSimpleName(),
 						CompositeMessageConverter.class.getSimpleName())));
-		converter.setObjectMapper(objectMapper);
 	}
 
-	private Optional<MappingJackson2MessageConverter> getMappingJackson2MessageConverter() {
+	private Optional<JacksonJsonMessageConverter> getMappingJackson2MessageConverter() {
 		return this.payloadMessageConverter instanceof CompositeMessageConverter compositeConverter
 				? compositeConverter.getConverters().stream()
-						.filter(converter -> converter instanceof MappingJackson2MessageConverter)
-						.map(MappingJackson2MessageConverter.class::cast).findFirst()
-				: this.payloadMessageConverter instanceof MappingJackson2MessageConverter converter
-						? Optional.of(converter)
+						.filter(converter -> converter instanceof JacksonJsonMessageConverter)
+						.map(JacksonJsonMessageConverter.class::cast).findFirst()
+				: this.payloadMessageConverter instanceof JacksonJsonMessageConverter converter ? Optional.of(converter)
 						: Optional.empty();
 	}
 
@@ -257,8 +254,8 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 		return stringMessageConverter;
 	}
 
-	private MappingJackson2MessageConverter createDefaultMappingJackson2MessageConverter() {
-		MappingJackson2MessageConverter messageConverter = new MappingJackson2MessageConverter();
+	private JacksonJsonMessageConverter createDefaultMappingJackson2MessageConverter() {
+		JacksonJsonMessageConverter messageConverter = new JacksonJsonMessageConverter();
 		messageConverter.setSerializedPayloadClass(String.class);
 		messageConverter.setStrictContentTypeMatch(false);
 		return messageConverter;

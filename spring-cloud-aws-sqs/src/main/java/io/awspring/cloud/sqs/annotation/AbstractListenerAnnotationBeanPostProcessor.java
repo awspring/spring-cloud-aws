@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.annotation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
@@ -55,11 +54,7 @@ import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.lang.Nullable;
-import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.converter.MessageConverter;
-import org.springframework.messaging.converter.SimpleMessageConverter;
-import org.springframework.messaging.converter.StringMessageConverter;
+import org.springframework.messaging.converter.*;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.HeaderMethodArgumentResolver;
 import org.springframework.messaging.handler.annotation.support.HeadersMethodArgumentResolver;
@@ -70,6 +65,7 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link BeanPostProcessor} implementation that scans beans for a {@link SqsListener @SqsListener} annotation, extracts
@@ -78,6 +74,7 @@ import org.springframework.util.StringUtils;
  * @author Tomaz Fernandes
  * @author Joao Calassio
  * @author José Iêdo
+ * @author Matej Nedic
  * @since 3.0
  */
 public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Annotation>
@@ -315,7 +312,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		CompositeMessageConverter compositeMessageConverter = createCompositeMessageConverter();
 
 		List<HandlerMethodArgumentResolver> methodArgumentResolvers = new ArrayList<>(
-				createAdditionalArgumentResolvers(compositeMessageConverter, this.endpointRegistrar.getObjectMapper()));
+				createAdditionalArgumentResolvers(compositeMessageConverter, this.endpointRegistrar.getJsonMapper()));
 		methodArgumentResolvers.addAll(createArgumentResolvers(compositeMessageConverter));
 		this.endpointRegistrar.getMethodArgumentResolversConsumer().accept(methodArgumentResolvers);
 		handlerMethodFactory.setArgumentResolvers(methodArgumentResolvers);
@@ -323,7 +320,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	}
 
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, ObjectMapper objectMapper) {
+			MessageConverter messageConverter, JsonMapper jsonMapper) {
 		return createAdditionalArgumentResolvers();
 	}
 
@@ -335,7 +332,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		List<MessageConverter> messageConverters = new ArrayList<>();
 		messageConverters.add(new StringMessageConverter());
 		messageConverters.add(new SimpleMessageConverter());
-		messageConverters.add(createDefaultMappingJackson2MessageConverter(this.endpointRegistrar.getObjectMapper()));
+		messageConverters.add(createDefaultMappingJackson2MessageConverter(this.endpointRegistrar.getJsonMapper()));
 		this.endpointRegistrar.getMessageConverterConsumer().accept(messageConverters);
 		return new CompositeMessageConverter(messageConverters);
 	}
@@ -353,13 +350,16 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	}
 	// @formatter:on
 
-	protected MappingJackson2MessageConverter createDefaultMappingJackson2MessageConverter(ObjectMapper objectMapper) {
-		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
+	protected JacksonJsonMessageConverter createDefaultMappingJackson2MessageConverter(JsonMapper jsonMapper) {
+		JacksonJsonMessageConverter jacksonMessageConverter;
+		if (jsonMapper == null) {
+			jacksonMessageConverter = new JacksonJsonMessageConverter();
+		}
+		else {
+			jacksonMessageConverter = new JacksonJsonMessageConverter(jsonMapper);
+		}
 		jacksonMessageConverter.setSerializedPayloadClass(String.class);
 		jacksonMessageConverter.setStrictContentTypeMatch(false);
-		if (objectMapper != null) {
-			jacksonMessageConverter.setObjectMapper(objectMapper);
-		}
 		return jacksonMessageConverter;
 	}
 

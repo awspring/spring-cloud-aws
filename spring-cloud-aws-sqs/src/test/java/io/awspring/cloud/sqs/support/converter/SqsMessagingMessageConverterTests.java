@@ -22,7 +22,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
@@ -32,6 +31,7 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests for {@link SqsMessagingMessageConverter}.
@@ -40,12 +40,12 @@ import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
  */
 class SqsMessagingMessageConverterTests {
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final JsonMapper jsonMapper = new JsonMapper();
 
 	@Test
 	void shouldUseProvidedTypeMapper() throws Exception {
 		MyPojo myPojo = new MyPojo();
-		String payload = new ObjectMapper().writeValueAsString(myPojo);
+		String payload = new JsonMapper().writeValueAsString(myPojo);
 		Message message = Message.builder().body(payload).messageId(UUID.randomUUID().toString()).build();
 		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
 		converter.setPayloadTypeMapper(msg -> MyPojo.class);
@@ -57,7 +57,7 @@ class SqsMessagingMessageConverterTests {
 	void shouldUseProvidedTypeHeader() throws Exception {
 		String typeHeader = "myHeader";
 		MyPojo myPojo = new MyPojo();
-		String payload = this.objectMapper.writeValueAsString(myPojo);
+		String payload = this.jsonMapper.writeValueAsString(myPojo);
 		Message message = Message.builder()
 				.messageAttributes(Collections.singletonMap(typeHeader,
 						MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
@@ -73,7 +73,7 @@ class SqsMessagingMessageConverterTests {
 	void shouldUseHeaderOverPayloadClass() throws Exception {
 		String typeHeader = "myHeader";
 		MyPojo myPojo = new MyPojo();
-		String payload = this.objectMapper.writeValueAsString(myPojo);
+		String payload = this.jsonMapper.writeValueAsString(myPojo);
 		Message message = Message.builder()
 				.messageAttributes(Collections.singletonMap(typeHeader,
 						MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
@@ -103,7 +103,7 @@ class SqsMessagingMessageConverterTests {
 	@Test
 	void shouldUseProvidedPayloadConverter() throws Exception {
 		MyPojo myPojo = new MyPojo();
-		String payload = new ObjectMapper().writeValueAsString(myPojo);
+		String payload = new JsonMapper().writeValueAsString(myPojo);
 		Message message = Message.builder().body(payload).messageId(UUID.randomUUID().toString()).build();
 		MessageConverter payloadConverter = mock(MessageConverter.class);
 		when(payloadConverter.fromMessage(any(org.springframework.messaging.Message.class), eq(MyPojo.class)))
