@@ -34,17 +34,4 @@ public interface DynamoDbTableSchemaResolver {
 	 * @param <T> - type
 	 */
 	<T> TableSchema<T> resolve(Class<T> clazz);
-
-	/**
-	 * Resolves {@link TableSchema} from {@link Class}.
-	 *
-	 * @param clazz - the class from which table schema is resolved
-	 * @param tableName - the table name
-	 * @return table schema
-	 * @param <T> - type
-	 */
-	@Deprecated
-	default <T> TableSchema resolve(Class<T> clazz, String tableName) {
-		return resolve(clazz);
-	}
 }
