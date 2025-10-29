@@ -34,7 +34,7 @@ class LocalstackAwsClientFactoryTest {
 
 	@Container
 	private LocalStackContainer localStackContainer = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.8.1"));
+			DockerImageName.parse("localstack/localstack:4.4.0"));
 
 	@Test
 	void createsClient() {

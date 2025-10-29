@@ -17,7 +17,11 @@ package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactory;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.micrometer.observation.ObservationConvention;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.Collection;
 import org.springframework.core.task.TaskExecutor;
@@ -32,6 +36,7 @@ import org.springframework.retry.backoff.BackOffPolicy;
  * original instance and the copy.
  *
  * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  * @since 3.0
  */
 public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>> {
@@ -59,7 +64,7 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	boolean isAutoStartup();
 
 	/**
-	 * Set the maximum time the polling thread should wait for a full batch of permits to be available before trying to
+	 * Sets the maximum time the polling thread should wait for a full batch of permits to be available before trying to
 	 * acquire a partial batch if so configured. A poll is only actually executed if at least one permit is available.
 	 * Default is 10 seconds.
 	 *
@@ -128,6 +133,12 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	BackPressureMode getBackPressureMode();
 
 	/**
+	 * Return the {@link BackPressureHandlerFactory} to create a {@link BackPressureHandler} for this container.
+	 * @return the BackPressureHandlerFactory.
+	 */
+	BackPressureHandlerFactory getBackPressureHandlerFactory();
+
+	/**
 	 * Return the {@link ListenerMode} mode for this container.
 	 * @return the listener mode.
 	 */
@@ -165,6 +176,18 @@ public interface ContainerOptions<O extends ContainerOptions<O, B>, B extends Co
 	 */
 	@Nullable
 	AcknowledgementOrdering getAcknowledgementOrdering();
+
+	/**
+	 * Return the {@link ObservationRegistry} to use in this container.
+	 * @return the observation Registry.
+	 */
+	ObservationRegistry getObservationRegistry();
+
+	/**
+	 * Return a custom {@link ObservationConvention} to use with this container.
+	 * @return the observation convention.
+	 */
+	ObservationConvention<?> getObservationConvention();
 
 	/**
 	 * Configure a {@link ConfigurableContainerComponent} with this options. Internal use mostly.

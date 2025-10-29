@@ -20,7 +20,6 @@ import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgum
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -46,7 +45,6 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.SnsClientBuilder;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SNS integration.
@@ -69,13 +67,13 @@ public class SnsAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public SnsClient snsClient(SnsProperties properties, AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SnsClientBuilder>> configurer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
 			ObjectProvider<SnsClientCustomizer> snsClientCustomizers,
 			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
-		return awsClientBuilderConfigurer.configureSyncClient(SnsClient.builder(), properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable(), snsClientCustomizers.orderedStream(),
-				awsSyncClientCustomizers.orderedStream()).build();
+		return awsClientBuilderConfigurer
+				.configureSyncClient(SnsClient.builder(), properties, connectionDetails.getIfAvailable(),
+						snsClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream())
+				.build();
 	}
 
 	@ConditionalOnMissingBean(SnsOperations.class)

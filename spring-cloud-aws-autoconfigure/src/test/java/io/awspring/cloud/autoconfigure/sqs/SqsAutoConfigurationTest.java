@@ -16,14 +16,12 @@
 package io.awspring.cloud.autoconfigure.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.map;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
@@ -38,25 +36,23 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
+import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
+import io.micrometer.common.KeyValues;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.tck.TestObservationRegistry;
 import java.net.URI;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
@@ -127,22 +123,82 @@ class SqsAutoConfigurationTest {
 		});
 	}
 
-	// @formatter:off
 	@Test
-	void customSqsClientConfigurer() {
-		this.contextRunner.withUserConfiguration(CustomAwsAsyncClientConfig.class).run(context -> {
-			SqsAsyncClient sqsAsyncClient = context.getBean(SqsAsyncClient.class);
-			assertThat(sqsAsyncClient)
-				.extracting("clientConfiguration")
-				.extracting("attributes")
-				.extracting("attributes")
-				.asInstanceOf(map(Object.class, Object.class))
-				.isInstanceOfSatisfying(Map.class, attributes -> {
-					assertThat(attributes.get(SdkClientOption.API_CALL_TIMEOUT).toString())
-						.isEqualTo("Value(PT1.999S)");
-					assertThat(attributes.get(SdkClientOption.ASYNC_HTTP_CLIENT))
-						.isNotNull();
+	void withObservationEnabled() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.observation-enabled=true")
+				.withUserConfiguration(TestObservationRegistryConfiguration.class).run(context -> {
+					assertThat(context).hasSingleBean(SqsProperties.class);
+					SqsProperties sqsProperties = context.getBean(SqsProperties.class);
+					assertThat(context).hasSingleBean(SqsAsyncClient.class);
+					assertThat(context).hasSingleBean(SqsTemplate.class);
+					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+					assertThat(context).hasSingleBean(TestObservationRegistry.class);
+					assertThat(sqsProperties.isObservationEnabled()).isTrue();
+
+					// Verify SqsTemplate has the observation registry configured
+					SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
+					assertThat(sqsTemplate).extracting("observationRegistry")
+							.isEqualTo(context.getBean(ObservationRegistry.class));
+
+					// Verify SqsMessageListenerContainerFactory has the observation registry configured
+					SqsMessageListenerContainerFactory<?> factory = context
+							.getBean(SqsMessageListenerContainerFactory.class);
+					assertThat(factory).extracting("containerOptionsBuilder")
+							.asInstanceOf(type(ContainerOptionsBuilder.class))
+							.extracting(ContainerOptionsBuilder::build).extracting("observationRegistry")
+							.isEqualTo(context.getBean(ObservationRegistry.class));
 				});
+	}
+
+	@Test
+	void withCustomObservationConventions() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.observation-enabled=true")
+				.withUserConfiguration(TestObservationRegistryConfiguration.class,
+						CustomObservationConventionConfiguration.class)
+				.run(context -> {
+					assertThat(context).hasSingleBean(SqsProperties.class);
+					assertThat(context).hasSingleBean(SqsTemplate.class);
+					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+					assertThat(context).hasSingleBean(TestObservationRegistry.class);
+					assertThat(context).hasSingleBean(SqsTemplateObservation.Convention.class);
+					assertThat(context).hasSingleBean(SqsListenerObservation.Convention.class);
+
+					// Verify SqsTemplate has the custom observation convention configured
+					SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
+					assertThat(sqsTemplate).extracting("customObservationConvention")
+							.isEqualTo(context.getBean(SqsTemplateObservation.Convention.class));
+
+					// Verify SqsMessageListenerContainerFactory has the custom observation convention configured
+					SqsMessageListenerContainerFactory<?> factory = context
+							.getBean(SqsMessageListenerContainerFactory.class);
+					assertThat(factory).extracting("containerOptionsBuilder")
+							.asInstanceOf(type(ContainerOptionsBuilder.class))
+							.extracting(ContainerOptionsBuilder::build).extracting("observationConvention")
+							.isEqualTo(context.getBean(SqsListenerObservation.Convention.class));
+				});
+	}
+
+	@Test
+	void withObservationDisabled() {
+		this.contextRunner.withUserConfiguration(TestObservationRegistryConfiguration.class).run(context -> {
+			assertThat(context).hasSingleBean(SqsProperties.class);
+			SqsProperties sqsProperties = context.getBean(SqsProperties.class);
+			assertThat(sqsProperties.isObservationEnabled()).isFalse();
+
+			// Verify SqsTemplate has the default NOOP observation registry
+			SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
+			assertThat(sqsTemplate).extracting("observationRegistry")
+					.isNotEqualTo(context.getBean(ObservationRegistry.class))
+					.asInstanceOf(type(ObservationRegistry.class)).extracting(ObservationRegistry::isNoop)
+					.isEqualTo(true);
+
+			// Verify SqsMessageListenerContainerFactory has the default NOOP observation registry
+			SqsMessageListenerContainerFactory<?> factory = context.getBean(SqsMessageListenerContainerFactory.class);
+			assertThat(factory).extracting("containerOptionsBuilder").asInstanceOf(type(ContainerOptionsBuilder.class))
+					.extracting(ContainerOptionsBuilder::build).extracting("observationRegistry")
+					.isNotEqualTo(context.getBean(ObservationRegistry.class))
+					.asInstanceOf(type(ObservationRegistry.class)).extracting(ObservationRegistry::isNoop)
+					.isEqualTo(true);
 		});
 	}
 
@@ -152,7 +208,9 @@ class SqsAutoConfigurationTest {
 				.withPropertyValues("spring.cloud.aws.sqs.enabled:true",
 						"spring.cloud.aws.sqs.listener.max-concurrent-messages:19",
 						"spring.cloud.aws.sqs.listener.max-messages-per-poll:8",
-						"spring.cloud.aws.sqs.listener.poll-timeout:6s")
+						"spring.cloud.aws.sqs.listener.poll-timeout:6s",
+						"spring.cloud.aws.sqs.listener.max-delay-between-polls:15s",
+						"spring.cloud.aws.sqs.listener.auto-startup=false")
 				.withUserConfiguration(CustomComponentsConfiguration.class, ObjectMapperConfiguration.class).run(context -> {
 					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
 					SqsMessageListenerContainerFactory<?> factory = context
@@ -168,6 +226,8 @@ class SqsAutoConfigurationTest {
 						assertThat(options.getMaxConcurrentMessages()).isEqualTo(19);
 						assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);
 						assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
+						assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(15));
+						assertThat(options.isAutoStartup()).isEqualTo(false);
 					})
 					.extracting("messageConverter")
 					.asInstanceOf(type(SqsMessagingMessageConverter.class))
@@ -188,13 +248,14 @@ class SqsAutoConfigurationTest {
 			assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
 			var factory = context.getBean(SqsMessageListenerContainerFactory.class);
 			assertThat(factory).hasFieldOrProperty("errorHandler").extracting("asyncMessageInterceptors").asList()
-				.isEmpty();
+					.isEmpty();
 			assertThat(factory).extracting("containerOptionsBuilder").asInstanceOf(type(ContainerOptionsBuilder.class))
 				.extracting(ContainerOptionsBuilder::build)
 				.isInstanceOfSatisfying(ContainerOptions.class, options -> {
 					assertThat(options.getMaxConcurrentMessages()).isEqualTo(10);
 					assertThat(options.getMaxMessagesPerPoll()).isEqualTo(10);
 					assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(10));
+					assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(10));
 				})
 				.extracting("messageConverter")
 				.asInstanceOf(type(SqsMessagingMessageConverter.class))
@@ -260,6 +321,40 @@ class SqsAutoConfigurationTest {
 	}
 
 	@Configuration(proxyBeanMethods = false)
+	static class TestObservationRegistryConfiguration {
+
+		@Bean
+		TestObservationRegistry observationRegistry() {
+			return TestObservationRegistry.create();
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomObservationConventionConfiguration {
+
+		@Bean
+		SqsTemplateObservation.Convention customSqsTemplateObservationConvention() {
+			return new SqsTemplateObservation.DefaultConvention() {
+				@Override
+				protected KeyValues getCustomHighCardinalityKeyValues(SqsTemplateObservation.Context context) {
+					return KeyValues.of("payment.id", "test-payment-id");
+				}
+			};
+		}
+
+		@Bean
+		SqsListenerObservation.Convention customSqsListenerObservationConvention() {
+			return new SqsListenerObservation.DefaultConvention() {
+				@Override
+				protected KeyValues getCustomHighCardinalityKeyValues(SqsListenerObservation.Context context) {
+					return KeyValues.of("order.id", "test-order-id");
+				}
+			};
+		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
 	static class ObjectMapperConfiguration {
 
 		@Bean(name = CUSTOM_OBJECT_MAPPER_BEAN_NAME)
@@ -277,27 +372,6 @@ class SqsAutoConfigurationTest {
 			return new SqsMessagingMessageConverter();
 		}
 
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	static class CustomAwsAsyncClientConfig {
-
-		@Bean
-		AwsClientCustomizer<SqsAsyncClientBuilder> sqsClientBuilderAwsClientConfigurer() {
-			return new AwsClientCustomizer<>() {
-				@Override
-				@Nullable
-				public ClientOverrideConfiguration overrideConfiguration() {
-					return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1999)).build();
-				}
-
-				@Override
-				@Nullable
-				public SdkAsyncHttpClient asyncHttpClient() {
-					return NettyNioAsyncHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
-				}
-			};
-		}
 	}
 
 }

@@ -62,7 +62,11 @@ dynamoDbTemplate.save(person);
 
 ==== Resolving Table Name
 
-To resolve a table name for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableNameResolver`. The default implementation turns an entity class name into its snake case representation with the possibility of using a table name prefix (optional) and suffix (optional). Specify the `spring.cloud.aws.dynamodb.table-prefix` and `spring.cloud.aws.dynamodb.table-suffix` to provide a table name prefix and suffix. The prefix is prepended to the table name and suffix is appended to the table name. For example, if `spring.cloud.aws.dynamodb.table-prefix` is configured as `foo_` and `spring.cloud.aws.dynamodb.table-suffix` is configured as `_foo2` and the entity class is `Person`, then the default implementation resolves the table name as `foo_person_foo2`. You can configure both properties, only one of them or none. However if you do not specify `spring.cloud.aws.dynamodb.table-prefix` and `spring.cloud.aws.dynamodb.table-suffix`, the table name will be resolved as `person`.
+To resolve a table name for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableNameResolver`. The default implementation turns an entity class name into its snake case representation with the possibility of using a table name prefix (optional), suffix (optional), or overriding the separator (optional).
+
+Specify the `spring.cloud.aws.dynamodb.table-prefix` and `spring.cloud.aws.dynamodb.table-suffix` to provide a table name prefix and suffix. The prefix is prepended to the table name and suffix is appended to the table name. For example, if `spring.cloud.aws.dynamodb.table-prefix` is configured as `foo_` and `spring.cloud.aws.dynamodb.table-suffix` is configured as `_foo2` and the entity class is `Person`, then the default implementation resolves the table name as `foo_person_foo2`. You can configure both properties, only one of them or none. However if you do not specify `spring.cloud.aws.dynamodb.table-prefix` and `spring.cloud.aws.dynamodb.table-suffix`, the table name will be resolved as `person`.
+
+Specify the `spring.cloud.aws.dynamodb.table-separator` to override the `_` word separator.  For example if `spring.cloud.aws.dynamodb.table-separator` is configured as `-` and the entity class is `MoreComplexPerson`, then the table name will be resolved as `more-complex-person`.
 
 To use a custom implementation, declare a bean of type `DynamoDbTableNameResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
 
@@ -135,6 +139,7 @@ The Spring Boot Starter for DynamoDb provides the following configuration option
 | `spring.cloud.aws.dynamodb.region` | Configures region used by `DynamoDbClient`. | No |
 | `spring.cloud.aws.dynamodb.table-prefix` | Table name prefix used by the default `DynamoDbTableNameResolver` implementation. | No |
 | `spring.cloud.aws.dynamodb.table-suffix` | Table name suffix used by the default `DynamoDbTableNameResolver` implementation. | No |
+| `spring.cloud.aws.dynamodb.table-separator` | Table name word separator used by the default `DynamoDbTableNameResolver` implementation. | No | `_`
 
 | `spring.cloud.aws.dynamodb.dax.idle-timeout-millis` |Timeout for idle connections with the DAX cluster. | No | `30000`
 | `spring.cloud.aws.dynamodb.dax.url` | DAX cluster endpoint. | Yes |
@@ -181,3 +186,32 @@ Note that `DynamoDbClientCustomizer` beans are applied **after** `AwsSyncClientC
 
 Since it depends on how you will use DynamoDb integration providing a list of IAM policies would be pointless since least privilege model should be used.
 To check what IAM policies DynamoDb uses and see which ones you should use please check https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/using-identity-based-policies.html[IAM policies]
+
+[#spring-integration-support]
+=== Spring Integration Support
+
+Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] components for Amazon DynamoDB.
+
+The `DynamoDbMetadataStore` is a https://docs.spring.io/spring-integration/reference/meta-data-store.html[`ConcurrentMetadataStore`] implementation to store and retrieve key-value entries in the specific DynamoDB.
+It requires a `DynamoDbAsyncClient` and default table name is `SpringIntegrationMetadataStore`.
+If the table is not present, the `DynamoDbMetadataStore` creates it on its initialization issuing an async `dynamoDB.createTable()` request.
+The table structure is like:
+
+- the `metadataKey` is a string table key as a hash;
+- the `metadataValue` is a string for entry value;
+- the `expireAt` is time-to-live attribute according to respective algorithm in DynamoDB.
+
+See `DynamoDbMetadataStore` Javadocs for more information.
+
+The `DynamoDbLockRegistry` is an `ExpirableLockRegistry` and `RenewableLockRegistry` implementation for the https://docs.spring.io/spring-integration/reference/distributed-locks.html[`DistributedLock`] abstraction based on DynamoDB table.
+The supporting `DynamoDbLockRepository` class is for DynamoDB table management and low-level DynamoDB API interaction.
+It requires a `DynamoDbAsyncClient`, and the default table name is `SpringIntegrationLockRegistry`.
+
+The table structure is like:
+
+- the `lockKey` is a string table key as a hash;
+- the `lockOwner` is a string for lock record ownership — the instance which holds the lock at the moment;
+- the `createdAt` is an `Instant.now().getEpochSecond()` when the lock record was created;
+- the `expireAt` is time-to-live attribute according to respective algorithm in DynamoDB.
+
+See `DynamoDbLockRegistry` and `DynamoDbLockRepository` Javadocs for more information.

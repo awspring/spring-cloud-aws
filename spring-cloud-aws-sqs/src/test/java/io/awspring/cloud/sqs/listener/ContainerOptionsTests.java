@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,22 @@
 package io.awspring.cloud.sqs.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.retry.backoff.BackOffPolicy;
 import org.springframework.retry.backoff.BackOffPolicyBuilder;
@@ -37,6 +42,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * Tests for {@link SqsContainerOptions}.
  *
  * @author Tomaz Fernandes
+ * @author Richard Fearn
  */
 class ContainerOptionsTests {
 
@@ -120,11 +126,59 @@ class ContainerOptionsTests {
 		assertThat(options.getMessageConverter()).isEqualTo(converter);
 	}
 
+	@Test
+	void shouldSetObservationRegistry() {
+		ObservationRegistry observationRegistry = ObservationRegistry.create();
+		SqsContainerOptions options = SqsContainerOptions.builder().observationRegistry(observationRegistry).build();
+		assertThat(options.getObservationRegistry()).isEqualTo(observationRegistry);
+	}
+
+	@Test
+	void shouldSetObservationConvention() {
+		SqsListenerObservation.Convention observationConvention = mock(SqsListenerObservation.Convention.class);
+		SqsContainerOptions options = SqsContainerOptions.builder().observationConvention(observationConvention)
+				.build();
+		assertThat(options.getObservationConvention()).isEqualTo(observationConvention);
+	}
+
+	@Test
+	void shouldDefaultToNoopObservationRegistry() {
+		SqsContainerOptions options = SqsContainerOptions.builder().build();
+		assertThat(options.getObservationRegistry().isNoop()).isTrue();
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = { 4, 5 })
+	void shouldAcceptValidMaxMessagesPerPoll(final int maxMessagesPerPoll) {
+
+		final SqsContainerOptions options = SqsContainerOptions.builder()
+			.maxMessagesPerPoll(maxMessagesPerPoll)
+			.maxConcurrentMessages(5)
+			.build();
+
+		assertThat(options.getMaxMessagesPerPoll()).isEqualTo(maxMessagesPerPoll);
+		assertThat(options.getMaxConcurrentMessages()).isEqualTo(5);
+	}
+
+	@Test
+	void shouldRejectInvalidMaxMessagesPerPoll() {
+
+		final Throwable exception = catchThrowable(
+				() -> SqsContainerOptions.builder().maxMessagesPerPoll(6).maxConcurrentMessages(5).build());
+
+		assertThat(exception).isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("maxMessagesPerPoll should be less than or equal to maxConcurrentMessages. "
+					+ "Values provided: 6 and 5 respectively");
+	}
+
 	private SqsContainerOptions createConfiguredOptions() {
 		return createConfiguredBuilder().build();
 	}
 
 	private SqsContainerOptionsBuilder createConfiguredBuilder() {
+		ObservationRegistry observationRegistry = ObservationRegistry.create();
+		SqsListenerObservation.Convention observationConvention = mock(SqsListenerObservation.Convention.class);
+
 		return SqsContainerOptions.builder().acknowledgementShutdownTimeout(Duration.ofSeconds(7))
 				.messageVisibility(Duration.ofSeconds(11))
 				.pollBackOffPolicy(BackOffPolicyBuilder.newBuilder().delay(1000).build())
@@ -136,7 +190,8 @@ class ContainerOptionsTests {
 				.maxConcurrentMessages(39).pollTimeout(Duration.ofSeconds(13))
 				.acknowledgementMode(AcknowledgementMode.MANUAL).acknowledgementResultTaskExecutor(Runnable::run)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).componentsTaskExecutor(Runnable::run)
-				.listenerMode(ListenerMode.BATCH).maxDelayBetweenPolls(Duration.ofSeconds(16));
+				.listenerMode(ListenerMode.BATCH).maxDelayBetweenPolls(Duration.ofSeconds(16))
+				.observationRegistry(observationRegistry).observationConvention(observationConvention);
 	}
 
 }

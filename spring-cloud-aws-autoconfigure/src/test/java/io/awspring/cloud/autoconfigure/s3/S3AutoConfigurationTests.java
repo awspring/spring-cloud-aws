@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsPresigner;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
@@ -36,7 +35,6 @@ import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.S3Template;
 import java.io.IOException;
 import java.net.URI;
-import java.time.Duration;
 import java.util.Objects;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,10 +46,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.Nullable;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsIdentityProvider;
 import software.amazon.awssdk.s3accessgrants.plugin.S3AccessGrantsPlugin;
@@ -66,6 +60,7 @@ import software.amazon.encryption.s3.S3EncryptionClient;
  *
  * @author Maciej Walkowiak
  * @author Matej Nedic
+ * @author Giacomo Baso
  */
 class S3AutoConfigurationTests {
 
@@ -138,7 +133,7 @@ class S3AutoConfigurationTests {
 		@Test
 		void s3ClientCanBeOverwritten() {
 			contextRunnerEncryption
-					.withPropertyValues("spring.cloud.aws.s3.encryption.keyId:234abcd-12ab-34cd-56ef-1234567890ab")
+					.withPropertyValues("spring.cloud.aws.s3.encryption.key-id:234abcd-12ab-34cd-56ef-1234567890ab")
 					.withUserConfiguration(CustomS3ClientConfiguration.class).run(context -> {
 						assertThat(context).hasSingleBean(S3Client.class);
 					});
@@ -166,6 +161,15 @@ class S3AutoConfigurationTests {
 				assertThat(context).hasSingleBean(S3EncryptionClient.class);
 				assertThat(context).hasSingleBean(S3AesProvider.class);
 			});
+		}
+
+		@Test
+		void createsEncryptionClientBackedByKms() {
+			contextRunnerEncryption
+					.withPropertyValues("spring.cloud.aws.s3.encryption.key-id:234abcd-12ab-34cd-56ef-1234567890ab")
+					.run(context -> {
+						assertThat(context).hasSingleBean(S3EncryptionClient.class);
+					});
 		}
 	}
 
@@ -246,16 +250,6 @@ class S3AutoConfigurationTests {
 				S3ObjectConverter s3ObjectConverter = context.getBean(S3ObjectConverter.class);
 				assertThat(s3ObjectConverter).extracting("objectMapper")
 						.isEqualTo(context.getBean("customObjectMapper"));
-			});
-		}
-
-		@Test
-		void useAwsConfigurerClient() {
-			contextRunner.withUserConfiguration(CustomAwsConfigurerClient.class).run(context -> {
-				S3ClientBuilder s3ClientBuilder = context.getBean(S3ClientBuilder.class);
-				assertThat(s3ClientBuilder.overrideConfiguration().apiCallTimeout()).contains(Duration.ofMillis(1542));
-				AttributeMap.Builder attributeMap = resolveAttributeMap(s3ClientBuilder);
-				assertThat(attributeMap.get(SdkClientOption.CONFIGURED_SYNC_HTTP_CLIENT)).isNotNull();
 			});
 		}
 
@@ -391,30 +385,6 @@ class S3AutoConfigurationTests {
 		S3AesProvider aesProvider() {
 			return new MyAesProvider();
 		}
-	}
-
-	@Configuration(proxyBeanMethods = false)
-	static class CustomAwsConfigurerClient {
-
-		@Bean
-		AwsClientCustomizer<S3ClientBuilder> s3ClientBuilderAwsClientConfigurer() {
-			return new S3AwsClientClientConfigurer();
-		}
-
-		static class S3AwsClientClientConfigurer implements AwsClientCustomizer<S3ClientBuilder> {
-			@Override
-			@Nullable
-			public ClientOverrideConfiguration overrideConfiguration() {
-				return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(1542)).build();
-			}
-
-			@Override
-			@Nullable
-			public SdkHttpClient httpClient() {
-				return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
-			}
-		}
-
 	}
 
 	static class CustomS3OutputStreamProvider implements S3OutputStreamProvider {

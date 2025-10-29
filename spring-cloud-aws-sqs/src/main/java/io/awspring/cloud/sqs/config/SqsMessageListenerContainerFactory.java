@@ -123,6 +123,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  *
  * @author Tomaz Fernandes
  * @author Joao Calassio
+ * @author José Iêdo
  * @since 3.0
  * @see SqsMessageListenerContainer
  * @see ContainerOptions
@@ -156,6 +157,15 @@ public class SqsMessageListenerContainerFactory<T> extends
 	protected void configureContainerOptions(Endpoint endpoint, SqsContainerOptionsBuilder options) {
 		ConfigUtils.INSTANCE.acceptIfInstance(endpoint, SqsEndpoint.class,
 				sqsEndpoint -> configureFromSqsEndpoint(sqsEndpoint, options));
+
+		ConfigUtils.INSTANCE.acceptIfInstance(endpoint, MultiMethodSqsEndpoint.class,
+				multiMethodSqsEndpoint -> configureFromMultiMethodSqsEndpoint(multiMethodSqsEndpoint, options));
+	}
+
+	private void configureFromMultiMethodSqsEndpoint(MultiMethodSqsEndpoint multiMethodSqsEndpoint,
+			SqsContainerOptionsBuilder options) {
+		ConfigUtils.INSTANCE.acceptIfInstance(multiMethodSqsEndpoint.getEndpoint(), SqsEndpoint.class,
+				endpoint -> configureFromSqsEndpoint(endpoint, options));
 	}
 
 	private void configureFromSqsEndpoint(SqsEndpoint sqsEndpoint, SqsContainerOptionsBuilder options) {

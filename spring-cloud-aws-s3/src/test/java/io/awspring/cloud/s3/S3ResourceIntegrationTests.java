@@ -40,15 +40,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.shaded.com.google.common.io.Files;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -62,17 +55,16 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
  *
  * @author Maciej Walkowiak
  * @author Anton Perez
+ * @author Artem Bilan
  */
-@Testcontainers
-class S3ResourceIntegrationTests {
+class S3ResourceIntegrationTests implements LocalstackContainerTest {
+
 	private static final int DEFAULT_PART_SIZE = 5242880;
 
-	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.8.1"));
-
 	private static S3Client client;
+
 	private static S3AsyncClient asyncClient;
+
 	private static S3TransferManager s3TransferManager;
 
 	// Required for the @TestAvailableOutputStreamProviders annotation
@@ -85,14 +77,8 @@ class S3ResourceIntegrationTests {
 
 	@BeforeAll
 	static void beforeAll() {
-		// region and credentials are irrelevant for test, but must be added to make
-		// test work on environments without AWS cli configured
-		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
-				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
-		asyncClient = S3AsyncClient.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint()).build();
-		client = S3Client.builder().region(Region.of(localstack.getRegion())).credentialsProvider(credentialsProvider)
-				.endpointOverride(localstack.getEndpoint()).build();
+		asyncClient = LocalstackContainerTest.s3AsyncClient();
+		client = LocalstackContainerTest.s3Client();
 		s3TransferManager = S3TransferManager.builder().s3Client(asyncClient).build();
 		client.createBucket(request -> request.bucket("first-bucket"));
 	}
@@ -148,8 +134,8 @@ class S3ResourceIntegrationTests {
 	@TestAvailableOutputStreamProviders
 	void returnsResourceUrl(S3OutputStreamProvider s3OutputStreamProvider) throws IOException {
 		S3Resource resource = s3Resource("s3://first-bucket/a-file.txt", s3OutputStreamProvider);
-		assertThat(resource.getURL().toString())
-				.isEqualTo("http://127.0.0.1:" + localstack.getFirstMappedPort() + "/first-bucket/a-file.txt");
+		assertThat(resource.getURL().toString()).isEqualTo("http://127.0.0.1:"
+				+ LocalstackContainerTest.LOCAL_STACK_CONTAINER.getFirstMappedPort() + "/first-bucket/a-file.txt");
 	}
 
 	@TestAvailableOutputStreamProviders
@@ -162,10 +148,12 @@ class S3ResourceIntegrationTests {
 	void returnsEncodedResourceUrlAndUri(S3OutputStreamProvider s3OutputStreamProvider)
 			throws IOException, URISyntaxException {
 		S3Resource resource = s3Resource("s3://first-bucket/some/[objectName]", s3OutputStreamProvider);
-		assertThat(resource.getURL().toString()).isEqualTo(
-				"http://127.0.0.1:" + localstack.getFirstMappedPort() + "/first-bucket/some/%5BobjectName%5D");
+		assertThat(resource.getURL().toString())
+				.isEqualTo("http://127.0.0.1:" + LocalstackContainerTest.LOCAL_STACK_CONTAINER.getFirstMappedPort()
+						+ "/first-bucket/some/%5BobjectName%5D");
 		assertThat(resource.getURI()).isEqualTo(
-				new URI("http://127.0.0.1:" + localstack.getFirstMappedPort() + "/first-bucket/some/%5BobjectName%5D"));
+				new URI("http://127.0.0.1:" + LocalstackContainerTest.LOCAL_STACK_CONTAINER.getFirstMappedPort()
+						+ "/first-bucket/some/%5BobjectName%5D"));
 	}
 
 	@TestAvailableOutputStreamProviders
@@ -292,6 +280,7 @@ class S3ResourceIntegrationTests {
 	}
 
 	static class Person {
+
 		private String name;
 
 		public String getName() {
@@ -306,6 +295,7 @@ class S3ResourceIntegrationTests {
 		public String toString() {
 			return "Person{" + "name='" + name + '\'' + '}';
 		}
+
 	}
 
 	@Target(ElementType.METHOD)
@@ -313,5 +303,7 @@ class S3ResourceIntegrationTests {
 	@ParameterizedTest
 	@MethodSource("availableS3OutputStreamProviders")
 	@interface TestAvailableOutputStreamProviders {
+
 	}
+
 }

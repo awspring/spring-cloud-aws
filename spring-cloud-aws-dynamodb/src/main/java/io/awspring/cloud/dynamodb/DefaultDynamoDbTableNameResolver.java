@@ -16,8 +16,9 @@
 package io.awspring.cloud.dynamodb;
 
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -26,38 +27,48 @@ import org.springframework.util.StringUtils;
  * @author Matej Nedic
  * @author Arun Patra
  * @author Volodymyr Ivakhnenko
+ * @author Marcus Voltolim
  * @since 3.0
  */
 public class DefaultDynamoDbTableNameResolver implements DynamoDbTableNameResolver {
 
-	@Nullable
+	private final Map<Class<?>, String> tableNameCache = new ConcurrentHashMap<>();
+
 	private final String tablePrefix;
-
-	@Nullable
 	private final String tableSuffix;
-
-	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix) {
-		this(tablePrefix, null);
-	}
+	private final String tableSeparator;
 
 	public DefaultDynamoDbTableNameResolver() {
-		this(null, null);
+		this(null, null, null);
+	}
+
+	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix) {
+		this(tablePrefix, null, null);
 	}
 
 	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix) {
-		this.tablePrefix = tablePrefix;
-		this.tableSuffix = tableSuffix;
+		this(tablePrefix, tableSuffix, null);
+	}
+
+	public DefaultDynamoDbTableNameResolver(@Nullable String tablePrefix, @Nullable String tableSuffix,
+			@Nullable String tableSeparator) {
+		this.tablePrefix = StringUtils.hasText(tablePrefix) ? tablePrefix : "";
+		this.tableSuffix = StringUtils.hasText(tableSuffix) ? tableSuffix : "";
+		this.tableSeparator = StringUtils.hasText(tableSeparator) ? tableSeparator : "_";
 	}
 
 	@Override
-	public String resolve(Class clazz) {
-		Assert.notNull(clazz, "clazz is required");
+	public <T> String resolve(Class<T> clazz) {
+		return tableNameCache.computeIfAbsent(clazz, this::resolveInternal);
+	}
 
-		String prefix = StringUtils.hasText(tablePrefix) ? tablePrefix : "";
-		String suffix = StringUtils.hasText(tableSuffix) ? tableSuffix : "";
+	private <T> String resolveInternal(Class<T> clazz) {
+		final String className = clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1" + tableSeparator + "$2");
+		return tablePrefix + className.toLowerCase(Locale.ROOT) + tableSuffix;
+	}
 
-		return prefix.concat(clazz.getSimpleName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase(Locale.ROOT))
-				.concat(suffix);
+	Map<Class<?>, String> getTableNameCache() {
+		return tableNameCache;
 	}
 
 }

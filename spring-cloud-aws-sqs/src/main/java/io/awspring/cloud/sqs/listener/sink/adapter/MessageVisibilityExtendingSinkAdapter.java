@@ -22,9 +22,9 @@ import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -114,41 +114,42 @@ public class MessageVisibilityExtendingSinkAdapter<T> extends AbstractDelegating
 	}
 
 	private class OriginalBatchMessageVisibilityExtendingInterceptor implements AsyncMessageInterceptor<T> {
-
-		private final Collection<Message<T>> originalMessageBatchCopy;
-
+		private final Map<String, Message<T>> originalMessageBatchMap;
 		private final int initialBatchSize;
 
 		private OriginalBatchMessageVisibilityExtendingInterceptor(Collection<Message<T>> originalMessageBatch) {
-			this.originalMessageBatchCopy = Collections.synchronizedCollection(new ArrayList<>(originalMessageBatch));
 			this.initialBatchSize = originalMessageBatch.size();
+			this.originalMessageBatchMap = Collections.synchronizedMap(originalMessageBatch.stream()
+					.collect(Collectors.toMap(MessageHeaderUtils::getId, message -> message)));
 		}
 
-		// @formatter:off
 		@Override
 		public CompletableFuture<Message<T>> intercept(Message<T> message) {
-			return originalMessageBatchCopy.size() == initialBatchSize
-				? CompletableFuture.completedFuture(message)
-				: changeVisibility(this.originalMessageBatchCopy).thenApply(response -> message);
+			if (this.originalMessageBatchMap.size() == this.initialBatchSize) {
+				return CompletableFuture.completedFuture(message);
+			}
+
+			return changeVisibility(this.originalMessageBatchMap.values()).thenApply(response -> message);
 		}
 
 		@Override
 		public CompletableFuture<Collection<Message<T>>> intercept(Collection<Message<T>> messages) {
-			return originalMessageBatchCopy.size() == initialBatchSize
-				? CompletableFuture.completedFuture(messages)
-				: changeVisibility(this.originalMessageBatchCopy).thenApply(response -> messages);
+			if (this.originalMessageBatchMap.size() == this.initialBatchSize) {
+				return CompletableFuture.completedFuture(messages);
+			}
+
+			return changeVisibility(this.originalMessageBatchMap.values()).thenApply(response -> messages);
 		}
-		// @formatter:on
 
 		@Override
 		public CompletableFuture<Void> afterProcessing(Collection<Message<T>> messages, Throwable t) {
-			this.originalMessageBatchCopy.removeAll(messages);
+			messages.forEach(message -> this.originalMessageBatchMap.remove(MessageHeaderUtils.getId(message)));
 			return CompletableFuture.completedFuture(null);
 		}
 
 		@Override
 		public CompletableFuture<Void> afterProcessing(Message<T> message, Throwable t) {
-			this.originalMessageBatchCopy.remove(message);
+			this.originalMessageBatchMap.remove(MessageHeaderUtils.getId(message));
 			return CompletableFuture.completedFuture(null);
 		}
 

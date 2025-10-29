@@ -18,7 +18,6 @@ package io.awspring.cloud.autoconfigure.config.secretsmanager;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -29,7 +28,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
 
 /**
  * {@link AutoConfiguration Auto-Configuration} for Secrets Manager integration.
@@ -48,12 +46,12 @@ public class SecretsManagerAutoConfiguration {
 	@Bean
 	public SecretsManagerClient secretsManagerClient(SecretsManagerProperties properties,
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SecretsManagerClientBuilder>> customizer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
 			ObjectProvider<SecretsManagerClientCustomizer> secretsManagerClientCustomizers,
 			ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
-		return awsClientBuilderConfigurer.configureSyncClient(SecretsManagerClient.builder(), properties,
-				connectionDetails.getIfAvailable(), customizer.getIfAvailable(),
-				secretsManagerClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream()).build();
+		return awsClientBuilderConfigurer
+				.configureSyncClient(SecretsManagerClient.builder(), properties, connectionDetails.getIfAvailable(),
+						secretsManagerClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream())
+				.build();
 	}
 }

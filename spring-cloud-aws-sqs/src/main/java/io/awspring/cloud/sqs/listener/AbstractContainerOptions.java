@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,12 @@ package io.awspring.cloud.sqs.listener;
 
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactories;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactory;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.micrometer.observation.ObservationConvention;
+import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.lang.Nullable;
@@ -30,6 +34,7 @@ import org.springframework.util.Assert;
  * Base implementation for {@link ContainerOptions}.
  *
  * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  * @since 3.0
  */
 public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>, B extends ContainerOptionsBuilder<B, O>>
@@ -53,11 +58,15 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 	private final BackPressureMode backPressureMode;
 
+	private final BackPressureHandlerFactory backPressureHandlerFactory;
+
 	private final ListenerMode listenerMode;
 
 	private final MessagingMessageConverter<?> messageConverter;
 
 	private final AcknowledgementMode acknowledgementMode;
+
+	private final ObservationRegistry observationRegistry;
 
 	@Nullable
 	private final AcknowledgementOrdering acknowledgementOrdering;
@@ -74,6 +83,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	@Nullable
 	private final TaskExecutor acknowledgementResultTaskExecutor;
 
+	private final ObservationConvention<?> observationConvention;
+
 	protected AbstractContainerOptions(Builder<?, ?> builder) {
 		this.maxConcurrentMessages = builder.maxConcurrentMessages;
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
@@ -84,6 +95,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.listenerShutdownTimeout = builder.listenerShutdownTimeout;
 		this.acknowledgementShutdownTimeout = builder.acknowledgementShutdownTimeout;
 		this.backPressureMode = builder.backPressureMode;
+		this.backPressureHandlerFactory = builder.backPressureHandlerFactory;
 		this.listenerMode = builder.listenerMode;
 		this.messageConverter = builder.messageConverter;
 		this.acknowledgementMode = builder.acknowledgementMode;
@@ -92,8 +104,10 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.acknowledgementThreshold = builder.acknowledgementThreshold;
 		this.componentsTaskExecutor = builder.componentsTaskExecutor;
 		this.acknowledgementResultTaskExecutor = builder.acknowledgementResultTaskExecutor;
+		this.observationRegistry = builder.observationRegistry;
+		this.observationConvention = builder.observationConvention;
 		Assert.isTrue(this.maxMessagesPerPoll <= this.maxConcurrentMessages, String.format(
-				"messagesPerPoll should be less than or equal to maxConcurrentMessages. Values provided: %s and %s respectively",
+				"maxMessagesPerPoll should be less than or equal to maxConcurrentMessages. Values provided: %s and %s respectively",
 				this.maxMessagesPerPoll, this.maxConcurrentMessages));
 	}
 
@@ -155,6 +169,11 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 	}
 
 	@Override
+	public BackPressureHandlerFactory getBackPressureHandlerFactory() {
+		return this.backPressureHandlerFactory;
+	}
+
+	@Override
 	public ListenerMode getListenerMode() {
 		return this.listenerMode;
 	}
@@ -187,6 +206,16 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		return this.acknowledgementOrdering;
 	}
 
+	@Override
+	public ObservationRegistry getObservationRegistry() {
+		return this.observationRegistry;
+	}
+
+	@Override
+	public ObservationConvention<?> getObservationConvention() {
+		return this.observationConvention;
+	}
+
 	protected abstract static class Builder<B extends ContainerOptionsBuilder<B, O>, O extends ContainerOptions<O, B>>
 			implements ContainerOptionsBuilder<B, O> {
 
@@ -214,11 +243,16 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final BackPressureMode DEFAULT_THROUGHPUT_CONFIGURATION = BackPressureMode.AUTO;
 
+		private static final BackPressureHandlerFactory DEFAULT_BACKPRESSURE_FACTORY = BackPressureHandlerFactories
+				.adaptiveThroughputBackPressureHandler();
+
 		private static final ListenerMode DEFAULT_MESSAGE_DELIVERY_STRATEGY = ListenerMode.SINGLE_MESSAGE;
 
 		private static final MessagingMessageConverter<?> DEFAULT_MESSAGE_CONVERTER = new SqsMessagingMessageConverter();
 
 		private static final AcknowledgementMode DEFAULT_ACKNOWLEDGEMENT_MODE = AcknowledgementMode.ON_SUCCESS;
+
+		private static final ObservationRegistry DEFAULT_OBSERVATION_REGISTRY = ObservationRegistry.NOOP;
 
 		private int maxConcurrentMessages = DEFAULT_MAX_INFLIGHT_MSG_PER_QUEUE;
 
@@ -234,6 +268,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private BackPressureMode backPressureMode = DEFAULT_THROUGHPUT_CONFIGURATION;
 
+		private BackPressureHandlerFactory backPressureHandlerFactory = DEFAULT_BACKPRESSURE_FACTORY;
+
 		private Duration listenerShutdownTimeout = DEFAULT_LISTENER_SHUTDOWN_TIMEOUT;
 
 		private Duration acknowledgementShutdownTimeout = DEFAULT_ACKNOWLEDGEMENT_SHUTDOWN_TIMEOUT;
@@ -243,6 +279,10 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private MessagingMessageConverter<?> messageConverter = DEFAULT_MESSAGE_CONVERTER;
 
 		private AcknowledgementMode acknowledgementMode = DEFAULT_ACKNOWLEDGEMENT_MODE;
+
+		private ObservationRegistry observationRegistry = DEFAULT_OBSERVATION_REGISTRY;
+
+		private ObservationConvention<?> observationConvention;
 
 		@Nullable
 		private AcknowledgementOrdering acknowledgementOrdering;
@@ -272,6 +312,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.listenerShutdownTimeout = options.listenerShutdownTimeout;
 			this.acknowledgementShutdownTimeout = options.acknowledgementShutdownTimeout;
 			this.backPressureMode = options.backPressureMode;
+			this.backPressureHandlerFactory = options.backPressureHandlerFactory;
 			this.listenerMode = options.listenerMode;
 			this.messageConverter = options.messageConverter;
 			this.acknowledgementMode = options.acknowledgementMode;
@@ -280,6 +321,8 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.acknowledgementThreshold = options.acknowledgementThreshold;
 			this.componentsTaskExecutor = options.componentsTaskExecutor;
 			this.acknowledgementResultTaskExecutor = options.acknowledgementResultTaskExecutor;
+			this.observationRegistry = options.observationRegistry;
+			this.observationConvention = options.observationConvention;
 		}
 
 		@Override
@@ -365,6 +408,12 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		}
 
 		@Override
+		public B backPressureHandlerFactory(BackPressureHandlerFactory backPressureHandlerFactory) {
+			this.backPressureHandlerFactory = backPressureHandlerFactory;
+			return self();
+		}
+
+		@Override
 		public B acknowledgementInterval(Duration acknowledgementInterval) {
 			Assert.notNull(acknowledgementInterval, "acknowledgementInterval cannot be null");
 			this.acknowledgementInterval = acknowledgementInterval;
@@ -397,6 +446,19 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		public B messageConverter(MessagingMessageConverter<?> messageConverter) {
 			Assert.notNull(messageConverter, "messageConverter cannot be null");
 			this.messageConverter = messageConverter;
+			return self();
+		}
+
+		@Override
+		public B observationRegistry(ObservationRegistry observationRegistry) {
+			Assert.notNull(observationRegistry, "observationRegistry cannot be null");
+			this.observationRegistry = observationRegistry;
+			return self();
+		}
+
+		protected B observationConvention(ObservationConvention<?> observationConvention) {
+			Assert.notNull(observationConvention, "observationConvention cannot be null");
+			this.observationConvention = observationConvention;
 			return self();
 		}
 

@@ -25,9 +25,13 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.dynamodb.DynamoDbAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration;
+import io.awspring.cloud.autoconfigure.s3.S3CrtAsyncClientAutoConfiguration;
 import io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration;
+import io.awspring.cloud.s3.S3Template;
+import java.net.URL;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -39,6 +43,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -51,7 +56,7 @@ class AwsContainerConnectionDetailsFactoryTest {
 	@Container
 	@ServiceConnection
 	static final LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.8.1"));
+			DockerImageName.parse("localstack/localstack:4.4.0"));
 
 	@Autowired(required = false)
 	private AwsConnectionDetails connectionDetails;
@@ -88,10 +93,23 @@ class AwsContainerConnectionDetailsFactoryTest {
 		assertThatCode(client::listBuckets).doesNotThrowAnyException();
 	}
 
+	@Test
+	void configuresS3PresignedWithServiceConnection(@Autowired S3Template s3Template) {
+		URL signedGetURL = s3Template.createSignedGetURL("foo", "bar", Duration.ofMinutes(1));
+		assertThat(signedGetURL.getHost()).isNotNull().isNotEqualTo("foo.s3.amazonaws.com")
+				.as("Signed URL does not point to AWS as the endpoint has been overwritten by @ServiceConnection");
+	}
+
+	@Test
+	void configuresS3AsyncClientWithServiceConnection(@Autowired S3AsyncClient client) {
+		assertThatCode(client.listBuckets()::join).doesNotThrowAnyException();
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	@ImportAutoConfiguration({ AwsAutoConfiguration.class, CredentialsProviderAutoConfiguration.class,
 			RegionProviderAutoConfiguration.class, DynamoDbAutoConfiguration.class, SesAutoConfiguration.class,
-			SqsAutoConfiguration.class, SnsAutoConfiguration.class, S3AutoConfiguration.class })
+			SqsAutoConfiguration.class, SnsAutoConfiguration.class, S3AutoConfiguration.class,
+			S3CrtAsyncClientAutoConfiguration.class })
 	static class TestConfiguration {
 	}
 

@@ -43,6 +43,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * Tests for {@link SqsMessageListenerContainerFactory}.
  *
  * @author Tomaz Fernandes
+ * @author José Iêdo
  */
 @SuppressWarnings("unchecked")
 class SqsMessageListenerContainerFactoryTests {
@@ -160,4 +161,69 @@ class SqsMessageListenerContainerFactoryTests {
 				.asInstanceOf(collection(AsyncMessageInterceptor.class)).containsExactly(interceptor1, interceptor2);
 	}
 
+	@Test
+	void shouldCreateContainerFromEndpointWithMultipleMethodsWithDefaultOptions() {
+		List<String> queueNames = Collections.singletonList("test-queue");
+		String id = "test-id";
+		SqsAsyncClient client = mock(SqsAsyncClient.class);
+		MultiMethodSqsEndpoint multiMethodSqsEndpoint = mock(MultiMethodSqsEndpoint.class);
+		SqsEndpoint sqsEndpoint = mock(SqsEndpoint.class);
+
+		given(sqsEndpoint.getMaxConcurrentMessages()).willReturn(null);
+		given(sqsEndpoint.getMessageVisibility()).willReturn(null);
+		given(sqsEndpoint.getMaxMessagesPerPoll()).willReturn(null);
+		given(sqsEndpoint.getPollTimeout()).willReturn(null);
+		given(multiMethodSqsEndpoint.getLogicalNames()).willReturn(queueNames);
+		given(multiMethodSqsEndpoint.getId()).willReturn(id);
+		given(multiMethodSqsEndpoint.getEndpoint()).willReturn(sqsEndpoint);
+
+		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
+		factory.setSqsAsyncClient(client);
+		SqsMessageListenerContainer<Object> container = factory.createContainer(multiMethodSqsEndpoint);
+
+		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(SqsContainerOptions.class, options -> {
+			assertThat(options.getMaxConcurrentMessages()).isEqualTo(10);
+			assertThat(options.getMessageVisibility()).isNull();
+			assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(10));
+			assertThat(options.getMaxMessagesPerPoll()).isEqualTo(10);
+		});
+
+		assertThat(container.getId()).isEqualTo(id);
+		assertThat(container.getQueueNames()).containsExactlyElementsOf(queueNames);
+	}
+
+	@Test
+	void shouldCreateContainerFromMultiMethodEndpointOverridingOptions() {
+		List<String> queueNames = Collections.singletonList("test-queue");
+		String id = "test-id";
+		SqsAsyncClient client = mock(SqsAsyncClient.class);
+		MultiMethodSqsEndpoint multiMethodSqsEndpoint = mock(MultiMethodSqsEndpoint.class);
+		SqsEndpoint sqsEndpoint = mock(SqsEndpoint.class);
+		int inflight = 9;
+		int messagesPerPoll = 7;
+		Duration pollTimeout = Duration.ofSeconds(6);
+		Duration visibility = Duration.ofSeconds(8);
+		given(sqsEndpoint.getMaxConcurrentMessages()).willReturn(inflight);
+		given(sqsEndpoint.getMessageVisibility()).willReturn(visibility);
+		given(sqsEndpoint.getMaxMessagesPerPoll()).willReturn(messagesPerPoll);
+		given(sqsEndpoint.getPollTimeout()).willReturn(pollTimeout);
+		given(multiMethodSqsEndpoint.getLogicalNames()).willReturn(queueNames);
+		given(multiMethodSqsEndpoint.getId()).willReturn(id);
+		given(multiMethodSqsEndpoint.getEndpoint()).willReturn(sqsEndpoint);
+
+		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
+		factory.setSqsAsyncClient(client);
+		SqsMessageListenerContainer<Object> container = factory.createContainer(multiMethodSqsEndpoint);
+
+		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(SqsContainerOptions.class, options -> {
+			assertThat(options.getMaxConcurrentMessages()).isEqualTo(inflight);
+			assertThat(options.getMessageVisibility()).isEqualTo(visibility);
+			assertThat(options.getPollTimeout()).isEqualTo(pollTimeout);
+			assertThat(options.getMaxMessagesPerPoll()).isEqualTo(messagesPerPoll);
+		});
+
+		assertThat(container.getId()).isEqualTo(id);
+		assertThat(container.getQueueNames()).containsExactlyElementsOf(queueNames);
+
+	}
 }

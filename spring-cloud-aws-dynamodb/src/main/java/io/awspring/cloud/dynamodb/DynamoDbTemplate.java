@@ -21,9 +21,12 @@ import org.springframework.util.Assert;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 
 /**
  * Default implementation of {@link DynamoDbOperations}.
@@ -31,9 +34,11 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
  * @author Matej Nedic
  * @author Arun Patra
  * @author Maciej Walkowiak
+ * @author Marcus Voltolim
  * @since 3.0
  */
 public class DynamoDbTemplate implements DynamoDbOperations {
+
 	private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
 	private final DynamoDbTableSchemaResolver dynamoDbTableSchemaResolver;
 	private final DynamoDbTableNameResolver tableNameResolver;
@@ -61,9 +66,22 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 		return entity;
 	}
 
+	public <T> void save(PutItemEnhancedRequest<T> request) {
+		Assert.notNull(request, "putItemEnhancedRequest is required");
+		Assert.notNull(request.item(), "request item is required");
+		prepareTable(request.item()).putItem(request);
+	}
+
 	public <T> T update(T entity) {
 		Assert.notNull(entity, "entity is required");
 		return prepareTable(entity).updateItem(entity);
+	}
+
+	@Override
+	public <T> T update(UpdateItemEnhancedRequest<T> request) {
+		Assert.notNull(request, "updateItemEnhancedRequest is required");
+		Assert.notNull(request.item(), "request item is required");
+		return prepareTable(request.item()).updateItem(request);
 	}
 
 	public <T> T delete(Key key, Class<T> clazz) {
@@ -75,6 +93,12 @@ public class DynamoDbTemplate implements DynamoDbOperations {
 	public <T> T delete(T entity) {
 		Assert.notNull(entity, "entity is required");
 		return prepareTable(entity).deleteItem(entity);
+	}
+
+	public <T> T delete(DeleteItemEnhancedRequest request, Class<T> clazz) {
+		Assert.notNull(request, "deleteItemEnhancedRequest is required");
+		Assert.notNull(clazz, "clazz is required");
+		return prepareTable(clazz).deleteItem(request);
 	}
 
 	@Nullable

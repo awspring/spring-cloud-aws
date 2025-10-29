@@ -18,7 +18,6 @@ package io.awspring.cloud.autoconfigure.sqs;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -34,6 +33,9 @@ import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
+import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
+import io.micrometer.observation.ObservationRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -46,7 +48,6 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
@@ -75,22 +76,30 @@ public class SqsAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public SqsAsyncClient sqsAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<SqsAsyncClientBuilder>> configurer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
 			ObjectProvider<SqsAsyncClientCustomizer> sqsAsyncClientCustomizers,
 			ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers) {
-		return awsClientBuilderConfigurer.configureAsyncClient(SqsAsyncClient.builder(), this.sqsProperties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable(),
-				sqsAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream()).build();
+		return awsClientBuilderConfigurer
+				.configureAsyncClient(SqsAsyncClient.builder(), this.sqsProperties, connectionDetails.getIfAvailable(),
+						sqsAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream())
+				.build();
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObjectProvider<ObjectMapper> objectMapperProvider,
+			ObjectProvider<ObservationRegistry> observationRegistryProvider,
+			ObjectProvider<SqsTemplateObservation.Convention> observationConventionProvider,
 			MessagingMessageConverter<Message> messageConverter) {
 		SqsTemplateBuilder builder = SqsTemplate.builder().sqsAsyncClient(sqsAsyncClient)
 				.messageConverter(messageConverter);
 		objectMapperProvider.ifAvailable(om -> setMapperToConverter(messageConverter, om));
+		if (this.sqsProperties.isObservationEnabled()) {
+			observationRegistryProvider
+					.ifAvailable(registry -> builder.configure(options -> options.observationRegistry(registry)));
+			observationConventionProvider
+					.ifAvailable(convention -> builder.configure(options -> options.observationConvention(convention)));
+		}
 		if (sqsProperties.getQueueNotFoundStrategy() != null) {
 			builder.configure((options) -> options.queueNotFoundStrategy(sqsProperties.getQueueNotFoundStrategy()));
 		}
@@ -103,6 +112,8 @@ public class SqsAutoConfiguration {
 			ObjectProvider<SqsAsyncClient> sqsAsyncClient, ObjectProvider<AsyncErrorHandler<Object>> asyncErrorHandler,
 			ObjectProvider<ErrorHandler<Object>> errorHandler,
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
+			ObjectProvider<ObservationRegistry> observationRegistry,
+			ObjectProvider<SqsListenerObservation.Convention> observationConventionProvider,
 			ObjectProvider<MessageInterceptor<Object>> interceptors, ObjectProvider<ObjectMapper> objectMapperProvider,
 			MessagingMessageConverter<?> messagingMessageConverter) {
 
@@ -114,6 +125,12 @@ public class SqsAutoConfiguration {
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
 		objectMapperProvider.ifAvailable(om -> setMapperToConverter(messagingMessageConverter, om));
+		if (this.sqsProperties.isObservationEnabled()) {
+			observationRegistry
+					.ifAvailable(registry -> factory.configure(options -> options.observationRegistry(registry)));
+			observationConventionProvider
+					.ifAvailable(convention -> factory.configure(options -> options.observationConvention(convention)));
+		}
 		factory.configure(options -> options.messageConverter(messagingMessageConverter));
 		return factory;
 	}
@@ -136,6 +153,8 @@ public class SqsAutoConfiguration {
 		mapper.from(this.sqsProperties.getListener().getMaxConcurrentMessages()).to(options::maxConcurrentMessages);
 		mapper.from(this.sqsProperties.getListener().getMaxMessagesPerPoll()).to(options::maxMessagesPerPoll);
 		mapper.from(this.sqsProperties.getListener().getPollTimeout()).to(options::pollTimeout);
+		mapper.from(this.sqsProperties.getListener().getMaxDelayBetweenPolls()).to(options::maxDelayBetweenPolls);
+		mapper.from(this.sqsProperties.getListener().getAutoStartup()).to(options::autoStartup);
 	}
 
 	@Bean

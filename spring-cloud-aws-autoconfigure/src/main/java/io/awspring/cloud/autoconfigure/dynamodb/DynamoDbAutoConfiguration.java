@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.dynamodb;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -47,7 +46,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 import software.amazon.dax.ClusterDaxClient;
 
 /**
@@ -114,13 +112,13 @@ public class DynamoDbAutoConfiguration {
 		@ConditionalOnMissingBean
 		@Bean
 		public DynamoDbClient dynamoDbClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-				ObjectProvider<AwsClientCustomizer<DynamoDbClientBuilder>> configurer,
 				ObjectProvider<AwsConnectionDetails> connectionDetails, DynamoDbProperties properties,
 				ObjectProvider<DynamoDbClientCustomizer> dynamoDbClientCustomizers,
 				ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers) {
-			return awsClientBuilderConfigurer.configureSyncClient(DynamoDbClient.builder(), properties,
-					connectionDetails.getIfAvailable(), configurer.getIfAvailable(),
-					dynamoDbClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream()).build();
+			return awsClientBuilderConfigurer
+					.configureSyncClient(DynamoDbClient.builder(), properties, connectionDetails.getIfAvailable(),
+							dynamoDbClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream())
+					.build();
 		}
 
 	}
@@ -140,7 +138,8 @@ public class DynamoDbAutoConfiguration {
 	@ConditionalOnMissingBean(DynamoDbTableNameResolver.class)
 	@Bean
 	public DefaultDynamoDbTableNameResolver dynamoDbTableNameResolver(DynamoDbProperties properties) {
-		return new DefaultDynamoDbTableNameResolver(properties.getTablePrefix(), properties.getTableSuffix());
+		return new DefaultDynamoDbTableNameResolver(properties.getTablePrefix(), properties.getTableSuffix(),
+				properties.getTableSeparator());
 	}
 
 	@ConditionalOnMissingBean(DynamoDbOperations.class)

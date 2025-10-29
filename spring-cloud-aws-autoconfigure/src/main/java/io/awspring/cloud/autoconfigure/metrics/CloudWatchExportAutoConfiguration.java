@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.metrics;
 
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -25,9 +24,6 @@ import io.micrometer.cloudwatch2.CloudWatchConfig;
 import io.micrometer.cloudwatch2.CloudWatchMeterRegistry;
 import io.micrometer.core.instrument.Clock;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.actuate.autoconfigure.metrics.CompositeMeterRegistryAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration;
-import org.springframework.boot.actuate.autoconfigure.metrics.export.simple.SimpleMetricsExportAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -35,10 +31,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.metrics.autoconfigure.CompositeMeterRegistryAutoConfiguration;
+import org.springframework.boot.metrics.autoconfigure.MetricsAutoConfiguration;
+import org.springframework.boot.metrics.autoconfigure.export.simple.SimpleMetricsExportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
-import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
 
 /**
  * Configuration for exporting metrics to CloudWatch.
@@ -69,13 +67,13 @@ public class CloudWatchExportAutoConfiguration {
 	@ConditionalOnMissingBean
 	public CloudWatchAsyncClient cloudWatchAsyncClient(CloudWatchProperties properties,
 			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
 			ObjectProvider<CloudWatchAsyncClientCustomizer> cloudWatchAsyncClientCustomizers,
 			ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers) {
-		return awsClientBuilderConfigurer.configureAsyncClient(CloudWatchAsyncClient.builder(), properties,
-				connectionDetails.getIfAvailable(), configurer.getIfAvailable(),
-				cloudWatchAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream()).build();
+		return awsClientBuilderConfigurer
+				.configureAsyncClient(CloudWatchAsyncClient.builder(), properties, connectionDetails.getIfAvailable(),
+						cloudWatchAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream())
+				.build();
 	}
 
 	@Bean

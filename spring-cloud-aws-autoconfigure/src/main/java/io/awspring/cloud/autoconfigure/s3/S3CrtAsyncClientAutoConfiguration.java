@@ -33,6 +33,7 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.crt.s3.S3Client;
+import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 
@@ -44,7 +45,7 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
  * @since 3.0
  */
 @AutoConfiguration
-@ConditionalOnClass({ S3Client.class, S3AsyncClient.class })
+@ConditionalOnClass({ S3Client.class, S3AsyncClient.class, AwsCrtHttpClient.class })
 @EnableConfigurationProperties({ S3Properties.class })
 @ConditionalOnProperty(name = "spring.cloud.aws.s3.enabled", havingValue = "true", matchIfMissing = true)
 @AutoConfigureBefore(S3TransferManagerAutoConfiguration.class)
@@ -67,6 +68,8 @@ public class S3CrtAsyncClientAutoConfiguration {
 			ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		S3CrtAsyncClientBuilder builder = S3AsyncClient.crtBuilder().credentialsProvider(credentialsProvider).region(
 				this.awsClientBuilderConfigurer.resolveRegion(this.properties, connectionDetails.getIfAvailable()));
+		Optional.ofNullable(connectionDetails.getIfAvailable()).map(AwsConnectionDetails::getEndpoint)
+				.ifPresent(builder::endpointOverride);
 		Optional.ofNullable(this.awsProperties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(this.properties.getEndpoint()).ifPresent(builder::endpointOverride);
 		Optional.ofNullable(this.properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);

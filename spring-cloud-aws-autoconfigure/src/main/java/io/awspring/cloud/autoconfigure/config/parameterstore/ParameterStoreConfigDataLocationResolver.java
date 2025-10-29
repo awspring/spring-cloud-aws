@@ -17,7 +17,6 @@ package io.awspring.cloud.autoconfigure.config.parameterstore;
 
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.config.AbstractAwsConfigDataLocationResolver;
-import io.awspring.cloud.autoconfigure.core.AwsClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.core.CredentialsProperties;
 import io.awspring.cloud.autoconfigure.core.RegionProperties;
@@ -96,15 +95,6 @@ public class ParameterStoreConfigDataLocationResolver
 
 	protected SsmClient createSimpleSystemManagementClient(BootstrapContext context) {
 		SsmClientBuilder builder = configure(SsmClient.builder(), context.get(ParameterStoreProperties.class), context);
-		try {
-			AwsParameterStoreClientCustomizer configurer = context.get(AwsParameterStoreClientCustomizer.class);
-			if (configurer != null) {
-				AwsClientCustomizer.apply(configurer, builder);
-			}
-		}
-		catch (IllegalStateException e) {
-			log.debug("Bean of type AwsParameterStoreClientCustomizer is not registered: " + e.getMessage());
-		}
 
 		try {
 			AwsSyncClientCustomizer awsSyncClientCustomizer = context.get(AwsSyncClientCustomizer.class);

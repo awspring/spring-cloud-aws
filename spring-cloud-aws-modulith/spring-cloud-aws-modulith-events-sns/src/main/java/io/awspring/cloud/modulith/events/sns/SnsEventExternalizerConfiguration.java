@@ -61,7 +61,7 @@ class SnsEventExternalizerConfiguration {
 		return new DelegatingEventExternalizer(configuration, (target, payload) -> {
 
 			var routing = BrokerRouting.of(target, context);
-			var builder = SnsNotification.builder(payload);
+			var builder = SnsNotification.builder(payload).headers(configuration.getHeadersFor(payload));
 			var key = routing.getKey(payload);
 
 			// when routing key is set, SNS topic must be a FIFO topic
@@ -69,7 +69,7 @@ class SnsEventExternalizerConfiguration {
 				builder.groupId(key);
 			}
 
-			operations.sendNotification(routing.getTarget(), builder.build());
+			operations.sendNotification(routing.getTarget(payload), builder.build());
 
 			return CompletableFuture.completedFuture(null);
 		});

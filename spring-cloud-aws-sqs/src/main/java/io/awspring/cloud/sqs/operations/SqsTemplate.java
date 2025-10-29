@@ -29,6 +29,7 @@ import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -79,6 +80,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsTemplate.class);
 
+	private static final SqsTemplateObservation.SqsSpecifics SQS_OBSERVATION_SPECIFICS = new SqsTemplateObservation.SqsSpecifics();
+
 	private final Map<String, CompletableFuture<QueueAttributes>> queueAttributesCache = new ConcurrentHashMap<>();
 
 	private final Map<String, SqsMessageConversionContext> conversionContextCache = new ConcurrentHashMap<>();
@@ -96,7 +99,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private final TemplateContentBasedDeduplication contentBasedDeduplication;
 
 	private SqsTemplate(SqsTemplateBuilderImpl builder) {
-		super(builder.messageConverter, builder.options);
+		super(builder.messageConverter, builder.options, SQS_OBSERVATION_SPECIFICS);
 		SqsTemplateOptionsImpl options = builder.options;
 		this.sqsAsyncClient = builder.sqsAsyncClient;
 		this.messageAttributeNames = options.messageAttributeNames;
@@ -686,6 +689,13 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		public SqsTemplateOptions contentBasedDeduplication(
 				TemplateContentBasedDeduplication contentBasedDeduplication) {
 			this.contentBasedDeduplication = contentBasedDeduplication;
+			return this;
+		}
+
+		@Override
+		public SqsTemplateOptions observationConvention(SqsTemplateObservation.Convention observationConvention) {
+			Assert.notNull(observationConvention, "observationConvention cannot be null");
+			super.observationConvention(observationConvention);
 			return this;
 		}
 

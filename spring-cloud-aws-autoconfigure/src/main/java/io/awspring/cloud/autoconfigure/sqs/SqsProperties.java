@@ -49,6 +49,8 @@ public class SqsProperties extends AwsClientProperties {
 	@Nullable
 	private QueueNotFoundStrategy queueNotFoundStrategy;
 
+	private Boolean observationEnabled = false;
+
 	/**
 	 * Return the strategy to use if the queue is not found.
 	 * @return the {@link QueueNotFoundStrategy}
@@ -64,6 +66,14 @@ public class SqsProperties extends AwsClientProperties {
 	 */
 	public void setQueueNotFoundStrategy(QueueNotFoundStrategy queueNotFoundStrategy) {
 		this.queueNotFoundStrategy = queueNotFoundStrategy;
+	}
+
+	public Boolean isObservationEnabled() {
+		return this.observationEnabled;
+	}
+
+	public void setObservationEnabled(Boolean observationEnabled) {
+		this.observationEnabled = observationEnabled;
 	}
 
 	public static class Listener {
@@ -86,6 +96,18 @@ public class SqsProperties extends AwsClientProperties {
 		 */
 		@Nullable
 		private Duration pollTimeout;
+
+		/**
+		 * The maximum amount of time to wait between consecutive polls to SQS.
+		 */
+		@Nullable
+		private Duration maxDelayBetweenPolls;
+
+		/**
+		 * Defines whether SQS listeners will start automatically or not.
+		 */
+		@Nullable
+		private Boolean autoStartup;
 
 		@Nullable
 		public Integer getMaxConcurrentMessages() {
@@ -112,6 +134,24 @@ public class SqsProperties extends AwsClientProperties {
 
 		public void setPollTimeout(Duration pollTimeout) {
 			this.pollTimeout = pollTimeout;
+		}
+
+		@Nullable
+		public Duration getMaxDelayBetweenPolls() {
+			return maxDelayBetweenPolls;
+		}
+
+		public void setMaxDelayBetweenPolls(Duration maxDelayBetweenPolls) {
+			this.maxDelayBetweenPolls = maxDelayBetweenPolls;
+		}
+
+		@Nullable
+		public Boolean getAutoStartup() {
+			return autoStartup;
+		}
+
+		public void setAutoStartup(Boolean autoStartup) {
+			this.autoStartup = autoStartup;
 		}
 	}
 

@@ -53,8 +53,6 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
@@ -75,7 +73,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:3.8.1"));
+			DockerImageName.parse("localstack/localstack:4.4.0"));
 
 	@TempDir
 	static Path tokenTempDir;
@@ -177,20 +175,6 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 		try (ConfigurableApplicationContext context = runApplication(application, "classpath:config.properties")) {
 			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("from properties file");
-		}
-	}
-
-	@Test
-	void clientIsConfiguredWithConfigurerProvidedToBootstrapRegistry() {
-		SpringApplication application = new SpringApplication(App.class);
-		application.setWebApplicationType(WebApplicationType.NONE);
-		application.addBootstrapRegistryInitializer(new AwsConfigurerClientConfiguration());
-
-		try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-secretsmanager:/config/spring;/config/second")) {
-			ConfiguredAwsClient ssmClient = new ConfiguredAwsClient(context.getBean(SecretsManagerClient.class));
-			assertThat(ssmClient.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2828));
-			assertThat(ssmClient.getSyncHttpClient()).isNotNull();
 		}
 	}
 
@@ -493,27 +477,6 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	static class App {
-	}
-
-	static class AwsConfigurerClientConfiguration implements BootstrapRegistryInitializer {
-
-		@Override
-		public void initialize(BootstrapRegistry registry) {
-			registry.register(AwsSecretsManagerClientCustomizer.class,
-					context -> new AwsSecretsManagerClientCustomizer() {
-
-						@Override
-						public ClientOverrideConfiguration overrideConfiguration() {
-							return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(2828))
-									.build();
-						}
-
-						@Override
-						public SdkHttpClient httpClient() {
-							return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build();
-						}
-					});
-		}
 	}
 
 	static class CustomizerConfiguration implements BootstrapRegistryInitializer {

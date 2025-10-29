@@ -58,14 +58,48 @@ class AsyncMessagingMessageListenerAdapterTests {
 	}
 
 	@Test
-	void shouldReturnFailedFutureOnThrownError() throws Exception {
+	void shouldReturnFailedFutureOnThrownException() throws Exception {
 		MessageHeaders headers = new MessageHeaders(null);
 		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
 		Message<Object> message = mock(Message.class);
 		RuntimeException exception = new RuntimeException(
-				"Expected exception from shouldReturnFailedFutureOnThrownError");
+				"Expected exception from shouldReturnFailedFutureOnThrownException");
 		given(message.getHeaders()).willReturn(headers);
 		given(handlerMethod.invoke(message)).willThrow(exception);
+		AsyncMessageListener<Object> adapter = new AsyncMessagingMessageListenerAdapter<>(handlerMethod);
+		CompletableFuture<Void> result = adapter.onMessage(message);
+		assertThat(result).isCompletedExceptionally();
+		assertThatThrownBy(result::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
+				.isInstanceOf(ListenerExecutionFailedException.class)
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessage).isEqualTo(message);
+	}
+
+	@Test
+	void shouldReturnFailedFutureOnThrownError() throws Exception {
+		MessageHeaders headers = new MessageHeaders(null);
+		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
+		Message<Object> message = mock(Message.class);
+		Error error = new Error("Expected exception from shouldReturnFailedFutureOnThrownError");
+		given(message.getHeaders()).willReturn(headers);
+		given(handlerMethod.invoke(message)).willThrow(error);
+		AsyncMessageListener<Object> adapter = new AsyncMessagingMessageListenerAdapter<>(handlerMethod);
+		CompletableFuture<Void> result = adapter.onMessage(message);
+		assertThat(result).isCompletedExceptionally();
+		assertThatThrownBy(result::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
+				.isInstanceOf(ListenerExecutionFailedException.class)
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessage).isEqualTo(message);
+	}
+
+	@Test
+	void shouldWrapCompletionException() throws Exception {
+		MessageHeaders headers = new MessageHeaders(null);
+		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
+		Message<Object> message = mock(Message.class);
+		RuntimeException exception = new RuntimeException("Expected exception from shouldWrapCompletionException");
+		given(message.getHeaders()).willReturn(headers);
+		given(handlerMethod.invoke(message)).willReturn(CompletableFutures.failedFuture(exception));
 		AsyncMessageListener<Object> adapter = new AsyncMessagingMessageListenerAdapter<>(handlerMethod);
 		CompletableFuture<Void> result = adapter.onMessage(message);
 		assertThat(result).isCompletedExceptionally();
@@ -80,9 +114,9 @@ class AsyncMessagingMessageListenerAdapterTests {
 		MessageHeaders headers = new MessageHeaders(null);
 		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
 		Message<Object> message = mock(Message.class);
-		RuntimeException exception = new RuntimeException("Expected exception from shouldWrapCompletionError");
+		Error error = new Error("Expected exception from shouldWrapCompletionError");
 		given(message.getHeaders()).willReturn(headers);
-		given(handlerMethod.invoke(message)).willReturn(CompletableFutures.failedFuture(exception));
+		given(handlerMethod.invoke(message)).willReturn(CompletableFutures.failedFuture(error));
 		AsyncMessageListener<Object> adapter = new AsyncMessagingMessageListenerAdapter<>(handlerMethod);
 		CompletableFuture<Void> result = adapter.onMessage(message);
 		assertThat(result).isCompletedExceptionally();
@@ -127,7 +161,7 @@ class AsyncMessagingMessageListenerAdapterTests {
 	}
 
 	@Test
-	void shouldReturnFailedFutureOnErrorBatch() throws Exception {
+	void shouldReturnFailedFutureOnExceptionBatch() throws Exception {
 		Message<Object> message1 = mock(Message.class);
 		Message<Object> message2 = mock(Message.class);
 		Message<Object> message3 = mock(Message.class);
@@ -135,11 +169,55 @@ class AsyncMessagingMessageListenerAdapterTests {
 		MessageHeaders headers = new MessageHeaders(null);
 		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
 		RuntimeException exception = new RuntimeException(
-				"Expected exception from shouldReturnFailedFutureOnErrorBatch");
+				"Expected exception from shouldReturnFailedFutureOnExceptionBatch");
 		given(message1.getHeaders()).willReturn(headers);
 		given(message2.getHeaders()).willReturn(headers);
 		given(message3.getHeaders()).willReturn(headers);
 		given(handlerMethod.invoke(any(Message.class))).willThrow(exception);
+		AsyncMessageListener<Object> adapter = new AsyncMessagingMessageListenerAdapter<>(handlerMethod);
+		CompletableFuture<Void> result = adapter.onMessage(messages);
+		assertThat(result).isCompletedExceptionally();
+		assertThatThrownBy(result::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
+				.isInstanceOf(ListenerExecutionFailedException.class)
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(messages);
+	}
+
+	@Test
+	void shouldReturnFailedFutureOnErrorBatch() throws Exception {
+		Message<Object> message1 = mock(Message.class);
+		Message<Object> message2 = mock(Message.class);
+		Message<Object> message3 = mock(Message.class);
+		List<Message<Object>> messages = Arrays.asList(message1, message2, message3);
+		MessageHeaders headers = new MessageHeaders(null);
+		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
+		Error error = new Error("Expected exception from shouldReturnFailedFutureOnErrorBatch");
+		given(message1.getHeaders()).willReturn(headers);
+		given(message2.getHeaders()).willReturn(headers);
+		given(message3.getHeaders()).willReturn(headers);
+		given(handlerMethod.invoke(any(Message.class))).willThrow(error);
+		AsyncMessageListener<Object> adapter = new AsyncMessagingMessageListenerAdapter<>(handlerMethod);
+		CompletableFuture<Void> result = adapter.onMessage(messages);
+		assertThat(result).isCompletedExceptionally();
+		assertThatThrownBy(result::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
+				.isInstanceOf(ListenerExecutionFailedException.class)
+				.asInstanceOf(type(ListenerExecutionFailedException.class))
+				.extracting(ListenerExecutionFailedException::getFailedMessages).isEqualTo(messages);
+	}
+
+	@Test
+	void shouldWrapCompletionExceptionBatch() throws Exception {
+		Message<Object> message1 = mock(Message.class);
+		Message<Object> message2 = mock(Message.class);
+		Message<Object> message3 = mock(Message.class);
+		List<Message<Object>> messages = Arrays.asList(message1, message2, message3);
+		MessageHeaders headers = new MessageHeaders(null);
+		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
+		RuntimeException exception = new RuntimeException("Expected exception from shouldWrapCompletionExceptionBatch");
+		given(message1.getHeaders()).willReturn(headers);
+		given(message2.getHeaders()).willReturn(headers);
+		given(message3.getHeaders()).willReturn(headers);
+		given(handlerMethod.invoke(any(Message.class))).willReturn(CompletableFutures.failedFuture(exception));
 		AsyncMessageListener<Object> adapter = new AsyncMessagingMessageListenerAdapter<>(handlerMethod);
 		CompletableFuture<Void> result = adapter.onMessage(messages);
 		assertThat(result).isCompletedExceptionally();
@@ -157,11 +235,11 @@ class AsyncMessagingMessageListenerAdapterTests {
 		List<Message<Object>> messages = Arrays.asList(message1, message2, message3);
 		MessageHeaders headers = new MessageHeaders(null);
 		InvocableHandlerMethod handlerMethod = mock(InvocableHandlerMethod.class);
-		RuntimeException exception = new RuntimeException("Expected exception from shouldWrapCompletionErrorBatch");
+		Error error = new Error("Expected exception from shouldWrapCompletionErrorBatch");
 		given(message1.getHeaders()).willReturn(headers);
 		given(message2.getHeaders()).willReturn(headers);
 		given(message3.getHeaders()).willReturn(headers);
-		given(handlerMethod.invoke(any(Message.class))).willReturn(CompletableFutures.failedFuture(exception));
+		given(handlerMethod.invoke(any(Message.class))).willReturn(CompletableFutures.failedFuture(error));
 		AsyncMessageListener<Object> adapter = new AsyncMessagingMessageListenerAdapter<>(handlerMethod);
 		CompletableFuture<Void> result = adapter.onMessage(messages);
 		assertThat(result).isCompletedExceptionally();

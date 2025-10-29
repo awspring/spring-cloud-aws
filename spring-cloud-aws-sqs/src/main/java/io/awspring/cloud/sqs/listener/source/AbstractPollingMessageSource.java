@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 package io.awspring.cloud.sqs.listener.source;
 
 import io.awspring.cloud.sqs.ConfigUtils;
-import io.awspring.cloud.sqs.listener.BackPressureHandler;
-import io.awspring.cloud.sqs.listener.BatchAwareBackPressureHandler;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
@@ -26,6 +24,9 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.ExecutingAcknowledgementProcessor;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
+import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler.ReleaseReason;
+import io.awspring.cloud.sqs.listener.backpressure.BatchAwareBackPressureHandler;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -57,6 +58,7 @@ import org.springframework.util.StringUtils;
  * {@link MessageProcessingContext} and executed downstream when applicable.
  *
  * @author Tomaz Fernandes
+ * @author Loïc Rouchon
  * @since 3.0
  */
 public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessageConvertingMessageSource<T, S>
@@ -214,7 +216,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 				if (!isRunning()) {
 					logger.debug("MessageSource was stopped after permits where acquired. Returning {} permits",
 							acquiredPermits);
-					this.backPressureHandler.release(acquiredPermits);
+					this.backPressureHandler.release(acquiredPermits, ReleaseReason.NONE_FETCHED);
 					continue;
 				}
 				// @formatter:off
@@ -252,15 +254,12 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 	protected abstract CompletableFuture<Collection<S>> doPollForMessages(int messagesToRequest);
 
 	public Collection<Message<T>> releaseUnusedPermits(int permits, Collection<Message<T>> msgs) {
-		if (msgs.isEmpty() && permits == this.backPressureHandler.getBatchSize()) {
-			this.backPressureHandler.releaseBatch();
-			logger.trace("Released batch of unused permits for queue {}", this.pollingEndpointName);
-		}
-		else {
-			int permitsToRelease = permits - msgs.size();
-			this.backPressureHandler.release(permitsToRelease);
-			logger.trace("Released {} unused permits for queue {}", permitsToRelease, this.pollingEndpointName);
-		}
+		int polledMessages = msgs.size();
+		int permitsToRelease = permits - polledMessages;
+		ReleaseReason releaseReason = polledMessages == 0 ? ReleaseReason.NONE_FETCHED : ReleaseReason.PARTIAL_FETCH;
+		this.backPressureHandler.release(permitsToRelease, releaseReason);
+		logger.trace("Released {} unused ({}) permits for queue {} (messages polled {})", permitsToRelease,
+				releaseReason, this.pollingEndpointName, polledMessages);
 		return msgs;
 	}
 
@@ -285,7 +284,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 
 	private void releaseBackPressure() {
 		logger.debug("Releasing permit for queue {}", this.pollingEndpointName);
-		this.backPressureHandler.release(1);
+		this.backPressureHandler.release(1, ReleaseReason.PROCESSED);
 	}
 
 	private Void handleSinkException(Throwable t) {
@@ -320,7 +319,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 
 	private <F> CompletableFuture<F> managePollingFuture(CompletableFuture<F> pollingFuture) {
 		this.pollingFutures.add(pollingFuture);
-		pollingFuture.thenRun(() -> this.pollingFutures.remove(pollingFuture));
+		pollingFuture.whenComplete((result, throwable) -> this.pollingFutures.remove(pollingFuture));
 		return pollingFuture;
 	}
 
