@@ -187,6 +187,7 @@ Note that `DynamoDbClientCustomizer` beans are applied **after** `AwsSyncClientC
 Since it depends on how you will use DynamoDb integration providing a list of IAM policies would be pointless since least privilege model should be used.
 To check what IAM policies DynamoDb uses and see which ones you should use please check https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/using-identity-based-policies.html[IAM policies]
 
+[#spring-integration-support]
 === Spring Integration Support
 
 Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] components for Amazon DynamoDB.

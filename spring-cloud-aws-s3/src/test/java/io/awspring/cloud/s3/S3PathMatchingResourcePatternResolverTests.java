@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,35 +24,23 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-@Testcontainers
-class S3PathMatchingResourcePatternResolverTests {
-	private static final RequestBody requestBody = RequestBody.fromString("test-file-content");
+/**
+ * @author Tobias Soloschenko
+ * @author Artem Bilan
+ */
+class S3PathMatchingResourcePatternResolverTests implements LocalstackContainerTest {
 
-	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:4.4.0"));
+	private static final RequestBody requestBody = RequestBody.fromString("test-file-content");
 
 	private static ResourcePatternResolver resourceLoader;
 
 	@BeforeAll
 	static void beforeAll() {
-		// region and credentials are irrelevant for test, but must be added to make
-		// test work on environments without AWS cli configured
-		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
-				.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
-		S3Client client = S3Client.builder().region(Region.of(localstack.getRegion()))
-				.credentialsProvider(credentialsProvider).endpointOverride(localstack.getEndpoint()).build();
+		S3Client client = LocalstackContainerTest.s3Client();
 
 		// prepare buckets and objects for tests
 		client.createBucket(request -> request.bucket("my-bucket"));
@@ -134,4 +122,5 @@ class S3PathMatchingResourcePatternResolverTests {
 		loader.addProtocolResolver(new S3ProtocolResolver(s3Client));
 		return new S3PathMatchingResourcePatternResolver(s3Client, new PathMatchingResourcePatternResolver(loader));
 	}
+
 }

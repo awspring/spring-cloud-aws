@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
@@ -29,6 +30,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.retry.backoff.BackOffPolicy;
 import org.springframework.retry.backoff.BackOffPolicyBuilder;
@@ -39,6 +42,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * Tests for {@link SqsContainerOptions}.
  *
  * @author Tomaz Fernandes
+ * @author Richard Fearn
  */
 class ContainerOptionsTests {
 
@@ -141,6 +145,30 @@ class ContainerOptionsTests {
 	void shouldDefaultToNoopObservationRegistry() {
 		SqsContainerOptions options = SqsContainerOptions.builder().build();
 		assertThat(options.getObservationRegistry().isNoop()).isTrue();
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = { 4, 5 })
+	void shouldAcceptValidMaxMessagesPerPoll(final int maxMessagesPerPoll) {
+
+		final SqsContainerOptions options = SqsContainerOptions.builder()
+			.maxMessagesPerPoll(maxMessagesPerPoll)
+			.maxConcurrentMessages(5)
+			.build();
+
+		assertThat(options.getMaxMessagesPerPoll()).isEqualTo(maxMessagesPerPoll);
+		assertThat(options.getMaxConcurrentMessages()).isEqualTo(5);
+	}
+
+	@Test
+	void shouldRejectInvalidMaxMessagesPerPoll() {
+
+		final Throwable exception = catchThrowable(
+				() -> SqsContainerOptions.builder().maxMessagesPerPoll(6).maxConcurrentMessages(5).build());
+
+		assertThat(exception).isInstanceOf(IllegalArgumentException.class)
+			.hasMessage("maxMessagesPerPoll should be less than or equal to maxConcurrentMessages. "
+					+ "Values provided: 6 and 5 respectively");
 	}
 
 	private SqsContainerOptions createConfiguredOptions() {

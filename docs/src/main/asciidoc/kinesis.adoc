@@ -1,0 +1,155 @@
+[#spring-cloud-aws-kinesis]
+== Kinesis Integration
+
+The https://aws.amazon.com/kinesis/[Kinesis] is a platform for streaming data on AWS, making it easy to load and analyze streaming data and also providing the ability for you to build custom streaming data applications for specialized needs.
+
+// TODO: auto-configuration
+
+=== Spring Integration Support
+
+Also, starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon Kinesis.
+
+The `KinesisMessageHandler` is an `AbstractMessageHandler` to perform put record(s) to the Kinesis stream.
+The stream, partition key (or explicit hash key) and sequence number can be determined against a request message via evaluation provided expressions or can be specified statically.
+They also can be specified as `KinesisHeaders.STREAM`, `KinesisHeaders.PARTITION_KEY` and `KinesisHeaders.SEQUENCE_NUMBER` respectively.
+
+The `KinesisMessageHandler` can be configured with the `outputChannel` for sending a `Message` on successful put operation.
+The payload is the original request and additional `KinesisHeaders.SHARD` and `KinesisHeaders.SEQUENCE_NUMBER` headers are populated from the `PutRecordResposne`.
+If the request payload is a `PutRecordsRequest`, the full `PutRecordsResponse` is populated in the `KinesisHeaders.SERVICE_RESULT` header instead.
+
+When an async failure is happened on the put operation, the `ErrorMessage` is sent to the `errorChannel` header or global one.
+The payload is an `MessageHandlingException`.
+
+The `payload` of request message can be:
+
+- `PutRecordsRequest` to perform `KinesisAsyncClient.putRecords`
+- `PutRecordRequest` to perform `KinesisAsyncClient.putRecord`
+- `ByteBuffer` to represent data of the `PutRecordRequest`
+- `byte[]` which is wrapped to the `ByteBuffer`
+- any other type that is converted to the `byte[]` by the provided `Converter`; the `SerializingConverter` is used by default.
+
+The Java Configuration for the message handler is:
+
+[source,java]
+----
+@Bean
+@ServiceActivator(inputChannel = "kinesisSendChannel")
+public MessageHandler kinesisMessageHandler(KinesisAsyncClient amazonKinesis,
+                                            MessageChannel channel) {
+    KinesisMessageHandler kinesisMessageHandler = new KinesisMessageHandler(amazonKinesis);
+    kinesisMessageHandler.setPartitionKey("1");
+    kinesisMessageHandler.setOutputChannel(channel);
+    return kinesisMessageHandler;
+}
+----
+
+The `KinesisMessageDrivenChannelAdapter` is a `MessageProducerSupport` implementation to perform record consumption from the Kinesis stream(s).
+Each shard from the provided streams is managed by an internal state machine to ensure shard records ordering and exclusive shard access from the same consumer group.
+An offset of the records for the consuming shard is stored in the `ConcurrentMetadataStore` via `Checkpointer` abstraction.
+If the `CheckpointMode` of the `KinesisMessageDrivenChannelAdapter` is set to `manual`, then `KinesisHeaders.CHECKPOINTER` is populated to the message this channel adapter produces downstream.
+The check-pointed offset is used to initiate an iterator on the shard after the application restart.
+
+The `KinesisMessageDrivenChannelAdapter` can be configured with a distributed `LockRegistry<?>` to managed exclusive access to the shard in the cluster of the application consuming from the Kinesis.
+For example, the xref:dynamodb.adoc#spring-integration-support[`DynamoDbLockRegistry`] can be used to manage distributed locks via DynamoDB.
+In the case of many instances of the same consuming application in cluster, a distributed implementation of the `ConcurrentMetadataStore` is recommended, too, e.g. xref:dynamodb.adoc#spring-integration-support[`DynamoDbMetadataStore`].
+This way, when one instance leaves the cluster, it releases its locks for shards, and another instance can obtain those locks and continue consuming from the shard according to the stored offset in the mentioned shared meta-data store.
+
+See also `CheckpointMode` Javadocs and related options on the `KinesisMessageDrivenChannelAdapter` for different checkpoint handling algorithms.
+
+The `KinesisShardOffset` abstraction is used to represent an initial shard iterator request for all shards in the provided streams, if there is no specific checkpoint record in the `ConcurrentMetadataStore`.
+Or it can be used as an argument of the overloaded `KinesisMessageDrivenChannelAdapter` to consume from the specific shards.
+The concurrency and checkpoint management remain the same even for an explicit shard configuration.
+
+The `KinesisMessageDrivenChannelAdapter` also supports a `batch` mode to produce a message with a payload as a list of just returned by the shard iterator records.
+Each record data can be converted from `byte[]` via `Converter` setting.
+By default, a `DeserializingConverter` is used based on Java serialization specification.
+Which is aligned with the settings of the mentioned above `KinesisMessageHandler`.
+
+The Kinesis service does not provide a "headers"(attributes) abstraction, so the `KinesisMessageHandler` and `KinesisMessageDrivenChannelAdapter` can be configured with the `OutboundMessageMapper` and `InboundMessageMapper` to embed (and extract) message headers into/from the record data alongside the payload.
+See `EmbeddedHeadersJsonMessageMapper` implementation for more information.
+
+When the shard is closed on the Kinesis service, `KinesisMessageDrivenChannelAdapter` emits a `KinesisShardEndedEvent` into the application context with the key based on the pattern `consumerGroup + ":" + stream + ":" + shardId`.
+Such an event can be useful in any arbitrary application logic where the end of the shard is a crucial indicator, e.g. to perform resharding on the stream.
+
+The following Java Configuration demonstrates some `KinesisMessageDrivenChannelAdapter`:
+
+[source,java]
+----
+@Bean
+public ConcurrentMetadataStore checkpointStore() {
+    return new SimpleMetadataStore();
+}
+
+@Bean
+public LockRegistry lockRegistry() {
+    return new DefaultLockRegistry();
+}
+
+@Bean
+KinesisMessageDrivenChannelAdapter kinesisMessageDrivenChannelAdapter() {
+    var adapter = new KinesisMessageDrivenChannelAdapter(AMAZON_KINESIS_ASYNC, TEST_STREAM);
+    adapter.setOutputChannel(kinesisReceiveChannel());
+    adapter.setErrorChannel(errorChannel());
+    adapter.setErrorMessageStrategy(new KinesisMessageHeaderErrorMessageStrategy());
+    adapter.setCheckpointStore(checkpointStore());
+    adapter.setLockRegistry(lockRegistry());
+    adapter.setEmbeddedHeadersMapper(new EmbeddedHeadersJsonMessageMapper("embedded_header"));
+    adapter.setBindSourceRecord(true);
+    adapter.setDescribeStreamBackoff(10);
+    adapter.setConsumerBackoff(10);
+    adapter.setIdleBetweenPolls(1);
+    return adapter;
+}
+
+@Bean
+public PollableChannel kinesisReceiveChannel() {
+    QueueChannel queueChannel = new QueueChannel();
+    queueChannel.setDatatypes(Date.class);
+    return queueChannel;
+}
+
+@Bean
+public PollableChannel errorChannel() {
+    return new QueueChannel();
+}
+----
+
+The `KplMessageHandler` is an `AbstractMessageHandler` to perform put record to the Kinesis stream using https://docs.aws.amazon.com/streams/latest/dev/developing-producers-with-kpl.html[Kinesis Producer Library (KPL)].
+The configuration and behavior are similar to the `KinesisMessageHandler` described above, with the difference that it supports only a single `UserRecord` production according to KPL API.
+The request message payload could be as a `UserRecord`.
+Otherwise, such an instance is built against request messages and respective `KplMessageHandler` options, include https://docs.aws.amazon.com/streams/latest/dev/kpl-with-schemaregistry.html[AWS Glue Schema] for the record serialization.
+
+Due to asynchronous behavior and buffer of the `KinesisProducer`, a `KplBackpressureException` could be thrown from the  `KplMessageHandler` when `backPressureThreshold` as the number of outstanding records is provided.
+
+The configuration of the `KplMessageHandler` is straightforward:
+
+[source,java]
+----
+@Bean
+RequestHandlerRetryAdvice retryAdvice() {
+    RequestHandlerRetryAdvice requestHandlerRetryAdvice = new RequestHandlerRetryAdvice();
+    requestHandlerRetryAdvice.setRetryTemplate(RetryTemplate.builder()
+        .retryOn(KplBackpressureException.class)
+        .exponentialBackoff(100, 2.0, 1000)
+        .maxAttempts(3)
+        .build());
+    return requestHandlerRetryAdvice;
+}
+
+@Bean
+@ServiceActivator(inputChannel = "kinesisSendChannel", adviceChain = "retryAdvice")
+MessageHandler kplMessageHandler(KinesisProducer kinesisProducer, Schema schema) {
+    KplMessageHandler kplMessageHandler = new KplMessageHandler(kinesisProducer);
+    kplMessageHandler.setAsync(true);
+    kplMessageHandler.setStream("someStream");
+	kplMessageHandler.setBackPressureThreshold(2);
+    kplMessageHandler.setGlueSchema(schema);
+    return kplMessageHandler;
+}
+----
+
+=== Spring Integration Starters
+
+The Spring Integration dependency in the `spring-cloud-aws-kinesis` module is `optional` to avoid unnecessary artifacts on classpath when Spring Integration is not used.
+For convenience, a dedicated `spring-cloud-aws-starter-integration-kinesis` is provided managing all the required dependencies for Spring Integration support with a classical Amazon Kinesis client.
+The `spring-cloud-aws-starter-integration-kinesis-producer` artifact is dedicated for dependencies related to the Kinesis Producer Library.
