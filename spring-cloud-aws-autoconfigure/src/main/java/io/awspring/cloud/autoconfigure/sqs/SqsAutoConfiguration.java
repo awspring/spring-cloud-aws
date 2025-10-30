@@ -135,8 +135,8 @@ public class SqsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public MessagingMessageConverter<Message> messageConverter() {
-		return new SqsMessagingMessageConverter();
+	public MessagingMessageConverter<Message> messageConverter(ObjectProvider<JsonMapper> jsonMapper) {
+		return new SqsMessagingMessageConverter(jsonMapper.getIfAvailable());
 	}
 
 	private void configureProperties(SqsContainerOptionsBuilder options) {

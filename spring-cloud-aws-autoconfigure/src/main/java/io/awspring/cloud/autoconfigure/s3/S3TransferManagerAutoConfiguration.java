@@ -21,7 +21,6 @@ import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
 import io.awspring.cloud.s3.S3ObjectContentTypeResolver;
 import io.awspring.cloud.s3.S3OutputStreamProvider;
 import io.awspring.cloud.s3.TransferManagerS3OutputStreamProvider;
-import java.util.Objects;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -73,8 +72,7 @@ public class S3TransferManagerAutoConfiguration {
 		if (this.properties.getTransferManager() != null) {
 			S3TransferManagerProperties transferManagerProperties = this.properties.getTransferManager();
 			PropertyMapper propertyMapper = PropertyMapper.get();
-			propertyMapper.from(transferManagerProperties::getMaxDepth)
-					.to(builder::uploadDirectoryMaxDepth);
+			propertyMapper.from(transferManagerProperties::getMaxDepth).to(builder::uploadDirectoryMaxDepth);
 			propertyMapper.from(transferManagerProperties::getFollowSymbolicLinks)
 					.to(builder::uploadDirectoryFollowSymbolicLinks);
 		}
