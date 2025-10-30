@@ -61,11 +61,6 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 		registry.add("spring.cloud.aws.cloudwatch.endpoint", () -> localstack.getEndpoint());
 	}
 
-	// Unable to read meta-data for class
-	// org.springframework.boot.micrometer.observation.autoconfigure.ObservationAutoConfiguration
-	// to Be discussed
-	@Disabled("I have to check tomorrow. "
-			+ " Unable to read meta-data for class org.springframework.boot.micrometer.observation.autoconfigure.ObservationAutoConfiguration")
 	@Test
 	void testCounter() {
 		SpringApplication application = new SpringApplication(

@@ -31,8 +31,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-metrics</artifactId>
-			<version>4.0.0-M1</version>
+			<artifactId>spring-boot-micrometer-metrics</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
