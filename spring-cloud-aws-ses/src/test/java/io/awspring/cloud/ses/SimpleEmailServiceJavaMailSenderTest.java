@@ -32,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
@@ -223,8 +224,7 @@ class SimpleEmailServiceJavaMailSenderTest {
 
 		mailSender.send(preparator);
 
-		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()),
-				new ByteArrayInputStream(request.getValue().rawMessage().data().asByteArray()));
+		MimeMessage mimeMessage = toMimeMessage(request.getValue());
 		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString()).isEqualTo("to@domain.com");
 		assertThat(mimeMessage.getSubject()).isEqualTo("subject");
 		assertThat(mimeMessage.getContent()).isEqualTo("body");
@@ -241,16 +241,19 @@ class SimpleEmailServiceJavaMailSenderTest {
 		preparators[0] = mimeMessage -> {
 			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
 			mimeMessageHelper.setTo("to@domain.com");
+			mimeMessageHelper.setText("body1");
 		};
 
 		preparators[1] = mimeMessage -> {
 			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
 			mimeMessageHelper.setSubject("subject");
+			mimeMessageHelper.setText("body2");
 		};
 
 		preparators[2] = mimeMessage -> {
 			MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
-			mimeMessageHelper.setText("body");
+			mimeMessageHelper.setPriority(1);
+			mimeMessageHelper.setText("body3");
 		};
 
 		ArgumentCaptor<SendRawEmailRequest> request = ArgumentCaptor.forClass(SendRawEmailRequest.class);
@@ -259,12 +262,19 @@ class SimpleEmailServiceJavaMailSenderTest {
 
 		mailSender.send(preparators);
 
-		MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()),
-				new ByteArrayInputStream(request.getValue().rawMessage().data().asByteArray()));
-		assertThat(mimeMessage.getRecipients(Message.RecipientType.TO)[0].toString()).isEqualTo("to@domain.com");
-		assertThat(mimeMessage.getSubject()).isEqualTo("subject");
-		assertThat(mimeMessage.getContent()).isEqualTo("body");
+		List<MimeMessage> messages = request.getAllValues()
+			.stream()
+			.map(this::toMimeMessage)
+			.toList();
 
+		assertThat(messages.get(0).getRecipients(Message.RecipientType.TO)[0].toString()).isEqualTo("to@domain.com");
+		assertThat(messages.get(0).getContent()).isEqualTo("body1");
+
+		assertThat(messages.get(1).getSubject()).isEqualTo("subject");
+		assertThat(messages.get(1).getContent()).isEqualTo("body2");
+
+		assertThat(messages.get(2).getContent()).isEqualTo("body3");
+		assertThat(messages.get(2).getHeader("X-Priority", ":")).isEqualTo("1");
 	}
 
 	@Test
@@ -365,6 +375,15 @@ class SimpleEmailServiceJavaMailSenderTest {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		mimeMessage.writeTo(os);
 		return os.toByteArray();
+	}
+
+	private MimeMessage toMimeMessage(SendRawEmailRequest request) {
+		try {
+			return new MimeMessage(Session.getInstance(new Properties()),
+				new ByteArrayInputStream(request.rawMessage().data().asByteArray()));
+		} catch (MessagingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }
