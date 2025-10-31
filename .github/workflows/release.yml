@@ -42,7 +42,7 @@ jobs:
       - name: Run tests
         run: ./mvnw -V verify javadoc:aggregate -Pspring,docs-classic -DskipTests
       - name: Deploy to Sonatype
-        run: ./mvnw -V -Prelease,spring deploy -DskipTests
+        run: ./mvnw -V -Prelease,spring deploy -DskipTests -s ~/.settings.xml
         env:
           CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
