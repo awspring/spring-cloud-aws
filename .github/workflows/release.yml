@@ -34,15 +34,15 @@ jobs:
           distribution: temurin
           java-version: ${{ matrix.version }}
           cache: maven
-          server-id: ossrh-awspring
-          server-username: OSSRH_USERNAME
-          server-password: OSSRH_PASSWORD
+          server-id: central
+          server-username: CENTRAL_TOKEN_USERNAME
+          server-password: CENTRAL_TOKEN_PASSWORD
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Run tests
         run: ./mvnw -V verify javadoc:aggregate -Pspring,docs-classic -DskipTests
       - name: Deploy to Sonatype
-        run: ./mvnw -V -Prelease,spring deploy -DskipTests -s .settings.xml
+        run: ./mvnw -V -Prelease,spring deploy -DskipTests
         env:
           CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
