@@ -97,6 +97,7 @@
 |spring.cloud.aws.sqs.listener.max-delay-between-polls |  | The maximum amount of time to wait between consecutive polls to SQS.
 |spring.cloud.aws.sqs.listener.max-messages-per-poll |  | The maximum number of messages to be retrieved in a single poll to SQS.
 |spring.cloud.aws.sqs.listener.poll-timeout |  | The maximum amount of time for a poll to SQS.
+|spring.cloud.aws.sqs.observation-enabled | `+++false+++` | 
 |spring.cloud.aws.sqs.queue-not-found-strategy |  | 
 |spring.cloud.aws.sqs.region |  | Overrides the default region.
 
