@@ -8,8 +8,8 @@
 		</server>
 		<server>
 			<id>central</id>
-			<username><!-- your token username --></username>
-			<password><!-- your token password --></password>
+			<username>${env.CENTRAL_TOKEN_USERNAME}</username>
+			<password>${env.CENTRAL_TOKEN_PASSWORD}</password>
 		</server>
 	</servers>
 	<profiles>
