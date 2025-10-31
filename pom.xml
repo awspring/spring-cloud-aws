@@ -348,7 +348,15 @@
 		</profile>
 	</profiles>
 
-<!--	<distributionManagement>-->
+	<distributionManagement>
+		<repository>
+			<id>dummy</id>
+			<url>file://${project.build.directory}/dummy-repo</url>
+		</repository>
+	</distributionManagement>
+
+
+	<!--	<distributionManagement>-->
 <!--		<repository>-->
 <!--			<id>ossrh-awspring</id>-->
 <!--			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
