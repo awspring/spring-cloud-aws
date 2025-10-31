@@ -6,6 +6,11 @@
 			<username>${env.CI_DEPLOY_USERNAME}</username>
 			<password>${env.CI_DEPLOY_PASSWORD}</password>
 		</server>
+		<server>
+			<id>central</id>
+			<username><!-- your token username --></username>
+			<password><!-- your token password --></password>
+		</server>
 	</servers>
 	<profiles>
 		<profile>
