@@ -98,7 +98,7 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 	}
 
 	@Test
-	void shouldReceiveMessageThroughBatchManager() throws InterruptedException {
+	void shouldReceiveMessageThroughBatchManager() {
 		String queueName = createUniqueQueueName();
 		createQueue(this.asyncClient, queueName).join();
 
@@ -108,11 +108,8 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 					.sendMessage(SendMessageRequest.builder().queueUrl(queueName).messageBody(messageBody).build())
 					.join();
 
-			Thread.sleep(200);
-
-			ReceiveMessageResponse response = adapter
-					.receiveMessage(ReceiveMessageRequest.builder().queueUrl(queueName).maxNumberOfMessages(1).build())
-					.join();
+			ReceiveMessageResponse response = adapter.receiveMessage(ReceiveMessageRequest.builder().queueUrl(queueName)
+					.maxNumberOfMessages(1).waitTimeSeconds(10).build()).join();
 
 			assertThat(response.messages()).hasSize(1);
 			assertThat(response.messages().get(0).body()).isEqualTo(messageBody);
@@ -120,7 +117,7 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 	}
 
 	@Test
-	void shouldReceiveMessageWithConsumer() throws InterruptedException {
+	void shouldReceiveMessageWithConsumer() {
 		String queueName = createUniqueQueueName();
 		createQueue(this.asyncClient, queueName).join();
 
@@ -130,10 +127,9 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 					.sendMessage(SendMessageRequest.builder().queueUrl(queueName).messageBody(messageBody).build())
 					.join();
 
-			Thread.sleep(200);
-
 			ReceiveMessageResponse response = adapter
-					.receiveMessage(builder -> builder.queueUrl(queueName).maxNumberOfMessages(1)).join();
+					.receiveMessage(builder -> builder.queueUrl(queueName).maxNumberOfMessages(1).waitTimeSeconds(10))
+					.join();
 
 			assertThat(response.messages()).hasSize(1);
 			assertThat(response.messages().get(0).body()).isEqualTo(messageBody);
@@ -151,9 +147,8 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 					.sendMessage(SendMessageRequest.builder().queueUrl(queueName).messageBody(messageBody).build())
 					.join();
 
-			ReceiveMessageResponse received = this.asyncClient
-					.receiveMessage(ReceiveMessageRequest.builder().queueUrl(queueName).maxNumberOfMessages(1).build())
-					.join();
+			ReceiveMessageResponse received = this.asyncClient.receiveMessage(ReceiveMessageRequest.builder()
+					.queueUrl(queueName).maxNumberOfMessages(1).waitTimeSeconds(10).build()).join();
 
 			assertThat(received.messages()).hasSize(1);
 			String receiptHandle = received.messages().get(0).receiptHandle();
@@ -183,9 +178,8 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 					.sendMessage(SendMessageRequest.builder().queueUrl(queueName).messageBody(messageBody).build())
 					.join();
 
-			ReceiveMessageResponse received = this.asyncClient
-					.receiveMessage(ReceiveMessageRequest.builder().queueUrl(queueName).maxNumberOfMessages(1).build())
-					.join();
+			ReceiveMessageResponse received = this.asyncClient.receiveMessage(ReceiveMessageRequest.builder()
+					.queueUrl(queueName).maxNumberOfMessages(1).waitTimeSeconds(10).build()).join();
 
 			String receiptHandle = received.messages().get(0).receiptHandle();
 
@@ -208,7 +202,8 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 					.join();
 
 			ReceiveMessageResponse received = this.asyncClient.receiveMessage(ReceiveMessageRequest.builder()
-					.queueUrl(queueName).maxNumberOfMessages(1).visibilityTimeout(5).build()).join();
+					.queueUrl(queueName).maxNumberOfMessages(1).visibilityTimeout(5).waitTimeSeconds(10).build())
+					.join();
 
 			String receiptHandle = received.messages().get(0).receiptHandle();
 
@@ -231,7 +226,8 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 					.join();
 
 			ReceiveMessageResponse received = this.asyncClient.receiveMessage(ReceiveMessageRequest.builder()
-					.queueUrl(queueName).maxNumberOfMessages(1).visibilityTimeout(5).build()).join();
+					.queueUrl(queueName).maxNumberOfMessages(1).visibilityTimeout(5).waitTimeSeconds(10).build())
+					.join();
 
 			String receiptHandle = received.messages().get(0).receiptHandle();
 
@@ -245,7 +241,7 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 	}
 
 	@Test
-	void shouldHandleBatchingEfficiently() throws InterruptedException {
+	void shouldHandleBatchingEfficiently() {
 		String queueName = createUniqueQueueName();
 		createQueue(this.asyncClient, queueName).join();
 
@@ -266,11 +262,8 @@ public class BatchingSqsClientAdapterIntegrationTests extends BaseSqsIntegration
 				assertThat(future.join().messageId()).isNotNull();
 			}
 
-			Thread.sleep(200);
-
-			ReceiveMessageResponse received = this.asyncClient
-					.receiveMessage(ReceiveMessageRequest.builder().queueUrl(queueName).maxNumberOfMessages(10).build())
-					.join();
+			ReceiveMessageResponse received = this.asyncClient.receiveMessage(ReceiveMessageRequest.builder()
+					.queueUrl(queueName).maxNumberOfMessages(10).waitTimeSeconds(10).build()).join();
 
 			assertThat(received.messages()).hasSize(messageCount);
 		}
