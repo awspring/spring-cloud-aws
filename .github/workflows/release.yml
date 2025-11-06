@@ -2,7 +2,6 @@ name: Release
 
 on:
   push:
-    branches: [ 3.4.x-deploy ]
     tags:
       - v2.3.*
       - v2.4.*
@@ -40,7 +39,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Run tests
-        run: ./mvnw -V verify javadoc:aggregate -Pspring,docs-classic -DskipTests
+        run: ./mvnw -V verify javadoc:aggregate -Pspring,docs-classic
       - name: Deploy to Sonatype
         run: ./mvnw -V -Prelease,spring deploy -DskipTests
         env:
@@ -48,3 +47,11 @@ jobs:
           CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_KEY }}
+        run: |
+          aws s3 sync --acl public-read docs/target/generated-docs/ s3://awspring-docs/spring-cloud-aws/docs/
+          aws s3 sync --acl public-read target/site/ s3://awspring-docs/spring-cloud-aws/docs/
+          aws cloudfront create-invalidation --distribution-id EA7LER7CI960A --paths "/*"
