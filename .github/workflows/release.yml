@@ -33,9 +33,9 @@ jobs:
           distribution: temurin
           java-version: ${{ matrix.version }}
           cache: maven
-          server-id: ossrh-awspring
-          server-username: OSSRH_USERNAME
-          server-password: OSSRH_PASSWORD
+          server-id: central
+          server-username: CENTRAL_TOKEN_USERNAME
+          server-password: CENTRAL_TOKEN_PASSWORD
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
       - name: Run tests
@@ -43,7 +43,8 @@ jobs:
       - name: Deploy to Sonatype
         run: ./mvnw -V -Prelease,spring deploy -DskipTests
         env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
       - name: Upload to S3
