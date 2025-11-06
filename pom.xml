@@ -59,7 +59,7 @@
 		<module>spring-cloud-aws-test</module>
 		<module>spring-cloud-aws-modulith</module>
 		<module>docs</module>
-    </modules>
+	</modules>
 
 	<dependencyManagement>
 		<dependencies>
@@ -94,6 +94,15 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<groupId>org.sonatype.central</groupId>
+					<artifactId>central-publishing-maven-plugin</artifactId>
+					<version>0.9.0</version>
+					<extensions>true</extensions>
+					<configuration>
+						<publishingServerId>central</publishingServerId>
+					</configuration>
+				</plugin>
+				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<configuration>
 						<compilerArgs>
@@ -113,7 +122,7 @@
 					<version>${spotless.version}</version>
 					<configuration>
 						<java>
-							<importOrder />
+							<importOrder/>
 							<eclipse>
 								<file>${maven.multiModuleProjectDirectory}/eclipse-code-formatter.xml</file>
 							</eclipse>
@@ -159,6 +168,10 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
@@ -306,13 +319,6 @@
 			</build>
 		</profile>
 	</profiles>
-
-	<distributionManagement>
-		<repository>
-			<id>ossrh-awspring</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-	</distributionManagement>
 
 	<licenses>
 		<license>
