@@ -235,25 +235,7 @@
 		<profile>
 			<id>release</id>
 			<build>
-				<pluginManagement>
-					<plugins>
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-deploy-plugin</artifactId>
-							<configuration>
-								<skip>true</skip>
-							</configuration>
-						</plugin>
-					</plugins>
-				</pluginManagement>
 				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-deploy-plugin</artifactId>
-						<configuration>
-							<skip>true</skip>
-						</configuration>
-					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
@@ -347,21 +329,6 @@
 			</build>
 		</profile>
 	</profiles>
-
-	<distributionManagement>
-		<repository>
-			<id>dummy</id>
-			<url>file://${project.build.directory}/dummy-repo</url>
-		</repository>
-	</distributionManagement>
-
-
-	<!--	<distributionManagement>-->
-<!--		<repository>-->
-<!--			<id>ossrh-awspring</id>-->
-<!--			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>-->
-<!--		</repository>-->
-<!--	</distributionManagement>-->
 
 	<licenses>
 		<license>

@@ -2,11 +2,6 @@
 <settings>
 	<servers>
 		<server>
-			<id>repo.spring.io</id>
-			<username>${env.CI_DEPLOY_USERNAME}</username>
-			<password>${env.CI_DEPLOY_PASSWORD}</password>
-		</server>
-		<server>
 			<id>central</id>
 			<username>${env.CENTRAL_TOKEN_USERNAME}</username>
 			<password>${env.CENTRAL_TOKEN_PASSWORD}</password>
