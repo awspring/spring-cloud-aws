@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2022 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		this.observationRegistry = builder.observationRegistry;
 		this.observationConvention = builder.observationConvention;
 		Assert.isTrue(this.maxMessagesPerPoll <= this.maxConcurrentMessages, String.format(
-				"messagesPerPoll should be less than or equal to maxConcurrentMessages. Values provided: %s and %s respectively",
+				"maxMessagesPerPoll should be less than or equal to maxConcurrentMessages. Values provided: %s and %s respectively",
 				this.maxMessagesPerPoll, this.maxConcurrentMessages));
 	}
 
