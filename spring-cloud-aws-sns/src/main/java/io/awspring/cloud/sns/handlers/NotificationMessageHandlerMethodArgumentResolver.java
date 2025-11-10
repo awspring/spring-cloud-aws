@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sns.handlers;
 
+import io.awspring.cloud.core.support.JacksonPresent;
 import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -26,10 +27,9 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.*;
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.JsonNode;
 
@@ -47,7 +47,7 @@ public class NotificationMessageHandlerMethodArgumentResolver
 	private final List<HttpMessageConverter<?>> messageConverter;
 
 	public NotificationMessageHandlerMethodArgumentResolver() {
-		this(Arrays.asList(new JacksonJsonHttpMessageConverter(), new StringHttpMessageConverter()));
+		this(Arrays.asList(resolveJacksonJsonHttpMessageConverter(), new StringHttpMessageConverter()));
 	}
 
 	public NotificationMessageHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverter) {
@@ -128,6 +128,16 @@ public class NotificationMessageHandlerMethodArgumentResolver
 			return this.request.getHeaders();
 		}
 
+	}
+
+	private static HttpMessageConverter<?> resolveJacksonJsonHttpMessageConverter() {
+		if (JacksonPresent.isJackson3Present()) {
+			return new JacksonJsonHttpMessageConverter();
+		} else if (JacksonPresent.isJackson2Present()) {
+			return new MappingJackson2HttpMessageConverter();
+		} else {
+			throw new IllegalStateException("NotificationMessageHandlerMethodArgumentResolver requires a Jackson 2 or Jackson 3 library on the classpath");
+		}
 	}
 
 }
