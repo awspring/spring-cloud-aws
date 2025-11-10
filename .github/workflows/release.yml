@@ -2,6 +2,7 @@ name: Release
 
 on:
   push:
+    branches: [ maven-central-publishing ]
     tags:
       - v2.3.*
       - v2.4.*
