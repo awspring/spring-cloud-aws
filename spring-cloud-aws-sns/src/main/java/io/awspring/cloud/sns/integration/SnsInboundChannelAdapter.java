@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sns.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.awspring.cloud.sns.core.SnsHeaders;
 import io.awspring.cloud.sns.handlers.NotificationStatus;
 import io.awspring.cloud.sns.handlers.NotificationStatusHandlerMethodArgumentResolver;
@@ -31,6 +30,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.integration.expression.ValueExpression;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.inbound.RequestMapping;
@@ -40,6 +40,7 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.web.multipart.MultipartResolver;
 import software.amazon.awssdk.services.sns.SnsClient;
+import tools.jackson.databind.JsonNode;
 
 /**
  * The {@link HttpRequestHandlingMessagingGateway} extension for the Amazon WS SNS HTTP(S) endpoints. Accepts all
@@ -72,7 +73,7 @@ public class SnsInboundChannelAdapter extends HttpRequestHandlingMessagingGatewa
 
 	private final NotificationStatusResolver notificationStatusResolver;
 
-	private final org.springframework.http.converter.json.MappingJackson2HttpMessageConverter jackson2HttpMessageConverter = new org.springframework.http.converter.json.MappingJackson2HttpMessageConverter();
+	private final JacksonJsonHttpMessageConverter jackson2HttpMessageConverter = new JacksonJsonHttpMessageConverter();
 
 	private final String[] path;
 
@@ -140,7 +141,7 @@ public class SnsInboundChannelAdapter extends HttpRequestHandlingMessagingGatewa
 
 		String type = payload.get("Type");
 		if ("SubscriptionConfirmation".equals(type) || "UnsubscribeConfirmation".equals(type)) {
-			JsonNode content = this.jackson2HttpMessageConverter.getObjectMapper().valueToTree(payload);
+			JsonNode content = this.jackson2HttpMessageConverter.getMapper().valueToTree(payload);
 			NotificationStatus notificationStatus = this.notificationStatusResolver.resolveNotificationStatus(content);
 			if (this.handleNotificationStatus) {
 				messageToSendBuilder.setHeader(SnsHeaders.NOTIFICATION_STATUS_HEADER, notificationStatus);

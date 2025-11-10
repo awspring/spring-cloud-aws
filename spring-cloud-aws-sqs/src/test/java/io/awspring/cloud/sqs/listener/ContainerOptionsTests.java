@@ -151,10 +151,8 @@ class ContainerOptionsTests {
 	@ValueSource(ints = { 4, 5 })
 	void shouldAcceptValidMaxMessagesPerPoll(final int maxMessagesPerPoll) {
 
-		final SqsContainerOptions options = SqsContainerOptions.builder()
-			.maxMessagesPerPoll(maxMessagesPerPoll)
-			.maxConcurrentMessages(5)
-			.build();
+		final SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(maxMessagesPerPoll)
+				.maxConcurrentMessages(5).build();
 
 		assertThat(options.getMaxMessagesPerPoll()).isEqualTo(maxMessagesPerPoll);
 		assertThat(options.getMaxConcurrentMessages()).isEqualTo(5);
@@ -167,8 +165,8 @@ class ContainerOptionsTests {
 				() -> SqsContainerOptions.builder().maxMessagesPerPoll(6).maxConcurrentMessages(5).build());
 
 		assertThat(exception).isInstanceOf(IllegalArgumentException.class)
-			.hasMessage("maxMessagesPerPoll should be less than or equal to maxConcurrentMessages. "
-					+ "Values provided: 6 and 5 respectively");
+				.hasMessage("maxMessagesPerPoll should be less than or equal to maxConcurrentMessages. "
+						+ "Values provided: 6 and 5 respectively");
 	}
 
 	private SqsContainerOptions createConfiguredOptions() {

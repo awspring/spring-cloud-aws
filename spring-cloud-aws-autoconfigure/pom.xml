@@ -31,7 +31,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-metrics</artifactId>
+			<artifactId>spring-boot-micrometer-metrics</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -168,7 +168,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-aop</artifactId>
+			<artifactId>spring-boot-starter-aspectj</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>

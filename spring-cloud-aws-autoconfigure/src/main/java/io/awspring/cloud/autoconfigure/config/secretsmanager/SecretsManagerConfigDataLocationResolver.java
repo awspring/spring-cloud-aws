@@ -23,7 +23,7 @@ import io.awspring.cloud.autoconfigure.core.RegionProperties;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.logging.Log;
-import org.springframework.boot.BootstrapContext;
+import org.springframework.boot.bootstrap.BootstrapContext;
 import org.springframework.boot.context.config.*;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;

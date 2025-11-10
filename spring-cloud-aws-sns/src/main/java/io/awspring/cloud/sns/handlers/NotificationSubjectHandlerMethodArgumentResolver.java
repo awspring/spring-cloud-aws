@@ -15,11 +15,11 @@
  */
 package io.awspring.cloud.sns.handlers;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.awspring.cloud.sns.annotation.handlers.NotificationSubject;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.util.ClassUtils;
+import tools.jackson.databind.JsonNode;
 
 /**
  *
@@ -39,11 +39,11 @@ public class NotificationSubjectHandlerMethodArgumentResolver
 	@Override
 	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request,
 			Class<?> parameterType) {
-		if (!"Notification".equals(content.get("Type").asText())) {
+		if (!"Notification".equals(content.get("Type").asString())) {
 			throw new IllegalArgumentException(
 					"@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");
 		}
-		return content.findPath("Subject").asText();
+		return content.findPath("Subject").asString();
 	}
 
 }

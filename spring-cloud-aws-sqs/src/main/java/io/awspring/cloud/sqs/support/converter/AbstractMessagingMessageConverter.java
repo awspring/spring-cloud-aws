@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.ArrayList;
@@ -29,21 +28,21 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Base {@link MessagingMessageConverter} implementation.
  *
  * @author Tomaz Fernandes
  * @author Dongha Kim
- *
- * @since 3.0
  * @see SqsHeaderMapper
  * @see SqsMessageConversionContext
+ * @since 3.0
  */
 public abstract class AbstractMessagingMessageConverter<S> implements ContextAwareMessagingMessageConverter<S> {
 
@@ -60,8 +59,8 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	private Function<Message<?>, String> payloadTypeHeaderFunction = message -> message.getPayload().getClass()
 			.getName();
 
-	protected AbstractMessagingMessageConverter() {
-		this.payloadMessageConverter = createDefaultCompositeMessageConverter();
+	protected AbstractMessagingMessageConverter(JsonMapper jsonMapper) {
+		this.payloadMessageConverter = createDefaultCompositeMessageConverter(jsonMapper);
 		this.headerMapper = createDefaultHeaderMapper();
 		this.payloadTypeMapper = this::defaultHeaderTypeMapping;
 	}
@@ -71,6 +70,7 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	 * {@link Class} returned by this function. The {@link #defaultHeaderTypeMapping} uses the {@link #typeHeader}
 	 * property to retrieve the payload class' FQCN. This method replaces the default type mapping for this converter
 	 * instance.
+	 *
 	 * @param payloadTypeMapper the type mapping function.
 	 */
 	public void setPayloadTypeMapper(Function<Message<?>, Class<?>> payloadTypeMapper) {
@@ -78,8 +78,27 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 		this.payloadTypeMapper = payloadTypeMapper;
 	}
 
+	private Optional<JacksonJsonMessageConverter> getMappingJackson2MessageConverter() {
+		return this.payloadMessageConverter instanceof CompositeMessageConverter compositeConverter
+				? compositeConverter.getConverters().stream()
+						.filter(converter -> converter instanceof JacksonJsonMessageConverter)
+						.map(JacksonJsonMessageConverter.class::cast).findFirst()
+				: this.payloadMessageConverter instanceof JacksonJsonMessageConverter converter ? Optional.of(converter)
+						: Optional.empty();
+	}
+
+	/**
+	 * Get the {@link MessageConverter} to be used for converting the {@link Message} instances payloads.
+	 *
+	 * @return the instance.
+	 */
+	public MessageConverter getPayloadMessageConverter() {
+		return this.payloadMessageConverter;
+	}
+
 	/**
 	 * Set the {@link MessageConverter} to be used for converting the {@link Message} instances payloads.
+	 *
 	 * @param messageConverter the converter instance.
 	 */
 	public void setPayloadMessageConverter(MessageConverter messageConverter) {
@@ -88,39 +107,9 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	}
 
 	/**
-	 * Set the {@link ObjectMapper} instance to be used for converting the {@link Message} instances payloads.
-	 * @param objectMapper the object mapper instance.
-	 */
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "messageConverter cannot be null");
-		MappingJackson2MessageConverter converter = getMappingJackson2MessageConverter().orElseThrow(
-				() -> new IllegalStateException("%s can only be set in %s instances, or %s containing one.".formatted(
-						ObjectMapper.class.getSimpleName(), MappingJackson2MessageConverter.class.getSimpleName(),
-						CompositeMessageConverter.class.getSimpleName())));
-		converter.setObjectMapper(objectMapper);
-	}
-
-	private Optional<MappingJackson2MessageConverter> getMappingJackson2MessageConverter() {
-		return this.payloadMessageConverter instanceof CompositeMessageConverter compositeConverter
-				? compositeConverter.getConverters().stream()
-						.filter(converter -> converter instanceof MappingJackson2MessageConverter)
-						.map(MappingJackson2MessageConverter.class::cast).findFirst()
-				: this.payloadMessageConverter instanceof MappingJackson2MessageConverter converter
-						? Optional.of(converter)
-						: Optional.empty();
-	}
-
-	/**
-	 * Get the {@link MessageConverter} to be used for converting the {@link Message} instances payloads.
-	 * @return the instance.
-	 */
-	public MessageConverter getPayloadMessageConverter() {
-		return this.payloadMessageConverter;
-	}
-
-	/**
 	 * Set the name of the header to be looked up in a {@link Message} instance by the
 	 * {@link #defaultHeaderTypeMapping(Message)}.
+	 *
 	 * @param typeHeader the header name.
 	 */
 	public void setPayloadTypeHeader(String typeHeader) {
@@ -130,6 +119,7 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	/**
 	 * Set the function to create the payload type header value from.
+	 *
 	 * @param payloadTypeHeaderFunction the function.
 	 */
 	public void setPayloadTypeHeaderValueFunction(Function<Message<?>, String> payloadTypeHeaderFunction) {
@@ -140,6 +130,7 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	/**
 	 * Set the {@link HeaderMapper} to used to convert headers for
 	 * {@link software.amazon.awssdk.services.sqs.model.Message} instances.
+	 *
 	 * @param headerMapper the header mapper instance.
 	 */
 	public void setHeaderMapper(HeaderMapper<S> headerMapper) {
@@ -237,11 +228,11 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	protected abstract S doConvertMessage(S messageWithHeaders, Object payload);
 
-	private CompositeMessageConverter createDefaultCompositeMessageConverter() {
+	private CompositeMessageConverter createDefaultCompositeMessageConverter(JsonMapper jsonMapper) {
 		List<MessageConverter> messageConverters = new ArrayList<>();
 		messageConverters.add(createClassMatchingMessageConverter());
 		messageConverters.add(createStringMessageConverter());
-		messageConverters.add(createDefaultMappingJackson2MessageConverter());
+		messageConverters.add(createDefaultMappingJackson2MessageConverter(jsonMapper));
 		return new CompositeMessageConverter(messageConverters);
 	}
 
@@ -257,8 +248,14 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 		return stringMessageConverter;
 	}
 
-	private MappingJackson2MessageConverter createDefaultMappingJackson2MessageConverter() {
-		MappingJackson2MessageConverter messageConverter = new MappingJackson2MessageConverter();
+	private JacksonJsonMessageConverter createDefaultMappingJackson2MessageConverter(JsonMapper jsonMapper) {
+		JacksonJsonMessageConverter messageConverter;
+		if (jsonMapper != null) {
+			messageConverter = new JacksonJsonMessageConverter(jsonMapper);
+		}
+		else {
+			messageConverter = new JacksonJsonMessageConverter();
+		}
 		messageConverter.setSerializedPayloadClass(String.class);
 		messageConverter.setStrictContentTypeMatch(false);
 		return messageConverter;

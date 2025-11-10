@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.support.converter;
 
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link MessagingMessageConverter} implementation for converting SQS
@@ -30,6 +31,14 @@ import org.springframework.util.Assert;
  */
 public class SqsMessagingMessageConverter
 		extends AbstractMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
+
+	public SqsMessagingMessageConverter() {
+		this(null);
+	}
+
+	public SqsMessagingMessageConverter(JsonMapper jsonMapper) {
+		super(jsonMapper);
+	}
 
 	@Override
 	protected HeaderMapper<software.amazon.awssdk.services.sqs.model.Message> createDefaultHeaderMapper() {

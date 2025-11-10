@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +30,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.GenericMessage;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests for {@link SnsNotificationConverter}.
@@ -47,12 +47,12 @@ class SnsNotificationConverterTest {
 	@Mock
 	private MethodParameter methodParameter;
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private final JsonMapper jsonMapper = new JsonMapper();
 
 	@BeforeEach
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
-		converter = new SnsNotificationConverter(payloadConverter, objectMapper);
+		converter = new SnsNotificationConverter(payloadConverter, jsonMapper);
 	}
 
 	@Test

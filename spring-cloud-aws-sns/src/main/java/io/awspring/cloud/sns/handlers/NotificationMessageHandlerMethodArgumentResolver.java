@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sns.handlers;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -30,8 +29,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.util.StringUtils;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Handles conversion of SNS notification value to a variable that is annotated with {@link NotificationMessage}.
@@ -47,7 +47,7 @@ public class NotificationMessageHandlerMethodArgumentResolver
 	private final List<HttpMessageConverter<?>> messageConverter;
 
 	public NotificationMessageHandlerMethodArgumentResolver() {
-		this(Arrays.asList(new MappingJackson2HttpMessageConverter(), new StringHttpMessageConverter()));
+		this(Arrays.asList(new JacksonJsonHttpMessageConverter(), new StringHttpMessageConverter()));
 	}
 
 	public NotificationMessageHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverter) {
@@ -57,7 +57,7 @@ public class NotificationMessageHandlerMethodArgumentResolver
 	private static MediaType getMediaType(JsonNode content) {
 		JsonNode contentTypeNode = content.findPath("MessageAttributes").findPath("contentType");
 		if (contentTypeNode.isObject()) {
-			String contentType = contentTypeNode.findPath("Value").asText();
+			String contentType = contentTypeNode.findPath("Value").asString();
 			if (StringUtils.hasText(contentType)) {
 				return MediaType.parseMediaType(contentType);
 			}

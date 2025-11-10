@@ -24,7 +24,6 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.MessageListenerContainerFactory;
@@ -45,7 +44,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.expression.StandardBeanExpressionResolver;
 import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
@@ -53,6 +52,7 @@ import org.springframework.messaging.handler.annotation.support.PayloadMethodArg
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.StringValueResolver;
 import org.springframework.validation.Validator;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests for {@link SqsListenerAnnotationBeanPostProcessor}.
@@ -65,7 +65,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 	@Test
 	void shouldCustomizeRegistrar() {
 		ListableBeanFactory beanFactory = mock(ListableBeanFactory.class);
-		ObjectMapper objectMapper = new ObjectMapper();
+		JsonMapper jsonMapper = new JsonMapper();
 		MessageHandlerMethodFactory methodFactory = new DefaultMessageHandlerMethodFactory();
 		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry() {
 			@Override
@@ -81,7 +81,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 			registrar.setDefaultListenerContainerFactoryBeanName(factoryName);
 			registrar.setListenerContainerRegistry(registry);
 			registrar.setMessageHandlerMethodFactory(methodFactory);
-			registrar.setObjectMapper(objectMapper);
+			registrar.setJsonMapper(jsonMapper);
 			registrar.manageMessageConverters(converters -> converters.add(converter));
 			registrar.manageMethodArgumentResolvers(resolvers -> resolvers.add(resolver));
 			registrar.setValidator(validator);
@@ -128,8 +128,8 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 					assertThat(thisResolver).extracting("converter").asInstanceOf(type(CompositeMessageConverter.class))
 							.extracting(CompositeMessageConverter::getConverters)
 							.asInstanceOf(list(MessageConverter.class)).contains(converter)
-							.filteredOn(thisConverter -> thisConverter instanceof MappingJackson2MessageConverter)
-							.element(0).extracting("objectMapper").isEqualTo(objectMapper);
+							.filteredOn(thisConverter -> thisConverter instanceof JacksonJsonMessageConverter)
+							.element(0).extracting("jsonMapper").isEqualTo(jsonMapper);
 				});
 	}
 

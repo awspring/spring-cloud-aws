@@ -18,7 +18,6 @@ package io.awspring.cloud.autoconfigure.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsPresigner;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
@@ -54,6 +53,7 @@ import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.encryption.s3.S3EncryptionClient;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests for {@link S3AutoConfiguration}.
@@ -237,7 +237,7 @@ class S3AutoConfigurationTests {
 
 		@Test
 		void withoutJacksonOnClasspathDoesNotConfigureObjectConverter() {
-			contextRunner.withClassLoader(new FilteredClassLoader(ObjectMapper.class, S3EncryptionClient.class))
+			contextRunner.withClassLoader(new FilteredClassLoader(JsonMapper.class, S3EncryptionClient.class))
 					.run(context -> {
 						assertThat(context).doesNotHaveBean(S3ObjectConverter.class);
 						assertThat(context).doesNotHaveBean(S3Template.class);
@@ -248,8 +248,7 @@ class S3AutoConfigurationTests {
 		void usesCustomObjectMapperBean() {
 			contextRunner.withUserConfiguration(CustomJacksonConfiguration.class).run(context -> {
 				S3ObjectConverter s3ObjectConverter = context.getBean(S3ObjectConverter.class);
-				assertThat(s3ObjectConverter).extracting("objectMapper")
-						.isEqualTo(context.getBean("customObjectMapper"));
+				assertThat(s3ObjectConverter).extracting("jsonMapper").isEqualTo(context.getBean("customJsonMapper"));
 			});
 		}
 
@@ -347,8 +346,8 @@ class S3AutoConfigurationTests {
 	@Configuration(proxyBeanMethods = false)
 	static class CustomJacksonConfiguration {
 		@Bean
-		ObjectMapper customObjectMapper() {
-			return new ObjectMapper();
+		JsonMapper customJsonMapper() {
+			return new JsonMapper();
 		}
 	}
 

@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import software.amazon.awssdk.services.sns.SnsClient;
@@ -52,7 +52,7 @@ class SnsTemplateTest {
 
 	@BeforeEach
 	void init() {
-		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+		JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter();
 		converter.setSerializedPayloadClass(String.class);
 		snsTemplate = new SnsTemplate(snsClient, new DefaultTopicArnResolver(snsClient), converter);
 

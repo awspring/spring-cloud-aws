@@ -17,7 +17,6 @@ package io.awspring.cloud.sqs.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SnsNotificationMessage;
 import io.awspring.cloud.sqs.annotation.SnsNotificationSubject;
 import io.awspring.cloud.sqs.annotation.SqsListener;
@@ -53,6 +52,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration tests for SQS message conversion.
@@ -417,13 +417,13 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		}
 
 		@Bean
-		ObjectMapper objectMapper() {
-			return new ObjectMapper();
+		JsonMapper jsonMapper() {
+			return new JsonMapper();
 		}
 
 		@Bean
-		SqsListenerConfigurer customizer(ObjectMapper objectMapper) {
-			return registrar -> registrar.setObjectMapper(objectMapper);
+		SqsListenerConfigurer customizer(JsonMapper jsonMapper) {
+			return registrar -> registrar.setJsonMapper(jsonMapper);
 		}
 
 		@Bean

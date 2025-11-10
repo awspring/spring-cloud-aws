@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.autoconfigure.s3;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -49,6 +48,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.encryption.s3.S3EncryptionClient;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link AutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
@@ -188,13 +188,13 @@ public class S3AutoConfiguration {
 	}
 
 	@Configuration
-	@ConditionalOnClass(ObjectMapper.class)
+	@ConditionalOnClass(JsonMapper.class)
 	static class Jackson2JsonS3ObjectConverterConfiguration {
 
 		@ConditionalOnMissingBean
 		@Bean
-		S3ObjectConverter s3ObjectConverter(Optional<ObjectMapper> objectMapper) {
-			return new Jackson2JsonS3ObjectConverter(objectMapper.orElseGet(ObjectMapper::new));
+		S3ObjectConverter s3ObjectConverter(Optional<JsonMapper> jsonMapper) {
+			return new Jackson2JsonS3ObjectConverter(jsonMapper.orElseGet(JsonMapper::new));
 		}
 	}
 

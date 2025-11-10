@@ -78,11 +78,10 @@ public class S3CrtAsyncClientAutoConfiguration {
 		if (this.properties.getCrt() != null) {
 			S3CrtClientProperties crt = this.properties.getCrt();
 			PropertyMapper propertyMapper = PropertyMapper.get();
-			propertyMapper.from(crt::getMaxConcurrency).whenNonNull().to(builder::maxConcurrency);
-			propertyMapper.from(crt::getTargetThroughputInGbps).whenNonNull().to(builder::targetThroughputInGbps);
-			propertyMapper.from(crt::getMinimumPartSizeInBytes).whenNonNull().to(builder::minimumPartSizeInBytes);
-			propertyMapper.from(crt::getInitialReadBufferSizeInBytes).whenNonNull()
-					.to(builder::initialReadBufferSizeInBytes);
+			propertyMapper.from(crt::getMaxConcurrency).to(builder::maxConcurrency);
+			propertyMapper.from(crt::getTargetThroughputInGbps).to(builder::targetThroughputInGbps);
+			propertyMapper.from(crt::getMinimumPartSizeInBytes).to(builder::minimumPartSizeInBytes);
+			propertyMapper.from(crt::getInitialReadBufferSizeInBytes).to(builder::initialReadBufferSizeInBytes);
 		}
 
 		return builder.build();

@@ -15,11 +15,10 @@
  */
 package io.awspring.cloud.sns.handlers;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -27,6 +26,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import tools.jackson.databind.JsonNode;
 
 /**
  * @author Agim Emruli
@@ -37,7 +37,7 @@ public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver
 
 	private static final String NOTIFICATION_REQUEST_ATTRIBUTE_NAME = "NOTIFICATION_REQUEST";
 
-	private final MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
+	private final JacksonJsonHttpMessageConverter messageConverter = new JacksonJsonHttpMessageConverter();
 
 	@Override
 	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
