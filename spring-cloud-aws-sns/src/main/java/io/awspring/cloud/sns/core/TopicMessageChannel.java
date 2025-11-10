@@ -37,7 +37,6 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
-import tools.jackson.core.io.JsonStringEncoder;
 
 /**
  * Implementation of {@link AbstractMessageChannel} which is used for converting and sending messages via
@@ -50,7 +49,7 @@ import tools.jackson.core.io.JsonStringEncoder;
  */
 public class TopicMessageChannel extends AbstractMessageChannel {
 
-	private static final JsonStringEncoder jsonStringEncoder = JsonStringEncoder.getInstance();
+	private static final JsonStringEncoder jsonStringEncoder = JsonStringEncoder.create();
 
 	private final SnsClient snsClient;
 
@@ -136,7 +135,7 @@ public class TopicMessageChannel extends AbstractMessageChannel {
 	private <T> MessageAttributeValue getStringArrayMessageAttribute(List<T> messageHeaderValue) {
 		String stringValue = messageHeaderValue.stream().map(item -> {
 			StringBuilder sb = new StringBuilder();
-			JsonStringEncoder.getInstance().quoteAsString(item.toString(), sb);
+			jsonStringEncoder.quoteAsString(item.toString(), sb);
 			return "\"" + sb + "\"";
 		}).collect(Collectors.joining(", ", "[", "]"));
 

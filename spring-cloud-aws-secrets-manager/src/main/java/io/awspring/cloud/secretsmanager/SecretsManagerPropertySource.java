@@ -19,6 +19,8 @@ import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
+import io.awspring.cloud.core.support.JacksonPresent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
@@ -27,9 +29,6 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Retrieves secret value under the given context / path from the AWS Secrets Manager using the provided Secrets Manager
@@ -47,7 +46,7 @@ public class SecretsManagerPropertySource
 	private static Log LOG = LogFactory.getLog(SecretsManagerPropertySource.class);
 	private static final String PREFIX_PART = "?prefix=";
 
-	private final JsonMapper jsonMapper = new JsonMapper();
+	private final SecretValueReader secretValueReader;
 
 	/**
 	 * Full secret path containing both secret id and prefix.
@@ -74,6 +73,14 @@ public class SecretsManagerPropertySource
 		this.context = context;
 		this.secretId = resolveSecretId(context);
 		this.prefix = resolvePrefix(context);
+
+		if (JacksonPresent.isJackson3Present()) {
+			this.secretValueReader = new JacksonSecretValueReader();
+		} else if (JacksonPresent.isJackson2Present()) {
+			this.secretValueReader = new Jackson2SecretValueReader();
+		} else {
+			throw new IllegalStateException("SecretsManagerPropertySource requires a Jackson 2 or Jackson 3 library on the classpath");
+		}
 	}
 
 	/**
@@ -101,9 +108,7 @@ public class SecretsManagerPropertySource
 		GetSecretValueResponse secretValueResponse = source.getSecretValue(secretValueRequest);
 		if (secretValueResponse.secretString() != null) {
 			try {
-				Map<String, Object> secretMap = jsonMapper.readValue(secretValueResponse.secretString(),
-						new TypeReference<>() {
-						});
+				Map<String, Object> secretMap = secretValueReader.readSecretValue(secretValueResponse.secretString());
 
 				for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
 					LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
@@ -111,7 +116,7 @@ public class SecretsManagerPropertySource
 					properties.put(propertyKey, secretEntry.getValue());
 				}
 			}
-			catch (JacksonException e) {
+			catch (SecretParseException e) {
 				// If the secret is not a JSON string, then it is a simple "plain text" string
 				String[] parts = secretValueResponse.name().split("/");
 				String secretName = parts[parts.length - 1];
