@@ -148,8 +148,40 @@ MessageHandler kplMessageHandler(KinesisProducer kinesisProducer, Schema schema)
 }
 ----
 
+The `KclMessageDrivenChannelAdapter` is a `MessageProducerSupport` implementation to perform record consumption from the Kinesis stream(s) using https://docs.aws.amazon.com/streams/latest/dev/kcl.html[Kinesis Client Library (KCL)].
+The configuration and behavior are similar to the `KinesisMessageDrivenChannelAdapter` described above.
+This class also exposes a handful of options to configure an internal `Scheduler` instance from KCL where the real work is delegated to.
+Therefore, a `CloudWatchAsyncClient` and `DynamoDbAsyncClient` can also be injected into the `KclMessageDrivenChannelAdapter`.
+They are used by the KCL for checkpointing and `Kinesis` consumers coordination.
+By default, this channel adapter relies on the https://docs.aws.amazon.com/streams/latest/dev/building-enhanced-consumers-api.html[fan-out] retrieval strategy.
+
+The configuration of the `KclMessageDrivenChannelAdapter` is like following:
+
+[source,java]
+----
+@Bean
+public KclMessageDrivenChannelAdapter kclMessageDrivenChannelAdapter(KinesisAsyncClient kinesisClient,
+          CloudWatchAsyncClient cloudWatchClient, DynamoDbAsyncClient dynamoDBClient,
+          PollableChannel kinesisReceiveChannel) {
+
+    KclMessageDrivenChannelAdapter adapter = new KclMessageDrivenChannelAdapter(kinesisClient, cloudWatchClient,
+            dynamoDBClient, "stream1", "stream2");
+    adapter.setOutputChannel(kinesisReceiveChannel);
+    adapter.setStreamInitialSequence(InitialPositionInStreamExtended.newInitialPosition(InitialPositionInStream.TRIM_HORIZON));
+    adapter.setConverter(String::new);
+    adapter.setConsumerGroup("multi_stream_group");
+    adapter.setMetricsLevel(MetricsLevel.NONE);
+    adapter.setLeaseManagementConfigCustomizer(leaseManagementConfig ->
+            leaseManagementConfig.workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
+    return adapter;
+}
+----
+
+NOTE: Unlike `KinesisMessageDrivenChannelAdapter`, the `KclMessageDrivenChannelAdapter` does not support explicit shard assignments.
+
 === Spring Integration Starters
 
 The Spring Integration dependency in the `spring-cloud-aws-kinesis` module is `optional` to avoid unnecessary artifacts on classpath when Spring Integration is not used.
 For convenience, a dedicated `spring-cloud-aws-starter-integration-kinesis` is provided managing all the required dependencies for Spring Integration support with a classical Amazon Kinesis client.
 The `spring-cloud-aws-starter-integration-kinesis-producer` artifact is dedicated for dependencies related to the Kinesis Producer Library.
+The `spring-cloud-aws-starter-integration-kinesis-client` artifact is dedicated for dependencies related to the Kinesis Client Library.

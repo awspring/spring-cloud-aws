@@ -128,6 +128,11 @@
 				<artifactId>spring-cloud-aws-starter-integration-kinesis-producer</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-integration-kinesis-client</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
