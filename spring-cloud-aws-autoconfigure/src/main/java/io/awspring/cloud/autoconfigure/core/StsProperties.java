@@ -53,6 +53,11 @@ public class StsProperties {
 	@Nullable
 	private String roleSessionName;
 
+	/**
+	 * Enables autoconfiguration for {@link software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider}
+	 */
+	private Boolean enableStsWebIdentityCredentialsProvider = true;
+
 	public boolean isAsyncCredentialsUpdate() {
 		return asyncCredentialsUpdate;
 	}
@@ -86,5 +91,13 @@ public class StsProperties {
 
 	public void setRoleSessionName(@Nullable String roleSessionName) {
 		this.roleSessionName = roleSessionName;
+	}
+
+	public Boolean getEnableStsWebIdentityCredentialsProvider() {
+		return enableStsWebIdentityCredentialsProvider;
+	}
+
+	public void setEnableStsWebIdentityCredentialsProvider(Boolean enableStsWebIdentityCredentialsProvider) {
+		this.enableStsWebIdentityCredentialsProvider = enableStsWebIdentityCredentialsProvider;
 	}
 }

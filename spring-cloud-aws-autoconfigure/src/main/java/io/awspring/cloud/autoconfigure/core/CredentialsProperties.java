@@ -63,7 +63,7 @@ public class CredentialsProperties {
 	 */
 	@NestedConfigurationProperty
 	@Nullable
-	private StsProperties sts;
+	private StsProperties sts = new StsProperties();
 
 	@Nullable
 	public String getAccessKey() {
@@ -100,7 +100,7 @@ public class CredentialsProperties {
 		this.profile = profile;
 	}
 
-	@Nullable
+
 	public StsProperties getSts() {
 		return sts;
 	}

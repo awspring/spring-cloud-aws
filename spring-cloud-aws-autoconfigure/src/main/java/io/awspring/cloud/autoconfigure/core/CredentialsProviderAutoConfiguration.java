@@ -103,7 +103,7 @@ public class CredentialsProviderAutoConfiguration {
 		}
 
 		StsProperties sts = properties.getSts();
-		if (ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)) {
+		if (ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null) && sts.getEnableStsWebIdentityCredentialsProvider()) {
 			try {
 				providers.add(StsCredentialsProviderFactory.create(sts, regionProvider));
 			}
