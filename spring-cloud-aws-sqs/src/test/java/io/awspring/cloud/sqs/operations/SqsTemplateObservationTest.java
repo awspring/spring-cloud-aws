@@ -87,7 +87,7 @@ class SqsTemplateObservationTest {
 		// given
 		SqsTemplateObservation.Convention customConvention = mock(SqsTemplateObservation.Convention.class);
 		given(customConvention.supportsContext(any())).willReturn(true);
-
+		given(customConvention.getName()).willReturn("sqs.template");
 		String lowCardinalityCustomKeyName = "custom.lowCardinality.key";
 		String lowCardinalityCustomValue = "custom-lowCardinality-value";
 		String highCardinalityCustomKeyName = "custom.highCardinality.key";

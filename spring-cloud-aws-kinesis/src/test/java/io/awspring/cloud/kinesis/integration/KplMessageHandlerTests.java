@@ -19,9 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import com.amazonaws.services.schemaregistry.common.Schema;
 import org.junit.jupiter.api.AfterEach;
@@ -31,6 +29,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.retry.RetryPolicy;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.handler.advice.RequestHandlerRetryAdvice;
@@ -39,17 +38,15 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHandlingException;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.util.backoff.ExponentialBackOff;
 import software.amazon.kinesis.producer.KinesisProducer;
 import software.amazon.kinesis.producer.UserRecord;
 
 /**
- *
  * @author Siddharth Jain
  * @author Artem Bilan
- *
  * @since 4.0
  */
 @SpringJUnitConfig
@@ -143,8 +140,13 @@ public class KplMessageHandlerTests {
 		@Bean
 		public RequestHandlerRetryAdvice retryAdvice() {
 			RequestHandlerRetryAdvice requestHandlerRetryAdvice = new RequestHandlerRetryAdvice();
-			requestHandlerRetryAdvice.setRetryTemplate(RetryTemplate.builder().retryOn(KplBackpressureException.class)
-					.exponentialBackoff(100, 2.0, 1000).maxAttempts(3).build());
+			ExponentialBackOff backOff = new ExponentialBackOff();
+			backOff.setInitialInterval(100);
+			backOff.setMultiplier(2.0);
+			backOff.setMaxAttempts(3);
+			backOff.setMaxInterval(1000);
+			requestHandlerRetryAdvice.setRetryPolicy(RetryPolicy.builder()
+					.predicate(t -> t instanceof KplBackpressureException).backOff(backOff).build());
 			return requestHandlerRetryAdvice;
 		}
 
