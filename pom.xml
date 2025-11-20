@@ -47,6 +47,7 @@
 		<module>spring-cloud-aws-kinesis</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis-producer</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis-client</module>
 		<module>spring-cloud-aws-s3</module>
 		<module>spring-cloud-aws-testcontainers</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter</module>

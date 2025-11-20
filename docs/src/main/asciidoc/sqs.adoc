@@ -806,6 +806,90 @@ NOTE: The same factory can be used to create both `single message` and `batch` c
 
 IMPORTANT: In case the same factory is shared by both delivery methods, any supplied `ErrorHandler`, `MessageInterceptor` or `MessageListener` should implement the proper methods.
 
+==== Automatic Request Batching with SqsAsyncBatchManager
+
+Spring Cloud AWS allows you to leverage the AWS SDK's `SqsAsyncBatchManager` for automatic request batching. This feature can significantly improve performance and reduce costs by transparently combining multiple SQS API calls (`sendMessage`, `deleteMessage`, etc.) into single batch requests. Please note that this feature is primarily intended for use with `SqsTemplate` and is not recommended for use as a default `SqsAsyncClient` bean that could be injected into `@SqsListener` infrastructure.
+
+IMPORTANT: This is different from the <<Batch Processing,Batch Processing>> feature for `@SqsListener`. Listener batch processing deals with handling multiple messages within a single listener invocation, whereas automatic request batching optimizes the underlying API calls to AWS.
+
+===== Manual Configuration of the Batching Client
+
+Since automatic batching is a powerful feature with specific trade-offs, Spring Cloud AWS does not auto-configure it. You can enable it by creating your own `SqsAsyncClient` bean using the provided `BatchingSqsClientAdapter`.
+
+====== 1. Defining the Batching Client Bean
+The following example shows how to define a bean named `batchingSqsAsyncClient`. Notice the use of `@Qualifier("sqsAsyncClient")` in the method parameter. This is crucial to explicitly inject the standard, auto-configured `SqsAsyncClient` and avoid ambiguity.
+
+[source,java]
+----
+@Configuration
+public class SqsBatchingConfiguration {
+
+    // Define a constant for the bean name to avoid typos
+    public static final String BATCHING_SQS_ASYNC_CLIENT = "batchingSqsAsyncClient";
+
+    @Bean(name = BATCHING_SQS_ASYNC_CLIENT)
+    public SqsAsyncClient batchingSqsAsyncClient(
+            // Inject the standard, auto-configured client to wrap it
+            @Qualifier("sqsAsyncClient") SqsAsyncClient standardSqsAsyncClient) {
+
+        ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(5);
+
+        SqsAsyncBatchManager batchManager = SqsAsyncBatchManager.builder()
+                .sqsAsyncClient(standardSqsAsyncClient)
+                .scheduledExecutor(scheduledExecutor)
+                .build();
+
+        return new BatchingSqsClientAdapter(batchManager);
+    }
+}
+----
+
+====== 2. Using the Batching Client
+Now, use `@Qualifier` to inject your named bean. The most common use case is configuring a dedicated `SqsTemplate`.
+
+[source,java]
+----
+@Service
+public class MyBatchingMessageService {
+
+    private final SqsTemplate batchingSqsTemplate;
+
+    public MyBatchingMessageService(
+            @Qualifier(SqsBatchingConfiguration.BATCHING_SQS_ASYNC_CLIENT) SqsAsyncClient batchingClient) {
+        this.batchingSqsTemplate = SqsTemplate.builder()
+                .sqsAsyncClient(batchingClient)
+                .build();
+    }
+    // ... service methods using batchingSqsTemplate
+}
+----
+
+===== Important Considerations & Best Practices
+
+WARNING: A call to `sqsTemplate.sendAsync(...)` returns a `CompletableFuture` that may complete successfully before the message is actually sent to AWS if the batch isn't yet flushed. The actual transmission happens later in a background thread, typically after the configured `sendRequestFrequency` interval. This can lead to **false positives** where the future appears to succeed prematurely. Always attach error handling to the `CompletableFuture` (e.g., via `.exceptionally()` or `.handle()`) to detect and handle real transmission failures. Note: Calling `.join()` on the future will block until the batch is flushed (after `sendRequestFrequency`), ensuring the operation is attempted, but still check for exceptions.
+
+NOTE: The background buffering for `receiveMessage` operations is initialized **lazily**. It only starts after the first call to `sqsTemplate.receiveMessage(...)` is made on a specific queue URL. **This means that no background polling or resource consumption for receiving messages will occur until the application actively attempts to receive a message from that queue for the first time.**
+
+[source,java]
+----
+CompletableFuture<SendResult<String>> future = batchingSqsTemplate.sendAsync(queueName, message);
+
+future.whenComplete((result, ex) -> {
+    if (ex != null) {
+        // This is where you handle the actual transmission error
+        log.error("Failed to send message to queue {}: {}", queueName, ex.getMessage());
+    } else {
+        log.info("Message acknowledged for batch sending with ID: {}", result.messageId());
+    }
+});
+----
+
+WARNING: **Not Recommended for `@SqsListener`**. While technically compatible, using this batching client with `@SqsListener` for receiving messages is **not recommended**. The `@SqsListener` infrastructure already performs efficient batch receiving and has a complex acknowledgment lifecycle. Adding another layer of asynchronous batching provides limited performance benefits while significantly increasing complexity. For listeners, it's best to rely on the default `SqsAsyncClient`.
+
+IMPORTANT: **Bean Injection Safety**. By using a named bean and `@Qualifier` as shown in the configuration examples, you ensure the batching client is only used where intended. This prevents it from accidentally being injected into `@SqsListener` infrastructure, which should use the default `SqsAsyncClient`.
+
+IMPORTANT: **AWS SDK Batching Bypass**. The `SqsAsyncBatchManager` will bypass batching for `receiveMessage` calls if certain parameters like `messageAttributeNames` are set on a per-request basis. To ensure batching works effectively, these should be configured globally on the `SqsAsyncBatchManager` builder, not on individual `receiveMessage` calls. See the `BatchingSqsClientAdapter` Javadoc for more details.
+
 ==== Container Options
 
 Each `MessageListenerContainer` can have a different set of options.
