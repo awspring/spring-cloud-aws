@@ -90,11 +90,11 @@ class KplIntegrationTests implements LocalstackContainerTest {
 		@Bean
 		KinesisProducerConfiguration kinesisProducerConfiguration() {
 			URI kinesisUri = LocalstackContainerTest.LOCAL_STACK_CONTAINER
-					.getEndpointOverride(LocalStackContainer.Service.KINESIS);
+					.getEndpoint();
 			URI cloudWatchUri = LocalstackContainerTest.LOCAL_STACK_CONTAINER
-					.getEndpointOverride(LocalStackContainer.Service.CLOUDWATCH);
+					.getEndpoint();
 			URI stsUri = LocalstackContainerTest.LOCAL_STACK_CONTAINER
-					.getEndpointOverride(LocalStackContainer.Service.STS);
+					.getEndpoint();
 
 			return new KinesisProducerConfiguration()
 					.setCredentialsProvider(LocalstackContainerTest.credentialsProvider())
