@@ -72,9 +72,8 @@ public class S3TransferManagerAutoConfiguration {
 		if (this.properties.getTransferManager() != null) {
 			S3TransferManagerProperties transferManagerProperties = this.properties.getTransferManager();
 			PropertyMapper propertyMapper = PropertyMapper.get();
-			propertyMapper.from(transferManagerProperties::getMaxDepth).whenNonNull()
-					.to(builder::uploadDirectoryMaxDepth);
-			propertyMapper.from(transferManagerProperties::getFollowSymbolicLinks).whenNonNull()
+			propertyMapper.from(transferManagerProperties::getMaxDepth).to(builder::uploadDirectoryMaxDepth);
+			propertyMapper.from(transferManagerProperties::getFollowSymbolicLinks)
 					.to(builder::uploadDirectoryFollowSymbolicLinks);
 		}
 		return builder.s3Client(s3AsyncClient.getIfAvailable()).build();

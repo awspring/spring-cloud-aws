@@ -159,10 +159,10 @@ public class CredentialsProviderAutoConfiguration {
 
 			if (stsProperties != null) {
 				builder.asyncCredentialUpdateEnabled(stsProperties.isAsyncCredentialsUpdate());
-				propertyMapper.from(stsProperties::getRoleArn).whenNonNull().to(builder::roleArn);
-				propertyMapper.from(stsProperties::getWebIdentityTokenFile).whenNonNull()
+				propertyMapper.from(stsProperties::getRoleArn).to(builder::roleArn);
+				propertyMapper.from(stsProperties::getWebIdentityTokenFile)
 						.to(b -> builder.webIdentityTokenFile(Paths.get(b)));
-				propertyMapper.from(stsProperties::getRoleSessionName).whenNonNull().to(builder::roleSessionName);
+				propertyMapper.from(stsProperties::getRoleSessionName).to(builder::roleSessionName);
 			}
 			return builder.build();
 		}

@@ -24,8 +24,6 @@ import static org.mockito.Mockito.times;
 
 import io.awspring.cloud.sqs.MessageExecutionThreadFactory;
 import io.awspring.cloud.sqs.listener.BackPressureMode;
-import io.awspring.cloud.sqs.listener.ContainerOptions;
-import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
@@ -442,10 +440,9 @@ class AbstractPollingMessageSourceTests {
 	void shouldRemovePollingFutureOnException() throws InterruptedException {
 		String testName = "shouldClearPollingFuturesOnException";
 
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
-			.adaptiveThroughputBackPressureHandler()
-			.createBackPressureHandler(SqsContainerOptions.builder()
-				.maxDelayBetweenPolls(Duration.ofMillis(100)).backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).build());
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.adaptiveThroughputBackPressureHandler()
+				.createBackPressureHandler(SqsContainerOptions.builder().maxDelayBetweenPolls(Duration.ofMillis(100))
+						.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES).build());
 
 		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
 			@Override

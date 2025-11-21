@@ -18,7 +18,7 @@ package io.awspring.cloud.testcontainers;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.core.region.StaticRegionProvider;
-import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.localstack.LocalStackContainer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;

@@ -153,8 +153,8 @@ public interface ContainerOptionsBuilder<B extends ContainerOptionsBuilder<B, O>
 	/**
 	 * Sets the {@link BackPressureHandlerFactory} for this container. Default is
 	 * {@code AbstractContainerOptions.DEFAULT_BACKPRESSURE_FACTORY} which results in a default
-	 * {@link io.awspring.cloud.sqs.listener.backpressure.CompositeBackPressureHandler} to be instantiated,
-	 * with behavior analogous to the original {@code SemaphoreBackPressureHandler}.
+	 * {@link io.awspring.cloud.sqs.listener.backpressure.CompositeBackPressureHandler} to be instantiated, with
+	 * behavior analogous to the original {@code SemaphoreBackPressureHandler}.
 	 *
 	 * @param backPressureHandlerFactory the BackPressureHandler supplier.
 	 * @return this instance.

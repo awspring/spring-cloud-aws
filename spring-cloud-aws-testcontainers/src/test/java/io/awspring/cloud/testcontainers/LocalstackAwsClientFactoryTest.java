@@ -18,9 +18,9 @@ package io.awspring.cloud.testcontainers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.s3.S3Client;
 

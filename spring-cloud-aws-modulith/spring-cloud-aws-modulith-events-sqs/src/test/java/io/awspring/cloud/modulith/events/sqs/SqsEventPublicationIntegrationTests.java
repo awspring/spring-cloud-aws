@@ -31,7 +31,7 @@ import org.springframework.modulith.events.EventExternalizationConfiguration;
 import org.springframework.modulith.events.Externalized;
 import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
