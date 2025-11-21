@@ -184,4 +184,17 @@ public class BackPressureHandlerFactories {
 	public static BackPressureHandlerFactory fullBatchBackPressureHandler() {
 		return options -> FullBatchBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll()).build();
 	}
+
+	/**
+	 * Creates a new {@link SemaphoreBackPressureHandler} instance based on the provided {@link ContainerOptions}.
+	 *
+	 * @return the created SemaphoreBackPressureHandler.
+	 */
+	@Deprecated
+	public static BackPressureHandlerFactory semaphoreBackPressureHandler() {
+		return options -> SemaphoreBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
+			.totalPermits(options.getMaxConcurrentMessages()).acquireTimeout(options.getMaxDelayBetweenPolls())
+			.throughputConfiguration(options.getBackPressureMode()).build();
+	}
+
 }
