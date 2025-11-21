@@ -88,19 +88,15 @@ class KplIntegrationTests implements LocalstackContainerTest {
 
 		@Bean
 		KinesisProducerConfiguration kinesisProducerConfiguration() {
-			URI kinesisUri = LocalstackContainerTest.LOCAL_STACK_CONTAINER
-					.getEndpoint();
-			URI cloudWatchUri = LocalstackContainerTest.LOCAL_STACK_CONTAINER
-					.getEndpoint();
-			URI stsUri = LocalstackContainerTest.LOCAL_STACK_CONTAINER
+			URI localstackEndpoint = LocalstackContainerTest.LOCAL_STACK_CONTAINER
 					.getEndpoint();
 
 			return new KinesisProducerConfiguration()
 					.setCredentialsProvider(LocalstackContainerTest.credentialsProvider())
 					.setRegion(LocalstackContainerTest.LOCAL_STACK_CONTAINER.getRegion())
-					.setKinesisEndpoint(kinesisUri.getHost()).setKinesisPort(kinesisUri.getPort())
-					.setCloudwatchEndpoint(cloudWatchUri.getHost()).setCloudwatchPort(cloudWatchUri.getPort())
-					.setStsEndpoint(stsUri.getHost()).setStsPort(stsUri.getPort()).setVerifyCertificate(false)
+					.setKinesisEndpoint(localstackEndpoint.getHost()).setKinesisPort(localstackEndpoint.getPort())
+					.setCloudwatchEndpoint(localstackEndpoint.getHost()).setCloudwatchPort(localstackEndpoint.getPort())
+					.setStsEndpoint(localstackEndpoint.getHost()).setStsPort(localstackEndpoint.getPort()).setVerifyCertificate(false)
 					.setCredentialsRefreshDelay(300000L);
 		}
 
