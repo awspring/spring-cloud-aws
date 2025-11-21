@@ -1,0 +1,1 @@
+kinesis: io.awspring.cloud.kinesis.stream.binder.config.KinesisBinderConfiguration
