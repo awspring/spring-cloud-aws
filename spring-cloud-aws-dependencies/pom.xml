@@ -24,10 +24,10 @@
 
 	<properties>
 		<spotless.version>2.31.0</spotless.version>
-		<awssdk-v2.version>2.32.28</awssdk-v2.version>
+		<awssdk-v2.version>2.39.0</awssdk-v2.version>
 		<kcl.version>3.1.2</kcl.version>
 		<kpl.version>1.0.4</kpl.version>
-		<amazon.dax.version>2.0.5</amazon.dax.version>
+		<amazon.dax.version>2.0.6</amazon.dax.version>
 		<amazon.encryption.s3.version>3.3.5</amazon.encryption.s3.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<spring-cloud-commons.version>5.0.0-RC1</spring-cloud-commons.version>
