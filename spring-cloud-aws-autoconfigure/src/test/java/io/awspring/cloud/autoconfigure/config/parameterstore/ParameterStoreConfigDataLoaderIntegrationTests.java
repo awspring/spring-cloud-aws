@@ -146,17 +146,17 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
-	void resolvesPropertiesWithPrefixPropertiesYaml() {
+	void resolvesPropertiesWithPrefixYaml() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
-		String applicationProperties = """
-			first:
-			  message: value from tests
-			  another-parameter: another parameter value
-			second:
-			  secondMessage: second value from tests
-				""";
-		putParameter(localstack, "/test/path/secondMessage", applicationProperties, REGION);
+		String applicationYaml = """
+first:
+  message: value from tests
+  another-parameter: another parameter value
+second:
+  secondMessage: second value from tests
+""";
+		putParameter(localstack, "/test/path/secondMessage", applicationYaml, REGION);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 			"aws-parameterstore:/test/path/?extension=yaml")) {
