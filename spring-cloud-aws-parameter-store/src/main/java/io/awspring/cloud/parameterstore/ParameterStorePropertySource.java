@@ -16,13 +16,16 @@
 package io.awspring.cloud.parameterstore;
 
 import io.awspring.cloud.core.config.AwsPropertySource;
+
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
@@ -45,7 +48,7 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	private static Log LOG = LogFactory.getLog(ParameterStorePropertySource.class);
 	private static final String PREFIX_PART = "?prefix=";
 
-	private static final String PREFIX_PROPERTIES_LOAD = "?properties";
+	private static final String PREFIX_PROPERTIES_LOAD = "?extension=";
 	private final String context;
 
 	private final String parameterPath;
@@ -58,6 +61,10 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	private final String prefix;
 
 	private Boolean propertiesType = false;
+
+	private String prefixType;
+
+	private static final Set<String> ALLOWED_TYPES = Set.of("properties", "json", "yaml");
 
 	private final Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -95,11 +102,15 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 		GetParametersByPathResponse paramsResult = this.source.getParametersByPath(paramsRequest);
 		for (Parameter parameter : paramsResult.parameters()) {
 			if (propertiesType) {
-				Arrays.stream(parameter.value().split("\\n")).map(line -> line.split("=", 2)).forEach(keyValue -> {
-					if (keyValue.length == 2) {
-						this.properties.put(keyValue[0].trim(), keyValue[1].trim());
-					}
-				});
+				Properties props;
+				if (prefixType.equals("properties")) {
+ 					props = readProperties(parameter.value());
+				} else {
+					props = readYaml(parameter.value());
+				}
+				for (Map.Entry<Object, Object> entry : props.entrySet()) {
+					properties.put(String.valueOf(entry.getKey()), entry.getValue());
+				}
 			}
 			else {
 				String key = parameter.name().replace(this.parameterPath, "").replace('/', '.').replaceAll("_(\\d)_",
@@ -144,20 +155,35 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 		prefixIndex = context.indexOf(PREFIX_PROPERTIES_LOAD);
 		if (prefixIndex != -1) {
 			this.propertiesType = true;
+			String extracted =  context.substring(prefixIndex + PREFIX_PROPERTIES_LOAD.length()).toLowerCase();
+			if (ALLOWED_TYPES.contains(extracted)) {
+				this.prefixType = extracted;
+			} else {
+				throw new IllegalArgumentException("Invalid prefixType: " + extracted + ". Must be one of properties, json, or yaml.");
+			}
 			return context.substring(0, prefixIndex);
 		}
 		return context;
 	}
 
-	private Properties readProperties(InputStream inputStream) {
+	private Properties readProperties(String input) {
 		Properties properties = new Properties();
-		try (InputStream in = inputStream) {
+
+		try (InputStream in = new ByteArrayInputStream(input.getBytes())) {
 			properties.load(in);
 		}
 		catch (Exception e) {
 			throw new IllegalStateException("Cannot load environment", e);
 		}
 		return properties;
+	}
+
+	private Properties readYaml(String input) {
+		YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
+		yaml.setResources(
+			new ByteArrayResource(input.getBytes())
+		);
+		return yaml.getObject();
 	}
 
 }

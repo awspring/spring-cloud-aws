@@ -135,12 +135,36 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		putParameter(localstack, "/test/path/secondMessage", applicationProperties, REGION);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-				"aws-parameterstore:/test/path/?properties")) {
+				"aws-parameterstore:/test/path/?extension=properties")) {
 			assertThat(context.getEnvironment().getProperty("first.message")).isEqualTo("value from tests");
 			assertThat(context.getEnvironment().getProperty("first.another-parameter"))
 					.isEqualTo("another parameter value");
 			assertThat(context.getEnvironment().getProperty("second.secondMessage"))
 					.isEqualTo("second value from tests");
+			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
+		}
+	}
+
+	@Test
+	void resolvesPropertiesWithPrefixPropertiesYaml() {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+		String applicationProperties = """
+			first:
+			  message: value from tests
+			  another-parameter: another parameter value
+			second:
+			  secondMessage: second value from tests
+				""";
+		putParameter(localstack, "/test/path/secondMessage", applicationProperties, REGION);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+			"aws-parameterstore:/test/path/?extension=yaml")) {
+			assertThat(context.getEnvironment().getProperty("first.message")).isEqualTo("value from tests");
+			assertThat(context.getEnvironment().getProperty("first.another-parameter"))
+				.isEqualTo("another parameter value");
+			assertThat(context.getEnvironment().getProperty("second.secondMessage"))
+				.isEqualTo("second value from tests");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
 		}
 	}
