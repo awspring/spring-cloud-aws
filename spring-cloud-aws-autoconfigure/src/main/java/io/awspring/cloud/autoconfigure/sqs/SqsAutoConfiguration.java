@@ -148,7 +148,7 @@ public class SqsAutoConfiguration {
 	}
 
 	private void configureProperties(SqsContainerOptionsBuilder options) {
-		PropertyMapper mapper = PropertyMapper.get().alwaysApplyingWhenNonNull();
+		PropertyMapper mapper = PropertyMapper.get();
 		mapper.from(this.sqsProperties.getQueueNotFoundStrategy()).to(options::queueNotFoundStrategy);
 		mapper.from(this.sqsProperties.getListener().getMaxConcurrentMessages()).to(options::maxConcurrentMessages);
 		mapper.from(this.sqsProperties.getListener().getMaxMessagesPerPoll()).to(options::maxMessagesPerPoll);

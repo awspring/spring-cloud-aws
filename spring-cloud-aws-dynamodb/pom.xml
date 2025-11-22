@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>spring-cloud-aws</artifactId>
 		<groupId>io.awspring.cloud</groupId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.0.0-M1</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>spring-cloud-aws-dynamodb</artifactId>
@@ -30,13 +30,13 @@
 			<artifactId>dynamodb-enhanced</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>localstack</artifactId>
+    <groupId>org.testcontainers</groupId>
+    <artifactId>testcontainers-localstack</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>junit-jupiter</artifactId>
+<groupId>org.testcontainers</groupId>
+    <artifactId>testcontainers-junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 

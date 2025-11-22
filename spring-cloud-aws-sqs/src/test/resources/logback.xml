@@ -25,7 +25,7 @@
 	<logger name="io.awspring.cloud.sqs" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.SqsMessageListenerContainer" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.AsyncComponentAdapters" level="INFO"/>
-	<logger name="io.awspring.cloud.sqs.listener.SemaphoreBackPressureHandler" level="INFO"/>
+	<logger name="io.awspring.cloud.sqs.listener.backpressure.SemaphoreBackPressureHandler" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.QueueAttributesResolver" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.source" level="INFO"/>
 	<logger name="io.awspring.cloud.sqs.listener.sink" level="INFO"/>

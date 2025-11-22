@@ -16,8 +16,8 @@
 package io.awspring.cloud.kinesis;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -25,6 +25,8 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 
 /**
@@ -50,6 +52,14 @@ public interface LocalstackContainerTest {
 
 	static KinesisAsyncClient kinesisClient() {
 		return applyAwsClientOptions(KinesisAsyncClient.builder().httpClientBuilder(NettyNioAsyncHttpClient.builder()));
+	}
+
+	static DynamoDbAsyncClient dynamoDbClient() {
+		return applyAwsClientOptions(DynamoDbAsyncClient.builder());
+	}
+
+	static CloudWatchAsyncClient cloudWatchClient() {
+		return applyAwsClientOptions(CloudWatchAsyncClient.builder());
 	}
 
 	static AwsCredentialsProvider credentialsProvider() {

@@ -44,6 +44,8 @@ import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
 
+import static software.amazon.awssdk.core.SdkSystemSetting.AWS_WEB_IDENTITY_TOKEN_FILE;
+
 /**
  * {@link EnableAutoConfiguration} for {@link AwsCredentialsProvider}.
  *
@@ -103,7 +105,7 @@ public class CredentialsProviderAutoConfiguration {
 		}
 
 		StsProperties sts = properties.getSts();
-		if (ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)) {
+		if (isWebIdentitiyTokenFileConfigured(sts) && ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)) {
 			try {
 				providers.add(StsCredentialsProviderFactory.create(sts, regionProvider));
 			}
@@ -122,6 +124,11 @@ public class CredentialsProviderAutoConfiguration {
 		else {
 			return AwsCredentialsProviderChain.builder().credentialsProviders(providers).build();
 		}
+	}
+
+	private static boolean isWebIdentitiyTokenFileConfigured(@Nullable StsProperties sts) {
+		// AWS_WEB_IDENTITY_TOKEN_FILE can be configured either through environment variable, system properties or `spring.cloud.aws.sts` properties.
+		return AWS_WEB_IDENTITY_TOKEN_FILE.getStringValue().isPresent() || (sts != null && sts.getWebIdentityTokenFile() != null);
 	}
 
 	private static StaticCredentialsProvider createStaticCredentialsProvider(CredentialsProperties properties) {
@@ -159,10 +166,10 @@ public class CredentialsProviderAutoConfiguration {
 
 			if (stsProperties != null) {
 				builder.asyncCredentialUpdateEnabled(stsProperties.isAsyncCredentialsUpdate());
-				propertyMapper.from(stsProperties::getRoleArn).whenNonNull().to(builder::roleArn);
-				propertyMapper.from(stsProperties::getWebIdentityTokenFile).whenNonNull()
+				propertyMapper.from(stsProperties::getRoleArn).to(builder::roleArn);
+				propertyMapper.from(stsProperties::getWebIdentityTokenFile)
 						.to(b -> builder.webIdentityTokenFile(Paths.get(b)));
-				propertyMapper.from(stsProperties::getRoleSessionName).whenNonNull().to(builder::roleSessionName);
+				propertyMapper.from(stsProperties::getRoleSessionName).to(builder::roleSessionName);
 			}
 			return builder.build();
 		}
