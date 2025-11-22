@@ -156,10 +156,10 @@ first:
 second:
   secondMessage: second value from tests
 """;
-		putParameter(localstack, "/test/path/secondMessage", applicationYaml, REGION);
+		putParameter(localstack, "/test/second/message", applicationYaml, REGION);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-			"aws-parameterstore:/test/path/?extension=yaml")) {
+			"aws-parameterstore:/test/second/?extension=yaml")) {
 			assertThat(context.getEnvironment().getProperty("first.message")).isEqualTo("value from tests");
 			assertThat(context.getEnvironment().getProperty("first.another-parameter"))
 				.isEqualTo("another parameter value");
