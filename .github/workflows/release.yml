@@ -2,7 +2,6 @@ name: Release
 
 on:
   push:
-    branches: [ maven-central-publishing ]
     tags:
       - v2.3.*
       - v2.4.*
@@ -11,6 +10,7 @@ on:
       - v3.2.*
       - v3.3.*
       - v3.4.*
+      - v4.0.*
 
 env:
   # https://github.com/actions/checkout/issues/440#issuecomment-854240996
