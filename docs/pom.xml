@@ -333,8 +333,8 @@
 								</dependency>
 								<dependency>
 									<groupId>org.apache.ant</groupId>
-									<artifactId>ant-nodeps</artifactId>
-									<version>${ant-nodeps.version}</version>
+									<artifactId>ant</artifactId>
+									<version>${ant.version}</version>
 								</dependency>
 								<dependency>
 									<groupId>org.tigris.antelope</groupId>
