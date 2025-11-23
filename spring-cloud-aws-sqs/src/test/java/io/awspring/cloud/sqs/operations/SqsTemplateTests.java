@@ -1238,14 +1238,14 @@ class SqsTemplateTests {
 		// Then - Setup successful response for retry
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(urlResponse));
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
 
 		mockQueueAttributes(mockClient, Map.of());
 
 		SendMessageResponse sendResponse = SendMessageResponse.builder().messageId(UUID.randomUUID().toString())
-			.build();
+				.build();
 		given(mockClient.sendMessage(any(SendMessageRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(sendResponse));
+				.willReturn(CompletableFuture.completedFuture(sendResponse));
 
 		// When - Retry should work (not use cached failure)
 		SendResult<String> result = template.send(queue, payload);
@@ -1265,12 +1265,12 @@ class SqsTemplateTests {
 
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(urlResponse));
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
 
 		SendMessageResponse sendResponse = SendMessageResponse.builder().messageId(UUID.randomUUID().toString())
-			.build();
+				.build();
 		given(mockClient.sendMessage(any(SendMessageRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(sendResponse));
+				.willReturn(CompletableFuture.completedFuture(sendResponse));
 
 		SqsOperations template = SqsTemplate.newTemplate(mockClient);
 
@@ -1292,23 +1292,23 @@ class SqsTemplateTests {
 
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
 		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(urlResponse));
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
 
 		GetQueueAttributesResponse attributesResponse = GetQueueAttributesResponse.builder()
-			.attributes(Map.of(QueueAttributeName.QUEUE_ARN, "test-arn")).build();
+				.attributes(Map.of(QueueAttributeName.QUEUE_ARN, "test-arn")).build();
 		given(mockClient.getQueueAttributes(any(Consumer.class)))
-			.willReturn(CompletableFuture.completedFuture(attributesResponse));
+				.willReturn(CompletableFuture.completedFuture(attributesResponse));
 
 		SendMessageResponse sendResponse = SendMessageResponse.builder().messageId(UUID.randomUUID().toString())
-			.build();
+				.build();
 		given(mockClient.sendMessage(any(SendMessageRequest.class)))
-			.willReturn(CompletableFuture.completedFuture(sendResponse));
+				.willReturn(CompletableFuture.completedFuture(sendResponse));
 
 		// Create template with queueAttributeNames configured
 		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient)
-			.configure(
-				options -> options.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN)))
-			.buildSyncTemplate();
+				.configure(
+						options -> options.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN)))
+				.buildSyncTemplate();
 
 		// When - Send twice to same queue
 		template.send(queue, payload1);

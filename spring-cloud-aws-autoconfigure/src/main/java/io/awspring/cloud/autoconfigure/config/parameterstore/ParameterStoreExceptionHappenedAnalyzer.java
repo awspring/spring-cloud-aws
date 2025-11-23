@@ -23,7 +23,9 @@ public class ParameterStoreExceptionHappenedAnalyzer
 
 	@Override
 	protected FailureAnalysis analyze(Throwable rootFailure, AwsParameterPropertySourceNotFoundException cause) {
-		return new FailureAnalysis("Could not import properties from AWS Parameter Store. Exception happened while trying to load the keys: " + cause.getMessage(),
+		return new FailureAnalysis(
+				"Could not import properties from AWS Parameter Store. Exception happened while trying to load the keys: "
+						+ cause.getMessage(),
 				"Depending on error message determine action course", cause);
 	}
 }

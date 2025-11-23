@@ -227,7 +227,7 @@ class SqsTemplateObservationTest {
 		RuntimeException firstException = new RuntimeException("First attempt - queue not found");
 
 		given(mockSqsAsyncClient.getQueueUrl(any(GetQueueUrlRequest.class)))
-			.willReturn(CompletableFuture.failedFuture(firstException));
+				.willReturn(CompletableFuture.failedFuture(firstException));
 
 		// When - First attempt (failure)
 		try {
@@ -239,15 +239,15 @@ class SqsTemplateObservationTest {
 
 		// Then - Verify first observation has error
 		TestObservationRegistryAssert.then(observationRegistry).hasNumberOfObservationsEqualTo(1)
-			.hasSingleObservationThat().hasError();
+				.hasSingleObservationThat().hasError();
 
 		// Given - Second attempt will succeed (cache was cleared)
 		UUID messageId = UUID.randomUUID();
 		given(mockSqsAsyncClient.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(
-			CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl(queueName).build()));
+				CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl(queueName).build()));
 
 		given(mockSqsAsyncClient.sendMessage(any(SendMessageRequest.class))).willReturn(CompletableFuture
-			.completedFuture(SendMessageResponse.builder().messageId(messageId.toString()).build()));
+				.completedFuture(SendMessageResponse.builder().messageId(messageId.toString()).build()));
 
 		// When - Second attempt (success)
 		SendResult<String> result = sqsTemplate.send(queueName, payload);

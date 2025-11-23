@@ -39,7 +39,6 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
@@ -126,16 +125,15 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 
 		@Bean
 		public KinesisProducerConfiguration kinesisProducerConfiguration() {
-			URI localstackEndpoint = LocalstackContainerTest.LOCAL_STACK_CONTAINER
-					.getEndpoint();
+			URI localstackEndpoint = LocalstackContainerTest.LOCAL_STACK_CONTAINER.getEndpoint();
 
 			return new KinesisProducerConfiguration()
 					.setCredentialsProvider(LocalstackContainerTest.credentialsProvider())
 					.setRegion(LocalstackContainerTest.LOCAL_STACK_CONTAINER.getRegion())
 					.setKinesisEndpoint(localstackEndpoint.getHost()).setKinesisPort(localstackEndpoint.getPort())
 					.setCloudwatchEndpoint(localstackEndpoint.getHost()).setCloudwatchPort(localstackEndpoint.getPort())
-					.setStsEndpoint(localstackEndpoint.getHost()).setStsPort(localstackEndpoint.getPort()).setVerifyCertificate(false)
-					.setCredentialsRefreshDelay(300000L);
+					.setStsEndpoint(localstackEndpoint.getHost()).setStsPort(localstackEndpoint.getPort())
+					.setVerifyCertificate(false).setCredentialsRefreshDelay(300000L);
 		}
 
 		@Bean

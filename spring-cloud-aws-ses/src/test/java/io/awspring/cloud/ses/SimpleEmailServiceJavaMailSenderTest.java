@@ -262,10 +262,7 @@ class SimpleEmailServiceJavaMailSenderTest {
 
 		mailSender.send(preparators);
 
-		List<MimeMessage> messages = request.getAllValues()
-			.stream()
-			.map(this::toMimeMessage)
-			.toList();
+		List<MimeMessage> messages = request.getAllValues().stream().map(this::toMimeMessage).toList();
 
 		assertThat(messages.get(0).getRecipients(Message.RecipientType.TO)[0].toString()).isEqualTo("to@domain.com");
 		assertThat(messages.get(0).getContent()).isEqualTo("body1");
@@ -380,8 +377,9 @@ class SimpleEmailServiceJavaMailSenderTest {
 	private MimeMessage toMimeMessage(SendRawEmailRequest request) {
 		try {
 			return new MimeMessage(Session.getInstance(new Properties()),
-				new ByteArrayInputStream(request.rawMessage().data().asByteArray()));
-		} catch (MessagingException e) {
+					new ByteArrayInputStream(request.rawMessage().data().asByteArray()));
+		}
+		catch (MessagingException e) {
 			throw new RuntimeException(e);
 		}
 	}

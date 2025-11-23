@@ -161,7 +161,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
-		try (ConfigurableApplicationContext context = runApplicationWithWrongEndpoint(application, "aws-parameterstore:/config/fail/")) {
+		try (ConfigurableApplicationContext context = runApplicationWithWrongEndpoint(application,
+				"aws-parameterstore:/config/fail/")) {
 			fail("Context without keys should fail to start");
 		}
 		catch (Exception e) {
@@ -170,7 +171,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 			// error message
 			// Ensure that new line character should be platform independent
 			String errorMessage = "Description:%1$s%1$sCould not import properties from AWS Parameter Store"
-				.formatted(NEW_LINE_CHAR);
+					.formatted(NEW_LINE_CHAR);
 			assertThat(output.getOut()).contains(errorMessage);
 		}
 	}
@@ -420,17 +421,18 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		return runApplication(application, springConfigImport, "spring.cloud.aws.parameterstore.endpoint");
 	}
 
-	private ConfigurableApplicationContext runApplicationWithWrongEndpoint(SpringApplication application, String springConfigImport) {
+	private ConfigurableApplicationContext runApplicationWithWrongEndpoint(SpringApplication application,
+			String springConfigImport) {
 		return runApplicationWrongEndpoint(application, springConfigImport, "spring.cloud.aws.parameterstore.endpoint");
 	}
 
-	private ConfigurableApplicationContext runApplicationWrongEndpoint(SpringApplication application, String springConfigImport,
-														  String endpointProperty) {
+	private ConfigurableApplicationContext runApplicationWrongEndpoint(SpringApplication application,
+			String springConfigImport, String endpointProperty) {
 		return application.run("--spring.config.import=" + springConfigImport,
-			"--spring.cloud.aws.parameterstore.region=" + REGION,
-			"--" + endpointProperty + "=" + localstack.getEndpoint() + 1,
-			"--spring.cloud.aws.credentials.access-key=tst", "--spring.cloud.aws.credentials.secret-key=empty",
-			"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.parameterstore=debug");
+				"--spring.cloud.aws.parameterstore.region=" + REGION,
+				"--" + endpointProperty + "=" + localstack.getEndpoint() + 1,
+				"--spring.cloud.aws.credentials.access-key=tst", "--spring.cloud.aws.credentials.secret-key=empty",
+				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.parameterstore=debug");
 	}
 
 	private static void putParameter(LocalStackContainer localstack, String parameterName, String parameterValue,
