@@ -301,8 +301,16 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	public <T> CompletableFuture<SendResult<T>> sendAsync(@Nullable String endpointName, Message<T> message) {
 		String endpointToUse = getEndpointName(endpointName);
 		logger.trace("Sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointName);
-		return preProcessMessageForSendAsync(endpointToUse, message)
-				.thenCompose(messageToUse -> observeAndSendAsync(messageToUse, endpointToUse)
+
+		// Create observation and add trace headers BEFORE async preprocessing
+		// This ensures trace context is captured on the calling thread
+		var context = this.observationSpecifics.createContext(message, endpointToUse);
+		var observation = startObservation(context);
+		var carrier = Objects.requireNonNull(context.getCarrier(), "No carrier found in context.");
+		var messageWithObservationHeaders = MessageHeaderUtils.addHeadersIfAbsent(message, carrier);
+
+		return preProcessMessageForSendAsync(endpointToUse, messageWithObservationHeaders).thenCompose(
+				messageToUse -> doSendAndCompleteObservation(messageToUse, endpointToUse, context, observation)
 						.exceptionallyCompose(
 								t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
 										"Message send operation failed for message %s to endpoint %s"
@@ -311,13 +319,9 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 						.whenComplete((v, t) -> logSendMessageResult(endpointToUse, message, t)));
 	}
 
-	private <T> CompletableFuture<SendResult<T>> observeAndSendAsync(Message<T> message, String endpointToUse) {
-		AbstractTemplateObservation.Context context = this.observationSpecifics.createContext(message, endpointToUse);
-		Observation observation = startObservation(context);
-		Map<String, Object> carrier = Objects.requireNonNull(context.getCarrier(), "No carrier found in context.");
-		Message<T> messageWithObservationHeader = MessageHeaderUtils.addHeadersIfAbsent(message, carrier);
-		return doSendAsync(endpointToUse, convertMessageToSend(messageWithObservationHeader),
-				messageWithObservationHeader)
+	private <T> CompletableFuture<SendResult<T>> doSendAndCompleteObservation(Message<T> message, String endpointToUse,
+			AbstractTemplateObservation.Context context, Observation observation) {
+		return doSendAsync(endpointToUse, convertMessageToSend(message), message)
 				.whenComplete((sendResult, t) -> completeObservation(sendResult, context, t, observation));
 	}
 
