@@ -193,8 +193,8 @@ public class BackPressureHandlerFactories {
 	@Deprecated
 	public static BackPressureHandlerFactory semaphoreBackPressureHandler() {
 		return options -> SemaphoreBackPressureHandler.builder().batchSize(options.getMaxMessagesPerPoll())
-			.totalPermits(options.getMaxConcurrentMessages()).acquireTimeout(options.getMaxDelayBetweenPolls())
-			.throughputConfiguration(options.getBackPressureMode()).build();
+				.totalPermits(options.getMaxConcurrentMessages()).acquireTimeout(options.getMaxDelayBetweenPolls())
+				.throughputConfiguration(options.getBackPressureMode()).build();
 	}
 
 }

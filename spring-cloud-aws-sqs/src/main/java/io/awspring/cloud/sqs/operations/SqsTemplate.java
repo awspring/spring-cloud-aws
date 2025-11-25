@@ -472,7 +472,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private CompletableFuture<QueueAttributes> getQueueAttributes(String endpointName) {
 		CompletableFuture<QueueAttributes> future = this.queueAttributesCache.computeIfAbsent(endpointName,
-			newName -> doGetQueueAttributes(endpointName, newName));
+				newName -> doGetQueueAttributes(endpointName, newName));
 
 		// Remove failed futures from cache
 		future.whenComplete((result, throwable) -> {

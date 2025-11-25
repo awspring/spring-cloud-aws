@@ -121,16 +121,13 @@ class CredentialsProviderAutoConfigurationTests {
 
 	@Test
 	@ExtendWith(OutputCaptureExtension.class)
-	void credentialsProvider_stsCredentialsProviderNotConfigured_whenWebIdentityTokenNotConfigured(CapturedOutput output)
-		throws IOException {
-		this.contextRunner
-			.withPropertyValues("spring.cloud.aws.region.static:af-south-1")
-			.run((context) -> {
-				AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
+	void credentialsProvider_stsCredentialsProviderNotConfigured_whenWebIdentityTokenNotConfigured(
+			CapturedOutput output) throws IOException {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.region.static:af-south-1").run((context) -> {
+			AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
 					AwsCredentialsProvider.class);
-				assertThat(awsCredentialsProvider).isNotNull()
-					.isInstanceOf(DefaultCredentialsProvider.class);
-			});
+			assertThat(awsCredentialsProvider).isNotNull().isInstanceOf(DefaultCredentialsProvider.class);
+		});
 		assertThat(output).doesNotContain("Skipping creating `StsCredentialsProvider`");
 	}
 

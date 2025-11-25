@@ -15,14 +15,13 @@
  */
 package io.awspring.cloud.sqs.listener.backpressure;
 
+import io.awspring.cloud.sqs.listener.BackPressureMode;
+import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import io.awspring.cloud.sqs.listener.BackPressureMode;
-import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -35,8 +34,7 @@ import org.springframework.util.Assert;
  * @see io.awspring.cloud.sqs.listener.source.PollingMessageSource
  */
 @Deprecated
-public class SemaphoreBackPressureHandler
-		implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
+public class SemaphoreBackPressureHandler implements BatchAwareBackPressureHandler, IdentifiableContainerComponent {
 
 	private static final Logger logger = LoggerFactory.getLogger(SemaphoreBackPressureHandler.class);
 

@@ -69,8 +69,8 @@ class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 	@Test
 	void shouldAcquireAndReleaseFullPermits() {
 		String testName = "shouldAcquireAndReleaseFullPermits";
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
-				.semaphoreBackPressureHandler().createBackPressureHandler(SqsContainerOptions.builder().maxMessagesPerPoll(10)
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.semaphoreBackPressureHandler()
+				.createBackPressureHandler(SqsContainerOptions.builder().maxMessagesPerPoll(10)
 						.maxConcurrentMessages(10).backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 						.maxDelayBetweenPolls(Duration.ofMillis(200)).build());
 
@@ -145,9 +145,10 @@ class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 	@Test
 	void shouldAcquireAndReleasePartialPermits() {
 		String testName = "shouldAcquireAndReleasePartialPermits";
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.semaphoreBackPressureHandler().createBackPressureHandler(
-				SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
-						.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofMillis(150)).build());
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.semaphoreBackPressureHandler()
+				.createBackPressureHandler(SqsContainerOptions.builder().maxMessagesPerPoll(10)
+						.maxConcurrentMessages(10).backPressureMode(BackPressureMode.AUTO)
+						.maxDelayBetweenPolls(Duration.ofMillis(150)).build());
 
 		ExecutorService threadPool = Executors
 				.newCachedThreadPool(new MessageExecutionThreadFactory("test " + testCounter.incrementAndGet()));
@@ -244,9 +245,10 @@ class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 	@Test
 	void shouldReleasePermitsOnConversionErrors() {
 		String testName = "shouldReleasePermitsOnConversionErrors";
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.semaphoreBackPressureHandler().createBackPressureHandler(
-				SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
-						.backPressureMode(BackPressureMode.AUTO).maxDelayBetweenPolls(Duration.ofMillis(150)).build());
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.semaphoreBackPressureHandler()
+				.createBackPressureHandler(SqsContainerOptions.builder().maxMessagesPerPoll(10)
+						.maxConcurrentMessages(10).backPressureMode(BackPressureMode.AUTO)
+						.maxDelayBetweenPolls(Duration.ofMillis(150)).build());
 
 		AtomicInteger convertedMessages = new AtomicInteger(0);
 		AtomicInteger messagesInSink = new AtomicInteger(0);
@@ -305,8 +307,8 @@ class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 	@Test
 	void shouldBackOffIfPollingThrowsAnError() {
 		var testName = "shouldBackOffIfPollingThrowsAnError";
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories
-				.semaphoreBackPressureHandler().createBackPressureHandler(SqsContainerOptions.builder().maxMessagesPerPoll(10)
+		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.semaphoreBackPressureHandler()
+				.createBackPressureHandler(SqsContainerOptions.builder().maxMessagesPerPoll(10)
 						.maxConcurrentMessages(40).backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 						.maxDelayBetweenPolls(Duration.ofMillis(200)).build());
 

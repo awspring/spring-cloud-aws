@@ -32,15 +32,15 @@ import software.amazon.awssdk.services.sqs.model.*;
  * message, and change message visibility.
  *
  * <p>
- * <strong>Important - Asynchronous Behavior:</strong> This adapter processes requests asynchronously through
- * batching. The returned {@link CompletableFuture} reflects the batching operation,
- * not the final transmission to AWS SQS. This can lead to false positives where the operation appears successful locally but fails during actual transmission.
- * The actual transmission happens in a background thread, up to the configured {@code sendRequestFrequency} after enqueuing.
- * Applications must:
+ * <strong>Important - Asynchronous Behavior:</strong> This adapter processes requests asynchronously through batching.
+ * The returned {@link CompletableFuture} reflects the batching operation, not the final transmission to AWS SQS. This
+ * can lead to false positives where the operation appears successful locally but fails during actual transmission. The
+ * actual transmission happens in a background thread, up to the configured {@code sendRequestFrequency} after
+ * enqueuing. Applications must:
  * <ul>
- * <li>Handle the returned {@link CompletableFuture} to detect transmission errors.
- * Calling {@code .join()} will block until the batch is sent (up to {@code sendRequestFrequency}),
- * while {@code .exceptionally()} or {@code .handle()} are required for non-blocking error handling.</li>
+ * <li>Handle the returned {@link CompletableFuture} to detect transmission errors. Calling {@code .join()} will block
+ * until the batch is sent (up to {@code sendRequestFrequency}), while {@code .exceptionally()} or {@code .handle()} are
+ * required for non-blocking error handling.</li>
  * <li>Implement appropriate error handling, monitoring, and retry mechanisms for critical operations.</li>
  * </ul>
  *

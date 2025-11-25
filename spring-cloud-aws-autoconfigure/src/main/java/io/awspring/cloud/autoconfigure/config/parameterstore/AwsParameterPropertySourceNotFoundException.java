@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.dynamodb;
+package io.awspring.cloud.autoconfigure.config.parameterstore;
 
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+public class AwsParameterPropertySourceNotFoundException extends RuntimeException {
 
-/**
- * Resolving table schema and table name from a class.
- *
- * @author Matej Nedic
- * @author Maciej Walkowiak
- * @since 3.0
- */
-public interface DynamoDbTableSchemaResolver {
+	AwsParameterPropertySourceNotFoundException(Exception source) {
+		super(source);
+	}
 
-	/**
-	 * Resolves {@link TableSchema} from {@link Class}.
-	 *
-	 * @param clazz - the class from which table schema is resolved
-	 * @return table schema
-	 * @param <T> - type
-	 */
-	<T> TableSchema<T> resolve(Class<T> clazz);
 }

@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
+import static software.amazon.awssdk.core.SdkSystemSetting.AWS_WEB_IDENTITY_TOKEN_FILE;
+
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +45,6 @@ import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider;
-
-import static software.amazon.awssdk.core.SdkSystemSetting.AWS_WEB_IDENTITY_TOKEN_FILE;
 
 /**
  * {@link EnableAutoConfiguration} for {@link AwsCredentialsProvider}.
@@ -105,7 +105,8 @@ public class CredentialsProviderAutoConfiguration {
 		}
 
 		StsProperties sts = properties.getSts();
-		if (isWebIdentitiyTokenFileConfigured(sts) && ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)) {
+		if (isWebIdentitiyTokenFileConfigured(sts)
+				&& ClassUtils.isPresent(STS_WEB_IDENTITY_TOKEN_FILE_CREDENTIALS_PROVIDER, null)) {
 			try {
 				providers.add(StsCredentialsProviderFactory.create(sts, regionProvider));
 			}
@@ -127,8 +128,10 @@ public class CredentialsProviderAutoConfiguration {
 	}
 
 	private static boolean isWebIdentitiyTokenFileConfigured(@Nullable StsProperties sts) {
-		// AWS_WEB_IDENTITY_TOKEN_FILE can be configured either through environment variable, system properties or `spring.cloud.aws.sts` properties.
-		return AWS_WEB_IDENTITY_TOKEN_FILE.getStringValue().isPresent() || (sts != null && sts.getWebIdentityTokenFile() != null);
+		// AWS_WEB_IDENTITY_TOKEN_FILE can be configured either through environment variable, system properties or
+		// `spring.cloud.aws.sts` properties.
+		return AWS_WEB_IDENTITY_TOKEN_FILE.getStringValue().isPresent()
+				|| (sts != null && sts.getWebIdentityTokenFile() != null);
 	}
 
 	private static StaticCredentialsProvider createStaticCredentialsProvider(CredentialsProperties properties) {
