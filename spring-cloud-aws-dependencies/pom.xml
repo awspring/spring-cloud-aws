@@ -28,7 +28,7 @@
 		<kcl.version>3.1.2</kcl.version>
 		<kpl.version>1.0.4</kpl.version>
 		<amazon.dax.version>2.0.6</amazon.dax.version>
-		<amazon.encryption.s3.version>3.3.5</amazon.encryption.s3.version>
+		<dynamodb-streams.version>2.0.1</dynamodb-streams.version>		<amazon.encryption.s3.version>3.3.5</amazon.encryption.s3.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<spring-cloud-commons.version>5.0.0-RC1</spring-cloud-commons.version>
 		<spring-cloud-stream.version>5.0.0-M1</spring-cloud-stream.version>
@@ -294,7 +294,11 @@
 				<artifactId>amazon-kinesis-producer</artifactId>
 				<version>${kpl.version}</version>
 			</dependency>
-
+			<dependency>
+				<groupId>com.amazonaws</groupId>
+				<artifactId>dynamodb-streams-kinesis-adapter</artifactId>
+				<version>${dynamodb-streams.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 

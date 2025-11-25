@@ -16,6 +16,7 @@
 package io.awspring.cloud.kinesis.stream.binder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -85,6 +86,23 @@ public class KinesisBinderFunctionalTests implements LocalstackContainerTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	void testKinesisFunction() throws JsonProcessingException, InterruptedException {
+		List<Binding<?>> consumerBindings = this.bindingService
+				.getConsumerBindings("eventConsumerBatchProcessingWithHeaders-in-0");
+
+		assertThat(consumerBindings).hasSize(1);
+
+		Binding<?> binding = consumerBindings.get(0);
+
+		Map<KinesisShardOffset, ?> shardConsumers = TestUtils.getPropertyValue(binding, "lifecycle.shardConsumers",
+				Map.class);
+		assertThat(shardConsumers).hasSize(2).hasKeySatisfying(keySatisfyingCondition(KINESIS_STREAM))
+				.hasKeySatisfying(keySatisfyingCondition("some_other_stream"));
+
+		Object shardConsumer = shardConsumers.values().iterator().next();
+
+		await().untilAsserted(
+				() -> assertThat(TestUtils.getPropertyValue(shardConsumer, "state").toString()).isEqualTo("CONSUME"));
+
 		PutRecordsRequest.Builder putRecordsRequest = PutRecordsRequest.builder().streamName(KINESIS_STREAM);
 
 		List<PutRecordsRequestEntry> putRecordsRequestEntryList = new ArrayList<>();
@@ -118,18 +136,6 @@ public class KinesisBinderFunctionalTests implements LocalstackContainerTest {
 
 		assertThat(messageFromBatch.getPayload()).isEqualTo("Message0");
 		assertThat(messageFromBatch.getHeaders()).containsEntry("event.eventType", "createEvent");
-
-		List<Binding<?>> consumerBindings = this.bindingService
-				.getConsumerBindings("eventConsumerBatchProcessingWithHeaders-in-0");
-
-		assertThat(consumerBindings).hasSize(1);
-
-		Binding<?> binding = consumerBindings.get(0);
-
-		Map<KinesisShardOffset, ?> shardConsumers = TestUtils.getPropertyValue(binding, "lifecycle.shardConsumers",
-				Map.class);
-		assertThat(shardConsumers).hasSize(2).hasKeySatisfying(keySatisfyingCondition(KINESIS_STREAM))
-				.hasKeySatisfying(keySatisfyingCondition("some_other_stream"));
 	}
 
 	private static Condition<KinesisShardOffset> keySatisfyingCondition(String streamName) {

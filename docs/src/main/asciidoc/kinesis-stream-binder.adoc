@@ -308,6 +308,11 @@ The KCL graceful shutdown timeout in milliseconds.
 +
 Default: 0 - regular shutdown process
 
+dynamoDbStreams::
+Consume from DynamoDB Streams.
++
+Default: false
+
 The `KclMessageDrivenChannelAdapter` can be customized programmatically for the `ConfigsBuilder` parts.
 For example, to set a custom value for the `LeaseManagementConfig.maxLeasesForWorker` property, the `ConsumerEndpointCustomizer<KclMessageDrivenChannelAdapter>` bean has to be provided:
 
@@ -478,6 +483,15 @@ If [Server-Side Encryption](https://docs.aws.amazon.com/streams/latest/dev/what-
     ]
 }
 ----
+
+[[dynamodb-streams-support]]
+=== DynamoDB Streams Support
+
+The Kinesis Binder provides support for consuming CDC events from the https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html[DynamoDB Streams].
+The input binding has to explicitly opt-in for this feature, e.g., `spring.cloud.stream.kinesis.bindings.dynamoDbConsumer-in-0.consumer.dynamoDbStreams=true`.
+The rest of the configuration is done automatically by the binder for both classic and KCL consumers.
+
+NOTE: The binding destination for DynamoDB Stream has to be specified as a Stream ARN on the table to capture changes.
 
 [[telling-the-binder-to-use-your-local-endpoint]]
 === Telling the binder to use your local endpoint

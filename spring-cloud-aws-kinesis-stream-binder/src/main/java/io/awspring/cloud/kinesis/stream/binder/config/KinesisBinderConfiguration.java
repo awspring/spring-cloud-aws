@@ -61,6 +61,8 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClientBuilder;
+import software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsClient;
+import software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsClientBuilder;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClientBuilder;
 import software.amazon.kinesis.producer.KinesisProducerConfiguration;
@@ -79,7 +81,8 @@ import software.amazon.kinesis.producer.KinesisProducerConfiguration;
 @AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
 @ConditionalOnMissingBean(Binder.class)
 @EnableConfigurationProperties({ KinesisBinderConfigurationProperties.class, KinesisExtendedBindingProperties.class,
-		KinesisProperties.class, DynamoDbProperties.class, CloudWatchProperties.class })
+		KinesisProperties.class, DynamoDbProperties.class, DynamoDbStreamsProperties.class,
+		CloudWatchProperties.class })
 public class KinesisBinderConfiguration {
 
 	private final KinesisBinderConfigurationProperties configurationProperties;
@@ -217,11 +220,26 @@ public class KinesisBinderConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean
+	public DynamoDbStreamsClient dynamoDBStreams(DynamoDbStreamsProperties properties,
+			ObjectProvider<AwsClientCustomizer<DynamoDbStreamsClientBuilder>> configurer) {
+		if (this.hasInputs) {
+			return awsClientBuilderConfigurer
+					.configureAsyncClient(DynamoDbStreamsClient.builder(), properties, null, configurer.stream(), null)
+					.build();
+		}
+		else {
+			return null;
+		}
+	}
+
+	@Bean
 	public KinesisMessageChannelBinder kinesisMessageChannelBinder(KinesisStreamProvisioner provisioningProvider,
 			KinesisAsyncClient amazonKinesis, KinesisExtendedBindingProperties kinesisExtendedBindingProperties,
 			@Autowired(required = false) ConcurrentMetadataStore kinesisCheckpointStore,
 			@Autowired(required = false) LockRegistry<?> lockRegistry,
 			@Autowired(required = false) DynamoDbAsyncClient dynamoDBClient,
+			@Autowired(required = false) DynamoDbStreamsClient dynamoDBStreams,
 			@Autowired(required = false) CloudWatchAsyncClient cloudWatchClient,
 			@Autowired(required = false) KinesisProducerConfiguration kinesisProducerConfiguration,
 			@Autowired(required = false) ProducerMessageHandlerCustomizer<? extends AbstractMessageProducingHandler> producerMessageHandlerCustomizer,
@@ -229,7 +247,8 @@ public class KinesisBinderConfiguration {
 			@Autowired ObservationRegistry observationRegistry) {
 
 		KinesisMessageChannelBinder kinesisMessageChannelBinder = new KinesisMessageChannelBinder(
-				this.configurationProperties, provisioningProvider, amazonKinesis, dynamoDBClient, cloudWatchClient);
+				this.configurationProperties, provisioningProvider, amazonKinesis, dynamoDBClient, dynamoDBStreams,
+				cloudWatchClient);
 		kinesisMessageChannelBinder.setCheckpointStore(kinesisCheckpointStore);
 		kinesisMessageChannelBinder.setLockRegistry(lockRegistry);
 		kinesisMessageChannelBinder.setExtendedBindingProperties(kinesisExtendedBindingProperties);

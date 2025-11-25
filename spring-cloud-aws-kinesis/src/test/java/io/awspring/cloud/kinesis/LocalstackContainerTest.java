@@ -27,6 +27,7 @@ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 
 /**
@@ -56,6 +57,10 @@ public interface LocalstackContainerTest {
 
 	static DynamoDbAsyncClient dynamoDbClient() {
 		return applyAwsClientOptions(DynamoDbAsyncClient.builder());
+	}
+
+	static DynamoDbStreamsClient dynamoDbStreamsClient() {
+		return applyAwsClientOptions(DynamoDbStreamsClient.builder());
 	}
 
 	static CloudWatchAsyncClient cloudWatchClient() {

@@ -19,6 +19,7 @@ import io.awspring.cloud.kinesis.stream.binder.properties.KinesisBinderConfigura
 import io.awspring.cloud.kinesis.stream.binder.properties.KinesisConsumerProperties;
 import io.awspring.cloud.kinesis.stream.binder.properties.KinesisProducerProperties;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -92,6 +93,11 @@ public class KinesisStreamProvisioner implements
 		KinesisConsumerProperties kinesisConsumerProperties = properties.getExtension();
 		if (kinesisConsumerProperties.isEmbedHeaders()) {
 			properties.setHeaderMode(HeaderMode.none);
+		}
+
+		if (kinesisConsumerProperties.isDynamoDbStreams()) {
+			logger.info(() -> "Using DynamoDB table in DynamoDB Streams support for inbound: " + name);
+			return new KinesisConsumerDestination(name, Collections.emptyList());
 		}
 
 		int shardCount = properties.getInstanceCount() * properties.getConcurrency();

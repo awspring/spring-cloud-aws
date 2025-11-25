@@ -92,6 +92,8 @@ public class KinesisConsumerProperties {
 
 	private boolean embedHeaders = true;
 
+	private boolean dynamoDbStreams;
+
 	/**
 	 * The {@link MetricsLevel} for emitting (or not) metrics into Cloud Watch.
 	 */
@@ -239,6 +241,14 @@ public class KinesisConsumerProperties {
 
 	public void setGracefulShutdownTimeout(long gracefulShutdownTimeout) {
 		this.gracefulShutdownTimeout = gracefulShutdownTimeout;
+	}
+
+	public boolean isDynamoDbStreams() {
+		return this.dynamoDbStreams;
+	}
+
+	public void setDynamoDbStreams(boolean dynamoDbStreams) {
+		this.dynamoDbStreams = dynamoDbStreams;
 	}
 
 }

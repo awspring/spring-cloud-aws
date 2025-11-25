@@ -21,6 +21,7 @@ import io.awspring.cloud.kinesis.integration.KinesisMessageHandler;
 import io.awspring.cloud.kinesis.integration.KinesisMessageHeaderErrorMessageStrategy;
 import io.awspring.cloud.kinesis.integration.KinesisShardOffset;
 import io.awspring.cloud.kinesis.integration.KplMessageHandler;
+import io.awspring.cloud.kinesis.integration.SpringDynamoDBStreamsAdapterClient;
 import io.awspring.cloud.kinesis.stream.binder.properties.KinesisBinderConfigurationProperties;
 import io.awspring.cloud.kinesis.stream.binder.properties.KinesisConsumerProperties;
 import io.awspring.cloud.kinesis.stream.binder.properties.KinesisExtendedBindingProperties;
@@ -71,6 +72,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.awssdk.services.kinesis.model.InvalidArgumentException;
 import software.amazon.awssdk.services.kinesis.model.Shard;
@@ -112,6 +114,8 @@ public class KinesisMessageChannelBinder extends
 
 	private final BytesMessageMapper embeddedHeadersMapper;
 
+	private final DynamoDbStreamsClient dynamoDBStreams;
+
 	private KinesisExtendedBindingProperties extendedBindingProperties = new KinesisExtendedBindingProperties();
 
 	@Nullable
@@ -130,7 +134,8 @@ public class KinesisMessageChannelBinder extends
 	@SuppressWarnings("removal")
 	public KinesisMessageChannelBinder(KinesisBinderConfigurationProperties configurationProperties,
 			KinesisStreamProvisioner provisioningProvider, KinesisAsyncClient amazonKinesis,
-			@Nullable DynamoDbAsyncClient dynamoDBClient, @Nullable CloudWatchAsyncClient cloudWatchClient) {
+			@Nullable DynamoDbAsyncClient dynamoDBClient, @Nullable DynamoDbStreamsClient dynamoDBStreams,
+			@Nullable CloudWatchAsyncClient cloudWatchClient) {
 
 		super(new String[0], provisioningProvider);
 		Assert.notNull(amazonKinesis, "'amazonKinesis' must not be null");
@@ -138,7 +143,7 @@ public class KinesisMessageChannelBinder extends
 		this.amazonKinesis = amazonKinesis;
 		this.cloudWatchClient = cloudWatchClient;
 		this.dynamoDBClient = dynamoDBClient;
-
+		this.dynamoDBStreams = dynamoDBStreams;
 		this.embeddedHeadersMapper = new org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper(
 				headersToMap(configurationProperties));
 	}
@@ -350,6 +355,9 @@ public class KinesisMessageChannelBinder extends
 
 		KclMessageDrivenChannelAdapter adapter = new KclMessageDrivenChannelAdapter(this.amazonKinesis,
 				this.cloudWatchClient, this.dynamoDBClient, streams);
+		if (kinesisConsumerProperties.isDynamoDbStreams()) {
+			adapter.setDynamoDBStreams(this.dynamoDBStreams);
+		}
 
 		boolean anonymous = !StringUtils.hasText(group);
 		String consumerGroup = anonymous ? "anonymous." + UUID.randomUUID() : group;
@@ -463,6 +471,10 @@ public class KinesisMessageChannelBinder extends
 			}
 		}
 
+		KinesisAsyncClient amazonKinesisClient = kinesisConsumerProperties.isDynamoDbStreams()
+				? new SpringDynamoDBStreamsAdapterClient(this.dynamoDBStreams)
+				: this.amazonKinesis;
+
 		KinesisMessageDrivenChannelAdapter adapter;
 
 		String shardId = kinesisConsumerProperties.getShardId();
@@ -470,17 +482,17 @@ public class KinesisMessageChannelBinder extends
 		if (CollectionUtils.isEmpty(shardOffsets) && shardId == null) {
 			String[] streams = Arrays.stream(StringUtils.commaDelimitedListToStringArray(destination.getName()))
 					.map(String::trim).toArray(String[]::new);
-			adapter = new KinesisMessageDrivenChannelAdapter(this.amazonKinesis, streams);
+			adapter = new KinesisMessageDrivenChannelAdapter(amazonKinesisClient, streams);
 		}
 		else if (shardId != null) {
 			Assert.state(!properties.isMultiplex(), "Cannot use multi-stream binding together with 'shard-id'");
 			KinesisShardOffset shardOffset = new KinesisShardOffset(kinesisShardOffset);
 			shardOffset.setStream(destination.getName());
 			shardOffset.setShard(shardId);
-			adapter = new KinesisMessageDrivenChannelAdapter(this.amazonKinesis, shardOffset);
+			adapter = new KinesisMessageDrivenChannelAdapter(amazonKinesisClient, shardOffset);
 		}
 		else {
-			adapter = new KinesisMessageDrivenChannelAdapter(this.amazonKinesis,
+			adapter = new KinesisMessageDrivenChannelAdapter(amazonKinesisClient,
 					shardOffsets.toArray(new KinesisShardOffset[0]));
 		}
 
