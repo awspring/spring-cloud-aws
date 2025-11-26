@@ -160,6 +160,7 @@ public class KinesisBinderConfiguration {
 	@ConditionalOnProperty(name = "spring.cloud.stream.kinesis.binder.kpl-kcl-enabled", havingValue = "false", matchIfMissing = true)
 	public LockRegistry<?> dynamoDBLockRegistry(
 			@Autowired(required = false) DynamoDbLockRepository dynamoDbLockRepository) {
+
 		if (dynamoDbLockRepository != null) {
 			KinesisBinderConfigurationProperties.Locks locks = this.configurationProperties.getLocks();
 			DynamoDbLockRegistry dynamoDbLockRegistry = new DynamoDbLockRegistry(dynamoDbLockRepository);
@@ -185,8 +186,9 @@ public class KinesisBinderConfiguration {
 			kinesisCheckpointStore.setWriteCapacity(checkpoint.getWriteCapacity());
 			kinesisCheckpointStore.setCreateTableDelay(checkpoint.getCreateDelay());
 			kinesisCheckpointStore.setCreateTableRetries(checkpoint.getCreateRetries());
-			if (checkpoint.getTimeToLive() != null) {
-				kinesisCheckpointStore.setTimeToLive(checkpoint.getTimeToLive());
+			Integer timeToLive = checkpoint.getTimeToLive();
+			if (timeToLive != null) {
+				kinesisCheckpointStore.setTimeToLive(timeToLive);
 			}
 			return kinesisCheckpointStore;
 		}
@@ -200,6 +202,7 @@ public class KinesisBinderConfiguration {
 	@ConditionalOnProperty(name = "spring.cloud.stream.kinesis.binder.kpl-kcl-enabled")
 	public CloudWatchAsyncClient cloudWatch(CloudWatchProperties properties,
 			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer) {
+
 		if (this.hasInputs) {
 			return awsClientBuilderConfigurer.configureAsyncClient(CloudWatchAsyncClient.builder(), properties, null,
 					Stream.of(configurer.getIfAvailable()), null).build();
@@ -223,6 +226,7 @@ public class KinesisBinderConfiguration {
 	@ConditionalOnMissingBean
 	public DynamoDbStreamsClient dynamoDBStreams(DynamoDbStreamsProperties properties,
 			ObjectProvider<AwsClientCustomizer<DynamoDbStreamsClientBuilder>> configurer) {
+
 		if (this.hasInputs) {
 			return awsClientBuilderConfigurer
 					.configureAsyncClient(DynamoDbStreamsClient.builder(), properties, null, configurer.stream(), null)

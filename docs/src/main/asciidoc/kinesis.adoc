@@ -181,13 +181,13 @@ NOTE: Unlike `KinesisMessageDrivenChannelAdapter`, the `KclMessageDrivenChannelA
 
 ==== DynamoDB Streams Support
 
-The `KinesisMessageDrivenChannelAdapter` and `KclMessageDrivenChannelAdapter` provides support for consuming CDC events from the https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html[DynamoDB Streams].
+The `KinesisMessageDrivenChannelAdapter` and `KclMessageDrivenChannelAdapter` provide support for consuming CDC events from the https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html[DynamoDB Streams].
 The `com.amazonaws:dynamodb-streams-kinesis-adapter` dependency must be present on classpath.
 The KCL provides native support for the mentioned adapter, and only instance of `DynamoDbStreamsClient` has to be injected into the `KclMessageDrivenChannelAdapter` to switch consuming logic from the Kinesis stream to DynamoDB stream.
 For consuming via `KinesisMessageDrivenChannelAdapter`, the `SpringDynamoDBStreamsAdapterClient` has to be injected instead of regular `KinesisAsyncClient`.
 The `SpringDynamoDBStreamsAdapterClient` is an extension of the `AmazonDynamoDBStreamsAdapterClient` with overridden `listShards()` and `getRecords()` operations to mimic `KinesisAsyncClient` API called from the `KinesisMessageDrivenChannelAdapter` logic.
 Both channel adapters require a Stream ARN for DynamoDB Stream on the table.
-Using AWS SDK API, such a value is available as a result of the `DescribeTableResponse.table().latestStreamArn()` in the answer to `DynamoDbAsyncClient.describeTable()` request.
+Using AWS SDK API, such a Stream ARN value is available as a result of the `DescribeTableResponse.table().latestStreamArn()` in the answer to `DynamoDbAsyncClient.describeTable()` request.
 
 ==== Spring Integration Starters
 

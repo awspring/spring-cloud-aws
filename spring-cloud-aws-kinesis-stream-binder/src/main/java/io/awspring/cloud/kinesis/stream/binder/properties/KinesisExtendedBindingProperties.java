@@ -57,8 +57,9 @@ public class KinesisExtendedBindingProperties
 
 	@Override
 	public KinesisProducerProperties getExtendedProducerProperties(String channelName) {
-		if (this.bindings.containsKey(channelName) && this.bindings.get(channelName).getProducer() != null) {
-			return this.bindings.get(channelName).getProducer();
+		KinesisBindingProperties kinesisBindingProperties = this.bindings.get(channelName);
+		if (kinesisBindingProperties != null && kinesisBindingProperties.getProducer() != null) {
+			return kinesisBindingProperties.getProducer();
 		}
 		else {
 			return new KinesisProducerProperties();

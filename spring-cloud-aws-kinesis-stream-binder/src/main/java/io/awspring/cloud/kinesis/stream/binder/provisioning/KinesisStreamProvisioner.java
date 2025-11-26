@@ -78,8 +78,7 @@ public class KinesisStreamProvisioner implements
 
 		logger.info(() -> "Using Kinesis stream for outbound: " + name);
 
-		KinesisProducerProperties kinesisProducerProperties = properties.getExtension();
-		if (kinesisProducerProperties.isEmbedHeaders()) {
+		if (properties.getExtension().isEmbedHeaders()) {
 			properties.setHeaderMode(HeaderMode.none);
 		}
 

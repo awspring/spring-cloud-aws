@@ -406,7 +406,7 @@ public class KinesisMessageChannelBinder extends
 		adapter.setPollingMaxRecords(kinesisConsumerProperties.getPollingMaxRecords());
 		adapter.setPollingIdleTime(kinesisConsumerProperties.getPollingIdleTime());
 		adapter.setGracefulShutdownTimeout(kinesisConsumerProperties.getGracefulShutdownTimeout());
-		if (properties.getExtension().isEmbedHeaders() && !properties.isUseNativeDecoding()) {
+		if (kinesisConsumerProperties.isEmbedHeaders() && !properties.isUseNativeDecoding()) {
 			adapter.setEmbeddedHeadersMapper(this.embeddedHeadersMapper);
 		}
 
@@ -509,7 +509,7 @@ public class KinesisMessageChannelBinder extends
 		adapter.setStreamInitialSequence(streamInitialSequence);
 
 		adapter.setListenerMode(kinesisConsumerProperties.getListenerMode());
-		if (properties.getExtension().isEmbedHeaders() && !properties.isUseNativeDecoding()) {
+		if (kinesisConsumerProperties.isEmbedHeaders() && !properties.isUseNativeDecoding()) {
 			adapter.setEmbeddedHeadersMapper(this.embeddedHeadersMapper);
 		}
 
@@ -559,8 +559,9 @@ public class KinesisMessageChannelBinder extends
 			headers.add("X-B3*");
 			headers.add("b3");
 		}
-		if (!ObjectUtils.isEmpty(configurationProperties.getHeaders())) {
-			Collections.addAll(headers, configurationProperties.getHeaders());
+		String[] additionalHeaders = configurationProperties.getHeaders();
+		if (!ObjectUtils.isEmpty(additionalHeaders)) {
+			Collections.addAll(headers, additionalHeaders);
 		}
 		return headers.toArray(new String[0]);
 	}

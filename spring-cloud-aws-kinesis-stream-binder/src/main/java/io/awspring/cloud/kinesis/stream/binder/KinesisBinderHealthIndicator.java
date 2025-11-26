@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.kinesis.model.LimitExceededException;
 /**
  * @author Artem Bilan
  *
- * @since 2.0
+ * @since 4.0
  */
 public class KinesisBinderHealthIndicator implements HealthIndicator {
 
