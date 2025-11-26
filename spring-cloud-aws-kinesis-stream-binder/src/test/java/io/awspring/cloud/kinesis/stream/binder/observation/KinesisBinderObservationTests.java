@@ -35,7 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
+import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,7 +68,7 @@ import reactor.core.publisher.Flux;
 		"spring.cloud.stream.kinesis.binder.enable-observation=true",
 		"logging.level.org.springframework.cloud.stream.binder.kinesis.observation=debug",
 		"management.tracing.sampling.probability=1.0" })
-@AutoConfigureObservability
+@AutoConfigureTracing
 @DirtiesContext
 public class KinesisBinderObservationTests implements LocalstackContainerTest {
 
