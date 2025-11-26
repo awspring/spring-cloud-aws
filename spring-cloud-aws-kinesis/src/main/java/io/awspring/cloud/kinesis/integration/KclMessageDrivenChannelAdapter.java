@@ -15,6 +15,11 @@
  */
 package io.awspring.cloud.kinesis.integration;
 
+import com.amazonaws.services.dynamodbv2.streamsadapter.AmazonDynamoDBStreamsAdapterClient;
+import com.amazonaws.services.dynamodbv2.streamsadapter.StreamsSchedulerFactory;
+import com.amazonaws.services.dynamodbv2.streamsadapter.model.DynamoDBStreamsProcessRecordsInput;
+import com.amazonaws.services.dynamodbv2.streamsadapter.polling.DynamoDBStreamsPollingConfig;
+import com.amazonaws.services.dynamodbv2.streamsadapter.processor.DynamoDBStreamsShardRecordProcessor;
 import com.amazonaws.services.schemaregistry.deserializers.GlueSchemaRegistryDeserializer;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -50,6 +55,7 @@ import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.awssdk.services.kinesis.model.DescribeStreamSummaryResponse;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -113,6 +119,8 @@ public class KclMessageDrivenChannelAdapter extends MessageProducerSupport imple
 	private final CloudWatchAsyncClient cloudWatchClient;
 
 	private final DynamoDbAsyncClient dynamoDBClient;
+
+	private DynamoDbStreamsClient dynamoDBStreams;
 
 	private TaskExecutor executor = new SimpleAsyncTaskExecutor();
 
@@ -385,6 +393,11 @@ public class KclMessageDrivenChannelAdapter extends MessageProducerSupport imple
 		this.gracefulShutdownTimeout = gracefulShutdownTimeout;
 	}
 
+	public void setDynamoDBStreams(DynamoDbStreamsClient dynamoDBStreams) {
+		this.dynamoDBStreams = dynamoDBStreams;
+		this.fanOut = false;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -402,11 +415,22 @@ public class KclMessageDrivenChannelAdapter extends MessageProducerSupport imple
 
 	private StreamTracker buildStreamTracker() {
 		if (this.streams.length == 1) {
-			return new SingleStreamTracker(StreamIdentifier.singleStreamInstance(this.streams[0]),
+			String singleStream = this.streams[0];
+			if (this.dynamoDBStreams != null) {
+				return StreamsSchedulerFactory.createSingleStreamTracker(singleStream, this.streamInitialSequence);
+			}
+
+			return new SingleStreamTracker(StreamIdentifier.singleStreamInstance(singleStream),
 					this.streamInitialSequence);
 		}
 		else {
-			return new StreamsTracker();
+			StreamsTracker streamsTracker = new StreamsTracker();
+			if (this.dynamoDBStreams != null) {
+				return StreamsSchedulerFactory.createMultiStreamTracker(Arrays.asList(this.streams),
+						this.streamInitialSequence, streamsTracker.formerStreamsLeasesDeletionStrategy);
+			}
+
+			return streamsTracker;
 		}
 	}
 
@@ -427,12 +451,16 @@ public class KclMessageDrivenChannelAdapter extends MessageProducerSupport imple
 		RetrievalSpecificConfig retrievalSpecificConfig;
 		String singleStreamName = this.streams.length == 1 ? this.streams[0] : null;
 		if (this.fanOut) {
+			Assert.state(this.dynamoDBStreams == null, "'DynamoDBStreams' consumption does not support 'fan-out'.");
 			retrievalSpecificConfig = new FanOutConfig(this.kinesisClient).applicationName(this.consumerGroup)
 					.streamName(singleStreamName);
 		}
 		else {
-			retrievalSpecificConfig = new PollingConfig(this.kinesisClient).streamName(singleStreamName)
-					.maxRecords(this.pollingMaxRecords).idleTimeBetweenReadsInMillis(this.pollingIdleTime);
+			PollingConfig pollingConfig = this.dynamoDBStreams == null ? new PollingConfig(this.kinesisClient)
+					: new DynamoDBStreamsPollingConfig(this.kinesisClient);
+
+			retrievalSpecificConfig = pollingConfig.streamName(singleStreamName).maxRecords(this.pollingMaxRecords)
+					.idleTimeBetweenReadsInMillis(this.pollingIdleTime);
 		}
 
 		RetrievalConfig retrievalConfig = this.config.retrievalConfig()
@@ -455,8 +483,17 @@ public class KclMessageDrivenChannelAdapter extends MessageProducerSupport imple
 		ProcessorConfig processorConfig = this.config.processorConfig()
 				.callProcessRecordsEvenForEmptyRecordList(this.emptyRecordList);
 
-		this.scheduler = new Scheduler(this.config.checkpointConfig(), coordinatorConfig, leaseManagementConfig,
-				lifecycleConfig, metricsConfig, processorConfig, retrievalConfig);
+		if (this.dynamoDBStreams != null) {
+			this.scheduler = StreamsSchedulerFactory.createScheduler(this.config.checkpointConfig(), coordinatorConfig,
+					leaseManagementConfig, lifecycleConfig, metricsConfig, processorConfig, retrievalConfig,
+					new AmazonDynamoDBStreamsAdapterClient(this.dynamoDBStreams) {
+
+					});
+		}
+		else {
+			this.scheduler = new Scheduler(this.config.checkpointConfig(), coordinatorConfig, leaseManagementConfig,
+					lifecycleConfig, metricsConfig, processorConfig, retrievalConfig);
+		}
 
 		this.executor.execute(this.scheduler);
 	}
@@ -513,7 +550,7 @@ public class KclMessageDrivenChannelAdapter extends MessageProducerSupport imple
 
 		@Override
 		public ShardRecordProcessor shardRecordProcessor() {
-			throw new UnsupportedOperationException();
+			return new RecordProcessor(null);
 		}
 
 		@Override
@@ -562,7 +599,7 @@ public class KclMessageDrivenChannelAdapter extends MessageProducerSupport imple
 	/**
 	 * Processes records and checkpoints progress.
 	 */
-	private final class RecordProcessor implements ShardRecordProcessor {
+	private final class RecordProcessor implements DynamoDBStreamsShardRecordProcessor {
 
 		private final String stream;
 
@@ -610,6 +647,22 @@ public class KclMessageDrivenChannelAdapter extends MessageProducerSupport imple
 			catch (ShutdownException | InvalidStateException ex) {
 				logger.error(ex, "Exception while checkpointing at requested shutdown. Giving up");
 			}
+		}
+
+		@Override
+		public void processRecords(DynamoDBStreamsProcessRecordsInput dynamoDBStreamsProcessRecordsInput) {
+			ProcessRecordsInput processRecordsInput = ProcessRecordsInput.builder()
+					.cacheEntryTime(dynamoDBStreamsProcessRecordsInput.cacheEntryTime())
+					.checkpointer(dynamoDBStreamsProcessRecordsInput.checkpointer())
+					.cacheExitTime(dynamoDBStreamsProcessRecordsInput.cacheExitTime())
+					.isAtShardEnd(dynamoDBStreamsProcessRecordsInput.isAtShardEnd())
+					.millisBehindLatest(dynamoDBStreamsProcessRecordsInput.millisBehindLatest())
+					.childShards(dynamoDBStreamsProcessRecordsInput.childShards())
+					.records(dynamoDBStreamsProcessRecordsInput.records().stream().map(KinesisClientRecord.class::cast)
+							.toList())
+					.build();
+
+			processRecords(processRecordsInput);
 		}
 
 		@Override

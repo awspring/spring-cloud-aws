@@ -182,11 +182,12 @@ public class KclMessageDrivenChannelAdapterTests implements LocalstackContainerT
 			adapter.setOutputChannel(kinesisReceiveChannel);
 			adapter.setConverter(String::new);
 			adapter.setConsumerGroup("single_stream_group");
-			adapter.setLeaseTableName("test_table");
+			adapter.setLeaseTableName(LEASE_TABLE_NAME);
 			adapter.setFanOut(false);
 			adapter.setMetricsLevel(MetricsLevel.NONE);
-			adapter.setLeaseManagementConfigCustomizer(leaseManagementConfig -> leaseManagementConfig
-					.maxLeasesForWorker(10).workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
+			adapter.setLeaseManagementConfigCustomizer(
+					leaseManagementConfig -> leaseManagementConfig.maxLeasesForWorker(10).shardSyncIntervalMillis(0)
+							.workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
 			adapter.setCoordinatorConfigCustomizer(
 					coordinatorConfig -> coordinatorConfig.shardConsumerDispatchPollIntervalMillis(500L));
 			adapter.setBindSourceRecord(true);

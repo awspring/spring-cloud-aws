@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.kinesis;
+package io.awspring.cloud.kinesis.stream.binder;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -49,6 +49,10 @@ public interface LocalstackContainerTest {
 	@BeforeAll
 	static void startContainer() {
 		LOCAL_STACK_CONTAINER.start();
+		System.setProperty("spring.cloud.aws.region.static", LOCAL_STACK_CONTAINER.getRegion());
+		System.setProperty("spring.cloud.aws.endpoint", LOCAL_STACK_CONTAINER.getEndpoint().toString());
+		System.setProperty("spring.cloud.aws.credentials.access-key", LOCAL_STACK_CONTAINER.getAccessKey());
+		System.setProperty("spring.cloud.aws.credentials.secret-key", LOCAL_STACK_CONTAINER.getSecretKey());
 	}
 
 	static KinesisAsyncClient kinesisClient() {

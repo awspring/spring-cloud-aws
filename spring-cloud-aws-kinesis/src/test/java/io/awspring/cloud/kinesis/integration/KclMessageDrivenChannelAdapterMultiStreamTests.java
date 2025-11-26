@@ -130,8 +130,9 @@ class KclMessageDrivenChannelAdapterMultiStreamTests implements LocalstackContai
 			adapter.setConverter(String::new);
 			adapter.setConsumerGroup("multi_stream_group");
 			adapter.setMetricsLevel(MetricsLevel.NONE);
-			adapter.setLeaseManagementConfigCustomizer(leaseManagementConfig -> leaseManagementConfig
-					.workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
+			adapter.setLeaseManagementConfigCustomizer(
+					leaseManagementConfig -> leaseManagementConfig.maxLeasesForWorker(10).shardSyncIntervalMillis(0)
+							.workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
 			return adapter;
 		}
 
