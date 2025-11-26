@@ -22,6 +22,9 @@ import com.amazonaws.services.dynamodbv2.streamsadapter.AmazonDynamoDBStreamsAda
 import io.awspring.cloud.kinesis.LocalstackContainerTest;
 import java.time.Duration;
 import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.DirectFieldAccessor;
@@ -58,6 +61,8 @@ import software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsClient;
 @DirtiesContext
 class DynamoDbStreamToKinesisIntegrationTests implements LocalstackContainerTest {
 
+	static final Log LOGGER = LogFactory.getLog(DynamoDbStreamToKinesisIntegrationTests.class);
+
 	static final String TEST_TABLE = "StreamsDemoTable";
 
 	static final String TABLE_KEY = "id";
@@ -79,6 +84,17 @@ class DynamoDbStreamToKinesisIntegrationTests implements LocalstackContainerTest
 		DYNAMODB = LocalstackContainerTest.dynamoDbClient();
 		DYNAMODB_STREAMS = LocalstackContainerTest.dynamoDbStreamsClient();
 		DYNAMODB_STREAM_ARN = createDemoTable();
+
+		AmazonDynamoDBStreamsAdapterClient streamsAdapterClient = new AmazonDynamoDBStreamsAdapterClient(
+			DYNAMODB_STREAMS, null);
+
+		await().atMost(Duration.ofMinutes(2))
+			.untilAsserted(() -> assertThat(
+				streamsAdapterClient.describeStream(builder -> builder.streamName(DYNAMODB_STREAM_ARN)))
+				.succeedsWithin(Duration.ofSeconds(60))
+				.extracting(describeStreamResponse -> describeStreamResponse.streamDescription()
+					.streamStatusAsString())
+				.isEqualTo("ENABLED"));
 	}
 
 	private static String createDemoTable() {
@@ -102,18 +118,6 @@ class DynamoDbStreamToKinesisIntegrationTests implements LocalstackContainerTest
 
 	@Test
 	void fromDynamoDbStreamToKinesis() {
-		AmazonDynamoDBStreamsAdapterClient streamsAdapterClient = new AmazonDynamoDBStreamsAdapterClient(
-				DYNAMODB_STREAMS, null);
-
-		await().atMost(Duration.ofMinutes(2))
-				.untilAsserted(() -> assertThat(
-						streamsAdapterClient.describeStream(builder -> builder.streamName(DYNAMODB_STREAM_ARN)))
-						.succeedsWithin(Duration.ofSeconds(60))
-						.extracting(describeStreamResponse -> describeStreamResponse.streamDescription()
-								.streamStatusAsString())
-						.isEqualTo("ENABLED"));
-
-		this.kinesisMessageDrivenChannelAdapter.start();
 		Map<?, ?> shardConsumers = TestUtils.getPropertyValue(this.kinesisMessageDrivenChannelAdapter, "shardConsumers",
 				Map.class);
 
@@ -129,8 +133,11 @@ class DynamoDbStreamToKinesisIntegrationTests implements LocalstackContainerTest
 				.join();
 
 		Message<?> receive = this.kinesisReceiveChannel.receive(120_000);
-		assertThat(receive).extracting(Message::getPayload).asString().contains("some_id", "some value",
-				"\"eventName\":\"INSERT\"", "\"eventSource\":\"aws:dynamodb\"");
+		assertThat(receive)
+			.satisfies(LOGGER::warn)
+			.extracting(Message::getPayload)
+			.asString()
+			.contains("some_id", "some value", "\"eventName\":\"INSERT\"", "\"eventSource\":\"aws:dynamodb\"");
 
 		DYNAMODB.updateItem(
 				builder -> builder.tableName(TEST_TABLE).key(Map.of(TABLE_KEY, AttributeValue.fromS("some_id")))
@@ -139,15 +146,22 @@ class DynamoDbStreamToKinesisIntegrationTests implements LocalstackContainerTest
 				.join();
 
 		receive = this.kinesisReceiveChannel.receive(30_000);
-		assertThat(receive).extracting(Message::getPayload).asString().contains("some_id", "some value",
-				"updated value", "\"eventName\":\"MODIFY\"");
+		assertThat(receive)
+			.satisfies(LOGGER::warn)
+			.extracting(Message::getPayload)
+			.asString()
+			.contains("some_id", "some value", "updated value", "\"eventName\":\"MODIFY\"");
 
 		DYNAMODB.deleteItem(
 				builder -> builder.tableName(TEST_TABLE).key(Map.of(TABLE_KEY, AttributeValue.fromS("some_id"))))
 				.join();
 
 		receive = this.kinesisReceiveChannel.receive(30_000);
-		assertThat(receive).extracting(Message::getPayload).asString().contains("some_id", "\"eventName\":\"REMOVE\"");
+		assertThat(receive)
+			.satisfies(LOGGER::warn)
+			.extracting(Message::getPayload)
+			.asString()
+			.contains("some_id", "\"eventName\":\"REMOVE\"");
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -163,7 +177,6 @@ class DynamoDbStreamToKinesisIntegrationTests implements LocalstackContainerTest
 		KinesisMessageDrivenChannelAdapter kinesisMessageDrivenChannelAdapter(PollableChannel kinesisReceiveChannel) {
 			KinesisMessageDrivenChannelAdapter adapter = new KinesisMessageDrivenChannelAdapter(
 					new SpringDynamoDBStreamsAdapterClient(DYNAMODB_STREAMS), DYNAMODB_STREAM_ARN);
-			adapter.setAutoStartup(false);
 			adapter.setStreamInitialSequence(KinesisShardOffset.trimHorizon());
 			adapter.setOutputChannel(kinesisReceiveChannel);
 			adapter.setConverter(String::new);
