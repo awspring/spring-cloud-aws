@@ -16,7 +16,9 @@
 package io.awspring.cloud.kinesis.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
+import com.amazonaws.services.dynamodbv2.streamsadapter.AmazonDynamoDBStreamsAdapterClient;
 import io.awspring.cloud.kinesis.LocalstackContainerTest;
 import java.time.Duration;
 import java.util.Map;
@@ -85,6 +87,17 @@ class DynamoDbStreamToKclIntegrationTests implements LocalstackContainerTest {
 		DYNAMODB = LocalstackContainerTest.dynamoDbClient();
 		DYNAMODB_STREAMS = LocalstackContainerTest.dynamoDbStreamsClient();
 		DYNAMODB_STREAM_ARN = createDemoTable();
+
+		AmazonDynamoDBStreamsAdapterClient streamsAdapterClient = new AmazonDynamoDBStreamsAdapterClient(
+			DYNAMODB_STREAMS, null);
+
+		await().atMost(Duration.ofMinutes(2))
+			.untilAsserted(() -> assertThat(
+				streamsAdapterClient.describeStream(builder -> builder.streamName(DYNAMODB_STREAM_ARN)))
+				.succeedsWithin(Duration.ofSeconds(60))
+				.extracting(describeStreamResponse -> describeStreamResponse.streamDescription()
+					.streamStatusAsString())
+				.isEqualTo("ENABLED"));
 	}
 
 	private static String createDemoTable() {
