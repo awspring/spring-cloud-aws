@@ -16,20 +16,15 @@
 package io.awspring.cloud.autoconfigure.s3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
-import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
-import io.awspring.cloud.s3.Jackson2JsonS3ObjectConverter;
-import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
-import io.awspring.cloud.s3.S3ObjectContentTypeResolver;
-import io.awspring.cloud.s3.S3ObjectConverter;
-import io.awspring.cloud.s3.S3Operations;
-import io.awspring.cloud.s3.S3OutputStreamProvider;
-import io.awspring.cloud.s3.S3ProtocolResolver;
-import io.awspring.cloud.s3.S3Template;
+import io.awspring.cloud.core.support.JacksonPresent;
+import io.awspring.cloud.s3.*;
+
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -193,8 +188,15 @@ public class S3AutoConfiguration {
 
 		@ConditionalOnMissingBean
 		@Bean
-		S3ObjectConverter s3ObjectConverter(Optional<ObjectMapper> objectMapper) {
-			return new Jackson2JsonS3ObjectConverter(objectMapper.orElseGet(ObjectMapper::new));
+		S3ObjectConverter s3ObjectConverter(Optional<JsonMapper> jsonMapper, Optional<ObjectMapper> objectMapper) {
+			if (JacksonPresent.isJackson2Present()) {
+				return new LegacyJackson2JsonS3ObjectConverter(objectMapper.orElseGet(ObjectMapper::new));
+			} else if (JacksonPresent.isJackson3Present()) {
+				return new Jackson2JsonS3ObjectConverter(jsonMapper.orElseGet(JsonMapper::new));
+			} else {
+				throw new IllegalStateException(
+					"SecretsManagerPropertySource requires a Jackson 2 or Jackson 3 library on the classpath");
+			}
 		}
 	}
 
