@@ -302,21 +302,35 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 		String endpointToUse = getEndpointName(endpointName);
 		logger.trace("Sending message {} to endpoint {}", MessageHeaderUtils.getId(message), endpointName);
 
-		// Create observation and add trace headers BEFORE async preprocessing
-		// This ensures trace context is captured on the calling thread
-		var context = this.observationSpecifics.createContext(message, endpointToUse);
-		var observation = startObservation(context);
-		var carrier = Objects.requireNonNull(context.getCarrier(), "No carrier found in context.");
-		var messageWithObservationHeaders = MessageHeaderUtils.addHeadersIfAbsent(message, carrier);
+		// Capture parent observation on the calling thread to propagate trace context across async boundary
+		var parentObservation = this.observationRegistry.getCurrentObservation();
 
-		return preProcessMessageForSendAsync(endpointToUse, messageWithObservationHeaders).thenCompose(
-				messageToUse -> doSendAndCompleteObservation(messageToUse, endpointToUse, context, observation)
-						.exceptionallyCompose(
-								t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
-										"Message send operation failed for message %s to endpoint %s"
-												.formatted(MessageHeaderUtils.getId(message), endpointToUse),
-										endpointToUse, message, t)))
-						.whenComplete((v, t) -> logSendMessageResult(endpointToUse, message, t)));
+		return preProcessMessageForSendAsync(endpointToUse, message).thenCompose(preprocessedMessage -> {
+			// Create observation context with preprocessed message (now includes FIFO headers if applicable)
+			var context = this.observationSpecifics.createContext(preprocessedMessage, endpointToUse);
+
+			// Start observation and link to parent to maintain trace continuity
+			Observation observation;
+			if (parentObservation != null) {
+				observation = Observation.createNotStarted(this.observationSpecifics.getDefaultConvention().getName(),
+						() -> context, this.observationRegistry).parentObservation(parentObservation).start();
+			}
+			else {
+				observation = startObservation(context);
+			}
+
+			// Add trace headers to the message
+			var carrier = Objects.requireNonNull(context.getCarrier(), "No carrier found in context.");
+			var messageWithObservationHeaders = MessageHeaderUtils.addHeadersIfAbsent(preprocessedMessage, carrier);
+
+			return doSendAndCompleteObservation(messageWithObservationHeaders, endpointToUse, context, observation)
+					.exceptionallyCompose(
+							t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
+									"Message send operation failed for message %s to endpoint %s"
+											.formatted(MessageHeaderUtils.getId(message), endpointToUse),
+									endpointToUse, message, t)))
+					.whenComplete((v, t) -> logSendMessageResult(endpointToUse, message, t));
+		});
 	}
 
 	private <T> CompletableFuture<SendResult<T>> doSendAndCompleteObservation(Message<T> message, String endpointToUse,
