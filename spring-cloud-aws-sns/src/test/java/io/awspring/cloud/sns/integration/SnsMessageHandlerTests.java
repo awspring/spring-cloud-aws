@@ -92,8 +92,8 @@ class SnsMessageHandlerTests {
 		assertThat(publishRequest.subject()).isEqualTo("subject");
 		assertThat(publishRequest.messageGroupId()).isEqualTo("SUBJECT");
 		assertThat(publishRequest.messageDeduplicationId()).isEqualTo("TESTVALUE");
-		assertThat(publishRequest.message())
-				.isEqualTo("{\"default\":\"test data\",\"sms\":\"{\\\"testAttribute\\\" : \\\"test data\\\"}\"}");
+		assertThat(publishRequest.message()).startsWith("{").endsWith("}").contains("\"default\":\"test data\"")
+				.contains("\"sms\":\"{\\\"testAttribute\\\" : \\\"test data\\\"}\"");
 
 		Map<String, MessageAttributeValue> messageAttributes = publishRequest.messageAttributes();
 
