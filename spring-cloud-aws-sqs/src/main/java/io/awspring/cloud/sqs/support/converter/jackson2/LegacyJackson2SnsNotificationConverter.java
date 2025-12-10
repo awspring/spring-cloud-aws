@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.converter;
+package io.awspring.cloud.sqs.support.converter.jackson2;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.support.converter.SnsNotification;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -28,17 +30,11 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
-import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Converter that extracts SNS notifications from SQS messages and creates {@link SnsNotification} objects.
- *
- * @author Damien Chomat
- * @since 3.4.1
- */
-public class SnsNotificationConverter implements SmartMessageConverter {
+@Deprecated
+public class LegacyJackson2SnsNotificationConverter implements SmartMessageConverter {
 
-	private final JsonMapper jsonMapper;
+	private final ObjectMapper jsonMapper;
 
 	private final MessageConverter payloadConverter;
 
@@ -47,7 +43,7 @@ public class SnsNotificationConverter implements SmartMessageConverter {
 	 * @param payloadConverter the converter to use for the message payload
 	 * @param jsonMapper the JSON mapper to use for parsing the SNS notification
 	 */
-	public SnsNotificationConverter(MessageConverter payloadConverter, JsonMapper jsonMapper) {
+	public LegacyJackson2SnsNotificationConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
 		Assert.notNull(payloadConverter, "payloadConverter must not be null");
 		Assert.notNull(jsonMapper, "jsonMapper must not be null");
 		this.payloadConverter = payloadConverter;

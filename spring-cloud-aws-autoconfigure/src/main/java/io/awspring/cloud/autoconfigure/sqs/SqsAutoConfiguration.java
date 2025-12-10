@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.autoconfigure.sqs;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -31,8 +30,12 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
+import io.awspring.cloud.sqs.support.converter.AbstractMessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.JacksonJsonMessageConverterFactory;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2MessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import io.micrometer.observation.ObservationRegistry;
@@ -49,6 +52,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SQS integration.
@@ -87,7 +91,8 @@ public class SqsAutoConfiguration {
 
 	@ConditionalOnMissingBean
 	@Bean
-	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient, ObjectProvider<ObjectMapper> objectMapperProvider,
+	public SqsTemplate sqsTemplate(SqsAsyncClient sqsAsyncClient,
+			ObjectProvider<AbstractMessageConverterFactory> objectMapperProvider,
 			ObjectProvider<ObservationRegistry> observationRegistryProvider,
 			ObjectProvider<SqsTemplateObservation.Convention> observationConventionProvider,
 			MessagingMessageConverter<Message> messageConverter) {
@@ -114,7 +119,8 @@ public class SqsAutoConfiguration {
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
 			ObjectProvider<ObservationRegistry> observationRegistry,
 			ObjectProvider<SqsListenerObservation.Convention> observationConventionProvider,
-			ObjectProvider<MessageInterceptor<Object>> interceptors, ObjectProvider<ObjectMapper> objectMapperProvider,
+			ObjectProvider<MessageInterceptor<Object>> interceptors,
+			ObjectProvider<AbstractMessageConverterFactory> objectMapperProvider,
 			MessagingMessageConverter<?> messagingMessageConverter) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
@@ -135,16 +141,11 @@ public class SqsAutoConfiguration {
 		return factory;
 	}
 
-	private void setMapperToConverter(MessagingMessageConverter<?> messagingMessageConverter, ObjectMapper om) {
-		if (messagingMessageConverter instanceof SqsMessagingMessageConverter sqsConverter) {
-			sqsConverter.setObjectMapper(om);
+	private void setMapperToConverter(MessagingMessageConverter<?> messagingMessageConverter,
+			AbstractMessageConverterFactory factory) {
+		if (messagingMessageConverter instanceof LegacySqsMessagingMessageConverter sqsConverter) {
+			sqsConverter.setObjectMapper(((LegacyJackson2MessageConverterFactory) factory).getObjectMapper());
 		}
-	}
-
-	@ConditionalOnMissingBean
-	@Bean
-	public MessagingMessageConverter<Message> messageConverter() {
-		return new SqsMessagingMessageConverter();
 	}
 
 	private void configureProperties(SqsContainerOptionsBuilder options) {
@@ -157,13 +158,26 @@ public class SqsAutoConfiguration {
 		mapper.from(this.sqsProperties.getListener().getAutoStartup()).to(options::autoStartup);
 	}
 
+	@ConditionalOnMissingBean
 	@Bean
-	public SqsListenerConfigurer objectMapperCustomizer(ObjectProvider<ObjectMapper> objectMapperProvider) {
-		ObjectMapper objectMapper = objectMapperProvider.getIfUnique();
+	public MessagingMessageConverter<Message> messageConverter() {
+		return new SqsMessagingMessageConverter();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public AbstractMessageConverterFactory jsonMapperWrapper(ObjectProvider<JsonMapper> jsonMapper) {
+		JsonMapper mapper = jsonMapper.getIfAvailable(JsonMapper::new);
+		return new JacksonJsonMessageConverterFactory(mapper);
+	}
+
+	@Bean
+	public SqsListenerConfigurer objectMapperCustomizer(
+			ObjectProvider<AbstractMessageConverterFactory> objectProviderWrapper) {
+		AbstractMessageConverterFactory wrapper = objectProviderWrapper.getIfUnique();
 		return registrar -> {
-			// Object Mapper for SqsListener annotations handler method
-			if (registrar.getObjectMapper() == null && objectMapper != null) {
-				registrar.setObjectMapper(objectMapper);
+			if (wrapper != null) {
+				registrar.setJacksonMapperWrapper(wrapper);
 			}
 		};
 	}

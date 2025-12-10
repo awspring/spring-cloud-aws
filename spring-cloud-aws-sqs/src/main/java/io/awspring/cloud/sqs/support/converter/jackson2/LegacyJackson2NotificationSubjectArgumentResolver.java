@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.resolver;
+package io.awspring.cloud.sqs.support.converter.jackson2;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SnsNotificationSubject;
-import io.awspring.cloud.sqs.support.converter.SnsSubjectConverter;
 import java.lang.reflect.Executable;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -26,20 +26,21 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.ClassUtils;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Alexander Nebel
  * @since 3.3.1
  */
-public class NotificationSubjectArgumentResolver implements HandlerMethodArgumentResolver {
+@Deprecated
+public class LegacyJackson2NotificationSubjectArgumentResolver implements HandlerMethodArgumentResolver {
 
-	private static final Logger logger = LoggerFactory.getLogger(NotificationSubjectArgumentResolver.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(LegacyJackson2NotificationSubjectArgumentResolver.class);
 
 	private final MessageConverter converter;
 
-	public NotificationSubjectArgumentResolver(JsonMapper jsonMapper) {
-		this.converter = new SnsSubjectConverter(jsonMapper);
+	public LegacyJackson2NotificationSubjectArgumentResolver(ObjectMapper jsonMapper) {
+		this.converter = new LegacyJackson2SnsSubjectConverter(jsonMapper);
 	}
 
 	@Override

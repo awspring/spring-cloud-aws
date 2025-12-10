@@ -20,7 +20,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMod
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactories;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactory;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
-import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
 import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
@@ -248,7 +248,7 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final ListenerMode DEFAULT_MESSAGE_DELIVERY_STRATEGY = ListenerMode.SINGLE_MESSAGE;
 
-		private static final MessagingMessageConverter<?> DEFAULT_MESSAGE_CONVERTER = new SqsMessagingMessageConverter();
+		private static final MessagingMessageConverter<?> DEFAULT_MESSAGE_CONVERTER = new LegacySqsMessagingMessageConverter();
 
 		private static final AcknowledgementMode DEFAULT_ACKNOWLEDGEMENT_MODE = AcknowledgementMode.ON_SUCCESS;
 

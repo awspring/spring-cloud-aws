@@ -13,43 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.resolver;
+package io.awspring.cloud.sqs.support.resolver.jacskon2;
 
-import io.awspring.cloud.sqs.support.converter.SnsNotification;
-import io.awspring.cloud.sqs.support.converter.SnsNotificationConverter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.annotation.SnsNotificationMessage;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SnsMessageConverter;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Resolves method parameters with {@link SnsNotification} object.
- *
- * @author Damien Chomat
- * @since 3.4.1
+ * @author Michael Sosa
+ * @author gustavomonarin
+ * @author Wei Jiang
+ * @since 3.1.1
  */
-public class SnsNotificationArgumentResolver implements HandlerMethodArgumentResolver {
+@Deprecated
+public class LegacyJackson2NotificationMessageArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private final SmartMessageConverter converter;
 
-	/**
-	 * Creates a new resolver with the given converter and JSON mapper.
-	 * @param converter the message converter to use for the message payload
-	 * @param jsonMapper the JSON mapper to use for parsing the SNS notification
-	 */
-	public SnsNotificationArgumentResolver(MessageConverter converter, JsonMapper jsonMapper) {
-		this.converter = new SnsNotificationConverter(converter, jsonMapper);
+	public LegacyJackson2NotificationMessageArgumentResolver(MessageConverter converter, ObjectMapper jsonMapper) {
+		this.converter = new LegacyJackson2SnsMessageConverter(converter, jsonMapper);
 	}
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
-		return SnsNotification.class.isAssignableFrom(parameter.getParameterType());
+		return parameter.hasParameterAnnotation(SnsNotificationMessage.class);
 	}
 
 	@Override
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
-		return this.converter.fromMessage(message, parameter.getParameterType(), parameter);
+	public Object resolveArgument(MethodParameter par, Message<?> msg) {
+		return this.converter.fromMessage(msg, par.getParameterType(), par);
 	}
+
 }

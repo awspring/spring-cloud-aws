@@ -15,12 +15,11 @@
  */
 package io.awspring.cloud.s3;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import java.io.IOException;
 import java.io.InputStream;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.core.sync.RequestBody;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Jackson based implementation of {@link S3ObjectConverter}. Serializes/deserializes objects to/from JSON.
@@ -42,7 +41,7 @@ public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 		try {
 			return RequestBody.fromBytes(jsonMapper.writeValueAsBytes(object));
 		}
-		catch (JsonProcessingException e) {
+		catch (JacksonException e) {
 			throw new S3Exception("Failed to serialize object to JSON", e);
 		}
 	}
@@ -54,7 +53,7 @@ public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 		try {
 			return jsonMapper.readValue(is, clazz);
 		}
-		catch (IOException e) {
+		catch (JacksonException e) {
 			throw new S3Exception("Failed to deserialize object from JSON", e);
 		}
 	}

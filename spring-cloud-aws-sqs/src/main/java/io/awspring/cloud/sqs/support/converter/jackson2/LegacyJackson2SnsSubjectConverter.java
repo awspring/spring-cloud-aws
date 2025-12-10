@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.converter;
+package io.awspring.cloud.sqs.support.converter.jackson2;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -22,19 +23,19 @@ import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Alexander Nebel
  * @since 3.3.1
  */
-public class SnsSubjectConverter implements MessageConverter {
+@Deprecated
+public class LegacyJackson2SnsSubjectConverter implements MessageConverter {
 
-	private final JsonMapper jsonMapper;
+	private final ObjectMapper objectMapper;
 
-	public SnsSubjectConverter(JsonMapper jsonMapper) {
-		Assert.notNull(jsonMapper, "jsonMapper must not be null");
-		this.jsonMapper = jsonMapper;
+	public LegacyJackson2SnsSubjectConverter(ObjectMapper objectMapper) {
+		Assert.notNull(objectMapper, "jsonMapper must not be null");
+		this.objectMapper = objectMapper;
 	}
 
 	@Override
@@ -51,7 +52,7 @@ public class SnsSubjectConverter implements MessageConverter {
 			throw new MessageConversionException("Conversion of List is not supported", null);
 		}
 
-		var snsJsonNode = new SnsJsonNode(jsonMapper, message.getPayload().toString());
+		var snsJsonNode = new LegacyJackson2SnsJsonNode(objectMapper, message.getPayload().toString());
 		return snsJsonNode.getSubjectAsString();
 	}
 

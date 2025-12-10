@@ -19,6 +19,7 @@ import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesAware;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -30,7 +31,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
  * @author Tomaz Fernandes
  * @since 3.0
  * @see SqsHeaderMapper
- * @see SqsMessagingMessageConverter
+ * @see LegacySqsMessagingMessageConverter
  */
 public class SqsMessageConversionContext
 		implements AcknowledgementAwareMessageConversionContext, SqsAsyncClientAware, QueueAttributesAware {

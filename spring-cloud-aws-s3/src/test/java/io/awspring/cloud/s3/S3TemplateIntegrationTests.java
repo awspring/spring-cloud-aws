@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +52,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListBucketsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration tests for {@link S3Template}.
@@ -85,7 +85,7 @@ class S3TemplateIntegrationTests implements LocalstackContainerTest {
 	void init() {
 		this.s3Template = new S3Template(client,
 				new DiskBufferingS3OutputStreamProvider(client, new PropertiesS3ObjectContentTypeResolver()),
-				new Jackson2JsonS3ObjectConverter(new ObjectMapper()), presigner);
+				new Jackson2JsonS3ObjectConverter(new JsonMapper()), presigner);
 
 		client.createBucket(r -> r.bucket(BUCKET_NAME));
 	}

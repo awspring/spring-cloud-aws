@@ -15,12 +15,15 @@
  */
 package io.awspring.cloud.sqs.annotation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.MultiMethodSqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.support.converter.AbstractMessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.JacksonJsonMessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2MessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2NotificationSubjectArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchVisibilityHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.NotificationSubjectArgumentResolver;
@@ -28,6 +31,8 @@ import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResol
 import io.awspring.cloud.sqs.support.resolver.SnsNotificationArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.VisibilityHandlerMethodArgumentResolver;
+import io.awspring.cloud.sqs.support.resolver.jacskon2.LegacyJackson2NotificationMessageArgumentResolver;
+import io.awspring.cloud.sqs.support.resolver.jacskon2.LegacyJackson2SnsNotificationArgumentResolver;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,12 +111,23 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, ObjectMapper objectMapper) {
+			MessageConverter messageConverter, AbstractMessageConverterFactory wrapper) {
 		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
-		if (objectMapper != null) {
-			argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
-			argumentResolvers.add(new NotificationSubjectArgumentResolver(objectMapper));
-			argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, objectMapper));
+		if (wrapper instanceof JacksonJsonMessageConverterFactory) {
+			argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter,
+					((JacksonJsonMessageConverterFactory) wrapper).getJsonMapperWrapper().getJsonMapper()));
+			argumentResolvers.add(new NotificationSubjectArgumentResolver(
+					((JacksonJsonMessageConverterFactory) wrapper).getJsonMapperWrapper().getJsonMapper()));
+			argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter,
+					((JacksonJsonMessageConverterFactory) wrapper).getJsonMapperWrapper().getJsonMapper()));
+		}
+		else if (wrapper instanceof LegacyJackson2MessageConverterFactory) {
+			argumentResolvers.add(new LegacyJackson2NotificationMessageArgumentResolver(messageConverter,
+					((LegacyJackson2MessageConverterFactory) wrapper).getObjectMapper()));
+			argumentResolvers.add(new LegacyJackson2NotificationSubjectArgumentResolver(
+					((LegacyJackson2MessageConverterFactory) wrapper).getObjectMapper()));
+			argumentResolvers.add(new LegacyJackson2SnsNotificationArgumentResolver(messageConverter,
+					((LegacyJackson2MessageConverterFactory) wrapper).getObjectMapper()));
 		}
 		return argumentResolvers;
 	}

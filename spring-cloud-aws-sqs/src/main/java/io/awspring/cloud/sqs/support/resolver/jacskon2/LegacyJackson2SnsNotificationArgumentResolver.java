@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.resolver;
+package io.awspring.cloud.sqs.support.resolver.jacskon2;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.support.converter.SnsNotification;
-import io.awspring.cloud.sqs.support.converter.SnsNotificationConverter;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SnsNotificationConverter;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
-import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Resolves method parameters with {@link SnsNotification} object.
- *
- * @author Damien Chomat
- * @since 3.4.1
- */
-public class SnsNotificationArgumentResolver implements HandlerMethodArgumentResolver {
+@Deprecated
+public class LegacyJackson2SnsNotificationArgumentResolver implements HandlerMethodArgumentResolver {
 
 	private final SmartMessageConverter converter;
 
@@ -39,8 +34,8 @@ public class SnsNotificationArgumentResolver implements HandlerMethodArgumentRes
 	 * @param converter the message converter to use for the message payload
 	 * @param jsonMapper the JSON mapper to use for parsing the SNS notification
 	 */
-	public SnsNotificationArgumentResolver(MessageConverter converter, JsonMapper jsonMapper) {
-		this.converter = new SnsNotificationConverter(converter, jsonMapper);
+	public LegacyJackson2SnsNotificationArgumentResolver(MessageConverter converter, ObjectMapper jsonMapper) {
+		this.converter = new LegacyJackson2SnsNotificationConverter(converter, jsonMapper);
 	}
 
 	@Override

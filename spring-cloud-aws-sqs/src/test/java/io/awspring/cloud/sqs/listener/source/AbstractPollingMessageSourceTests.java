@@ -33,7 +33,7 @@ import io.awspring.cloud.sqs.listener.backpressure.CompositeBackPressureHandler;
 import io.awspring.cloud.sqs.listener.backpressure.ConcurrencyLimiterBlockingBackPressureHandler;
 import io.awspring.cloud.sqs.listener.backpressure.ThroughputBackPressureHandler;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
-import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -308,7 +308,7 @@ class AbstractPollingMessageSourceTests {
 		String testName = "shouldReleasePermitsOnConversionErrors";
 
 		AtomicInteger convertedMessages = new AtomicInteger(0);
-		var converter = new SqsMessagingMessageConverter() {
+		var converter = new LegacySqsMessagingMessageConverter() {
 			@Override
 			public org.springframework.messaging.Message<?> toMessagingMessage(Message source,
 					@Nullable MessageConversionContext context) {

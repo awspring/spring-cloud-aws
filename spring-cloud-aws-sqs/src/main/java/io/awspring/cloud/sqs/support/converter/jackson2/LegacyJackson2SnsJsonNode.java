@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.converter;
+package io.awspring.cloud.sqs.support.converter.jackson2;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.support.converter.AbstractSnsJsonNode;
 import org.springframework.messaging.converter.MessageConversionException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Michael Sosa
  * @author Alexander Nebel
  * @since 3.3.1
  */
-public class SnsJsonNode extends AbstractSnsJsonNode {
+@Deprecated
+public class LegacyJackson2SnsJsonNode extends AbstractSnsJsonNode {
 	private final String jsonString;
 	private final JsonNode jsonNode;
 
-	public SnsJsonNode(JsonMapper jsonMapper, String jsonString) {
+	public LegacyJackson2SnsJsonNode(ObjectMapper jsonMapper, String jsonString) {
 		try {
 			this.jsonString = jsonString;
 			jsonNode = jsonMapper.readTree(jsonString);
@@ -45,7 +47,7 @@ public class SnsJsonNode extends AbstractSnsJsonNode {
 					null);
 		}
 
-		if (!"Notification".equals(jsonNode.get("Type").asString())) {
+		if (!"Notification".equals(jsonNode.get("Type").asText())) {
 			throw new MessageConversionException("Payload: '" + jsonString + "' is not a valid notification", null);
 		}
 
@@ -56,7 +58,7 @@ public class SnsJsonNode extends AbstractSnsJsonNode {
 
 	@Override
 	public String getMessageAsString() {
-		return jsonNode.get("Message").asString();
+		return jsonNode.get("Message").asText();
 	}
 
 	@Override
