@@ -15,9 +15,9 @@
  */
 package io.awspring.cloud.sqs.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
+import io.awspring.cloud.sqs.support.converter.AbstractMessageConverterFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -73,7 +73,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	};
 
 	@Nullable
-	private ObjectMapper objectMapper;
+	private AbstractMessageConverterFactory abstractMessageConverterFactory;
 
 	@Nullable
 	private Validator validator;
@@ -118,11 +118,11 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	/**
 	 * Set the object mapper to be used to deserialize payloads fot SqsListener endpoints.
-	 * @param objectMapper the object mapper instance.
+	 * @param abstractMessageConverterFactory the jacksonMapperWrapper instance.
 	 */
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "objectMapper cannot be null.");
-		this.objectMapper = objectMapper;
+	public void setJacksonMapperWrapper(AbstractMessageConverterFactory abstractMessageConverterFactory) {
+		Assert.notNull(abstractMessageConverterFactory, "jacksonMapperWrapper cannot be null.");
+		this.abstractMessageConverterFactory = abstractMessageConverterFactory;
 	}
 
 	/**
@@ -173,8 +173,8 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 * @return the object mapper instance.
 	 */
 	@Nullable
-	public ObjectMapper getObjectMapper() {
-		return this.objectMapper;
+	public AbstractMessageConverterFactory getAbstractMessageConverterFactory() {
+		return this.abstractMessageConverterFactory;
 	}
 
 	/**

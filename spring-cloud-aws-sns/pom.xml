@@ -80,6 +80,11 @@
 			<artifactId>sqs</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>tools.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<optional>true</optional>
+		</dependency>
 
 	</dependencies>
 

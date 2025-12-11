@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -29,6 +28,7 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Michael Sosa
@@ -38,11 +38,11 @@ import org.springframework.util.Assert;
  */
 public class SnsMessageConverter implements SmartMessageConverter {
 
-	private final ObjectMapper jsonMapper;
+	private final JsonMapper jsonMapper;
 
 	private final MessageConverter payloadConverter;
 
-	public SnsMessageConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
+	public SnsMessageConverter(MessageConverter payloadConverter, JsonMapper jsonMapper) {
 		Assert.notNull(payloadConverter, "payloadConverter must not be null");
 		Assert.notNull(jsonMapper, "jsonMapper must not be null");
 		this.payloadConverter = payloadConverter;

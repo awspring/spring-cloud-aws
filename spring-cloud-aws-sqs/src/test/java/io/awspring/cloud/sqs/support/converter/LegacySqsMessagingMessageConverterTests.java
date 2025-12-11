@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
@@ -34,11 +35,11 @@ import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
 /**
- * Tests for {@link SqsMessagingMessageConverter}.
+ * Tests for {@link LegacySqsMessagingMessageConverter}.
  *
  * @author Tomaz Fernandes
  */
-class SqsMessagingMessageConverterTests {
+class LegacySqsMessagingMessageConverterTests {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -47,7 +48,7 @@ class SqsMessagingMessageConverterTests {
 		MyPojo myPojo = new MyPojo();
 		String payload = new ObjectMapper().writeValueAsString(myPojo);
 		Message message = Message.builder().body(payload).messageId(UUID.randomUUID().toString()).build();
-		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		LegacySqsMessagingMessageConverter converter = new LegacySqsMessagingMessageConverter();
 		converter.setPayloadTypeMapper(msg -> MyPojo.class);
 		org.springframework.messaging.Message<?> resultMessage = converter.toMessagingMessage(message);
 		assertThat(resultMessage.getPayload()).isEqualTo(myPojo);
@@ -63,7 +64,7 @@ class SqsMessagingMessageConverterTests {
 						MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
 								.stringValue(MyPojo.class.getName()).build()))
 				.body(payload).messageId(UUID.randomUUID().toString()).build();
-		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		LegacySqsMessagingMessageConverter converter = new LegacySqsMessagingMessageConverter();
 		converter.setPayloadTypeHeader(typeHeader);
 		org.springframework.messaging.Message<?> resultMessage = converter.toMessagingMessage(message);
 		assertThat(resultMessage.getPayload()).isEqualTo(myPojo);
@@ -79,7 +80,7 @@ class SqsMessagingMessageConverterTests {
 						MessageAttributeValue.builder().dataType(MessageAttributeDataTypes.STRING)
 								.stringValue(MyPojo.class.getName()).build()))
 				.body(payload).messageId(UUID.randomUUID().toString()).build();
-		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		LegacySqsMessagingMessageConverter converter = new LegacySqsMessagingMessageConverter();
 		SqsMessageConversionContext context = new SqsMessageConversionContext();
 		context.setPayloadClass(String.class);
 		converter.setPayloadTypeHeader(typeHeader);
@@ -91,7 +92,7 @@ class SqsMessagingMessageConverterTests {
 	@Test
 	void shouldUseProvidedHeaderMapper() {
 		Message message = Message.builder().body("test-payload").messageId(UUID.randomUUID().toString()).build();
-		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		LegacySqsMessagingMessageConverter converter = new LegacySqsMessagingMessageConverter();
 		HeaderMapper<software.amazon.awssdk.services.sqs.model.Message> mapper = mock(HeaderMapper.class);
 		MessageHeaders messageHeaders = new MessageHeaders(Collections.singletonMap("testHeader", "testHeaderValue"));
 		given(mapper.toHeaders(message)).willReturn(messageHeaders);
@@ -108,7 +109,7 @@ class SqsMessagingMessageConverterTests {
 		MessageConverter payloadConverter = mock(MessageConverter.class);
 		when(payloadConverter.fromMessage(any(org.springframework.messaging.Message.class), eq(MyPojo.class)))
 				.thenReturn(myPojo);
-		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		LegacySqsMessagingMessageConverter converter = new LegacySqsMessagingMessageConverter();
 		converter.setPayloadMessageConverter(payloadConverter);
 		converter.setPayloadTypeMapper(msg -> MyPojo.class);
 		org.springframework.messaging.Message<?> resultMessage = converter.toMessagingMessage(message);
@@ -122,7 +123,7 @@ class SqsMessagingMessageConverterTests {
 				.setHeader("contentType", "application/json").build();
 		when(payloadConverter.toMessage(any(MyPojo.class), any())).thenReturn(convertedMessageWithContentType);
 
-		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		LegacySqsMessagingMessageConverter converter = new LegacySqsMessagingMessageConverter();
 		converter.setPayloadMessageConverter(payloadConverter);
 		converter.setPayloadTypeMapper(msg -> MyPojo.class);
 

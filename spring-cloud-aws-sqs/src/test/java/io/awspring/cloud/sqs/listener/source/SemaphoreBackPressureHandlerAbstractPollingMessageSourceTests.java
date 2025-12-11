@@ -29,7 +29,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactories;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
-import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -254,7 +254,7 @@ class SemaphoreBackPressureHandlerAbstractPollingMessageSourceTests {
 		AtomicInteger messagesInSink = new AtomicInteger(0);
 		AtomicBoolean hasFailed = new AtomicBoolean(false);
 
-		var converter = new SqsMessagingMessageConverter() {
+		var converter = new LegacySqsMessagingMessageConverter() {
 			@Override
 			public org.springframework.messaging.Message<?> toMessagingMessage(Message source,
 					@Nullable MessageConversionContext context) {
