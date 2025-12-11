@@ -13,5 +13,4 @@
 	<logger name="com.github.dockerjava" level="WARN"/>
 	<logger name="io.awspring.cloud.kinesis" level="WARN"/>
 	<logger name="org.springframework.integration" level="WARN"/>
-	<logger name="software.amazon.kinesis" level="WARN"/>
 </configuration>

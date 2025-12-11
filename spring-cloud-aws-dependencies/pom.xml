@@ -28,9 +28,11 @@
 		<kcl.version>3.1.2</kcl.version>
 		<kpl.version>1.0.4</kpl.version>
 		<amazon.dax.version>2.0.6</amazon.dax.version>
+		<dynamodb-streams.version>2.0.1</dynamodb-streams.version>
 		<amazon.encryption.s3.version>3.3.5</amazon.encryption.s3.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<spring-cloud-commons.version>5.0.0-RC1</spring-cloud-commons.version>
+		<spring-cloud-stream.version>5.0.0</spring-cloud-stream.version>
 		<jakarta.mail.version>2.1.3</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>2.0.3</eclipse.jakarta.mail.version>
 		<spring-modulith.version>2.0.0-RC1</spring-modulith.version>
@@ -51,6 +53,13 @@
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-commons-dependencies</artifactId>
 				<version>${spring-cloud-commons.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-stream-dependencies</artifactId>
+				<version>${spring-cloud-stream.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -116,6 +125,11 @@
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-kinesis</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-kinesis-stream-binder</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -281,7 +295,11 @@
 				<artifactId>amazon-kinesis-producer</artifactId>
 				<version>${kpl.version}</version>
 			</dependency>
-
+			<dependency>
+				<groupId>com.amazonaws</groupId>
+				<artifactId>dynamodb-streams-kinesis-adapter</artifactId>
+				<version>${dynamodb-streams.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
