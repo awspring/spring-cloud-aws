@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
@@ -27,12 +28,15 @@ import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.bootstrap.BootstrapRegistry;
 import org.springframework.boot.bootstrap.BootstrapRegistryInitializer;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -58,12 +62,15 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
  */
 
 @Testcontainers
+@ExtendWith(OutputCaptureExtension.class)
 public class S3ConfigDataLoaderIntegrationTests {
 	private static final String YAML_TYPE = "application/x-yaml";
 	private static final String YAML_TYPE_ALTERNATIVE = "text/yaml";
 	private static final String TEXT_TYPE = "text/plain";
 	private static final String JSON_TYPE = "application/json";
 	private static String BUCKET = "test-bucket";
+
+	private static final String NEW_LINE_CHAR = System.lineSeparator();
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:4.4.0")).withReuse(true);
@@ -147,6 +154,26 @@ public class S3ConfigDataLoaderIntegrationTests {
 			assertThat(client.getApiCallTimeout()).isEqualTo(Duration.ofMillis(2001));
 			assertThat(client.getSyncHttpClient()).isInstanceOf(SdkDefaultClientBuilder.NonManagedSdkHttpClient.class);
 			assertThat(client.getSyncHttpClient().clientName()).isEqualTo("mock-client");
+		}
+	}
+
+	@Test
+	void failOnKeysMissing(CapturedOutput output) {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-s3:test-bucket/tst.properties")) {
+			fail("Context without keys should fail to start");
+		}
+		catch (Exception e) {
+			assertThat(e).isInstanceOf(AwsS3PropertySourceNotFoundException.class);
+			// ensure that failure analyzer catches the exception and provides meaningful
+			// error message
+			// Ensure that new line character should be platform independent
+			String errorMessage = "Description:%1$s%1$sCould not import properties from AWS S3. Exception happened while trying to load the keys:"
+					.formatted(NEW_LINE_CHAR);
+			assertThat(output.getOut()).contains(errorMessage);
 		}
 	}
 

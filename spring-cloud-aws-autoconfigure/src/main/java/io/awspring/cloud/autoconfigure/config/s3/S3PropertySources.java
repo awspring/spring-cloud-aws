@@ -59,12 +59,4 @@ public class S3PropertySources {
 		return null;
 	}
 
-	static class AwsS3PropertySourceNotFoundException extends RuntimeException {
-
-		AwsS3PropertySourceNotFoundException(Exception source) {
-			super(source);
-		}
-
-	}
-
 }
