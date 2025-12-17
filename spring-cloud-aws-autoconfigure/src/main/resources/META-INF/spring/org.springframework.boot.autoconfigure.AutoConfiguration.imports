@@ -18,4 +18,3 @@ io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreAutoConfigur
 io.awspring.cloud.autoconfigure.config.s3.S3ReloadAutoConfiguration
 io.awspring.cloud.autoconfigure.kinesis.KinesisAutoConfiguration
 io.awspring.cloud.autoconfigure.kinesis.KinesisProducerAutoConfiguration
-io.awspring.cloud.autoconfigure.kinesis.KinesisClientLibraryAutoConfiguration
