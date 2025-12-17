@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.operations;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -40,6 +41,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
  * Tests for {@link SqsTemplate} observation support.
  *
  * @author Tomaz Fernandes
+ * @author Hyunggeol Lee
  */
 class SqsTemplateObservationTest {
 
@@ -87,7 +89,7 @@ class SqsTemplateObservationTest {
 		// given
 		SqsTemplateObservation.Convention customConvention = mock(SqsTemplateObservation.Convention.class);
 		given(customConvention.supportsContext(any())).willReturn(true);
-
+		given(customConvention.getName()).willReturn("sqs.template");
 		String lowCardinalityCustomKeyName = "custom.lowCardinality.key";
 		String lowCardinalityCustomValue = "custom-lowCardinality-value";
 		String highCardinalityCustomKeyName = "custom.highCardinality.key";
@@ -216,5 +218,43 @@ class SqsTemplateObservationTest {
 				.hasLowCardinalityKeyValue("messaging.destination.name", queueName)
 				.hasLowCardinalityKeyValue("messaging.destination.kind", "queue")
 				.hasHighCardinalityKeyValue("messaging.message.id", messageId.toString());
+	}
+
+	@Test
+	void shouldCreateSeparateObservationsForRetryAfterCacheFailure() {
+		// Given - First attempt will fail
+		String payload = "test-payload";
+		RuntimeException firstException = new RuntimeException("First attempt - queue not found");
+
+		given(mockSqsAsyncClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.failedFuture(firstException));
+
+		// When - First attempt (failure)
+		try {
+			sqsTemplate.send(queueName, payload);
+		}
+		catch (Exception e) {
+			// Expected
+		}
+
+		// Then - Verify first observation has error
+		TestObservationRegistryAssert.then(observationRegistry).hasNumberOfObservationsEqualTo(1)
+				.hasSingleObservationThat().hasError();
+
+		// Given - Second attempt will succeed (cache was cleared)
+		UUID messageId = UUID.randomUUID();
+		given(mockSqsAsyncClient.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(
+				CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl(queueName).build()));
+
+		given(mockSqsAsyncClient.sendMessage(any(SendMessageRequest.class))).willReturn(CompletableFuture
+				.completedFuture(SendMessageResponse.builder().messageId(messageId.toString()).build()));
+
+		// When - Second attempt (success)
+		SendResult<String> result = sqsTemplate.send(queueName, payload);
+
+		// Then - Two separate observations should be created
+		TestObservationRegistryAssert.then(observationRegistry).hasNumberOfObservationsEqualTo(2);
+
+		assertThat(result).isNotNull();
 	}
 }

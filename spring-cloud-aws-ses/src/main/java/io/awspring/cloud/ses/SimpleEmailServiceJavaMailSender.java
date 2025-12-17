@@ -38,7 +38,6 @@ import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.ConfigurableMimeFileTypeMap;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import software.amazon.awssdk.core.SdkBytes;
@@ -204,12 +203,6 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 		}
 	}
 
-	@Override
-	public void send(MimeMessage mimeMessage) throws MailException {
-		Assert.notNull(mimeMessage, "mimeMessage are required");
-		this.send(new MimeMessage[] { mimeMessage });
-	}
-
 	@SuppressWarnings("OverloadedVarargsMethod")
 	@Override
 	public void send(MimeMessage... mimeMessages) throws MailException {
@@ -239,28 +232,6 @@ public class SimpleEmailServiceJavaMailSender extends SimpleEmailServiceMailSend
 		if (!failedMessages.isEmpty()) {
 			throw new MailSendException(failedMessages);
 		}
-	}
-
-	@Override
-	public void send(MimeMessagePreparator mimeMessagePreparator) throws MailException {
-		Assert.notNull(mimeMessagePreparator, "mimeMessagePreparator are required");
-		send(new MimeMessagePreparator[] { mimeMessagePreparator });
-	}
-
-	@SuppressWarnings("OverloadedVarargsMethod")
-	@Override
-	public void send(MimeMessagePreparator... mimeMessagePreparators) throws MailException {
-		Assert.notNull(mimeMessagePreparators, "mimeMessagePreparator are required");
-		MimeMessage mimeMessage = createMimeMessage();
-		for (MimeMessagePreparator mimeMessagePreparator : mimeMessagePreparators) {
-			try {
-				mimeMessagePreparator.prepare(mimeMessage);
-			}
-			catch (Exception e) {
-				throw new MailPreparationException(e);
-			}
-		}
-		send(mimeMessage);
 	}
 
 	private RawMessage createRawMessage(MimeMessage mimeMessage) {

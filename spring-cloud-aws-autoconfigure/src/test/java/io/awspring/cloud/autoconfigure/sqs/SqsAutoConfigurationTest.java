@@ -211,34 +211,30 @@ class SqsAutoConfigurationTest {
 						"spring.cloud.aws.sqs.listener.poll-timeout:6s",
 						"spring.cloud.aws.sqs.listener.max-delay-between-polls:15s",
 						"spring.cloud.aws.sqs.listener.auto-startup=false")
-				.withUserConfiguration(CustomComponentsConfiguration.class, ObjectMapperConfiguration.class).run(context -> {
+				.withUserConfiguration(CustomComponentsConfiguration.class, ObjectMapperConfiguration.class)
+				.run(context -> {
 					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
 					SqsMessageListenerContainerFactory<?> factory = context
 							.getBean(SqsMessageListenerContainerFactory.class);
-				assertThat(factory)
-					.hasFieldOrProperty("errorHandler")
-					.extracting("asyncMessageInterceptors").asList().isNotEmpty();
-				assertThat(factory)
-					.extracting("containerOptionsBuilder")
-					.asInstanceOf(type(ContainerOptionsBuilder.class))
-					.extracting(ContainerOptionsBuilder::build)
-					.isInstanceOfSatisfying(ContainerOptions.class, options -> {
-						assertThat(options.getMaxConcurrentMessages()).isEqualTo(19);
-						assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);
-						assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
-						assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(15));
-						assertThat(options.isAutoStartup()).isEqualTo(false);
-					})
-					.extracting("messageConverter")
-					.asInstanceOf(type(SqsMessagingMessageConverter.class))
-					.extracting("payloadMessageConverter")
-					.asInstanceOf(type(CompositeMessageConverter.class))
-					.extracting(CompositeMessageConverter::getConverters)
-					.isInstanceOfSatisfying(List.class, converters ->
-						assertThat(converters.get(2)).isInstanceOfSatisfying(
-							MappingJackson2MessageConverter.class,
-							jackson2MessageConverter ->
-								assertThat(jackson2MessageConverter.getObjectMapper().getRegisteredModuleIds()).contains("jackson-datatype-jsr310")));
+					assertThat(factory).hasFieldOrProperty("errorHandler").extracting("asyncMessageInterceptors")
+							.asList().isNotEmpty();
+					assertThat(factory).extracting("containerOptionsBuilder")
+							.asInstanceOf(type(ContainerOptionsBuilder.class))
+							.extracting(ContainerOptionsBuilder::build)
+							.isInstanceOfSatisfying(ContainerOptions.class, options -> {
+								assertThat(options.getMaxConcurrentMessages()).isEqualTo(19);
+								assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);
+								assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
+								assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(15));
+								assertThat(options.isAutoStartup()).isEqualTo(false);
+							}).extracting("messageConverter").asInstanceOf(type(SqsMessagingMessageConverter.class))
+							.extracting("payloadMessageConverter").asInstanceOf(type(CompositeMessageConverter.class))
+							.extracting(CompositeMessageConverter::getConverters).isInstanceOfSatisfying(List.class,
+									converters -> assertThat(converters.get(2)).isInstanceOfSatisfying(
+											MappingJackson2MessageConverter.class,
+											jackson2MessageConverter -> assertThat(
+													jackson2MessageConverter.getObjectMapper().getRegisteredModuleIds())
+													.contains("jackson-datatype-jsr310")));
 				});
 	}
 
@@ -250,23 +246,20 @@ class SqsAutoConfigurationTest {
 			assertThat(factory).hasFieldOrProperty("errorHandler").extracting("asyncMessageInterceptors").asList()
 					.isEmpty();
 			assertThat(factory).extracting("containerOptionsBuilder").asInstanceOf(type(ContainerOptionsBuilder.class))
-				.extracting(ContainerOptionsBuilder::build)
-				.isInstanceOfSatisfying(ContainerOptions.class, options -> {
-					assertThat(options.getMaxConcurrentMessages()).isEqualTo(10);
-					assertThat(options.getMaxMessagesPerPoll()).isEqualTo(10);
-					assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(10));
-					assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(10));
-				})
-				.extracting("messageConverter")
-				.asInstanceOf(type(SqsMessagingMessageConverter.class))
-				.extracting("payloadMessageConverter")
-				.asInstanceOf(type(CompositeMessageConverter.class))
-				.extracting(CompositeMessageConverter::getConverters)
-				.isInstanceOfSatisfying(List.class, converters ->
-					assertThat(converters.get(2)).isInstanceOfSatisfying(
-						MappingJackson2MessageConverter.class,
-						jackson2MessageConverter ->
-							assertThat(jackson2MessageConverter.getObjectMapper().getRegisteredModuleIds()).isEmpty()));
+					.extracting(ContainerOptionsBuilder::build)
+					.isInstanceOfSatisfying(ContainerOptions.class, options -> {
+						assertThat(options.getMaxConcurrentMessages()).isEqualTo(10);
+						assertThat(options.getMaxMessagesPerPoll()).isEqualTo(10);
+						assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(10));
+						assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(10));
+					}).extracting("messageConverter").asInstanceOf(type(SqsMessagingMessageConverter.class))
+					.extracting("payloadMessageConverter").asInstanceOf(type(CompositeMessageConverter.class))
+					.extracting(CompositeMessageConverter::getConverters).isInstanceOfSatisfying(List.class,
+							converters -> assertThat(converters.get(2)).isInstanceOfSatisfying(
+									MappingJackson2MessageConverter.class,
+									jackson2MessageConverter -> assertThat(
+											jackson2MessageConverter.getObjectMapper().getRegisteredModuleIds())
+											.isEmpty()));
 		});
 	}
 	// @formatter:on

@@ -31,18 +31,18 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.boot.BootstrapRegistry;
-import org.springframework.boot.BootstrapRegistryInitializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.bootstrap.BootstrapRegistry;
+import org.springframework.boot.bootstrap.BootstrapRegistryInitializer;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -147,6 +147,26 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		}
 		catch (Exception e) {
 			assertThat(e).isInstanceOf(ParameterStoreKeysMissingException.class);
+			// ensure that failure analyzer catches the exception and provides meaningful
+			// error message
+			// Ensure that new line character should be platform independent
+			String errorMessage = "Description:%1$s%1$sCould not import properties from AWS Parameter Store"
+					.formatted(NEW_LINE_CHAR);
+			assertThat(output.getOut()).contains(errorMessage);
+		}
+	}
+
+	@Test
+	void whenKeysCannotBeFoundFailWithHumanReadableMessage(CapturedOutput output) {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplicationWithWrongEndpoint(application,
+				"aws-parameterstore:/config/fail/")) {
+			fail("Context without keys should fail to start");
+		}
+		catch (Exception e) {
+			assertThat(e).isInstanceOf(AwsParameterPropertySourceNotFoundException.class);
 			// ensure that failure analyzer catches the exception and provides meaningful
 			// error message
 			// Ensure that new line character should be platform independent
@@ -399,6 +419,20 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport) {
 		return runApplication(application, springConfigImport, "spring.cloud.aws.parameterstore.endpoint");
+	}
+
+	private ConfigurableApplicationContext runApplicationWithWrongEndpoint(SpringApplication application,
+			String springConfigImport) {
+		return runApplicationWrongEndpoint(application, springConfigImport, "spring.cloud.aws.parameterstore.endpoint");
+	}
+
+	private ConfigurableApplicationContext runApplicationWrongEndpoint(SpringApplication application,
+			String springConfigImport, String endpointProperty) {
+		return application.run("--spring.config.import=" + springConfigImport,
+				"--spring.cloud.aws.parameterstore.region=" + REGION,
+				"--" + endpointProperty + "=" + localstack.getEndpoint() + 1,
+				"--spring.cloud.aws.credentials.access-key=tst", "--spring.cloud.aws.credentials.secret-key=empty",
+				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.parameterstore=debug");
 	}
 
 	private static void putParameter(LocalStackContainer localstack, String parameterName, String parameterValue,

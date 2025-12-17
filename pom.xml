@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>5.0.0-M1</version>
+		<version>5.0.0-RC1</version>
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>4.0.0-SNAPSHOT</version>
+	<version>4.0.0-M1</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 
@@ -45,11 +45,13 @@
 		<module>spring-cloud-aws-sqs</module>
 		<module>spring-cloud-aws-dynamodb</module>
 		<module>spring-cloud-aws-kinesis</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis-producer</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis-client</module>
 		<module>spring-cloud-aws-s3</module>
 		<module>spring-cloud-aws-testcontainers</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-dynamodb</module>
-		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-dynamodb</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-metrics</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-parameter-store</module>
@@ -61,6 +63,7 @@
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-sns</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sqs</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-sqs</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-imds</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-kinesis</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-kinesis-producer</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-kinesis-client-library</module>
@@ -103,6 +106,15 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<groupId>org.sonatype.central</groupId>
+					<artifactId>central-publishing-maven-plugin</artifactId>
+					<version>0.9.0</version>
+					<extensions>true</extensions>
+					<configuration>
+						<publishingServerId>central</publishingServerId>
+					</configuration>
+				</plugin>
+				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<configuration>
 						<compilerArgs>
@@ -122,7 +134,7 @@
 					<version>${spotless.version}</version>
 					<configuration>
 						<java>
-							<importOrder />
+							<importOrder/>
 							<eclipse>
 								<file>${maven.multiModuleProjectDirectory}/eclipse-code-formatter.xml</file>
 							</eclipse>
@@ -168,6 +180,10 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
@@ -315,13 +331,6 @@
 			</build>
 		</profile>
 	</profiles>
-
-	<distributionManagement>
-		<repository>
-			<id>ossrh-awspring</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-	</distributionManagement>
 
 	<licenses>
 		<license>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
  *
  * @author Tomaz Fernandes
  * @author Zhong Xi Lu
+ * @author Hyunggeol Lee
  *
  * @since 3.0
  */
@@ -470,8 +471,18 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	}
 
 	private CompletableFuture<QueueAttributes> getQueueAttributes(String endpointName) {
-		return this.queueAttributesCache.computeIfAbsent(endpointName,
+		CompletableFuture<QueueAttributes> future = this.queueAttributesCache.computeIfAbsent(endpointName,
 				newName -> doGetQueueAttributes(endpointName, newName));
+
+		// Remove failed futures from cache
+		future.whenComplete((result, throwable) -> {
+			if (throwable != null) {
+				this.queueAttributesCache.remove(endpointName);
+				logger.debug("Removed failed queue attributes from cache for: {}", endpointName);
+			}
+		});
+
+		return future;
 	}
 
 	private CompletableFuture<QueueAttributes> doGetQueueAttributes(String endpointName, String newName) {

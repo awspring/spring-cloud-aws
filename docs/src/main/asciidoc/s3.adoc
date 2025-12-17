@@ -644,9 +644,7 @@ Following IAM permissions are required by Spring Cloud AWS:
 | `spring.cloud.aws.s3.vector.enabled` | Enables the S3VectorsClient autoconfiguration. | No | `true`
 | `spring.cloud.aws.s3.vector.endpoint` | Configures endpoint used by `S3VectorsClient`. | No | `http://localhost:4566`
 | `spring.cloud.aws.s3.vector.region` | Configures region used by `S3VectorsClient`. | No | `eu-west-1`
-
-
-
+|===
 
 === Example of IAM policy for Spring Cloud AWS demo bucket
 

@@ -5,9 +5,9 @@ Spring Cloud AWS applications can use the Instance MetaData Service (IMDS) to ac
 
 [source,java]
 ----
-@Value("placement/availability-zone") String availabilityZone;
-@Value("public-ipv4") String publicIPAddress;
-@Value("mac") String macAddress;
+@Value("${placement/availability-zone}") String availabilityZone;
+@Value("${public-ipv4"}") String publicIPAddress;
+@Value("${mac}") String macAddress;
 ----
 
 A full list of instance metadata tags is available in the AWS reference documentation at link:https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-categories.html[AWS EC2 User Guide - Instance Metadata Categories]. Spring Cloud AWS always retrieves the "latest" categories of metadata and removes the prefix so that "/latest/meta-data/instance-id" is available as "instance-id".  The "spring.cloud.aws" prefix is also omitted. 

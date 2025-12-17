@@ -21,10 +21,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -114,6 +117,18 @@ class CredentialsProviderAutoConfigurationTests {
 					assertThat(awsCredentialsProvider).isNotNull()
 							.isInstanceOf(StsWebIdentityTokenFileCredentialsProvider.class);
 				});
+	}
+
+	@Test
+	@ExtendWith(OutputCaptureExtension.class)
+	void credentialsProvider_stsCredentialsProviderNotConfigured_whenWebIdentityTokenNotConfigured(
+			CapturedOutput output) throws IOException {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.region.static:af-south-1").run((context) -> {
+			AwsCredentialsProvider awsCredentialsProvider = context.getBean("credentialsProvider",
+					AwsCredentialsProvider.class);
+			assertThat(awsCredentialsProvider).isNotNull().isInstanceOf(DefaultCredentialsProvider.class);
+		});
+		assertThat(output).doesNotContain("Skipping creating `StsCredentialsProvider`");
 	}
 
 	@Test
