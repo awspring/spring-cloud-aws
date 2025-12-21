@@ -21,7 +21,6 @@ import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactories;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactory;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
 import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;

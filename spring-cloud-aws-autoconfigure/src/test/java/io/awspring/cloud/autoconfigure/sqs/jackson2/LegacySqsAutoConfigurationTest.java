@@ -39,7 +39,7 @@ import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.AbstractMessageConverterFactory;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2MessageConverterFactory;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import io.micrometer.common.KeyValues;
@@ -234,7 +234,7 @@ class LegacySqsAutoConfigurationTest {
 								assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(15));
 								assertThat(options.isAutoStartup()).isEqualTo(false);
 							}).extracting("messageConverter")
-							.asInstanceOf(type(LegacySqsMessagingMessageConverter.class))
+							.asInstanceOf(type(LegacyJackson2SqsMessagingMessageConverter.class))
 							.extracting("payloadMessageConverter").asInstanceOf(type(CompositeMessageConverter.class))
 							.extracting(CompositeMessageConverter::getConverters).isInstanceOfSatisfying(List.class,
 									converters -> assertThat(converters.get(2)).isInstanceOfSatisfying(
@@ -268,8 +268,8 @@ class LegacySqsAutoConfigurationTest {
 					SqsMessageListenerContainerFactory<?> factory = context
 							.getBean("defaultSqsListenerContainerFactory", SqsMessageListenerContainerFactory.class);
 					ObjectMapper objectMapper = context.getBean(CUSTOM_OBJECT_MAPPER_BEAN_NAME, ObjectMapper.class);
-					LegacySqsMessagingMessageConverter converter = context.getBean(CUSTOM_MESSAGE_CONVERTER_BEAN_NAME,
-							LegacySqsMessagingMessageConverter.class);
+					LegacyJackson2SqsMessagingMessageConverter converter = context.getBean(CUSTOM_MESSAGE_CONVERTER_BEAN_NAME,
+							LegacyJackson2SqsMessagingMessageConverter.class);
 					assertThat(converter.getPayloadMessageConverter()).extracting("converters").asList()
 							.filteredOn(conv -> conv instanceof MappingJackson2MessageConverter).first()
 							.extracting("objectMapper").isEqualTo(objectMapper);
@@ -341,7 +341,7 @@ class LegacySqsAutoConfigurationTest {
 
 		@Bean
 		public MessagingMessageConverter<Message> messageConverter() {
-			return new LegacySqsMessagingMessageConverter();
+			return new LegacyJackson2SqsMessagingMessageConverter();
 		}
 
 		@Bean
@@ -358,7 +358,7 @@ class LegacySqsAutoConfigurationTest {
 		@Primary
 		@Bean(name = CUSTOM_MESSAGE_CONVERTER_BEAN_NAME)
 		MessagingMessageConverter<Message> messageConverter() {
-			return new LegacySqsMessagingMessageConverter();
+			return new LegacyJackson2SqsMessagingMessageConverter();
 		}
 
 	}

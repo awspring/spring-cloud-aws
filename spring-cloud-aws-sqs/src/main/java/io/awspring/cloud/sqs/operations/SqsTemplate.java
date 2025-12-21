@@ -28,7 +28,7 @@ import io.awspring.cloud.sqs.support.converter.MessageAttributeDataTypes;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import java.time.Duration;
 import java.util.Collection;
@@ -645,8 +645,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		return valueClass.cast(headers.get(headerName));
 	}
 
-	private static LegacySqsMessagingMessageConverter createDefaultMessageConverter() {
-		return new LegacySqsMessagingMessageConverter();
+	private static LegacyJackson2SqsMessagingMessageConverter createDefaultMessageConverter() {
+		return new LegacyJackson2SqsMessagingMessageConverter();
 	}
 
 	private static class SqsTemplateOptionsImpl extends AbstractMessagingTemplateOptions<SqsTemplateOptions>
@@ -741,10 +741,10 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 		@Override
 		public SqsTemplateBuilder configureDefaultConverter(
-				Consumer<LegacySqsMessagingMessageConverter> messageConverterConfigurer) {
+				Consumer<LegacyJackson2SqsMessagingMessageConverter> messageConverterConfigurer) {
 			Assert.notNull(messageConverterConfigurer, "messageConverterConfigurer must not be null");
 			Assert.isNull(this.messageConverter, "messageConverter already configured");
-			LegacySqsMessagingMessageConverter defaultMessageConverter = createDefaultMessageConverter();
+			LegacyJackson2SqsMessagingMessageConverter defaultMessageConverter = createDefaultMessageConverter();
 			messageConverterConfigurer.accept(defaultMessageConverter);
 			this.messageConverter = defaultMessageConverter;
 			return this;

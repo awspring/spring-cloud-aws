@@ -15,10 +15,8 @@
  */
 package io.awspring.cloud.sns.core;
 
-import tools.jackson.core.io.JsonStringEncoder;
-
-public class JacksonJsonStringEncoder implements JsonStringEncoderDelegator {
-	private final JsonStringEncoder delegate = JsonStringEncoder.getInstance();
+public class JacksonJsonStringEncoder implements JsonStringEncoder {
+	private final tools.jackson.core.io.JsonStringEncoder delegate = tools.jackson.core.io.JsonStringEncoder.getInstance();
 
 	@Override
 	public void quoteAsString(CharSequence input, StringBuilder output) {

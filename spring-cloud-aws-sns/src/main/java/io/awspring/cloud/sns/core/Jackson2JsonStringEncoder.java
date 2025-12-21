@@ -15,11 +15,9 @@
  */
 package io.awspring.cloud.sns.core;
 
-import com.fasterxml.jackson.core.io.JsonStringEncoder;
-
 @Deprecated
-public class Jackson2JsonStringEncoder implements JsonStringEncoderDelegator {
-	private final JsonStringEncoder delegate = JsonStringEncoder.getInstance();
+public class Jackson2JsonStringEncoder implements JsonStringEncoder {
+	private final com.fasterxml.jackson.core.io.JsonStringEncoder delegate = com.fasterxml.jackson.core.io.JsonStringEncoder.getInstance();
 
 	@Override
 	public void quoteAsString(CharSequence input, StringBuilder output) {

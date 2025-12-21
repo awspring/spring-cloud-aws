@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.operations;
 
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SqsMessagingMessageConverter;
 import java.util.function.Consumer;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -46,11 +46,11 @@ public interface SqsTemplateBuilder {
 	/**
 	 * Configure the default message converter.
 	 *
-	 * @param messageConverterConfigurer a {@link LegacySqsMessagingMessageConverter} consumer.
+	 * @param messageConverterConfigurer a {@link LegacyJackson2SqsMessagingMessageConverter} consumer.
 	 * @return the builder.
 	 */
 	SqsTemplateBuilder configureDefaultConverter(
-			Consumer<LegacySqsMessagingMessageConverter> messageConverterConfigurer);
+			Consumer<LegacyJackson2SqsMessagingMessageConverter> messageConverterConfigurer);
 
 	/**
 	 * Configure options for the template.

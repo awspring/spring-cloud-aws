@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.sqs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -35,7 +36,7 @@ import io.awspring.cloud.sqs.support.converter.JacksonJsonMessageConverterFactor
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2MessageConverterFactory;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacySqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import io.micrometer.observation.ObservationRegistry;
@@ -45,10 +46,12 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -143,7 +146,7 @@ public class SqsAutoConfiguration {
 
 	private void setMapperToConverter(MessagingMessageConverter<?> messagingMessageConverter,
 			AbstractMessageConverterFactory factory) {
-		if (messagingMessageConverter instanceof LegacySqsMessagingMessageConverter sqsConverter) {
+		if (messagingMessageConverter instanceof LegacyJackson2SqsMessagingMessageConverter sqsConverter) {
 			sqsConverter.setObjectMapper(((LegacyJackson2MessageConverterFactory) factory).getObjectMapper());
 		}
 	}
@@ -158,17 +161,39 @@ public class SqsAutoConfiguration {
 		mapper.from(this.sqsProperties.getListener().getAutoStartup()).to(options::autoStartup);
 	}
 
-	@ConditionalOnMissingBean
-	@Bean
-	public MessagingMessageConverter<Message> messageConverter() {
-		return new SqsMessagingMessageConverter();
+	@ConditionalOnClass(name = "tools.jackson.databind.json.JsonMapper")
+	@Configuration
+	static class SqsJacksonConfiguration {
+		@ConditionalOnMissingBean
+		@Bean
+		public MessagingMessageConverter<Message> messageConverter() {
+			return new SqsMessagingMessageConverter();
+		}
+
+		@Bean
+		@ConditionalOnMissingBean
+		public AbstractMessageConverterFactory jsonMapperWrapper(ObjectProvider<JsonMapper> jsonMapper) {
+			JsonMapper mapper = jsonMapper.getIfAvailable(JsonMapper::new);
+			return new JacksonJsonMessageConverterFactory(mapper);
+		}
 	}
 
-	@Bean
-	@ConditionalOnMissingBean
-	public AbstractMessageConverterFactory jsonMapperWrapper(ObjectProvider<JsonMapper> jsonMapper) {
-		JsonMapper mapper = jsonMapper.getIfAvailable(JsonMapper::new);
-		return new JacksonJsonMessageConverterFactory(mapper);
+	@ConditionalOnClass(name = "com.fasterxml.jackson.databind.ObjectMapper")
+	@ConditionalOnMissingClass("tools.jackson.databind.json.JsonMapper")
+	@Configuration
+	static class LegacySqsJackson2Configuration {
+		@ConditionalOnMissingBean
+		@Bean
+		public MessagingMessageConverter<Message> messageConverter() {
+			return new LegacyJackson2SqsMessagingMessageConverter();
+		}
+
+		@Bean
+		@ConditionalOnMissingBean
+		public AbstractMessageConverterFactory jsonMapperWrapper(ObjectProvider<ObjectMapper> objectMapper) {
+			ObjectMapper mapper = objectMapper.getIfAvailable(ObjectMapper::new);
+			return new LegacyJackson2MessageConverterFactory(mapper);
+		}
 	}
 
 	@Bean

@@ -39,10 +39,10 @@ import org.springframework.util.Assert;
  * @since 3.0
  */
 @Deprecated
-public class LegacySqsMessagingMessageConverter
+public class LegacyJackson2SqsMessagingMessageConverter
 		extends AbstractMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
 
-	public LegacySqsMessagingMessageConverter() {
+	public LegacyJackson2SqsMessagingMessageConverter() {
 		this.payloadMessageConverter = createDefaultCompositeMessageConverter();
 	}
 
