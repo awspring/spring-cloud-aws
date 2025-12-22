@@ -17,6 +17,12 @@ package io.awspring.cloud.secretsmanager;
 
 import java.util.Map;
 
+/**
+ * Wrapper interface which should be implemented to either read secret with Jackson 2 or Jackson 3.
+ *
+ * @author Maciej Walkowiak
+ * @since 4.0.0
+ */
 public interface SecretValueReader {
 	Map<String, Object> readSecretValue(String secretString);
 }

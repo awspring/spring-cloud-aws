@@ -15,8 +15,20 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.messaging.converter.MessageConverter;
+import tools.jackson.databind.json.JsonMapper;
 
+/**
+ * Converter factory used to create MessageConverter either for Jackson 2 or Jackson 3. Used also to provide
+ * Implementation for Jackson 3 {@link io.awspring.cloud.sqs.config.JacksonAbstractMessageConverterFactory}
+ * Implementation for Jackson 2
+ * {@link io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2MessageConverterFactory} Which provide either:
+ * {@link ObjectMapper} or {@link JsonMapper} for SQS integration. Note that you can declare either of implementations
+ * as a Bean which will be picked by autoconfiguration.
+ * @author Matej Nedic
+ * @since 4.0.0
+ */
 public abstract class AbstractMessageConverterFactory {
 	public abstract MessageConverter create();
 

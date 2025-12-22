@@ -194,7 +194,7 @@ public class S3AutoConfiguration {
 
 	@Configuration
 	@AutoConfigureAfter(Jackson2JsonS3ObjectConverterConfiguration.class)
-	@ConditionalOnClass(value = ObjectMapper.class)
+	@ConditionalOnClass(name = "com.fasterxml.jackson.databind.ObjectMapper")
 	static class LegacyJackson2JsonS3ObjectConverterConfiguration {
 
 		@ConditionalOnMissingBean
@@ -205,7 +205,7 @@ public class S3AutoConfiguration {
 	}
 
 	@Configuration
-	@ConditionalOnClass(value = JsonMapper.class)
+	@ConditionalOnClass(name = "tools.jackson.databind.json.JsonMapper")
 	static class Jackson2JsonS3ObjectConverterConfiguration {
 
 		@ConditionalOnMissingBean

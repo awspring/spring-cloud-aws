@@ -17,6 +17,11 @@ package io.awspring.cloud.sns.core;
 
 import io.awspring.cloud.core.support.JacksonPresent;
 
+/**
+ * Depending on dependencies present configures {@link JacksonJsonStringEncoder} or {@link Jackson2JsonStringEncoder}
+ * @author Matej Nedic
+ * @since 4.0.0
+ */
 public interface JsonStringEncoder {
 	static JsonStringEncoder create() {
 		if (JacksonPresent.isJackson3Present()) {

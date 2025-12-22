@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.handlers;
+package io.awspring.cloud.sns.handlers.legacy;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import io.awspring.cloud.sns.handlers.NotificationStatus;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ConfirmSubscriptionRequest;
-import tools.jackson.databind.JsonNode;
 
 /**
  *
@@ -28,12 +29,12 @@ import tools.jackson.databind.JsonNode;
  *
  * @author Agim Emruli
  */
-public class NotificationStatusHandlerMethodArgumentResolver
-		extends AbstractNotificationMessageHandlerMethodArgumentResolver {
+public class LegacyJackson2NotificationStatusHandlerMethodArgumentResolver
+		extends LegacyJackson2AbstractNotificationMessageHandlerMethodArgumentResolver {
 
 	private final SnsClient snsClient;
 
-	public NotificationStatusHandlerMethodArgumentResolver(SnsClient snsClient) {
+	public LegacyJackson2NotificationStatusHandlerMethodArgumentResolver(SnsClient snsClient) {
 		this.snsClient = snsClient;
 	}
 
@@ -45,13 +46,13 @@ public class NotificationStatusHandlerMethodArgumentResolver
 	@Override
 	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request,
 			Class<?> parameterType) {
-		if (!"SubscriptionConfirmation".equals(content.get("Type").asString())
-				&& !"UnsubscribeConfirmation".equals(content.get("Type").asString())) {
+		if (!"SubscriptionConfirmation".equals(content.get("Type").asText())
+				&& !"UnsubscribeConfirmation".equals(content.get("Type").asText())) {
 			throw new IllegalArgumentException(
 					"NotificationStatus is only available for subscription and unsubscription requests");
 		}
-		return new AmazonSnsNotificationStatus(this.snsClient, content.get("TopicArn").asString(),
-				content.get("Token").asString());
+		return new AmazonSnsNotificationStatus(this.snsClient, content.get("TopicArn").asText(),
+				content.get("Token").asText());
 	}
 
 	public static final class AmazonSnsNotificationStatus implements NotificationStatus {

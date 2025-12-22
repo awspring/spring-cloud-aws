@@ -20,6 +20,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import java.util.Map;
 
+/**
+ * Jackson 3 wrapper for deserializing secret from String.
+ *
+ * @author Maciej Walkowiak
+ * @since 4.0.0
+ */
 public class JacksonSecretValueReader implements SecretValueReader {
 	private final JsonMapper jsonMapper;
 

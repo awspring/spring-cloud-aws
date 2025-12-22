@@ -21,6 +21,12 @@ import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import tools.jackson.databind.json.JsonMapper;
 
+/**
+ * Factory util class to construct {@link org.springframework.messaging.converter.MessageConverter} either Jackson 2 or
+ * Jackson 3 specific.
+ * @author Matej Nedic
+ * @since 4.0.0
+ */
 public class JacksonAbstractMessageConverterFactory {
 	@Deprecated
 	public static MappingJackson2MessageConverter createLegacyJackson2MessageConverter(

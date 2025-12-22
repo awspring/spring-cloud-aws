@@ -15,8 +15,14 @@
  */
 package io.awspring.cloud.sns.core;
 
+/**
+ * Implements quoteAsString which uses {@link JsonStringEncoder} jackson 3.
+ * @author Matej Nedic
+ * @since 4.0.0
+ */
 public class JacksonJsonStringEncoder implements JsonStringEncoder {
-	private final tools.jackson.core.io.JsonStringEncoder delegate = tools.jackson.core.io.JsonStringEncoder.getInstance();
+	private final tools.jackson.core.io.JsonStringEncoder delegate = tools.jackson.core.io.JsonStringEncoder
+			.getInstance();
 
 	@Override
 	public void quoteAsString(CharSequence input, StringBuilder output) {

@@ -118,9 +118,9 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	/**
 	 * Set the object mapper to be used to deserialize payloads fot SqsListener endpoints.
-	 * @param abstractMessageConverterFactory the jacksonMapperWrapper instance.
+	 * @param abstractMessageConverterFactory the {@link AbstractMessageConverterFactory} instance.
 	 */
-	public void setJacksonMapperWrapper(AbstractMessageConverterFactory abstractMessageConverterFactory) {
+	public void setJacksonMessageConverterFactory(AbstractMessageConverterFactory abstractMessageConverterFactory) {
 		Assert.notNull(abstractMessageConverterFactory, "jacksonMapperWrapper cannot be null.");
 		this.abstractMessageConverterFactory = abstractMessageConverterFactory;
 	}

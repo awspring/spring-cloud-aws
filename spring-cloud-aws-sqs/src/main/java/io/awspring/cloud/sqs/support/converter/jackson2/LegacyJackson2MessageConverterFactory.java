@@ -16,10 +16,18 @@
 package io.awspring.cloud.sqs.support.converter.jackson2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.JacksonAbstractMessageConverterFactory;
 import io.awspring.cloud.sqs.support.converter.AbstractMessageConverterFactory;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 
+/**
+ * Used to create {@link MappingJackson2MessageConverter} and provide ObjectMapper to
+ * {@link SqsListenerAnnotationBeanPostProcessor}.
+ * @author Matej Nedic
+ * @since 4.0.0
+ */
 @Deprecated
 public class LegacyJackson2MessageConverterFactory extends AbstractMessageConverterFactory {
 

@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.handlers;
+package io.awspring.cloud.sns.handlers.legacy;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
-import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -26,18 +27,17 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-import tools.jackson.databind.JsonNode;
 
 /**
  * @author Agim Emruli
  * @author Matej Nedic
  */
-public abstract class AbstractNotificationMessageHandlerMethodArgumentResolver
+public abstract class LegacyJackson2AbstractNotificationMessageHandlerMethodArgumentResolver
 		implements HandlerMethodArgumentResolver {
 
 	private static final String NOTIFICATION_REQUEST_ATTRIBUTE_NAME = "NOTIFICATION_REQUEST";
 
-	private final JacksonJsonHttpMessageConverter messageConverter = new JacksonJsonHttpMessageConverter();
+	private final MappingJackson2HttpMessageConverter messageConverter = new MappingJackson2HttpMessageConverter();
 
 	@Override
 	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,

@@ -268,8 +268,8 @@ class LegacySqsAutoConfigurationTest {
 					SqsMessageListenerContainerFactory<?> factory = context
 							.getBean("defaultSqsListenerContainerFactory", SqsMessageListenerContainerFactory.class);
 					ObjectMapper objectMapper = context.getBean(CUSTOM_OBJECT_MAPPER_BEAN_NAME, ObjectMapper.class);
-					LegacyJackson2SqsMessagingMessageConverter converter = context.getBean(CUSTOM_MESSAGE_CONVERTER_BEAN_NAME,
-							LegacyJackson2SqsMessagingMessageConverter.class);
+					LegacyJackson2SqsMessagingMessageConverter converter = context.getBean(
+							CUSTOM_MESSAGE_CONVERTER_BEAN_NAME, LegacyJackson2SqsMessagingMessageConverter.class);
 					assertThat(converter.getPayloadMessageConverter()).extracting("converters").asList()
 							.filteredOn(conv -> conv instanceof MappingJackson2MessageConverter).first()
 							.extracting("objectMapper").isEqualTo(objectMapper);

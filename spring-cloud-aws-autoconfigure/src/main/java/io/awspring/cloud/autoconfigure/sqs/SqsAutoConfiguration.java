@@ -202,7 +202,7 @@ public class SqsAutoConfiguration {
 		AbstractMessageConverterFactory wrapper = objectProviderWrapper.getIfUnique();
 		return registrar -> {
 			if (wrapper != null) {
-				registrar.setJacksonMapperWrapper(wrapper);
+				registrar.setJacksonMessageConverterFactory(wrapper);
 			}
 		};
 	}

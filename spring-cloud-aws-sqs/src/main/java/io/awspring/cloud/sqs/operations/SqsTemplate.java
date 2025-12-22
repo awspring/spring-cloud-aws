@@ -24,10 +24,7 @@ import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.SqsHeaders.MessageSystemAttributes;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
-import io.awspring.cloud.sqs.support.converter.MessageAttributeDataTypes;
-import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
-import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
-import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
+import io.awspring.cloud.sqs.support.converter.*;
 import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import java.time.Duration;
@@ -645,7 +642,11 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		return valueClass.cast(headers.get(headerName));
 	}
 
-	private static LegacyJackson2SqsMessagingMessageConverter createDefaultMessageConverter() {
+	private static SqsMessagingMessageConverter createDefaultMessageConverter() {
+		return new SqsMessagingMessageConverter();
+	}
+
+	private static LegacyJackson2SqsMessagingMessageConverter createDefaultLegacyJackson2MessageConverter() {
 		return new LegacyJackson2SqsMessagingMessageConverter();
 	}
 
@@ -741,10 +742,21 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 		@Override
 		public SqsTemplateBuilder configureDefaultConverter(
+				Consumer<SqsMessagingMessageConverter> messageConverterConfigurer) {
+			Assert.notNull(messageConverterConfigurer, "messageConverterConfigurer must not be null");
+			Assert.isNull(this.messageConverter, "messageConverter already configured");
+			SqsMessagingMessageConverter defaultMessageConverter = createDefaultMessageConverter();
+			messageConverterConfigurer.accept(defaultMessageConverter);
+			this.messageConverter = defaultMessageConverter;
+			return this;
+		}
+
+		@Override
+		public SqsTemplateBuilder configureLegacyJackson2Converter(
 				Consumer<LegacyJackson2SqsMessagingMessageConverter> messageConverterConfigurer) {
 			Assert.notNull(messageConverterConfigurer, "messageConverterConfigurer must not be null");
 			Assert.isNull(this.messageConverter, "messageConverter already configured");
-			LegacyJackson2SqsMessagingMessageConverter defaultMessageConverter = createDefaultMessageConverter();
+			LegacyJackson2SqsMessagingMessageConverter defaultMessageConverter = createDefaultLegacyJackson2MessageConverter();
 			messageConverterConfigurer.accept(defaultMessageConverter);
 			this.messageConverter = defaultMessageConverter;
 			return this;

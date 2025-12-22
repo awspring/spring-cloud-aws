@@ -15,10 +15,18 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
+import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.JacksonAbstractMessageConverterFactory;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import tools.jackson.databind.json.JsonMapper;
 
+/**
+ * Used to create {@link JacksonJsonMessageConverter} and provide {@link JsonMapper} to
+ * {@link SqsListenerAnnotationBeanPostProcessor}.
+ * @author Matej Nedic
+ * @since 4.0.0
+ */
 public class JacksonJsonMessageConverterFactory extends AbstractMessageConverterFactory {
 	private JsonMapper jsonMapper;
 

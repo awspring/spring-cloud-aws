@@ -360,7 +360,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		SqsListenerConfigurer sqsListenerConfigurer(ObjectMapper objectMapper) {
 			return registrar -> registrar
-					.setJacksonMapperWrapper(new LegacyJackson2MessageConverterFactory(objectMapper));
+					.setJacksonMessageConverterFactory(new LegacyJackson2MessageConverterFactory(objectMapper));
 		}
 
 		@Bean

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sns.handlers;
+package io.awspring.cloud.sns.handlers.legacy;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -29,9 +30,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.StringUtils;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Handles conversion of SNS notification value to a variable that is annotated with {@link NotificationMessage}.
@@ -41,16 +41,17 @@ import tools.jackson.databind.JsonNode;
  * @author Manuel Wessner
  * @author Matej Nedic
  */
-public class NotificationMessageHandlerMethodArgumentResolver
-		extends AbstractNotificationMessageHandlerMethodArgumentResolver {
+public class LegacyJackson2NotificationMessageHandlerMethodArgumentResolver
+		extends LegacyJackson2AbstractNotificationMessageHandlerMethodArgumentResolver {
 
 	private final List<HttpMessageConverter<?>> messageConverter;
 
-	public NotificationMessageHandlerMethodArgumentResolver() {
-		this(Arrays.asList(new JacksonJsonHttpMessageConverter(), new StringHttpMessageConverter()));
+	public LegacyJackson2NotificationMessageHandlerMethodArgumentResolver() {
+		this(Arrays.asList(new MappingJackson2HttpMessageConverter(), new StringHttpMessageConverter()));
 	}
 
-	public NotificationMessageHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverter) {
+	public LegacyJackson2NotificationMessageHandlerMethodArgumentResolver(
+			List<HttpMessageConverter<?>> messageConverter) {
 		this.messageConverter = messageConverter;
 	}
 
@@ -75,13 +76,13 @@ public class NotificationMessageHandlerMethodArgumentResolver
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request,
 			Class<?> parameterType) {
-		if (!"Notification".equals(content.get("Type").asString())) {
+		if (!"Notification".equals(content.get("Type").asText())) {
 			throw new IllegalArgumentException(
 					"@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");
 		}
 
 		MediaType mediaType = getMediaType(content);
-		String messageContent = content.findPath("Message").asString();
+		String messageContent = content.findPath("Message").asText();
 		for (HttpMessageConverter<?> converter : this.messageConverter) {
 			if (converter.canRead(parameterType, mediaType)) {
 				try {
@@ -119,7 +120,8 @@ public class NotificationMessageHandlerMethodArgumentResolver
 		}
 
 		private Charset getCharset() {
-			return this.mediaType.getCharset() != null ? this.mediaType.getCharset() : StandardCharsets.UTF_8;
+			return this.mediaType.getCharset() != null ? this.mediaType.getCharset()
+					: Charset.forName(StandardCharsets.UTF_8.name());
 		}
 
 		@Override
