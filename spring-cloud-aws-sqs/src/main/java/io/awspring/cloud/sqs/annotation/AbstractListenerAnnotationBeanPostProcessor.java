@@ -316,7 +316,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		CompositeMessageConverter compositeMessageConverter = createCompositeMessageConverter();
 
 		List<HandlerMethodArgumentResolver> methodArgumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers(
-				compositeMessageConverter, new JacksonJsonMessageConverterFactory(new JsonMapper())));
+				compositeMessageConverter, endpointRegistrar.getAbstractMessageConverterFactory()));
 		methodArgumentResolvers.addAll(createArgumentResolvers(compositeMessageConverter));
 		this.endpointRegistrar.getMethodArgumentResolversConsumer().accept(methodArgumentResolvers);
 		handlerMethodFactory.setArgumentResolvers(methodArgumentResolvers);
