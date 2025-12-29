@@ -23,10 +23,9 @@ import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
@@ -39,6 +38,7 @@ import software.amazon.awssdk.services.ssm.model.Parameter;
  * @author Joris Kuipers
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  * @since 2.0.0
  */
 public class ParameterStorePropertySource extends AwsPropertySource<ParameterStorePropertySource, SsmClient> {
@@ -60,8 +60,9 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	@Nullable
 	private final String prefix;
 
-	private Boolean propertiesType = false;
+	private boolean propertiesType = false;
 
+	@Nullable
 	private String prefixType;
 
 	private static final Set<String> ALLOWED_TYPES = Set.of("properties", "json", "yaml");
