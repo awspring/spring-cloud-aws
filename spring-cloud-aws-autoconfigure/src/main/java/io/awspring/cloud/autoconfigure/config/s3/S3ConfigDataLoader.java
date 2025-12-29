@@ -22,7 +22,6 @@ import java.util.Map;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
-import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.lang.Nullable;
@@ -44,29 +43,23 @@ public class S3ConfigDataLoader implements ConfigDataLoader<S3ConfigDataResource
 	@Override
 	@Nullable
 	public ConfigData load(ConfigDataLoaderContext context, S3ConfigDataResource resource) {
-		try {
-			// resource is disabled if s3 integration is disabled via
-			// spring.cloud.aws.s3.config.enabled=false
-			if (resource.isEnabled()) {
-				S3Client s3Client = context.getBootstrapContext().get(S3Client.class);
-				S3PropertySource propertySource = resource.getPropertySources()
-						.createPropertySource(resource.getContext(), resource.isOptional(), s3Client);
-				if (propertySource != null) {
-					return new ConfigData(Collections.singletonList(propertySource));
-				}
-				else {
-					return null;
-				}
+		// resource is disabled if s3 integration is disabled via
+		// spring.cloud.aws.s3.config.enabled=false
+		if (resource.isEnabled()) {
+			S3Client s3Client = context.getBootstrapContext().get(S3Client.class);
+			S3PropertySource propertySource = resource.getPropertySources().createPropertySource(resource.getContext(),
+					resource.isOptional(), s3Client);
+			if (propertySource != null) {
+				return new ConfigData(Collections.singletonList(propertySource));
 			}
 			else {
-				// create dummy empty config data
-				return new ConfigData(Collections.singletonList(new MapPropertySource("aws-s3:" + context, Map.of())));
+				return null;
 			}
 		}
-		catch (Exception e) {
-			throw new ConfigDataResourceNotFoundException(resource, e);
+		else {
+			// create dummy empty config data
+			return new ConfigData(Collections.singletonList(new MapPropertySource("aws-s3:" + context, Map.of())));
 		}
-
 	}
 
 }
