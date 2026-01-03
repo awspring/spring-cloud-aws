@@ -28,7 +28,7 @@ import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2MessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactory;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;

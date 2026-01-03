@@ -28,7 +28,7 @@ import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.SnsNotification;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2MessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;

@@ -16,10 +16,13 @@
 package io.awspring.cloud.sqs.annotation;
 
 import io.awspring.cloud.sqs.ConfigUtils;
-import io.awspring.cloud.sqs.config.*;
+import io.awspring.cloud.sqs.config.Endpoint;
+import io.awspring.cloud.sqs.config.EndpointRegistrar;
+import io.awspring.cloud.sqs.config.HandlerMethodEndpoint;
+import io.awspring.cloud.sqs.config.SqsEndpoint;
+import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.support.converter.AbstractMessageConverterFactory;
-import io.awspring.cloud.sqs.support.converter.JacksonJsonMessageConverterFactory;
 import io.awspring.cloud.sqs.support.resolver.AcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchAcknowledgmentArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
@@ -66,7 +69,6 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link BeanPostProcessor} implementation that scans beans for a {@link SqsListener @SqsListener} annotation, extracts

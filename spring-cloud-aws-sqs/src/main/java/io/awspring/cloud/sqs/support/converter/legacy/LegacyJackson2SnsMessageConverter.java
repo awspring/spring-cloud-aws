@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.converter.jackson2;
+package io.awspring.cloud.sqs.support.converter.legacy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.sqs.support.converter.SnsNotification;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -32,18 +31,13 @@ import org.springframework.messaging.support.GenericMessage;
 import org.springframework.util.Assert;
 
 @Deprecated
-public class LegacyJackson2SnsNotificationConverter implements SmartMessageConverter {
+public class LegacyJackson2SnsMessageConverter implements SmartMessageConverter {
 
 	private final ObjectMapper jsonMapper;
 
 	private final MessageConverter payloadConverter;
 
-	/**
-	 * Creates a new converter with the given payload converter and JSON mapper.
-	 * @param payloadConverter the converter to use for the message payload
-	 * @param jsonMapper the JSON mapper to use for parsing the SNS notification
-	 */
-	public LegacyJackson2SnsNotificationConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
+	public LegacyJackson2SnsMessageConverter(MessageConverter payloadConverter, ObjectMapper jsonMapper) {
 		Assert.notNull(payloadConverter, "payloadConverter must not be null");
 		Assert.notNull(jsonMapper, "jsonMapper must not be null");
 		this.payloadConverter = payloadConverter;
@@ -80,26 +74,13 @@ public class LegacyJackson2SnsNotificationConverter implements SmartMessageConve
 
 	private Object fromGenericMessage(GenericMessage<?> message, Class<?> targetClass,
 			@Nullable Object conversionHint) {
-		try {
-			Type payloadType = getPayloadType(targetClass, conversionHint);
-			Class<?> payloadClass = ResolvableType.forType(payloadType).resolve();
+		var snsJsonNode = new LegacyJackson2SnsJsonNode(jsonMapper, message.getPayload().toString());
 
-			return jsonMapper.readValue(message.getPayload().toString(),
-					jsonMapper.getTypeFactory().constructParametricType(SnsNotification.class, payloadClass));
-		}
-		catch (Exception e) {
-			throw new IllegalArgumentException("Error converting SNS notification: " + e.getMessage(), e);
-		}
-	}
-
-	private Type getPayloadType(Class<?> targetClass, @Nullable Object conversionHint) {
-		if (conversionHint instanceof MethodParameter parameter) {
-			ResolvableType resolvableType = ResolvableType.forMethodParameter(parameter);
-			if (resolvableType.isAssignableFrom(SnsNotification.class)) {
-				return resolvableType.getGeneric(0).getType();
-			}
-		}
-		return String.class;
+		String messagePayload = snsJsonNode.getMessageAsString();
+		GenericMessage<String> genericMessage = new GenericMessage<>(messagePayload);
+		return payloadConverter instanceof SmartMessageConverter smartMessageConverter
+				? smartMessageConverter.fromMessage(genericMessage, targetClass, conversionHint)
+				: payloadConverter.fromMessage(genericMessage, targetClass);
 	}
 
 	@Override
@@ -110,13 +91,13 @@ public class LegacyJackson2SnsNotificationConverter implements SmartMessageConve
 	@Override
 	public Message<?> toMessage(Object payload, MessageHeaders headers) {
 		throw new UnsupportedOperationException(
-				"This converter only supports reading SNS notifications and not writing them");
+				"This converter only supports reading a SNS notification and not writing them");
 	}
 
 	@Override
 	public Message<?> toMessage(Object payload, MessageHeaders headers, Object conversionHint) {
 		throw new UnsupportedOperationException(
-				"This converter only supports reading SNS notifications and not writing them");
+				"This converter only supports reading a SNS notification and not writing them");
 	}
 
 	private static Type getResolvedType(Class<?> targetClass, @Nullable Object conversionHint) {
@@ -137,4 +118,5 @@ public class LegacyJackson2SnsNotificationConverter implements SmartMessageConve
 		}
 		return targetClass;
 	}
+
 }

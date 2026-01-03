@@ -19,7 +19,7 @@ import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesAware;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.MessageHeaders;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;

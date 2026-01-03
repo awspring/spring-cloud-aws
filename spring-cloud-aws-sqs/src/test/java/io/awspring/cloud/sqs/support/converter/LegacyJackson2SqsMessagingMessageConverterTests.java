@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;

@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs.operations;
 
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import java.util.function.Consumer;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;

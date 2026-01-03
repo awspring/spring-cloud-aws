@@ -29,7 +29,7 @@ import io.awspring.cloud.sqs.config.*;
 import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2MessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactory;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
 import java.util.ArrayList;
 import java.util.Collections;

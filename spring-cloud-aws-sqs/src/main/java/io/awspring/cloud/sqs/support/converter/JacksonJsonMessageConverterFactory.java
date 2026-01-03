@@ -17,17 +17,23 @@ package io.awspring.cloud.sqs.support.converter;
 
 import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.JacksonAbstractMessageConverterFactory;
+import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolver;
+import io.awspring.cloud.sqs.support.resolver.NotificationSubjectArgumentResolver;
+import io.awspring.cloud.sqs.support.resolver.SnsNotificationArgumentResolver;
+import java.util.List;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Used to create {@link JacksonJsonMessageConverter} and provide {@link JsonMapper} to
  * {@link SqsListenerAnnotationBeanPostProcessor}.
+ *
  * @author Matej Nedic
  * @since 4.0.0
  */
-public class JacksonJsonMessageConverterFactory extends AbstractMessageConverterFactory {
+public class JacksonJsonMessageConverterFactory implements AbstractMessageConverterFactory {
 	private JsonMapper jsonMapper;
 
 	public JacksonJsonMessageConverterFactory(JsonMapper jsonMapper) {
@@ -49,5 +55,12 @@ public class JacksonJsonMessageConverterFactory extends AbstractMessageConverter
 	@Override
 	public MessageConverter create() {
 		return JacksonAbstractMessageConverterFactory.createJacksonJsonMessageConverter(jsonMapper);
+	}
+
+	@Override
+	public void enrichResolvers(List<HandlerMethodArgumentResolver> argumentResolvers, MessageConverter messageConverter) {
+		argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, jsonMapper));
+		argumentResolvers.add(new NotificationSubjectArgumentResolver(jsonMapper));
+		argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, jsonMapper));
 	}
 }

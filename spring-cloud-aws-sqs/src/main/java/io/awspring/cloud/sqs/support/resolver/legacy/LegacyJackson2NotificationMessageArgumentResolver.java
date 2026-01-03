@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.resolver.jacskon2;
+package io.awspring.cloud.sqs.support.resolver.legacy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SnsNotificationMessage;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SnsMessageConverter;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SnsMessageConverter;
 import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;

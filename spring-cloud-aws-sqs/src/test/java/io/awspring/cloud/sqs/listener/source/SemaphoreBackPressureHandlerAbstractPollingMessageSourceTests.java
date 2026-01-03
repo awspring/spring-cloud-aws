@@ -29,7 +29,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactories;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
-import io.awspring.cloud.sqs.support.converter.jackson2.LegacyJackson2SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;

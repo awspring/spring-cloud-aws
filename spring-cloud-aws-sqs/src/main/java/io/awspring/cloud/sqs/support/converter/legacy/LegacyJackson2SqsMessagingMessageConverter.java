@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.converter.jackson2;
+package io.awspring.cloud.sqs.support.converter.legacy;
 
 import static io.awspring.cloud.sqs.config.JacksonAbstractMessageConverterFactory.createDefaultMappingLegacyJackson2MessageConverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.sqs.support.converter.*;
+import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.HeaderMapper;
+import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.SqsHeaderMapper;
+import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
