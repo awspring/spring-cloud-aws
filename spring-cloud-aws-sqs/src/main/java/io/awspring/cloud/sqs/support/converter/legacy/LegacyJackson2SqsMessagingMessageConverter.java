@@ -48,10 +48,10 @@ public class LegacyJackson2SqsMessagingMessageConverter
 		extends AbstractMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
 
 	public LegacyJackson2SqsMessagingMessageConverter() {
-		this.payloadMessageConverter = createDefaultCompositeMessageConverter();
+		super(createDefaultCompositeMessageConverter());
 	}
 
-	private CompositeMessageConverter createDefaultCompositeMessageConverter() {
+	private static CompositeMessageConverter createDefaultCompositeMessageConverter() {
 		List<MessageConverter> messageConverters = new ArrayList<>();
 		messageConverters.add(createClassMatchingMessageConverter());
 		messageConverters.add(createStringMessageConverter());

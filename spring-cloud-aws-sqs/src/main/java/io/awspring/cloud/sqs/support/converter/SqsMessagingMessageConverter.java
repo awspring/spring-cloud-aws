@@ -27,10 +27,11 @@ public class SqsMessagingMessageConverter
 		extends AbstractMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
 
 	public SqsMessagingMessageConverter() {
-		this.payloadMessageConverter = createDefaultCompositeMessageConverter();
+
+		super(createDefaultCompositeMessageConverter());
 	}
 
-	private CompositeMessageConverter createDefaultCompositeMessageConverter() {
+	private static CompositeMessageConverter createDefaultCompositeMessageConverter() {
 		List<MessageConverter> messageConverters = new ArrayList<>();
 		messageConverters.add(createClassMatchingMessageConverter());
 		messageConverters.add(createStringMessageConverter());

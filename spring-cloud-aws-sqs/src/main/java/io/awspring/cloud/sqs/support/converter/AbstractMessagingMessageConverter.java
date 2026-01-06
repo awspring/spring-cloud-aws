@@ -45,7 +45,7 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	private String typeHeader = SqsHeaders.SQS_DEFAULT_TYPE_HEADER;
 
-	public MessageConverter payloadMessageConverter;
+	private MessageConverter payloadMessageConverter;
 
 	private HeaderMapper<S> headerMapper;
 
@@ -54,9 +54,10 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	private Function<Message<?>, String> payloadTypeHeaderFunction = message -> message.getPayload().getClass()
 			.getName();
 
-	protected AbstractMessagingMessageConverter() {
+	protected AbstractMessagingMessageConverter(MessageConverter messageConverter) {
 		this.headerMapper = createDefaultHeaderMapper();
 		this.payloadTypeMapper = this::defaultHeaderTypeMapping;
+		this.payloadMessageConverter = messageConverter;
 	}
 
 	/**
@@ -207,13 +208,13 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	protected abstract S doConvertMessage(S messageWithHeaders, Object payload);
 
-	public SimpleClassMatchingMessageConverter createClassMatchingMessageConverter() {
+	public static SimpleClassMatchingMessageConverter createClassMatchingMessageConverter() {
 		SimpleClassMatchingMessageConverter matchingMessageConverter = new SimpleClassMatchingMessageConverter();
 		matchingMessageConverter.setSerializedPayloadClass(String.class);
 		return matchingMessageConverter;
 	}
 
-	public StringMessageConverter createStringMessageConverter() {
+	public static StringMessageConverter createStringMessageConverter() {
 		StringMessageConverter stringMessageConverter = new StringMessageConverter();
 		stringMessageConverter.setSerializedPayloadClass(String.class);
 		return stringMessageConverter;
