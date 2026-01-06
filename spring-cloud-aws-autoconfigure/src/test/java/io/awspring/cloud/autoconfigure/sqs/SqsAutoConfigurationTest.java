@@ -203,47 +203,6 @@ class SqsAutoConfigurationTest {
 		});
 	}
 
-	@Disabled("We should see what we want with this test!")
-	@Test
-	void configuresFactoryComponentsAndOptions() {
-		this.contextRunner
-				.withPropertyValues("spring.cloud.aws.sqs.enabled:true",
-						"spring.cloud.aws.sqs.listener.max-concurrent-messages:19",
-						"spring.cloud.aws.sqs.listener.max-messages-per-poll:8",
-						"spring.cloud.aws.sqs.listener.poll-timeout:6s",
-						"spring.cloud.aws.sqs.listener.max-delay-between-polls:15s",
-						"spring.cloud.aws.sqs.listener.auto-startup=false")
-				.withUserConfiguration(CustomComponentsConfiguration.class).run(context -> {
-					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
-					SqsMessageListenerContainerFactory<?> factory = context
-							.getBean(SqsMessageListenerContainerFactory.class);
-					assertThat(factory).hasFieldOrProperty("errorHandler").extracting("asyncMessageInterceptors")
-							.asInstanceOf(InstanceOfAssertFactories.LIST).isNotEmpty();
-					assertThat(factory).extracting("containerOptionsBuilder")
-							.asInstanceOf(type(ContainerOptionsBuilder.class))
-							.extracting(ContainerOptionsBuilder::build)
-							.isInstanceOfSatisfying(ContainerOptions.class, options -> {
-								assertThat(options.getMaxConcurrentMessages()).isEqualTo(19);
-								assertThat(options.getMaxMessagesPerPoll()).isEqualTo(8);
-								assertThat(options.getPollTimeout()).isEqualTo(Duration.ofSeconds(6));
-								assertThat(options.getMaxDelayBetweenPolls()).isEqualTo(Duration.ofSeconds(15));
-								assertThat(options.isAutoStartup()).isEqualTo(false);
-							}).extracting("messageConverter").asInstanceOf(type(SqsMessagingMessageConverter.class))
-							.extracting("payloadMessageConverter").asInstanceOf(type(CompositeMessageConverter.class))
-							.extracting(CompositeMessageConverter::getConverters).isInstanceOfSatisfying(List.class,
-									converters -> assertThat(converters.get(2)).isInstanceOfSatisfying(
-											JacksonJsonMessageConverter.class, jacksonJsonMessageConverter -> {
-												OffsetDateTime now = OffsetDateTime.now();
-												Object result = jacksonJsonMessageConverter
-														.fromMessage(
-																jacksonJsonMessageConverter.toMessage(now,
-																		new MessageHeaders(Map.of())),
-																OffsetDateTime.class);
-												assertThat(result).isEqualTo(now);
-											}));
-				});
-	}
-
 	@Test
 	void configuresFactoryComponentsAndOptionsWithDefaults() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true").run(context -> {

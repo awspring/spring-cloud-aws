@@ -20,7 +20,7 @@ import io.awspring.cloud.sqs.config.MultiMethodSqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
-import io.awspring.cloud.sqs.support.converter.AbstractMessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactory;
 import io.awspring.cloud.sqs.support.resolver.BatchVisibilityHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
@@ -103,7 +103,7 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, AbstractMessageConverterFactory factory) {
+			MessageConverter messageConverter, JacksonMessageConverterFactory factory) {
 		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
 		factory.enrichResolvers(argumentResolvers, messageConverter);
 		return argumentResolvers;

@@ -29,18 +29,26 @@ import tools.jackson.databind.json.JsonMapper;
  * {@link LegacyJackson2MessageConverterFactory} Which provide either: {@link ObjectMapper} or {@link JsonMapper} for
  * SQS integration. Note that you can declare either of implementations as a Bean which will be picked by
  * autoconfiguration.
+ * To be removed with Jackson 2 support
  * @author Matej Nedic
  * @since 4.0.0
  */
-public interface AbstractMessageConverterFactory {
+public interface JacksonMessageConverterFactory {
 
 	MessageConverter create();
 
 	/**
-	 * Used by {@link SqsListenerAnnotationBeanPostProcessor} to add resolvers which will be used when resolving message.
+	 * Used by {@link SqsListenerAnnotationBeanPostProcessor} to add resolvers which will be used when resolving
+	 * message.
 	 * @param argumentResolvers List of argument resolvers
 	 * @param messageConverter MessageConverters which will be used by resolvers.
 	 */
 	void enrichResolvers(List<HandlerMethodArgumentResolver> argumentResolvers, MessageConverter messageConverter);
+
+	/**
+	 * Used to enrich {@link MessagingMessageConverter} with Jackson implementation
+	 * @param messageConverter Which will be enriched
+	 */
+	default void enrichMessageConverter(MessagingMessageConverter messageConverter){}
 
 }

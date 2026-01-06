@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
-import io.awspring.cloud.sqs.config.JacksonAbstractMessageConverterFactory;
+import io.awspring.cloud.sqs.config.MessageConverterFactory;
 import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.NotificationSubjectArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SnsNotificationArgumentResolver;
@@ -33,7 +33,7 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Matej Nedic
  * @since 4.0.0
  */
-public class JacksonJsonMessageConverterFactory implements AbstractMessageConverterFactory {
+public class JacksonJsonMessageConverterFactory implements JacksonMessageConverterFactory {
 	private JsonMapper jsonMapper;
 
 	public JacksonJsonMessageConverterFactory(JsonMapper jsonMapper) {
@@ -54,11 +54,12 @@ public class JacksonJsonMessageConverterFactory implements AbstractMessageConver
 
 	@Override
 	public MessageConverter create() {
-		return JacksonAbstractMessageConverterFactory.createJacksonJsonMessageConverter(jsonMapper);
+		return MessageConverterFactory.createJacksonJsonMessageConverter(jsonMapper);
 	}
 
 	@Override
-	public void enrichResolvers(List<HandlerMethodArgumentResolver> argumentResolvers, MessageConverter messageConverter) {
+	public void enrichResolvers(List<HandlerMethodArgumentResolver> argumentResolvers,
+			MessageConverter messageConverter) {
 		argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, jsonMapper));
 		argumentResolvers.add(new NotificationSubjectArgumentResolver(jsonMapper));
 		argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, jsonMapper));

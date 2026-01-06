@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import static io.awspring.cloud.sqs.config.JacksonAbstractMessageConverterFactory.createDefaultMappingJacksonMessageConverter;
+import static io.awspring.cloud.sqs.config.MessageConverterFactory.createDefaultMappingJacksonMessageConverter;
 
 import java.util.ArrayList;
 import java.util.List;

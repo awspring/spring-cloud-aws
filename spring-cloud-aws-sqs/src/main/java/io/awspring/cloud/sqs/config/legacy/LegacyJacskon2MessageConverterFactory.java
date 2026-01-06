@@ -13,24 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.config;
+package io.awspring.cloud.sqs.config.legacy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jspecify.annotations.Nullable;
-import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Factory util class to construct {@link org.springframework.messaging.converter.MessageConverter} either Jackson 2 or
- * Jackson 3 specific.
+ * Factory util class to construct {@link org.springframework.messaging.converter.MessageConverter} Jackson 2 specific.
+ *
  * @author Matej Nedic
  * @since 4.0.0
  */
-public class JacksonAbstractMessageConverterFactory {
+@Deprecated
+public class LegacyJacskon2MessageConverterFactory {
 	@Deprecated
 	public static MappingJackson2MessageConverter createLegacyJackson2MessageConverter(
-			@Nullable ObjectMapper objectMapper) {
+		@Nullable ObjectMapper objectMapper) {
 		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
 		jacksonMessageConverter.setSerializedPayloadClass(String.class);
 		jacksonMessageConverter.setStrictContentTypeMatch(false);
@@ -38,26 +37,6 @@ public class JacksonAbstractMessageConverterFactory {
 			jacksonMessageConverter.setObjectMapper(objectMapper);
 		}
 		return jacksonMessageConverter;
-	}
-
-	public static JacksonJsonMessageConverter createJacksonJsonMessageConverter(JsonMapper jsonMapper) {
-		JacksonJsonMessageConverter jacksonMessageConverter;
-		if (jsonMapper != null) {
-			jacksonMessageConverter = new JacksonJsonMessageConverter(jsonMapper);
-		}
-		else {
-			jacksonMessageConverter = new JacksonJsonMessageConverter();
-		}
-		jacksonMessageConverter.setSerializedPayloadClass(String.class);
-		jacksonMessageConverter.setStrictContentTypeMatch(false);
-		return jacksonMessageConverter;
-	}
-
-	public static JacksonJsonMessageConverter createDefaultMappingJacksonMessageConverter() {
-		JacksonJsonMessageConverter messageConverter = new JacksonJsonMessageConverter();
-		messageConverter.setSerializedPayloadClass(String.class);
-		messageConverter.setStrictContentTypeMatch(false);
-		return messageConverter;
 	}
 
 	@Deprecated

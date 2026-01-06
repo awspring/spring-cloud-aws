@@ -16,13 +16,14 @@
 package io.awspring.cloud.sqs.annotation;
 
 import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.DefaultMessageConverterConfiguration;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.HandlerMethodEndpoint;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
-import io.awspring.cloud.sqs.support.converter.AbstractMessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactory;
 import io.awspring.cloud.sqs.support.resolver.AcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchAcknowledgmentArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
@@ -326,7 +327,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	}
 
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, AbstractMessageConverterFactory wrapper) {
+			MessageConverter messageConverter, JacksonMessageConverterFactory wrapper) {
 		return createAdditionalArgumentResolvers();
 	}
 
@@ -345,6 +346,8 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		messageConverters.add(new SimpleMessageConverter());
 		if (endpointRegistrar.getAbstractMessageConverterFactory() != null) {
 			messageConverters.add(endpointRegistrar.getAbstractMessageConverterFactory().create());
+		} else {
+			messageConverters.add(DefaultMessageConverterConfiguration.createDefaultMessageConverter());
 		}
 		this.endpointRegistrar.getMessageConverterConsumer().accept(messageConverters);
 		return new CompositeMessageConverter(messageConverters);
