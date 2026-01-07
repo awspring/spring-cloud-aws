@@ -68,4 +68,11 @@ public class LegacyJackson2MessageConverterFactoryAndEnricher implements Jackson
 			sqsConverter.setObjectMapper(this.objectMapper);
 		}
 	}
+	public static void enrichResolversDefault(List<HandlerMethodArgumentResolver> argumentResolvers,
+								MessageConverter messageConverter) {
+		argumentResolvers.add(new LegacyJackson2NotificationMessageArgumentResolver(messageConverter, new ObjectMapper()));
+		argumentResolvers.add(new LegacyJackson2NotificationSubjectArgumentResolver(new ObjectMapper()));
+		argumentResolvers.add(new LegacyJackson2SnsNotificationArgumentResolver(messageConverter, new ObjectMapper()));
+	}
+
 }

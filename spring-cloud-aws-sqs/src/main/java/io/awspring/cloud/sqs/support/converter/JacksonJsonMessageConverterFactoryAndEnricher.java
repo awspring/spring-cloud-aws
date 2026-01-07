@@ -64,4 +64,11 @@ public class JacksonJsonMessageConverterFactoryAndEnricher implements JacksonMes
 		argumentResolvers.add(new NotificationSubjectArgumentResolver(jsonMapper));
 		argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, jsonMapper));
 	}
+
+	public static void enrichResolversDefault(List<HandlerMethodArgumentResolver> argumentResolvers,
+								MessageConverter messageConverter) {
+		argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, new JsonMapper()));
+		argumentResolvers.add(new NotificationSubjectArgumentResolver(new JsonMapper()));
+		argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, new JsonMapper()));
+	}
 }
