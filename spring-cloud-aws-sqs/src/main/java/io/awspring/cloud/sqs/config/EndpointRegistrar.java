@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
-import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactoryAndEnricher;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -73,7 +73,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	};
 
 	@Nullable
-	private JacksonMessageConverterFactory jacksonMessageConverterFactory;
+	private JacksonMessageConverterFactoryAndEnricher jacksonMessageConverterFactoryAndEnricher;
 
 	@Nullable
 	private Validator validator;
@@ -118,11 +118,11 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	/**
 	 * Set the object mapper to be used to deserialize payloads fot SqsListener endpoints.
-	 * @param jacksonMessageConverterFactory the {@link JacksonMessageConverterFactory} instance.
+	 * @param jacksonMessageConverterFactoryAndEnricher the {@link JacksonMessageConverterFactoryAndEnricher} instance.
 	 */
-	public void setJacksonMessageConverterFactory(JacksonMessageConverterFactory jacksonMessageConverterFactory) {
-		Assert.notNull(jacksonMessageConverterFactory, "jacksonMapperWrapper cannot be null.");
-		this.jacksonMessageConverterFactory = jacksonMessageConverterFactory;
+	public void setJacksonMessageConverterFactory(JacksonMessageConverterFactoryAndEnricher jacksonMessageConverterFactoryAndEnricher) {
+		Assert.notNull(jacksonMessageConverterFactoryAndEnricher, "jacksonMapperWrapper cannot be null.");
+		this.jacksonMessageConverterFactoryAndEnricher = jacksonMessageConverterFactoryAndEnricher;
 	}
 
 	/**
@@ -173,8 +173,8 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 * @return the object mapper instance.
 	 */
 	@Nullable
-	public JacksonMessageConverterFactory getAbstractMessageConverterFactory() {
-		return this.jacksonMessageConverterFactory;
+	public JacksonMessageConverterFactoryAndEnricher getAbstractMessageConverterFactory() {
+		return this.jacksonMessageConverterFactoryAndEnricher;
 	}
 
 	/**

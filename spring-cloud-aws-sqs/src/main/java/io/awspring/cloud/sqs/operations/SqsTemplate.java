@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.operations;
 
+import io.awspring.cloud.core.support.JacksonPresent;
 import io.awspring.cloud.sqs.FifoUtils;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.QueueAttributesResolver;
@@ -24,6 +25,7 @@ import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.SqsHeaders.MessageSystemAttributes;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
+import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.MessageAttributeDataTypes;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
@@ -646,14 +648,6 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		return valueClass.cast(headers.get(headerName));
 	}
 
-	private static SqsMessagingMessageConverter createDefaultMessageConverter() {
-		return new SqsMessagingMessageConverter();
-	}
-
-	private static LegacyJackson2SqsMessagingMessageConverter createDefaultLegacyJackson2MessageConverter() {
-		return new LegacyJackson2SqsMessagingMessageConverter();
-	}
-
 	private static class SqsTemplateOptionsImpl extends AbstractMessagingTemplateOptions<SqsTemplateOptions>
 			implements SqsTemplateOptions {
 
@@ -746,25 +740,28 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 		@Override
 		public SqsTemplateBuilder configureDefaultConverter(
-				Consumer<SqsMessagingMessageConverter> messageConverterConfigurer) {
+			Consumer<AbstractMessagingMessageConverter> messageConverterConfigurer) {
+			return configureDefaultConverter(messageConverterConfigurer, null);
+		}
+
+		@Override
+		public SqsTemplateBuilder configureDefaultConverter(
+				Consumer<AbstractMessagingMessageConverter> messageConverterConfigurer, SqsJacksonVersion sqsJacksonVersion) {
 			Assert.notNull(messageConverterConfigurer, "messageConverterConfigurer must not be null");
 			Assert.isNull(this.messageConverter, "messageConverter already configured");
-			SqsMessagingMessageConverter defaultMessageConverter = createDefaultMessageConverter();
+			AbstractMessagingMessageConverter defaultMessageConverter;
+			if (sqsJacksonVersion == SqsJacksonVersion.JACKSON_3) {
+				defaultMessageConverter = new SqsMessagingMessageConverter();
+			} else if (sqsJacksonVersion == SqsJacksonVersion.JACKSON_2)  {
+				defaultMessageConverter = new LegacyJackson2SqsMessagingMessageConverter();
+			} else {
+				defaultMessageConverter = createDefaultBasedOnJacksonPresent();
+			}
 			messageConverterConfigurer.accept(defaultMessageConverter);
 			this.messageConverter = defaultMessageConverter;
 			return this;
 		}
 
-		@Override
-		public SqsTemplateBuilder configureLegacyJackson2Converter(
-				Consumer<LegacyJackson2SqsMessagingMessageConverter> messageConverterConfigurer) {
-			Assert.notNull(messageConverterConfigurer, "messageConverterConfigurer must not be null");
-			Assert.isNull(this.messageConverter, "messageConverter already configured");
-			LegacyJackson2SqsMessagingMessageConverter defaultMessageConverter = createDefaultLegacyJackson2MessageConverter();
-			messageConverterConfigurer.accept(defaultMessageConverter);
-			this.messageConverter = defaultMessageConverter;
-			return this;
-		}
 
 		@Override
 		public SqsTemplateBuilder configure(Consumer<SqsTemplateOptions> options) {
@@ -777,7 +774,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		public SqsTemplate build() {
 			Assert.notNull(this.sqsAsyncClient, "no sqsAsyncClient set");
 			if (this.messageConverter == null) {
-				this.messageConverter = createDefaultMessageConverter();
+				this.messageConverter = createDefaultBasedOnJacksonPresent();
 			}
 			return new SqsTemplate(this);
 		}
@@ -792,6 +789,16 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			return build();
 		}
 
+	}
+
+	private static AbstractMessagingMessageConverter createDefaultBasedOnJacksonPresent() {
+		if (JacksonPresent.isJackson3Present()) {
+			return new SqsMessagingMessageConverter();
+		} else if (JacksonPresent.isJackson2Present()) {
+			return new LegacyJackson2SqsMessagingMessageConverter();
+		}
+		throw new IllegalStateException(
+			"Sqs integration requires a Jackson 2 or Jackson 3 library on the classpath");
 	}
 
 	private static class SqsSendOptionsImpl<T> implements SqsSendOptions<T> {

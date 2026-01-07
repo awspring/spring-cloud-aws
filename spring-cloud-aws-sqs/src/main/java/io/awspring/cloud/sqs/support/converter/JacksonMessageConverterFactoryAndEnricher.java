@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs.support.converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
-import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactoryAndEnricher;
 import java.util.List;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
@@ -25,15 +25,16 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Converter factory used to create MessageConverter either for Jackson 2 or Jackson 3. Used also to provide
- * Implementation for Jackson 3 {@link JacksonJsonMessageConverterFactory} Implementation for Jackson 2
- * {@link LegacyJackson2MessageConverterFactory} Which provide either: {@link ObjectMapper} or {@link JsonMapper} for
+ * Implementation for Jackson 3 {@link JacksonJsonMessageConverterFactoryAndEnricher} Implementation for Jackson 2
+ * {@link LegacyJackson2MessageConverterFactoryAndEnricher} Which provide either: {@link ObjectMapper} or {@link JsonMapper} for
  * SQS integration. Note that you can declare either of implementations as a Bean which will be picked by
  * autoconfiguration.
- * To be removed with Jackson 2 support
+ * NOTE this is transition only api.
  * @author Matej Nedic
  * @since 4.0.0
  */
-public interface JacksonMessageConverterFactory {
+@Deprecated(forRemoval = true)
+public interface JacksonMessageConverterFactoryAndEnricher {
 
 	MessageConverter create();
 

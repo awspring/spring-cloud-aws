@@ -20,6 +20,7 @@ import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter
 import io.awspring.cloud.sqs.support.converter.HeaderMapper;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.SimpleClassMatchingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsHeaderMapper;
 import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.util.Assert;
 
 import static io.awspring.cloud.sqs.config.legacy.LegacyJacskon2MessageConverterFactory.createDefaultMappingLegacyJackson2MessageConverter;
@@ -103,6 +105,18 @@ public class LegacyJackson2SqsMessagingMessageConverter
 			software.amazon.awssdk.services.sqs.model.Message messageWithHeaders, Object payload) {
 		Assert.isInstanceOf(String.class, payload, "payload must be instance of String");
 		return messageWithHeaders.toBuilder().body((String) payload).build();
+	}
+
+	private static SimpleClassMatchingMessageConverter createClassMatchingMessageConverter() {
+		SimpleClassMatchingMessageConverter matchingMessageConverter = new SimpleClassMatchingMessageConverter();
+		matchingMessageConverter.setSerializedPayloadClass(String.class);
+		return matchingMessageConverter;
+	}
+
+	private static StringMessageConverter createStringMessageConverter() {
+		StringMessageConverter stringMessageConverter = new StringMessageConverter();
+		stringMessageConverter.setSerializedPayloadClass(String.class);
+		return stringMessageConverter;
 	}
 
 }

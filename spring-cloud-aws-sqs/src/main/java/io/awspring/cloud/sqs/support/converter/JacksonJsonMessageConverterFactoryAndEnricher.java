@@ -33,10 +33,10 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Matej Nedic
  * @since 4.0.0
  */
-public class JacksonJsonMessageConverterFactory implements JacksonMessageConverterFactory {
+public class JacksonJsonMessageConverterFactoryAndEnricher implements JacksonMessageConverterFactoryAndEnricher {
 	private JsonMapper jsonMapper;
 
-	public JacksonJsonMessageConverterFactory(JsonMapper jsonMapper) {
+	public JacksonJsonMessageConverterFactoryAndEnricher(JsonMapper jsonMapper) {
 		this.jsonMapper = jsonMapper;
 	}
 
@@ -48,7 +48,7 @@ public class JacksonJsonMessageConverterFactory implements JacksonMessageConvert
 		this.jsonMapper = jsonMapper;
 	}
 
-	public JacksonJsonMessageConverterFactory getJsonMapperWrapper() {
+	public JacksonJsonMessageConverterFactoryAndEnricher getJsonMapperWrapper() {
 		return this;
 	}
 

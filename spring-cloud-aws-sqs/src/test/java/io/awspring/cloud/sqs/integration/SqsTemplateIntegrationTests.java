@@ -187,7 +187,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveJsonString() {
 		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
-				.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader)
+				.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader, SqsJacksonVersion.JACKSON_3)
 				.buildSyncTemplate();
 		String jsonString = """
 				{
@@ -323,7 +323,7 @@ public class SqsTemplateIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader() {
 		SqsTemplate template = SqsTemplate.builder().sqsAsyncClient(this.asyncClient)
-				.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader).build();
+				.configureDefaultConverter(AbstractMessagingMessageConverter::doNotSendPayloadTypeHeader, SqsJacksonVersion.JACKSON_3).build();
 		SampleRecord testRecord = new SampleRecord("Hello world!",
 				"From shouldSendAndReceiveRecordMessageWithoutPayloadInfoHeader!");
 		SendResult<SampleRecord> result = template.send(RECORD_WITHOUT_TYPE_HEADER_QUEUE_NAME, testRecord);

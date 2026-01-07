@@ -208,13 +208,13 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	protected abstract S doConvertMessage(S messageWithHeaders, Object payload);
 
-	public static SimpleClassMatchingMessageConverter createClassMatchingMessageConverter() {
+	private static SimpleClassMatchingMessageConverter createClassMatchingMessageConverter() {
 		SimpleClassMatchingMessageConverter matchingMessageConverter = new SimpleClassMatchingMessageConverter();
 		matchingMessageConverter.setSerializedPayloadClass(String.class);
 		return matchingMessageConverter;
 	}
 
-	public static StringMessageConverter createStringMessageConverter() {
+	private static StringMessageConverter createStringMessageConverter() {
 		StringMessageConverter stringMessageConverter = new StringMessageConverter();
 		stringMessageConverter.setSerializedPayloadClass(String.class);
 		return stringMessageConverter;

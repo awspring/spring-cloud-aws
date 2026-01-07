@@ -21,13 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.util.Assert;
 
 public class SqsMessagingMessageConverter
 		extends AbstractMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
 
 	public SqsMessagingMessageConverter() {
-
 		super(createDefaultCompositeMessageConverter());
 	}
 
@@ -59,5 +59,17 @@ public class SqsMessagingMessageConverter
 			software.amazon.awssdk.services.sqs.model.Message messageWithHeaders, Object payload) {
 		Assert.isInstanceOf(String.class, payload, "payload must be instance of String");
 		return messageWithHeaders.toBuilder().body((String) payload).build();
+	}
+
+	private static SimpleClassMatchingMessageConverter createClassMatchingMessageConverter() {
+		SimpleClassMatchingMessageConverter matchingMessageConverter = new SimpleClassMatchingMessageConverter();
+		matchingMessageConverter.setSerializedPayloadClass(String.class);
+		return matchingMessageConverter;
+	}
+
+	private static StringMessageConverter createStringMessageConverter() {
+		StringMessageConverter stringMessageConverter = new StringMessageConverter();
+		stringMessageConverter.setSerializedPayloadClass(String.class);
+		return stringMessageConverter;
 	}
 }

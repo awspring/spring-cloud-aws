@@ -23,7 +23,7 @@ import io.awspring.cloud.sqs.config.HandlerMethodEndpoint;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
-import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactoryAndEnricher;
 import io.awspring.cloud.sqs.support.resolver.AcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchAcknowledgmentArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
@@ -327,7 +327,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	}
 
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, JacksonMessageConverterFactory wrapper) {
+			MessageConverter messageConverter, JacksonMessageConverterFactoryAndEnricher wrapper) {
 		return createAdditionalArgumentResolvers();
 	}
 

@@ -15,12 +15,16 @@
  */
 package io.awspring.cloud.sqs.annotation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.core.support.JacksonPresent;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.MultiMethodSqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
-import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.JacksonJsonMessageConverterFactoryAndEnricher;
+import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactoryAndEnricher;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactoryAndEnricher;
 import io.awspring.cloud.sqs.support.resolver.BatchVisibilityHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
@@ -37,6 +41,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.util.ReflectionUtils;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link AbstractListenerAnnotationBeanPostProcessor} implementation for {@link SqsListener @SqsListener}.
@@ -103,8 +108,18 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, JacksonMessageConverterFactory factory) {
+			MessageConverter messageConverter, JacksonMessageConverterFactoryAndEnricher factory) {
 		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
+		if (factory == null) {
+			if (JacksonPresent.isJackson3Present()) {
+				factory = new JacksonJsonMessageConverterFactoryAndEnricher(new JsonMapper());
+			} else if (JacksonPresent.isJackson2Present()) {
+				factory = new LegacyJackson2MessageConverterFactoryAndEnricher(new ObjectMapper());
+			} else {
+				throw new IllegalStateException(
+					"Sqs integration requires a Jackson 2 or Jackson 3 library on the classpath");
+			}
+		}
 		factory.enrichResolvers(argumentResolvers, messageConverter);
 		return argumentResolvers;
 	}

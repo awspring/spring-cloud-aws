@@ -18,7 +18,7 @@ package io.awspring.cloud.sqs.support.converter.legacy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.legacy.LegacyJacskon2MessageConverterFactory;
-import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactory;
+import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactoryAndEnricher;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.resolver.legacy.LegacyJackson2NotificationMessageArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.legacy.LegacyJackson2SnsNotificationArgumentResolver;
@@ -27,17 +27,17 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**
- * Used to create {@link LegacyJackson2MessageConverterFactory} and provide ObjectMapper to
+ * Used to create {@link LegacyJackson2MessageConverterFactoryAndEnricher} and provide ObjectMapper to
  * {@link SqsListenerAnnotationBeanPostProcessor}.
  * @author Matej Nedic
  * @since 4.0.0
  */
-@Deprecated
-public class LegacyJackson2MessageConverterFactory implements JacksonMessageConverterFactory {
+@Deprecated(forRemoval = true)
+public class LegacyJackson2MessageConverterFactoryAndEnricher implements JacksonMessageConverterFactoryAndEnricher {
 
 	private ObjectMapper objectMapper;
 
-	public LegacyJackson2MessageConverterFactory(ObjectMapper objectMapper) {
+	public LegacyJackson2MessageConverterFactoryAndEnricher(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
 
