@@ -36,8 +36,8 @@ import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
-import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
 import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
@@ -346,8 +346,7 @@ class LegacySqsAutoConfigurationTest {
 		}
 
 		@Bean
-		public JacksonMessageConverterMigration jsonMapperWrapper(
-				ObjectProvider<ObjectMapper> customObjectMapper) {
+		public JacksonMessageConverterMigration jsonMapperWrapper(ObjectProvider<ObjectMapper> customObjectMapper) {
 			ObjectMapper mapper = customObjectMapper.getIfAvailable();
 			return new LegacyJackson2MessageConverterMigration(mapper);
 		}

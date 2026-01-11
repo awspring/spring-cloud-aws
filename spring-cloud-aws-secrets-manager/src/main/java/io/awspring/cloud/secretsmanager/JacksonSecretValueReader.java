@@ -15,12 +15,10 @@
  */
 package io.awspring.cloud.secretsmanager;
 
-
+import java.util.Map;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
-
-import java.util.Map;
 
 /**
  * Jackson 3 wrapper for deserializing secret from String.

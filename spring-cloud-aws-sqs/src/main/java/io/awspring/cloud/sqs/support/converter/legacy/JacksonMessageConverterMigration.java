@@ -17,7 +17,6 @@ package io.awspring.cloud.sqs.support.converter.legacy;
 
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
-
 import java.util.List;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
@@ -25,9 +24,8 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 /**
  * Converter factory used to create MessageConverter either for Jackson 2 or Jackson 3. Used also to provide
  * Implementation for Jackson 3 {@link JacksonJsonMessageConverterMigration} Implementation for Jackson 2
- * {@link LegacyJackson2MessageConverterMigration}
- * Note that you can declare either of implementations as a Bean which will be picked by autoconfiguration.
- * NOTE this is transition only api.
+ * {@link LegacyJackson2MessageConverterMigration} Note that you can declare either of implementations as a Bean which
+ * will be picked by autoconfiguration. NOTE this is transition only api.
  * @author Matej Nedic
  * @since 4.0.0
  */
@@ -41,12 +39,12 @@ public interface JacksonMessageConverterMigration {
 	MessageConverter createMigrationMessageConverter();
 
 	/**
-	 * Used by {@link SqsListenerConfigurer} to add resolvers which will be used when resolving
-	 * message.
+	 * Used by {@link SqsListenerConfigurer} to add resolvers which will be used when resolving message.
 	 * @param argumentResolvers List of argument resolvers
 	 * @param messageConverter MessageConverters which will be used by resolvers.
 	 */
-	void addJacksonMigrationResolvers(List<HandlerMethodArgumentResolver> argumentResolvers, MessageConverter messageConverter);
+	void addJacksonMigrationResolvers(List<HandlerMethodArgumentResolver> argumentResolvers,
+			MessageConverter messageConverter);
 
 	/**
 	 * Used to enrich {@link MessagingMessageConverter} with Jackson implementation

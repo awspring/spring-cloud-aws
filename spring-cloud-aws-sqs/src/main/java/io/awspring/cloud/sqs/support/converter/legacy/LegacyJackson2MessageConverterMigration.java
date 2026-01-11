@@ -55,7 +55,7 @@ public class LegacyJackson2MessageConverterMigration implements JacksonMessageCo
 
 	@Override
 	public void addJacksonMigrationResolvers(List<HandlerMethodArgumentResolver> argumentResolvers,
-											 MessageConverter messageConverter) {
+			MessageConverter messageConverter) {
 		argumentResolvers.add(new LegacyJackson2NotificationMessageArgumentResolver(messageConverter, objectMapper));
 		argumentResolvers.add(new LegacyJackson2NotificationSubjectArgumentResolver(objectMapper));
 		argumentResolvers.add(new LegacyJackson2SnsNotificationArgumentResolver(messageConverter, objectMapper));

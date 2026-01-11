@@ -33,7 +33,7 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Matej Nedic
  * @since 4.0.0
  */
-@Deprecated(forRemoval=true)
+@Deprecated(forRemoval = true)
 public class JacksonJsonMessageConverterMigration implements JacksonMessageConverterMigration {
 	private JsonMapper jsonMapper;
 
@@ -56,7 +56,7 @@ public class JacksonJsonMessageConverterMigration implements JacksonMessageConve
 
 	@Override
 	public void addJacksonMigrationResolvers(List<HandlerMethodArgumentResolver> argumentResolvers,
-											 MessageConverter messageConverter) {
+			MessageConverter messageConverter) {
 		argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, jsonMapper));
 		argumentResolvers.add(new NotificationSubjectArgumentResolver(jsonMapper));
 		argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, jsonMapper));

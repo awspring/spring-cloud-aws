@@ -110,12 +110,10 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
 		if (factory == null) {
 			if (JacksonPresent.isJackson3Present()) {
-				JacksonJsonMessageConverterMigration.enrichResolversDefault(argumentResolvers,
-						messageConverter);
+				JacksonJsonMessageConverterMigration.enrichResolversDefault(argumentResolvers, messageConverter);
 			}
 			else if (JacksonPresent.isJackson2Present()) {
-				LegacyJackson2MessageConverterMigration.enrichResolversDefault(argumentResolvers,
-						messageConverter);
+				LegacyJackson2MessageConverterMigration.enrichResolversDefault(argumentResolvers, messageConverter);
 			}
 			else {
 				throw new IllegalStateException(

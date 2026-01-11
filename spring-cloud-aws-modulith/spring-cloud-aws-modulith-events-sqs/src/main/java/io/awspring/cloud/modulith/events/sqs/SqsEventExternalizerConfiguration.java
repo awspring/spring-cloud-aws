@@ -16,7 +16,6 @@
 package io.awspring.cloud.modulith.events.sqs;
 
 import io.awspring.cloud.sqs.operations.SqsOperations;
-import io.awspring.cloud.sqs.operations.SqsTemplate;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

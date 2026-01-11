@@ -75,8 +75,7 @@ public class LegacyJackson2SqsMessagingMessageConverter
 		converter.setObjectMapper(objectMapper);
 	}
 
-	private Optional<MappingJackson2MessageConverter>
-	getMappingJackson2MessageConverter() {
+	private Optional<MappingJackson2MessageConverter> getMappingJackson2MessageConverter() {
 		return this.getPayloadMessageConverter() instanceof CompositeMessageConverter compositeConverter
 				? compositeConverter.getConverters().stream()
 						.filter(converter -> converter instanceof MappingJackson2MessageConverter)

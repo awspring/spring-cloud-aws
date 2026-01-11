@@ -345,7 +345,8 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		messageConverters.add(new StringMessageConverter());
 		messageConverters.add(new SimpleMessageConverter());
 		if (endpointRegistrar.getAbstractMessageConverterFactory() != null) {
-			messageConverters.add(endpointRegistrar.getAbstractMessageConverterFactory().createMigrationMessageConverter());
+			messageConverters
+					.add(endpointRegistrar.getAbstractMessageConverterFactory().createMigrationMessageConverter());
 		}
 		else {
 			messageConverters.add(DefaultMessageConverterConfiguration.createDefaultMessageConverter());

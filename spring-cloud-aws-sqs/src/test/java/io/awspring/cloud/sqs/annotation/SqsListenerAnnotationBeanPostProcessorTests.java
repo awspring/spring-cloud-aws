@@ -77,8 +77,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 			registrar.setDefaultListenerContainerFactoryBeanName(factoryName);
 			registrar.setListenerContainerRegistry(registry);
 			registrar.setMessageHandlerMethodFactory(methodFactory);
-			registrar.setJacksonMessageConverterMigration(
-					new LegacyJackson2MessageConverterMigration(objectMapper));
+			registrar.setJacksonMessageConverterMigration(new LegacyJackson2MessageConverterMigration(objectMapper));
 			registrar.manageMessageConverters(converters -> converters.add(converter));
 			registrar.manageMethodArgumentResolvers(resolvers -> resolvers.add(resolver));
 			registrar.setValidator(validator);
