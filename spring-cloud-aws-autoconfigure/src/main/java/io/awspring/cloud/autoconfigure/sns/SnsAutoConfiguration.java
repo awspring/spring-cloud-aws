@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.sns;
 
 import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
+import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolverLegacyJackson2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
@@ -23,6 +24,7 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.core.support.JacksonPresent;
 import io.awspring.cloud.sns.core.SnsOperations;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
@@ -36,15 +38,18 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.services.sns.SnsClient;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link EnableAutoConfiguration Auto-configuration} for SNS integration.
@@ -76,24 +81,47 @@ public class SnsAutoConfiguration {
 				.build();
 	}
 
-	@ConditionalOnMissingBean(SnsOperations.class)
-	@Bean
-	public SnsTemplate snsTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper,
-			Optional<TopicArnResolver> topicArnResolver, ObjectProvider<ChannelInterceptor> interceptors) {
-		MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-		converter.setSerializedPayloadClass(String.class);
-		objectMapper.ifPresent(converter::setObjectMapper);
-		SnsTemplate snsTemplate = topicArnResolver.map(it -> new SnsTemplate(snsClient, it, converter))
-				.orElseGet(() -> new SnsTemplate(snsClient, converter));
-		interceptors.forEach(snsTemplate::addChannelInterceptor);
-
-		return snsTemplate;
-	}
-
 	@ConditionalOnMissingBean(SnsSmsOperations.class)
 	@Bean
 	public SnsSmsTemplate snsSmsTemplate(SnsClient snsClient) {
 		return new SnsSmsTemplate(snsClient);
+	}
+
+	@ConditionalOnClass(name = "tools.jackson.databind.json.JsonMapper")
+	@Configuration
+	static class SnsConfiguration {
+		@ConditionalOnMissingBean(SnsOperations.class)
+		@Bean
+		public SnsTemplate snsTemplate(SnsClient snsClient, Optional<JsonMapper> jsonMapper,
+				Optional<TopicArnResolver> topicArnResolver, ObjectProvider<ChannelInterceptor> interceptors) {
+			JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter(
+					jsonMapper.orElseGet(JsonMapper::new));
+			converter.setSerializedPayloadClass(String.class);
+			SnsTemplate snsTemplate = topicArnResolver.map(it -> new SnsTemplate(snsClient, it, converter))
+					.orElseGet(() -> new SnsTemplate(snsClient, converter));
+			interceptors.forEach(snsTemplate::addChannelInterceptor);
+
+			return snsTemplate;
+		}
+	}
+
+	@ConditionalOnClass(name = "com.fasterxml.jackson.databind.ObjectMapper")
+	@ConditionalOnMissingClass("tools.jackson.databind.json.JsonMapper")
+	@Configuration
+	static class LegacyJackson2Configuration {
+		@ConditionalOnMissingBean(SnsOperations.class)
+		@Bean
+		public SnsTemplate snsTemplate(SnsClient snsClient, Optional<ObjectMapper> objectMapper,
+				Optional<TopicArnResolver> topicArnResolver, ObjectProvider<ChannelInterceptor> interceptors) {
+			MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
+			converter.setSerializedPayloadClass(String.class);
+			objectMapper.ifPresent(converter::setObjectMapper);
+			SnsTemplate snsTemplate = topicArnResolver.map(it -> new SnsTemplate(snsClient, it, converter))
+					.orElseGet(() -> new SnsTemplate(snsClient, converter));
+			interceptors.forEach(snsTemplate::addChannelInterceptor);
+
+			return snsTemplate;
+		}
 	}
 
 	@Configuration(proxyBeanMethods = false)
@@ -102,14 +130,25 @@ public class SnsAutoConfiguration {
 
 		@Bean
 		public WebMvcConfigurer snsWebMvcConfigurer(SnsClient snsClient) {
-			return new WebMvcConfigurer() {
-				@Override
-				public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-					resolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient));
-				}
-			};
+			if (JacksonPresent.isJackson3Present()) {
+				return new WebMvcConfigurer() {
+					@Override
+					public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+						resolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient));
+					}
+				};
+			}
+			else if (JacksonPresent.isJackson2Present()) {
+				return new WebMvcConfigurer() {
+					@Override
+					public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+						resolvers.add(getNotificationHandlerMethodArgumentResolverLegacyJackson2(snsClient));
+					}
+				};
+			}
+			throw new IllegalStateException(
+					"SecretsManagerPropertySource requires a Jackson 2 or Jackson 3 library on the classpath");
 		}
-
 	}
 
 }

@@ -42,7 +42,7 @@ import org.springframework.modulith.events.support.DelegatingEventExternalizer;
  */
 @AutoConfiguration
 @AutoConfigureAfter(EventExternalizationAutoConfiguration.class)
-@ConditionalOnClass(SqsTemplate.class)
+@ConditionalOnClass(SqsOperations.class)
 @ConditionalOnProperty(name = "spring.modulith.events.externalization.enabled", havingValue = "true", matchIfMissing = true)
 class SqsEventExternalizerConfiguration {
 

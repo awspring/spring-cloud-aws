@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -23,6 +22,7 @@ import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Alexander Nebel
@@ -30,11 +30,11 @@ import org.springframework.util.ClassUtils;
  */
 public class SnsSubjectConverter implements MessageConverter {
 
-	private final ObjectMapper objectMapper;
+	private final JsonMapper jsonMapper;
 
-	public SnsSubjectConverter(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "jsonMapper must not be null");
-		this.objectMapper = objectMapper;
+	public SnsSubjectConverter(JsonMapper jsonMapper) {
+		Assert.notNull(jsonMapper, "jsonMapper must not be null");
+		this.jsonMapper = jsonMapper;
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class SnsSubjectConverter implements MessageConverter {
 			throw new MessageConversionException("Conversion of List is not supported", null);
 		}
 
-		var snsJsonNode = new SnsJsonNode(objectMapper, message.getPayload().toString());
+		var snsJsonNode = new SnsJsonNode(jsonMapper, message.getPayload().toString());
 		return snsJsonNode.getSubjectAsString();
 	}
 

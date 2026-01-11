@@ -320,7 +320,8 @@ s3Template.store(BUCKET, "person.json", p);
 Person loadedPerson = s3Template.read(BUCKET, "person.json", Person.class);
 ----
 
-By default, if Jackson is on the classpath, `S3Template` uses `ObjectMapper` based `Jackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
+By default, if Jackson 3 is on the classpath, `S3Template` uses `JsonMapper` based `Jackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
+If Jackson 3 is not on classpath and Jackson 2 is, `S3Template` uses `ObjectMapper` based `LegacyJackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
 This behavior can be overwritten by providing custom bean of type `S3ObjectConverter`.
 
 === Determining S3 Objects Content Type

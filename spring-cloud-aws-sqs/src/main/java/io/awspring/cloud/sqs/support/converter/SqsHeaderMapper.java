@@ -20,6 +20,7 @@ import io.awspring.cloud.sqs.MessagingHeaders;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueMessageVisibility;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.HashMap;
@@ -52,7 +53,7 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
  * @author Maciej Walkowiak
  *
  * @since 3.0
- * @see SqsMessagingMessageConverter
+ * @see LegacyJackson2SqsMessagingMessageConverter
  */
 public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 

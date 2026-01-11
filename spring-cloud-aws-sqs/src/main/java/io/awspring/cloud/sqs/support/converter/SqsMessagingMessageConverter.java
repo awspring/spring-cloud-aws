@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2013-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,29 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import org.springframework.messaging.Message;
+import static io.awspring.cloud.sqs.config.MessageConverterFactory.createDefaultMappingJacksonMessageConverter;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.util.Assert;
 
-/**
- * {@link MessagingMessageConverter} implementation for converting SQS
- * {@link software.amazon.awssdk.services.sqs.model.Message} instances to Spring Messaging {@link Message} instances.
- *
- * @author Tomaz Fernandes
- * @author Dongha kim
- * @since 3.0
- * @see SqsHeaderMapper
- * @see SqsMessageConversionContext
- */
 public class SqsMessagingMessageConverter
 		extends AbstractMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
+
+	public SqsMessagingMessageConverter() {
+		super(createDefaultCompositeMessageConverter());
+	}
+
+	private static CompositeMessageConverter createDefaultCompositeMessageConverter() {
+		List<MessageConverter> messageConverters = new ArrayList<>();
+		messageConverters.add(createClassMatchingMessageConverter());
+		messageConverters.add(createStringMessageConverter());
+		messageConverters.add(createDefaultMappingJacksonMessageConverter());
+		return new CompositeMessageConverter(messageConverters);
+	}
 
 	@Override
 	protected HeaderMapper<software.amazon.awssdk.services.sqs.model.Message> createDefaultHeaderMapper() {
@@ -53,4 +61,15 @@ public class SqsMessagingMessageConverter
 		return messageWithHeaders.toBuilder().body((String) payload).build();
 	}
 
+	private static SimpleClassMatchingMessageConverter createClassMatchingMessageConverter() {
+		SimpleClassMatchingMessageConverter matchingMessageConverter = new SimpleClassMatchingMessageConverter();
+		matchingMessageConverter.setSerializedPayloadClass(String.class);
+		return matchingMessageConverter;
+	}
+
+	private static StringMessageConverter createStringMessageConverter() {
+		StringMessageConverter stringMessageConverter = new StringMessageConverter();
+		stringMessageConverter.setSerializedPayloadClass(String.class);
+		return stringMessageConverter;
+	}
 }

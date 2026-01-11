@@ -24,7 +24,8 @@ The starter automatically configures and registers a `SnsTemplate` bean providin
 It supports sending notifications with payload of type:
 
 * `String` - using `org.springframework.messaging.converter.StringMessageConverter`
-* `Object` - which gets serialized to JSON using `org.springframework.messaging.converter.MappingJackson2MessageConverter` and Jackson's `com.fasterxml.jackson.databind.ObjectMapper` autoconfigured by Spring Boot.
+* `Object` - which if Jackson 3 is on classpath gets serialized to JSON using `org.springframework.messaging.converter.JacksonJsonMessageConverter` and Jackson's `tools.jackson.databind.json.JsonMapper` autoconfigured by Spring Boot.
+* `Object` - which if Jackson 3 is not on classpath but Jackson 2 is gets serialized to JSON using `org.springframework.messaging.converter.MappingJackson2MessageConverter` and Jackson's `com.fasterxml.jackson.databind.ObjectMapper` autoconfigured by Spring Boot.
 
 Additionally, it exposes handful of methods supporting `org.springframework.messaging.Message`.
 
@@ -305,7 +306,9 @@ The `SnsInboundChannelAdapter` is an extension of `HttpRequestHandlingMessagingG
 Its URL must be used from the AWS Management Console to add this endpoint as a subscriber to the SNS Topic.
 However, before receiving any notification itself, this HTTP endpoint must confirm the subscription.
 
-See `SnsInboundChannelAdapter` JavaDocs for more information.
+If you want to use Jackson 3 with spring cloud aws integrations you should use `SnsInboundChannelAdapter`. If you are still using Jackson 2 you should use `LegacyJackson2SnsInboundChannelAdapter`.
+
+See `SnsInboundChannelAdapter` and `LegacyJackson2SnsInboundChannelAdapter` JavaDocs for more information.
 
 An important option of this adapter to consider is `handleNotificationStatus`.
 This `boolean` flag indicates if the adapter should send `SubscriptionConfirmation/UnsubscribeConfirmation` message to the `output-channel` or not.

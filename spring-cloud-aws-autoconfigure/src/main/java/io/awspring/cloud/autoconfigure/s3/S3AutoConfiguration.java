@@ -21,19 +21,15 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.AwsProperties;
 import io.awspring.cloud.autoconfigure.s3.properties.S3Properties;
-import io.awspring.cloud.s3.InMemoryBufferingS3OutputStreamProvider;
-import io.awspring.cloud.s3.Jackson2JsonS3ObjectConverter;
-import io.awspring.cloud.s3.PropertiesS3ObjectContentTypeResolver;
-import io.awspring.cloud.s3.S3ObjectContentTypeResolver;
-import io.awspring.cloud.s3.S3ObjectConverter;
-import io.awspring.cloud.s3.S3Operations;
-import io.awspring.cloud.s3.S3OutputStreamProvider;
-import io.awspring.cloud.s3.S3ProtocolResolver;
-import io.awspring.cloud.s3.S3Template;
+import io.awspring.cloud.s3.*;
 import java.util.Optional;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.*;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
@@ -49,6 +45,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.encryption.s3.S3EncryptionClient;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link AutoConfiguration} for {@link S3Client} and {@link S3ProtocolResolver}.
@@ -124,10 +121,49 @@ public class S3AutoConfiguration {
 		return builder.build();
 	}
 
+	@Bean
+	@ConditionalOnMissingBean
+	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
+		return s3ClientBuilder.build();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	S3OutputStreamProvider inMemoryBufferingS3StreamProvider(S3Client s3Client,
+			Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
+		return new InMemoryBufferingS3OutputStreamProvider(s3Client,
+				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
+	}
+
 	@Conditional(S3EncryptionConditional.class)
 	@ConditionalOnClass(name = "software.amazon.encryption.s3.S3EncryptionClient")
 	@Configuration
 	public static class S3EncryptionConfiguration {
+
+		private static void configureEncryptionProperties(S3Properties properties,
+				ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider,
+				S3EncryptionClient.Builder builder) {
+			PropertyMapper propertyMapper = PropertyMapper.get();
+			var encryptionProperties = properties.getEncryption();
+
+			propertyMapper.from(encryptionProperties::isEnableDelayedAuthenticationMode)
+					.to(builder::enableDelayedAuthenticationMode);
+			propertyMapper.from(encryptionProperties::isEnableLegacyUnauthenticatedModes)
+					.to(builder::enableLegacyUnauthenticatedModes);
+			propertyMapper.from(encryptionProperties::isEnableMultipartPutObject).to(builder::enableMultipartPutObject);
+
+			if (!StringUtils.hasText(properties.getEncryption().getKeyId())) {
+				if (aesProvider.getIfAvailable() != null) {
+					builder.aesKey(aesProvider.getObject().generateSecretKey());
+				}
+				else {
+					builder.rsaKeyPair(rsaProvider.getObject().generateKeyPair());
+				}
+			}
+			else {
+				propertyMapper.from(encryptionProperties::getKeyId).to(builder::kmsKeyId);
+			}
+		}
 
 		@Bean
 		@ConditionalOnMissingBean
@@ -154,55 +190,28 @@ public class S3AutoConfiguration {
 			configureEncryptionProperties(properties, rsaProvider, aesProvider, builder);
 			return builder;
 		}
-
-		private static void configureEncryptionProperties(S3Properties properties,
-				ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider,
-				S3EncryptionClient.Builder builder) {
-			PropertyMapper propertyMapper = PropertyMapper.get();
-			var encryptionProperties = properties.getEncryption();
-
-			propertyMapper.from(encryptionProperties::isEnableDelayedAuthenticationMode)
-					.to(builder::enableDelayedAuthenticationMode);
-			propertyMapper.from(encryptionProperties::isEnableLegacyUnauthenticatedModes)
-					.to(builder::enableLegacyUnauthenticatedModes);
-			propertyMapper.from(encryptionProperties::isEnableMultipartPutObject).to(builder::enableMultipartPutObject);
-
-			if (!StringUtils.hasText(properties.getEncryption().getKeyId())) {
-				if (aesProvider.getIfAvailable() != null) {
-					builder.aesKey(aesProvider.getObject().generateSecretKey());
-				}
-				else {
-					builder.rsaKeyPair(rsaProvider.getObject().generateKeyPair());
-				}
-			}
-			else {
-				propertyMapper.from(encryptionProperties::getKeyId).to(builder::kmsKeyId);
-			}
-		}
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	S3Client s3Client(S3ClientBuilder s3ClientBuilder) {
-		return s3ClientBuilder.build();
 	}
 
 	@Configuration
-	@ConditionalOnClass(ObjectMapper.class)
-	static class Jackson2JsonS3ObjectConverterConfiguration {
+	@AutoConfigureAfter(Jackson2JsonS3ObjectConverterConfiguration.class)
+	@ConditionalOnClass(name = "com.fasterxml.jackson.databind.ObjectMapper")
+	static class LegacyJackson2JsonS3ObjectConverterConfiguration {
 
 		@ConditionalOnMissingBean
 		@Bean
 		S3ObjectConverter s3ObjectConverter(Optional<ObjectMapper> objectMapper) {
-			return new Jackson2JsonS3ObjectConverter(objectMapper.orElseGet(ObjectMapper::new));
+			return new LegacyJackson2JsonS3ObjectConverter(objectMapper.orElseGet(ObjectMapper::new));
 		}
 	}
 
-	@Bean
-	@ConditionalOnMissingBean
-	S3OutputStreamProvider inMemoryBufferingS3StreamProvider(S3Client s3Client,
-			Optional<S3ObjectContentTypeResolver> contentTypeResolver) {
-		return new InMemoryBufferingS3OutputStreamProvider(s3Client,
-				contentTypeResolver.orElseGet(PropertiesS3ObjectContentTypeResolver::new));
+	@Configuration
+	@ConditionalOnClass(name = "tools.jackson.databind.json.JsonMapper")
+	static class Jackson2JsonS3ObjectConverterConfiguration {
+
+		@ConditionalOnMissingBean
+		@Bean
+		S3ObjectConverter s3ObjectConverter(Optional<JsonMapper> jsonMapper) {
+			return new Jackson2JsonS3ObjectConverter(jsonMapper.orElseGet(JsonMapper::new));
+		}
 	}
 }
