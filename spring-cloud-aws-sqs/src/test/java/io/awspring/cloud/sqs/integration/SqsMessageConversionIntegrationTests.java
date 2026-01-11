@@ -424,7 +424,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 
 		@Bean
 		SqsListenerConfigurer customizer(ObjectMapper objectMapper) {
-			return registrar -> registrar.setJacksonMessageConverterFactory(
+			return registrar -> registrar.setJacksonMessageConverterMigration(
 					new LegacyJackson2MessageConverterMigration(new ObjectMapper()));
 		}
 

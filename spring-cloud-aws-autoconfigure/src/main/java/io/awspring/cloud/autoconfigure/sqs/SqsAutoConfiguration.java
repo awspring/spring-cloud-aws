@@ -196,7 +196,7 @@ public class SqsAutoConfiguration {
 		JacksonMessageConverterMigration factory = factoryProvider.getIfUnique();
 		return registrar -> {
 			if (factory != null && registrar.getAbstractMessageConverterFactory() == null) {
-				registrar.setJacksonMessageConverterFactory(factory);
+				registrar.setJacksonMessageConverterMigration(factory);
 			}
 		};
 	}

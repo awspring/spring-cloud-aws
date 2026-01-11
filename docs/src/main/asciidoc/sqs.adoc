@@ -360,11 +360,10 @@ The Jackson 2 specific  `LegacyJackson2SqsMessagingMessageConverter` instance ca
 SqsOperations template = SqsTemplate
     .builder()
     .sqsAsyncClient(sqsAsyncClient)
-    .configureLegacyJackson2DefaultConverter(converter -> {
+    .configureDefaultConverter(converter -> {
             converter.setHeaderMapper(headerMapper);
             converter.setPayloadTypeHeader("my-custom-type-header");
-        }
-    )
+        }, SqsJacksonVersion.JACKSON_2)
     .buildSyncTemplate();
 ```
 
@@ -1946,7 +1945,7 @@ The following attributes can be configured in the registrar:
 - `setMessageHandlerMethodFactory` - provide a different factory to be used to create the `invocableHandlerMethod` instances that wrap the listener methods.
 - `setListenerContainerRegistry` - provide a different `MessageListenerContainerRegistry` implementation to be used to register the `MessageListenerContainers`
 - `setMessageListenerContainerRegistryBeanName` - provide a different bean name to be used to retrieve the `MessageListenerContainerRegistry`
-- `setJacksonMessageConverterFactory` - set the `AbstractMessageConverterFactory` which will be used to construct `MessageConverter` and provide either `JsonMapper` for Jackson 3 or `ObjectMapper` for Jackson 2. Check `JacksonJsonMessageConverterFactory` and `LegacyJackson2MessageConverterFactory`
+- `setJacksonMessageConverterMigration` - set the `JacksonMessageConverterMigration` which will be used to construct `MessageConverter` and provide either `JsonMapper` for Jackson 3 or `ObjectMapper` for Jackson 2. Check `JacksonJsonMessageConverterMigration` and `LegacyJackson2MessageConverterMigration`
 See <<Message Conversion and Payload Deserialization>> for more information on where this is used.
 - `setValidator` - set the `Validator` instance that will be used for payload validation in listener methods.
 - `manageMessageConverters` - gives access to the list of message converters that will be used to convert messages.
