@@ -21,9 +21,9 @@ import io.awspring.cloud.sqs.config.MultiMethodSqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
-import io.awspring.cloud.sqs.support.converter.JacksonJsonMessageConverterFactoryAndEnricher;
-import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactoryAndEnricher;
-import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactoryAndEnricher;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonJsonMessageConverterMigration;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import io.awspring.cloud.sqs.support.resolver.BatchVisibilityHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
@@ -106,19 +106,24 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, JacksonMessageConverterFactoryAndEnricher factory) {
+			MessageConverter messageConverter, JacksonMessageConverterMigration factory) {
 		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
 		if (factory == null) {
 			if (JacksonPresent.isJackson3Present()) {
-			JacksonJsonMessageConverterFactoryAndEnricher.enrichResolversDefault(argumentResolvers, messageConverter);
-			} else if (JacksonPresent.isJackson2Present()) {
-				LegacyJackson2MessageConverterFactoryAndEnricher.enrichResolversDefault(argumentResolvers, messageConverter);
-			} else {
-				throw new IllegalStateException(
-					"Sqs integration requires a Jackson 2 or Jackson 3 library on the classpath");
+				JacksonJsonMessageConverterMigration.enrichResolversDefault(argumentResolvers,
+						messageConverter);
 			}
-		} else {
-			factory.enrichResolvers(argumentResolvers, messageConverter);
+			else if (JacksonPresent.isJackson2Present()) {
+				LegacyJackson2MessageConverterMigration.enrichResolversDefault(argumentResolvers,
+						messageConverter);
+			}
+			else {
+				throw new IllegalStateException(
+						"Sqs integration requires a Jackson 2 or Jackson 3 library on the classpath");
+			}
+		}
+		else {
+			factory.addJacksonMigrationResolvers(argumentResolvers, messageConverter);
 		}
 		return argumentResolvers;
 	}

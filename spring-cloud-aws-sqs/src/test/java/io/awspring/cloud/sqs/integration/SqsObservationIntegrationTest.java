@@ -28,8 +28,8 @@ import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.operations.SendResult;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
-import io.awspring.cloud.sqs.support.converter.JacksonJsonMessageConverterFactoryAndEnricher;
-import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactoryAndEnricher;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonJsonMessageConverterMigration;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
 import io.awspring.cloud.sqs.support.observation.MessageHeaderContextAccessor;
 import io.micrometer.context.ContextRegistry;
@@ -60,7 +60,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -351,9 +350,9 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 		LatchContainer latchContainer = new LatchContainer();
 
 		@Bean
-		public JacksonMessageConverterFactoryAndEnricher jsonMapperWrapper(ObjectProvider<JsonMapper> jsonMapper) {
+		public JacksonMessageConverterMigration jsonMapperWrapper(ObjectProvider<JsonMapper> jsonMapper) {
 			JsonMapper mapper = jsonMapper.getIfAvailable(JsonMapper::new);
-			return new JacksonJsonMessageConverterFactoryAndEnricher(mapper);
+			return new JacksonJsonMessageConverterMigration(mapper);
 		}
 
 		// @formatter:off

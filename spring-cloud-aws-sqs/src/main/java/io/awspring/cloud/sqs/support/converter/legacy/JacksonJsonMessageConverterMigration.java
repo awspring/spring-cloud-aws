@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.converter;
+package io.awspring.cloud.sqs.support.converter.legacy;
 
 import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.MessageConverterFactory;
@@ -33,10 +33,11 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Matej Nedic
  * @since 4.0.0
  */
-public class JacksonJsonMessageConverterFactoryAndEnricher implements JacksonMessageConverterFactoryAndEnricher {
+@Deprecated(forRemoval=true)
+public class JacksonJsonMessageConverterMigration implements JacksonMessageConverterMigration {
 	private JsonMapper jsonMapper;
 
-	public JacksonJsonMessageConverterFactoryAndEnricher(JsonMapper jsonMapper) {
+	public JacksonJsonMessageConverterMigration(JsonMapper jsonMapper) {
 		this.jsonMapper = jsonMapper;
 	}
 
@@ -48,25 +49,21 @@ public class JacksonJsonMessageConverterFactoryAndEnricher implements JacksonMes
 		this.jsonMapper = jsonMapper;
 	}
 
-	public JacksonJsonMessageConverterFactoryAndEnricher getJsonMapperWrapper() {
-		return this;
-	}
-
 	@Override
-	public MessageConverter create() {
+	public MessageConverter createMigrationMessageConverter() {
 		return MessageConverterFactory.createJacksonJsonMessageConverter(jsonMapper);
 	}
 
 	@Override
-	public void enrichResolvers(List<HandlerMethodArgumentResolver> argumentResolvers,
-			MessageConverter messageConverter) {
+	public void addJacksonMigrationResolvers(List<HandlerMethodArgumentResolver> argumentResolvers,
+											 MessageConverter messageConverter) {
 		argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, jsonMapper));
 		argumentResolvers.add(new NotificationSubjectArgumentResolver(jsonMapper));
 		argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, jsonMapper));
 	}
 
 	public static void enrichResolversDefault(List<HandlerMethodArgumentResolver> argumentResolvers,
-								MessageConverter messageConverter) {
+			MessageConverter messageConverter) {
 		argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, new JsonMapper()));
 		argumentResolvers.add(new NotificationSubjectArgumentResolver(new JsonMapper()));
 		argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, new JsonMapper()));

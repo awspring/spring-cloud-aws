@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.sqs.support.converter.legacy;
 
+import static io.awspring.cloud.sqs.config.legacy.LegacyJacskon2MessageConverterFactory.createDefaultMappingLegacyJackson2MessageConverter;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.HeaderMapper;
@@ -32,8 +34,6 @@ import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.util.Assert;
-
-import static io.awspring.cloud.sqs.config.legacy.LegacyJacskon2MessageConverterFactory.createDefaultMappingLegacyJackson2MessageConverter;
 
 /**
  * {@link MessagingMessageConverter} implementation for converting SQS

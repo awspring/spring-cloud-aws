@@ -29,7 +29,7 @@ import io.awspring.cloud.sqs.config.*;
 import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
-import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactoryAndEnricher;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,7 +77,8 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 			registrar.setDefaultListenerContainerFactoryBeanName(factoryName);
 			registrar.setListenerContainerRegistry(registry);
 			registrar.setMessageHandlerMethodFactory(methodFactory);
-			registrar.setJacksonMessageConverterFactory(new LegacyJackson2MessageConverterFactoryAndEnricher(objectMapper));
+			registrar.setJacksonMessageConverterFactory(
+					new LegacyJackson2MessageConverterMigration(objectMapper));
 			registrar.manageMessageConverters(converters -> converters.add(converter));
 			registrar.manageMethodArgumentResolvers(resolvers -> resolvers.add(resolver));
 			registrar.setValidator(validator);

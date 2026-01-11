@@ -18,7 +18,6 @@ package io.awspring.cloud.sqs.support.converter.legacy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.legacy.LegacyJacskon2MessageConverterFactory;
-import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactoryAndEnricher;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.resolver.legacy.LegacyJackson2NotificationMessageArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.legacy.LegacyJackson2SnsNotificationArgumentResolver;
@@ -27,17 +26,17 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**
- * Used to create {@link LegacyJackson2MessageConverterFactoryAndEnricher} and provide ObjectMapper to
+ * Used to create {@link LegacyJackson2MessageConverterMigration} and provide ObjectMapper to
  * {@link SqsListenerAnnotationBeanPostProcessor}.
  * @author Matej Nedic
  * @since 4.0.0
  */
 @Deprecated(forRemoval = true)
-public class LegacyJackson2MessageConverterFactoryAndEnricher implements JacksonMessageConverterFactoryAndEnricher {
+public class LegacyJackson2MessageConverterMigration implements JacksonMessageConverterMigration {
 
 	private ObjectMapper objectMapper;
 
-	public LegacyJackson2MessageConverterFactoryAndEnricher(ObjectMapper objectMapper) {
+	public LegacyJackson2MessageConverterMigration(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
 
@@ -50,27 +49,29 @@ public class LegacyJackson2MessageConverterFactoryAndEnricher implements Jackson
 	}
 
 	@Override
-	public MessageConverter create() {
+	public MessageConverter createMigrationMessageConverter() {
 		return LegacyJacskon2MessageConverterFactory.createLegacyJackson2MessageConverter(objectMapper);
 	}
 
 	@Override
-	public void enrichResolvers(List<HandlerMethodArgumentResolver> argumentResolvers,
-			MessageConverter messageConverter) {
+	public void addJacksonMigrationResolvers(List<HandlerMethodArgumentResolver> argumentResolvers,
+											 MessageConverter messageConverter) {
 		argumentResolvers.add(new LegacyJackson2NotificationMessageArgumentResolver(messageConverter, objectMapper));
 		argumentResolvers.add(new LegacyJackson2NotificationSubjectArgumentResolver(objectMapper));
 		argumentResolvers.add(new LegacyJackson2SnsNotificationArgumentResolver(messageConverter, objectMapper));
 	}
 
 	@Override
-	public void enrichMessageConverter(MessagingMessageConverter messageConverter) {
+	public void configureLegacyObjectMapper(MessagingMessageConverter messageConverter) {
 		if (messageConverter instanceof LegacyJackson2SqsMessagingMessageConverter sqsConverter) {
 			sqsConverter.setObjectMapper(this.objectMapper);
 		}
 	}
+
 	public static void enrichResolversDefault(List<HandlerMethodArgumentResolver> argumentResolvers,
-								MessageConverter messageConverter) {
-		argumentResolvers.add(new LegacyJackson2NotificationMessageArgumentResolver(messageConverter, new ObjectMapper()));
+			MessageConverter messageConverter) {
+		argumentResolvers
+				.add(new LegacyJackson2NotificationMessageArgumentResolver(messageConverter, new ObjectMapper()));
 		argumentResolvers.add(new LegacyJackson2NotificationSubjectArgumentResolver(new ObjectMapper()));
 		argumentResolvers.add(new LegacyJackson2SnsNotificationArgumentResolver(messageConverter, new ObjectMapper()));
 	}

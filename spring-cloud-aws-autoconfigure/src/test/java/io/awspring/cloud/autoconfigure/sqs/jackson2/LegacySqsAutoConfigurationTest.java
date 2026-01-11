@@ -36,9 +36,9 @@ import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
-import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactoryAndEnricher;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
-import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactoryAndEnricher;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
@@ -253,8 +253,9 @@ class LegacySqsAutoConfigurationTest {
 							.getBean(SqsListenerAnnotationBeanPostProcessor.class);
 					ObjectMapper objectMapper = context.getBean(CUSTOM_OBJECT_MAPPER_BEAN_NAME, ObjectMapper.class);
 					assertThat(bpp).extracting("endpointRegistrar").asInstanceOf(type(EndpointRegistrar.class))
-							.extracting(endpointRegistrar -> ((LegacyJackson2MessageConverterFactoryAndEnricher) endpointRegistrar
-									.getAbstractMessageConverterFactory()).getObjectMapper())
+							.extracting(
+									endpointRegistrar -> ((LegacyJackson2MessageConverterMigration) endpointRegistrar
+											.getAbstractMessageConverterFactory()).getObjectMapper())
 							.isEqualTo(objectMapper);
 				});
 	}
@@ -345,9 +346,10 @@ class LegacySqsAutoConfigurationTest {
 		}
 
 		@Bean
-		public JacksonMessageConverterFactoryAndEnricher jsonMapperWrapper(ObjectProvider<ObjectMapper> customObjectMapper) {
+		public JacksonMessageConverterMigration jsonMapperWrapper(
+				ObjectProvider<ObjectMapper> customObjectMapper) {
 			ObjectMapper mapper = customObjectMapper.getIfAvailable();
-			return new LegacyJackson2MessageConverterFactoryAndEnricher(mapper);
+			return new LegacyJackson2MessageConverterMigration(mapper);
 		}
 
 	}

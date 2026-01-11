@@ -13,43 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.sqs.support.converter;
+package io.awspring.cloud.sqs.support.converter.legacy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
-import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactoryAndEnricher;
+import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+
 import java.util.List;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Converter factory used to create MessageConverter either for Jackson 2 or Jackson 3. Used also to provide
- * Implementation for Jackson 3 {@link JacksonJsonMessageConverterFactoryAndEnricher} Implementation for Jackson 2
- * {@link LegacyJackson2MessageConverterFactoryAndEnricher} Which provide either: {@link ObjectMapper} or {@link JsonMapper} for
- * SQS integration. Note that you can declare either of implementations as a Bean which will be picked by
- * autoconfiguration.
+ * Implementation for Jackson 3 {@link JacksonJsonMessageConverterMigration} Implementation for Jackson 2
+ * {@link LegacyJackson2MessageConverterMigration}
+ * Note that you can declare either of implementations as a Bean which will be picked by autoconfiguration.
  * NOTE this is transition only api.
  * @author Matej Nedic
  * @since 4.0.0
  */
 @Deprecated(forRemoval = true)
-public interface JacksonMessageConverterFactoryAndEnricher {
-
-	MessageConverter create();
+public interface JacksonMessageConverterMigration {
 
 	/**
-	 * Used by {@link SqsListenerAnnotationBeanPostProcessor} to add resolvers which will be used when resolving
+	 * Creates migration MessageConverter, either Jackson 3 or Jackson 2 specific.
+	 * @return MessageConverter used by SQS integration
+	 */
+	MessageConverter createMigrationMessageConverter();
+
+	/**
+	 * Used by {@link SqsListenerConfigurer} to add resolvers which will be used when resolving
 	 * message.
 	 * @param argumentResolvers List of argument resolvers
 	 * @param messageConverter MessageConverters which will be used by resolvers.
 	 */
-	void enrichResolvers(List<HandlerMethodArgumentResolver> argumentResolvers, MessageConverter messageConverter);
+	void addJacksonMigrationResolvers(List<HandlerMethodArgumentResolver> argumentResolvers, MessageConverter messageConverter);
 
 	/**
 	 * Used to enrich {@link MessagingMessageConverter} with Jackson implementation
 	 * @param messageConverter Which will be enriched
 	 */
-	default void enrichMessageConverter(MessagingMessageConverter messageConverter){}
+	default void configureLegacyObjectMapper(MessagingMessageConverter messageConverter) {
+	}
 
 }

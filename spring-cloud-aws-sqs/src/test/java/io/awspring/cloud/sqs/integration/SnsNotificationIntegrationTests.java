@@ -28,7 +28,7 @@ import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.SnsNotification;
-import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterFactoryAndEnricher;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -359,8 +359,8 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 
 		@Bean
 		SqsListenerConfigurer sqsListenerConfigurer(ObjectMapper objectMapper) {
-			return registrar -> registrar
-					.setJacksonMessageConverterFactory(new LegacyJackson2MessageConverterFactoryAndEnricher(objectMapper));
+			return registrar -> registrar.setJacksonMessageConverterFactory(
+					new LegacyJackson2MessageConverterMigration(objectMapper));
 		}
 
 		@Bean

@@ -740,28 +740,30 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 		@Override
 		public SqsTemplateBuilder configureDefaultConverter(
-			Consumer<AbstractMessagingMessageConverter> messageConverterConfigurer) {
+				Consumer<AbstractMessagingMessageConverter> messageConverterConfigurer) {
 			return configureDefaultConverter(messageConverterConfigurer, null);
 		}
 
 		@Override
 		public SqsTemplateBuilder configureDefaultConverter(
-				Consumer<AbstractMessagingMessageConverter> messageConverterConfigurer, SqsJacksonVersion sqsJacksonVersion) {
+				Consumer<AbstractMessagingMessageConverter> messageConverterConfigurer,
+				SqsJacksonVersion sqsJacksonVersion) {
 			Assert.notNull(messageConverterConfigurer, "messageConverterConfigurer must not be null");
 			Assert.isNull(this.messageConverter, "messageConverter already configured");
 			AbstractMessagingMessageConverter defaultMessageConverter;
-			if (sqsJacksonVersion == SqsJacksonVersion.JACKSON_3) {
+			if (sqsJacksonVersion == SqsJacksonVersion.JACKSON_3 && JacksonPresent.isJackson3Present()) {
 				defaultMessageConverter = new SqsMessagingMessageConverter();
-			} else if (sqsJacksonVersion == SqsJacksonVersion.JACKSON_2)  {
+			}
+			else if (sqsJacksonVersion == SqsJacksonVersion.JACKSON_2 && JacksonPresent.isJackson2Present()) {
 				defaultMessageConverter = new LegacyJackson2SqsMessagingMessageConverter();
-			} else {
+			}
+			else {
 				defaultMessageConverter = createDefaultBasedOnJacksonPresent();
 			}
 			messageConverterConfigurer.accept(defaultMessageConverter);
 			this.messageConverter = defaultMessageConverter;
 			return this;
 		}
-
 
 		@Override
 		public SqsTemplateBuilder configure(Consumer<SqsTemplateOptions> options) {
@@ -794,11 +796,11 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private static AbstractMessagingMessageConverter createDefaultBasedOnJacksonPresent() {
 		if (JacksonPresent.isJackson3Present()) {
 			return new SqsMessagingMessageConverter();
-		} else if (JacksonPresent.isJackson2Present()) {
+		}
+		else if (JacksonPresent.isJackson2Present()) {
 			return new LegacyJackson2SqsMessagingMessageConverter();
 		}
-		throw new IllegalStateException(
-			"Sqs integration requires a Jackson 2 or Jackson 3 library on the classpath");
+		throw new IllegalStateException("Sqs integration requires a Jackson 2 or Jackson 3 library on the classpath");
 	}
 
 	private static class SqsSendOptionsImpl<T> implements SqsSendOptions<T> {

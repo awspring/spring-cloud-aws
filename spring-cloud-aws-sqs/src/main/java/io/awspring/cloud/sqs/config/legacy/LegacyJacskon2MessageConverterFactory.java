@@ -29,7 +29,7 @@ import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 public class LegacyJacskon2MessageConverterFactory {
 	@Deprecated
 	public static MappingJackson2MessageConverter createLegacyJackson2MessageConverter(
-		@Nullable ObjectMapper objectMapper) {
+			@Nullable ObjectMapper objectMapper) {
 		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
 		jacksonMessageConverter.setSerializedPayloadClass(String.class);
 		jacksonMessageConverter.setStrictContentTypeMatch(false);

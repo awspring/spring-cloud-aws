@@ -15,9 +15,7 @@
  */
 package io.awspring.cloud.sqs.config;
 
-import io.awspring.cloud.core.support.JacksonPresent;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
-import org.springframework.messaging.converter.MessageConverter;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -32,7 +30,8 @@ public class MessageConverterFactory {
 		JacksonJsonMessageConverter jacksonMessageConverter;
 		if (jsonMapper != null) {
 			jacksonMessageConverter = new JacksonJsonMessageConverter(jsonMapper);
-		} else {
+		}
+		else {
 			jacksonMessageConverter = new JacksonJsonMessageConverter();
 		}
 		jacksonMessageConverter.setSerializedPayloadClass(String.class);

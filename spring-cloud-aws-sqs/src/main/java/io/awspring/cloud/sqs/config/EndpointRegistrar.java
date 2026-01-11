@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
-import io.awspring.cloud.sqs.support.converter.JacksonMessageConverterFactoryAndEnricher;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -73,7 +73,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	};
 
 	@Nullable
-	private JacksonMessageConverterFactoryAndEnricher jacksonMessageConverterFactoryAndEnricher;
+	private JacksonMessageConverterMigration jacksonMessageConverterMigration;
 
 	@Nullable
 	private Validator validator;
@@ -118,11 +118,12 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	/**
 	 * Set the object mapper to be used to deserialize payloads fot SqsListener endpoints.
-	 * @param jacksonMessageConverterFactoryAndEnricher the {@link JacksonMessageConverterFactoryAndEnricher} instance.
+	 * @param jacksonMessageConverterMigration the {@link JacksonMessageConverterMigration} instance.
 	 */
-	public void setJacksonMessageConverterFactory(JacksonMessageConverterFactoryAndEnricher jacksonMessageConverterFactoryAndEnricher) {
-		Assert.notNull(jacksonMessageConverterFactoryAndEnricher, "jacksonMapperWrapper cannot be null.");
-		this.jacksonMessageConverterFactoryAndEnricher = jacksonMessageConverterFactoryAndEnricher;
+	public void setJacksonMessageConverterFactory(
+			JacksonMessageConverterMigration jacksonMessageConverterMigration) {
+		Assert.notNull(jacksonMessageConverterMigration, "jacksonMapperWrapper cannot be null.");
+		this.jacksonMessageConverterMigration = jacksonMessageConverterMigration;
 	}
 
 	/**
@@ -173,8 +174,8 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 * @return the object mapper instance.
 	 */
 	@Nullable
-	public JacksonMessageConverterFactoryAndEnricher getAbstractMessageConverterFactory() {
-		return this.jacksonMessageConverterFactoryAndEnricher;
+	public JacksonMessageConverterMigration getAbstractMessageConverterFactory() {
+		return this.jacksonMessageConverterMigration;
 	}
 
 	/**
