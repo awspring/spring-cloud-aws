@@ -15,12 +15,14 @@
  */
 package io.awspring.cloud.sqs.listener;
 
+import io.awspring.cloud.core.support.JacksonPresent;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementOrdering;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactories;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactory;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
@@ -248,7 +250,16 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 
 		private static final ListenerMode DEFAULT_MESSAGE_DELIVERY_STRATEGY = ListenerMode.SINGLE_MESSAGE;
 
-		private static final MessagingMessageConverter<?> DEFAULT_MESSAGE_CONVERTER = new SqsMessagingMessageConverter();
+		private static final MessagingMessageConverter<?> DEFAULT_MESSAGE_CONVERTER = createDefaultMessageConverter();
+
+		private static MessagingMessageConverter<?> createDefaultMessageConverter() {
+			if (JacksonPresent.isJackson3Present()) {
+				return new SqsMessagingMessageConverter();
+			} else if (JacksonPresent.isJackson2Present()) {
+				return new LegacyJackson2SqsMessagingMessageConverter();
+			}
+			throw new IllegalStateException("Sqs integration requires a Jackson 2 or Jackson 3 library on the classpath");
+		}
 
 		private static final AcknowledgementMode DEFAULT_ACKNOWLEDGEMENT_MODE = AcknowledgementMode.ON_SUCCESS;
 

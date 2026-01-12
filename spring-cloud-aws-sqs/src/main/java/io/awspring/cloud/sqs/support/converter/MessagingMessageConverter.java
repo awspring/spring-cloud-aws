@@ -22,7 +22,7 @@ import org.springframework.messaging.Message;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public interface MessagingMessageConverter<S> {
+	public interface MessagingMessageConverter<S> {
 
 	/**
 	 * Convert a source message from a specific messaging system to a {@link Message}.

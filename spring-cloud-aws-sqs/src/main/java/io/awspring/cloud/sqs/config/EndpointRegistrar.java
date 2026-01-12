@@ -173,7 +173,7 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 * @return the object mapper instance.
 	 */
 	@Nullable
-	public JacksonMessageConverterMigration getAbstractMessageConverterFactory() {
+	public JacksonMessageConverterMigration getJacksonMessageConverterMigration() {
 		return this.jacksonMessageConverterMigration;
 	}
 

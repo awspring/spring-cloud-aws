@@ -191,11 +191,11 @@ public class SqsAutoConfiguration {
 	}
 
 	@Bean
-	public SqsListenerConfigurer objectMapperCustomizer(
+	public SqsListenerConfigurer jacksonMessageConverterMigrationCustomizer(
 			ObjectProvider<JacksonMessageConverterMigration> factoryProvider) {
 		JacksonMessageConverterMigration factory = factoryProvider.getIfUnique();
 		return registrar -> {
-			if (factory != null && registrar.getAbstractMessageConverterFactory() == null) {
+			if (factory != null && registrar.getJacksonMessageConverterMigration() == null) {
 				registrar.setJacksonMessageConverterMigration(factory);
 			}
 		};

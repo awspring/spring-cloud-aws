@@ -24,6 +24,17 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.util.Assert;
 
+/**
+ * {@link MessagingMessageConverter} implementation for converting SQS
+ * {@link software.amazon.awssdk.services.sqs.model.Message} instances to Spring Messaging {@link Message} instances.
+ *
+ * @author Tomaz Fernandes
+ * @author Dongha kim
+ * @author Matej Nedic
+ * @since 3.0
+ * @see SqsHeaderMapper
+ * @see SqsMessageConversionContext
+ */
 public class SqsMessagingMessageConverter
 		extends AbstractMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
 

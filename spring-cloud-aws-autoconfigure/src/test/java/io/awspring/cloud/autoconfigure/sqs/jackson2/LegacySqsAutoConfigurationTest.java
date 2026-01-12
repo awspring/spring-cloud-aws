@@ -255,7 +255,7 @@ class LegacySqsAutoConfigurationTest {
 					assertThat(bpp).extracting("endpointRegistrar").asInstanceOf(type(EndpointRegistrar.class))
 							.extracting(
 									endpointRegistrar -> ((LegacyJackson2MessageConverterMigration) endpointRegistrar
-											.getAbstractMessageConverterFactory()).getObjectMapper())
+											.getJacksonMessageConverterMigration()).getObjectMapper())
 							.isEqualTo(objectMapper);
 				});
 	}

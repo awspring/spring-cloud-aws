@@ -319,7 +319,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		CompositeMessageConverter compositeMessageConverter = createCompositeMessageConverter();
 
 		List<HandlerMethodArgumentResolver> methodArgumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers(
-				compositeMessageConverter, endpointRegistrar.getAbstractMessageConverterFactory()));
+				compositeMessageConverter, endpointRegistrar.getJacksonMessageConverterMigration()));
 		methodArgumentResolvers.addAll(createArgumentResolvers(compositeMessageConverter));
 		this.endpointRegistrar.getMethodArgumentResolversConsumer().accept(methodArgumentResolvers);
 		handlerMethodFactory.setArgumentResolvers(methodArgumentResolvers);
@@ -344,9 +344,9 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		List<MessageConverter> messageConverters = new ArrayList<>();
 		messageConverters.add(new StringMessageConverter());
 		messageConverters.add(new SimpleMessageConverter());
-		if (endpointRegistrar.getAbstractMessageConverterFactory() != null) {
+		if (endpointRegistrar.getJacksonMessageConverterMigration() != null) {
 			messageConverters
-					.add(endpointRegistrar.getAbstractMessageConverterFactory().createMigrationMessageConverter());
+					.add(endpointRegistrar.getJacksonMessageConverterMigration().createMigrationMessageConverter());
 		}
 		else {
 			messageConverters.add(DefaultMessageConverterConfiguration.createDefaultMessageConverter());
