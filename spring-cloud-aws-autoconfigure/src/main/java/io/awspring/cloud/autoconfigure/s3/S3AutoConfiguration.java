@@ -143,13 +143,15 @@ public class S3AutoConfiguration {
 				ObjectProvider<AwsConnectionDetails> connectionDetails,
 				ObjectProvider<S3EncryptionClientCustomizer> s3ClientCustomizers,
 				ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers,
+				ObjectProvider<S3Client> s3Client,
 				ObjectProvider<S3RsaProvider> rsaProvider, ObjectProvider<S3AesProvider> aesProvider) {
 			S3EncryptionClient.Builder builder = awsClientBuilderConfigurer.configureSyncClient(
-					S3EncryptionClient.builder(), properties, connectionDetails.getIfAvailable(),
+					S3EncryptionClient.builderV4(), properties, connectionDetails.getIfAvailable(),
 					s3ClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream());
 
 			Optional.ofNullable(properties.getCrossRegionEnabled()).ifPresent(builder::crossRegionAccessEnabled);
 			builder.serviceConfiguration(properties.toS3Configuration());
+			s3Client.ifAvailable(builder::wrappedClient);
 
 			configureEncryptionProperties(properties, rsaProvider, aesProvider, builder);
 			return builder;
