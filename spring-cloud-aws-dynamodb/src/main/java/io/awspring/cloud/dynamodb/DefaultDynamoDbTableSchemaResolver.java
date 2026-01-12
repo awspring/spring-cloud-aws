@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 /**
@@ -26,8 +27,10 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  *
  * @author Matej Nedic
  * @author Maciej Walkowiak
+ * @author Marcus Voltolim
  */
 public class DefaultDynamoDbTableSchemaResolver implements DynamoDbTableSchemaResolver {
+
 	private final Map<Class<?>, TableSchema> tableSchemaCache = new ConcurrentHashMap<>();
 
 	public DefaultDynamoDbTableSchemaResolver() {
@@ -42,10 +45,11 @@ public class DefaultDynamoDbTableSchemaResolver implements DynamoDbTableSchemaRe
 
 	@Override
 	public <T> TableSchema<T> resolve(Class<T> clazz) {
-		return tableSchemaCache.computeIfAbsent(clazz, TableSchema::fromBean);
+		return tableSchemaCache.computeIfAbsent(clazz, TableSchema::fromClass);
 	}
 
 	Map<Class<?>, TableSchema> getTableSchemaCache() {
 		return tableSchemaCache;
 	}
+
 }

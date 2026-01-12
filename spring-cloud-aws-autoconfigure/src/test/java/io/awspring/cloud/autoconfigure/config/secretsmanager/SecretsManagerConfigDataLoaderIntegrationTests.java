@@ -212,6 +212,25 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	}
 
 	@Test
+	void whenKeysCannotBeFoundFailWithHumanReadableMessage(CapturedOutput output) {
+		SpringApplication application = new SpringApplication(App.class);
+		application.setWebApplicationType(WebApplicationType.NONE);
+
+		try (ConfigurableApplicationContext context = runApplication(application, "aws-secretsmanager:/some/random/config")) {
+			fail("Context without keys should fail to start");
+		}
+		catch (Exception e) {
+			assertThat(e).isInstanceOf(AwsSecretsManagerPropertySourceNotFoundException.class);
+			// ensure that failure analyzer catches the exception and provides meaningful
+			// error message
+			// Ensure that new line character should be platform independent
+			String errorMessage = "Description:%1$s%1$sCould not import properties from AWS Secrets Manager. Exception happened while trying to load"
+				.formatted(NEW_LINE_CHAR);
+			assertThat(output.getOut()).contains(errorMessage);
+		}
+	}
+
+	@Test
 	void secretsManagerClientCanBeOverwrittenInBootstrapConfig() {
 		SecretsManagerClient mockClient = mock(SecretsManagerClient.class);
 		when(mockClient.getSecretValue(any(GetSecretValueRequest.class))).thenReturn(GetSecretValueResponse.builder()

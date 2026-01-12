@@ -61,12 +61,4 @@ public class SecretsManagerPropertySources {
 		return null;
 	}
 
-	static class AwsSecretsManagerPropertySourceNotFoundException extends RuntimeException {
-
-		AwsSecretsManagerPropertySourceNotFoundException(Exception source) {
-			super(source);
-		}
-
-	}
-
 }

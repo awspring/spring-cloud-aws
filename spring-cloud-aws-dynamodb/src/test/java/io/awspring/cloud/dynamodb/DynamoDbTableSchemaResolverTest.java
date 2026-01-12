@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
  *
  * @author Matej Nedic
  * @author Maciej Walkowiak
+ * @author Marcus Voltolim
  */
 class DynamoDbTableSchemaResolverTest {
 
@@ -40,6 +42,21 @@ class DynamoDbTableSchemaResolverTest {
 
 		// Call one more time to see if cache is being filled properly.
 		defaultTableSchemaResolver.resolve(Person.class);
+
+		// then
+		assertThat(tableSchema).isNotNull();
+		assertThat(defaultTableSchemaResolver.getTableSchemaCache()).hasSize(1);
+	}
+
+	@Test
+	void tableSchemaForImmutableResolved_successfully() {
+		// given
+		DefaultDynamoDbTableSchemaResolver defaultTableSchemaResolver = new DefaultDynamoDbTableSchemaResolver();
+		// when
+		TableSchema<PersonImmutable> tableSchema = defaultTableSchemaResolver.resolve(PersonImmutable.class);
+
+		// Call one more time to see if cache is being filled properly.
+		defaultTableSchemaResolver.resolve(PersonImmutable.class);
 
 		// then
 		assertThat(tableSchema).isNotNull();
@@ -86,4 +103,5 @@ class DynamoDbTableSchemaResolverTest {
 
 	static class Library {
 	}
+
 }

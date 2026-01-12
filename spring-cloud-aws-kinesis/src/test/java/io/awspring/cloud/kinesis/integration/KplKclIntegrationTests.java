@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.awspring.cloud.kinesis.LocalstackContainerTest;
 import java.net.URI;
 import java.util.Date;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,14 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.kinesis.common.InitialPositionInStream;
 import software.amazon.kinesis.common.InitialPositionInStreamExtended;
@@ -59,6 +68,8 @@ import software.amazon.kinesis.producer.KinesisProducerConfiguration;
 class KplKclIntegrationTests implements LocalstackContainerTest {
 
 	private static final String TEST_STREAM = "TestStreamKplKcl";
+
+	static final String LEASE_TABLE_NAME = "kcl_lease_table";
 
 	private static KinesisAsyncClient AMAZON_KINESIS;
 
@@ -83,6 +94,32 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 
 		AMAZON_KINESIS.createStream(request -> request.streamName(TEST_STREAM).shardCount(1)).thenCompose(
 				result -> AMAZON_KINESIS.waiter().waitUntilStreamExists(request -> request.streamName(TEST_STREAM)))
+				.join();
+
+		initializeLeaseTable();
+	}
+
+	/**
+	 * Initialize the lease table to improve KCL initialisation time
+	 */
+	private static void initializeLeaseTable() {
+		DYNAMO_DB
+				.createTable(CreateTableRequest.builder().tableName(LEASE_TABLE_NAME)
+						.attributeDefinitions(AttributeDefinition.builder().attributeName("leaseKey")
+								.attributeType(ScalarAttributeType.S).build())
+						.keySchema(KeySchemaElement.builder().attributeName("leaseKey").keyType(KeyType.HASH).build())
+						.provisionedThroughput(
+								ProvisionedThroughput.builder().readCapacityUnits(1L).writeCapacityUnits(1L).build())
+						.build())
+				.thenCompose(result -> DYNAMO_DB.waiter()
+						.waitUntilTableExists(request -> request.tableName(LEASE_TABLE_NAME)))
+				.thenCompose(describeTableResponseWaiterResponse -> DYNAMO_DB.putItem(PutItemRequest.builder()
+						.tableName(LEASE_TABLE_NAME)
+						.item(Map.of("leaseKey", AttributeValue.fromS("shardId-000000000000"), "checkpoint",
+								AttributeValue.fromS("TRIM_HORIZON"), "leaseCounter", AttributeValue.fromN("1"),
+								"startingHashKey", AttributeValue.fromS("0"), "ownerSwitchesSinceCheckpoint",
+								AttributeValue.fromN("0"), "checkpointSubSequenceNumber", AttributeValue.fromN("0")))
+						.build()))
 				.join();
 	}
 
@@ -164,8 +201,9 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 					InitialPositionInStreamExtended.newInitialPosition(InitialPositionInStream.TRIM_HORIZON));
 			adapter.setBindSourceRecord(true);
 			adapter.setMetricsLevel(MetricsLevel.NONE);
-			adapter.setLeaseManagementConfigCustomizer(leaseManagementConfig -> leaseManagementConfig
-					.workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
+			adapter.setLeaseManagementConfigCustomizer(
+					leaseManagementConfig -> leaseManagementConfig.maxLeasesForWorker(10).shardSyncIntervalMillis(0)
+							.workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
 			return adapter;
 		}
 

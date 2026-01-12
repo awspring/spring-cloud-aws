@@ -13,6 +13,8 @@ io.awspring.cloud.autoconfigure.config.s3.S3ConfigDataLoader
 # Failure Analyzers
 org.springframework.boot.diagnostics.FailureAnalyzer=\
 io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreMissingKeysFailureAnalyzer, \
+io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerExceptionHappenedAnalyzer, \
 io.awspring.cloud.autoconfigure.config.parameterstore.ParameterStoreExceptionHappenedAnalyzer, \
+io.awspring.cloud.autoconfigure.config.s3.S3ExceptionHappenedAnalyzer, \
 io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerMissingKeysFailureAnalyzer,\
 io.awspring.cloud.autoconfigure.config.s3.S3MissingKeysFailureAnalyzer
