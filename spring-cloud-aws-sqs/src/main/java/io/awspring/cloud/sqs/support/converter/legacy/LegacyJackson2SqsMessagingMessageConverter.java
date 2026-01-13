@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sqs.support.converter.legacy;
 
-import static io.awspring.cloud.sqs.config.legacy.LegacyJacskon2MessageConverterFactory.createDefaultMappingLegacyJackson2MessageConverter;
+import static io.awspring.cloud.sqs.config.legacy.LegacyJackson2MessageConverterFactory.createDefaultMappingLegacyJackson2MessageConverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;

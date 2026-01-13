@@ -26,7 +26,7 @@ import org.springframework.messaging.converter.MappingJackson2MessageConverter;
  * @since 4.0.0
  */
 @Deprecated
-public class LegacyJacskon2MessageConverterFactory {
+public class LegacyJackson2MessageConverterFactory {
 	@Deprecated
 	public static MappingJackson2MessageConverter createLegacyJackson2MessageConverter(
 			@Nullable ObjectMapper objectMapper) {

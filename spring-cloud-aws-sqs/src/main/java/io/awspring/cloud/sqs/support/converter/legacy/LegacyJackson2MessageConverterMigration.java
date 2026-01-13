@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs.support.converter.legacy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
-import io.awspring.cloud.sqs.config.legacy.LegacyJacskon2MessageConverterFactory;
+import io.awspring.cloud.sqs.config.legacy.LegacyJackson2MessageConverterFactory;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.resolver.legacy.LegacyJackson2NotificationMessageArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.legacy.LegacyJackson2SnsNotificationArgumentResolver;
@@ -50,7 +50,7 @@ public class LegacyJackson2MessageConverterMigration implements JacksonMessageCo
 
 	@Override
 	public MessageConverter createMigrationMessageConverter() {
-		return LegacyJacskon2MessageConverterFactory.createLegacyJackson2MessageConverter(objectMapper);
+		return LegacyJackson2MessageConverterFactory.createLegacyJackson2MessageConverter(objectMapper);
 	}
 
 	@Override
