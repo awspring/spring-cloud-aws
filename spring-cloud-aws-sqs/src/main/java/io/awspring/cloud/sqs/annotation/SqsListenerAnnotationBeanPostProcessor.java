@@ -106,7 +106,7 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, JacksonMessageConverterMigration factory) {
+			MessageConverter messageConverter, @Nullable JacksonMessageConverterMigration factory) {
 		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
 		if (factory == null) {
 			if (JacksonPresent.isJackson3Present()) {

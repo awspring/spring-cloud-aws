@@ -327,7 +327,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	}
 
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, JacksonMessageConverterMigration wrapper) {
+			MessageConverter messageConverter, @Nullable JacksonMessageConverterMigration wrapper) {
 		return createAdditionalArgumentResolvers();
 	}
 
