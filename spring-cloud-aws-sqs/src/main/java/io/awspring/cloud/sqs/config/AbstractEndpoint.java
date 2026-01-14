@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.config;
 
+import io.awspring.cloud.sqs.listener.AbstractMessageListenerContainer;
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.BatchVisibility;
 import io.awspring.cloud.sqs.listener.ListenerMode;
@@ -23,6 +24,7 @@ import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.acknowledgement.BatchAcknowledgement;
 import io.awspring.cloud.sqs.listener.adapter.AsyncMessagingMessageListenerAdapter;
 import io.awspring.cloud.sqs.listener.adapter.MessagingMessageListenerAdapter;
+import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +37,7 @@ import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 import org.springframework.util.Assert;
 
@@ -58,6 +61,12 @@ public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 	private Method method;
 
 	private MessageHandlerMethodFactory handlerMethodFactory;
+
+	@Nullable
+	private MethodPayloadTypeInferrer methodPayloadTypeInferrer;
+
+	@Nullable
+	private List<HandlerMethodArgumentResolver> argumentResolvers;
 
 	protected AbstractEndpoint(Collection<String> queueNames, @Nullable String listenerContainerFactoryName,
 			String id) {
@@ -127,6 +136,26 @@ public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 		return this.handlerMethodFactory;
 	}
 
+	/**
+	 * Set the {@link MethodPayloadTypeInferrer} to be used for inferring payload types from method signatures.
+	 *
+	 * @param inferrer the inferrer instance, or null to disable inference.
+	 */
+	@Override
+	public void setMethodPayloadTypeInferrer(@Nullable MethodPayloadTypeInferrer inferrer) {
+		this.methodPayloadTypeInferrer = inferrer;
+	}
+
+	/**
+	 * Set the argument resolvers to be used for inferring payload types if a methodPayloadTypeInferrer is set.
+	 *
+	 * @param argumentResolvers the argument resolvers, may be null.
+	 */
+	@Override
+	public void setArgumentResolvers(@Nullable List<HandlerMethodArgumentResolver> argumentResolvers) {
+		this.argumentResolvers = argumentResolvers;
+	}
+
 	@Override
 	public void configureListenerMode(Consumer<ListenerMode> consumer) {
 		List<MethodParameter> parameters = getMethodParameters();
@@ -179,11 +208,30 @@ public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 		Assert.notNull(this.handlerMethodFactory, "No handlerMethodFactory has been set");
 		InvocableHandlerMethod handlerMethod = this.handlerMethodFactory.createInvocableHandlerMethod(this.bean,
 				this.method);
+
+		if (this.methodPayloadTypeInferrer != null
+				&& container instanceof AbstractMessageListenerContainer<?, ?, ?> amlc) {
+			Class<?> inferredType = this.methodPayloadTypeInferrer.inferPayloadType(this.method,
+					this.argumentResolvers);
+			if (inferredType != null) {
+				amlc.setPayloadDeserializationType(inferredType);
+			}
+			disableDefaultPayloadTypeMapper(amlc);
+		}
+
 		if (CompletionStage.class.isAssignableFrom(handlerMethod.getReturnType().getParameterType())) {
 			container.setAsyncMessageListener(createAsyncMessageListenerInstance(handlerMethod));
 		}
 		else {
 			container.setMessageListener(createMessageListenerInstance(handlerMethod));
+		}
+	}
+
+	private void disableDefaultPayloadTypeMapper(AbstractMessageListenerContainer<?, ?, ?> container) {
+		var converter = container.getContainerOptions().getMessageConverter();
+		if (converter instanceof AbstractMessagingMessageConverter<?> amc && amc.isUsingDefaultPayloadTypeMapper()) {
+			// Disable JavaType header based mapping
+			amc.setPayloadTypeMapper(msg -> null);
 		}
 	}
 

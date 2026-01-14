@@ -92,4 +92,12 @@ public class ConfigUtils {
 		return this;
 	}
 
+	public <T, V> ConfigUtils acceptManyIfNotNullAndInstance(@Nullable T value, Collection<?> values, Class<V> clazz,
+			BiConsumer<T, V> consumer) {
+		if (value != null) {
+			values.forEach(v -> acceptIfInstance(v, clazz, instance -> consumer.accept(value, instance)));
+		}
+		return this;
+	}
+
 }
