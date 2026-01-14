@@ -15,11 +15,11 @@
  */
 package io.awspring.cloud.sns.handlers;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ConfirmSubscriptionRequest;
+import tools.jackson.databind.JsonNode;
 
 /**
  *
@@ -45,13 +45,13 @@ public class NotificationStatusHandlerMethodArgumentResolver
 	@Override
 	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request,
 			Class<?> parameterType) {
-		if (!"SubscriptionConfirmation".equals(content.get("Type").asText())
-				&& !"UnsubscribeConfirmation".equals(content.get("Type").asText())) {
+		if (!"SubscriptionConfirmation".equals(content.get("Type").asString())
+				&& !"UnsubscribeConfirmation".equals(content.get("Type").asString())) {
 			throw new IllegalArgumentException(
 					"NotificationStatus is only available for subscription and unsubscription requests");
 		}
-		return new AmazonSnsNotificationStatus(this.snsClient, content.get("TopicArn").asText(),
-				content.get("Token").asText());
+		return new AmazonSnsNotificationStatus(this.snsClient, content.get("TopicArn").asString(),
+				content.get("Token").asString());
 	}
 
 	public static final class AmazonSnsNotificationStatus implements NotificationStatus {

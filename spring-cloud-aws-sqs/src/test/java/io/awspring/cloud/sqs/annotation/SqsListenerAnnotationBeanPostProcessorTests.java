@@ -25,15 +25,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.sqs.config.Endpoint;
-import io.awspring.cloud.sqs.config.EndpointRegistrar;
-import io.awspring.cloud.sqs.config.MessageListenerContainerFactory;
-import io.awspring.cloud.sqs.config.MultiMethodSqsEndpoint;
-import io.awspring.cloud.sqs.config.SqsBeanNames;
-import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
+import io.awspring.cloud.sqs.config.*;
 import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,7 +77,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 			registrar.setDefaultListenerContainerFactoryBeanName(factoryName);
 			registrar.setListenerContainerRegistry(registry);
 			registrar.setMessageHandlerMethodFactory(methodFactory);
-			registrar.setObjectMapper(objectMapper);
+			registrar.setJacksonMessageConverterMigration(new LegacyJackson2MessageConverterMigration(objectMapper));
 			registrar.manageMessageConverters(converters -> converters.add(converter));
 			registrar.manageMethodArgumentResolvers(resolvers -> resolvers.add(resolver));
 			registrar.setValidator(validator);

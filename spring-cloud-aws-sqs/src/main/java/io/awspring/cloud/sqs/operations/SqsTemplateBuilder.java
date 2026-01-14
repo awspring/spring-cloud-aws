@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs.operations;
 
+import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import java.util.function.Consumer;
@@ -49,7 +50,19 @@ public interface SqsTemplateBuilder {
 	 * @param messageConverterConfigurer a {@link SqsMessagingMessageConverter} consumer.
 	 * @return the builder.
 	 */
-	SqsTemplateBuilder configureDefaultConverter(Consumer<SqsMessagingMessageConverter> messageConverterConfigurer);
+	SqsTemplateBuilder configureDefaultConverter(
+			Consumer<AbstractMessagingMessageConverter> messageConverterConfigurer);
+
+	/**
+	 * Configure the default message converter.
+	 *
+	 * @param messageConverterConfigurer a {@link SqsMessagingMessageConverter} consumer.
+	 * @param sqsJacksonVersion a version which will dictate which default converter is supplied. Jackson 3 or Jackson 2
+	 *     specific.
+	 * @return the builder.
+	 */
+	SqsTemplateBuilder configureDefaultConverter(Consumer<AbstractMessagingMessageConverter> messageConverterConfigurer,
+			SqsJacksonVersion sqsJacksonVersion);
 
 	/**
 	 * Configure options for the template.

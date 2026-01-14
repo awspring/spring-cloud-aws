@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-dependencies-parent</artifactId>
-		<version>5.0.0-RC1</version>
+		<version>5.0.0</version>
 		<relativePath/>
 	</parent>
 	<scm>
@@ -31,7 +31,7 @@
 		<dynamodb-streams.version>2.0.1</dynamodb-streams.version>
 		<amazon.encryption.s3.version>3.3.5</amazon.encryption.s3.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<spring-cloud-commons.version>5.0.0-RC1</spring-cloud-commons.version>
+		<spring-cloud-commons.version>5.0.0</spring-cloud-commons.version>
 		<spring-cloud-stream.version>5.0.0</spring-cloud-stream.version>
 		<jakarta.mail.version>2.1.3</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>2.0.3</eclipse.jakarta.mail.version>

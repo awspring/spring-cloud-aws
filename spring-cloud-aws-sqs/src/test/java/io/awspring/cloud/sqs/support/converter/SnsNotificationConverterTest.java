@@ -31,6 +31,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.GenericMessage;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests for {@link SnsNotificationConverter}.
@@ -52,7 +53,7 @@ class SnsNotificationConverterTest {
 	@BeforeEach
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
-		converter = new SnsNotificationConverter(payloadConverter, objectMapper);
+		converter = new SnsNotificationConverter(payloadConverter, new JsonMapper());
 	}
 
 	@Test
