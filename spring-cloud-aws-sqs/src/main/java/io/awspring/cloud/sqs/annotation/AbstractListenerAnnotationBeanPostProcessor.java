@@ -78,6 +78,7 @@ import org.springframework.util.StringUtils;
  * @author Tomaz Fernandes
  * @author Joao Calassio
  * @author José Iêdo
+ * @author Matej Nedic
  * @since 3.0
  */
 public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Annotation>
@@ -332,11 +333,6 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
 			MessageConverter messageConverter, @Nullable JacksonMessageConverterMigration wrapper) {
-		return createAdditionalArgumentResolvers();
-	}
-
-	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter) {
 		return createAdditionalArgumentResolvers();
 	}
 
