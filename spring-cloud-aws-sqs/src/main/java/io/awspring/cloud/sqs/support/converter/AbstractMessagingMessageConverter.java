@@ -49,20 +49,30 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	private HeaderMapper<S> headerMapper;
 
-	private Function<Message<?>, Class<?>> payloadTypeMapper;
+	private static final Function<Message<?>, Class<?>> DEFAULT_PAYLOAD_TYPE_MAPPER = msg -> headerTypeMapping(msg,
+			SqsHeaders.SQS_DEFAULT_TYPE_HEADER);
+
+	private Function<Message<?>, Class<?>> payloadTypeMapper = DEFAULT_PAYLOAD_TYPE_MAPPER;
 
 	private Function<Message<?>, String> payloadTypeHeaderFunction = message -> message.getPayload().getClass()
 			.getName();
 
 	protected AbstractMessagingMessageConverter(MessageConverter messageConverter) {
 		this.headerMapper = createDefaultHeaderMapper();
-		this.payloadTypeMapper = this::defaultHeaderTypeMapping;
 		this.payloadMessageConverter = messageConverter;
 	}
 
 	/**
+	 * Check if this converter is using the default payload type mapper (header-based).
+	 * @return true if using the default mapper, false if a custom mapper has been configured
+	 */
+	public boolean isUsingDefaultPayloadTypeMapper() {
+		return this.payloadTypeMapper == DEFAULT_PAYLOAD_TYPE_MAPPER;
+	}
+
+	/**
 	 * Set the payload type mapper to be used by this converter. {@link Message} payloads will be converted to the
-	 * {@link Class} returned by this function. The {@link #defaultHeaderTypeMapping} uses the {@link #typeHeader}
+	 * {@link Class} returned by this function. The default header-based type mapping uses the {@link #typeHeader}
 	 * property to retrieve the payload class' FQCN. This method replaces the default type mapping for this converter
 	 * instance.
 	 * @param payloadTypeMapper the type mapping function.
@@ -90,13 +100,14 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	}
 
 	/**
-	 * Set the name of the header to be looked up in a {@link Message} instance by the
-	 * {@link #defaultHeaderTypeMapping(Message)}.
+	 * Set the name of the header to be looked up in a {@link Message} instance for payload type mapping. When used,
+	 * type header mapping takes precedence over automatic type inferrence.
 	 * @param typeHeader the header name.
 	 */
 	public void setPayloadTypeHeader(String typeHeader) {
 		Assert.notNull(typeHeader, "typeHeader cannot be null");
 		this.typeHeader = typeHeader;
+		this.payloadTypeMapper = msg -> headerTypeMapping(msg, typeHeader);
 	}
 
 	/**
@@ -166,8 +177,8 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	protected abstract Object getPayloadToDeserialize(S message);
 
 	@Nullable
-	private Class<?> defaultHeaderTypeMapping(Message<?> message) {
-		String header = message.getHeaders().get(this.typeHeader, String.class);
+	private static Class<?> headerTypeMapping(Message<?> message, String typeHeader) {
+		String header = message.getHeaders().get(typeHeader, String.class);
 		if (header == null) {
 			return null;
 		}

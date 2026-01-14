@@ -99,6 +99,8 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	@Nullable
 	private BeanExpressionContext expressionContext;
 
+	private final List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>();
+
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		Class<?> targetClass = AopUtils.getTargetClass(bean);
@@ -159,6 +161,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 			hme.setBean(bean);
 			hme.setMethod(method);
 			hme.setHandlerMethodFactory(this.delegatingHandlerMethodFactory);
+			hme.setArgumentResolvers(this.argumentResolvers);
 		});
 		return endpoint;
 	}
@@ -324,6 +327,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		this.endpointRegistrar.getMethodArgumentResolversConsumer().accept(methodArgumentResolvers);
 		handlerMethodFactory.setArgumentResolvers(methodArgumentResolvers);
 		handlerMethodFactory.afterPropertiesSet();
+		this.argumentResolvers.addAll(methodArgumentResolvers);
 	}
 
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(

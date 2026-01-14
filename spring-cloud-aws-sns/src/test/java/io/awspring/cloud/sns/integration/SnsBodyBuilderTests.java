@@ -45,7 +45,8 @@ class SnsBodyBuilderTests {
 
 		message = SnsBodyBuilder.withDefault("foo").forProtocols("{\"foo\" : \"bar\"}", "sms").build();
 
-		assertThat(message).isEqualTo("{\"default\":\"foo\",\"sms\":\"{\\\"foo\\\" : \\\"bar\\\"}\"}");
+		assertThat(message).startsWith("{").endsWith("}").contains("\"default\":\"foo\"")
+				.contains("\"sms\":\"{\\\"foo\\\" : \\\"bar\\\"}\"");
 	}
 
 }

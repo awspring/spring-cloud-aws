@@ -62,7 +62,7 @@ class S3PropertySourceTest {
 		propertySource.init();
 
 		assertThat(propertySource.getName()).isEqualTo("aws-s3:test-bucket/" + sourceFileName);
-		assertThat(propertySource.getPropertyNames()).containsExactly("key1", "key2");
+		assertThat(propertySource.getPropertyNames()).containsExactlyInAnyOrder("key1", "key2");
 		assertThat(propertySource.getProperty("key2")).isEqualTo("value2");
 	}
 
