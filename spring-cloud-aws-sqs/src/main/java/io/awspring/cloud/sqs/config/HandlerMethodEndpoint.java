@@ -17,8 +17,11 @@ package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.listener.ListenerMode;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.function.Consumer;
+import org.springframework.lang.Nullable;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**
  * {@link Endpoint} specialization that indicates that {@link org.springframework.messaging.Message} instances coming
@@ -47,6 +50,18 @@ public interface HandlerMethodEndpoint extends Endpoint {
 	 * @param handlerMethodFactory the factory.
 	 */
 	void setHandlerMethodFactory(MessageHandlerMethodFactory handlerMethodFactory);
+
+	/**
+	 * Set the {@link MethodPayloadTypeInferrer} to be used for inferring payload types from method signatures.
+	 * @param inferrer the inferrer instance, or null to disable inference.
+	 */
+	void setMethodPayloadTypeInferrer(@Nullable MethodPayloadTypeInferrer inferrer);
+
+	/**
+	 * Set the argument resolvers to be used for inferring payload types.
+	 * @param argumentResolvers the argument resolvers, may be null.
+	 */
+	void setArgumentResolvers(@Nullable List<HandlerMethodArgumentResolver> argumentResolvers);
 
 	/**
 	 * Allows configuring the {@link ListenerMode} for this endpoint.

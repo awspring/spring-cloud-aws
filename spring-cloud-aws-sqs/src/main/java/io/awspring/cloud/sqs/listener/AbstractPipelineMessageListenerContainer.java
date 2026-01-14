@@ -34,6 +34,7 @@ import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipelineBuilder;
 import io.awspring.cloud.sqs.listener.sink.MessageProcessingPipelineSink;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
+import io.awspring.cloud.sqs.listener.source.AbstractMessageConvertingMessageSource;
 import io.awspring.cloud.sqs.listener.source.AcknowledgementProcessingMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.PollingMessageSource;
@@ -163,7 +164,11 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 				.acceptManyIfInstance(this.messageSources, AcknowledgementProcessingMessageSource.class,
 						ams -> ams.setAcknowledgementResultCallback(getAcknowledgementResultCallback()))
 				.acceptManyIfInstance(this.messageSources, TaskExecutorAware.class,
-						teac -> teac.setTaskExecutor(taskExecutor));
+						teac -> teac.setTaskExecutor(taskExecutor))
+				.acceptManyIfNotNullAndInstance(getPayloadDeserializationType(), this.messageSources,
+						AbstractMessageConvertingMessageSource.class,
+						(type, source) -> source.setPayloadDeserializationType(type));
+
 		doConfigureMessageSources(this.messageSources);
 	}
 

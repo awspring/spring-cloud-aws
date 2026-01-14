@@ -78,6 +78,25 @@ public abstract class AbstractMessageConvertingMessageSource<T, S> implements Me
 		}
 	}
 
+	/**
+	 * Set the payload deserialization type. This will be used by the message converter to deserialize messages to the
+	 * target type. Note that type mappers in MessagingMessageConverters take precedence over this type.
+	 * @param payloadDeserializationType the target class
+	 */
+	public void setPayloadDeserializationType(@Nullable Class<?> payloadDeserializationType) {
+		ConfigUtils.INSTANCE.acceptBothIfNoneNull(payloadDeserializationType, this.messageConversionContext,
+				this::doConfigurePayloadTypeOnContext);
+	}
+
+	/**
+	 * Hook method for subclasses to configure the payload type on their specific MessageConversionContext
+	 * implementation.
+	 * @param payloadType the payload type to configure
+	 * @param context the message conversion context
+	 */
+	protected void doConfigurePayloadTypeOnContext(Class<?> payloadType, MessageConversionContext context) {
+	}
+
 	@Nullable
 	private MessageConversionContext maybeCreateConversionContext() {
 		return this.messagingMessageConverter instanceof ContextAwareMessagingMessageConverter
