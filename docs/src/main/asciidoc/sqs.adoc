@@ -675,6 +675,18 @@ public class MyListener {
 
 The `isDefault = true` parameter designates a method as the fallback handler for messages that don't match any other handler's parameter type.
 
+To determine which handler method to invoke, the framework needs to know the payload type before deserialization.
+A custom `PayloadTypeMapper` should be configured to map incoming messages to their concrete types.
+See <<Custom Payload Type Mapping>> for an example.
+
+[NOTE]
+====
+Since 4.0.0, the default type header sent by `SqsTemplate` is deprecated and is no longer used to deserialize the payload.
+A custom mapper is necessary to disambiguate between different payload types in multi-handler listeners.
+Alternatively, automatic inference can be disabled to restore header-based type resolution.
+See <<Automatic Payload Type Inference>> for more information.
+====
+
 ===== SNS Messages
 
 Since 3.1.1, when receiving SNS messages through the `@SqsListener`, the message includes all attributes of the `SnsNotification`. To only receive need the `Message` part of the payload, you can utilize the `@SnsNotificationMessage` annotation.
@@ -1627,16 +1639,55 @@ For configuring a different `JsonMapper`, see <<Global Configuration for @SqsLis
 NOTE: When Jackson 3 is not on classpath and only Jackson 2 is found, if there's a single `ObjectMapper` in Spring Context, such object mapper will be used for converting messages.
 This includes the one provided by Spring Boot's auto-configuration itself.
 
-For manually created `MessageListeners`, `MessageInterceptor` and `ErrorHandler` components, or more fine-grained conversion such as using `interfaces` or `inheritance` in listener methods, type mapping is required for payload deserialization.
+==== Automatic Payload Type Inference
 
-By default, the framework looks for a `MessageHeader` named `Sqs_MA_JavaType` containing the fully qualified class name (`FQCN`) for which the payload should be deserialized to.
-If such header is found, the message is automatically deserialized to the provided class.
+Since 4.0.0, by default, the framework automatically infers the payload type from the `@SqsListener` method signature at the `MessageSource` level.
+This allows payloads to be deserialized early in the message processing flow without requiring type information in message headers.
 
-Further configuration can be achieved by providing a configured `MessagingMessageConverter` instance in the `SqsContainerOptions`.
+This enables accessing the deserialized payload in components such as `MessageInterceptor`, `ErrorHandler`, and `AcknowledgementResultCallback` without type headers.
 
-NOTE: If type mapping is setup or type information is added to the headers, payloads are deserialized right after the message is polled.
-Otherwise, for `@SqsListener` annotated methods, payloads are deserialized right before the message is sent to the listener.
-For providing custom `MessageConverter` instances to be used by `@SqsListener` methods, see <<Global Configuration for @SqsListeners>>
+The inference supports simple types, generic types like `List<MyEvent>`, `Message<MyEvent>`, and `List<Message<MyEvent>>`.
+Parameters annotated with `@Payload` are explicitly recognized as the payload parameter.
+
+For polymorphic types (interfaces, `Object`, or `@SqsHandler` methods), a custom mapper is required.
+See <<Custom Payload Type Mapping>>.
+
+[NOTE]
+====
+The `JavaType` header automatically set by `SqsTemplate` is deprecated since 4.0.0 and will be removed in a future version.
+When automatic payload type inference is enabled, the `JavaType` header is ignored by default.
+For backward compatibility, `SqsTemplate` still sends this header, allowing applications to roll back if needed.
+====
+
+==== Customizing Type Resolution
+
+Type resolution can be customized at two levels:
+
+*Per-converter:* Configure `setPayloadTypeMapper` or `setPayloadTypeHeader` on a `MessagingMessageConverter`.
+Any custom type mapper takes precedence over automatic inference for that converter.
+Note that, by default, all containers share the same SqsMessagingMessageConverter instance.
+
+*Framework-wide:* Provide a custom `MethodPayloadTypeInferrer` implementation via a `SqsListenerConfigurer`.
+See <<Global Configuration for @SqsListeners>>.
+
+==== Disabling Automatic Inference
+
+*Per-converter:* To restore header-based type mapping for specific converters, call `setPayloadTypeHeader` on the converter:
+
+[source, java]
+----
+converter.setPayloadTypeHeader(SqsHeaders.SQS_DEFAULT_TYPE_HEADER);
+----
+
+*Framework-wide:* To disable automatic inference globally, set `methodPayloadTypeInferrer` to `null` via a `SqsListenerConfigurer`:
+
+[source, java]
+----
+@Bean
+SqsListenerConfigurer sqsListenerConfigurer() {
+    return registrar -> registrar.setMethodPayloadTypeInferrer(null);
+}
+----
 
 ==== Configuring a MessagingMessageConverter
 
@@ -1697,41 +1748,72 @@ messageConverter.setPayloadMessageConverter(payloadConverter);
 factory.configure(options -> options.messageConverter(messageConverter));
 ----
 
-==== Interfaces and Subclasses in Listener Methods
+==== Custom Payload Type Mapping
 
-Interfaces and subclasses can be used in `@SqsListener` annotated methods by configuring a `type mapper`:
-
-[source, java]
-----
-messageConverter.setPayloadTypeMapper(message -> {
-    String eventTypeHeader = message.getHeaders().get("myEventTypeHeader", String.class);
-    return "eventTypeA".equals(eventTypeHeader)
-        ? MyTypeA.class
-        : MyTypeB.class;
-});
-----
-
-And then, in the listener method:
+When determining the payload type based on message content is necessary, a custom `payloadTypeMapper` can be configured:
 
 [source, java]
 ----
-@SpringBootApplication
-public class SqsApplication {
+@Bean
+SqsMessagingMessageConverter messageConverter() {
+    var converter = new SqsMessagingMessageConverter();
+    converter.setPayloadTypeMapper(message -> {
+        String payload = (String) message.getPayload();
+        if (payload.contains("\"type\":\"OrderEvent\"")) {
+            return OrderEvent.class;
+        }
+        if (payload.contains("\"type\":\"PaymentEvent\"")) {
+            return PaymentEvent.class;
+        }
+        return null;
+    });
+    return converter;
+}
+----
 
-    public static void main(String[] args) {
-        SpringApplication.run(SqsApplication.class, args);
+This enables using interfaces or subclasses in listener methods:
+
+[source, java]
+----
+public interface DomainEvent {}
+public record OrderEvent(String orderId, String status) implements DomainEvent {}
+public record PaymentEvent(String paymentId, BigDecimal amount) implements DomainEvent {}
+
+@SqsListener("events-queue")
+void handleEvent(DomainEvent event) {
+    // event will be the correct concrete type based on the mapper
+}
+----
+
+The same configuration enables routing to different `@SqsHandler` methods:
+
+[source, java]
+----
+@SqsListener("events-queue")
+public class EventListener {
+
+    @SqsHandler
+    void handle(OrderEvent event) {
+        // handles OrderEvent
     }
 
-    // Retrieve the converted payload
-    @SqsListener("myQueue")
-    public void listen(MyInterface message) {
-        System.out.println(message);
+    @SqsHandler
+    void handle(PaymentEvent event) {
+        // handles PaymentEvent
     }
+}
+----
 
-    // Or retrieve a Message with the converted payload
-    @SqsListener("myOtherQueue")
-    public void listen(Message<MyInterface> message) {
-        System.out.println(message);
+Or when using `Object` as the parameter type:
+
+[source, java]
+----
+@SqsListener("events-queue")
+void handleEvent(Object event) {
+    if (event instanceof OrderEvent orderEvent) {
+        // handle order
+    } else if (event instanceof PaymentEvent paymentEvent) {
+        // handle payment
     }
 }
 ----
@@ -1953,6 +2035,9 @@ By default, `StringMessageConverter`, `SimpleMessageConverter` and `JacksonJsonM
 
 - `manageArgumentResolvers` - gives access to the list of argument resolvers that will be used to resolve the listener method arguments.
 The order of resolvers is important - `PayloadMethodArgumentResolver` should generally be last since it's used as default.
+- `setMethodPayloadTypeInferrer` - set the `MethodPayloadTypeInferrer` instance to be used for automatic payload type inference.
+Set to `null` to disable automatic inference and rely on header-based type mapping.
+See <<Automatic Payload Type Inference>> for more information.
 
 A simple example for Jackson 3 would be:
 

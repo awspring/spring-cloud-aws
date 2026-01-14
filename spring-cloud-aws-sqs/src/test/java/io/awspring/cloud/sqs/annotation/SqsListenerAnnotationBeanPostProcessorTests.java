@@ -253,10 +253,8 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		assertThat(endpoint.getLogicalNames()).containsExactly("classLevelQueue");
 		assertThat(endpoint).isInstanceOfSatisfying(MultiMethodSqsEndpoint.class, multiMethodSqsEndpoint -> {
 			assertThat(multiMethodSqsEndpoint.getMethods()).hasSize(2);
-			assertThat(multiMethodSqsEndpoint.getMethods().get(0))
-					.isEqualTo(ClassLevelListener.class.getDeclaredMethods()[0]);
-			assertThat(multiMethodSqsEndpoint.getMethods().get(1))
-					.isEqualTo(ClassLevelListener.class.getDeclaredMethods()[1]);
+			assertThat(multiMethodSqsEndpoint.getMethods()).extracting(method -> method.getParameterTypes()[0])
+					.containsExactlyInAnyOrder(String.class, Integer.class);
 		});
 	}
 

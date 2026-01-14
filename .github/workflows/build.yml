@@ -17,9 +17,9 @@ jobs:
         version: [ 17.0.12, 21.0.4, 24 ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK ${{ matrix.version }}
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: ${{ matrix.version }}
@@ -32,15 +32,15 @@ jobs:
     # Disable Sonar for foreign PRs
     if: (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17.0.12
           cache: maven
       - name: Cache SonarCloud packages
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar

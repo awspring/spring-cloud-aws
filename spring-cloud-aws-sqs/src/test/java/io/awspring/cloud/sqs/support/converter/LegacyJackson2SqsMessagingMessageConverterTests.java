@@ -136,6 +136,26 @@ class LegacyJackson2SqsMessagingMessageConverterTests {
 				MessageAttributeValue.builder().stringValue("application/json").dataType("String").build());
 	}
 
+	@Test
+	void shouldReturnTrueForDefaultPayloadTypeMapper() {
+		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		assertThat(converter.isUsingDefaultPayloadTypeMapper()).isTrue();
+	}
+
+	@Test
+	void shouldReturnFalseAfterSettingCustomPayloadTypeMapper() {
+		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		converter.setPayloadTypeMapper(msg -> MyPojo.class);
+		assertThat(converter.isUsingDefaultPayloadTypeMapper()).isFalse();
+	}
+
+	@Test
+	void shouldReturnFalseAfterSettingPayloadTypeHeader() {
+		SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+		converter.setPayloadTypeHeader("myTypeHeader");
+		assertThat(converter.isUsingDefaultPayloadTypeMapper()).isFalse();
+	}
+
 	static class MyPojo {
 
 		private String myProperty = "myValue";
