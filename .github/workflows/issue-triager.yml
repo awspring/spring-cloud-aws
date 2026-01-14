@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: damccorm/tag-ur-it@master
         with:
@@ -20,7 +20,7 @@ jobs:
           configuration-path: "./.github/triage-rules.yml"
 
       - if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |

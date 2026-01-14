@@ -71,6 +71,9 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 
 	private int phase = DEFAULT_PHASE;
 
+	@Nullable
+	private Class<?> payloadDeserializationType;
+
 	/**
 	 * Create an instance with the provided {@link ContainerOptions}
 	 * @param containerOptions the options instance.
@@ -173,6 +176,23 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	}
 
 	/**
+	 * Set the target type for payload deserialization. When set, messages will be deserialized to this type at the
+	 * {@link org.springframework.context.MessageSource} before being passed to the listener.
+	 * <p>
+	 * Since 4.0.0, this type is typically inferred automatically from the {@code @SqsListener} method signature when
+	 * using @SqsListener annotations, but can also be set manually for programmatic container configuration.
+	 * <p>
+	 * <b>Note on precedence:</b> Payload type mappers on the converter take precedence over the type manually set by
+	 * this method.
+	 * <p>
+	 * @param payloadDeserializationType the target type for deserialization
+	 * @see io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter
+	 */
+	public void setPayloadDeserializationType(@Nullable Class<?> payloadDeserializationType) {
+		this.payloadDeserializationType = payloadDeserializationType;
+	}
+
+	/**
 	 * Returns the {@link ContainerOptions} instance for this container. Changed options will take effect on container
 	 * restart.
 	 */
@@ -225,6 +245,15 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	 */
 	public AsyncAcknowledgementResultCallback<T> getAcknowledgementResultCallback() {
 		return this.acknowledgementResultCallback;
+	}
+
+	/**
+	 * Return the target type for payload deserialization, or null if not set.
+	 * @return the payload deserialization type.
+	 */
+	@Nullable
+	public Class<?> getPayloadDeserializationType() {
+		return this.payloadDeserializationType;
 	}
 
 	@Override
