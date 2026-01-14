@@ -16,6 +16,7 @@
 package io.awspring.cloud.sns.core;
 
 import io.awspring.cloud.sns.handlers.NotificationStatus;
+import io.awspring.cloud.sns.integration.LegacyJackson2SnsInboundChannelAdapter;
 import io.awspring.cloud.sns.integration.SnsInboundChannelAdapter;
 import org.springframework.messaging.Message;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
@@ -66,7 +67,7 @@ public final class SnsHeaders {
 
 	/**
 	 * The {@link NotificationStatus} header for manual confirmation on reception. The value of this header is set from
-	 * {@link SnsInboundChannelAdapter}.
+	 * {@link SnsInboundChannelAdapter} or {@link LegacyJackson2SnsInboundChannelAdapter}.
 	 */
 	public static final String NOTIFICATION_STATUS_HEADER = SNS_HEADER_PREFIX + "notificationStatus";
 

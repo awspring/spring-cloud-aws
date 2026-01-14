@@ -25,15 +25,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.sqs.config.Endpoint;
-import io.awspring.cloud.sqs.config.EndpointRegistrar;
-import io.awspring.cloud.sqs.config.MessageListenerContainerFactory;
-import io.awspring.cloud.sqs.config.MultiMethodSqsEndpoint;
-import io.awspring.cloud.sqs.config.SqsBeanNames;
-import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
+import io.awspring.cloud.sqs.config.*;
 import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -81,7 +77,7 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 			registrar.setDefaultListenerContainerFactoryBeanName(factoryName);
 			registrar.setListenerContainerRegistry(registry);
 			registrar.setMessageHandlerMethodFactory(methodFactory);
-			registrar.setObjectMapper(objectMapper);
+			registrar.setJacksonMessageConverterMigration(new LegacyJackson2MessageConverterMigration(objectMapper));
 			registrar.manageMessageConverters(converters -> converters.add(converter));
 			registrar.manageMethodArgumentResolvers(resolvers -> resolvers.add(resolver));
 			registrar.setValidator(validator);
@@ -257,10 +253,8 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		assertThat(endpoint.getLogicalNames()).containsExactly("classLevelQueue");
 		assertThat(endpoint).isInstanceOfSatisfying(MultiMethodSqsEndpoint.class, multiMethodSqsEndpoint -> {
 			assertThat(multiMethodSqsEndpoint.getMethods()).hasSize(2);
-			assertThat(multiMethodSqsEndpoint.getMethods().get(0))
-					.isEqualTo(ClassLevelListener.class.getDeclaredMethods()[0]);
-			assertThat(multiMethodSqsEndpoint.getMethods().get(1))
-					.isEqualTo(ClassLevelListener.class.getDeclaredMethods()[1]);
+			assertThat(multiMethodSqsEndpoint.getMethods()).extracting(method -> method.getParameterTypes()[0])
+					.containsExactlyInAnyOrder(String.class, Integer.class);
 		});
 	}
 

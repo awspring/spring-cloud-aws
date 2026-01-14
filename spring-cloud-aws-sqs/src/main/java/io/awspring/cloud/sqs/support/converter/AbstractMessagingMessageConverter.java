@@ -15,21 +15,15 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
@@ -55,20 +49,30 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	private HeaderMapper<S> headerMapper;
 
-	private Function<Message<?>, Class<?>> payloadTypeMapper;
+	private static final Function<Message<?>, Class<?>> DEFAULT_PAYLOAD_TYPE_MAPPER = msg -> headerTypeMapping(msg,
+			SqsHeaders.SQS_DEFAULT_TYPE_HEADER);
+
+	private Function<Message<?>, Class<?>> payloadTypeMapper = DEFAULT_PAYLOAD_TYPE_MAPPER;
 
 	private Function<Message<?>, String> payloadTypeHeaderFunction = message -> message.getPayload().getClass()
 			.getName();
 
-	protected AbstractMessagingMessageConverter() {
-		this.payloadMessageConverter = createDefaultCompositeMessageConverter();
+	protected AbstractMessagingMessageConverter(MessageConverter messageConverter) {
 		this.headerMapper = createDefaultHeaderMapper();
-		this.payloadTypeMapper = this::defaultHeaderTypeMapping;
+		this.payloadMessageConverter = messageConverter;
+	}
+
+	/**
+	 * Check if this converter is using the default payload type mapper (header-based).
+	 * @return true if using the default mapper, false if a custom mapper has been configured
+	 */
+	public boolean isUsingDefaultPayloadTypeMapper() {
+		return this.payloadTypeMapper == DEFAULT_PAYLOAD_TYPE_MAPPER;
 	}
 
 	/**
 	 * Set the payload type mapper to be used by this converter. {@link Message} payloads will be converted to the
-	 * {@link Class} returned by this function. The {@link #defaultHeaderTypeMapping} uses the {@link #typeHeader}
+	 * {@link Class} returned by this function. The default header-based type mapping uses the {@link #typeHeader}
 	 * property to retrieve the payload class' FQCN. This method replaces the default type mapping for this converter
 	 * instance.
 	 * @param payloadTypeMapper the type mapping function.
@@ -88,29 +92,6 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	}
 
 	/**
-	 * Set the {@link ObjectMapper} instance to be used for converting the {@link Message} instances payloads.
-	 * @param objectMapper the object mapper instance.
-	 */
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "messageConverter cannot be null");
-		MappingJackson2MessageConverter converter = getMappingJackson2MessageConverter().orElseThrow(
-				() -> new IllegalStateException("%s can only be set in %s instances, or %s containing one.".formatted(
-						ObjectMapper.class.getSimpleName(), MappingJackson2MessageConverter.class.getSimpleName(),
-						CompositeMessageConverter.class.getSimpleName())));
-		converter.setObjectMapper(objectMapper);
-	}
-
-	private Optional<MappingJackson2MessageConverter> getMappingJackson2MessageConverter() {
-		return this.payloadMessageConverter instanceof CompositeMessageConverter compositeConverter
-				? compositeConverter.getConverters().stream()
-						.filter(converter -> converter instanceof MappingJackson2MessageConverter)
-						.map(MappingJackson2MessageConverter.class::cast).findFirst()
-				: this.payloadMessageConverter instanceof MappingJackson2MessageConverter converter
-						? Optional.of(converter)
-						: Optional.empty();
-	}
-
-	/**
 	 * Get the {@link MessageConverter} to be used for converting the {@link Message} instances payloads.
 	 * @return the instance.
 	 */
@@ -119,13 +100,14 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	}
 
 	/**
-	 * Set the name of the header to be looked up in a {@link Message} instance by the
-	 * {@link #defaultHeaderTypeMapping(Message)}.
+	 * Set the name of the header to be looked up in a {@link Message} instance for payload type mapping. When used,
+	 * type header mapping takes precedence over automatic type inferrence.
 	 * @param typeHeader the header name.
 	 */
 	public void setPayloadTypeHeader(String typeHeader) {
 		Assert.notNull(typeHeader, "typeHeader cannot be null");
 		this.typeHeader = typeHeader;
+		this.payloadTypeMapper = msg -> headerTypeMapping(msg, typeHeader);
 	}
 
 	/**
@@ -195,8 +177,8 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	protected abstract Object getPayloadToDeserialize(S message);
 
 	@Nullable
-	private Class<?> defaultHeaderTypeMapping(Message<?> message) {
-		String header = message.getHeaders().get(this.typeHeader, String.class);
+	private static Class<?> headerTypeMapping(Message<?> message, String typeHeader) {
+		String header = message.getHeaders().get(typeHeader, String.class);
 		if (header == null) {
 			return null;
 		}
@@ -237,31 +219,16 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 
 	protected abstract S doConvertMessage(S messageWithHeaders, Object payload);
 
-	private CompositeMessageConverter createDefaultCompositeMessageConverter() {
-		List<MessageConverter> messageConverters = new ArrayList<>();
-		messageConverters.add(createClassMatchingMessageConverter());
-		messageConverters.add(createStringMessageConverter());
-		messageConverters.add(createDefaultMappingJackson2MessageConverter());
-		return new CompositeMessageConverter(messageConverters);
-	}
-
-	private SimpleClassMatchingMessageConverter createClassMatchingMessageConverter() {
+	private static SimpleClassMatchingMessageConverter createClassMatchingMessageConverter() {
 		SimpleClassMatchingMessageConverter matchingMessageConverter = new SimpleClassMatchingMessageConverter();
 		matchingMessageConverter.setSerializedPayloadClass(String.class);
 		return matchingMessageConverter;
 	}
 
-	private StringMessageConverter createStringMessageConverter() {
+	private static StringMessageConverter createStringMessageConverter() {
 		StringMessageConverter stringMessageConverter = new StringMessageConverter();
 		stringMessageConverter.setSerializedPayloadClass(String.class);
 		return stringMessageConverter;
-	}
-
-	private MappingJackson2MessageConverter createDefaultMappingJackson2MessageConverter() {
-		MappingJackson2MessageConverter messageConverter = new MappingJackson2MessageConverter();
-		messageConverter.setSerializedPayloadClass(String.class);
-		messageConverter.setStrictContentTypeMatch(false);
-		return messageConverter;
 	}
 
 }

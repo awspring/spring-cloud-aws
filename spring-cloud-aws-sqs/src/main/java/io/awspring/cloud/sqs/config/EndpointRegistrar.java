@@ -15,9 +15,10 @@
  */
 package io.awspring.cloud.sqs.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -73,10 +74,13 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	};
 
 	@Nullable
-	private ObjectMapper objectMapper;
+	private JacksonMessageConverterMigration jacksonMessageConverterMigration;
 
 	@Nullable
 	private Validator validator;
+
+	@Nullable
+	private MethodPayloadTypeInferrer methodPayloadTypeInferrer = new DefaultMethodPayloadTypeInferrer();
 
 	/**
 	 * Set a custom {@link MessageHandlerMethodFactory} implementation.
@@ -85,6 +89,29 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	public void setMessageHandlerMethodFactory(MessageHandlerMethodFactory messageHandlerMethodFactory) {
 		Assert.notNull(messageHandlerMethodFactory, "messageHandlerMethodFactory cannot be null");
 		this.messageHandlerMethodFactory = messageHandlerMethodFactory;
+	}
+
+	/**
+	 * Set the {@link MethodPayloadTypeInferrer} to be used for inferring payload types from listener method signatures.
+	 * When set, the framework will automatically determine the expected payload type from the method parameters and
+	 * configure the message converter accordingly.
+	 * <p>
+	 * By default, uses {@link DefaultMethodPayloadTypeInferrer}. Setting this to {@code null} disables automatic
+	 * payload type inference.
+	 * @param methodPayloadTypeInferrer the inferrer instance, or null to disable inference
+	 */
+	public void setMethodPayloadTypeInferrer(@Nullable MethodPayloadTypeInferrer methodPayloadTypeInferrer) {
+		this.methodPayloadTypeInferrer = methodPayloadTypeInferrer;
+	}
+
+	/**
+	 * Get the {@link MethodPayloadTypeInferrer} used for inferring payload types from listener method signatures.
+	 * @return the inferrer instance (defaults to {@link DefaultMethodPayloadTypeInferrer}), or null if inference is
+	 * disabled
+	 */
+	@Nullable
+	public MethodPayloadTypeInferrer getMethodPayloadTypeInferrer() {
+		return this.methodPayloadTypeInferrer;
 	}
 
 	/**
@@ -118,11 +145,11 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	/**
 	 * Set the object mapper to be used to deserialize payloads fot SqsListener endpoints.
-	 * @param objectMapper the object mapper instance.
+	 * @param jacksonMessageConverterMigration the {@link JacksonMessageConverterMigration} instance.
 	 */
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "objectMapper cannot be null.");
-		this.objectMapper = objectMapper;
+	public void setJacksonMessageConverterMigration(JacksonMessageConverterMigration jacksonMessageConverterMigration) {
+		Assert.notNull(jacksonMessageConverterMigration, "jacksonMapperWrapper cannot be null.");
+		this.jacksonMessageConverterMigration = jacksonMessageConverterMigration;
 	}
 
 	/**
@@ -173,8 +200,8 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 	 * @return the object mapper instance.
 	 */
 	@Nullable
-	public ObjectMapper getObjectMapper() {
-		return this.objectMapper;
+	public JacksonMessageConverterMigration getJacksonMessageConverterMigration() {
+		return this.jacksonMessageConverterMigration;
 	}
 
 	/**
@@ -222,6 +249,8 @@ public class EndpointRegistrar implements BeanFactoryAware, SmartInitializingSin
 
 	private void process(Endpoint endpoint) {
 		logger.debug("Processing endpoint {}", endpoint.getId());
+		ConfigUtils.INSTANCE.acceptIfInstance(endpoint, HandlerMethodEndpoint.class,
+				hme -> hme.setMethodPayloadTypeInferrer(this.methodPayloadTypeInferrer));
 		this.listenerContainerRegistry.registerListenerContainer(createContainerFor(endpoint));
 	}
 

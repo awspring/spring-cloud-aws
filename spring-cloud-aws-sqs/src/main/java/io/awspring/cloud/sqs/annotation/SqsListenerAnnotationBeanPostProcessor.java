@@ -15,17 +15,17 @@
  */
 package io.awspring.cloud.sqs.annotation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.core.support.JacksonPresent;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.MultiMethodSqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonJsonMessageConverterMigration;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import io.awspring.cloud.sqs.support.resolver.BatchVisibilityHandlerMethodArgumentResolver;
-import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolver;
-import io.awspring.cloud.sqs.support.resolver.NotificationSubjectArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
-import io.awspring.cloud.sqs.support.resolver.SnsNotificationArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.VisibilityHandlerMethodArgumentResolver;
 import java.lang.reflect.Method;
@@ -106,12 +106,22 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, ObjectMapper objectMapper) {
+			MessageConverter messageConverter, @Nullable JacksonMessageConverterMigration factory) {
 		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers());
-		if (objectMapper != null) {
-			argumentResolvers.add(new NotificationMessageArgumentResolver(messageConverter, objectMapper));
-			argumentResolvers.add(new NotificationSubjectArgumentResolver(objectMapper));
-			argumentResolvers.add(new SnsNotificationArgumentResolver(messageConverter, objectMapper));
+		if (factory == null) {
+			if (JacksonPresent.isJackson3Present()) {
+				JacksonJsonMessageConverterMigration.enrichResolversDefault(argumentResolvers, messageConverter);
+			}
+			else if (JacksonPresent.isJackson2Present()) {
+				LegacyJackson2MessageConverterMigration.enrichResolversDefault(argumentResolvers, messageConverter);
+			}
+			else {
+				throw new IllegalStateException(
+						"Sqs integration requires a Jackson 2 or Jackson 3 library on the classpath");
+			}
+		}
+		else {
+			factory.addJacksonMigrationResolvers(argumentResolvers, messageConverter);
 		}
 		return argumentResolvers;
 	}

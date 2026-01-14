@@ -16,7 +16,6 @@
 package io.awspring.cloud.modulith.events.sqs;
 
 import io.awspring.cloud.sqs.operations.SqsOperations;
-import io.awspring.cloud.sqs.operations.SqsTemplate;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,7 @@ import org.springframework.modulith.events.support.DelegatingEventExternalizer;
  */
 @AutoConfiguration
 @AutoConfigureAfter(EventExternalizationAutoConfiguration.class)
-@ConditionalOnClass(SqsTemplate.class)
+@ConditionalOnClass(SqsOperations.class)
 @ConditionalOnProperty(name = "spring.modulith.events.externalization.enabled", havingValue = "true", matchIfMissing = true)
 class SqsEventExternalizerConfiguration {
 

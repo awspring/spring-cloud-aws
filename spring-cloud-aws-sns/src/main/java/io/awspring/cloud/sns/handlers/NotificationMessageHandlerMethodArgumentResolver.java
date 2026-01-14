@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sns.handlers;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.awspring.cloud.sns.annotation.handlers.NotificationMessage;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -30,8 +29,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.util.StringUtils;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Handles conversion of SNS notification value to a variable that is annotated with {@link NotificationMessage}.
@@ -47,7 +47,7 @@ public class NotificationMessageHandlerMethodArgumentResolver
 	private final List<HttpMessageConverter<?>> messageConverter;
 
 	public NotificationMessageHandlerMethodArgumentResolver() {
-		this(Arrays.asList(new MappingJackson2HttpMessageConverter(), new StringHttpMessageConverter()));
+		this(Arrays.asList(new JacksonJsonHttpMessageConverter(), new StringHttpMessageConverter()));
 	}
 
 	public NotificationMessageHandlerMethodArgumentResolver(List<HttpMessageConverter<?>> messageConverter) {
@@ -75,13 +75,13 @@ public class NotificationMessageHandlerMethodArgumentResolver
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object doResolveArgumentFromNotificationMessage(JsonNode content, HttpInputMessage request,
 			Class<?> parameterType) {
-		if (!"Notification".equals(content.get("Type").asText())) {
+		if (!"Notification".equals(content.get("Type").asString())) {
 			throw new IllegalArgumentException(
 					"@NotificationMessage annotated parameters are only allowed for method that receive a notification message.");
 		}
 
 		MediaType mediaType = getMediaType(content);
-		String messageContent = content.findPath("Message").asText();
+		String messageContent = content.findPath("Message").asString();
 		for (HttpMessageConverter<?> converter : this.messageConverter) {
 			if (converter.canRead(parameterType, mediaType)) {
 				try {
@@ -119,8 +119,7 @@ public class NotificationMessageHandlerMethodArgumentResolver
 		}
 
 		private Charset getCharset() {
-			return this.mediaType.getCharset() != null ? this.mediaType.getCharset()
-					: Charset.forName(StandardCharsets.UTF_8.name());
+			return this.mediaType.getCharset() != null ? this.mediaType.getCharset() : StandardCharsets.UTF_8;
 		}
 
 		@Override

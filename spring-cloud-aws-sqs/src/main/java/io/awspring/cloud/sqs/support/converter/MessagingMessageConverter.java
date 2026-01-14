@@ -37,5 +37,4 @@ public interface MessagingMessageConverter<S> {
 	 * @return the system specific message.
 	 */
 	S fromMessagingMessage(Message<?> message);
-
 }

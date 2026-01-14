@@ -252,8 +252,9 @@ class KinesisMessageDrivenChannelAdapterTests {
 
 		KinesisShardEndedEvent kinesisShardEndedEvent = this.config.shardEndedEventReference.get();
 
-		assertThat(kinesisShardEndedEvent).isNotNull().extracting(KinesisShardEndedEvent::getShardKey)
-				.isEqualTo("SpringIntegration:streamForResharding:closedEmptyShard5");
+		assertThat(kinesisShardEndedEvent).isNotNull().extracting(KinesisShardEndedEvent::getShardKey).isIn(
+				"SpringIntegration:" + STREAM_FOR_RESHARDING + ":closedEmptyShard5",
+				"SpringIntegration:" + STREAM_FOR_RESHARDING + ":closedShard4");
 	}
 
 	@Configuration

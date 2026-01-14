@@ -15,12 +15,11 @@
  */
 package io.awspring.cloud.s3;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.io.InputStream;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.core.sync.RequestBody;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Jackson based implementation of {@link S3ObjectConverter}. Serializes/deserializes objects to/from JSON.
@@ -29,20 +28,20 @@ import software.amazon.awssdk.core.sync.RequestBody;
  * @since 3.0
  */
 public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
-	private final ObjectMapper objectMapper;
+	private final JsonMapper jsonMapper;
 
-	public Jackson2JsonS3ObjectConverter(ObjectMapper objectMapper) {
-		Assert.notNull(objectMapper, "objectMapper is required");
-		this.objectMapper = objectMapper;
+	public Jackson2JsonS3ObjectConverter(JsonMapper jsonMapper) {
+		Assert.notNull(jsonMapper, "jsonMapper is required");
+		this.jsonMapper = jsonMapper;
 	}
 
 	@Override
 	public <T> RequestBody write(T object) {
 		Assert.notNull(object, "object is required");
 		try {
-			return RequestBody.fromBytes(objectMapper.writeValueAsBytes(object));
+			return RequestBody.fromBytes(jsonMapper.writeValueAsBytes(object));
 		}
-		catch (JsonProcessingException e) {
+		catch (JacksonException e) {
 			throw new S3Exception("Failed to serialize object to JSON", e);
 		}
 	}
@@ -52,9 +51,9 @@ public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 		Assert.notNull(is, "InputStream is required");
 		Assert.notNull(clazz, "Clazz is required");
 		try {
-			return objectMapper.readValue(is, clazz);
+			return jsonMapper.readValue(is, clazz);
 		}
-		catch (IOException e) {
+		catch (JacksonException e) {
 			throw new S3Exception("Failed to deserialize object from JSON", e);
 		}
 	}

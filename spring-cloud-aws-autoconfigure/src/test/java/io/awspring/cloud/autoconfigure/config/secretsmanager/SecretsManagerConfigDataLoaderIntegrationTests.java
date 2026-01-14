@@ -216,7 +216,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 
-		try (ConfigurableApplicationContext context = runApplication(application, "aws-secretsmanager:/some/random/config")) {
+		try (ConfigurableApplicationContext context = runApplication(application,
+				"aws-secretsmanager:/some/random/config")) {
 			fail("Context without keys should fail to start");
 		}
 		catch (Exception e) {
@@ -225,7 +226,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 			// error message
 			// Ensure that new line character should be platform independent
 			String errorMessage = "Description:%1$s%1$sCould not import properties from AWS Secrets Manager. Exception happened while trying to load"
-				.formatted(NEW_LINE_CHAR);
+					.formatted(NEW_LINE_CHAR);
 			assertThat(output.getOut()).contains(errorMessage);
 		}
 	}

@@ -28,6 +28,8 @@ import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
+import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -348,7 +350,11 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		public SqsMessageListenerContainerFactory<MyInterface> myPojoListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<MyInterface> factory = new SqsMessageListenerContainerFactory<>();
+			// Configure converter to use header-based type resolution, which takes precedence over type inference
+			SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
+			converter.setPayloadTypeHeader(SqsHeaders.SQS_DEFAULT_TYPE_HEADER);
 			factory.configure(options -> options
+					.messageConverter(converter)
 					.queueAttributeNames(Collections.singletonList(QueueAttributeName.VISIBILITY_TIMEOUT))
 					.maxDelayBetweenPolls(Duration.ofSeconds(1))
 					.pollTimeout(Duration.ofSeconds(1)));
@@ -423,7 +429,8 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 
 		@Bean
 		SqsListenerConfigurer customizer(ObjectMapper objectMapper) {
-			return registrar -> registrar.setObjectMapper(objectMapper);
+			return registrar -> registrar
+					.setJacksonMessageConverterMigration(new LegacyJackson2MessageConverterMigration(objectMapper));
 		}
 
 		@Bean

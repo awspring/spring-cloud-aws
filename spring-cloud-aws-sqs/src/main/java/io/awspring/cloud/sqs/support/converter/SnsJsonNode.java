@@ -15,20 +15,20 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.messaging.converter.MessageConversionException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Michael Sosa
  * @author Alexander Nebel
  * @since 3.3.1
  */
-public class SnsJsonNode {
+public class SnsJsonNode extends AbstractSnsJsonNode {
 	private final String jsonString;
 	private final JsonNode jsonNode;
 
-	public SnsJsonNode(ObjectMapper jsonMapper, String jsonString) {
+	public SnsJsonNode(JsonMapper jsonMapper, String jsonString) {
 		try {
 			this.jsonString = jsonString;
 			jsonNode = jsonMapper.readTree(jsonString);
@@ -45,7 +45,7 @@ public class SnsJsonNode {
 					null);
 		}
 
-		if (!"Notification".equals(jsonNode.get("Type").asText())) {
+		if (!"Notification".equals(jsonNode.get("Type").asString())) {
 			throw new MessageConversionException("Payload: '" + jsonString + "' is not a valid notification", null);
 		}
 
@@ -54,10 +54,12 @@ public class SnsJsonNode {
 		}
 	}
 
+	@Override
 	public String getMessageAsString() {
-		return jsonNode.get("Message").asText();
+		return jsonNode.get("Message").asString();
 	}
 
+	@Override
 	public String getSubjectAsString() {
 		if (!jsonNode.has("Subject")) {
 			throw new MessageConversionException("Payload: '" + jsonString + "' does not contain a subject", null);

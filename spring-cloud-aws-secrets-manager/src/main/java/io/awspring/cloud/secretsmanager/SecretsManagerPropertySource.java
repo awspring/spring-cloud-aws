@@ -15,11 +15,8 @@
  */
 package io.awspring.cloud.secretsmanager;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.core.config.AwsPropertySource;
+import io.awspring.cloud.core.support.JacksonPresent;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +45,7 @@ public class SecretsManagerPropertySource
 	private static Log LOG = LogFactory.getLog(SecretsManagerPropertySource.class);
 	private static final String PREFIX_PART = "?prefix=";
 
-	private final ObjectMapper jsonMapper = new ObjectMapper();
+	private final SecretValueReader secretValueReader;
 
 	/**
 	 * Full secret path containing both secret id and prefix.
@@ -75,6 +72,16 @@ public class SecretsManagerPropertySource
 		this.context = context;
 		this.secretId = resolveSecretId(context);
 		this.prefix = resolvePrefix(context);
+		if (JacksonPresent.isJackson3Present()) {
+			this.secretValueReader = new JacksonSecretValueReader();
+		}
+		else if (JacksonPresent.isJackson2Present()) {
+			this.secretValueReader = new Jackson2SecretValueReader();
+		}
+		else {
+			throw new IllegalStateException(
+					"SecretsManagerPropertySource requires a Jackson 2 or Jackson 3 library on the classpath");
+		}
 	}
 
 	/**
@@ -102,9 +109,7 @@ public class SecretsManagerPropertySource
 		GetSecretValueResponse secretValueResponse = source.getSecretValue(secretValueRequest);
 		if (secretValueResponse.secretString() != null) {
 			try {
-				Map<String, Object> secretMap = jsonMapper.readValue(secretValueResponse.secretString(),
-						new TypeReference<>() {
-						});
+				Map<String, Object> secretMap = secretValueReader.readSecretValue(secretValueResponse.secretString());
 
 				for (Map.Entry<String, Object> secretEntry : secretMap.entrySet()) {
 					LOG.debug("Populating property retrieved from AWS Secrets Manager: " + secretEntry.getKey());
@@ -112,7 +117,7 @@ public class SecretsManagerPropertySource
 					properties.put(propertyKey, secretEntry.getValue());
 				}
 			}
-			catch (JsonParseException e) {
+			catch (SecretParseException e) {
 				// If the secret is not a JSON string, then it is a simple "plain text" string
 				String[] parts = secretValueResponse.name().split("/");
 				String secretName = parts[parts.length - 1];
@@ -120,7 +125,7 @@ public class SecretsManagerPropertySource
 				String propertyKey = prefix != null ? prefix + secretName : secretName;
 				properties.put(propertyKey, secretValueResponse.secretString());
 			}
-			catch (JsonProcessingException e) {
+			catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}

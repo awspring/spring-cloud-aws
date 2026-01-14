@@ -29,6 +29,8 @@ import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.operations.SendResult;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonJsonMessageConverterMigration;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
 import io.awspring.cloud.sqs.support.observation.MessageHeaderContextAccessor;
 import io.micrometer.context.ContextRegistry;
 import io.micrometer.context.ContextSnapshot;
@@ -56,6 +58,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -66,6 +69,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration tests for the SQS Observation API.
@@ -344,6 +348,12 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 	static class SQSConfiguration {
 
 		LatchContainer latchContainer = new LatchContainer();
+
+		@Bean
+		public JacksonMessageConverterMigration jsonMapperWrapper(ObjectProvider<JsonMapper> jsonMapper) {
+			JsonMapper mapper = jsonMapper.getIfAvailable(JsonMapper::new);
+			return new JacksonJsonMessageConverterMigration(mapper);
+		}
 
 		// @formatter:off
 		@Bean

@@ -26,6 +26,8 @@ import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementExecutor;
 import io.awspring.cloud.sqs.listener.acknowledgement.ExecutingAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
+import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
+import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -127,6 +129,12 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 						qaa -> qaa.setQueueAttributes(this.queueAttributes))
 				.acceptIfInstance(getAcknowledgmentProcessor(), ExecutingAcknowledgementProcessor.class, eap -> eap
 						.setAcknowledgementExecutor(createAndConfigureAcknowledgementExecutor(this.queueAttributes)));
+	}
+
+	@Override
+	protected void doConfigurePayloadTypeOnContext(Class<?> payloadType, MessageConversionContext context) {
+		ConfigUtils.INSTANCE.acceptIfInstance(context, SqsMessageConversionContext.class,
+				ctx -> ctx.setPayloadClass(payloadType));
 	}
 
 	// @formatter:off

@@ -15,14 +15,15 @@
  */
 package io.awspring.cloud.sqs.annotation;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.DefaultMessageConverterConfiguration;
 import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
 import io.awspring.cloud.sqs.config.HandlerMethodEndpoint;
 import io.awspring.cloud.sqs.config.SqsEndpoint;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
+import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
 import io.awspring.cloud.sqs.support.resolver.AcknowledgmentHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchAcknowledgmentArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
@@ -56,7 +57,6 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.CompositeMessageConverter;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.SimpleMessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
@@ -78,6 +78,7 @@ import org.springframework.util.StringUtils;
  * @author Tomaz Fernandes
  * @author Joao Calassio
  * @author José Iêdo
+ * @author Matej Nedic
  * @since 3.0
  */
 public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Annotation>
@@ -99,6 +100,8 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	@Nullable
 	private BeanExpressionContext expressionContext;
 
+	private final List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>();
+
 	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		Class<?> targetClass = AopUtils.getTargetClass(bean);
@@ -107,6 +110,10 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		}
 		detectAnnotationsAndRegisterEndpoints(bean, targetClass);
 		return bean;
+	}
+
+	protected EndpointRegistrar createEndpointRegistrar() {
+		return new EndpointRegistrar();
 	}
 
 	@Nullable
@@ -155,6 +162,7 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 			hme.setBean(bean);
 			hme.setMethod(method);
 			hme.setHandlerMethodFactory(this.delegatingHandlerMethodFactory);
+			hme.setArgumentResolvers(this.argumentResolvers);
 		});
 		return endpoint;
 	}
@@ -314,16 +322,17 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 	protected void configureDefaultHandlerMethodFactory(DefaultMessageHandlerMethodFactory handlerMethodFactory) {
 		CompositeMessageConverter compositeMessageConverter = createCompositeMessageConverter();
 
-		List<HandlerMethodArgumentResolver> methodArgumentResolvers = new ArrayList<>(
-				createAdditionalArgumentResolvers(compositeMessageConverter, this.endpointRegistrar.getObjectMapper()));
+		List<HandlerMethodArgumentResolver> methodArgumentResolvers = new ArrayList<>(createAdditionalArgumentResolvers(
+				compositeMessageConverter, endpointRegistrar.getJacksonMessageConverterMigration()));
 		methodArgumentResolvers.addAll(createArgumentResolvers(compositeMessageConverter));
 		this.endpointRegistrar.getMethodArgumentResolversConsumer().accept(methodArgumentResolvers);
 		handlerMethodFactory.setArgumentResolvers(methodArgumentResolvers);
 		handlerMethodFactory.afterPropertiesSet();
+		this.argumentResolvers.addAll(methodArgumentResolvers);
 	}
 
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers(
-			MessageConverter messageConverter, ObjectMapper objectMapper) {
+			MessageConverter messageConverter, @Nullable JacksonMessageConverterMigration wrapper) {
 		return createAdditionalArgumentResolvers();
 	}
 
@@ -335,7 +344,13 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 		List<MessageConverter> messageConverters = new ArrayList<>();
 		messageConverters.add(new StringMessageConverter());
 		messageConverters.add(new SimpleMessageConverter());
-		messageConverters.add(createDefaultMappingJackson2MessageConverter(this.endpointRegistrar.getObjectMapper()));
+		if (endpointRegistrar.getJacksonMessageConverterMigration() != null) {
+			messageConverters
+					.add(endpointRegistrar.getJacksonMessageConverterMigration().createMigrationMessageConverter());
+		}
+		else {
+			messageConverters.add(DefaultMessageConverterConfiguration.createDefaultMessageConverter());
+		}
 		this.endpointRegistrar.getMessageConverterConsumer().accept(messageConverters);
 		return new CompositeMessageConverter(messageConverters);
 	}
@@ -352,20 +367,6 @@ public abstract class AbstractListenerAnnotationBeanPostProcessor<A extends Anno
 				new PayloadMethodArgumentResolver(messageConverter,  this.endpointRegistrar.getValidator()));
 	}
 	// @formatter:on
-
-	protected MappingJackson2MessageConverter createDefaultMappingJackson2MessageConverter(ObjectMapper objectMapper) {
-		MappingJackson2MessageConverter jacksonMessageConverter = new MappingJackson2MessageConverter();
-		jacksonMessageConverter.setSerializedPayloadClass(String.class);
-		jacksonMessageConverter.setStrictContentTypeMatch(false);
-		if (objectMapper != null) {
-			jacksonMessageConverter.setObjectMapper(objectMapper);
-		}
-		return jacksonMessageConverter;
-	}
-
-	protected EndpointRegistrar createEndpointRegistrar() {
-		return new EndpointRegistrar();
-	}
 
 	private static class DelegatingMessageHandlerMethodFactory implements MessageHandlerMethodFactory {
 
