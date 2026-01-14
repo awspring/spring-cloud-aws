@@ -22,7 +22,6 @@ import com.amazonaws.services.dynamodbv2.streamsadapter.AmazonDynamoDBStreamsAda
 import io.awspring.cloud.kinesis.LocalstackContainerTest;
 import java.time.Duration;
 import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.BeforeAll;
@@ -86,15 +85,15 @@ class DynamoDbStreamToKinesisIntegrationTests implements LocalstackContainerTest
 		DYNAMODB_STREAM_ARN = createDemoTable();
 
 		AmazonDynamoDBStreamsAdapterClient streamsAdapterClient = new AmazonDynamoDBStreamsAdapterClient(
-			DYNAMODB_STREAMS, null);
+				DYNAMODB_STREAMS, null);
 
 		await().atMost(Duration.ofMinutes(2))
-			.untilAsserted(() -> assertThat(
-				streamsAdapterClient.describeStream(builder -> builder.streamName(DYNAMODB_STREAM_ARN)))
-				.succeedsWithin(Duration.ofSeconds(60))
-				.extracting(describeStreamResponse -> describeStreamResponse.streamDescription()
-					.streamStatusAsString())
-				.isEqualTo("ENABLED"));
+				.untilAsserted(() -> assertThat(
+						streamsAdapterClient.describeStream(builder -> builder.streamName(DYNAMODB_STREAM_ARN)))
+						.succeedsWithin(Duration.ofSeconds(60))
+						.extracting(describeStreamResponse -> describeStreamResponse.streamDescription()
+								.streamStatusAsString())
+						.isEqualTo("ENABLED"));
 	}
 
 	private static String createDemoTable() {
@@ -133,11 +132,8 @@ class DynamoDbStreamToKinesisIntegrationTests implements LocalstackContainerTest
 				.join();
 
 		Message<?> receive = this.kinesisReceiveChannel.receive(120_000);
-		assertThat(receive)
-			.satisfies(LOGGER::warn)
-			.extracting(Message::getPayload)
-			.asString()
-			.contains("some_id", "some value", "\"eventName\":\"INSERT\"", "\"eventSource\":\"aws:dynamodb\"");
+		assertThat(receive).satisfies(LOGGER::warn).extracting(Message::getPayload).asString().contains("some_id",
+				"some value", "\"eventName\":\"INSERT\"", "\"eventSource\":\"aws:dynamodb\"");
 
 		DYNAMODB.updateItem(
 				builder -> builder.tableName(TEST_TABLE).key(Map.of(TABLE_KEY, AttributeValue.fromS("some_id")))
@@ -146,22 +142,16 @@ class DynamoDbStreamToKinesisIntegrationTests implements LocalstackContainerTest
 				.join();
 
 		receive = this.kinesisReceiveChannel.receive(30_000);
-		assertThat(receive)
-			.satisfies(LOGGER::warn)
-			.extracting(Message::getPayload)
-			.asString()
-			.contains("some_id", "some value", "updated value", "\"eventName\":\"MODIFY\"");
+		assertThat(receive).satisfies(LOGGER::warn).extracting(Message::getPayload).asString().contains("some_id",
+				"some value", "updated value", "\"eventName\":\"MODIFY\"");
 
 		DYNAMODB.deleteItem(
 				builder -> builder.tableName(TEST_TABLE).key(Map.of(TABLE_KEY, AttributeValue.fromS("some_id"))))
 				.join();
 
 		receive = this.kinesisReceiveChannel.receive(30_000);
-		assertThat(receive)
-			.satisfies(LOGGER::warn)
-			.extracting(Message::getPayload)
-			.asString()
-			.contains("some_id", "\"eventName\":\"REMOVE\"");
+		assertThat(receive).satisfies(LOGGER::warn).extracting(Message::getPayload).asString().contains("some_id",
+				"\"eventName\":\"REMOVE\"");
 	}
 
 	@Configuration(proxyBeanMethods = false)

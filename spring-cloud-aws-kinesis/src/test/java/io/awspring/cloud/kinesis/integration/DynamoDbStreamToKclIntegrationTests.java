@@ -89,15 +89,15 @@ class DynamoDbStreamToKclIntegrationTests implements LocalstackContainerTest {
 		DYNAMODB_STREAM_ARN = createDemoTable();
 
 		AmazonDynamoDBStreamsAdapterClient streamsAdapterClient = new AmazonDynamoDBStreamsAdapterClient(
-			DYNAMODB_STREAMS, null);
+				DYNAMODB_STREAMS, null);
 
 		await().atMost(Duration.ofMinutes(2))
-			.untilAsserted(() -> assertThat(
-				streamsAdapterClient.describeStream(builder -> builder.streamName(DYNAMODB_STREAM_ARN)))
-				.succeedsWithin(Duration.ofSeconds(60))
-				.extracting(describeStreamResponse -> describeStreamResponse.streamDescription()
-					.streamStatusAsString())
-				.isEqualTo("ENABLED"));
+				.untilAsserted(() -> assertThat(
+						streamsAdapterClient.describeStream(builder -> builder.streamName(DYNAMODB_STREAM_ARN)))
+						.succeedsWithin(Duration.ofSeconds(60))
+						.extracting(describeStreamResponse -> describeStreamResponse.streamDescription()
+								.streamStatusAsString())
+						.isEqualTo("ENABLED"));
 	}
 
 	private static String createDemoTable() {

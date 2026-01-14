@@ -16,11 +16,9 @@
 package io.awspring.cloud.parameterstore;
 
 import io.awspring.cloud.core.config.AwsPropertySource;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
@@ -105,8 +103,9 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 			if (propertiesType) {
 				Properties props;
 				if (prefixType.equals("properties")) {
- 					props = readProperties(parameter.value());
-				} else {
+					props = readProperties(parameter.value());
+				}
+				else {
 					props = readYaml(parameter.value());
 				}
 				for (Map.Entry<Object, Object> entry : props.entrySet()) {
@@ -156,11 +155,13 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 		prefixIndex = context.indexOf(PREFIX_PROPERTIES_LOAD);
 		if (prefixIndex != -1) {
 			this.propertiesType = true;
-			String extracted =  context.substring(prefixIndex + PREFIX_PROPERTIES_LOAD.length()).toLowerCase();
+			String extracted = context.substring(prefixIndex + PREFIX_PROPERTIES_LOAD.length()).toLowerCase();
 			if (ALLOWED_TYPES.contains(extracted)) {
 				this.prefixType = extracted;
-			} else {
-				throw new IllegalArgumentException("Invalid prefixType: " + extracted + ". Must be one of properties, json, or yaml.");
+			}
+			else {
+				throw new IllegalArgumentException(
+						"Invalid prefixType: " + extracted + ". Must be one of properties, json, or yaml.");
 			}
 			return context.substring(0, prefixIndex);
 		}
@@ -181,9 +182,7 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 
 	private Properties readYaml(String input) {
 		YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
-		yaml.setResources(
-			new ByteArrayResource(input.getBytes())
-		);
+		yaml.setResources(new ByteArrayResource(input.getBytes()));
 		return yaml.getObject();
 	}
 

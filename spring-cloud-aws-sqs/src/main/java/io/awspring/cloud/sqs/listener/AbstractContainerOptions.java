@@ -255,10 +255,12 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		private static MessagingMessageConverter<?> createDefaultMessageConverter() {
 			if (JacksonPresent.isJackson3Present()) {
 				return new SqsMessagingMessageConverter();
-			} else if (JacksonPresent.isJackson2Present()) {
+			}
+			else if (JacksonPresent.isJackson2Present()) {
 				return new LegacyJackson2SqsMessagingMessageConverter();
 			}
-			throw new IllegalStateException("Sqs integration requires a Jackson 2 or Jackson 3 library on the classpath");
+			throw new IllegalStateException(
+					"Sqs integration requires a Jackson 2 or Jackson 3 library on the classpath");
 		}
 
 		private static final AcknowledgementMode DEFAULT_ACKNOWLEDGEMENT_MODE = AcknowledgementMode.ON_SUCCESS;

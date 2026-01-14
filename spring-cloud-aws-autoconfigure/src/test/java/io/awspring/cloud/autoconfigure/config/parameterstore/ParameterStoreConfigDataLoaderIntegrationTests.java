@@ -150,21 +150,21 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
 		String applicationYaml = """
-first:
-  message: value from tests
-  another-parameter: another parameter value
-second:
-  secondMessage: second value from tests
-""";
+				first:
+				  message: value from tests
+				  another-parameter: another parameter value
+				second:
+				  secondMessage: second value from tests
+				""";
 		putParameter(localstack, "/test/second/message", applicationYaml, REGION);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-			"aws-parameterstore:/test/second/?extension=yaml")) {
+				"aws-parameterstore:/test/second/?extension=yaml")) {
 			assertThat(context.getEnvironment().getProperty("first.message")).isEqualTo("value from tests");
 			assertThat(context.getEnvironment().getProperty("first.another-parameter"))
-				.isEqualTo("another parameter value");
+					.isEqualTo("another parameter value");
 			assertThat(context.getEnvironment().getProperty("second.secondMessage"))
-				.isEqualTo("second value from tests");
+					.isEqualTo("second value from tests");
 			assertThat(context.getEnvironment().getProperty("non-existing-parameter")).isNull();
 		}
 	}
