@@ -15,18 +15,22 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import static io.awspring.cloud.sqs.config.MessageConverterFactory.createDefaultMappingJacksonMessageConverter;
+import static io.awspring.cloud.sqs.config.MessageConverterFactory.createJacksonJsonMessageConverter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.util.Assert;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * {@link MessagingMessageConverter} implementation for converting SQS
- * {@link software.amazon.awssdk.services.sqs.model.Message} instances to Spring Messaging {@link Message} instances.
+ * {@link software.amazon.awssdk.services.sqs.model.Message} instances to Spring Messaging
+ * {@link org.springframework.messaging.Message} instances.
  *
  * @author Tomaz Fernandes
  * @author Dongha kim
@@ -38,15 +42,23 @@ import org.springframework.util.Assert;
 public class SqsMessagingMessageConverter
 		extends AbstractMessagingMessageConverter<software.amazon.awssdk.services.sqs.model.Message> {
 
+	public SqsMessagingMessageConverter(JsonMapper jsonMapper) {
+		super(createDefaultCompositeMessageConverter(Objects.requireNonNull(jsonMapper, "jsonMapper cannot be null")));
+	}
+
 	public SqsMessagingMessageConverter() {
 		super(createDefaultCompositeMessageConverter());
 	}
 
 	private static CompositeMessageConverter createDefaultCompositeMessageConverter() {
+		return createDefaultCompositeMessageConverter(null);
+	}
+
+	private static CompositeMessageConverter createDefaultCompositeMessageConverter(@Nullable JsonMapper jsonMapper) {
 		List<MessageConverter> messageConverters = new ArrayList<>();
 		messageConverters.add(createClassMatchingMessageConverter());
 		messageConverters.add(createStringMessageConverter());
-		messageConverters.add(createDefaultMappingJacksonMessageConverter());
+		messageConverters.add(createJacksonJsonMessageConverter(jsonMapper));
 		return new CompositeMessageConverter(messageConverters);
 	}
 

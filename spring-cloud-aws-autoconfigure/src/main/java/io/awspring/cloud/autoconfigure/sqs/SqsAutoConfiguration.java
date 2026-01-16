@@ -159,8 +159,10 @@ public class SqsAutoConfiguration {
 	static class SqsJacksonConfiguration {
 		@ConditionalOnMissingBean
 		@Bean
-		public MessagingMessageConverter<Message> messageConverter() {
-			return new SqsMessagingMessageConverter();
+		public MessagingMessageConverter<Message> messageConverter(ObjectProvider<JsonMapper> jsonMapperProvider) {
+			JsonMapper jsonMapper = jsonMapperProvider.getIfAvailable();
+			return jsonMapper != null ? new SqsMessagingMessageConverter(jsonMapper)
+					: new SqsMessagingMessageConverter();
 		}
 
 		@Bean
