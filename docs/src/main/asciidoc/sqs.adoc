@@ -330,6 +330,8 @@ Message conversion by default is handled by a `SqsMessagingMessageConverter` ins
 NOTE: `SqsMessagingMessageConverter` is using Jackson 3 under the hood. If you are interested in using Jackson 2 you should be configuring `LegacyJackson2SqsMessagingMessageConverter`.
 When `LegacyJackson2SqsMessagingMessageConverter` is used you have to configure `MappingJackson2MessageConverter`.
 
+NOTE: When using Spring Boot's auto-configuration, providing a `JsonMapper` bean will automatically configure it for message conversion.
+
 A custom `MessagingMessageConverter` implementation can be provided in the `SqsTemplate.builder()`:
 
 ```java
@@ -354,7 +356,22 @@ SqsOperations template = SqsTemplate
     .buildSyncTemplate();
 ```
 
-The Jackson 2 specific  `LegacyJackson2SqsMessagingMessageConverter` instance can also be configured in the builder:
+To use a custom `JsonMapper` with `SqsTemplate`, create a `SqsMessagingMessageConverter` with the desired `JsonMapper` and provide it via `messageConverter()`:
+
+```java
+JsonMapper customMapper = JsonMapper.builder()
+    .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .build();
+SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter(customMapper);
+
+SqsOperations template = SqsTemplate
+    .builder()
+    .sqsAsyncClient(sqsAsyncClient)
+    .messageConverter(converter)
+    .buildSyncTemplate();
+```
+
+The Jackson 2 specific `LegacyJackson2SqsMessagingMessageConverter` instance can also be configured in the builder:
 
 ```java
 SqsOperations template = SqsTemplate
@@ -1722,7 +1739,13 @@ An example of such configuration follows:
 
 [source, java]
 ----
-// Create converter instance
+// Create converter instance with custom JsonMapper
+JsonMapper customMapper = JsonMapper.builder()
+    .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .build();
+SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter(customMapper);
+
+// Or create with defaults
 SqsMessagingMessageConverter messageConverter = new SqsMessagingMessageConverter();
 
 // Configure Type Header
@@ -1739,8 +1762,8 @@ headerMapper.setAdditionalHeadersFunction(((sqsMessage, accessor) -> {
 }));
 messageConverter.setHeaderMapper(headerMapper);
 
-// Configure Payload Converter
-JacksonJsonMessageConverter payloadConverter = new JacksonJsonMessageConverter();
+// Alternatively, configure a custom Payload Converter directly
+JacksonJsonMessageConverter payloadConverter = new JacksonJsonMessageConverter(customMapper);
 payloadConverter.setPrettyPrint(true);
 messageConverter.setPayloadMessageConverter(payloadConverter);
 

@@ -48,8 +48,10 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.CompositeMessageConverter;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Tests for {@link SqsAutoConfiguration}.
@@ -234,6 +236,43 @@ class SqsAutoConfigurationTest {
 				});
 	}
 
+	@Test
+	void usesCustomJsonMapperWhenProvided() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true")
+				.withUserConfiguration(CustomJsonMapperConfiguration.class).run(context -> {
+					assertThat(context).hasSingleBean(JsonMapper.class);
+					JsonMapper customJsonMapper = context.getBean(JsonMapper.class);
+
+					MessagingMessageConverter<Message> messageConverter = context
+							.getBean(MessagingMessageConverter.class);
+					assertThat(messageConverter).isInstanceOf(SqsMessagingMessageConverter.class);
+
+					// Verify the custom JsonMapper is used in the converter chain
+					assertThat(messageConverter).extracting("payloadMessageConverter")
+							.asInstanceOf(type(CompositeMessageConverter.class))
+							.extracting(CompositeMessageConverter::getConverters).asList()
+							.filteredOn(converter -> converter instanceof JacksonJsonMessageConverter).hasSize(1)
+							.first().extracting("mapper").isSameAs(customJsonMapper);
+				});
+	}
+
+	@Test
+	void usesDefaultJsonMapperWhenNoneProvided() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true").run(context -> {
+			assertThat(context).doesNotHaveBean(JsonMapper.class);
+
+			MessagingMessageConverter<Message> messageConverter = context.getBean(MessagingMessageConverter.class);
+			assertThat(messageConverter).isInstanceOf(SqsMessagingMessageConverter.class);
+
+			// Verify a JacksonJsonMessageConverter is still present with a default mapper
+			assertThat(messageConverter).extracting("payloadMessageConverter")
+					.asInstanceOf(type(CompositeMessageConverter.class))
+					.extracting(CompositeMessageConverter::getConverters).asList()
+					.filteredOn(converter -> converter instanceof JacksonJsonMessageConverter).hasSize(1).first()
+					.extracting("mapper").isNotNull();
+		});
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class CustomComponentsConfiguration {
 
@@ -291,6 +330,16 @@ class SqsAutoConfigurationTest {
 		@Bean(name = CUSTOM_MESSAGE_CONVERTER_BEAN_NAME)
 		MessagingMessageConverter<Message> messageConverter() {
 			return new SqsMessagingMessageConverter();
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomJsonMapperConfiguration {
+
+		@Bean
+		JsonMapper jsonMapper() {
+			return JsonMapper.builder().build();
 		}
 
 	}
