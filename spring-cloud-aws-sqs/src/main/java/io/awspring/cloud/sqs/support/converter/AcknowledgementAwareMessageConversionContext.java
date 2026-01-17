@@ -16,7 +16,7 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link MessageConversionContext} specialization that enables setting an {@link AcknowledgementCallback} to be used

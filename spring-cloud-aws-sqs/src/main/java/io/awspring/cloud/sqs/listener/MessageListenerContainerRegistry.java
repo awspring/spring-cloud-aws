@@ -16,8 +16,8 @@
 package io.awspring.cloud.sqs.listener;
 
 import java.util.Collection;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.lang.Nullable;
 
 /**
  * Interface for registering and looking up containers at startup and runtime.

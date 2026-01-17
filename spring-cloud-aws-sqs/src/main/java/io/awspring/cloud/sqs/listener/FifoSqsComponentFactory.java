@@ -32,7 +32,7 @@ import io.awspring.cloud.sqs.listener.source.MessageSource;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.function.Function;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;

@@ -16,8 +16,8 @@
 package io.awspring.cloud.autoconfigure.core;
 
 import java.net.URI;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.service.connection.ConnectionDetails;
-import org.springframework.lang.Nullable;
 
 /**
  * Details required to establish a connection to a AWS.

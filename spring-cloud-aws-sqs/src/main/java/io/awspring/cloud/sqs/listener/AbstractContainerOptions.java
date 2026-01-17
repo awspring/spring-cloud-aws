@@ -26,8 +26,8 @@ import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessaging
 import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.lang.Nullable;
 import org.springframework.retry.backoff.BackOffPolicy;
 import org.springframework.retry.backoff.BackOffPolicyBuilder;
 import org.springframework.util.Assert;

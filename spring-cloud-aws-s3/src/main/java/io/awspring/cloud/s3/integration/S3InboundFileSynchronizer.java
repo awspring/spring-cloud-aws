@@ -17,13 +17,13 @@ package io.awspring.cloud.s3.integration;
 
 import java.io.File;
 import java.io.IOException;
+import org.jspecify.annotations.Nullable;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.common.LiteralExpression;
 import org.springframework.integration.file.remote.session.Session;
 import org.springframework.integration.file.remote.session.SessionFactory;
 import org.springframework.integration.file.remote.synchronizer.AbstractInboundFileSynchronizer;
 import org.springframework.integration.metadata.SimpleMetadataStore;
-import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.S3Object;
 

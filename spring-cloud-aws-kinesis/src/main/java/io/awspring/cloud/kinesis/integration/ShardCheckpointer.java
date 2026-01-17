@@ -18,9 +18,9 @@ package io.awspring.cloud.kinesis.integration;
 import java.math.BigInteger;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.MetadataStore;
-import org.springframework.lang.Nullable;
 
 /**
  * An internal {@link Checkpointer} implementation based on provided {@link MetadataStore} and {@code key} for shard.

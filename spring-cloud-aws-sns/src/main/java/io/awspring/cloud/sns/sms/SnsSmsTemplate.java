@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sns.sms;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 

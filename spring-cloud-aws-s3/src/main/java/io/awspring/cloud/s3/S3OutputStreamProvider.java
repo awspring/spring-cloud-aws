@@ -17,7 +17,7 @@ package io.awspring.cloud.s3;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Creates an {@link OutputStream} that writes data to S3.

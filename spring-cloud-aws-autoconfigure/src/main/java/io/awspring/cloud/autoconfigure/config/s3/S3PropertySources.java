@@ -18,7 +18,7 @@ package io.awspring.cloud.autoconfigure.config.s3;
 import io.awspring.cloud.s3.config.S3PropertySource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.s3.S3Client;
 

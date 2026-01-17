@@ -26,9 +26,9 @@ import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 
 /**

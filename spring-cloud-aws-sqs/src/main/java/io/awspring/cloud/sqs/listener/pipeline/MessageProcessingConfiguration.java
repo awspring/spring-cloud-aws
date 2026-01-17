@@ -20,7 +20,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHan
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import java.util.Collection;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**

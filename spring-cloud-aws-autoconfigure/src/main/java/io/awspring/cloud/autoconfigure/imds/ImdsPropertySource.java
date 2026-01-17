@@ -18,7 +18,7 @@ package io.awspring.cloud.autoconfigure.imds;
 import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adds properties from the EC2 Instance MetaData Service (IDMS) when it is available.

@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.s3.properties;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**

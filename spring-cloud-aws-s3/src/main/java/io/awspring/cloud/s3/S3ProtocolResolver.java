@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.s3;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -26,7 +27,6 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.s3.S3Client;
 

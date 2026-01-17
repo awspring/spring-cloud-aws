@@ -18,8 +18,8 @@ package io.awspring.cloud.autoconfigure.core;
 import static io.awspring.cloud.autoconfigure.core.AwsProperties.CONFIG_PREFIX;
 
 import java.net.URI;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.lang.Nullable;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 
 /**
