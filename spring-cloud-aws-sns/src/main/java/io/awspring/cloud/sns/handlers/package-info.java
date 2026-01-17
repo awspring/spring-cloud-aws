@@ -18,6 +18,5 @@
  * Method argument handlers for SNS integration annotations from {@link io.awspring.cloud.sns.annotation.handlers}
  * package.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sns.handlers;

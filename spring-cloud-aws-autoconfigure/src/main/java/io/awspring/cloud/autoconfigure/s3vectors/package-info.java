@@ -17,6 +17,5 @@
 /**
  * Auto-configuration for S3Vector integration.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.autoconfigure.s3vectors;

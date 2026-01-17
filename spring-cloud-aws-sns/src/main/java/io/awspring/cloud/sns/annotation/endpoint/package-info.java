@@ -18,6 +18,5 @@
  * Convenience annotations serving as a replacement for {@link org.springframework.web.bind.annotation.RequestMapping}
  * for SNS HTTP endpoints.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sns.annotation.endpoint;

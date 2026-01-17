@@ -17,6 +17,5 @@
 /**
  * Strategies for handling acknowledgements after successful and / or failed message processing.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.listener.acknowledgement.handler;

@@ -17,6 +17,5 @@
 /**
  * Base classes for storing and retrieving configuration from AWS resources.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.core.config;

@@ -17,6 +17,5 @@
 /**
  * Integration with AWS SNS (Simple Notification Service).
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sns;

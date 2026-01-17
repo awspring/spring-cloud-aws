@@ -17,6 +17,5 @@
 /**
  * Adapters for invoking a message listener registered by a listener annotation.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.listener.adapter;
