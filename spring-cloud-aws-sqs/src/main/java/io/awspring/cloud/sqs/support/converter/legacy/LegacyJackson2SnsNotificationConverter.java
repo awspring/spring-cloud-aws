@@ -108,13 +108,13 @@ public class LegacyJackson2SnsNotificationConverter implements SmartMessageConve
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers) {
+	public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
 		throw new UnsupportedOperationException(
 				"This converter only supports reading SNS notifications and not writing them");
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers, Object conversionHint) {
+	public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers, @Nullable Object conversionHint) {
 		throw new UnsupportedOperationException(
 				"This converter only supports reading SNS notifications and not writing them");
 	}
