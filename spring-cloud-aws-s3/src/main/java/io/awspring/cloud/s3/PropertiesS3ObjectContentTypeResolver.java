@@ -17,9 +17,9 @@ package io.awspring.cloud.s3;
 
 import java.io.IOException;
 import java.util.Properties;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**

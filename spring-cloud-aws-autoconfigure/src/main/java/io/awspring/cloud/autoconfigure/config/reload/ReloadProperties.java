@@ -16,7 +16,7 @@
 package io.awspring.cloud.autoconfigure.config.reload;
 
 import java.time.Duration;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Configuration related to reloading properties.

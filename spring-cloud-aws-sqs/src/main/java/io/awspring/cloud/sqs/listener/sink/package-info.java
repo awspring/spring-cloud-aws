@@ -17,6 +17,5 @@
 /**
  * Components to handle the flow of messages from a Source to a Pipeline.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.listener.sink;

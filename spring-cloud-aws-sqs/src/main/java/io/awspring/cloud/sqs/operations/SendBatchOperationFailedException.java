@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sqs.operations;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Exception representing a partial or complete failure in sending a batch of messages to an endpoint.

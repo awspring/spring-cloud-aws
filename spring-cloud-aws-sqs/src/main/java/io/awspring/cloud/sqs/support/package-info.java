@@ -17,6 +17,5 @@
 /**
  * Auto-configuration for Amazon SQS (Simple Queue Service) integrations.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.support;

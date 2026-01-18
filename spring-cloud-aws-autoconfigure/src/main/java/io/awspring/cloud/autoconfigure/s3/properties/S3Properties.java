@@ -16,10 +16,10 @@
 package io.awspring.cloud.autoconfigure.s3.properties;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.context.properties.PropertyMapper;
-import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;

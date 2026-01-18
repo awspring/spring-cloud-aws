@@ -19,6 +19,5 @@
  * {@link software.amazon.awssdk.auth.credentials.AwsCredentialsProvider} and
  * {@link software.amazon.awssdk.regions.providers.AwsRegionProvider}.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.autoconfigure.core;

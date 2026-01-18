@@ -24,8 +24,8 @@ import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.ObservationRegistry;
 import java.time.Duration;
 import java.util.Collection;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.lang.Nullable;
 import org.springframework.retry.backoff.BackOffPolicy;
 
 /**

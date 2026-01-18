@@ -17,6 +17,5 @@
 /**
  * Auto-configuration for DynamoDB integration.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.autoconfigure.dynamodb;

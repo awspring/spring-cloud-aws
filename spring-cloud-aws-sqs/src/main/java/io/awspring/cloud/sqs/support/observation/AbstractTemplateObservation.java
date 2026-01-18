@@ -24,7 +24,7 @@ import io.micrometer.observation.docs.ObservationDocumentation;
 import io.micrometer.observation.transport.SenderContext;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

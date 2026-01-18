@@ -17,6 +17,5 @@
 /**
  * Properties for auto-configuration
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.autoconfigure.s3.properties;

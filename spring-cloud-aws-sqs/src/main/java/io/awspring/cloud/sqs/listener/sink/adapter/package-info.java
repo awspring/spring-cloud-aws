@@ -17,6 +17,5 @@
 /**
  * Composable message sink adapters to add behavior to sinks via a decorator pattern.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.listener.sink.adapter;

@@ -16,8 +16,8 @@
 package io.awspring.cloud.autoconfigure.ses;
 
 import io.awspring.cloud.autoconfigure.AwsClientProperties;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.lang.Nullable;
 
 /**
  * Properties related to AWS Simple Email Service.

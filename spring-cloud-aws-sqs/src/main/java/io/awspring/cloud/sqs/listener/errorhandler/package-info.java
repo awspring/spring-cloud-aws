@@ -17,6 +17,5 @@
 /**
  * Components for handling errors and potentially recovering messages.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.listener.errorhandler;

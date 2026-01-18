@@ -16,7 +16,7 @@
 package io.awspring.cloud.autoconfigure;
 
 import java.net.URI;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Base properties for AWS Service client.

@@ -17,6 +17,5 @@
 /**
  * Sns integration configuration helpers.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sns.configuration;

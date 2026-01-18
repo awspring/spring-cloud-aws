@@ -17,6 +17,5 @@
 /**
  * {@link org.springframework.boot.context.config.ConfigDataLoader} implementation for AWS Parameter Store.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.autoconfigure.config.parameterstore;

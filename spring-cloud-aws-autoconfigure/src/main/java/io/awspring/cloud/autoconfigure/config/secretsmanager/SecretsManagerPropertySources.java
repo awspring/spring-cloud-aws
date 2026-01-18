@@ -18,7 +18,7 @@ package io.awspring.cloud.autoconfigure.config.secretsmanager;
 import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 

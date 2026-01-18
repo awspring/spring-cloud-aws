@@ -17,6 +17,5 @@
 /**
  * Spring Web method argument handlers for Sns integration.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sns.annotation.handlers;

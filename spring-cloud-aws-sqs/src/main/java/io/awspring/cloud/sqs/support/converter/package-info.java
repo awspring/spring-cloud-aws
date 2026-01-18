@@ -17,6 +17,5 @@
 /**
  * Components for converting source messages to Spring messaging messages.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.support.converter;

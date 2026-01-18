@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs.listener;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 

@@ -20,7 +20,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.time.Duration;
 import java.util.List;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.services.s3.S3Client;

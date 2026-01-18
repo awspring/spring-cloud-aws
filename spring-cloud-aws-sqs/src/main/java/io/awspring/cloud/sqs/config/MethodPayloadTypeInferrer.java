@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs.config;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**

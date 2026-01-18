@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Properties related to AWS Sts Credentials. It the properties are not configured, it will default to the EKS values

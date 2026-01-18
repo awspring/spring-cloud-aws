@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs.support.converter;
 
 import java.util.Map;
 import java.util.UUID;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.MessageHeaders;
 
 /**

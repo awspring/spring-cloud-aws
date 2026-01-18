@@ -19,7 +19,7 @@ import io.awspring.cloud.sqs.listener.ListenerMode;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.function.Consumer;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 

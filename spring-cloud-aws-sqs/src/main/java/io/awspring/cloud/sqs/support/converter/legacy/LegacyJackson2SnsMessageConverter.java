@@ -19,10 +19,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
@@ -89,13 +89,13 @@ public class LegacyJackson2SnsMessageConverter implements SmartMessageConverter 
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers) {
+	public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
 		throw new UnsupportedOperationException(
 				"This converter only supports reading a SNS notification and not writing them");
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers, Object conversionHint) {
+	public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers, @Nullable Object conversionHint) {
 		throw new UnsupportedOperationException(
 				"This converter only supports reading a SNS notification and not writing them");
 	}

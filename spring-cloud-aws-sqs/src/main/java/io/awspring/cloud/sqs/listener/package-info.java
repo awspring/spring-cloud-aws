@@ -17,6 +17,5 @@
 /**
  * Components for executing the flow of messages to and from a message listener.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.listener;

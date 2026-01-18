@@ -17,6 +17,5 @@
 /**
  * DynamoDb integration.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.dynamodb;

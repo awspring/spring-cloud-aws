@@ -17,6 +17,5 @@
 /**
  * Assembly-time components for SQS.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.config;

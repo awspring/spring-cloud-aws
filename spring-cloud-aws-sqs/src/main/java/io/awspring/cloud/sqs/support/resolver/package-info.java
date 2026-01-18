@@ -17,6 +17,5 @@
 /**
  * Components for resolving method arguments in listener methods.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.support.resolver;

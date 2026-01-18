@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 
 /**

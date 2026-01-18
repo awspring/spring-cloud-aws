@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 
 /**

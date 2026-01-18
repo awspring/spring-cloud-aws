@@ -19,12 +19,12 @@ import io.awspring.cloud.autoconfigure.config.BootstrapLoggingHelper;
 import io.awspring.cloud.secretsmanager.SecretsManagerPropertySource;
 import java.util.Collections;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.config.ConfigData;
 import org.springframework.boot.context.config.ConfigDataLoader;
 import org.springframework.boot.context.config.ConfigDataLoaderContext;
 import org.springframework.boot.logging.DeferredLogFactory;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.lang.Nullable;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 /**

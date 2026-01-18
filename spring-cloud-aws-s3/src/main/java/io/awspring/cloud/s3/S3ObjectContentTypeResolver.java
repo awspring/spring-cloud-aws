@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.s3;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Resolves content type of S3 objects.

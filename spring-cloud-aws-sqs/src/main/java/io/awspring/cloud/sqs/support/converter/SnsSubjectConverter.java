@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConversionException;
@@ -56,7 +57,7 @@ public class SnsSubjectConverter implements MessageConverter {
 	}
 
 	@Override
-	public Message<?> toMessage(Object payload, MessageHeaders headers) {
+	public Message<?> toMessage(Object payload, @Nullable MessageHeaders headers) {
 		throw new UnsupportedOperationException(
 				"This converter only supports reading a SNS notification and not writing them");
 	}
