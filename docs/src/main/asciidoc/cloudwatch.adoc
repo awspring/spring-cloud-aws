@@ -41,6 +41,31 @@ Following configuration properties are available to configure CloudWatch integra
 |The specific region for CloudWatch integration.
 |===
 
+[WARNING]
+====
+Enabling CloudWatch metrics integration can lead to unexpected costs. By default, Spring Boot captures a large number of metrics (e.g., JVM, CPU, memory, disk usage), and each unique metric (name + dimensions) published to CloudWatch is billed as a custom metric.
+
+AWS CloudWatch Free Tier includes only a limited number of metrics. Please review the https://aws.amazon.com/cloudwatch/pricing/[CloudWatch pricing page] for more details.
+
+To limit costs, it is highly recommended to use a `MeterFilter` to publish only the metrics that are relevant to your application.
+====
+
+=== Filtering Metrics
+
+To filter which metrics are sent to CloudWatch, you can define a `MeterFilter` bean. For example, to only allow a specific set of metrics:
+
+[source,java]
+----
+@Bean
+public MeterFilter cloudWatchMeterFilter() {
+    Set<String> allowed = Set.of(
+        "jvm.memory.used",
+        "jvm.memory.committed"
+    );
+    return MeterFilter.denyUnless(id -> allowed.contains(id.getName()));
+}
+----
+
 === Client Customization
 
 `CloudWatchAsyncClient` can be further customized by providing a bean of type `CloudWatchAsyncClientCustomizer`:
