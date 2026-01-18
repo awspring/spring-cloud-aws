@@ -18,7 +18,7 @@ package io.awspring.cloud.sqs.support.observation;
 import io.micrometer.context.ContextAccessor;
 import java.util.Map;
 import java.util.function.Predicate;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.messaging.MessageHeaders;
 
 /**
