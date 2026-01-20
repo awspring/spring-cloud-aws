@@ -77,7 +77,7 @@ It generates:
   * each public class should have a Javadoc
   * code has to have tests
   * each package has to have `package-info.java` file definining nullability rules ([example](https://github.com/awspring/spring-cloud-aws/blob/main/spring-cloud-aws-core/src/main/java/io/awspring/cloud/core/package-info.java))
-  * each nullable field, method parameter, method return value, if can be null, has to be annotated with `org.springframework.lang.Nullable`.
+  * each nullable field, method parameter, method return value, if can be null, has to be annotated with `org.jspecify.annotations.Nullable`.
 
 ### **Do you have questions about the source code?**
 
