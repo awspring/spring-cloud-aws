@@ -17,6 +17,5 @@
 /**
  * Auto-configurations for AWS services integrations.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.autoconfigure;

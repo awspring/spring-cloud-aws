@@ -18,8 +18,8 @@ package io.awspring.cloud.sqs.operations;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.NestedRuntimeException;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 

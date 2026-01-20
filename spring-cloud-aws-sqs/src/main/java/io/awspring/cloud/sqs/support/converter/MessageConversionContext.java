@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Marker interface for a message conversion context.

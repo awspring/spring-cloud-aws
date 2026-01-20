@@ -22,7 +22,7 @@ import io.micrometer.common.docs.KeyName;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationConvention;
 import io.micrometer.observation.docs.ObservationDocumentation;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 import org.springframework.messaging.Message;
 import org.springframework.util.StringUtils;
 
@@ -86,7 +86,7 @@ public class SqsListenerObservation {
 	public interface Convention extends ObservationConvention<Context> {
 
 		@Override
-		default boolean supportsContext(@NonNull Observation.Context context) {
+		default boolean supportsContext(Observation.@NonNull Context context) {
 			return context instanceof Context;
 		}
 

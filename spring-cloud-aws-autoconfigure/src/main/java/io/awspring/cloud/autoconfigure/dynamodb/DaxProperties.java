@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.dynamodb;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Properties used to configure {@link software.amazon.dax.ClusterDaxClient}

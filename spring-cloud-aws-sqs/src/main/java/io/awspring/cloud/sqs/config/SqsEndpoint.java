@@ -19,7 +19,7 @@ import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import java.time.Duration;
 import java.util.Collection;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link Endpoint} implementation for SQS endpoints.

@@ -15,8 +15,8 @@
  */
 package io.awspring.cloud.sqs;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.NestedRuntimeException;
-import org.springframework.lang.Nullable;
 
 /**
  * Top-level exception for Sqs {@link RuntimeException} instances.

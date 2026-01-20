@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sqs;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link Thread} implementation for processing messages.

@@ -21,7 +21,7 @@ import static io.awspring.cloud.sns.core.MessageAttributeDataTypes.STRING;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 /**

@@ -17,6 +17,5 @@
 /**
  * Auto-configuration for Amazon SES (Simple Email Service) integrations.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.autoconfigure.ses;

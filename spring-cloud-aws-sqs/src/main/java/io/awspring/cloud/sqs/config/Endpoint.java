@@ -17,7 +17,7 @@ package io.awspring.cloud.sqs.config;
 
 import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import java.util.Collection;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a messaging endpoint from which messages can be consumed by a {@link MessageListenerContainer}.

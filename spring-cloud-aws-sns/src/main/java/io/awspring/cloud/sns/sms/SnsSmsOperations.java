@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sns.sms;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * High level SNS operations for sending SMS.

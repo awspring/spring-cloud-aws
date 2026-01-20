@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.dynamodb;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;

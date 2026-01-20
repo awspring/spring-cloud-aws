@@ -17,6 +17,5 @@
 /**
  * Pipeline abstraction to process messages in a container.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.listener.pipeline;

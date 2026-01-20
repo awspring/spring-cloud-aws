@@ -18,7 +18,7 @@ package io.awspring.cloud.s3;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import software.amazon.awssdk.services.s3.model.*;
 
 /**

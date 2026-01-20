@@ -15,8 +15,8 @@
  */
 package io.awspring.cloud.sqs;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.NestedRuntimeException;
-import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown when an executor is provided with an unsupported {@link java.util.concurrent.ThreadFactory}.

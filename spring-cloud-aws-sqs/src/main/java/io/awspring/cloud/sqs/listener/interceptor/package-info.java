@@ -17,6 +17,5 @@
 /**
  * Components for intercepting messages before or after processing.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.sqs.listener.interceptor;

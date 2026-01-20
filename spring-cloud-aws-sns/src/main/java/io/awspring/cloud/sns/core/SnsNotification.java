@@ -17,7 +17,7 @@ package io.awspring.cloud.sns.core;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**

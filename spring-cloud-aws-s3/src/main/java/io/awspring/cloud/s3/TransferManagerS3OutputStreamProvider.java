@@ -16,7 +16,7 @@
 package io.awspring.cloud.s3;
 
 import java.io.IOException;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 

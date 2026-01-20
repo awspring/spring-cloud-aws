@@ -17,6 +17,5 @@
 /**
  * Utilities for handling AWS region selection.
  */
-@org.springframework.lang.NonNullApi
-@org.springframework.lang.NonNullFields
+@org.jspecify.annotations.NullMarked
 package io.awspring.cloud.core.region;
