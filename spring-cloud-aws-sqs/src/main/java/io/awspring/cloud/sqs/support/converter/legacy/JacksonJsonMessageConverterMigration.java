@@ -15,20 +15,20 @@
  */
 package io.awspring.cloud.sqs.support.converter.legacy;
 
-import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.MessageConverterFactory;
 import io.awspring.cloud.sqs.support.resolver.NotificationMessageArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.NotificationSubjectArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SnsNotificationArgumentResolver;
 import java.util.List;
-import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Used to create {@link JacksonJsonMessageConverter} and provide {@link JsonMapper} to
- * {@link SqsListenerAnnotationBeanPostProcessor}.
+ * Internal, migration-only implementation for the Jackson 3 variant.
+ * <p>
+ * This type is transitional and will be removed after the Jackson 3 migration is complete. It is internal
+ * wiring and not intended to be used by application code.
  *
  * @author Matej Nedic
  * @since 4.0.0

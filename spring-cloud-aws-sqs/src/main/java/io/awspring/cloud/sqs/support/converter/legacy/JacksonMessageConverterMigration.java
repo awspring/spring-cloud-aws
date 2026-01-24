@@ -22,10 +22,15 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**
- * Converter factory used to create MessageConverter either for Jackson 2 or Jackson 3. Used also to provide
- * Implementation for Jackson 3 {@link JacksonJsonMessageConverterMigration} Implementation for Jackson 2
- * {@link LegacyJackson2MessageConverterMigration} Note that you can declare either of implementations as a Bean which
- * will be picked by autoconfiguration. NOTE this is transition only api.
+ * Internal, migration-only temporary contract used by the framework to bridge Jackson 2 and Jackson 3.
+ * <p>
+ * This type is transitional and will be removed after the Jackson 3 migration is complete. It is internal
+ * wiring and implementations are not supported outside the migration.
+ * <p>
+ * To customize payload conversion, provide a {@link MessagingMessageConverter} (such as
+ * {@link io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter}) bean.
+ * To customize listener method argument resolvers, use {@link SqsListenerConfigurer}.
+ *
  * @author Matej Nedic
  * @since 4.0.0
  */
@@ -33,22 +38,19 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 public interface JacksonMessageConverterMigration {
 
 	/**
-	 * Creates migration MessageConverter, either Jackson 3 or Jackson 2 specific.
-	 * @return MessageConverter used by SQS integration
+	 * @return the migration {@link MessageConverter}
 	 */
 	MessageConverter createMigrationMessageConverter();
 
 	/**
-	 * Used by {@link SqsListenerConfigurer} to add resolvers which will be used when resolving message.
-	 * @param argumentResolvers List of argument resolvers
-	 * @param messageConverter MessageConverters which will be used by resolvers.
+	 * @param argumentResolvers list to add migration resolvers to
+	 * @param messageConverter migration {@link MessageConverter} to be used by those resolvers
 	 */
 	void addJacksonMigrationResolvers(List<HandlerMethodArgumentResolver> argumentResolvers,
-			MessageConverter messageConverter);
+									  MessageConverter messageConverter);
 
 	/**
-	 * Used to enrich {@link MessagingMessageConverter} with Jackson implementation
-	 * @param messageConverter Which will be enriched
+	 * @param messageConverter converter to configure as part of the legacy migration path
 	 */
 	default void configureLegacyObjectMapper(MessagingMessageConverter messageConverter) {
 	}
