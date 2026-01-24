@@ -1647,14 +1647,47 @@ public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFac
 ----
 === Message Conversion and Payload Deserialization
 
-Payloads are automatically deserialized from `JSON` for `@SqsListener` annotated methods using a `JacksonJsonMessageConverter` when Jackson 3 is on classpath. If there is no Jackson 3 on classpath and there is Jackson 2 on classpath `MappingJackson2MessageConverter` will be used.
+Payloads are automatically deserialized from `JSON` for `@SqsListener` annotated methods to the inferred payload type. See <<Automatic Payload Type Inference>> for information on how the payload type is inferred.
 
-NOTE: When using Spring Boot's auto-configuration, if there's a single `JsonMapper` in Spring Context, such object mapper will be used for converting messages.
-This includes the one provided by Spring Boot's auto-configuration itself.
-For configuring a different `JsonMapper`, see <<Global Configuration for @SqsListeners>>.
+==== Configuring Payload Deserialization
 
-NOTE: When Jackson 3 is not on classpath and only Jackson 2 is found, if there's a single `ObjectMapper` in Spring Context, such object mapper will be used for converting messages.
-This includes the one provided by Spring Boot's auto-configuration itself.
+Payload conversion for `@SqsListener` methods is performed by a `SqsMessagingMessageConverter` by default.
+
+If message conversion customization is necessary, the `SqsMessagingMessageConverter` provided by auto-configuration can be overridden by declaring a `MessagingMessageConverter` bean, or by configuring it through `SqsMessageListenerContainerFactory` and its `ContainerOptions`.
+
+Customizing via `ContainerOptions`:
+
+[source,java]
+----
+@Bean
+SqsMessageListenerContainerFactory<?> sqsMessageListenerContainerFactory(MessagingMessageConverter<?> converter) {
+    SqsMessageListenerContainerFactory<?> factory = new SqsMessageListenerContainerFactory<>();
+    factory.configure(options -> options.messageConverter(converter));
+    return factory;
+}
+----
+
+Providing a custom `SqsMessagingMessageConverter` backed by a `JsonMapper`:
+
+[source,java]
+----
+@Bean
+MessagingMessageConverter<?> messageConverter(JsonMapper jsonMapper) {
+    return new SqsMessagingMessageConverter(jsonMapper);
+}
+----
+
+NOTE: When using Spring Boot's auto-configuration, if there is a single `JsonMapper` in the Spring context, that `JsonMapper` will be used for converting messages. This includes the one provided by Spring Boot's auto-configuration itself.
+
+==== Jackson Migration
+
+During the Jackson migration period, if Jackson 3 is on the classpath, a `JacksonJsonMessageConverter` will be used.
+If only Jackson 2 is on the classpath, `MappingJackson2MessageConverter` will be used.
+
+When using Jackson 2, if there is a single `ObjectMapper` in the Spring context, that `ObjectMapper` will be used for converting messages.
+
+While auto-selection should be sufficient for most users, if both Jackson 2 and Jackson 3 are present on the classpath and Jackson 2-based conversion is required, a temporary workaround is to declare a `LegacyJackson2SqsMessagingMessageConverter` bean for payload deserialization and/or a `LegacyJackson2MessageConverterMigration` bean for the default listener method argument resolvers.
+These workarounds are transitional and not a long-term supported contract.
 
 ==== Automatic Payload Type Inference
 
@@ -2050,26 +2083,16 @@ The following attributes can be configured in the registrar:
 - `setMessageHandlerMethodFactory` - provide a different factory to be used to create the `invocableHandlerMethod` instances that wrap the listener methods.
 - `setListenerContainerRegistry` - provide a different `MessageListenerContainerRegistry` implementation to be used to register the `MessageListenerContainers`
 - `setMessageListenerContainerRegistryBeanName` - provide a different bean name to be used to retrieve the `MessageListenerContainerRegistry`
-- `setJacksonMessageConverterMigration` - set the `JacksonMessageConverterMigration` which will be used to construct `MessageConverter` and provide either `JsonMapper` for Jackson 3 or `ObjectMapper` for Jackson 2. Check `JacksonJsonMessageConverterMigration` and `LegacyJackson2MessageConverterMigration`
-See <<Message Conversion and Payload Deserialization>> for more information on where this is used.
+- `setJacksonMessageConverterMigration` - internal migration wiring for the Jackson 2 to Jackson 3 transition, not intended for application configuration.
 - `setValidator` - set the `Validator` instance that will be used for payload validation in listener methods.
-- `manageMessageConverters` - gives access to the list of message converters that will be used to convert messages.
+- `manageMessageConverters` - gives access to the list of message converters that will be used by ArgumentResolvers.
 By default, `StringMessageConverter`, `SimpleMessageConverter` and `JacksonJsonMessageConverter` are used.
 
 - `manageArgumentResolvers` - gives access to the list of argument resolvers that will be used to resolve the listener method arguments.
-The order of resolvers is important - `PayloadMethodArgumentResolver` should generally be last since it's used as default.
 - `setMethodPayloadTypeInferrer` - set the `MethodPayloadTypeInferrer` instance to be used for automatic payload type inference.
 Set to `null` to disable automatic inference and rely on header-based type mapping.
 See <<Automatic Payload Type Inference>> for more information.
 
-A simple example for Jackson 3 would be:
-
-[source, java]
-----
-@Bean
-SqsListenerConfigurer configurer(JacksonJsonMessageConverterFactory factory) {
-    return registrar -> registrar.setJacksonMessageConverterFactory(factory);
-}
 ----
 
 NOTE: Any number of `SqsListenerConfigurer` beans can be registered in the context.

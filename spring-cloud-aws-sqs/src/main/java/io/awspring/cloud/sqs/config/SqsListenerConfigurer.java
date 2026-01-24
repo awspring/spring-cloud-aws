@@ -29,6 +29,17 @@ public interface SqsListenerConfigurer {
 
 	/**
 	 * Configures the {@link EndpointRegistrar} instance that will handle the {@link Endpoint} instances.
+	 *
+	 * <p>Example:
+	 * <pre class="code">
+	 * &#64;Bean
+	 * SqsListenerConfigurer sqsListenerConfigurer() {
+	 *     return registrar -> registrar.manageArgumentResolvers(resolvers -> {
+	 *         resolvers.add(new MyCustomArgumentResolver());
+	 *     });
+	 * }
+	 * </pre>
+	 *
 	 * @param registrar the registrar instance.
 	 */
 	void configure(EndpointRegistrar registrar);

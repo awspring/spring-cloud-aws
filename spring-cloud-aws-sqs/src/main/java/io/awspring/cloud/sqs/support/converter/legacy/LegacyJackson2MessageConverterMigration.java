@@ -16,7 +16,6 @@
 package io.awspring.cloud.sqs.support.converter.legacy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.awspring.cloud.sqs.annotation.SqsListenerAnnotationBeanPostProcessor;
 import io.awspring.cloud.sqs.config.legacy.LegacyJackson2MessageConverterFactory;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.resolver.legacy.LegacyJackson2NotificationMessageArgumentResolver;
@@ -26,8 +25,10 @@ import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 /**
- * Used to create {@link LegacyJackson2MessageConverterMigration} and provide ObjectMapper to
- * {@link SqsListenerAnnotationBeanPostProcessor}.
+ * Internal, migration-only implementation for the Jackson 2 variant.
+ * <p>
+ * This type is transitional and will be removed after the Jackson 3 migration is complete.
+ *
  * @author Matej Nedic
  * @since 4.0.0
  */
