@@ -38,7 +38,8 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 
 /**
- * {@link AcknowledgementExecutor} implementation for SQS queues. Handle the messages deletion, usually requested by an
+ * {@link AcknowledgementExecutor} implementation for SQS queues. Handle the
+ * messages deletion, usually requested by an
  * {@link ExecutingAcknowledgementProcessor}.
  *
  * @author Tomaz Fernandes
@@ -75,8 +76,7 @@ public class SqsAcknowledgementExecutor<T>
 			logger.debug("Executing acknowledgement for {} messages", messagesToAck.size());
 			Assert.notEmpty(messagesToAck, () -> "empty collection sent to acknowledge in queue " + this.queueName);
 			return deleteMessages(messagesToAck);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			return CompletableFutures.failedFuture(createAcknowledgementException(messagesToAck, e));
 		}
 	}
@@ -96,8 +96,15 @@ public class SqsAcknowledgementExecutor<T>
 		watch.start();
 		return CompletableFutures.exceptionallyCompose(this.sqsAsyncClient
 			.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck))
-			.thenRun(() -> {}),
-				t -> CompletableFutures.failedFuture(createAcknowledgementException(messagesToAck, t)))
+			.thenCompose(response -> {
+				if (!response.failed().isEmpty()) {
+					logger.warn("Some messages could not be acknowledged in queue {}", this.queueName);
+					return CompletableFutures.<Void>failedFuture(
+						createAcknowledgementException(messagesToAck, null));
+				}
+				return CompletableFuture.<Void>completedFuture(null);
+			}),
+			t -> CompletableFutures.<Void>failedFuture(createAcknowledgementException(messagesToAck, t)))
 			.whenComplete((v, t) -> logAckResult(messagesToAck, t, watch));
 	}
 
@@ -129,8 +136,7 @@ public class SqsAcknowledgementExecutor<T>
 			logger.error("Error acknowledging in queue {} messages {} in {}ms", this.queueName,
 					MessageHeaderUtils.getId(messagesToAck), totalTimeMillis,
 					t instanceof CompletionException ? t.getCause() : t);
-		}
-		else {
+		} else {
 			logger.trace("Done acknowledging in queue {} messages: {} in {}ms", this.queueName,
 					MessageHeaderUtils.getId(messagesToAck), totalTimeMillis);
 		}
