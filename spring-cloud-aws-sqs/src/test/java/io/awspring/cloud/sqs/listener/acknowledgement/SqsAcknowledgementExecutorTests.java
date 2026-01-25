@@ -38,6 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
@@ -126,6 +127,30 @@ class SqsAcknowledgementExecutorTests {
 		assertThatThrownBy(() -> executor.execute(messages).join()).isInstanceOf(CompletionException.class).getCause()
 				.isInstanceOf(SqsAcknowledgementException.class).asInstanceOf(type(SqsAcknowledgementException.class))
 				.extracting(SqsAcknowledgementException::getQueue).isEqualTo(queueUrl);
+	}
+
+	@Test
+	void shouldWrapPartialBatchFailure() {
+		Collection<Message<String>> messages = Collections.singletonList(message);
+		given(message.getHeaders()).willReturn(messageHeaders);
+		given(queueAttributes.getQueueName()).willReturn(queueName);
+		given(queueAttributes.getQueueUrl()).willReturn(queueUrl);
+
+		BatchResultErrorEntry failedEntry = BatchResultErrorEntry.builder().id("test-id").code("ReceiptHandleIsInvalid")
+				.message("Receipt handle expired").build();
+
+		DeleteMessageBatchResponse partialFailureResponse = DeleteMessageBatchResponse.builder().failed(failedEntry)
+				.build();
+
+		given(sqsAsyncClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(partialFailureResponse));
+
+		SqsAcknowledgementExecutor<String> executor = new SqsAcknowledgementExecutor<>();
+		executor.setSqsAsyncClient(sqsAsyncClient);
+		executor.setQueueAttributes(queueAttributes);
+
+		assertThatThrownBy(() -> executor.execute(messages).join()).isInstanceOf(CompletionException.class)
+				.hasCauseInstanceOf(SqsAcknowledgementException.class);
 	}
 
 }
