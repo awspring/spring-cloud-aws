@@ -40,6 +40,7 @@ import org.springframework.messaging.MessageHeaders;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
 
 /**
  * Tests for {@link SqsAcknowledgementExecutor}.
@@ -74,7 +75,7 @@ class SqsAcknowledgementExecutorTests {
 		given(queueAttributes.getQueueName()).willReturn(queueName);
 		given(queueAttributes.getQueueUrl()).willReturn(queueUrl);
 		given(sqsAsyncClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
-				.willReturn(CompletableFuture.completedFuture(null));
+				.willReturn(CompletableFuture.completedFuture(DeleteMessageBatchResponse.builder().build()));
 
 		SqsAcknowledgementExecutor<String> executor = new SqsAcknowledgementExecutor<>();
 		executor.setSqsAsyncClient(sqsAsyncClient);
