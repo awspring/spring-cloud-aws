@@ -22,9 +22,11 @@ import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesAware;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.UUID;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -99,11 +101,31 @@ public class SqsAcknowledgementExecutor<T>
 			.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck))
 			.thenCompose(response -> {
 				if (!response.failed().isEmpty()) {
+					Set<String> failedIds = response.failed().stream()
+							.map(BatchResultErrorEntry::id)
+							.collect(Collectors.toSet());
+
 					logger.warn("Some messages could not be acknowledged in queue {}: {}",
-						this.queueName,
-						response.failed().stream().map(BatchResultErrorEntry::id).toList());
+						this.queueName, failedIds);
+
+					List<Message<?>> successfulMessages = new ArrayList<>();
+					List<Message<?>> failedMessages = new ArrayList<>();
+
+					for(Message<T> msg : messagesToAck) {
+						if(failedIds.contains(MessageHeaderUtils.getId(msg))) {
+							failedMessages.add(msg);
+						} else {
+							successfulMessages.add(msg);
+						}
+					}
+
 					return CompletableFutures.<Void>failedFuture(
-						createAcknowledgementException(messagesToAck, null));
+						new SqsAcknowledgementException(
+							"Error acknowledging messages " + failedIds,
+							successfulMessages,
+							failedMessages,
+							this.queueUrl,
+							null));
 				}
 				return CompletableFuture.<Void>completedFuture(null);
 			}),
@@ -123,7 +145,7 @@ public class SqsAcknowledgementExecutor<T>
 		return DeleteMessageBatchRequestEntry
 			.builder()
 			.receiptHandle(MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER))
-			.id(UUID.randomUUID().toString())
+			.id(MessageHeaderUtils.getId(message))
 			.build();
 	}
 	// @formatter:on
