@@ -34,6 +34,7 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
 
@@ -73,8 +74,7 @@ public class SqsAcknowledgementExecutor<T>
 	public CompletableFuture<Void> execute(Collection<Message<T>> messagesToAck) {
 		try {
 			logger.debug("Executing acknowledgement for {} messages", messagesToAck.size());
-			Assert.notEmpty(messagesToAck,
-				() -> "empty collection sent to acknowledge in queue " + this.queueName);
+			Assert.notEmpty(messagesToAck, () -> "empty collection sent to acknowledge in queue " + this.queueName);
 			return deleteMessages(messagesToAck);
 		}
 		catch (Exception e) {
@@ -99,7 +99,9 @@ public class SqsAcknowledgementExecutor<T>
 			.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck))
 			.thenCompose(response -> {
 				if (!response.failed().isEmpty()) {
-					logger.warn("Some messages could not be acknowledged in queue {}", this.queueName);
+					logger.warn("Some messages could not be acknowledged in queue {}: {}",
+						this.queueName,
+						response.failed().stream().map(BatchResultErrorEntry::id).toList());
 					return CompletableFutures.<Void>failedFuture(
 						createAcknowledgementException(messagesToAck, null));
 				}
