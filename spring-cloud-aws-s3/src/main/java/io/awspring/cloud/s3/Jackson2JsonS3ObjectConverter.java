@@ -17,6 +17,7 @@ package io.awspring.cloud.s3;
 
 import java.io.InputStream;
 import org.springframework.util.Assert;
+import org.springframework.core.ParametrizedTypeReference;
 import software.amazon.awssdk.core.sync.RequestBody;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
@@ -59,18 +60,12 @@ public class Jackson2JsonS3ObjectConverter implements S3ObjectConverter {
 		}
 	}
 
-	/**
-	 * Reads S3 object from the input stream into a Java object.
-	 * @param is - the input stream
-	 * @param valueTypeRef - the type reference
-	 * @param <T> - the the type of the object
-	 * @return deserialized object
-	 */
-	public <T> T read(InputStream is, TypeReference<T> valueTypeRef) {
+	@Override
+	public <T> T read(InputStream is, ParametrizedTypeReference<T> valueTypeRef) {
 		Assert.notNull(is, "InputStream is required");
-		Assert.notNull(valueTypeRef, "ValueTypeRef is required");
+		Assert.notNull(valueTypeRef, "valueTypeRef is required");
 		try {
-			return jsonMapper.readValue(is, valueTypeRef);
+			return jsonMapper.readValue(is, jsonMapper.constructType(valueTypeRef.getType()));
 		}
 		catch (IOException e) {
 			throw new S3Exception("Failed to deserialize object from JSON", e);
