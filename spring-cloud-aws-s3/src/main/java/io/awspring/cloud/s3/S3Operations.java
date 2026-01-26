@@ -20,6 +20,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
+import org.springframework.core.ParameterizedTypeReference;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
 
