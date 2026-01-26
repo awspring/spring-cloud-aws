@@ -20,7 +20,6 @@ import org.springframework.util.Assert;
 import org.springframework.core.ParametrizedTypeReference;
 import software.amazon.awssdk.core.sync.RequestBody;
 import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
