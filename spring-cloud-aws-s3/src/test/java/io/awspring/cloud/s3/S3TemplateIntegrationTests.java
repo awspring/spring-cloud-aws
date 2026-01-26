@@ -233,6 +233,20 @@ class S3TemplateIntegrationTests implements LocalstackContainerTest {
 	}
 
 	@Test
+	void readsParameterizedTypeObject() {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("persons.json"),
+				RequestBody.fromString("[{\"firstName\":\"John\",\"lastName\":\"Doe\"}]"));
+
+		List<Person> persons = s3Template.read(BUCKET_NAME, "persons.json", new ParamaterizedTypeReference<List<Person>>(){});
+
+		assertThat(persons.size()).isEqualTo(1);
+
+		Person person = persons.get(0);
+		assertThat(person.firstName).isEqualTo("John");
+		assertThat(person.lastName).isEqualTo("Doe");
+	}
+
+	@Test
 	void uploadsFile() throws IOException {
 		try (InputStream is = new ByteArrayInputStream("hello".getBytes(StandardCharsets.UTF_8))) {
 			S3Resource uploadedResource = s3Template.upload(BUCKET_NAME, "file.txt", is,
