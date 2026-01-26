@@ -133,6 +133,17 @@ public interface S3Operations {
 	<T> T read(String bucketName, String key, Class<T> clazz);
 
 	/**
+	 * Reads a Java object from a S3 bucket. Uses {@link S3ObjectConverter} for deserialization.
+	 *
+	 * @param bucketName - the bucket name
+	 * @param key - the object key
+	 * @param valueTypeRef - the parameterized type reference of the read object
+	 * @param <T> - the type of the read object
+	 * @return an object
+	 */
+	<T> T read(String bucketName, String key, ParameterizedTypeReference<T> valueTypeRef);
+
+	/**
 	 * Uploads data from an input stream to a S3 bucket.
 	 *
 	 * @param bucketName - the bucket name
