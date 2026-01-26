@@ -16,6 +16,7 @@
 package io.awspring.cloud.s3;
 
 import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.core..type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +55,24 @@ public class LegacyJackson2JsonS3ObjectConverter implements S3ObjectConverter {
 		Assert.notNull(clazz, "Clazz is required");
 		try {
 			return objectMapper.readValue(is, clazz);
+		}
+		catch (IOException e) {
+			throw new S3Exception("Failed to deserialize object from JSON", e);
+		}
+	}
+
+	/**
+	 * Reads S3 object from the input stream into a Java object.
+	 * @param is - the input stream
+	 * @param valueTypeRef - the type reference
+	 * @param <T> - the the type of the object
+	 * @return deserialized object
+	 */
+	public <T> T read(InputStream is, TypeReference<T> valueTypeRef) {
+		Assert.notNull(is, "InputStream is required");
+		Assert.notNull(valueTypeRef, "ValueTypeRef is required");
+		try {
+			return objectMapper.readValue(is, valueTypeRef);
 		}
 		catch (IOException e) {
 			throw new S3Exception("Failed to deserialize object from JSON", e);
