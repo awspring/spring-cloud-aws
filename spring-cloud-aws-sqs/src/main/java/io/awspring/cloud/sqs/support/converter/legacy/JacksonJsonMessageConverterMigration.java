@@ -27,8 +27,8 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * Internal, migration-only implementation for the Jackson 3 variant.
  * <p>
- * This type is transitional and will be removed after the Jackson 3 migration is complete. It is internal
- * wiring and not intended to be used by application code.
+ * This type is transitional and will be removed after the Jackson 3 migration is complete. It is internal wiring and
+ * not intended to be used by application code.
  *
  * @author Matej Nedic
  * @since 4.0.0
