@@ -24,12 +24,12 @@ import org.springframework.messaging.handler.invocation.HandlerMethodArgumentRes
 /**
  * Internal, migration-only temporary contract used by the framework to bridge Jackson 2 and Jackson 3.
  * <p>
- * This type is transitional and will be removed after the Jackson 3 migration is complete. It is internal
- * wiring and implementations are not supported outside the migration.
+ * This type is transitional and will be removed after the Jackson 3 migration is complete. It is internal wiring and
+ * implementations are not supported outside the migration.
  * <p>
  * To customize payload conversion, provide a {@link MessagingMessageConverter} (such as
- * {@link io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter}) bean.
- * To customize listener method argument resolvers, use {@link SqsListenerConfigurer}.
+ * {@link io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter}) bean. To customize listener method
+ * argument resolvers, use {@link SqsListenerConfigurer}.
  *
  * @author Matej Nedic
  * @since 4.0.0
@@ -47,7 +47,7 @@ public interface JacksonMessageConverterMigration {
 	 * @param messageConverter migration {@link MessageConverter} to be used by those resolvers
 	 */
 	void addJacksonMigrationResolvers(List<HandlerMethodArgumentResolver> argumentResolvers,
-									  MessageConverter messageConverter);
+			MessageConverter messageConverter);
 
 	/**
 	 * @param messageConverter converter to configure as part of the legacy migration path
