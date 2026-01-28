@@ -305,32 +305,22 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 		// Capture parent observation on the calling thread to propagate trace context across async boundary
 		var parentObservation = this.observationRegistry.getCurrentObservation();
 
-		return preProcessMessageForSendAsync(endpointToUse, message).thenCompose(preprocessedMessage -> {
-			// Create observation context with preprocessed message (now includes FIFO headers if applicable)
-			var context = this.observationSpecifics.createContext(preprocessedMessage, endpointToUse);
+		return preProcessMessageForSendAsync(endpointToUse, message).thenCompose(
+				preprocessedMessage -> observeAndSend(preprocessedMessage, message, endpointToUse, parentObservation));
+	}
 
-			// Start observation and link to parent to maintain trace continuity
-			Observation observation;
-			if (parentObservation != null) {
-				observation = Observation.createNotStarted(this.observationSpecifics.getDefaultConvention().getName(),
-						() -> context, this.observationRegistry).parentObservation(parentObservation).start();
-			}
-			else {
-				observation = startObservation(context);
-			}
-
-			// Add trace headers to the message
-			var carrier = Objects.requireNonNull(context.getCarrier(), "No carrier found in context.");
-			var messageWithObservationHeaders = MessageHeaderUtils.addHeadersIfAbsent(preprocessedMessage, carrier);
-
-			return doSendAndCompleteObservation(messageWithObservationHeaders, endpointToUse, context, observation)
-					.exceptionallyCompose(
-							t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
-									"Message send operation failed for message %s to endpoint %s"
-											.formatted(MessageHeaderUtils.getId(message), endpointToUse),
-									endpointToUse, message, t)))
-					.whenComplete((v, t) -> logSendMessageResult(endpointToUse, message, t));
-		});
+	private <T> CompletableFuture<SendResult<T>> observeAndSend(Message<T> preprocessedMessage,
+			Message<T> originalMessage, String endpointToUse, @Nullable Observation parentObservation) {
+		var context = this.observationSpecifics.createContext(preprocessedMessage, endpointToUse);
+		Observation observation = startObservation(context, parentObservation);
+		var carrier = Objects.requireNonNull(context.getCarrier(), "No carrier found in context.");
+		var messageWithObservationHeaders = MessageHeaderUtils.addHeadersIfAbsent(preprocessedMessage, carrier);
+		return doSendAndCompleteObservation(messageWithObservationHeaders, endpointToUse, context, observation)
+				.exceptionallyCompose(t -> CompletableFuture.failedFuture(new MessagingOperationFailedException(
+						"Message send operation failed for message %s to endpoint %s"
+								.formatted(MessageHeaderUtils.getId(originalMessage), endpointToUse),
+						endpointToUse, originalMessage, t)))
+				.whenComplete((v, t) -> logSendMessageResult(endpointToUse, originalMessage, t));
 	}
 
 	private <T> CompletableFuture<SendResult<T>> doSendAndCompleteObservation(Message<T> message, String endpointToUse,
@@ -353,13 +343,18 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	}
 
 	@SuppressWarnings("unchecked")
-	private <Context extends Observation.Context> Observation startObservation(Context observationContext) {
+	private <Context extends Observation.Context> Observation startObservation(Context observationContext,
+			@Nullable Observation parentObservation) {
 		ObservationConvention<Context> defaultConvention = (ObservationConvention<Context>) observationSpecifics
 				.getDefaultConvention();
 		ObservationConvention<Context> customConvention = (ObservationConvention<Context>) this.customObservationConvention;
 		ObservationDocumentation documentation = observationSpecifics.getDocumentation();
-		return documentation.start(customConvention, defaultConvention, () -> observationContext,
-				this.observationRegistry);
+		Observation observation = documentation.observation(customConvention, defaultConvention,
+				() -> observationContext, this.observationRegistry);
+		if (parentObservation != null) {
+			observation.parentObservation(parentObservation);
+		}
+		return observation.start();
 	}
 
 	protected abstract <T> Message<T> preProcessMessageForSend(String endpointToUse, Message<T> message);
