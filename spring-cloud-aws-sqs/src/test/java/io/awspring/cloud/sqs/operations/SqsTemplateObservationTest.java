@@ -166,6 +166,45 @@ class SqsTemplateObservationTest {
 	}
 
 	@Test
+	void shouldApplyCustomConventionWhenParentObservationIsPresent() {
+		// given
+		SqsTemplateObservation.Convention customConvention = mock(SqsTemplateObservation.Convention.class);
+		given(customConvention.supportsContext(any())).willReturn(true);
+
+		String lowCardinalityCustomKeyName = "custom.lowCardinality.key";
+		String lowCardinalityCustomValue = "custom-lowCardinality-value";
+		String highCardinalityCustomKeyName = "custom.highCardinality.key";
+		String highCardinalityCustomValue = "custom-highCardinality-value";
+		given(customConvention.getLowCardinalityKeyValues(any()))
+				.willReturn(KeyValues.of(lowCardinalityCustomKeyName, lowCardinalityCustomValue));
+		given(customConvention.getHighCardinalityKeyValues(any()))
+				.willReturn(KeyValues.of(highCardinalityCustomKeyName, highCardinalityCustomValue));
+
+		TestObservationRegistry customRegistry = TestObservationRegistry.create();
+
+		SqsTemplate templateWithCustomConvention = SqsTemplate.builder().sqsAsyncClient(mockSqsAsyncClient)
+				.configure(
+						options -> options.observationRegistry(customRegistry).observationConvention(customConvention))
+				.build();
+
+		// when - send within a parent observation scope
+		Observation parentObservation = Observation.start("parent-observation", customRegistry);
+		try (var ignored = parentObservation.openScope()) {
+			templateWithCustomConvention.send(queueName, "test-payload");
+		}
+		finally {
+			parentObservation.stop();
+		}
+
+		// then - custom convention should be applied even with parent observation
+		TestObservationRegistryAssert.then(customRegistry)
+				.hasNumberOfObservationsWithNameEqualTo("parent-observation", 1).hasNumberOfObservationsEqualTo(2);
+		TestObservationRegistryAssert.then(customRegistry)
+				.hasAnObservationWithAKeyValue(lowCardinalityCustomKeyName, lowCardinalityCustomValue)
+				.hasAnObservationWithAKeyValue(highCardinalityCustomKeyName, highCardinalityCustomValue);
+	}
+
+	@Test
 	void shouldSupportCustomKeyValuesInActiveSending() {
 		// given
 		String payload = "test-payload";
