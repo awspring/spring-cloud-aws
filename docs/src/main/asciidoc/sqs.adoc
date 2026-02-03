@@ -2093,7 +2093,6 @@ By default, `StringMessageConverter`, `SimpleMessageConverter` and `JacksonJsonM
 Set to `null` to disable automatic inference and rely on header-based type mapping.
 See <<Automatic Payload Type Inference>> for more information.
 
-----
 
 NOTE: Any number of `SqsListenerConfigurer` beans can be registered in the context.
 All instances will be looked up at application startup and iterated through.
