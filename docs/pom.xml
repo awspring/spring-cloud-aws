@@ -14,6 +14,7 @@
 	<properties>
 		<docs.main>spring-cloud-aws</docs.main>
 		<main.basedir>${basedir}/..</main.basedir>
+		<generate-docs.phase>prepare-package</generate-docs.phase>
 		<configprops.path>${project.basedir}/src/main/asciidoc/_configprops.adoc</configprops.path>
 		<configprops.inclusionPattern>spring.cloud.aws.*</configprops.inclusionPattern>
 		<upload-docs-zip.phase>deploy</upload-docs-zip.phase>
@@ -257,7 +258,7 @@
 										<logHandler>
 											<outputToConsole>true</outputToConsole>
 											<failIf>
-												<!--												<severity>DEBUG</severity>-->
+												<severity>WARN</severity>
 											</failIf>
 										</logHandler>
 									</configuration>
