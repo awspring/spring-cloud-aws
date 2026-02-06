@@ -116,6 +116,77 @@ class NotificationService {
 }
 ----
 
+==== SNS Batch Template
+
+The starter automatically configures and registers a `SnsBatchTemplate` bean providing higher level abstractions for sending multiple SNS notifications in a single batch request.
+Batch operations are more efficient than sending individual messages, as they reduce the number of API calls to SNS.
+
+SNS has a limit of 10 messages per batch request. `SnsBatchTemplate` automatically splits larger collections into multiple batches and combines the results.
+
+NOTE: Batch messaging support requires Jackson 3 (`tools.jackson.databind.json.JsonMapper`) on the classpath.
+
+It supports the same payload types as `SnsTemplate`:
+
+* `String` - using `org.springframework.messaging.converter.StringMessageConverter`
+* `Object` - serialized to JSON using `org.springframework.messaging.converter.JacksonJsonMessageConverter` and Jackson 3's `tools.jackson.databind.json.JsonMapper`
+
+[source,java]
+----
+import io.awspring.cloud.sns.core.batch.SnsBatchTemplate;
+import io.awspring.cloud.sns.core.batch.BatchResult;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+
+import java.util.List;
+
+class NotificationService {
+	private final SnsBatchTemplate snsBatchTemplate;
+
+	NotificationService(SnsBatchTemplate snsBatchTemplate) {
+		this.snsBatchTemplate = snsBatchTemplate;
+	}
+	
+	void sendBatchWithObjects(List<Person> people) {
+		List<Message<Person>> messages = people.stream()
+			.map(person -> MessageBuilder.withPayload(person).build())
+			.toList();
+		
+		BatchResult result = snsBatchTemplate.sendBatch("topic-name", messages);
+	}
+}
+----
+
+==== Batch Operations
+
+Similar to `SnsOperations`, `SnsBatchOperations` is an interface implemented by `SnsBatchTemplate` that provides a convenient method for sending batch SNS notifications.
+
+[source,java]
+----
+import io.awspring.cloud.sns.core.batch.SnsBatchOperations;
+import io.awspring.cloud.sns.core.batch.BatchResult;
+
+class NotificationService {
+	private final SnsBatchOperations snsBatchOperations;
+
+	NotificationService(SnsBatchOperations snsBatchOperations) {
+		this.snsBatchOperations = snsBatchOperations;
+	}
+
+	void sendBatchNotifications(List<Message<String>> messages) {
+		BatchResult result = snsBatchOperations.sendBatch("topic-name", messages);
+	}
+}
+----
+
+==== Customizing Batch Behavior
+
+The default batch messaging implementation provided by Spring Cloud AWS handles most common use cases efficiently. The `DefaultBatchExecutionStrategy` automatically splits large message collections into batches of 10 (the SNS API limit) and processes them sequentially, while the `DefaultSnsMessageConverter` handles payload serialization using Jackson 3 and maps Spring message headers to SNS message attributes. These default implementations are designed to work seamlessly with minimal configuration.
+
+The `BatchExecutionStrategy` interface controls how batches are executed and results are aggregated. You might want to provide a custom implementation when you need parallel processing of multiple batches to improve throughput for example.
+
+The `SnsMessageConverter` interface controls how Spring messages are converted to SNS batch request entries. Custom implementations are useful when you need custom serialization formats.
+
+
 
 === Sending SMS Messages
 
