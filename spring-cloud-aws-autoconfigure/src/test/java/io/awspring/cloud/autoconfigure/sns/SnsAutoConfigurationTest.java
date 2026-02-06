@@ -25,9 +25,12 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsOperations;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
+import io.awspring.cloud.sns.core.async.SnsAsyncTemplate;
 import io.awspring.cloud.sns.sms.SnsSmsOperations;
 import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import java.net.URI;
+
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -38,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.arns.Arn;
+import software.amazon.awssdk.services.sns.SnsAsyncClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
@@ -123,6 +127,37 @@ class SnsAutoConfigurationTest {
 				.run(context -> assertThat(context).hasSingleBean(CustomChannelInterceptor.class));
 	}
 
+	@Nested
+	class SnsAsyncTemplateTests {
+
+		@Test
+		void snsAsyncTemplateIsNotCreatedWhenSnsAsyncClientIsNotPresent() {
+			contextRunner.run(context -> {
+				assertThat(context).hasSingleBean(SnsClient.class);
+				assertThat(context).hasSingleBean(SnsTemplate.class);
+				assertThat(context).doesNotHaveBean(SnsAsyncTemplate.class);
+			});
+		}
+
+		@Test
+		void snsAsyncTemplateIsCreatedWhenSnsAsyncClientIsPresent() {
+			contextRunner.withUserConfiguration(SnsAsyncClientConfiguration.class).run(context -> {
+				assertThat(context).hasSingleBean(SnsClient.class);
+				assertThat(context).hasSingleBean(SnsTemplate.class);
+				assertThat(context).hasSingleBean(SnsAsyncClient.class);
+				assertThat(context).hasSingleBean(SnsAsyncTemplate.class);
+			});
+		}
+
+		@Test
+		void bothAsyncTemplatesAndOperationsAreInjectable() {
+			contextRunner.withUserConfiguration(SnsAsyncClientConfiguration.class, InjectingAsyncTemplatesConfiguration.class).run(context -> {
+				assertThat(context.isRunning()).isTrue();
+				assertThat(context).hasSingleBean(SnsAsyncTemplate.class);
+			});
+		}
+	}
+
 	@Configuration(proxyBeanMethods = false)
 	static class CustomTopicArnResolverConfiguration {
 
@@ -188,5 +223,23 @@ class SnsAutoConfigurationTest {
 	}
 
 	static class CustomChannelInterceptor implements ChannelInterceptor {
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class SnsAsyncClientConfiguration {
+
+		@Bean
+		SnsAsyncClient snsAsyncClient() {
+			return mock(SnsAsyncClient.class);
+		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class InjectingAsyncTemplatesConfiguration {
+		@Bean
+		ApplicationRunner asyncRunner1(SnsAsyncTemplate snsAsyncTemplate) {
+			return args -> {
+			};
+		}
 	}
 }
