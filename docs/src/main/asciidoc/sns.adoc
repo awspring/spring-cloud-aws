@@ -147,6 +147,45 @@ class NotificationService {
 }
 ----
 
+==== SNS Async Template
+
+The starter automatically configures and registers a `SnsAsyncTemplate` bean when `SnsAsyncClient` bean is registered by user, providing non-blocking SNS operations.
+`SnsAsyncTemplate` returns `CompletableFuture` for all operations, making it suitable for high-throughput async applications.
+
+It supports the same payload types as `SnsTemplate` and uses the same Spring `MessageConverter` hirarchy inside of `DefaultSnsPublishMessageConverter` to convert payloads.
+
+[source,java]
+----
+import io.awspring.cloud.sns.core.async.SnsAsyncTemplate;
+import io.awspring.cloud.sns.core.async.SnsResult;
+
+import java.util.concurrent.CompletableFuture;
+
+class NotificationService {
+	private final SnsAsyncTemplate snsAsyncTemplate;
+
+	NotificationService(SnsAsyncTemplate snsAsyncTemplate) {
+		this.snsAsyncTemplate = snsAsyncTemplate;
+	}
+
+	CompletableFuture<SnsResult<String>> sendNotification() {
+		return snsAsyncTemplate.convertAndSend("topic-arn", "payload");
+	}
+}
+----
+
+To customize message conversion, provide a custom `SnsPublishMessageConverter` bean:
+
+[source,java]
+----
+@Bean
+public SnsPublishMessageConverter customConverter() {
+	return new MyCustomConverter();
+}
+----
+
+Autoconfiguration will pick it up and configure `SnsAsyncTemplate` automatically with it.
+
 === Using SNS Client
 
 To have access to all lower level SNS operations, we recommend using `SnsClient` from AWS SDK. `SnsClient` bean is autoconfigured by `SnsAutoConfiguration`.
