@@ -19,6 +19,7 @@ import io.awspring.cloud.sns.handlers.NotificationStatus;
 import io.awspring.cloud.sns.integration.LegacyJackson2SnsInboundChannelAdapter;
 import io.awspring.cloud.sns.integration.SnsInboundChannelAdapter;
 import org.springframework.messaging.Message;
+import software.amazon.awssdk.services.sns.model.PublishBatchRequestEntry;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
 
@@ -46,6 +47,12 @@ public final class SnsHeaders {
 	 * {@link PublishRequest#messageGroupId()}}.
 	 */
 	public static final String MESSAGE_GROUP_ID_HEADER = "message-group-id";
+
+	/**
+	 * Message id for SNS message (applies only to Batch request). The value of this header is set to
+	 * {@link PublishBatchRequestEntry#id()}}.
+	 */
+	public static final String MESSAGE_ID = "message-id";
 
 	/**
 	 * Message Deduplication id for SNS message. The value of this header is set to
