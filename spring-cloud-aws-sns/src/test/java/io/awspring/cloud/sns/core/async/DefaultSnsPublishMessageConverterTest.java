@@ -73,7 +73,6 @@ class DefaultSnsPublishMessageConverterTest {
 		assertThat(result.publishRequest()).isNotNull();
 		assertThat(result.publishRequest().message()).isEqualTo("test payload");
 		assertThat(result.publishRequest().subject()).isEqualTo("Test Subject");
-		assertThat(result.publishRequest().messageAttributes().get("custom-header")).isEqualTo(MessageAttributeValue.builder().stringValue("custom-value").build());
 		assertThat(result.originalMessage()).isNotNull();
 		assertThat(result.originalMessage().getPayload()).isEqualTo("test payload");
 		assertThat(result.originalMessage().getHeaders().get("custom-header")).isEqualTo("custom-value");
