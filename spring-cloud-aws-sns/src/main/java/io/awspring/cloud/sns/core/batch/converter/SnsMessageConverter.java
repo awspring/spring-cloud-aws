@@ -19,10 +19,7 @@ import org.springframework.messaging.Message;
 import software.amazon.awssdk.services.sns.model.PublishBatchRequestEntry;
 
 /**
- * Strategy interface for converting Spring {@link Message} objects to SNS {@link PublishBatchRequestEntry}.
- * 
- * Implementations of this interface handle the conversion of message payloads and headers into the format required by
- * SNS batch publish operations.
+ *  Converter interface for converting Spring {@link Message} objects to SNS {@link PublishBatchRequestEntry}.
  *
  * @author Matej Nedic
  * @since 4.0.1
@@ -31,9 +28,6 @@ public interface SnsMessageConverter {
 
 	/**
 	 * Converts a Spring message to an SNS batch request entry.
-	 * <p>
-	 * The conversion includes the message payload, headers, and any SNS-specific attributes such as message group ID
-	 * and deduplication ID for FIFO topics.
 	 *
 	 * @param message The Spring message to convert
 	 * @param <T> The type of the message payload
