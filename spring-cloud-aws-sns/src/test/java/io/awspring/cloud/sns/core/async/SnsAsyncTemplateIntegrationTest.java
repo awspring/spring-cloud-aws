@@ -50,7 +50,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Integration tests for {@link SnsAsyncTemplate} using SNS → SQS subscriptions.
+ * Integration tests for {@link SnsAsyncTemplate}
  *
  * @author Matej Nedic
  * @since 4.0.1
