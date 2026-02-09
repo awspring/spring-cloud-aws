@@ -111,6 +111,36 @@ Note that this class must be listed under the `org.springframework.boot.Bootstra
 org.springframework.boot.BootstrapRegistryInitializer=com.app.AppConfigBootstrapConfiguration
 ----
 
+
+If you want to use autoconfigured `AppConfigDataClient` but change underlying SDKClient or `ClientOverrideConfiguration` you will need to register bean of type `AppConfigClientCustomizer`:
+Autoconfiguration will configure `AppConfigDataClient` Bean with provided values after that, for example:
+
+[source,java]
+----
+package com.app;
+
+import io.awspring.cloud.autoconfigure.config.appconfig.AppConfigClientCustomizer;
+import java.time.Duration;
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClientBuilder;
+
+class AppConfigBootstrapConfiguration implements BootstrapRegistryInitializer {
+
+	@Override
+	public void initialize(BootstrapRegistry registry) {
+		registry.register(AppConfigClientCustomizer.class, context -> (builder -> {
+			builder.overrideConfiguration(builder.overrideConfiguration().copy(c -> {
+				c.apiCallTimeout(Duration.ofMillis(2001));
+			}));
+		}));
+	}
+}
+----
+
 === Configuration
 
 The Spring Boot Starter for AppConfig provides the following configuration options:
