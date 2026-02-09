@@ -1,0 +1,192 @@
+[#spring-cloud-aws-app-config]
+== AppConfig Integration
+
+https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html[AppConfig] helps store configuration safely in the cloud. The service also supports continuous fetching of changes so they can be applied during runtime.
+
+Spring Cloud AWS adds support for loading configuration from AppConfig through the Spring Boot https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-external-config-files-importing[config import feature].
+
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
+
+[source,xml]
+----
+<dependency>
+	<groupId>io.awspring.cloud</groupId>
+	<artifactId>spring-cloud-aws-starter-app-config</artifactId>
+</dependency>
+----
+
+=== Loading External Configuration
+
+To fetch configuration from AppConfig and add it to Spring's environment properties, add the `spring.config.import` property to `application.properties`:
+
+When specifying the key, all of the following values must be set:
+
+1. ApplicationName or ApplicationIdentifier
+2. ConfigurationProfileName or ConfigurationProfileIdentifier
+3. EnvironmentName or EnvironmentIdentifier
+
+Spring Cloud AWS AppConfig supports the following file types:
+
+1. YAML
+2. Plain text (properties)
+3. JSON
+
+For example, assuming that the ApplicationName in AppConfig is `cool-spring-application`, ConfigurationProfileName is `ProductionConfig`, and EnvironmentName is `prod`:
+
+[source,properties]
+----
+spring.config.import=aws-app-config:cool-spring-application#ProductionConfig#prod
+----
+
+If a config with the given values does not exist in AppConfig, the application will fail to start. If the config file is not required for the application and it should continue to start even when the file is missing, add `optional` before the prefix:
+
+[source,properties]
+----
+spring.config.import=optional:aws-app-config:cool-spring-application#ProductionConfig#prod
+----
+
+To load multiple configurations, separate their names with `;`:
+
+[source,properties]
+----
+spring.config.import=aws-app-config:cool-spring-application#ProductionConfig#prod;new-spring-application#ProdConfig#prod2
+----
+
+If some config files are required and others are optional, list them as separate entries in the `spring.config.import` property:
+
+[source,properties]
+----
+spring.config.import[0]=optional:aws-app-config:new-spring-application#ProdConfig#prod
+spring.config.import[1]=aws-app-config:cool-spring-application#ProductionConfig#prod2
+----
+
+Fetched config file properties can be referenced with `@Value`, bound to `@ConfigurationProperties` classes, or referenced in the `application.properties` file.
+
+[source,java]
+----
+@Value("${username}")
+private String username;
+
+@Value("${password}")
+private String password;
+----
+
+=== Using AppConfigDataClient
+
+The starter automatically configures and registers a `AppConfigDataClient` bean in the Spring application context. The `AppConfigDataClient` bean can be used to retrieve configuration files imperatively.
+
+=== Customizing AppConfigDataClient
+
+To use a custom `AppConfigDataClient` in `spring.config.import`, provide an implementation of `BootstrapRegistryInitializer`. For example:
+
+[source,java]
+----
+package com.app;
+
+
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
+
+public class AppConfigBootstrapConfiguration implements BootstrapRegistryInitializer {
+
+	@Override
+	public void initialize(BootstrapRegistry registry) {
+		registry.register(AppConfigDataClient.class, context -> {
+			AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("yourAccessKey", "yourSecretKey"));
+			return AppConfigDataClient.builder().credentialsProvider(awsCredentialsProvider).region(Region.EU_WEST_2).build();
+		});
+	}
+}
+----
+
+Note that this class must be listed under the `org.springframework.boot.BootstrapRegistryInitializer` key in `META-INF/spring.factories`:
+
+[source,properties]
+----
+org.springframework.boot.BootstrapRegistryInitializer=com.app.AppConfigBootstrapConfiguration
+----
+
+If you want to use the autoconfigured `AppConfigDataClient` but change the underlying SDKClient or ClientOverrideConfiguration, you will need to register a bean of type `AwsAppConfigDataClientCustomizer`.
+Autoconfiguration will configure the `AppConfigDataClient` bean with the provided values. For example:
+
+[source,java]
+----
+package com.app;
+
+import io.awspring.cloud.autoconfigure.config.appconfig.AwsAppConfigDataClientCustomizer;
+import java.time.Duration;
+import org.springframework.boot.BootstrapRegistry;
+import org.springframework.boot.BootstrapRegistryInitializer;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+
+class AppConfigBootstrapConfiguration implements BootstrapRegistryInitializer {
+
+	@Override
+	public void initialize(BootstrapRegistry registry) {
+		registry.register(AwsAppConfigDataClientCustomizer.class,
+            context -> new AwsAppConfigDataClientCustomizer() {
+
+                @Override
+                public ClientOverrideConfiguration overrideConfiguration() {
+                    return ClientOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(500))
+                            .build();
+                }
+
+                @Override
+                public SdkHttpClient httpClient() {
+                    return ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1000)).build();
+                }
+            });
+	}
+}
+----
+
+=== Configuration
+
+The Spring Boot Starter for AppConfig provides the following configuration options:
+
+[cols="2,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.appconfig.enabled` | Enables the AppConfig integration. | No | `true`
+| `spring.cloud.aws.appconfig.endpoint` | Configures the endpoint used by `AppConfigDataClient`. | No | `null`
+| `spring.cloud.aws.appconfig.region` | Configures the region used by `AppConfigDataClient`. | No | `null`
+| `spring.cloud.aws.appconfig.separator` | Configures the separator used to split the import key into application, profile, and environment. | No | `#`
+|===
+
+=== IAM Permissions
+
+The following IAM permissions are required by Spring Cloud AWS:
+
+[cols="2"]
+|===
+| Start session | `appconfig:StartConfigurationSession`
+| Get configuration | `appconfig:GetLatestConfiguration`
+|===
+
+Sample IAM policy granting access to AppConfig:
+
+[source,json,indent=0]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+     {
+                "Sid": "VisualEditor0",
+                "Effect": "Allow",
+                "Action": [
+                    "appconfig:GetLatestConfiguration",
+                    "appconfig:StartConfigurationSession"
+                ],
+                "Resource": "yourARN"
+            }
+    ]
+}
+----

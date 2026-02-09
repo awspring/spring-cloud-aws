@@ -79,7 +79,11 @@ public class AppConfigDataLocationResolver extends AbstractAwsConfigDataLocation
 
 	private RequestContext resolveContext(String propertySourceContext, String separator) {
 		var response = propertySourceContext.split(java.util.regex.Pattern.quote(separator));
-		return new RequestContext(response[0].trim(), response[1].trim(), response[2].trim(), propertySourceContext);
+		// Format: ApplicationName#ConfigurationProfileName#EnvironmentName
+		String applicationIdentifier = response[0].trim();
+		String configurationProfileIdentifier = response[1].trim();
+		String environmentIdentifier = response[2].trim();
+		return new RequestContext(configurationProfileIdentifier, environmentIdentifier, applicationIdentifier, propertySourceContext);
 	}
 
 	private AppConfigDataClient createAppConfigDataClient(BootstrapContext context) {

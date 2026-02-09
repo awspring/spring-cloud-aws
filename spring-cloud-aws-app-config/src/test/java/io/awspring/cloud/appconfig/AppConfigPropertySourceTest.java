@@ -43,7 +43,7 @@ import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSes
 class AppConfigPropertySourceTest {
 
 	private static final RequestContext DEFAULT_CONTEXT = new RequestContext("profile1", "env1", "app1",
-			"app1#env1#profile1");
+			"app1#profile1#env1");
 
 	private static final String RESOURCE_PATH = "io/awspring/cloud/appconfig/";
 
@@ -280,7 +280,7 @@ class AppConfigPropertySourceTest {
 
 	@Test
 	void shouldUseCorrectContextIdentifiers() {
-		RequestContext context = new RequestContext("myProfile", "myEnv", "myApp", "myApp#myEnv#myProfile");
+		RequestContext context = new RequestContext("myProfile", "myEnv", "myApp", "myApp#myProfile#myEnv");
 		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
 
 		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))

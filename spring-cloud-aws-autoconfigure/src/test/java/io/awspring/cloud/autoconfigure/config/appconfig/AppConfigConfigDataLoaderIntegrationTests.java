@@ -130,9 +130,9 @@ class AppConfigConfigDataLoaderIntegrationTests {
 			PROFILE_ID_JSON = createProfileWithContent("jsonProfile", "application/json",
 				"io/awspring/cloud/autoconfigure/config/appconfig/test-config.json");
 
-			IMPORT_PROPERTIES = "aws-appconfig:" + PROFILE_ID_PROPERTIES + "#" + ENV_ID + "#" + APP_ID;
-			IMPORT_YAML = "aws-appconfig:" + PROFILE_ID_YAML + "#" + ENV_ID + "#" + APP_ID;
-			IMPORT_JSON = "aws-appconfig:" + PROFILE_ID_JSON + "#" + ENV_ID + "#" + APP_ID;
+			IMPORT_PROPERTIES = "aws-appconfig:" + APP_ID + "#" + PROFILE_ID_PROPERTIES + "#" + ENV_ID;
+			IMPORT_YAML = "aws-appconfig:" + APP_ID + "#" + PROFILE_ID_YAML + "#" + ENV_ID;
+			IMPORT_JSON = "aws-appconfig:" + APP_ID + "#" + PROFILE_ID_JSON + "#" + ENV_ID;
 	}
 
 	private static String createProfileWithContent(String profileName, String contentType,
@@ -193,7 +193,7 @@ class AppConfigConfigDataLoaderIntegrationTests {
 	void whenKeysCannotBeFoundFailWithHumanReadableMessage(CapturedOutput output) {
 		SpringApplication application = createApplication();
 
-		assertThatThrownBy(() -> runApplication(application, "aws-appconfig:invalidApp#invalidEnv#invalidProfile"))
+		assertThatThrownBy(() -> runApplication(application, "aws-appconfig:invalidApp#invalidProfile#invalidEnv"))
 			.isInstanceOf(AwsAppConfigPropertySourceNotFoundException.class);
 		String errorMessage = "Description:%1$s%1$sCould not import properties from App Config. Exception happened while trying to load the keys"
 			.formatted(NEW_LINE_CHAR);
@@ -217,7 +217,7 @@ class AppConfigConfigDataLoaderIntegrationTests {
 		SpringApplication application = createApplication();
 
 		try (ConfigurableApplicationContext context = runApplication(application,
-			"aws-appconfig:" + PROFILE_ID_PROPERTIES + "/" + ENV_ID + "/" + APP_ID,
+			"aws-appconfig:" + APP_ID + "/" + PROFILE_ID_PROPERTIES + "/" + ENV_ID,
 			"spring.cloud.aws.endpoint",
 			"--spring.cloud.aws.appconfig.separator=/")) {
 			assertThat(context.getEnvironment().getProperty("cloud.aws.sqs.enabled")).isEqualTo("true");
