@@ -17,101 +17,123 @@ package io.awspring.cloud.sns.core.batch.converter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.sns.Person;
 import io.awspring.cloud.sns.core.SnsHeaders;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sns.model.PublishBatchRequestEntry;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
+ * Tests for {@link DefaultSnsMessageConverter}.
  *
  * @author Matej Nedic
  */
 class DefaultSnsMessageConverterTest {
 
+	private final DefaultSnsMessageConverter converter = new DefaultSnsMessageConverter();
+
 	@Test
-	void convertsSimpleStringMessage() {
-		DefaultSnsMessageConverter converter = new DefaultSnsMessageConverter();
-		Message<String> message = MessageBuilder.withPayload("test message").build();
+	void convertsStringPayload() {
+		Message<String> message = MessageBuilder.withPayload("hello").build();
 
 		PublishBatchRequestEntry entry = converter.covertMessage(message);
 
-		assertThat(entry.message()).isEqualTo("test message");
+		assertThat(entry.message()).isEqualTo("hello");
 	}
 
 	@Test
-	void convertsMessageWithCustomConverter() {
+	void convertsJsonPayloadWithCustomConverter() {
 		JacksonJsonMessageConverter jacksonConverter = new JacksonJsonMessageConverter(new JsonMapper());
 		jacksonConverter.setSerializedPayloadClass(String.class);
-		DefaultSnsMessageConverter converter = new DefaultSnsMessageConverter(jacksonConverter);
+		DefaultSnsMessageConverter jsonConverter = new DefaultSnsMessageConverter(jacksonConverter);
 
-		TestPayload payload = new TestPayload("John", 30);
-		Message<TestPayload> message = MessageBuilder.withPayload(payload).build();
+		Message<Person> message = MessageBuilder.withPayload(new Person("John")).build();
 
-		PublishBatchRequestEntry entry = converter.covertMessage(message);
+		PublishBatchRequestEntry entry = jsonConverter.covertMessage(message);
 
-		assertThat(entry.message()).contains("John").contains("30");
+		assertThat(entry.message()).contains("John");
 	}
 
 	@Test
-	void convertsMessageWithMessageGroupId() {
-		DefaultSnsMessageConverter converter = new DefaultSnsMessageConverter();
+	void setsMessageGroupId() {
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "group-123").build();
+				.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "group-1").build();
 
 		PublishBatchRequestEntry entry = converter.covertMessage(message);
 
-		assertThat(entry.messageGroupId()).isEqualTo("group-123");
+		assertThat(entry.messageGroupId()).isEqualTo("group-1");
 	}
 
 	@Test
-	void convertsMessageWithDeduplicationId() {
-		DefaultSnsMessageConverter converter = new DefaultSnsMessageConverter();
+	void setsDeduplicationId() {
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-456").build();
+				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-1").build();
 
 		PublishBatchRequestEntry entry = converter.covertMessage(message);
 
-		assertThat(entry.messageDeduplicationId()).isEqualTo("dedup-456");
+		assertThat(entry.messageDeduplicationId()).isEqualTo("dedup-1");
 	}
 
 	@Test
-	void convertsMessageWithMessageAttributes() {
-		DefaultSnsMessageConverter converter = new DefaultSnsMessageConverter();
-		Message<String> message = MessageBuilder.withPayload("test").setHeader("customHeader", "customValue").build();
+	void setsAllFifoHeaders() {
+		Message<String> message = MessageBuilder.withPayload("fifo payload")
+				.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "grp")
+				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "ded")
+				.setHeader("custom", "val").build();
 
 		PublishBatchRequestEntry entry = converter.covertMessage(message);
 
-		assertThat(entry.messageAttributes()).isNotEmpty();
+		assertThat(entry.message()).isEqualTo("fifo payload");
+		assertThat(entry.messageGroupId()).isEqualTo("grp");
+		assertThat(entry.messageDeduplicationId()).isEqualTo("ded");
+		//Test DataType as well
+		assertThat(entry.messageAttributes().get("custom")).isEqualTo(MessageAttributeValue.builder().stringValue("val").dataType("String").build());
 	}
 
 	@Test
-	void convertsMessageWithAllHeaders() {
-		DefaultSnsMessageConverter converter = new DefaultSnsMessageConverter();
-		Message<String> message = MessageBuilder.withPayload("test message")
-				.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "group-123")
-				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-456")
-				.setHeader("customHeader", "customValue").build();
+	void leavesOptionalHeadersNullWhenAbsent() {
+		Message<String> message = MessageBuilder.withPayload("plain").build();
 
 		PublishBatchRequestEntry entry = converter.covertMessage(message);
 
-		assertThat(entry.message()).isEqualTo("test message");
-		assertThat(entry.messageGroupId()).isEqualTo("group-123");
-		assertThat(entry.messageDeduplicationId()).isEqualTo("dedup-456");
-		assertThat(entry.messageAttributes()).isNotEmpty();
-	}
-
-	@Test
-	void convertsMessageWithoutOptionalHeaders() {
-		DefaultSnsMessageConverter converter = new DefaultSnsMessageConverter();
-		Message<String> message = MessageBuilder.withPayload("simple message").build();
-
-		PublishBatchRequestEntry entry = converter.covertMessage(message);
-
-		assertThat(entry.message()).isEqualTo("simple message");
 		assertThat(entry.messageGroupId()).isNull();
 		assertThat(entry.messageDeduplicationId()).isNull();
+	}
+
+	@Test
+	void convertsCustomHeadersToMessageAttributes() {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader("priority", "high").build();
+
+		PublishBatchRequestEntry entry = converter.covertMessage(message);
+
+		assertThat(entry.messageAttributes()).containsKey("priority");
+		//Test plain String value\
+		assertThat(entry.messageAttributes().get("priority").stringValue()).isEqualTo("high");
+	}
+
+	@Test
+	void usesCustomMessageIdHeaderAsBatchEntryId() {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(SnsHeaders.MESSAGE_ID_HEADER, "custom-id-123").build();
+
+		PublishBatchRequestEntry entry = converter.covertMessage(message);
+
+		assertThat(entry.id()).isEqualTo("custom-id-123");
+	}
+
+	@Test
+	void generatesUuidWhenNoMessageIdHeader() {
+		Message<String> message = MessageBuilder.withPayload("test").build();
+
+		PublishBatchRequestEntry entry = converter.covertMessage(message);
+
+		assertThat(entry.id()).isNotBlank();
+		assertThat(UUID.fromString(entry.id())).isNotNull();
 	}
 }

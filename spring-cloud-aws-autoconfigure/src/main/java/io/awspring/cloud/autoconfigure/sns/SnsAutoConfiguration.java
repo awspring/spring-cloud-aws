@@ -35,7 +35,7 @@ import io.awspring.cloud.sns.core.batch.SnsBatchTemplate;
 import io.awspring.cloud.sns.core.batch.converter.DefaultSnsMessageConverter;
 import io.awspring.cloud.sns.core.batch.converter.SnsMessageConverter;
 import io.awspring.cloud.sns.core.batch.executor.BatchExecutionStrategy;
-import io.awspring.cloud.sns.core.batch.executor.DefaultBatchExecutionStrategy;
+import io.awspring.cloud.sns.core.batch.executor.SequentialBatchExecutionStrategy;
 import io.awspring.cloud.sns.sms.SnsSmsOperations;
 import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import java.util.List;
@@ -146,8 +146,8 @@ public class SnsAutoConfiguration {
 
 		@ConditionalOnMissingBean(BatchExecutionStrategy.class)
 		@Bean
-		public DefaultBatchExecutionStrategy defaultBatchExecutionStrategy(SnsClient snsClient) {
-			return new DefaultBatchExecutionStrategy(snsClient);
+		public SequentialBatchExecutionStrategy defaultBatchExecutionStrategy(SnsClient snsClient) {
+			return new SequentialBatchExecutionStrategy(snsClient);
 		}
 
 		@ConditionalOnMissingBean(SnsBatchOperations.class)

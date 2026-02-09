@@ -34,11 +34,13 @@ import software.amazon.awssdk.services.sns.model.PublishBatchResultEntry;
  * @author Matej Nedic
  * @since 4.0.1
  */
-public class DefaultBatchExecutionStrategy implements BatchExecutionStrategy {
+public class SequentialBatchExecutionStrategy implements BatchExecutionStrategy {
 
 	private final SnsClient snsClient;
 
-	public DefaultBatchExecutionStrategy(SnsClient snsClient) {
+	private static final int MAX_SNS_BATCH_SIZE = 10;
+
+	public SequentialBatchExecutionStrategy(SnsClient snsClient) {
 		Assert.notNull(snsClient, "SnsClient cannot be null!");
 		this.snsClient = snsClient;
 	}
@@ -52,14 +54,17 @@ public class DefaultBatchExecutionStrategy implements BatchExecutionStrategy {
 	 */
 	@Override
 	public BatchResult send(Arn topicArn, Collection<PublishBatchRequestEntry> entries) {
+		Assert.notNull(topicArn, "topicArn is required");
+		Assert.notNull(topicArn, "entries are required");
+
 		List<BatchResult.SnsResult> allResults = new ArrayList<>();
 		List<BatchResult.SnsError> allErrors = new ArrayList<>();
-		List<PublishBatchRequestEntry> batch = new ArrayList<>(10);
+		List<PublishBatchRequestEntry> batch = new ArrayList<>(MAX_SNS_BATCH_SIZE);
 
 		for (PublishBatchRequestEntry entry : entries) {
 			batch.add(entry);
 
-			if (batch.size() == 10) {
+			if (batch.size() == MAX_SNS_BATCH_SIZE) {
 				processBatch(topicArn, batch, allResults, allErrors);
 				batch.clear();
 			}

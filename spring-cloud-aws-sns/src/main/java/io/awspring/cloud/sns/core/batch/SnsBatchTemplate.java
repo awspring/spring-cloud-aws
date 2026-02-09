@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sns.core.batch;
 
+import io.awspring.cloud.sns.core.SnsNotification;
 import io.awspring.cloud.sns.core.TopicArnResolver;
 import io.awspring.cloud.sns.core.batch.converter.SnsMessageConverter;
 import io.awspring.cloud.sns.core.batch.executor.BatchExecutionStrategy;
@@ -66,21 +67,43 @@ public class SnsBatchTemplate implements SnsBatchOperations {
 	 */
 	@Override
 	public <T> BatchResult sendBatch(String topicName, Collection<Message<T>> messages) {
+		Assert.notNull(topicName, "topicName is required");
+		Assert.notNull(messages, "messages are required");
+
 		var batchList = messages.stream().map(snsMessageConverter::covertMessage).toList();
 		return batchExecutionStrategy.send(topicArnResolver.resolveTopicArn(topicName), batchList);
 	}
 
 	/**
-	 * Converts a collection of payloads to Spring messages and sends them as a batch to the specified SNS topic.
+	 * Converts a collection of POJOs to Spring messages and sends them as a batch to the specified SNS topic.
 	 *
 	 * @param topicName The logical name of the SNS topic
-	 * @param payload Collection of payloads to convert and send
+	 * @param payloads Collection of payloads to convert and send
 	 * @param <T> The type of the payload
 	 * @return BatchResult containing successful results and any errors
 	 */
 	@Override
-	public <T> BatchResult convertAndSend(String topicName, Collection<T> payload) {
-		var batchList = payload.stream().map(it -> MessageBuilder.withPayload(it).build()).map(snsMessageConverter::covertMessage).collect(Collectors.toList());
+	public <T> BatchResult convertAndSend(String topicName, Collection<T> payloads) {
+		Assert.notNull(topicName, "topicName is required");
+		Assert.notNull(payloads, "payloads are required");
+		var batchList = payloads.stream().map(it -> MessageBuilder.withPayload(it).build()).map(snsMessageConverter::covertMessage).collect(Collectors.toList());
+		return batchExecutionStrategy.send(topicArnResolver.resolveTopicArn(topicName), batchList);
+	}
+
+
+	/**
+	 * Converts a collection of {@link SnsNotification} to Spring messages and sends them as a batch to the specified SNS topic.
+	 *
+	 * @param topicName The logical name of the SNS topic
+	 * @param notifications Collection of payloads to convert and send
+	 * @param <T> The type of the payload
+	 * @return BatchResult containing successful results and any errors
+	 */
+	@Override
+	public <T> BatchResult sendBatchNotifications(String topicName, Collection<SnsNotification<T>> notifications) {
+		Assert.notNull(topicName, "topicName is required");
+		Assert.notNull(notifications, "notifications are required");
+		var batchList = notifications.stream().map(it -> MessageBuilder.withPayload(it.getPayload()).copyHeaders(it.getHeaders()).build()).map(snsMessageConverter::covertMessage).collect(Collectors.toList());
 		return batchExecutionStrategy.send(topicArnResolver.resolveTopicArn(topicName), batchList);
 	}
 

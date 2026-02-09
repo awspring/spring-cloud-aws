@@ -29,17 +29,14 @@ import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.AbstractMessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeType;
 import org.springframework.util.NumberUtils;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 /**
- * Implementation of {@link AbstractMessageChannel} which is used for converting and sending messages via
- * {@link SnsClient} to SNS.
+ * Util class used to convert {@link Message} headers to SNS messageAttributes.
  *
  * @author Agim Emruli
  * @author Alain Sahli
@@ -49,7 +46,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
  */
 public class SnsHeaderConverterUtil {
 
-	public static JsonStringEncoder jsonStringEncoder = JsonStringEncoder.create();
+	private static final JsonStringEncoder jsonStringEncoder = JsonStringEncoder.create();
 	private static final Log logger = LogFactory.getLog(SnsHeaderConverterUtil.class);
 
 	public static Map<String, MessageAttributeValue> toSnsMessageAttributes(Message<?> message) {

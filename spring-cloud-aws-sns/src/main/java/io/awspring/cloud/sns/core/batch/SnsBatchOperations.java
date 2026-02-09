@@ -18,6 +18,7 @@ package io.awspring.cloud.sns.core.batch;
 import java.util.Collection;
 import java.util.Map;
 
+import io.awspring.cloud.sns.core.SnsNotification;
 import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
@@ -45,17 +46,33 @@ public interface SnsBatchOperations {
 	<T> BatchResult sendBatch(String topicName, Collection<Message<T>> messages);
 
 	/**
-	 * Converts a collection of payloads to Spring messages and sends them as a batch to the specified SNS topic.
+	 * Converts a collection of POJOs to Spring messages and sends them as a batch to the specified SNS topic.
 	 * Batch API limit, messages will be split into groups of 10.
 	 * <p>
 	 * The result contains information about both successful and failed messages.
 	 *
 	 * @param topicName The logical name of the SNS topic
-	 * @param payload Collection of payloads to convert and send
+	 * @param payloads Collection of payloads to convert and send
 	 * @param <T> The type of the payload
 	 * @return BatchResult containing successful results and errors if there are any
 	 */
-	<T> BatchResult convertAndSend(String topicName, Collection<T> payload);
+	<T> BatchResult convertAndSend(String topicName, Collection<T> payloads);
+
+
+	/**
+	 * Converts a collection of notifications to Spring messages and sends them as a batch to the specified SNS topic.
+	 * Batch API limit, messages will be split into groups of 10.
+	 * <p>
+	 * The result contains information about both successful and failed messages.
+	 *
+	 * @param topicName The logical name of the SNS topic
+	 * @param notifications Collection of {@link SnsNotification} to convert and send
+	 * @param <T> The type of the payload
+	 * @return BatchResult containing successful results and errors if there are any
+	 */
+	<T> BatchResult sendBatchNotifications(String topicName, Collection<SnsNotification<T>> notifications);
+
+
 
 
 
