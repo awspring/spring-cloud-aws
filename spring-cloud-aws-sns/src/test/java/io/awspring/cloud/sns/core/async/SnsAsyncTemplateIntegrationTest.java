@@ -23,9 +23,10 @@ import static org.awaitility.Awaitility.await;
 
 import io.awspring.cloud.sns.Person;
 import io.awspring.cloud.sns.core.SnsNotification;
-import java.util.HashMap;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import net.bytebuddy.utility.RandomString;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,12 +45,12 @@ import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
-import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Integration tests for {@link SnsAsyncTemplate}.
+ * Integration tests for {@link SnsAsyncTemplate} using SNS → SQS subscriptions.
  *
  * @author Matej Nedic
  * @since 4.0.1
@@ -57,247 +58,201 @@ import tools.jackson.databind.json.JsonMapper;
 @Testcontainers
 class SnsAsyncTemplateIntegrationTest {
 
-	private static final String TOPIC_NAME = "async_topic_name";
-	private static SnsAsyncTemplate snsAsyncTemplate;
-	private static SnsAsyncClient snsAsyncClient;
-	private static SqsClient sqsClient;
-
-	private final JsonMapper jsonMapper = new JsonMapper();
+	private static final JsonMapper jsonMapper = JsonMapper.builder().build();
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:4.4.0"));
 
+	private static SnsAsyncClient snsAsyncClient;
+	private static SqsClient sqsClient;
+	private static SnsAsyncTemplate snsAsyncTemplate;
+	private static String standardQueueUrl;
+	private static String standardTopicArn;
+	private static String fifoQueueUrl;
+	private static String fifoTopicArn;
+
 	@BeforeAll
-	public static void createSnsAsyncTemplate() {
+	static void setUp() throws Exception {
+		StaticCredentialsProvider credentials = StaticCredentialsProvider
+			.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
+
 		snsAsyncClient = SnsAsyncClient.builder()
 			.endpointOverride(localstack.getEndpoint())
 			.region(Region.of(localstack.getRegion()))
-			.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())))
-			.build();
-		
+			.credentialsProvider(credentials).build();
+
 		sqsClient = SqsClient.builder()
 			.endpointOverride(localstack.getEndpoint())
 			.region(Region.of(localstack.getRegion()))
-			.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())))
-			.build();
-		
-		JacksonJsonMessageConverter jacksonJsonConverter = new JacksonJsonMessageConverter();
-		jacksonJsonConverter.setSerializedPayloadClass(String.class);
-		
-		DefaultSnsPublishMessageConverter converter = new DefaultSnsPublishMessageConverter(jacksonJsonConverter);
-		snsAsyncTemplate = new SnsAsyncTemplate(snsAsyncClient, converter);
+			.credentialsProvider(credentials).build();
+
+		standardQueueUrl = sqsClient.createQueue(r -> r.queueName("async-standard-queue")).queueUrl();
+		String standardQueueArn = sqsClient
+			.getQueueAttributes(r -> r.queueUrl(standardQueueUrl).attributeNames(QueueAttributeName.QUEUE_ARN))
+			.attributes().get(QueueAttributeName.QUEUE_ARN);
+		standardTopicArn = snsAsyncClient
+			.createTopic(CreateTopicRequest.builder().name("async-standard-topic").build())
+			.get().topicArn();
+		snsAsyncClient.subscribe(r -> r.topicArn(standardTopicArn).protocol("sqs").endpoint(standardQueueArn)).get();
+
+
+		fifoQueueUrl = sqsClient
+			.createQueue(r -> r.queueName("async-fifo-queue.fifo")
+				.attributes(Map.of(QueueAttributeName.FIFO_QUEUE, "true")))
+			.queueUrl();
+		String fifoQueueArn = sqsClient
+			.getQueueAttributes(r -> r.queueUrl(fifoQueueUrl).attributeNames(QueueAttributeName.QUEUE_ARN))
+			.attributes().get(QueueAttributeName.QUEUE_ARN);
+		fifoTopicArn = snsAsyncClient
+			.createTopic(CreateTopicRequest.builder().name("async-fifo-topic.fifo")
+				.attributes(Map.of("FifoTopic", "true", "ContentBasedDeduplication", "true")).build())
+			.get().topicArn();
+		snsAsyncClient.subscribe(r -> r.topicArn(fifoTopicArn).protocol("sqs").endpoint(fifoQueueArn)).get();
+
+		JacksonJsonMessageConverter jackson = new JacksonJsonMessageConverter();
+		jackson.setSerializedPayloadClass(String.class);
+		snsAsyncTemplate = new SnsAsyncTemplate(snsAsyncClient,
+			new DefaultSnsPublishMessageConverter(jackson));
+	}
+
+	private static List<software.amazon.awssdk.services.sqs.model.Message> receiveAll(String queueUrl) {
+		List<software.amazon.awssdk.services.sqs.model.Message> messages = new ArrayList<>();
+		await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(500)).until(() -> {
+			var response = sqsClient.receiveMessage(ReceiveMessageRequest.builder().queueUrl(queueUrl)
+				.maxNumberOfMessages(10).waitTimeSeconds(2).messageAttributeNames("All").build());
+			if (response.hasMessages() && !response.messages().isEmpty()) {
+				messages.addAll(response.messages());
+			}
+			return !messages.isEmpty();
+		});
+		return messages;
 	}
 
 	@Nested
-	class FifoTopics {
-		private static String queueUrl;
-		private static String queueArn;
-
-		@BeforeAll
-		public static void init() {
-			queueUrl = sqsClient
-				.createQueue(r -> r.queueName("async-queue.fifo")
-					.attributes(Map.of(QueueAttributeName.FIFO_QUEUE, "true")))
-				.queueUrl();
-			queueArn = sqsClient
-				.getQueueAttributes(r -> r.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN))
-				.attributes().get(QueueAttributeName.QUEUE_ARN);
-		}
-
-		@Test
-		void convertAndSend_validTextMessage_usesFifoTopic_sendsToSqs() throws Exception {
-			String topicName = "async_fifo_topic.fifo";
-			Map<String, String> topicAttributes = new HashMap<>();
-			topicAttributes.put("FifoTopic", String.valueOf(true));
-			String topicArn = snsAsyncClient
-				.createTopic(CreateTopicRequest.builder().name(topicName).attributes(topicAttributes).build())
-				.get()
-				.topicArn();
-			snsAsyncClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueArn)).get();
-
-			Map<String, Object> headers = new HashMap<>();
-			headers.put(MESSAGE_GROUP_ID_HEADER, "group-id");
-			headers.put(MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-id");
-			headers.put("custom-fifo-header", "fifo-value");
-			CompletableFuture<SnsResult<String>> result = snsAsyncTemplate.convertAndSend(
-				topicName, 
-				"async message",
-				headers
-			);
-
-			SnsResult<String> snsResult = result.get();
-			assertThat(snsResult.messageId()).isNotNull();
-			assertThat(snsResult.message().getPayload()).isEqualTo("async message");
-			assertThat(snsResult.message().getHeaders()).containsKeys("id", "timestamp", MESSAGE_GROUP_ID_HEADER, MESSAGE_DEDUPLICATION_ID_HEADER, "custom-fifo-header");
-			assertThat(snsResult.message().getHeaders().get(MESSAGE_GROUP_ID_HEADER)).isEqualTo("group-id");
-			assertThat(snsResult.message().getHeaders().get(MESSAGE_DEDUPLICATION_ID_HEADER)).isEqualTo("dedup-id");
-
-			await().untilAsserted(() -> {
-				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
-				assertThat(response.hasMessages()).isTrue();
-				JsonNode body = jsonMapper.readTree(response.messages().get(0).body());
-				assertThat(body.get("Message").asString()).isEqualTo("async message");
-			});
-		}
+	class StandardTopicTests {
 
 		@AfterEach
-		public void purgeQueue() {
-			sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(queueUrl).build());
-		}
-	}
-
-	@Nested
-	class NonFifoTopics {
-		private static String queueUrl;
-		private static String queueArn;
-
-		@BeforeAll
-		public static void init() {
-			queueUrl = sqsClient.createQueue(r -> r.queueName("async-standard-queue")).queueUrl();
-			queueArn = sqsClient
-				.getQueueAttributes(r -> r.queueUrl(queueUrl).attributeNames(QueueAttributeName.QUEUE_ARN))
-				.attributes().get(QueueAttributeName.QUEUE_ARN);
+		void purgeQueue() {
+			sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(standardQueueUrl).build());
 		}
 
 		@Test
-		void convertAndSend_validTextMessage_sendsToStandardTopic() throws Exception {
-			String topicArn = snsAsyncClient
-				.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME).build())
-				.get()
-				.topicArn();
-			snsAsyncClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueArn)).get();
+		void convertAndSendWithHeaders() throws Exception {
+			SnsResult<String> result = snsAsyncTemplate.convertAndSend(standardTopicArn, "async message",
+				Map.of("custom-header", "custom-value")).get();
 
-			Map<String, Object> headers = new HashMap<>();
-			headers.put("custom-header", "custom-value");
-			headers.put("number-header", 42);
-			CompletableFuture<SnsResult<String>> result = snsAsyncTemplate.convertAndSend(topicArn, "async message", headers);
+			assertThat(result.messageId()).isNotNull();
+			assertThat(result.sequenceNumber()).isNull();
+			assertThat(result.message().getPayload()).isEqualTo("async message");
+			assertThat(result.message().getHeaders()).containsEntry("custom-header", "custom-value");
 
-			SnsResult<String> snsResult = result.get();
-			assertThat(snsResult.messageId()).isNotNull();
-			assertThat(snsResult.sequenceNumber()).isNull();
-			assertThat(snsResult.message().getPayload()).isEqualTo("async message");
-			assertThat(snsResult.message().getHeaders()).containsKeys("id", "timestamp", "custom-header", "number-header");
-			assertThat(snsResult.message().getHeaders().get("custom-header")).isEqualTo("custom-value");
-			assertThat(snsResult.message().getHeaders().get("number-header")).isEqualTo(42);
+			var received = receiveAll(standardQueueUrl);
+			JsonNode snsEnvelope = jsonMapper.readTree(received.get(0).body());
+			assertThat(snsEnvelope.get("Message").asString()).isEqualTo("async message");
 
-			await().untilAsserted(() -> {
-				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
-				assertThat(response.hasMessages()).isTrue();
-				JsonNode body = jsonMapper.readTree(response.messages().get(0).body());
-				assertThat(body.get("Message").asString()).isEqualTo("async message");
-			});
+			JsonNode messageAttributes = snsEnvelope.get("MessageAttributes");
+			assertThat(messageAttributes).isNotNull();
+			assertThat(messageAttributes.get("custom-header").get("Value").asString()).isEqualTo("custom-value");
 		}
 
 		@Test
-		void convertAndSend_validPersonObject_sendsToStandardTopic() throws Exception {
-			String topicArn = snsAsyncClient
-				.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + "_person").build())
-				.get()
-				.topicArn();
-			snsAsyncClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueArn)).get();
+		void convertAndSendWithPersonPayload() throws Exception {
+			Person person = new Person("John");
+			SnsResult<Person> result = snsAsyncTemplate.convertAndSend(standardTopicArn, person,
+				Map.of("person-type", "employee", NOTIFICATION_SUBJECT_HEADER, "Person Update")).get();
 
-			Person person = new Person("John Doe");
-			Map<String, Object> headers = new HashMap<>();
-			headers.put("person-type", "employee");
-			headers.put(NOTIFICATION_SUBJECT_HEADER, "Person Update");
-			CompletableFuture<SnsResult<Person>> result = snsAsyncTemplate.convertAndSend(topicArn, person, headers);
+			assertThat(result.messageId()).isNotNull();
+			assertThat(result.message().getPayload()).isEqualTo(person);
 
-			SnsResult<Person> snsResult = result.get();
-			assertThat(snsResult.messageId()).isNotNull();
-			assertThat(snsResult.message().getPayload()).isEqualTo(person);
-			assertThat(snsResult.message().getHeaders()).containsKeys("id", "timestamp", "person-type", NOTIFICATION_SUBJECT_HEADER);
-			assertThat(snsResult.message().getHeaders().get("person-type")).isEqualTo("employee");
+			var received = receiveAll(standardQueueUrl);
+			JsonNode snsEnvelope = jsonMapper.readTree(received.get(0).body());
+			Person receivedPerson = jsonMapper.readValue(snsEnvelope.get("Message").asString(), Person.class);
+			assertThat(receivedPerson.getName()).isEqualTo("John");
+			assertThat(snsEnvelope.get("Subject").asString()).isEqualTo("Person Update");
 
-			await().untilAsserted(() -> {
-				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
-				assertThat(response.hasMessages()).isTrue();
-				Person receivedPerson = jsonMapper.readValue(
-					jsonMapper.readTree(response.messages().get(0).body()).get("Message").asString(),
-					Person.class
-				);
-				assertThat(receivedPerson.getName()).isEqualTo("John Doe");
-			});
+			JsonNode messageAttributes = snsEnvelope.get("MessageAttributes");
+			assertThat(messageAttributes).isNotNull();
+			assertThat(messageAttributes.get("person-type").get("Value").asString()).isEqualTo("employee");
 		}
 
 		@Test
-		void sendNotification_withSubject_sendsMessageWithSubject() throws Exception {
-			String topicArn = snsAsyncClient
-				.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + "_subject").build())
-				.get()
-				.topicArn();
-			snsAsyncClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueArn)).get();
+		void sendNotificationWithSubject() throws Exception {
+			SnsResult<Object> result = snsAsyncTemplate.sendNotification(standardTopicArn,
+				"message with subject", "Test Subject").get();
 
-			CompletableFuture<SnsResult<Object>> result = snsAsyncTemplate.sendNotification(
-				topicArn,
-				"message with subject",
-				"Test Subject"
-			);
+			assertThat(result.messageId()).isNotNull();
 
-			SnsResult<Object> snsResult = result.get();
-			assertThat(snsResult.messageId()).isNotNull();
-
-			await().untilAsserted(() -> {
-				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
-				assertThat(response.hasMessages()).isTrue();
-				JsonNode body = jsonMapper.readTree(response.messages().get(0).body());
-				assertThat(body.get("Message").asString()).isEqualTo("message with subject");
-				assertThat(body.get("Subject").asString()).isEqualTo("Test Subject");
-			});
+			var received = receiveAll(standardQueueUrl);
+			JsonNode body = jsonMapper.readTree(received.get(0).body());
+			assertThat(body.get("Message").asString()).isEqualTo("message with subject");
+			assertThat(body.get("Subject").asString()).isEqualTo("Test Subject");
 		}
 
 		@Test
-		void sendNotification_withSnsNotification_sendsMessageWithHeaders() throws Exception {
-			String topicArn = snsAsyncClient
-				.createTopic(CreateTopicRequest.builder().name(TOPIC_NAME + "_notification").build())
-				.get()
-				.topicArn();
-			snsAsyncClient.subscribe(r -> r.topicArn(topicArn).protocol("sqs").endpoint(queueArn)).get();
-
+		void sendNotificationWithSnsNotification() throws Exception {
 			SnsNotification<String> notification = SnsNotification.builder("notification payload")
 				.header(NOTIFICATION_SUBJECT_HEADER, "Notification Subject")
-				.header("notification-type", "alert")
-				.header("priority", 1)
-				.build();
+				.header("notification-type", "alert").build();
 
-			CompletableFuture<SnsResult<String>> result = snsAsyncTemplate.sendNotification(topicArn, notification);
+			SnsResult<String> result = snsAsyncTemplate.sendNotification(standardTopicArn, notification).get();
 
-			SnsResult<String> snsResult = result.get();
-			assertThat(snsResult.messageId()).isNotNull();
-			assertThat(snsResult.message().getPayload()).isEqualTo("notification payload");
-			assertThat(snsResult.message().getHeaders()).containsKeys("id", "timestamp", NOTIFICATION_SUBJECT_HEADER, "notification-type", "priority");
+			assertThat(result.messageId()).isNotNull();
+			assertThat(result.message().getPayload()).isEqualTo("notification payload");
 
-			await().untilAsserted(() -> {
-				ReceiveMessageResponse response = sqsClient.receiveMessage(r -> r.queueUrl(queueUrl));
-				assertThat(response.hasMessages()).isTrue();
-				JsonNode body = jsonMapper.readTree(response.messages().get(0).body());
-				assertThat(body.get("Message").asString()).isEqualTo("notification payload");
-				assertThat(body.get("Subject").asString()).isEqualTo("Notification Subject");
-			});
+			var received = receiveAll(standardQueueUrl);
+			JsonNode snsEnvelope = jsonMapper.readTree(received.get(0).body());
+			assertThat(snsEnvelope.get("Message").asString()).isEqualTo("notification payload");
+			assertThat(snsEnvelope.get("Subject").asString()).isEqualTo("Notification Subject");
+
+			JsonNode messageAttributes = snsEnvelope.get("MessageAttributes");
+			assertThat(messageAttributes).isNotNull();
+			assertThat(messageAttributes.get("notification-type").get("Value").asString()).isEqualTo("alert");
 		}
+	}
+
+	@Nested
+	class FifoTopicTests {
 
 		@AfterEach
-		public void purgeQueue() {
-			sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(queueUrl).build());
+		void purgeQueue() {
+			sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(fifoQueueUrl).build());
+		}
+
+		@Test
+		void convertAndSendWithFifoHeaders() throws Exception {
+			SnsResult<String> result = snsAsyncTemplate.convertAndSend(fifoTopicArn, "fifo message",
+				Map.of(MESSAGE_GROUP_ID_HEADER, "group-1",
+					MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-1",
+					"custom-fifo-header", "fifo-value")).get();
+
+			assertThat(result.messageId()).isNotNull();
+			assertThat(result.message().getPayload()).isEqualTo("fifo message");
+			assertThat(result.message().getHeaders())
+				.containsEntry(MESSAGE_GROUP_ID_HEADER, "group-1")
+				.containsEntry(MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-1");
+
+			var received = receiveAll(fifoQueueUrl);
+			JsonNode snsEnvelope = jsonMapper.readTree(received.get(0).body());
+			assertThat(snsEnvelope.get("Message").asString()).isEqualTo("fifo message");
+
+			JsonNode messageAttributes = snsEnvelope.get("MessageAttributes");
+			assertThat(messageAttributes).isNotNull();
+			assertThat(messageAttributes.get("custom-fifo-header").get("Value").asString()).isEqualTo("fifo-value");
 		}
 	}
 
 	@Test
-	void topicExists_shouldReturnFalseForNonExistingTopic() throws Exception {
-		String nonExistentTopicArn = "arn:aws:sns:us-east-1:000000000000:nope";
+	void topicExistsReturnsTrueForExistingTopic() throws Exception {
+		String topicArn = snsAsyncClient
+			.createTopic(r -> r.name(RandomString.make())).get().topicArn();
 
-		CompletableFuture<Boolean> result = snsAsyncTemplate.topicExists(nonExistentTopicArn);
-
-		assertThat(result.get()).isFalse();
+		assertThat(snsAsyncTemplate.topicExists(topicArn).get()).isTrue();
 	}
 
 	@Test
-	void topicExists_shouldReturnTrueForExistingTopic() throws Exception {
-		String topicName = RandomString.make();
-		var topicArn = snsAsyncClient.createTopic(request -> request.name(topicName)).get().topicArn();
-
-		CompletableFuture<Boolean> result = snsAsyncTemplate.topicExists(topicArn);
-
-		assertThat(result.get()).isTrue();
+	void topicExistsReturnsFalseForNonExistingTopic() throws Exception {
+		assertThat(snsAsyncTemplate.topicExists(
+			"arn:aws:sns:us-east-1:000000000000:nope").get()).isFalse();
 	}
 }

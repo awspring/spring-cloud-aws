@@ -7,6 +7,7 @@ import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 
@@ -39,6 +40,8 @@ public class DefaultSnsPublishMessageConverter implements SnsPublishMessageConve
 
 	@Override
 	public <T> PublishRequestMessagePair<T> convert(Message<T> originalMessage) {
+		Assert.notNull(originalMessage, "message cannot be null");
+
 		PublishRequest.Builder publishRequest = PublishRequest.builder();
 		populateHeaders(publishRequest, originalMessage);
 		
@@ -53,6 +56,9 @@ public class DefaultSnsPublishMessageConverter implements SnsPublishMessageConve
 
 	@Override
 	public <T> PublishRequestMessagePair<T> convert(T payload, Map<String, Object> headers) {
+		Assert.notNull(payload, "payload cannot be null");
+		Assert.notNull(headers, "headers cannot be null");
+
 		Message<T> originalMessage = MessageBuilder
 			.withPayload(payload)
 			.copyHeaders(headers)

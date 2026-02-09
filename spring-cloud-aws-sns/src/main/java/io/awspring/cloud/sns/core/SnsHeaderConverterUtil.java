@@ -22,6 +22,9 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
 
 /**
+ *
+ * Util class to convert header map to SNS request.
+ *
  * @author Agim Emruli
  * @author Alain Sahli
  * @author Gyozo Papp
@@ -29,7 +32,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
  */
 public class SnsHeaderConverterUtil {
 	private static final Log logger = LogFactory.getLog(SnsHeaderConverterUtil.class);
-	public static JsonStringEncoder jsonStringEncoder = JsonStringEncoder.create();
+	private static final JsonStringEncoder jsonStringEncoder = JsonStringEncoder.create();
 
 	public static Map<String, MessageAttributeValue> toSnsMessageAttributes(Message<?> message) {
 		HashMap<String, MessageAttributeValue> messageAttributes = new HashMap<>();

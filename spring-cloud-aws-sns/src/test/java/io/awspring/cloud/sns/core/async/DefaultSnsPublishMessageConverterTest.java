@@ -21,70 +21,54 @@ import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.sns.Person;
-import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Unit tests for {@link DefaultSnsPublishMessageConverter}.
+ * Tests for {@link DefaultSnsPublishMessageConverter}.
  *
  * @author Matej Nedic
  * @since 4.0.1
  */
 class DefaultSnsPublishMessageConverterTest {
 
-	private DefaultSnsPublishMessageConverter converter;
+	private final DefaultSnsPublishMessageConverter converter = createConverter();
 
-	@BeforeEach
-	void setUp() {
-		JacksonJsonMessageConverter messageConverter = new JacksonJsonMessageConverter();
-		messageConverter.setSerializedPayloadClass(String.class);
-		converter = new DefaultSnsPublishMessageConverter(messageConverter);
+	private static DefaultSnsPublishMessageConverter createConverter() {
+		JacksonJsonMessageConverter jackson = new JacksonJsonMessageConverter(new JsonMapper());
+		jackson.setSerializedPayloadClass(String.class);
+		return new DefaultSnsPublishMessageConverter(jackson);
 	}
 
 	@Test
-	void convert_withMessage_returnsPublishRequestAndOriginalMessage() {
-		Message<String> message = MessageBuilder
-			.withPayload("test payload")
-			.setHeader("custom-header", "custom-value")
-			.build();
+	void convertsStringPayload() {
+		Message<String> message = MessageBuilder.withPayload("hello").build();
 
 		PublishRequestMessagePair<String> result = converter.convert(message);
 
-		assertThat(result.publishRequest()).isNotNull();
-		assertThat(result.publishRequest().message()).isEqualTo("test payload");
+		assertThat(result.publishRequest().message()).isEqualTo("hello");
 		assertThat(result.originalMessage()).isEqualTo(message);
-		assertThat(result.originalMessage().getPayload()).isEqualTo("test payload");
 	}
 
 	@Test
-	void convert_withPayloadAndHeaders_buildsMessageAndReturnsIt() {
-		Map<String, Object> headers = new HashMap<>();
-		headers.put("custom-header", "custom-value");
-		headers.put(NOTIFICATION_SUBJECT_HEADER, "Test Subject");
+	void convertsPayloadWithHeaders() {
+		PublishRequestMessagePair<String> result = converter.convert("payload",
+				Map.of("custom", "value", NOTIFICATION_SUBJECT_HEADER, "Subject"));
 
-		PublishRequestMessagePair<String> result = converter.convert("test payload", headers);
-
-		assertThat(result.publishRequest()).isNotNull();
-		assertThat(result.publishRequest().message()).isEqualTo("test payload");
-		assertThat(result.publishRequest().subject()).isEqualTo("Test Subject");
-		assertThat(result.originalMessage()).isNotNull();
-		assertThat(result.originalMessage().getPayload()).isEqualTo("test payload");
-		assertThat(result.originalMessage().getHeaders().get("custom-header")).isEqualTo("custom-value");
-		assertThat(result.originalMessage().getHeaders().get(NOTIFICATION_SUBJECT_HEADER)).isEqualTo("Test Subject");
+		assertThat(result.publishRequest().message()).isEqualTo("payload");
+		assertThat(result.publishRequest().subject()).isEqualTo("Subject");
+		assertThat(result.originalMessage().getPayload()).isEqualTo("payload");
+		assertThat(result.originalMessage().getHeaders()).containsEntry("custom", "value");
 	}
 
 	@Test
-	void convert_withSubjectHeader_setsSubjectInPublishRequest() {
-		Message<String> message = MessageBuilder
-			.withPayload("test payload")
-			.setHeader(NOTIFICATION_SUBJECT_HEADER, "My Subject")
-			.build();
+	void setsSubjectFromHeader() {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(NOTIFICATION_SUBJECT_HEADER, "My Subject").build();
 
 		PublishRequestMessagePair<String> result = converter.convert(message);
 
@@ -92,55 +76,45 @@ class DefaultSnsPublishMessageConverterTest {
 	}
 
 	@Test
-	void convert_withFifoHeaders_setsFifoAttributesInPublishRequest() {
-		Message<String> message = MessageBuilder
-			.withPayload("test payload")
-			.setHeader(MESSAGE_GROUP_ID_HEADER, "group-123")
-			.setHeader(MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-456")
-			.build();
+	void setsFifoHeaders() {
+		Message<String> message = MessageBuilder.withPayload("fifo")
+				.setHeader(MESSAGE_GROUP_ID_HEADER, "grp-1")
+				.setHeader(MESSAGE_DEDUPLICATION_ID_HEADER, "ded-1").build();
 
 		PublishRequestMessagePair<String> result = converter.convert(message);
 
-		assertThat(result.publishRequest().messageGroupId()).isEqualTo("group-123");
-		assertThat(result.publishRequest().messageDeduplicationId()).isEqualTo("dedup-456");
+		assertThat(result.publishRequest().messageGroupId()).isEqualTo("grp-1");
+		assertThat(result.publishRequest().messageDeduplicationId()).isEqualTo("ded-1");
 	}
 
 	@Test
-	void convert_withMessageAttributes_setsMessageAttributesInPublishRequest() {
-		Message<String> message = MessageBuilder
-			.withPayload("test payload")
-			.setHeader("string-attr", "value")
-			.setHeader("number-attr", 42)
-			.build();
+	void convertsCustomHeadersToMessageAttributes() {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader("priority", "high")
+				.setHeader("count", 42).build();
 
 		PublishRequestMessagePair<String> result = converter.convert(message);
 
-		assertThat(result.publishRequest().messageAttributes()).isNotEmpty();
-		assertThat(result.publishRequest().messageAttributes()).containsKey("string-attr");
-		assertThat(result.publishRequest().messageAttributes()).containsKey("number-attr");
+		assertThat(result.publishRequest().messageAttributes()).containsKey("priority");
+		assertThat(result.publishRequest().messageAttributes()).containsKey("count");
 	}
 
 	@Test
-	void convert_withComplexObject_serializesPayload() {
-		Person testObject = new Person("test");
-		Message<Person> message = MessageBuilder
-			.withPayload(testObject)
-			.build();
+	void serializesComplexPayload() {
+		Person person = new Person("John");
+		Message<Person> message = MessageBuilder.withPayload(person).build();
 
 		PublishRequestMessagePair<Person> result = converter.convert(message);
 
-		assertThat(result.publishRequest().message()).contains("test");
-		assertThat(result.originalMessage().getPayload()).isEqualTo(testObject);
+		assertThat(result.publishRequest().message()).contains("John");
+		assertThat(result.originalMessage().getPayload()).isEqualTo(person);
 	}
 
 	@Test
-	void convert_withEmptyHeaders_createsValidPublishRequest() {
+	void handlesEmptyHeaders() {
 		PublishRequestMessagePair<String> result = converter.convert("payload", Map.of());
 
-		assertThat(result.publishRequest()).isNotNull();
 		assertThat(result.publishRequest().message()).isEqualTo("payload");
-		assertThat(result.originalMessage()).isNotNull();
 		assertThat(result.originalMessage().getPayload()).isEqualTo("payload");
 	}
-
 }
