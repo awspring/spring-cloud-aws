@@ -49,6 +49,14 @@ public class SnsAsyncTemplate implements SnsAsyncOperations {
 		this.snsPublishMessageConverter = messageConverter == null ? new DefaultSnsPublishMessageConverter() : messageConverter;
 	}
 
+	/**
+	 * Sends a message to a destination.
+	 *
+	 * @param destination the destination name
+	 * @param message     the message to send
+	 * @param <T>         the message payload type
+	 * @return a CompletableFuture with the result
+	 */
 	@Override
 	public <T> CompletableFuture<SnsResult<T>> send(String destination, Message<T> message) {
 		Assert.notNull(destination, "destination cannot be null");
