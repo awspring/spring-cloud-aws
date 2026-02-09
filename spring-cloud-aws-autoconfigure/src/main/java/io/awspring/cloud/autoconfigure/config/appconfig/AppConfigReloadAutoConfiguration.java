@@ -19,6 +19,7 @@ import io.awspring.cloud.appconfig.AppConfigPropertySource;
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationChangeDetector;
 import io.awspring.cloud.autoconfigure.config.reload.ConfigurationUpdateStrategy;
 import io.awspring.cloud.autoconfigure.config.reload.PollingAwsPropertySourceChangeDetector;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.info.InfoEndpointAutoConfiguration;
@@ -39,8 +40,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
-import java.util.Optional;
 
 /**
  * {@link EnableAutoConfiguration Auto-Configuration} for reloading properties from AppConfig.

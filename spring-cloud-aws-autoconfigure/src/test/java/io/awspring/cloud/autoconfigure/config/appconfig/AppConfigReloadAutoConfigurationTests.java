@@ -95,8 +95,7 @@ class AppConfigReloadAutoConfigurationTests {
 
 	private void createsBeans(AssertableApplicationContext ctx) {
 		assertThat(ctx).hasBean("appConfigConfigurationUpdateStrategy");
-		assertThat(ctx.getBean("appConfigConfigurationUpdateStrategy"))
-				.isInstanceOf(ConfigurationUpdateStrategy.class);
+		assertThat(ctx.getBean("appConfigConfigurationUpdateStrategy")).isInstanceOf(ConfigurationUpdateStrategy.class);
 
 		assertThat(ctx).hasBean("appConfigPollingAwsPropertySourceChangeDetector");
 		assertThat(ctx).getBean("appConfigPollingAwsPropertySourceChangeDetector")
