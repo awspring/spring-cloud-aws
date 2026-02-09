@@ -23,7 +23,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationRequest;
@@ -38,12 +42,32 @@ import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSes
  */
 class AppConfigPropertySourceTest {
 
-	private AppConfigDataClient client = mock(AppConfigDataClient.class);
+	private static final RequestContext DEFAULT_CONTEXT = new RequestContext("profile1", "env1", "app1",
+			"app1#env1#profile1");
+
+	private static final String RESOURCE_PATH = "io/awspring/cloud/appconfig/";
+
+	private final AppConfigDataClient client = mock(AppConfigDataClient.class);
+
+	private static String loadResource(String filename) {
+		try {
+			ClassPathResource resource = new ClassPathResource(RESOURCE_PATH + filename);
+			return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Failed to load test resource: " + filename, e);
+		}
+	}
+
+	@BeforeEach
+	void setupDefaultSessionMock() {
+		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
+			.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build());
+	}
 
 	@Test
 	void shouldParsePropertiesContentType() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
 
 		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
 			.thenAnswer(invocation -> {
@@ -54,12 +78,7 @@ class AppConfigPropertySourceTest {
 				return StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build();
 			});
 
-		String propertiesContent = "key1=value1\nkey2=value2";
-		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String(propertiesContent))
-			.contentType("text/plain")
-			.nextPollConfigurationToken("next-token")
-			.build();
+		GetLatestConfigurationResponse response = buildResponse(loadResource("test-config.properties"), "text/plain");
 
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class)))
 			.thenAnswer(invocation -> {
@@ -70,7 +89,7 @@ class AppConfigPropertySourceTest {
 
 		propertySource.init();
 
-		assertThat(propertySource.getName()).isEqualTo("aws-appconfig:" + context);
+		assertThat(propertySource.getName()).isEqualTo("aws-appconfig:" + DEFAULT_CONTEXT);
 		assertThat(propertySource.getPropertyNames()).containsExactlyInAnyOrder("key1", "key2");
 		assertThat(propertySource.getProperty("key1")).isEqualTo("value1");
 		assertThat(propertySource.getProperty("key2")).isEqualTo("value2");
@@ -78,24 +97,16 @@ class AppConfigPropertySourceTest {
 
 	@Test
 	void shouldParseYamlContentType() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
 
-		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
-			.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build());
-
-		String yamlContent = "key1: value1\nkey2: value2\nnested:\n  key3: value3";
-		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String(yamlContent))
-			.contentType("application/x-yaml")
-			.nextPollConfigurationToken("next-token")
-			.build();
+		GetLatestConfigurationResponse response = buildResponse(
+				loadResource("test-config.yaml"), "application/x-yaml");
 
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenReturn(response);
 
 		propertySource.init();
 
-		assertThat(propertySource.getName()).isEqualTo("aws-appconfig:" + context);
+		assertThat(propertySource.getName()).isEqualTo("aws-appconfig:" + DEFAULT_CONTEXT);
 		assertThat(propertySource.getPropertyNames()).containsExactlyInAnyOrder("key1", "key2", "nested.key3");
 		assertThat(propertySource.getProperty("key1")).isEqualTo("value1");
 		assertThat(propertySource.getProperty("key2")).isEqualTo("value2");
@@ -104,41 +115,24 @@ class AppConfigPropertySourceTest {
 
 	@Test
 	void shouldParseAlternativeYamlContentType() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
 
-		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
-			.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build());
-
-		String yamlContent = "key1: value1\nkey2: value2";
-		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String(yamlContent))
-			.contentType("text/yaml")
-			.nextPollConfigurationToken("next-token")
-			.build();
+		GetLatestConfigurationResponse response = buildResponse(loadResource("test-config.yaml"), "text/yaml");
 
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenReturn(response);
 
 		propertySource.init();
 
-		assertThat(propertySource.getPropertyNames()).containsExactlyInAnyOrder("key1", "key2");
+		assertThat(propertySource.getPropertyNames()).containsExactlyInAnyOrder("key1", "key2", "nested.key3");
 		assertThat(propertySource.getProperty("key1")).isEqualTo("value1");
 	}
 
 	@Test
 	void shouldParseJsonContentType() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
 
-		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
-			.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build());
-
-		String jsonContent = "{\"key1\": \"value1\", \"key2\": \"value2\"}";
-		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String(jsonContent))
-			.contentType("application/json")
-			.nextPollConfigurationToken("next-token")
-			.build();
+		GetLatestConfigurationResponse response = buildResponse(
+				loadResource("test-config.json"), "application/json");
 
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenReturn(response);
 
@@ -151,17 +145,9 @@ class AppConfigPropertySourceTest {
 
 	@Test
 	void throwsExceptionForUnsupportedContentType() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
 
-		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
-			.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build());
-
-		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String("some content"))
-			.contentType("application/xml")
-			.nextPollConfigurationToken("next-token")
-			.build();
+		GetLatestConfigurationResponse response = buildResponse("some content", "application/xml");
 
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenReturn(response);
 
@@ -172,18 +158,9 @@ class AppConfigPropertySourceTest {
 
 	@Test
 	void shouldInitializeSessionTokenOnFirstInit() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
 
-		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
-			.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build());
-
-		String propertiesContent = "key1=value1";
-		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String(propertiesContent))
-			.contentType("text/plain")
-			.nextPollConfigurationToken("next-token")
-			.build();
+		GetLatestConfigurationResponse response = buildResponse("key1=value1", "text/plain");
 
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenReturn(response);
 
@@ -195,14 +172,7 @@ class AppConfigPropertySourceTest {
 
 	@Test
 	void shouldReuseSessionTokenOnSubsequentInit() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		
-		String propertiesContent = "key1=value1";
-		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String(propertiesContent))
-			.contentType("text/plain")
-			.nextPollConfigurationToken("next-token")
-			.build();
+		GetLatestConfigurationResponse response = buildResponse("key1=value1", "text/plain");
 
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class)))
 			.thenAnswer(invocation -> {
@@ -211,7 +181,8 @@ class AppConfigPropertySourceTest {
 				return response;
 			});
 
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client, "existing-token", null);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client, "existing-token",
+				null);
 		propertySource.init();
 
 		// Should NOT call startConfigurationSession since token already exists
@@ -221,13 +192,8 @@ class AppConfigPropertySourceTest {
 
 	@Test
 	void shouldHandleEmptyConfigurationResponse() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
 
-		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
-			.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build());
-
-		// Empty configuration (no changes)
 		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
 			.configuration(SdkBytes.fromByteArray(new byte[0]))
 			.contentType("text/plain")
@@ -248,24 +214,10 @@ class AppConfigPropertySourceTest {
 
 	@Test
 	void shouldUpdateNextPollTokenAfterInit() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
 
-		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
-			.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build());
-
-		String propertiesContent = "key1=value1";
-		GetLatestConfigurationResponse firstResponse = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String(propertiesContent))
-			.contentType("text/plain")
-			.nextPollConfigurationToken("next-token-1")
-			.build();
-
-		GetLatestConfigurationResponse secondResponse = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String("key2=value2"))
-			.contentType("text/plain")
-			.nextPollConfigurationToken("next-token-2")
-			.build();
+		GetLatestConfigurationResponse firstResponse = buildResponse("key1=value1", "text/plain", "next-token-1");
+		GetLatestConfigurationResponse secondResponse = buildResponse("key2=value2", "text/plain", "next-token-2");
 
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class)))
 			.thenAnswer(invocation -> {
@@ -289,18 +241,9 @@ class AppConfigPropertySourceTest {
 
 	@Test
 	void copyShouldPreserveSessionTokenAndProperties() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
 
-		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
-			.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build());
-
-		String propertiesContent = "key1=value1\nkey2=value2";
-		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String(propertiesContent))
-			.contentType("text/plain")
-			.nextPollConfigurationToken("next-token")
-			.build();
+		GetLatestConfigurationResponse response = buildResponse(loadResource("test-config.properties"), "text/plain");
 
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenReturn(response);
 
@@ -316,33 +259,20 @@ class AppConfigPropertySourceTest {
 
 	@Test
 	void copyShouldNotCallStartSessionAgain() {
-		RequestContext context = new RequestContext("profile1", "env1", "app1", "app1#env1#profile1");
-		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
 
-		when(client.startConfigurationSession(any(StartConfigurationSessionRequest.class)))
-			.thenReturn(StartConfigurationSessionResponse.builder().initialConfigurationToken("initial-token").build());
-
-		String propertiesContent = "key1=value1";
-		GetLatestConfigurationResponse response = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String(propertiesContent))
-			.contentType("text/plain")
-			.nextPollConfigurationToken("next-token")
-			.build();
+		GetLatestConfigurationResponse response = buildResponse("key1=value1", "text/plain");
 
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenReturn(response);
 
 		propertySource.init();
-		
+
 		AppConfigPropertySource copy = propertySource.copy();
-		
-		GetLatestConfigurationResponse secondResponse = GetLatestConfigurationResponse.builder()
-			.configuration(SdkBytes.fromUtf8String("key2=value2"))
-			.contentType("text/plain")
-			.nextPollConfigurationToken("next-token-2")
-			.build();
-		
+
+		GetLatestConfigurationResponse secondResponse = buildResponse("key2=value2", "text/plain", "next-token-2");
+
 		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenReturn(secondResponse);
-		
+
 		copy.init();
 
 		verify(client, times(1)).startConfigurationSession(any(StartConfigurationSessionRequest.class));
@@ -373,5 +303,17 @@ class AppConfigPropertySourceTest {
 		propertySource.init();
 
 		verify(client, times(1)).startConfigurationSession(any(StartConfigurationSessionRequest.class));
+	}
+
+	private GetLatestConfigurationResponse buildResponse(String content, String contentType) {
+		return buildResponse(content, contentType, "next-token");
+	}
+
+	private GetLatestConfigurationResponse buildResponse(String content, String contentType, String nextToken) {
+		return GetLatestConfigurationResponse.builder()
+			.configuration(SdkBytes.fromUtf8String(content))
+			.contentType(contentType)
+			.nextPollConfigurationToken(nextToken)
+			.build();
 	}
 }

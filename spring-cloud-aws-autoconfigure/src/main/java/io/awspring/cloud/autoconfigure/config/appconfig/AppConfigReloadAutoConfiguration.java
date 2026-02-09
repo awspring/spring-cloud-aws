@@ -46,6 +46,7 @@ import java.util.Optional;
  * {@link EnableAutoConfiguration Auto-Configuration} for reloading properties from AppConfig.
  *
  * @author Matej Nedic
+ * @since 4.1.0
  */
 @AutoConfiguration
 @EnableConfigurationProperties(AppConfigProperties.class)

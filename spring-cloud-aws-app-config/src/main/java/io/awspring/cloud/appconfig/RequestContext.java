@@ -2,6 +2,12 @@ package io.awspring.cloud.appconfig;
 
 import java.util.Objects;
 
+/**
+ * Context used by {@link AppConfigPropertySource} to construct a call to AppConfig.
+ *
+ * @author Matej Nedic
+ * @since 4.1.0
+ */
 public class RequestContext {
 	/**
 	 * ConfigurationProfileIdentifier or ConfigurationProfileName that is used to fetch SessionToken.

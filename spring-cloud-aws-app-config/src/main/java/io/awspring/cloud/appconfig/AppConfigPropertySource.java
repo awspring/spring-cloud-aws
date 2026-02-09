@@ -16,6 +16,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * Retrieves configuration property sources path from the AWS AppConfig using the provided {@link AppConfigDataClient}.
+ *
+ * @author Matej Nedic
+ * @since 4.1.0
+ */
 public class AppConfigPropertySource extends AwsPropertySource<AppConfigPropertySource, AppConfigDataClient> {
 	private static final String YAML_TYPE = "application/x-yaml";
 	private static final String YAML_TYPE_ALTERNATIVE = "text/yaml";

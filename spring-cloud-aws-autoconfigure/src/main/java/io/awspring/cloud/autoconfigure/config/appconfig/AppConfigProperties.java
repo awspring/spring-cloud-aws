@@ -7,6 +7,11 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import static io.awspring.cloud.autoconfigure.config.appconfig.AppConfigProperties.PREFIX;
 
+/**
+ * Configuration properties for AWS AppConfig integration.
+ * @author Matej Nedic
+ * @since 4.1.0
+ */
 @ConfigurationProperties(prefix = PREFIX)
 public class AppConfigProperties extends AwsClientProperties {
 

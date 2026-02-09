@@ -20,6 +20,11 @@ import software.amazon.awssdk.services.appconfigdata.AppConfigDataClientBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Resolves config data locations in AWS App Config.
+ * @author Matej Nedic
+ * @since 4.1.0
+ */
 public class AppConfigDataLocationResolver extends AbstractAwsConfigDataLocationResolver<AppConfigDataResource> {
 
 	/**

@@ -18,6 +18,12 @@ package io.awspring.cloud.autoconfigure.config.appconfig;
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 
+/**
+ * An {@link AbstractFailureAnalyzer} that performs analysis of an AppConfig configuration failure caused by failure of {@link software.amazon.awssdk.services.appconfigdata.AppConfigDataClient} call.
+ *
+ * @author Matej Nedic
+ * @since 4.1.0
+ */
 public class AppConfigExceptionHappenedAnalyzer
 		extends AbstractFailureAnalyzer<AwsAppConfigPropertySourceNotFoundException> {
 

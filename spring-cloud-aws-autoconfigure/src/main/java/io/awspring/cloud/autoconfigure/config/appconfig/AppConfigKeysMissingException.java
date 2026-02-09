@@ -15,6 +15,13 @@
  */
 package io.awspring.cloud.autoconfigure.config.appconfig;
 
+/**
+ * Thrown when configuration provided to ConfigDataLoader is missing AppConfig keys, for example
+ * `spring.config.import=aws-appconfig:`.
+ *
+ * @author Kunal Varpe
+ * @since 3.3.0
+ */
 public class AppConfigKeysMissingException extends RuntimeException {
 
 	public AppConfigKeysMissingException(String message) {

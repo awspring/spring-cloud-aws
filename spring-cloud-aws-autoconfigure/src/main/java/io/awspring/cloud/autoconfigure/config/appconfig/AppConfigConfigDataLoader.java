@@ -13,6 +13,12 @@ import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
 import java.util.Collections;
 import java.util.Map;
 
+/**
+ * Loads config data from AWS AppConfig.
+ *
+ * @author Matej Nedic
+ * @since 4.1.0
+ */
 public class AppConfigConfigDataLoader implements ConfigDataLoader<AppConfigDataResource> {
 
 	public AppConfigConfigDataLoader(DeferredLogFactory logFactory) {
