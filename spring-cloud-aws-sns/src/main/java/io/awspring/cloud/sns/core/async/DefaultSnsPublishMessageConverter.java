@@ -24,7 +24,7 @@ import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
  * Default implementation of {@link SnsPublishMessageConverter}.
  *
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 public class DefaultSnsPublishMessageConverter implements SnsPublishMessageConverter {
 	

@@ -53,7 +53,7 @@ import tools.jackson.databind.json.JsonMapper;
  * Integration tests for {@link SnsAsyncTemplate}
  *
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 @Testcontainers
 class SnsAsyncTemplateIntegrationTest {

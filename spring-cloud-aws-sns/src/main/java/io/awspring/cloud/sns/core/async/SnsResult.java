@@ -11,7 +11,7 @@ import org.springframework.messaging.Message;
  * @param sequenceNumber the sequence number for FIFO topics (null for standard topics)
  * @param <T> the message payload type
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 public record SnsResult<T>(
 	Message<T> message,

@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
  * High level asynchronous SNS operations.
  *
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 public interface SnsAsyncOperations {
 

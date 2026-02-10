@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.sns.model.PublishRequest;
  * @param originalMessage the original Spring message
  * @param <T> the message payload type
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 public record PublishRequestMessagePair<T>(
 	PublishRequest publishRequest,

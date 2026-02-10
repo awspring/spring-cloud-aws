@@ -32,7 +32,7 @@ import tools.jackson.databind.json.JsonMapper;
  * Tests for {@link DefaultSnsPublishMessageConverter}.
  *
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 class DefaultSnsPublishMessageConverterTest {
 

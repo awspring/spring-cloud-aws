@@ -8,7 +8,7 @@ import java.util.Map;
  * Converter for transforming Spring messages to SNS PublishRequest.
  *
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 public interface SnsPublishMessageConverter {
 
