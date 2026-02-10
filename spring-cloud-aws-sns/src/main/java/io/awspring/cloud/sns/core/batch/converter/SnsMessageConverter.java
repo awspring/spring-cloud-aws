@@ -33,6 +33,6 @@ public interface SnsMessageConverter {
 	 * @param <T> The type of the message payload
 	 * @return PublishBatchRequestEntry ready to be included in a batch publish request
 	 */
-	<T> PublishBatchRequestEntry covertMessage(Message<T> message);
+	<T> PublishBatchRequestEntry convertMessage(Message<T> message);
 
 }

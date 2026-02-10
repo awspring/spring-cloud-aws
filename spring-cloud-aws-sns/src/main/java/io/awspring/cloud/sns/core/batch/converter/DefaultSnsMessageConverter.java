@@ -78,7 +78,7 @@ public class DefaultSnsMessageConverter implements SnsMessageConverter {
 	 * @return PublishBatchRequestEntry ready to be included in a batch publish request
 	 */
 	@Override
-	public <T> PublishBatchRequestEntry covertMessage(Message<T> originalMessage) {
+	public <T> PublishBatchRequestEntry convertMessage(Message<T> originalMessage) {
 		PublishBatchRequestEntry.Builder publishBatchRequestEntry = PublishBatchRequestEntry.builder();
 		populateHeader(publishBatchRequestEntry, originalMessage);
 		Message<?> message = messageConverter.toMessage(originalMessage.getPayload(), originalMessage.getHeaders());

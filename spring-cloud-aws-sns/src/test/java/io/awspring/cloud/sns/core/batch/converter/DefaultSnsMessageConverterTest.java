@@ -41,7 +41,7 @@ class DefaultSnsMessageConverterTest {
 	void convertsStringPayload() {
 		Message<String> message = MessageBuilder.withPayload("hello").build();
 
-		PublishBatchRequestEntry entry = converter.covertMessage(message);
+		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
 		assertThat(entry.message()).isEqualTo("hello");
 	}
@@ -54,7 +54,7 @@ class DefaultSnsMessageConverterTest {
 
 		Message<Person> message = MessageBuilder.withPayload(new Person("John")).build();
 
-		PublishBatchRequestEntry entry = jsonConverter.covertMessage(message);
+		PublishBatchRequestEntry entry = jsonConverter.convertMessage(message);
 
 		assertThat(entry.message()).contains("John");
 	}
@@ -64,7 +64,7 @@ class DefaultSnsMessageConverterTest {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "group-1").build();
 
-		PublishBatchRequestEntry entry = converter.covertMessage(message);
+		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
 		assertThat(entry.messageGroupId()).isEqualTo("group-1");
 	}
@@ -74,7 +74,7 @@ class DefaultSnsMessageConverterTest {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-1").build();
 
-		PublishBatchRequestEntry entry = converter.covertMessage(message);
+		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
 		assertThat(entry.messageDeduplicationId()).isEqualTo("dedup-1");
 	}
@@ -86,7 +86,7 @@ class DefaultSnsMessageConverterTest {
 				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "ded")
 				.setHeader("custom", "val").build();
 
-		PublishBatchRequestEntry entry = converter.covertMessage(message);
+		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
 		assertThat(entry.message()).isEqualTo("fifo payload");
 		assertThat(entry.messageGroupId()).isEqualTo("grp");
@@ -99,7 +99,7 @@ class DefaultSnsMessageConverterTest {
 	void leavesOptionalHeadersNullWhenAbsent() {
 		Message<String> message = MessageBuilder.withPayload("plain").build();
 
-		PublishBatchRequestEntry entry = converter.covertMessage(message);
+		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
 		assertThat(entry.messageGroupId()).isNull();
 		assertThat(entry.messageDeduplicationId()).isNull();
@@ -110,7 +110,7 @@ class DefaultSnsMessageConverterTest {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("priority", "high").build();
 
-		PublishBatchRequestEntry entry = converter.covertMessage(message);
+		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
 		assertThat(entry.messageAttributes()).containsKey("priority");
 		//Test plain String value\
@@ -122,7 +122,7 @@ class DefaultSnsMessageConverterTest {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader(SnsHeaders.MESSAGE_ID_HEADER, "custom-id-123").build();
 
-		PublishBatchRequestEntry entry = converter.covertMessage(message);
+		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
 		assertThat(entry.id()).isEqualTo("custom-id-123");
 	}
@@ -131,7 +131,7 @@ class DefaultSnsMessageConverterTest {
 	void generatesUuidWhenNoMessageIdHeader() {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 
-		PublishBatchRequestEntry entry = converter.covertMessage(message);
+		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
 		assertThat(entry.id()).isNotBlank();
 		assertThat(UUID.fromString(entry.id())).isNotNull();
