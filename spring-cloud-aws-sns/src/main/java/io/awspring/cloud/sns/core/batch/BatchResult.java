@@ -26,7 +26,7 @@ import java.util.Collection;
  * @param results Collection of successful message results
  * @param errors Collection of failed message errors
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 public record BatchResult(Collection<SnsResult> results, Collection<SnsError> errors) {
 

@@ -32,7 +32,7 @@ import software.amazon.awssdk.services.sns.model.PublishBatchResultEntry;
  * Default implementation of {@link BatchExecutionStrategy} for executing batch publish operations to AWS SNS.
  *
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 public class SequentialBatchExecutionStrategy implements BatchExecutionStrategy {
 

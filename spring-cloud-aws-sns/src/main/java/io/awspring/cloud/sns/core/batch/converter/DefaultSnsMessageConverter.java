@@ -42,7 +42,7 @@ import software.amazon.awssdk.services.sns.model.PublishBatchRequestEntry;
  * {@link StringMessageConverter} by default. Additional converters can be provided during construction.
  * 
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 public class DefaultSnsMessageConverter implements SnsMessageConverter {
 

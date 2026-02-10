@@ -42,7 +42,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
  * @author Alain Sahli
  * @author Gyozo Papp
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 public class SnsHeaderConverterUtil {
 

@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.sns.model.PublishBatchRequestEntry;
  * Implementations of this interface handle the actual communication with SNS to publish a batch of messages to a topic.
  *
  * @author Matej Nedic
- * @since 4.0.1
+ * @since 4.1.0
  */
 public interface BatchExecutionStrategy {
 
