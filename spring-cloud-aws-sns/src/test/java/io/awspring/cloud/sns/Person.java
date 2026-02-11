@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.sns;
 
+import java.util.Objects;
+
 public class Person {
 	private String name;
 
@@ -31,5 +33,19 @@ public class Person {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+
+	@Override
+	public boolean equals(Object object) {
+		if (this == object) return true;
+		if (object == null || getClass() != object.getClass()) return false;
+		Person person = (Person) object;
+		return Objects.equals(name, person.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(name);
 	}
 }

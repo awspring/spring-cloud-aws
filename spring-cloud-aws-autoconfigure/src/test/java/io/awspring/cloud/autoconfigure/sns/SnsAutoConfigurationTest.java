@@ -25,9 +25,14 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.sns.core.SnsOperations;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
+import io.awspring.cloud.sns.core.batch.SnsBatchTemplate;
+import io.awspring.cloud.sns.core.batch.converter.SnsMessageConverter;
+import io.awspring.cloud.sns.core.batch.executor.BatchExecutionStrategy;
 import io.awspring.cloud.sns.sms.SnsSmsOperations;
 import io.awspring.cloud.sns.sms.SnsSmsTemplate;
+
 import java.net.URI;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -49,15 +54,15 @@ import software.amazon.awssdk.services.sns.SnsClient;
 class SnsAutoConfigurationTest {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
-			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
-			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
-					CredentialsProviderAutoConfiguration.class, SnsAutoConfiguration.class,
-					AwsAutoConfiguration.class));
+		.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+		.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+			CredentialsProviderAutoConfiguration.class, SnsAutoConfiguration.class,
+			AwsAutoConfiguration.class));
 
 	@Test
 	void snsAutoConfigurationIsDisabled() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.enabled:false")
-				.run(context -> assertThat(context).doesNotHaveBean(SnsClient.class));
+			.run(context -> assertThat(context).doesNotHaveBean(SnsClient.class));
 	}
 
 	@Test
@@ -89,7 +94,7 @@ class SnsAutoConfigurationTest {
 	@Test
 	void customTopicArnResolverCanBeConfigured() {
 		this.contextRunner.withUserConfiguration(CustomTopicArnResolverConfiguration.class)
-				.run(context -> assertThat(context).hasSingleBean(CustomTopicArnResolver.class));
+			.run(context -> assertThat(context).hasSingleBean(CustomTopicArnResolver.class));
 	}
 
 	@Test
@@ -97,6 +102,9 @@ class SnsAutoConfigurationTest {
 		this.contextRunner.withClassLoader(new FilteredClassLoader(WebMvcConfigurer.class)).run(context -> {
 			assertThat(context).hasSingleBean(SnsClient.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
+			assertThat(context).hasSingleBean(SnsBatchTemplate.class);
+			assertThat(context).hasSingleBean(SnsMessageConverter.class);
+			assertThat(context).hasSingleBean(BatchExecutionStrategy.class);
 			assertThat(context).hasSingleBean(SnsSmsTemplate.class);
 			assertThat(context).doesNotHaveBean("snsWebMvcConfigurer");
 		});
@@ -120,8 +128,9 @@ class SnsAutoConfigurationTest {
 	@Test
 	void customChannelInterceptorCanBeConfigured() {
 		this.contextRunner.withUserConfiguration(CustomChannelInterceptorConfiguration.class)
-				.run(context -> assertThat(context).hasSingleBean(CustomChannelInterceptor.class));
+			.run(context -> assertThat(context).hasSingleBean(CustomChannelInterceptor.class));
 	}
+
 
 	@Configuration(proxyBeanMethods = false)
 	static class CustomTopicArnResolverConfiguration {

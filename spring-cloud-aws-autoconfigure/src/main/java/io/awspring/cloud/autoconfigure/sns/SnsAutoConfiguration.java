@@ -25,9 +25,17 @@ import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.core.support.JacksonPresent;
+import io.awspring.cloud.sns.core.CachingTopicArnResolver;
+import io.awspring.cloud.sns.core.DefaultTopicArnResolver;
 import io.awspring.cloud.sns.core.SnsOperations;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicArnResolver;
+import io.awspring.cloud.sns.core.batch.SnsBatchOperations;
+import io.awspring.cloud.sns.core.batch.SnsBatchTemplate;
+import io.awspring.cloud.sns.core.batch.converter.DefaultSnsMessageConverter;
+import io.awspring.cloud.sns.core.batch.converter.SnsMessageConverter;
+import io.awspring.cloud.sns.core.batch.executor.BatchExecutionStrategy;
+import io.awspring.cloud.sns.core.batch.executor.SequentialBatchExecutionStrategy;
 import io.awspring.cloud.sns.sms.SnsSmsOperations;
 import io.awspring.cloud.sns.sms.SnsSmsTemplate;
 import java.util.List;
@@ -121,6 +129,34 @@ public class SnsAutoConfiguration {
 			interceptors.forEach(snsTemplate::addChannelInterceptor);
 
 			return snsTemplate;
+		}
+	}
+
+	@ConditionalOnClass(name = "tools.jackson.databind.json.JsonMapper")
+	@Configuration
+	static class SnsBatchConfiguration {
+		@ConditionalOnMissingBean(SnsMessageConverter.class)
+		@Bean
+		public DefaultSnsMessageConverter defaultSnsMessageConverter(Optional<JsonMapper> jsonMapper) {
+			JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter(
+					jsonMapper.orElseGet(JsonMapper::new));
+			converter.setSerializedPayloadClass(String.class);
+			return new DefaultSnsMessageConverter(converter);
+		}
+
+		@ConditionalOnMissingBean(BatchExecutionStrategy.class)
+		@Bean
+		public SequentialBatchExecutionStrategy defaultBatchExecutionStrategy(SnsClient snsClient) {
+			return new SequentialBatchExecutionStrategy(snsClient);
+		}
+
+		@ConditionalOnMissingBean(SnsBatchOperations.class)
+		@Bean
+		public SnsBatchTemplate snsBatchTemplate(SnsMessageConverter snsMessageConverter,
+				BatchExecutionStrategy batchExecutionStrategy, SnsClient snsClient,
+				Optional<TopicArnResolver> topicArnResolver) {
+			return new SnsBatchTemplate(snsMessageConverter, batchExecutionStrategy, topicArnResolver
+					.orElseGet(() -> new CachingTopicArnResolver(new DefaultTopicArnResolver(snsClient))));
 		}
 	}
 
