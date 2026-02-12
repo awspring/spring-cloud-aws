@@ -103,6 +103,7 @@ public class SnsAutoConfiguration {
 		return new SnsSmsTemplate(snsClient);
 	}
 
+	@ConditionalOnClass({SnsAsyncClient.class, SnsAsyncTemplate.class})
 	@Configuration
 	static class SnsAsyncTemplateConfiguration {
 
