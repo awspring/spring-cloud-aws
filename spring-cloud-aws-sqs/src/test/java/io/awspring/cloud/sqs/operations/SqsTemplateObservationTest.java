@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import io.micrometer.common.KeyValues;
+import io.micrometer.observation.Observation;
 import io.micrometer.observation.tck.TestObservationRegistry;
 import io.micrometer.observation.tck.TestObservationRegistryAssert;
 import java.util.UUID;
@@ -163,6 +164,44 @@ class SqsTemplateObservationTest {
 		// then
 		TestObservationRegistryAssert.then(observationRegistry).hasNumberOfObservationsEqualTo(1)
 				.hasSingleObservationThat().hasError().assertThatError().isInstanceOf(RuntimeException.class);
+	}
+
+	@Test
+	void shouldApplyCustomConventionWhenParentObservationIsPresent() {
+		// given
+		SqsTemplateObservation.Convention customConvention = mock(SqsTemplateObservation.Convention.class);
+		given(customConvention.supportsContext(any())).willReturn(true);
+		given(customConvention.getName()).willReturn("spring.aws.sqs.template");
+
+		String lowCardinalityCustomKeyName = "custom.lowCardinality.key";
+		String lowCardinalityCustomValue = "custom-lowCardinality-value";
+		String highCardinalityCustomKeyName = "custom.highCardinality.key";
+		String highCardinalityCustomValue = "custom-highCardinality-value";
+		given(customConvention.getLowCardinalityKeyValues(any()))
+				.willReturn(KeyValues.of(lowCardinalityCustomKeyName, lowCardinalityCustomValue));
+		given(customConvention.getHighCardinalityKeyValues(any()))
+				.willReturn(KeyValues.of(highCardinalityCustomKeyName, highCardinalityCustomValue));
+
+		TestObservationRegistry customRegistry = TestObservationRegistry.create();
+
+		SqsTemplate templateWithCustomConvention = SqsTemplate.builder().sqsAsyncClient(mockSqsAsyncClient)
+				.configure(
+						options -> options.observationRegistry(customRegistry).observationConvention(customConvention))
+				.build();
+
+		// when - send within a parent observation scope
+		Observation parentObservation = Observation.start("parent-observation", customRegistry);
+		try (var ignored = parentObservation.openScope()) {
+			templateWithCustomConvention.send(queueName, "test-payload");
+		}
+		finally {
+			parentObservation.stop();
+		}
+
+		// then - custom convention should be applied even with parent observation
+		TestObservationRegistryAssert.then(customRegistry).hasNumberOfObservationsEqualTo(2)
+				.hasAnObservationWithAKeyValue(lowCardinalityCustomKeyName, lowCardinalityCustomValue)
+				.hasAnObservationWithAKeyValue(highCardinalityCustomKeyName, highCardinalityCustomValue);
 	}
 
 	@Test
