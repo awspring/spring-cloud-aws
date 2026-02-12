@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.sns.model.PublishRequest;
  * @author Matej Nedic
  * @since 4.1.0
  */
-public record PublishRequestMessagePair<T>(
+record PublishRequestMessagePair<T>(
 	PublishRequest publishRequest,
 	Message<T> originalMessage
 ) {

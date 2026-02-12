@@ -58,7 +58,7 @@ public class SnsAsyncTemplate implements SnsAsyncOperations {
 	 * @return a CompletableFuture with the result
 	 */
 	@Override
-	public <T> CompletableFuture<SnsResult<T>> send(String destination, Message<T> message) {
+	public <T> CompletableFuture<PublishMessageResult<T>> send(String destination, Message<T> message) {
 		Assert.notNull(destination, "destination cannot be null");
 		Assert.notNull(message, "message cannot be null");
 
@@ -74,7 +74,7 @@ public class SnsAsyncTemplate implements SnsAsyncOperations {
 	}
 
 	@Override
-	public <T> CompletableFuture<SnsResult<T>> convertAndSend(String destination, T payload) {
+	public <T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload) {
 		Assert.notNull(destination, "destination cannot be null");
 		Assert.notNull(payload, "payload cannot be null");
 
@@ -82,7 +82,7 @@ public class SnsAsyncTemplate implements SnsAsyncOperations {
 	}
 
 	@Override
-	public <T> CompletableFuture<SnsResult<T>> convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers) {
+	public <T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers) {
 		Assert.notNull(destination, "destination cannot be null");
 		Assert.notNull(payload, "payload cannot be null");
 
@@ -90,7 +90,7 @@ public class SnsAsyncTemplate implements SnsAsyncOperations {
 	}
 
 	@Override
-	public <T> CompletableFuture<SnsResult<T>> convertAndSend(String destination, T payload, @Nullable MessagePostProcessor postProcessor) {
+	public <T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload, @Nullable MessagePostProcessor postProcessor) {
 		Assert.notNull(destination, "destination cannot be null");
 		Assert.notNull(payload, "payload cannot be null");
 
@@ -98,7 +98,7 @@ public class SnsAsyncTemplate implements SnsAsyncOperations {
 	}
 
 	@Override
-	public <T> CompletableFuture<SnsResult<T>> convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers, @Nullable MessagePostProcessor postProcessor) {
+	public <T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers, @Nullable MessagePostProcessor postProcessor) {
 		Assert.notNull(destination, "destination cannot be null");
 		Assert.notNull(payload, "payload cannot be null");
 
@@ -115,7 +115,7 @@ public class SnsAsyncTemplate implements SnsAsyncOperations {
 	}
 
 	@Override
-	public CompletableFuture<SnsResult<Object>> sendNotification(String destinationName, Object message, @Nullable String subject) {
+	public CompletableFuture<PublishMessageResult<Object>> sendNotification(String destinationName, Object message, @Nullable String subject) {
 		Assert.notNull(destinationName, "destinationName cannot be null");
 		Assert.notNull(message, "message cannot be null");
 
@@ -123,7 +123,7 @@ public class SnsAsyncTemplate implements SnsAsyncOperations {
 	}
 
 	@Override
-	public <T> CompletableFuture<SnsResult<T>> sendNotification(String topic, SnsNotification<T> notification) {
+	public <T> CompletableFuture<PublishMessageResult<T>> sendNotification(String topic, SnsNotification<T> notification) {
 		Assert.notNull(topic, "topic cannot be null");
 		Assert.notNull(notification, "notification cannot be null");
 
@@ -147,9 +147,9 @@ public class SnsAsyncTemplate implements SnsAsyncOperations {
 			});
 	}
 
-	private <T> CompletableFuture<SnsResult<T>> publish(PublishRequest request, Message<T> originalMessage) {
+	private <T> CompletableFuture<PublishMessageResult<T>> publish(PublishRequest request, Message<T> originalMessage) {
 		return snsAsyncClient.publish(request)
-			.thenApply(response -> new SnsResult<>(
+			.thenApply(response -> new PublishMessageResult<>(
 				originalMessage,
 				response.messageId(),
 				response.sequenceNumber()

@@ -139,7 +139,7 @@ class SnsAsyncTemplateIntegrationTest {
 
 		@Test
 		void convertAndSendWithHeaders() throws Exception {
-			SnsResult<String> result = snsAsyncTemplate.convertAndSend(standardTopicArn, "async message",
+			PublishMessageResult<String> result = snsAsyncTemplate.convertAndSend(standardTopicArn, "async message",
 				Map.of("custom-header", "custom-value")).get();
 
 			assertThat(result.messageId()).isNotNull();
@@ -159,7 +159,7 @@ class SnsAsyncTemplateIntegrationTest {
 		@Test
 		void convertAndSendWithPersonPayload() throws Exception {
 			Person person = new Person("John");
-			SnsResult<Person> result = snsAsyncTemplate.convertAndSend(standardTopicArn, person,
+			PublishMessageResult<Person> result = snsAsyncTemplate.convertAndSend(standardTopicArn, person,
 				Map.of("person-type", "employee", NOTIFICATION_SUBJECT_HEADER, "Person Update")).get();
 
 			assertThat(result.messageId()).isNotNull();
@@ -178,7 +178,7 @@ class SnsAsyncTemplateIntegrationTest {
 
 		@Test
 		void sendNotificationWithSubject() throws Exception {
-			SnsResult<Object> result = snsAsyncTemplate.sendNotification(standardTopicArn,
+			PublishMessageResult<Object> result = snsAsyncTemplate.sendNotification(standardTopicArn,
 				"message with subject", "Test Subject").get();
 
 			assertThat(result.messageId()).isNotNull();
@@ -195,7 +195,7 @@ class SnsAsyncTemplateIntegrationTest {
 				.header(NOTIFICATION_SUBJECT_HEADER, "Notification Subject")
 				.header("notification-type", "alert").build();
 
-			SnsResult<String> result = snsAsyncTemplate.sendNotification(standardTopicArn, notification).get();
+			PublishMessageResult<String> result = snsAsyncTemplate.sendNotification(standardTopicArn, notification).get();
 
 			assertThat(result.messageId()).isNotNull();
 			assertThat(result.message().getPayload()).isEqualTo("notification payload");
@@ -221,7 +221,7 @@ class SnsAsyncTemplateIntegrationTest {
 
 		@Test
 		void convertAndSendWithFifoHeaders() throws Exception {
-			SnsResult<String> result = snsAsyncTemplate.convertAndSend(fifoTopicArn, "fifo message",
+			PublishMessageResult<String> result = snsAsyncTemplate.convertAndSend(fifoTopicArn, "fifo message",
 				Map.of(MESSAGE_GROUP_ID_HEADER, "group-1",
 					MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-1",
 					"custom-fifo-header", "fifo-value")).get();

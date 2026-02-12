@@ -13,7 +13,7 @@ import org.springframework.messaging.Message;
  * @author Matej Nedic
  * @since 4.1.0
  */
-public record SnsResult<T>(
+public record PublishMessageResult<T>(
 	Message<T> message,
 	String messageId,
 	@Nullable String sequenceNumber

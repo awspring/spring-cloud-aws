@@ -24,7 +24,7 @@ public interface SnsAsyncOperations {
 	 * @param <T>         the message payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<SnsResult<T>> send(String destination, Message<T> message) ;
+	<T> CompletableFuture<PublishMessageResult<T>> send(String destination, Message<T> message) ;
 
 	/**
 	 * Converts and sends a payload to a destination.
@@ -34,7 +34,7 @@ public interface SnsAsyncOperations {
 	 * @param <T>         the payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<SnsResult<T>> convertAndSend(String destination, T payload) ;
+	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload) ;
 
 	/**
 	 * Converts and sends a payload with headers to a destination.
@@ -45,7 +45,7 @@ public interface SnsAsyncOperations {
 	 * @param <T>         the payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<SnsResult<T>> convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers);
+	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers);
 
 	/**
 	 * Converts and sends a payload with a post processor to a destination.
@@ -56,7 +56,7 @@ public interface SnsAsyncOperations {
 	 * @param <T>           the payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<SnsResult<T>> convertAndSend(String destination, T payload, @Nullable MessagePostProcessor postProcessor);
+	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload, @Nullable MessagePostProcessor postProcessor);
 
 	/**
 	 * Converts and sends a payload with headers and a post processor to a destination.
@@ -68,8 +68,8 @@ public interface SnsAsyncOperations {
 	 * @param <T>           the payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<SnsResult<T>> convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers,
-													   @Nullable MessagePostProcessor postProcessor);
+	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers,
+																  @Nullable MessagePostProcessor postProcessor);
 
 	/**
 	 * Sends a notification with a message and subject to a destination.
@@ -79,7 +79,7 @@ public interface SnsAsyncOperations {
 	 * @param subject         the subject (can be null)
 	 * @return a CompletableFuture with the result
 	 */
-	CompletableFuture<SnsResult<Object>> sendNotification(String destinationName, Object message, @Nullable String subject);
+	CompletableFuture<PublishMessageResult<Object>> sendNotification(String destinationName, Object message, @Nullable String subject);
 
 	/**
 	 * Sends a notification to a topic.
@@ -89,7 +89,7 @@ public interface SnsAsyncOperations {
 	 * @param <T>          the notification payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<SnsResult<T>> sendNotification(String topic, SnsNotification<T> notification);
+	<T> CompletableFuture<PublishMessageResult<T>> sendNotification(String topic, SnsNotification<T> notification);
 
 	/**
 	 * Checks if a topic with the given ARN exists.

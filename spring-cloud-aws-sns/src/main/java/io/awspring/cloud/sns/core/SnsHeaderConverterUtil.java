@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.sns.model.MessageAttributeValue;
  * @author Gyozo Papp
  * @author Matej Nedic
  */
-public class SnsHeaderConverterUtil {
+class SnsHeaderConverterUtil {
 	private static final Log logger = LogFactory.getLog(SnsHeaderConverterUtil.class);
 	private static final JsonStringEncoder jsonStringEncoder = JsonStringEncoder.create();
 
