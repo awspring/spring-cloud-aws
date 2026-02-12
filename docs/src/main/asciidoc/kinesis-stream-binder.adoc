@@ -484,7 +484,7 @@ If [Server-Side Encryption](https://docs.aws.amazon.com/streams/latest/dev/what-
 }
 ----
 
-[[dynamodb-streams-support]]
+[[kinesis-binder-dynamodb-streams-support]]
 === DynamoDB Streams Support
 
 The Kinesis Binder provides support for consuming CDC events from the https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Streams.html[DynamoDB Streams].

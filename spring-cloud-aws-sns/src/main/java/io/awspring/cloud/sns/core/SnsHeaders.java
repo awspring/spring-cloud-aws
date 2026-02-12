@@ -19,6 +19,7 @@ import io.awspring.cloud.sns.handlers.NotificationStatus;
 import io.awspring.cloud.sns.integration.LegacyJackson2SnsInboundChannelAdapter;
 import io.awspring.cloud.sns.integration.SnsInboundChannelAdapter;
 import org.springframework.messaging.Message;
+import software.amazon.awssdk.services.sns.model.PublishBatchRequestEntry;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
 
