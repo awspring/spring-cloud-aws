@@ -73,6 +73,11 @@
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-app-config</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-ses</artifactId>
 			<optional>true</optional>
 		</dependency>
@@ -206,6 +211,11 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3vectors</artifactId>
 			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>appconfig</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>
