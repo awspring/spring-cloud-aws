@@ -20,6 +20,7 @@ import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_GROUP_ID_HEADER;
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
 
+import io.awspring.cloud.sns.LocalstackContainerTest;
 import io.awspring.cloud.sns.Person;
 import io.awspring.cloud.sns.core.SnsTemplate;
 import io.awspring.cloud.sns.core.TopicNotFoundException;
@@ -32,15 +33,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.JsonNode;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -53,29 +47,20 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
  *
  * @author Matej Nedic
  * @author Hardik Singh Behl
+ * @author haroya01
  */
-@Testcontainers
-class SnsTemplateIntegrationTest {
+class SnsTemplateIntegrationTest implements LocalstackContainerTest {
+
 	private static final String TOPIC_NAME = "my_topic_name";
 	private static SnsTemplate snsTemplate;
 	private static SnsClient snsClient;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	private static SqsClient sqsClient;
 
-	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:4.4.0"));
-
 	@BeforeAll
 	public static void createSnsTemplate() {
-		snsClient = SnsClient.builder().endpointOverride(localstack.getEndpoint())
-				.region(Region.of(localstack.getRegion()))
-				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
-				.build();
-		sqsClient = SqsClient.builder().endpointOverride(localstack.getEndpoint())
-				.region(Region.of(localstack.getRegion()))
-				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
-				.build();
+		snsClient = LocalstackContainerTest.snsClient();
+		sqsClient = LocalstackContainerTest.sqsClient();
 		MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
 		mappingJackson2MessageConverter.setSerializedPayloadClass(String.class);
 		snsTemplate = new SnsTemplate(snsClient, mappingJackson2MessageConverter);
