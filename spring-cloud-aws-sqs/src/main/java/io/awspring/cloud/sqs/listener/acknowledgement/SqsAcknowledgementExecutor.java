@@ -100,15 +100,17 @@ public class SqsAcknowledgementExecutor<T>
 		watch.start();
 		return CompletableFutures.exceptionallyCompose(this.sqsAsyncClient
 			.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck))
-			.thenCompose(response -> {
-				if (!response.failed().isEmpty()) {
-					return CompletableFutures.<Void> failedFuture(
-						createPartialFailureException(messagesToAck, response));
-				}
-				return CompletableFuture.<Void>completedFuture(null);
-			}),
+			.thenCompose(response -> handleDeleteBatchResponse(messagesToAck, response)),
 			t -> CompletableFutures.<Void>failedFuture(createAcknowledgementException(messagesToAck, t)))
 			.whenComplete((v, t) -> logAckResult(messagesToAck, t, watch));
+	}
+
+	private CompletableFuture<Void> handleDeleteBatchResponse(Collection<Message<T>> messagesToAck, DeleteMessageBatchResponse response){
+		if(!response.failed().isEmpty()) {
+			return CompletableFutures.<Void> failedFuture(
+				createPartialFailureException(messagesToAck, response));
+		}
+		return CompletableFuture.<Void>completedFuture(null);
 	}
 
 	private SqsAcknowledgementException createPartialFailureException(Collection<Message<T>> messages, DeleteMessageBatchResponse response){
