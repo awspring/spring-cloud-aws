@@ -197,6 +197,21 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>kinesis</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.kinesis</groupId>
+			<artifactId>amazon-kinesis-client</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.kinesis</groupId>
+			<artifactId>amazon-kinesis-producer</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>software.amazon.encryption.s3</groupId>
 			<artifactId>amazon-s3-encryption-client-java</artifactId>
 			<optional>true</optional>
