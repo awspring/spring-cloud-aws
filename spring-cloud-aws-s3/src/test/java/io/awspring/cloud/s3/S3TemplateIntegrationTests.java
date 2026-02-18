@@ -41,6 +41,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.StreamUtils;
+import org.springframework.core.ParameterizedTypeReference;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.HttpStatusCode;
@@ -228,6 +229,20 @@ class S3TemplateIntegrationTests implements LocalstackContainerTest {
 
 		Person person = s3Template.read(BUCKET_NAME, "person.json", Person.class);
 
+		assertThat(person.firstName).isEqualTo("John");
+		assertThat(person.lastName).isEqualTo("Doe");
+	}
+
+	@Test
+	void readsParameterizedTypeObject() {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("persons.json"),
+				RequestBody.fromString("[{\"firstName\":\"John\",\"lastName\":\"Doe\"}]"));
+
+		List<Person> persons = s3Template.read(BUCKET_NAME, "persons.json", new ParamaterizedTypeReference<List<Person>>(){});
+
+		assertThat(persons.size()).isEqualTo(1);
+
+		Person person = persons.get(0);
 		assertThat(person.firstName).isEqualTo("John");
 		assertThat(person.lastName).isEqualTo("Doe");
 	}

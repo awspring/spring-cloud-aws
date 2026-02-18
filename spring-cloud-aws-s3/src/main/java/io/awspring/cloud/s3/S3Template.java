@@ -21,6 +21,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -158,6 +159,21 @@ public class S3Template implements S3Operations {
 
 		try (InputStream is = s3Client.getObject(r -> r.bucket(bucketName).key(key))) {
 			return s3ObjectConverter.read(is, clazz);
+		}
+		catch (Exception e) {
+			throw new S3Exception(
+					String.format("Failed to read object with a key '%s' from bucket '%s'", key, bucketName), e);
+		}
+	}
+
+	@Override
+	public <T> T read(String bucketName, String key, ParameterizedTypeReference<T> valueTypeRef) {
+		Assert.notNull(bucketName, "bucketName is required");
+		Assert.notNull(key, "key is required");
+		Assert.notNull(valueTypeRef, "valueTypeRef is required");
+
+		try (InputStream is = s3Client.getObject(r -> r.bucket(bucketName).key(key))) {
+			return s3ObjectConverter.read(is, valueTypeRef);
 		}
 		catch (Exception e) {
 			throw new S3Exception(
