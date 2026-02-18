@@ -28,6 +28,7 @@ import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
 
 /**
  * Tests for {@link SqsAcknowledgementExecutor}.
@@ -58,14 +61,22 @@ class SqsAcknowledgementExecutorTests {
 	@Mock
 	Message<String> message;
 
+	@Mock
+	Message<String> secondMessage;
+
 	String queueName = "sqsAcknowledgementExecutorTestsQueueName";
 
 	String queueUrl = "sqsAcknowledgementExecutorTestsQueueUrl";
 
 	String receiptHandle = "sqsAcknowledgementExecutorTestsQueueReceiptHandle";
 
+	String secondReceiptHandle = "sqsAcknowledgementExecutorTestsQueueSecondReceiptHandle";
+
 	MessageHeaders messageHeaders = new MessageHeaders(
 			Collections.singletonMap(SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, receiptHandle));
+
+	MessageHeaders secondMessageHeaders = new MessageHeaders(
+			Collections.singletonMap(SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, secondReceiptHandle));
 
 	@Test
 	void shouldDeleteMessages() throws Exception {
@@ -74,7 +85,7 @@ class SqsAcknowledgementExecutorTests {
 		given(queueAttributes.getQueueName()).willReturn(queueName);
 		given(queueAttributes.getQueueUrl()).willReturn(queueUrl);
 		given(sqsAsyncClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
-				.willReturn(CompletableFuture.completedFuture(null));
+				.willReturn(CompletableFuture.completedFuture(DeleteMessageBatchResponse.builder().build()));
 
 		SqsAcknowledgementExecutor<String> executor = new SqsAcknowledgementExecutor<>();
 		executor.setSqsAsyncClient(sqsAsyncClient);
@@ -125,6 +136,40 @@ class SqsAcknowledgementExecutorTests {
 		assertThatThrownBy(() -> executor.execute(messages).join()).isInstanceOf(CompletionException.class).getCause()
 				.isInstanceOf(SqsAcknowledgementException.class).asInstanceOf(type(SqsAcknowledgementException.class))
 				.extracting(SqsAcknowledgementException::getQueue).isEqualTo(queueUrl);
+	}
+
+	@Test
+	void shouldWrapPartialBatchFailure() {
+		Message<String> failedMessage = message;
+		Message<String> successfulMessage = secondMessage;
+		MessageHeaders failedMessageHeaders = messageHeaders;
+		MessageHeaders successfulMessageHeaders = secondMessageHeaders;
+		Collection<Message<String>> messagesToAck = List.of(failedMessage, successfulMessage);
+
+		given(failedMessage.getHeaders()).willReturn(failedMessageHeaders);
+		given(successfulMessage.getHeaders()).willReturn(successfulMessageHeaders);
+		given(queueAttributes.getQueueName()).willReturn(queueName);
+		given(queueAttributes.getQueueUrl()).willReturn(queueUrl);
+
+		BatchResultErrorEntry failedEntry = BatchResultErrorEntry.builder().id(failedMessageHeaders.getId().toString())
+				.code("ReceiptHandleIsInvalid").message("Receipt handle expired").build();
+
+		DeleteMessageBatchResponse partialFailureResponse = DeleteMessageBatchResponse.builder().failed(failedEntry)
+				.build();
+
+		given(sqsAsyncClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(partialFailureResponse));
+
+		SqsAcknowledgementExecutor<String> executor = new SqsAcknowledgementExecutor<>();
+		executor.setSqsAsyncClient(sqsAsyncClient);
+		executor.setQueueAttributes(queueAttributes);
+
+		assertThatThrownBy(() -> executor.execute(messagesToAck).join()).isInstanceOf(CompletionException.class)
+				.getCause().isInstanceOf(SqsAcknowledgementException.class)
+				.asInstanceOf(type(SqsAcknowledgementException.class)).satisfies(ex -> {
+					assertThat(ex.getFailedAcknowledgementMessages()).containsExactly(failedMessage);
+					assertThat(ex.getSuccessfullyAcknowledgedMessages()).containsExactly(successfulMessage);
+				});
 	}
 
 }

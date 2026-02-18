@@ -22,9 +22,11 @@ import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesAware;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.UUID;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -34,8 +36,10 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
 
 /**
  * {@link AcknowledgementExecutor} implementation for SQS queues. Handle the messages deletion, usually requested by an
@@ -95,10 +99,54 @@ public class SqsAcknowledgementExecutor<T>
 		StopWatch watch = new StopWatch();
 		watch.start();
 		return CompletableFutures.exceptionallyCompose(this.sqsAsyncClient
-			.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck))
-			.thenRun(() -> {}),
-				t -> CompletableFutures.failedFuture(createAcknowledgementException(messagesToAck, t)))
+			.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck)).thenCompose(
+					response -> handleDeleteMessageBatchResponse(messagesToAck, response)),
+			t -> toAcknowledgementFailure(messagesToAck, t))
 			.whenComplete((v, t) -> logAckResult(messagesToAck, t, watch));
+	}
+
+	private CompletableFuture<Void> handleDeleteMessageBatchResponse(Collection<Message<T>> messagesToAck,
+			DeleteMessageBatchResponse response) {
+		if (!response.failed().isEmpty()) {
+			return CompletableFutures.<Void>failedFuture(createPartialFailureException(messagesToAck, response));
+		}
+		return CompletableFuture.<Void>completedFuture(null);
+	}
+
+	private CompletableFuture<Void> toAcknowledgementFailure(Collection<Message<T>> messagesToAck, Throwable throwable) {
+		Throwable cause = throwable instanceof CompletionException && throwable.getCause() != null ? throwable.getCause()
+				: throwable;
+		if (cause instanceof SqsAcknowledgementException) {
+			return CompletableFutures.<Void>failedFuture(cause);
+		}
+		return CompletableFutures.<Void>failedFuture(createAcknowledgementException(messagesToAck, cause));
+	}
+
+	private SqsAcknowledgementException createPartialFailureException(Collection<Message<T>> messages, DeleteMessageBatchResponse response){
+		Set<String> failedIds = response.failed().stream()
+			.map(BatchResultErrorEntry::id)
+			.collect(Collectors.toSet());
+
+		List<Message<?>> successfulMessages = new ArrayList<>();
+		List<Message<?>> failedMessages = new ArrayList<>();
+
+		for(Message<T> msg : messages) {
+			if(failedIds.contains(MessageHeaderUtils.getId(msg))) {
+				failedMessages.add(msg);
+			} else {
+				successfulMessages.add(msg);
+			}
+		}
+
+		logger.warn("Some messages could not be acknowledged in queue {}: {}",
+			this.queueName, failedIds);
+
+		return new SqsAcknowledgementException(
+				"Error acknowledging messages " + failedIds,
+				successfulMessages,
+				failedMessages,
+				this.queueUrl,
+				null);
 	}
 
 	private DeleteMessageBatchRequest createDeleteMessageBatchRequest(Collection<Message<T>> messagesToAck) {
@@ -113,7 +161,7 @@ public class SqsAcknowledgementExecutor<T>
 		return DeleteMessageBatchRequestEntry
 			.builder()
 			.receiptHandle(MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER))
-			.id(UUID.randomUUID().toString())
+			.id(MessageHeaderUtils.getId(message))
 			.build();
 	}
 	// @formatter:on
