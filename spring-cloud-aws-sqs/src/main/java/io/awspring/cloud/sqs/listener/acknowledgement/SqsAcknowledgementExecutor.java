@@ -99,18 +99,27 @@ public class SqsAcknowledgementExecutor<T>
 		StopWatch watch = new StopWatch();
 		watch.start();
 		return CompletableFutures.exceptionallyCompose(this.sqsAsyncClient
-			.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck))
-			.thenCompose(response -> handleDeleteBatchResponse(messagesToAck, response)),
-			t -> CompletableFutures.<Void>failedFuture(createAcknowledgementException(messagesToAck, t)))
+			.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck)).thenCompose(
+					response -> handleDeleteMessageBatchResponse(messagesToAck, response)),
+			t -> toAcknowledgementFailure(messagesToAck, t))
 			.whenComplete((v, t) -> logAckResult(messagesToAck, t, watch));
 	}
 
-	private CompletableFuture<Void> handleDeleteBatchResponse(Collection<Message<T>> messagesToAck, DeleteMessageBatchResponse response){
-		if(!response.failed().isEmpty()) {
-			return CompletableFutures.<Void> failedFuture(
-				createPartialFailureException(messagesToAck, response));
+	private CompletableFuture<Void> handleDeleteMessageBatchResponse(Collection<Message<T>> messagesToAck,
+			DeleteMessageBatchResponse response) {
+		if (!response.failed().isEmpty()) {
+			return CompletableFutures.<Void>failedFuture(createPartialFailureException(messagesToAck, response));
 		}
 		return CompletableFuture.<Void>completedFuture(null);
+	}
+
+	private CompletableFuture<Void> toAcknowledgementFailure(Collection<Message<T>> messagesToAck, Throwable throwable) {
+		Throwable cause = throwable instanceof CompletionException && throwable.getCause() != null ? throwable.getCause()
+				: throwable;
+		if (cause instanceof SqsAcknowledgementException) {
+			return CompletableFutures.<Void>failedFuture(cause);
+		}
+		return CompletableFutures.<Void>failedFuture(createAcknowledgementException(messagesToAck, cause));
 	}
 
 	private SqsAcknowledgementException createPartialFailureException(Collection<Message<T>> messages, DeleteMessageBatchResponse response){
