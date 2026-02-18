@@ -2020,7 +2020,7 @@ Implementations of this interface will be executed after an acknowledgement exec
 
 ==== Acknowledgement Result Callback
 
-The framework offers the `AcknowledgementResultCallback` and `AsyncAcknowledgementCallback` interfaces that can be added to a `SqsMessageListenerContainer` or `SqsMessageListenerContainerFactory`.
+The framework offers the `AcknowledgementResultCallback` and `AsyncAcknowledgementResultCallback` interfaces that can be added to a `SqsMessageListenerContainer` or `SqsMessageListenerContainerFactory`.
 
 ```java
 public interface AcknowledgementResultCallback<T> {
@@ -2045,6 +2045,19 @@ public interface AsyncAcknowledgementResultCallback<T> {
 		return CompletableFuture.completedFuture(null);
 	}
 
+}
+```
+
+If an acknowledgement operation partially fails, for example when `DeleteMessageBatch` returns failed entries, the callback `onFailure` receives a `SqsAcknowledgementException`.
+Use `getSuccessfullyAcknowledgedMessages()` and `getFailedAcknowledgementMessages()` to inspect the acknowledgement result and retry only failed messages if needed.
+
+```java
+@Override
+public void onFailure(Collection<Message<Object>> messages, Throwable t) {
+    if (t instanceof SqsAcknowledgementException ex) {
+        Collection<Message<?>> failedMessages = ex.getFailedAcknowledgementMessages();
+        // retry only failedMessages
+    }
 }
 ```
 
