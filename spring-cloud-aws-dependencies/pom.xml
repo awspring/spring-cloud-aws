@@ -168,6 +168,12 @@
 
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-sesv2</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-s3</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -229,6 +235,12 @@
 			<dependency>
 				<groupId>io.awspring.cloud</groupId>
 				<artifactId>spring-cloud-aws-starter-ses</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-starter-sesv2</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
