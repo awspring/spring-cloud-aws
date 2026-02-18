@@ -40,8 +40,6 @@ import software.amazon.awssdk.services.sns.model.PublishRequest;
  */
 public class TopicMessageChannel extends AbstractMessageChannel {
 
-	public JsonStringEncoder jsonStringEncoder = JsonStringEncoder.create();
-
 	private final SnsClient snsClient;
 
 	private final Arn topicArn;
