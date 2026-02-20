@@ -18,12 +18,11 @@ package io.awspring.cloud.sqs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import java.util.Collection;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Tests for {@link MessageHeaderUtils}.
@@ -100,52 +99,49 @@ class MessageHeaderUtilsTest {
 	}
 
 	@Test
-	void shouldReturnAwsMessageIdWhenHeaderPresent() {
+	void shouldReturnRawMessageIdWhenHeaderPresent() {
 		// given
-		String awsMessageId = "92898073-7bd6a160-5797b060-54a7e539";
+		String rawMessageId = "92898073-7bd6a160-5797b060-54a7e539";
 		Message<String> message = MessageBuilder.withPayload("test-payload")
-			.setHeader(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER, awsMessageId)
-			.build();
+				.setHeader(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER, rawMessageId).build();
 
 		// when
-		String result = MessageHeaderUtils.getAwsMessageId(message);
+		String result = MessageHeaderUtils.getRawMessageId(message);
 
 		// then
-		assertThat(result).isEqualTo(awsMessageId);
+		assertThat(result).isEqualTo(rawMessageId);
 	}
 
 	@Test
-	void shouldFallbackToSpringMessageIdWhenAwsHeaderNotPresent() {
+	void shouldFallbackToSpringMessageIdWhenRawHeaderNotPresent() {
 		// given
 		Message<String> message = MessageBuilder.withPayload("test-payload").build();
 		String expectedId = message.getHeaders().getId().toString();
 
 		// when
-		String result = MessageHeaderUtils.getAwsMessageId(message);
+		String result = MessageHeaderUtils.getRawMessageId(message);
 
 		// then
 		assertThat(result).isEqualTo(expectedId);
 	}
 
 	@Test
-	void shouldConcatenateAwsMessageIdsFromCollection() {
+	void shouldConcatenateRawMessageIdsFromCollection() {
 		// given
-		String awsMessageId1 = "aws-id-1";
-		String awsMessageId2 = "aws-id-2";
+		String rawMessageId1 = "raw-id-1";
+		String rawMessageId2 = "raw-id-2";
 
 		Message<String> message1 = MessageBuilder.withPayload("payload1")
-			.setHeader(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER, awsMessageId1)
-			.build();
+				.setHeader(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER, rawMessageId1).build();
 		Message<String> message2 = MessageBuilder.withPayload("payload2")
-			.setHeader(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER, awsMessageId2)
-			.build();
+				.setHeader(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER, rawMessageId2).build();
 
 		Collection<Message<String>> messages = List.of(message1, message2);
 
 		// when
-		String result = MessageHeaderUtils.getAwsMessageId(messages);
+		String result = MessageHeaderUtils.getRawMessageId(messages);
 
 		// then
-		assertThat(result).isEqualTo("aws-id-1; aws-id-2");
+		assertThat(result).isEqualTo("raw-id-1; raw-id-2");
 	}
 }

@@ -153,21 +153,21 @@ public class MessageHeaderUtils {
 	}
 
 	/**
-	 * Return the AWS message ID, falling back to Spring message ID if not present.
+	 * Return the raw provider message ID, falling back to Spring message ID if not present.
 	 * @param message the message.
-	 * @return the AWS ID or Spring ID.
+	 * @return the raw provider ID or Spring ID.
 	 */
-	public static String getAwsMessageId(Message<?> message) {
-		String awsMessageId = message.getHeaders().get(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER, String.class);
-		return awsMessageId != null ? awsMessageId : getId(message);
+	public static String getRawMessageId(Message<?> message) {
+		String rawMessageId = message.getHeaders().get(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER, String.class);
+		return rawMessageId != null ? rawMessageId : getId(message);
 	}
 
 	/**
-	 * Return the messages' AWS ID as a concatenated {@link String}.
+	 * Return the messages' raw provider IDs as a concatenated {@link String}.
 	 * @param messages the messages.
-	 * @return the AWS IDs.
+	 * @return the raw provider IDs.
 	 */
-	public static <T> String getAwsMessageId(Collection<Message<T>> messages) {
-		return messages.stream().map(MessageHeaderUtils::getAwsMessageId).collect(Collectors.joining("; "));
+	public static <T> String getRawMessageId(Collection<Message<T>> messages) {
+		return messages.stream().map(MessageHeaderUtils::getRawMessageId).collect(Collectors.joining("; "));
 	}
 }

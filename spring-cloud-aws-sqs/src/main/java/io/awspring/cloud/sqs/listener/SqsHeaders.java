@@ -90,9 +90,9 @@ public class SqsHeaders {
 	public static final String SQS_DEFAULT_TYPE_HEADER = "JavaType";
 
 	/**
-	 * Header for the original AWS MessageId when not using UUID conversion.
+	 * Header for the raw provider message ID when not using UUID conversion.
 	 */
-	public static final String SQS_AWS_MESSAGE_ID_HEADER = SQS_HEADER_PREFIX + "AWSMessageId";
+	public static final String SQS_RAW_MESSAGE_ID_HEADER = SQS_HEADER_PREFIX + "RawMessageId";
 
 	public static class MessageSystemAttributes {
 
