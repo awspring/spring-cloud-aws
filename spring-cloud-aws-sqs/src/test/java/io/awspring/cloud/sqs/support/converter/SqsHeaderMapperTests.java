@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.support.converter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
@@ -183,13 +185,20 @@ class SqsHeaderMapperTests {
 		SqsHeaderMapper mapper = new SqsHeaderMapper();
 		mapper.setConvertMessageIdToUuid(true);
 		String uuidMessageId = "550e8400-e29b-41d4-a716-446655440000";
-		Message message = Message.builder()
-			.body("payload")
-			.messageId(uuidMessageId)
-			.build();
+		Message message = Message.builder().body("payload").messageId(uuidMessageId).build();
 		MessageHeaders headers = mapper.toHeaders(message);
 		assertThat(headers.getId()).isEqualTo(UUID.fromString(uuidMessageId));
-		assertThat(headers.get(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER)).isNull();
+		assertThat(headers.get(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER)).isNull();
+	}
+
+	@Test
+	void shouldThrowWhenConvertMessageIdToUuidIsTrueAndMessageIdIsNotValidUuid() {
+		SqsHeaderMapper mapper = new SqsHeaderMapper();
+		mapper.setConvertMessageIdToUuid(true);
+		String nonUuidMessageId = "92898073-7bd6a160-5797b060-54a7e539";
+		Message message = Message.builder().body("payload").messageId(nonUuidMessageId).build();
+		assertThatThrownBy(() -> mapper.toHeaders(message)).isInstanceOf(MessagingException.class)
+				.hasMessageContaining("not a valid UUID").hasMessageContaining("convert-message-id-to-uuid");
 	}
 
 	@Test
@@ -197,12 +206,9 @@ class SqsHeaderMapperTests {
 		SqsHeaderMapper mapper = new SqsHeaderMapper();
 		mapper.setConvertMessageIdToUuid(false);
 		String nonUuidMessageId = "92898073-7bd6a160-5797b060-54a7e539";
-		Message message = Message.builder()
-			.body("payload")
-			.messageId(nonUuidMessageId)
-			.build();
+		Message message = Message.builder().body("payload").messageId(nonUuidMessageId).build();
 		MessageHeaders headers = mapper.toHeaders(message);
-		assertThat(headers.get(SqsHeaders.SQS_AWS_MESSAGE_ID_HEADER)).isEqualTo(nonUuidMessageId);
+		assertThat(headers.get(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER)).isEqualTo(nonUuidMessageId);
 		assertThat(headers.getId()).isNotEqualTo(nonUuidMessageId);
 		assertThat(headers.getId()).isNotNull();
 	}
