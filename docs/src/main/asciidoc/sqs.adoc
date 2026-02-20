@@ -319,6 +319,27 @@ If `SendBatchFailureStrategy#DO_NOT_THROW` is configured, no exception is thrown
 
 For convenience, the `additionalInformation` parameters can be found as constants in the `SqsTemplateParameters` class.
 
+===== Non-UUID Message IDs
+
+By default, Spring Cloud AWS SQS expects the message ID returned by SQS to be a valid UUID.
+If a non-UUID message ID is received, an error is thrown with instructions to enable non-UUID support.
+
+To enable non-UUID message ID support (e.g., for Yandex Message Queue or other SQS-compatible providers):
+
+[source,properties]
+----
+spring.cloud.aws.sqs.convert-message-id-to-uuid=false
+----
+
+When disabled:
+
+* **Receive side**: The raw provider message ID is stored in the `Sqs_RawMessageId` header.
+  A deterministic UUID derived from the raw ID is used as the Spring `MessageHeaders.ID`.
+  Access the raw ID via `MessageHeaderUtils.getRawMessageId(message)`.
+* **Send side**: If the send response contains a non-UUID message ID,
+  `SendResult.messageId()` returns a deterministic UUID and the raw ID is available
+  in `SendResult.additionalInformation()` under the `rawMessageId` key.
+
 [[template-message-conversion]]
 ==== Template Message Conversion
 

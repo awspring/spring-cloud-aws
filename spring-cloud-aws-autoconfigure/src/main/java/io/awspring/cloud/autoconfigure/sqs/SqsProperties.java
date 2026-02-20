@@ -52,6 +52,10 @@ public class SqsProperties extends AwsClientProperties {
 
 	private Boolean observationEnabled = false;
 
+	/**
+	 * Whether to convert SQS message IDs to UUIDs. Set to {@code false} for SQS-compatible providers that return
+	 * non-UUID message IDs.
+	 */
 	private Boolean convertMessageIdToUuid = true;
 
 	public Boolean getConvertMessageIdToUuid() {
