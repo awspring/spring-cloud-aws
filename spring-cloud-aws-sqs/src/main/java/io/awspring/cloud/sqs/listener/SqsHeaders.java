@@ -23,6 +23,7 @@ package io.awspring.cloud.sqs.listener;
  *
  * @author Tomaz Fernandes
  * @author Artem Bilan
+ * @author Jeongmin Kim
  *
  * @since 3.0
  *
@@ -87,6 +88,11 @@ public class SqsHeaders {
 	 * Header containing the FQCN of the {@link Class} that the message's payload should be deserialized to.
 	 */
 	public static final String SQS_DEFAULT_TYPE_HEADER = "JavaType";
+
+	/**
+	 * Header for the raw provider message ID when not using UUID conversion.
+	 */
+	public static final String SQS_RAW_MESSAGE_ID_HEADER = SQS_HEADER_PREFIX + "RawMessageId";
 
 	public static class MessageSystemAttributes {
 

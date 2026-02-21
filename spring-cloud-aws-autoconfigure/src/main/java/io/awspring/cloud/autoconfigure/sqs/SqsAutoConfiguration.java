@@ -32,6 +32,7 @@ import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.SqsHeaderMapper;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.legacy.JacksonJsonMessageConverterMigration;
 import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMigration;
@@ -64,6 +65,7 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Maciej Walkowiak
  * @author Wei Jiang
  * @author Dongha Kim
+ * @author Jeongmin Kim
  * @since 3.0
  */
 @AutoConfiguration
@@ -159,10 +161,15 @@ public class SqsAutoConfiguration {
 	static class SqsJacksonConfiguration {
 		@ConditionalOnMissingBean
 		@Bean
-		public MessagingMessageConverter<Message> messageConverter(ObjectProvider<JsonMapper> jsonMapperProvider) {
-			JsonMapper jsonMapper = jsonMapperProvider.getIfAvailable();
-			return jsonMapper != null ? new SqsMessagingMessageConverter(jsonMapper)
+		public MessagingMessageConverter<Message> messageConverter(ObjectProvider<JsonMapper> jsonMapperProvider,
+				SqsProperties sqsProperties) {
+			SqsMessagingMessageConverter converter = jsonMapperProvider.getIfAvailable() != null
+					? new SqsMessagingMessageConverter(jsonMapperProvider.getIfAvailable())
 					: new SqsMessagingMessageConverter();
+			SqsHeaderMapper headerMapper = new SqsHeaderMapper();
+			headerMapper.setConvertMessageIdToUuid(sqsProperties.getConvertMessageIdToUuid());
+			converter.setHeaderMapper(headerMapper);
+			return converter;
 		}
 
 		@Bean
@@ -179,8 +186,12 @@ public class SqsAutoConfiguration {
 	static class LegacySqsJackson2Configuration {
 		@ConditionalOnMissingBean
 		@Bean
-		public MessagingMessageConverter<Message> messageConverter() {
-			return new LegacyJackson2SqsMessagingMessageConverter();
+		public MessagingMessageConverter<Message> messageConverter(SqsProperties sqsProperties) {
+			LegacyJackson2SqsMessagingMessageConverter converter = new LegacyJackson2SqsMessagingMessageConverter();
+			SqsHeaderMapper headerMapper = new SqsHeaderMapper();
+			headerMapper.setConvertMessageIdToUuid(sqsProperties.getConvertMessageIdToUuid());
+			converter.setHeaderMapper(headerMapper);
+			return converter;
 		}
 
 		@Bean

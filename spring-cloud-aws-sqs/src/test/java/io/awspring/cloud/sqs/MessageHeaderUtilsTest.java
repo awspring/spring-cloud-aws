@@ -17,6 +17,9 @@ package io.awspring.cloud.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.sqs.listener.SqsHeaders;
+import java.util.Collection;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
@@ -25,6 +28,7 @@ import org.springframework.messaging.support.MessageBuilder;
  * Tests for {@link MessageHeaderUtils}.
  *
  * @author Tomaz Fernandes
+ * @author Jeongmin Kim
  */
 class MessageHeaderUtilsTest {
 
@@ -92,5 +96,52 @@ class MessageHeaderUtilsTest {
 		assertThat(result.getHeaders().get(headerToKeep)).isEqualTo("keep-value");
 		assertThat(result.getHeaders().get("another-header")).isEqualTo("another-value");
 		assertThat(result.getHeaders().size()).isEqualTo(message.getHeaders().size() - 1);
+	}
+
+	@Test
+	void shouldReturnRawMessageIdWhenHeaderPresent() {
+		// given
+		String rawMessageId = "92898073-7bd6a160-5797b060-54a7e539";
+		Message<String> message = MessageBuilder.withPayload("test-payload")
+				.setHeader(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER, rawMessageId).build();
+
+		// when
+		String result = MessageHeaderUtils.getRawMessageId(message);
+
+		// then
+		assertThat(result).isEqualTo(rawMessageId);
+	}
+
+	@Test
+	void shouldFallbackToSpringMessageIdWhenRawHeaderNotPresent() {
+		// given
+		Message<String> message = MessageBuilder.withPayload("test-payload").build();
+		String expectedId = message.getHeaders().getId().toString();
+
+		// when
+		String result = MessageHeaderUtils.getRawMessageId(message);
+
+		// then
+		assertThat(result).isEqualTo(expectedId);
+	}
+
+	@Test
+	void shouldConcatenateRawMessageIdsFromCollection() {
+		// given
+		String rawMessageId1 = "raw-id-1";
+		String rawMessageId2 = "raw-id-2";
+
+		Message<String> message1 = MessageBuilder.withPayload("payload1")
+				.setHeader(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER, rawMessageId1).build();
+		Message<String> message2 = MessageBuilder.withPayload("payload2")
+				.setHeader(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER, rawMessageId2).build();
+
+		Collection<Message<String>> messages = List.of(message1, message2);
+
+		// when
+		String result = MessageHeaderUtils.getRawMessageId(messages);
+
+		// then
+		assertThat(result).isEqualTo("raw-id-1; raw-id-2");
 	}
 }
