@@ -172,4 +172,34 @@ class SqsAcknowledgementExecutorTests {
 				});
 	}
 
+	@Test
+	void shouldTreatAllMessagesAsFailedIfAwsFailureIdCannotBeCorrelated() {
+		Collection<Message<String>> messagesToAck = List.of(message, secondMessage);
+
+		given(message.getHeaders()).willReturn(messageHeaders);
+		given(secondMessage.getHeaders()).willReturn(secondMessageHeaders);
+		given(queueAttributes.getQueueName()).willReturn(queueName);
+		given(queueAttributes.getQueueUrl()).willReturn(queueUrl);
+
+		BatchResultErrorEntry failedEntry = BatchResultErrorEntry.builder().id("unknown-id")
+				.code("ReceiptHandleIsInvalid").message("Receipt handle expired").build();
+
+		DeleteMessageBatchResponse partialFailureResponse = DeleteMessageBatchResponse.builder().failed(failedEntry)
+				.build();
+
+		given(sqsAsyncClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(partialFailureResponse));
+
+		SqsAcknowledgementExecutor<String> executor = new SqsAcknowledgementExecutor<>();
+		executor.setSqsAsyncClient(sqsAsyncClient);
+		executor.setQueueAttributes(queueAttributes);
+
+		assertThatThrownBy(() -> executor.execute(messagesToAck).join()).isInstanceOf(CompletionException.class)
+				.getCause().isInstanceOf(SqsAcknowledgementException.class)
+				.asInstanceOf(type(SqsAcknowledgementException.class)).satisfies(ex -> {
+					assertThat(ex.getSuccessfullyAcknowledgedMessages()).isEmpty();
+					assertThat(ex.getFailedAcknowledgementMessages()).containsExactlyInAnyOrder(message, secondMessage);
+				});
+	}
+
 }
