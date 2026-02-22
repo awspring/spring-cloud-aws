@@ -122,10 +122,20 @@ public class SqsAcknowledgementExecutor<T>
 		return CompletableFutures.<Void>failedFuture(createAcknowledgementException(messagesToAck, cause));
 	}
 
-	private SqsAcknowledgementException createPartialFailureException(Collection<Message<T>> messages, DeleteMessageBatchResponse response){
+	private SqsAcknowledgementException createPartialFailureException(Collection<Message<T>> messages,
+			DeleteMessageBatchResponse response) {
+		Set<String> messageIds = messages.stream().map(MessageHeaderUtils::getId).collect(Collectors.toSet());
 		Set<String> failedIds = response.failed().stream()
-			.map(BatchResultErrorEntry::id)
-			.collect(Collectors.toSet());
+				.map(BatchResultErrorEntry::id)
+				.collect(Collectors.toSet());
+
+		if (!messageIds.containsAll(failedIds)) {
+			logger.warn("Could not correlate all acknowledgement failure ids in queue {}: {}", this.queueName,
+					failedIds);
+			return new SqsAcknowledgementException("Could not correlate acknowledgement failure ids: " + failedIds,
+					Collections.emptyList(), messages.stream().map(msg -> (Message<?>) msg).collect(Collectors.toList()),
+					this.queueUrl, null);
+		}
 
 		List<Message<?>> successfulMessages = new ArrayList<>();
 		List<Message<?>> failedMessages = new ArrayList<>();
@@ -138,15 +148,10 @@ public class SqsAcknowledgementExecutor<T>
 			}
 		}
 
-		logger.warn("Some messages could not be acknowledged in queue {}: {}",
-			this.queueName, failedIds);
+		logger.warn("Some messages could not be acknowledged in queue {}: {}", this.queueName, failedIds);
 
-		return new SqsAcknowledgementException(
-				"Error acknowledging messages " + failedIds,
-				successfulMessages,
-				failedMessages,
-				this.queueUrl,
-				null);
+		return new SqsAcknowledgementException("Error acknowledging messages " + failedIds, successfulMessages,
+				failedMessages, this.queueUrl, null);
 	}
 
 	private DeleteMessageBatchRequest createDeleteMessageBatchRequest(Collection<Message<T>> messagesToAck) {
