@@ -15,7 +15,7 @@
  */
 package io.awspring.cloud.sns;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -40,14 +40,9 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 @Testcontainers(disabledWithoutDocker = true)
 public interface LocalstackContainerTest {
 
+	@Container
 	LocalStackContainer LOCAL_STACK_CONTAINER = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:4.4.0"))
-		.withEnv("DEBUG", "1");
-
-	@BeforeAll
-	static void startContainer() {
-		LOCAL_STACK_CONTAINER.start();
-	}
+			DockerImageName.parse("localstack/localstack:4.4.0"));
 
 	static SnsClient snsClient() {
 		return applyAwsClientOptions(SnsClient.builder());
