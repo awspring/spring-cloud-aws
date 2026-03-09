@@ -188,7 +188,7 @@ class SqsHeaderMapperTests {
 		Message message = Message.builder().body("payload").messageId(uuidMessageId).build();
 		MessageHeaders headers = mapper.toHeaders(message);
 		assertThat(headers.getId()).isEqualTo(UUID.fromString(uuidMessageId));
-		assertThat(headers.get(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER)).isNull();
+		assertThat(headers.get(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER)).isEqualTo(uuidMessageId);
 	}
 
 	@Test

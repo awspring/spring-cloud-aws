@@ -15,7 +15,6 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
@@ -24,7 +23,6 @@ import org.springframework.messaging.MessageHeaders;
 /**
  * {@link MessageHeaders} implementation that allows providing an external {@link UUID}.
  * @author Tomaz Fernandes
- * @author Jeongmin Kim
  * @since 3.0
  */
 public class MessagingMessageHeaders extends MessageHeaders {
@@ -56,14 +54,4 @@ public class MessagingMessageHeaders extends MessageHeaders {
 		super(headers, id, timestamp);
 	}
 
-	/**
-	 * Create an instance with String ID converted to consistent UUID
-	 */
-	public MessagingMessageHeaders(@Nullable Map<String, Object> headers, @Nullable String stringId) {
-		super(headers, stringId != null ? generateConsistentUuid(stringId) : null, null);
-	}
-
-	private static UUID generateConsistentUuid(String stringId) {
-		return UUID.nameUUIDFromBytes(stringId.getBytes(StandardCharsets.UTF_8));
-	}
 }

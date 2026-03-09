@@ -30,10 +30,10 @@ import io.awspring.cloud.sqs.support.converter.MessageAttributeDataTypes;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
+import io.awspring.cloud.sqs.support.converter.SqsMessageIdResolver;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -339,26 +339,12 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		if (sequenceNumber != null) {
 			additionalInfo.put(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber);
 		}
-		UUID messageId;
-		if (isValidUuid(rawMessageId)) {
-			messageId = UUID.fromString(rawMessageId);
-		}
-		else {
-			messageId = UUID.nameUUIDFromBytes(rawMessageId.getBytes(StandardCharsets.UTF_8));
+		UUID messageId = SqsMessageIdResolver.resolveUuid(rawMessageId);
+		if (!SqsMessageIdResolver.isValidUuid(rawMessageId)) {
 			additionalInfo.put(SqsTemplateParameters.RAW_MESSAGE_ID_PARAMETER_NAME, rawMessageId);
 		}
 		return new SendResult<>(messageId, endpointName, originalMessage,
 				additionalInfo.isEmpty() ? Collections.emptyMap() : additionalInfo);
-	}
-
-	private static boolean isValidUuid(String value) {
-		try {
-			UUID.fromString(value);
-			return true;
-		}
-		catch (IllegalArgumentException e) {
-			return false;
-		}
 	}
 
 	private CompletableFuture<SendMessageRequest> createSendMessageRequest(String endpointName, Message message) {

@@ -26,7 +26,6 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
@@ -165,35 +164,10 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		accessor.copyHeadersIfAbsent(createDefaultHeaders(source));
 		accessor.copyHeadersIfAbsent(createAdditionalHeaders(source));
 
-		if (convertMessageIdToUuid) {
-			if (!isValidUuid(source.messageId())) {
-				throw new MessagingException(String.format(
-						"Message ID '%s' is not a valid UUID. To support non-UUID message IDs, "
-								+ "set 'spring.cloud.aws.sqs.convert-message-id-to-uuid=false'. "
-								+ "The raw message ID will be available via the '%s' header.",
-						source.messageId(), SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER));
-			}
-			MessageHeaders messageHeaders = accessor.toMessageHeaders();
-			logger.trace("Mapped headers {} for message {}", messageHeaders, source.messageId());
-			return new MessagingMessageHeaders(messageHeaders, UUID.fromString(source.messageId()));
-		}
-		else {
-			accessor.setHeader(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER, source.messageId());
-			MessageHeaders messageHeaders = accessor.toMessageHeaders();
-			logger.trace("Mapped headers {} for message {}", messageHeaders, source.messageId());
-			return new MessagingMessageHeaders(messageHeaders, source.messageId());
-		}
+		MessageHeaders messageHeaders = accessor.toMessageHeaders();
+		logger.trace("Mapped headers {} for message {}", messageHeaders, source.messageId());
+		return SqsMessageIdResolver.resolveAndAddMessageId(source.messageId(), messageHeaders, convertMessageIdToUuid);
 
-	}
-
-	private boolean isValidUuid(String messageId) {
-		try {
-			UUID.fromString(messageId);
-			return true;
-		}
-		catch (IllegalArgumentException e) {
-			return false;
-		}
 	}
 
 	private MessageHeaders createAdditionalHeaders(Message source) {
