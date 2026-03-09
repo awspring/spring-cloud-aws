@@ -15,6 +15,10 @@
  */
 package io.awspring.cloud.sns.core.batch;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+
+import io.awspring.cloud.sns.LocalstackContainerTest;
 import io.awspring.cloud.sns.Person;
 import io.awspring.cloud.sns.core.CachingTopicArnResolver;
 import io.awspring.cloud.sns.core.DefaultTopicArnResolver;
@@ -23,6 +27,12 @@ import io.awspring.cloud.sns.core.SnsNotification;
 import io.awspring.cloud.sns.core.TopicArnResolver;
 import io.awspring.cloud.sns.core.batch.converter.DefaultSnsMessageConverter;
 import io.awspring.cloud.sns.core.batch.executor.SequentialBatchExecutionStrategy;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -30,13 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -47,32 +50,19 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-
 /**
  * Integration tests for {@link SnsBatchTemplate}
  *
  * @author Matej Nedic
+ * @author haroya01
  */
-@Testcontainers
-class SnsBatchTemplateIntegrationTest {
+class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 
 	public static final String BATCH_TEST_TOPIC = "batch-test-topic";
 	public static final String BATCH_TEST_QUEUE = "batch-test-queue";
 	public static final String BATCH_TEST_TOPIC_FIFO = "batch-test-topic.fifo";
 	public static final String BATCH_TEST_QUEUE_FIFO = "batch-test-queue.fifo";
 	private static final JsonMapper jsonMapper = JsonMapper.builder().build();
-	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-		DockerImageName.parse("localstack/localstack:4.4.0"));
 	private static SqsClient sqsClient;
 	private static SnsBatchTemplate snsBatchTemplate;
 	private static String standardTopicArn;
@@ -82,14 +72,8 @@ class SnsBatchTemplateIntegrationTest {
 
 	@BeforeAll
 	static void setUp() {
-		StaticCredentialsProvider credentialsProvider = StaticCredentialsProvider
-			.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
-
-		SnsClient snsClient = SnsClient.builder().endpointOverride(localstack.getEndpoint())
-			.credentialsProvider(credentialsProvider).region(Region.of(localstack.getRegion())).build();
-
-		sqsClient = SqsClient.builder().endpointOverride(localstack.getEndpoint())
-			.credentialsProvider(credentialsProvider).region(Region.of(localstack.getRegion())).build();
+		SnsClient snsClient = LocalstackContainerTest.snsClient();
+		sqsClient = LocalstackContainerTest.sqsClient();
 
 		// Standard queue and Topic
 		standardTopicArn = snsClient.createTopic(r -> r.name(BATCH_TEST_TOPIC)).topicArn();
