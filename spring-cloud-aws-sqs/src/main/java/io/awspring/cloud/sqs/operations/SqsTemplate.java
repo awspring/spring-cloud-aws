@@ -29,6 +29,7 @@ import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter
 import io.awspring.cloud.sqs.support.converter.MessageAttributeDataTypes;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.SqsHeaderMapper;
 import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.SqsMessageIdResolver;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
@@ -113,6 +114,18 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		this.queueNotFoundStrategy = options.queueNotFoundStrategy;
 		this.messageSystemAttributeNames = options.messageSystemAttributeNames;
 		this.contentBasedDeduplication = options.contentBasedDeduplication;
+		configureHeaderMapper(builder.messageConverter, options.convertMessageIdToUuid);
+	}
+
+	private static void configureHeaderMapper(MessagingMessageConverter<Message> messageConverter,
+			boolean convertMessageIdToUuid) {
+		if (!(messageConverter instanceof AbstractMessagingMessageConverter<Message> abstractConverter)) {
+			return;
+		}
+		if (!(abstractConverter.getHeaderMapper() instanceof SqsHeaderMapper sqsHeaderMapper)) {
+			return;
+		}
+		sqsHeaderMapper.setConvertMessageIdToUuid(convertMessageIdToUuid);
 	}
 
 	/**
@@ -669,6 +682,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 		private TemplateContentBasedDeduplication contentBasedDeduplication = TemplateContentBasedDeduplication.AUTO;
 
+		private boolean convertMessageIdToUuid = true;
+
 		@Override
 		public SqsTemplateOptions queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notEmpty(queueAttributeNames, "queueAttributeNames cannot be null or empty");
@@ -714,6 +729,12 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		public SqsTemplateOptions observationConvention(SqsTemplateObservation.Convention observationConvention) {
 			Assert.notNull(observationConvention, "observationConvention cannot be null");
 			super.observationConvention(observationConvention);
+			return this;
+		}
+
+		@Override
+		public SqsTemplateOptions convertMessageIdToUuid(boolean convertMessageIdToUuid) {
+			this.convertMessageIdToUuid = convertMessageIdToUuid;
 			return this;
 		}
 
