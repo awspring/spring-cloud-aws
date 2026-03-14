@@ -1193,6 +1193,56 @@ class SqsTemplateTests {
 	}
 
 	@Test
+	void shouldHandleNonUuidMessageIdInSendResponse() {
+		String queue = "test-queue";
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+		String nonUuidMessageId = "92898073-7bd6a160-5797b060-54a7e539";
+		SendMessageResponse response = SendMessageResponse.builder().messageId(nonUuidMessageId).build();
+		given(mockClient.sendMessage(any(SendMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(response));
+		SqsOperations template = SqsTemplate.newTemplate(mockClient);
+		String payload = "test-payload";
+		SendResult<String> result = template.send(to -> to.queue(queue).payload(payload));
+		assertThat(result.messageId())
+				.isEqualTo(UUID.nameUUIDFromBytes(nonUuidMessageId.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+		assertThat(result.additionalInformation().get(SqsTemplateParameters.RAW_MESSAGE_ID_PARAMETER_NAME))
+				.isEqualTo(nonUuidMessageId);
+	}
+
+	@Test
+	void shouldHandleNonUuidMessageIdInBatchSendResponse() {
+		String queue = "test-queue";
+		String payload1 = "test-payload-1";
+		String payload2 = "test-payload-2";
+		Message<String> message1 = MessageBuilder.withPayload(payload1).build();
+		Message<String> message2 = MessageBuilder.withPayload(payload2).build();
+		List<Message<String>> messages = List.of(message1, message2);
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+		String nonUuidMessageId1 = "92898073-7bd6a160-5797b060-54a7e539";
+		String nonUuidMessageId2 = "a2898073-8bd6a160-6797b060-64a7e539";
+		SendMessageBatchResponse response = SendMessageBatchResponse.builder()
+				.successful(
+						builder -> builder.id(message1.getHeaders().getId().toString()).messageId(nonUuidMessageId1),
+						builder -> builder.id(message2.getHeaders().getId().toString()).messageId(nonUuidMessageId2))
+				.build();
+		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(response));
+		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
+		SendResult.Batch<String> results = template.sendMany(queue, messages);
+		assertThat(results.successful()).hasSize(2);
+		results.successful().forEach(result -> {
+			assertThat(result.additionalInformation()).containsKey(SqsTemplateParameters.RAW_MESSAGE_ID_PARAMETER_NAME);
+		});
+	}
+
+	@Test
 	void shouldPropagateTracingAsMessageSystemAttribute() {
 		String queue = "test-queue";
 		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();

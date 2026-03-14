@@ -1,0 +1,97 @@
+/*
+ * Copyright 2013-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.awspring.cloud.sqs.support.converter;
+
+import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.listener.SqsHeaders;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
+
+/**
+ * Utility class for resolving SQS message IDs. Consolidates UUID validation, conversion, and fail-fast logic used by
+ * both {@link SqsHeaderMapper} and {@link io.awspring.cloud.sqs.operations.SqsTemplate}.
+ *
+ * @author Jeongmin Kim
+ * @since 4.0.1
+ */
+public final class SqsMessageIdResolver {
+
+	private SqsMessageIdResolver() {
+	}
+
+	/**
+	 * Resolve the message ID and add it to the provided headers. The raw message ID is always stored in the
+	 * {@link SqsHeaders#SQS_RAW_MESSAGE_ID_HEADER} header.
+	 *
+	 * <p>
+	 * If the message ID is a valid UUID, it is used directly. If not, and {@code convertMessageIdToUuid} is
+	 * {@code true}, a {@link MessagingException} is thrown with instructions to disable UUID conversion. If
+	 * {@code convertMessageIdToUuid} is {@code false}, a deterministic UUID is generated from the raw message ID.
+	 * @param messageId the raw message ID from SQS.
+	 * @param headers the existing message headers.
+	 * @param convertMessageIdToUuid whether to enforce UUID message IDs.
+	 * @return the resolved {@link MessageHeaders} with the message ID set.
+	 * @throws MessagingException if the message ID is not a valid UUID and conversion is enabled.
+	 */
+	public static MessageHeaders resolveAndAddMessageId(String messageId, MessageHeaders headers,
+			boolean convertMessageIdToUuid) {
+		MessageHeaders withRawId = MessageHeaderUtils.addHeaderIfAbsent(headers, SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER,
+				messageId);
+		if (isValidUuid(messageId)) {
+			return new MessagingMessageHeaders(withRawId, UUID.fromString(messageId));
+		}
+		if (convertMessageIdToUuid) {
+			throw new MessagingException(String.format(
+					"Message ID '%s' is not a valid UUID. To support non-UUID message IDs, "
+							+ "set 'spring.cloud.aws.sqs.convert-message-id-to-uuid=false'. "
+							+ "The raw message ID will be available via the '%s' header.",
+					messageId, SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER));
+		}
+		return new MessagingMessageHeaders(withRawId,
+				UUID.nameUUIDFromBytes(messageId.getBytes(StandardCharsets.UTF_8)));
+	}
+
+	/**
+	 * Resolve a message ID string to a UUID. If the string is a valid UUID, it is parsed directly. Otherwise, a
+	 * deterministic UUID is generated using {@link UUID#nameUUIDFromBytes}.
+	 * @param messageId the raw message ID.
+	 * @return the resolved UUID.
+	 */
+	public static UUID resolveUuid(String messageId) {
+		if (isValidUuid(messageId)) {
+			return UUID.fromString(messageId);
+		}
+		return UUID.nameUUIDFromBytes(messageId.getBytes(StandardCharsets.UTF_8));
+	}
+
+	/**
+	 * Check whether the given string is a valid UUID.
+	 * @param value the string to check.
+	 * @return {@code true} if the string is a valid UUID, {@code false} otherwise.
+	 */
+	public static boolean isValidUuid(String value) {
+		try {
+			UUID.fromString(value);
+			return true;
+		}
+		catch (IllegalArgumentException e) {
+			return false;
+		}
+	}
+
+}

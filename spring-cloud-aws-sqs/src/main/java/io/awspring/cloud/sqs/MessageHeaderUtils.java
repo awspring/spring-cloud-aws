@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.sqs;
 
+import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
 import java.util.Collection;
 import java.util.Map;
@@ -30,6 +31,7 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
  * Utility class for extracting {@link MessageHeaders} from a {@link Message}.
  *
  * @author Tomaz Fernandes
+ * @author Jeongmin Kim
  * @since 3.0
  */
 public class MessageHeaderUtils {
@@ -150,4 +152,22 @@ public class MessageHeaderUtils {
 		return new GenericMessage<>(message.getPayload(), newHeaders);
 	}
 
+	/**
+	 * Return the raw provider message ID, falling back to Spring message ID if not present.
+	 * @param message the message.
+	 * @return the raw provider ID or Spring ID.
+	 */
+	public static String getRawMessageId(Message<?> message) {
+		String rawMessageId = message.getHeaders().get(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER, String.class);
+		return rawMessageId != null ? rawMessageId : getId(message);
+	}
+
+	/**
+	 * Return the messages' raw provider IDs as a concatenated {@link String}.
+	 * @param messages the messages.
+	 * @return the raw provider IDs.
+	 */
+	public static <T> String getRawMessageId(Collection<Message<T>> messages) {
+		return messages.stream().map(MessageHeaderUtils::getRawMessageId).collect(Collectors.joining("; "));
+	}
 }

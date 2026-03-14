@@ -26,7 +26,11 @@ import io.awspring.cloud.sqs.listener.SqsContainerOptions;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementExecutor;
 import io.awspring.cloud.sqs.listener.acknowledgement.ExecutingAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.SqsAcknowledgementExecutor;
+import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.HeaderMapper;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.SqsHeaderMapper;
 import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,6 +67,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
  * @param <T> the {@link Message} payload type.
  *
  * @author Tomaz Fernandes
+ * @author Jeongmin Kim
  * @since 3.0
  */
 public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessageSource<T, Message>
@@ -109,6 +114,17 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 		this.messageVisibility = sqsContainerOptions.getMessageVisibility() != null
 				? (int) sqsContainerOptions.getMessageVisibility().getSeconds()
 				: MESSAGE_VISIBILITY_DISABLED;
+		configureHeaderMapper(sqsContainerOptions);
+	}
+
+	private void configureHeaderMapper(SqsContainerOptions sqsContainerOptions) {
+		MessagingMessageConverter<Message> converter = getMessagingMessageConverter();
+		if (converter instanceof AbstractMessagingMessageConverter<Message> abstractConverter) {
+			HeaderMapper<Message> headerMapper = abstractConverter.getHeaderMapper();
+			if (headerMapper instanceof SqsHeaderMapper sqsHeaderMapper) {
+				sqsHeaderMapper.setConvertMessageIdToUuid(sqsContainerOptions.getConvertMessageIdToUuid());
+			}
+		}
 	}
 
 	@Override

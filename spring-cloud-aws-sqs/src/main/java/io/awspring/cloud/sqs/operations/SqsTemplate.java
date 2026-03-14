@@ -29,7 +29,9 @@ import io.awspring.cloud.sqs.support.converter.AbstractMessagingMessageConverter
 import io.awspring.cloud.sqs.support.converter.MessageAttributeDataTypes;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
+import io.awspring.cloud.sqs.support.converter.SqsHeaderMapper;
 import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
+import io.awspring.cloud.sqs.support.converter.SqsMessageIdResolver;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
@@ -77,6 +79,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
  * @author Tomaz Fernandes
  * @author Zhong Xi Lu
  * @author Hyunggeol Lee
+ * @author Jeongmin Kim
  *
  * @since 3.0
  */
@@ -111,6 +114,18 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		this.queueNotFoundStrategy = options.queueNotFoundStrategy;
 		this.messageSystemAttributeNames = options.messageSystemAttributeNames;
 		this.contentBasedDeduplication = options.contentBasedDeduplication;
+		configureHeaderMapper(builder.messageConverter, options.convertMessageIdToUuid);
+	}
+
+	private static void configureHeaderMapper(MessagingMessageConverter<Message> messageConverter,
+			boolean convertMessageIdToUuid) {
+		if (!(messageConverter instanceof AbstractMessagingMessageConverter<Message> abstractConverter)) {
+			return;
+		}
+		if (!(abstractConverter.getHeaderMapper() instanceof SqsHeaderMapper sqsHeaderMapper)) {
+			return;
+		}
+		sqsHeaderMapper.setConvertMessageIdToUuid(convertMessageIdToUuid);
 	}
 
 	/**
@@ -327,16 +342,22 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	protected <T> CompletableFuture<SendResult<T>> doSendAsync(String endpointName, Message message,
 			org.springframework.messaging.Message<T> originalMessage) {
 		return createSendMessageRequest(endpointName, message).thenCompose(this.sqsAsyncClient::sendMessage)
-				.thenApply(response -> createSendResult(UUID.fromString(response.messageId()),
-						response.sequenceNumber(), endpointName, originalMessage));
+				.thenApply(response -> createSendResult(response.messageId(), response.sequenceNumber(), endpointName,
+						originalMessage));
 	}
 
-	private <T> SendResult<T> createSendResult(UUID messageId, @Nullable String sequenceNumber, String endpointName,
-			org.springframework.messaging.Message<T> originalMessage) {
+	private <T> SendResult<T> createSendResult(String rawMessageId, @Nullable String sequenceNumber,
+			String endpointName, org.springframework.messaging.Message<T> originalMessage) {
+		Map<String, Object> additionalInfo = new HashMap<>();
+		if (sequenceNumber != null) {
+			additionalInfo.put(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber);
+		}
+		UUID messageId = SqsMessageIdResolver.resolveUuid(rawMessageId);
+		if (!SqsMessageIdResolver.isValidUuid(rawMessageId)) {
+			additionalInfo.put(SqsTemplateParameters.RAW_MESSAGE_ID_PARAMETER_NAME, rawMessageId);
+		}
 		return new SendResult<>(messageId, endpointName, originalMessage,
-				sequenceNumber != null
-						? Collections.singletonMap(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber)
-						: Collections.emptyMap());
+				additionalInfo.isEmpty() ? Collections.emptyMap() : additionalInfo);
 	}
 
 	private CompletableFuture<SendMessageRequest> createSendMessageRequest(String endpointName, Message message) {
@@ -358,8 +379,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			Collection<Message> messages, Collection<org.springframework.messaging.Message<T>> originalMessages) {
 		logger.debug("Sending messages {} to endpoint {}", messages, endpointName);
 		return createSendMessageBatchRequest(endpointName, messages).thenCompose(this.sqsAsyncClient::sendMessageBatch)
-				.thenApply(response -> createSendResultBatch(response, endpointName,
-						originalMessages.stream().collect(Collectors.toMap(MessageHeaderUtils::getId, msg -> msg))));
+				.thenApply(response -> createSendResultBatch(response, endpointName, originalMessages.stream()
+						.collect(Collectors.toMap(MessageHeaderUtils::getRawMessageId, msg -> msg))));
 	}
 
 	private <T> SendResult.Batch<T> createSendResultBatch(SendMessageBatchResponse response, String endpointName,
@@ -379,10 +400,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private <T> Collection<SendResult<T>> doCreateSendResultBatch(SendMessageBatchResponse response,
 			String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
-		return response
-				.successful().stream().map(entry -> createSendResult(UUID.fromString(entry.messageId()),
-						entry.sequenceNumber(), endpointName, getOriginalMessage(originalMessagesById, entry)))
-				.toList();
+		return response.successful().stream().map(entry -> createSendResult(entry.messageId(), entry.sequenceNumber(),
+				endpointName, getOriginalMessage(originalMessagesById, entry))).toList();
 	}
 
 	private <T> org.springframework.messaging.Message<T> getOriginalMessage(
@@ -540,7 +559,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private CompletableFuture<Void> deleteMessages(String endpointName,
 			Collection<org.springframework.messaging.Message<?>> messages) {
 		logger.trace("Acknowledging in queue {} messages {}", endpointName,
-				MessageHeaderUtils.getId(addTypeToMessages(messages)));
+				MessageHeaderUtils.getRawMessageId(addTypeToMessages(messages)));
 		return getQueueAttributes(endpointName)
 				.thenCompose(attributes -> this.sqsAsyncClient.deleteMessageBatch(DeleteMessageBatchRequest.builder()
 						.queueUrl(attributes.getQueueUrl()).entries(createDeleteMessageEntries(messages)).build()))
@@ -559,7 +578,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<?>> messages,
 			String endpointName) {
 		return response.failed().stream().map(BatchResultErrorEntry::id)
-				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst()
+				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getRawMessageId(msg).equals(id))
+						.findFirst()
 						.orElseThrow(() -> new SqsAcknowledgementException(
 								"Could not correlate ids for acknowledgement failure", Collections.emptyList(),
 								messages, endpointName)))
@@ -570,7 +590,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<?>> messages,
 			String endpointName) {
 		return response.successful().stream().map(DeleteMessageBatchResultEntry::id)
-				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst()
+				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getRawMessageId(msg).equals(id))
+						.findFirst()
 						.orElseThrow(() -> new SqsAcknowledgementException(
 								"Could not correlate ids for acknowledgement failure", Collections.emptyList(),
 								messages, endpointName)))
@@ -588,7 +609,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			DeleteMessageBatchResponse response, @Nullable Throwable t) {
 		if (t != null) {
 			logger.error("Error acknowledging in queue {} messages {}", endpointName,
-					MessageHeaderUtils.getId(addTypeToMessages(messages)));
+					MessageHeaderUtils.getRawMessageId(addTypeToMessages(messages)));
 		}
 		else if (!response.failed().isEmpty()) {
 			logger.warn("Some messages could not be acknowledged in queue {}: {}", endpointName,
@@ -596,14 +617,14 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		}
 		else {
 			logger.trace("Acknowledged messages in queue {}: {}", endpointName,
-					MessageHeaderUtils.getId(addTypeToMessages(messages)));
+					MessageHeaderUtils.getRawMessageId(addTypeToMessages(messages)));
 		}
 	}
 
 	private Collection<DeleteMessageBatchRequestEntry> createDeleteMessageEntries(
 			Collection<org.springframework.messaging.Message<?>> messages) {
 		return messages.stream()
-				.map(message -> DeleteMessageBatchRequestEntry.builder().id(MessageHeaderUtils.getId(message))
+				.map(message -> DeleteMessageBatchRequestEntry.builder().id(MessageHeaderUtils.getRawMessageId(message))
 						.receiptHandle(
 								MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER))
 						.build())
@@ -661,6 +682,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 		private TemplateContentBasedDeduplication contentBasedDeduplication = TemplateContentBasedDeduplication.AUTO;
 
+		private boolean convertMessageIdToUuid = true;
+
 		@Override
 		public SqsTemplateOptions queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notEmpty(queueAttributeNames, "queueAttributeNames cannot be null or empty");
@@ -706,6 +729,12 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		public SqsTemplateOptions observationConvention(SqsTemplateObservation.Convention observationConvention) {
 			Assert.notNull(observationConvention, "observationConvention cannot be null");
 			super.observationConvention(observationConvention);
+			return this;
+		}
+
+		@Override
+		public SqsTemplateOptions convertMessageIdToUuid(boolean convertMessageIdToUuid) {
+			this.convertMessageIdToUuid = convertMessageIdToUuid;
 			return this;
 		}
 

@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  *
  * @author Tomaz Fernandes
  * @author Dongha Kim
+ * @author Jeongmin Kim
  *
  * @since 3.0
  * @see SqsHeaderMapper
@@ -117,6 +118,15 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	public void setPayloadTypeHeaderValueFunction(Function<Message<?>, String> payloadTypeHeaderFunction) {
 		Assert.notNull(payloadTypeHeaderFunction, "payloadTypeHeaderFunction cannot be null");
 		this.payloadTypeHeaderFunction = payloadTypeHeaderFunction;
+	}
+
+	/**
+	 * Get the {@link HeaderMapper} used to convert headers for
+	 * {@link software.amazon.awssdk.services.sqs.model.Message} instances.
+	 * @return the header mapper instance.
+	 */
+	public HeaderMapper<S> getHeaderMapper() {
+		return this.headerMapper;
 	}
 
 	/**

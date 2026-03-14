@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 /**
  * Sqs specific options for the {@link SqsTemplate}.
  *
+ * @author Jeongmin Kim
  */
 public interface SqsTemplateOptions extends MessagingTemplateOptions<SqsTemplateOptions> {
 
@@ -86,4 +87,12 @@ public interface SqsTemplateOptions extends MessagingTemplateOptions<SqsTemplate
 	 * @return the options instance.
 	 */
 	SqsTemplateOptions observationConvention(SqsTemplateObservation.Convention observationConvention);
+
+	/**
+	 * Set whether to convert SQS message IDs to UUIDs. Set to {@code false} for SQS-compatible providers that return
+	 * non-UUID message IDs.
+	 * @param convertMessageIdToUuid whether to convert message IDs to UUIDs.
+	 * @return the options instance.
+	 */
+	SqsTemplateOptions convertMessageIdToUuid(boolean convertMessageIdToUuid);
 }
