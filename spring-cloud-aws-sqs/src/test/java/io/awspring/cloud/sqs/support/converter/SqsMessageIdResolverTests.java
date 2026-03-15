@@ -34,34 +34,6 @@ import org.springframework.messaging.support.MessageHeaderAccessor;
 class SqsMessageIdResolverTests {
 
 	@Test
-	void shouldReturnTrueForValidUuid() {
-		assertThat(SqsMessageIdResolver.isValidUuid("550e8400-e29b-41d4-a716-446655440000")).isTrue();
-		assertThat(SqsMessageIdResolver.isValidUuid(UUID.randomUUID().toString())).isTrue();
-	}
-
-	@Test
-	void shouldReturnFalseForInvalidUuid() {
-		assertThat(SqsMessageIdResolver.isValidUuid("92898073-7bd6a160-5797b060-54a7e539")).isFalse();
-		assertThat(SqsMessageIdResolver.isValidUuid("not-a-uuid")).isFalse();
-	}
-
-	@Test
-	void shouldResolveValidUuidDirectly() {
-		String uuidString = "550e8400-e29b-41d4-a716-446655440000";
-		UUID result = SqsMessageIdResolver.resolveUuid(uuidString);
-		assertThat(result).isEqualTo(UUID.fromString(uuidString));
-	}
-
-	@Test
-	void shouldResolveDeterministicUuidForNonUuidString() {
-		String nonUuid = "92898073-7bd6a160-5797b060-54a7e539";
-		UUID result = SqsMessageIdResolver.resolveUuid(nonUuid);
-		assertThat(result).isEqualTo(UUID.nameUUIDFromBytes(nonUuid.getBytes(StandardCharsets.UTF_8)));
-		// Verify deterministic
-		assertThat(SqsMessageIdResolver.resolveUuid(nonUuid)).isEqualTo(result);
-	}
-
-	@Test
 	void shouldResolveAndAddMessageIdWithValidUuid() {
 		String uuidMessageId = "550e8400-e29b-41d4-a716-446655440000";
 		MessageHeaders inputHeaders = new MessageHeaderAccessor().toMessageHeaders();
@@ -95,6 +67,10 @@ class SqsMessageIdResolverTests {
 		MessageHeaders result = SqsMessageIdResolver.resolveAndAddMessageId(nonUuid, inputHeaders, false);
 		assertThat(result.getId()).isEqualTo(UUID.nameUUIDFromBytes(nonUuid.getBytes(StandardCharsets.UTF_8)));
 		assertThat(result.get(SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER)).isEqualTo(nonUuid);
+		// Verify deterministic
+		MessageHeaders result2 = SqsMessageIdResolver.resolveAndAddMessageId(nonUuid,
+				new MessageHeaderAccessor().toMessageHeaders(), false);
+		assertThat(result2.getId()).isEqualTo(result.getId());
 	}
 
 	@Test

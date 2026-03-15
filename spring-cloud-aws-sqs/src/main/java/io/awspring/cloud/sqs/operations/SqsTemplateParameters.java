@@ -39,9 +39,4 @@ public class SqsTemplateParameters {
 	 */
 	public static final String ERROR_CODE_PARAMETER_NAME = "code";
 
-	/**
-	 * The raw provider message ID when it is not a valid UUID.
-	 */
-	public static final String RAW_MESSAGE_ID_PARAMETER_NAME = "rawMessageId";
-
 }

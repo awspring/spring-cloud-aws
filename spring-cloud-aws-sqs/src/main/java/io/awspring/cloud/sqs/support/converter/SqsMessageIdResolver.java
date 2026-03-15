@@ -66,25 +66,14 @@ public final class SqsMessageIdResolver {
 				UUID.nameUUIDFromBytes(messageId.getBytes(StandardCharsets.UTF_8)));
 	}
 
-	/**
-	 * Resolve a message ID string to a UUID. If the string is a valid UUID, it is parsed directly. Otherwise, a
-	 * deterministic UUID is generated using {@link UUID#nameUUIDFromBytes}.
-	 * @param messageId the raw message ID.
-	 * @return the resolved UUID.
-	 */
-	public static UUID resolveUuid(String messageId) {
+	private static UUID resolveUuid(String messageId) {
 		if (isValidUuid(messageId)) {
 			return UUID.fromString(messageId);
 		}
 		return UUID.nameUUIDFromBytes(messageId.getBytes(StandardCharsets.UTF_8));
 	}
 
-	/**
-	 * Check whether the given string is a valid UUID.
-	 * @param value the string to check.
-	 * @return {@code true} if the string is a valid UUID, {@code false} otherwise.
-	 */
-	public static boolean isValidUuid(String value) {
+	private static boolean isValidUuid(String value) {
 		try {
 			UUID.fromString(value);
 			return true;

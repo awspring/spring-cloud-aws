@@ -1203,13 +1203,12 @@ class SqsTemplateTests {
 		SendMessageResponse response = SendMessageResponse.builder().messageId(nonUuidMessageId).build();
 		given(mockClient.sendMessage(any(SendMessageRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(response));
-		SqsOperations template = SqsTemplate.newTemplate(mockClient);
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient)
+				.configure(options -> options.convertMessageIdToUuid(false)).build();
 		String payload = "test-payload";
 		SendResult<String> result = template.send(to -> to.queue(queue).payload(payload));
 		assertThat(result.messageId())
 				.isEqualTo(UUID.nameUUIDFromBytes(nonUuidMessageId.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-		assertThat(result.additionalInformation().get(SqsTemplateParameters.RAW_MESSAGE_ID_PARAMETER_NAME))
-				.isEqualTo(nonUuidMessageId);
 	}
 
 	@Test
@@ -1234,11 +1233,12 @@ class SqsTemplateTests {
 				.build();
 		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class)))
 				.willReturn(CompletableFuture.completedFuture(response));
-		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
+		SqsOperations template = SqsTemplate.builder().sqsAsyncClient(mockClient)
+				.configure(options -> options.convertMessageIdToUuid(false)).build();
 		SendResult.Batch<String> results = template.sendMany(queue, messages);
 		assertThat(results.successful()).hasSize(2);
 		results.successful().forEach(result -> {
-			assertThat(result.additionalInformation()).containsKey(SqsTemplateParameters.RAW_MESSAGE_ID_PARAMETER_NAME);
+			assertThat(result.messageId()).isNotNull();
 		});
 	}
 

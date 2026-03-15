@@ -51,6 +51,7 @@ import java.util.stream.Stream;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -105,6 +106,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private final TemplateContentBasedDeduplication contentBasedDeduplication;
 
+	private final boolean convertMessageIdToUuid;
+
 	private SqsTemplate(SqsTemplateBuilderImpl builder) {
 		super(builder.messageConverter, builder.options, SQS_OBSERVATION_SPECIFICS);
 		SqsTemplateOptionsImpl options = builder.options;
@@ -114,6 +117,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		this.queueNotFoundStrategy = options.queueNotFoundStrategy;
 		this.messageSystemAttributeNames = options.messageSystemAttributeNames;
 		this.contentBasedDeduplication = options.contentBasedDeduplication;
+		this.convertMessageIdToUuid = options.convertMessageIdToUuid;
 		configureHeaderMapper(builder.messageConverter, options.convertMessageIdToUuid);
 	}
 
@@ -348,13 +352,12 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private <T> SendResult<T> createSendResult(String rawMessageId, @Nullable String sequenceNumber,
 			String endpointName, org.springframework.messaging.Message<T> originalMessage) {
+		MessageHeaders resolvedHeaders = SqsMessageIdResolver.resolveAndAddMessageId(rawMessageId,
+				originalMessage.getHeaders(), this.convertMessageIdToUuid);
+		UUID messageId = resolvedHeaders.getId();
 		Map<String, Object> additionalInfo = new HashMap<>();
 		if (sequenceNumber != null) {
 			additionalInfo.put(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber);
-		}
-		UUID messageId = SqsMessageIdResolver.resolveUuid(rawMessageId);
-		if (!SqsMessageIdResolver.isValidUuid(rawMessageId)) {
-			additionalInfo.put(SqsTemplateParameters.RAW_MESSAGE_ID_PARAMETER_NAME, rawMessageId);
 		}
 		return new SendResult<>(messageId, endpointName, originalMessage,
 				additionalInfo.isEmpty() ? Collections.emptyMap() : additionalInfo);
