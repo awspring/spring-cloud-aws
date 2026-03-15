@@ -468,6 +468,7 @@ SqsTemplate.builder().configure(options -> options.acknowledgementMode(TemplateA
 ```
 
 If an error occurs during acknowledgement, a `SqsAcknowledgementException` is thrown, containing both the messages that were successfully acknowledged and those which failed.
+See <<sqs-acknowledgement-result-callback>> for details on inspecting partial failure results and the fail-safe correlation behavior.
 
 To acknowledge messages received with `MANUAL` acknowledgement, the `Acknowledgement#acknowledge` and `Acknowledgement#acknowledgeAsync` methods can be used.
 
@@ -2018,6 +2019,7 @@ NOTE: PARALLEL is the default for FIFO because ordering is guaranteed for proces
 This assures no messages from a given `MessageGroup` will be polled until the previous batch is acknowledged.
 Implementations of this interface will be executed after an acknowledgement execution completes with either success or failure.
 
+[[sqs-acknowledgement-result-callback]]
 ==== Acknowledgement Result Callback
 
 The framework offers the `AcknowledgementResultCallback` and `AsyncAcknowledgementResultCallback` interfaces that can be added to a `SqsMessageListenerContainer` or `SqsMessageListenerContainerFactory`.
