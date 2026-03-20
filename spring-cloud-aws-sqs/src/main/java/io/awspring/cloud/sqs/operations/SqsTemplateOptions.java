@@ -24,7 +24,9 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 /**
  * Sqs specific options for the {@link SqsTemplate}.
  *
+ * @author Tomaz Fernandes
  * @author Jeongmin Kim
+ * @since 3.0.0
  */
 public interface SqsTemplateOptions extends MessagingTemplateOptions<SqsTemplateOptions> {
 

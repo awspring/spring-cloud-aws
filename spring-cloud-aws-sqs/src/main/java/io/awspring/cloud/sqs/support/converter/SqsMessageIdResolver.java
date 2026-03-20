@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.sqs.model.Message;
  * both {@link SqsHeaderMapper} and {@link io.awspring.cloud.sqs.operations.SqsTemplate}.
  *
  * @author Jeongmin Kim
- * @since 4.0.1
+ * @since 4.1.0
  */
 public final class SqsMessageIdResolver {
 
