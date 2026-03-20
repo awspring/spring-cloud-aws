@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 /**
  * Utility class for resolving SQS message IDs. Consolidates UUID validation, conversion, and fail-fast logic used by
@@ -66,11 +67,22 @@ public final class SqsMessageIdResolver {
 				UUID.nameUUIDFromBytes(messageId.getBytes(StandardCharsets.UTF_8)));
 	}
 
-	private static UUID resolveUuid(String messageId) {
-		if (isValidUuid(messageId)) {
-			return UUID.fromString(messageId);
+	/**
+	 * Configure message ID resolution on the given converter. If the converter is an
+	 * {@link AbstractMessagingMessageConverter} with a {@link SqsHeaderMapper}, sets the {@code convertMessageIdToUuid}
+	 * flag on it.
+	 * @param converter the messaging message converter.
+	 * @param convertMessageIdToUuid whether to enforce UUID message IDs.
+	 */
+	public static void configureMessageIdResolution(MessagingMessageConverter<Message> converter,
+			boolean convertMessageIdToUuid) {
+		if (converter instanceof AbstractMessagingMessageConverter<Message> abstractConverter) {
+			abstractConverter.configureHeaderMapper(headerMapper -> {
+				if (headerMapper instanceof SqsHeaderMapper sqsHeaderMapper) {
+					sqsHeaderMapper.setConvertMessageIdToUuid(convertMessageIdToUuid);
+				}
+			});
 		}
-		return UUID.nameUUIDFromBytes(messageId.getBytes(StandardCharsets.UTF_8));
 	}
 
 	private static boolean isValidUuid(String value) {

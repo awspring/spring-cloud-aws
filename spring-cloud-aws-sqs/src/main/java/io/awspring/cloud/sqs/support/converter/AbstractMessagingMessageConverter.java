@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.support.converter;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -121,12 +122,13 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	}
 
 	/**
-	 * Get the {@link HeaderMapper} used to convert headers for
+	 * Configure the {@link HeaderMapper} used to convert headers for
 	 * {@link software.amazon.awssdk.services.sqs.model.Message} instances.
-	 * @return the header mapper instance.
+	 * @param configurer the consumer to configure the header mapper.
 	 */
-	public HeaderMapper<S> getHeaderMapper() {
-		return this.headerMapper;
+	public void configureHeaderMapper(Consumer<HeaderMapper<S>> configurer) {
+		Assert.notNull(configurer, "configurer cannot be null");
+		configurer.accept(this.headerMapper);
 	}
 
 	/**
