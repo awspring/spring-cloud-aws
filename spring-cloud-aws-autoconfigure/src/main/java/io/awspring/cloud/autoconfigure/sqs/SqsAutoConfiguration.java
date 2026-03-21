@@ -25,6 +25,8 @@ import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
+import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
@@ -123,6 +125,8 @@ public class SqsAutoConfiguration {
 			ObjectProvider<ObservationRegistry> observationRegistry,
 			ObjectProvider<SqsListenerObservation.Convention> observationConventionProvider,
 			ObjectProvider<MessageInterceptor<Object>> interceptors,
+			ObjectProvider<AcknowledgementResultCallback<Object>> acknowledgementResultCallback,
+			ObjectProvider<AsyncAcknowledgementResultCallback<Object>> asyncAcknowledgementResultCallback,
 			ObjectProvider<JacksonMessageConverterMigration> messageConverterFactory,
 			MessagingMessageConverter<?> messagingMessageConverter) {
 
@@ -133,6 +137,8 @@ public class SqsAutoConfiguration {
 		errorHandler.ifAvailable(factory::setErrorHandler);
 		interceptors.forEach(factory::addMessageInterceptor);
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
+		acknowledgementResultCallback.ifAvailable(factory::setAcknowledgementResultCallback);
+		asyncAcknowledgementResultCallback.ifAvailable(factory::setAcknowledgementResultCallback);
 		messageConverterFactory.ifAvailable(mcf -> mcf.configureLegacyObjectMapper(messagingMessageConverter));
 		if (this.sqsProperties.isObservationEnabled()) {
 			observationRegistry

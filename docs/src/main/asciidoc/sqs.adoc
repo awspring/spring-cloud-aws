@@ -2024,7 +2024,8 @@ Implementations of this interface will be executed after an acknowledgement exec
 
 The framework offers the `AcknowledgementResultCallback` and `AsyncAcknowledgementResultCallback` interfaces that can be added to a `SqsMessageListenerContainer` or `SqsMessageListenerContainerFactory`.
 
-```java
+[source, java]
+----
 public interface AcknowledgementResultCallback<T> {
 
 	default void onSuccess(Collection<Message<T>> messages) {
@@ -2034,9 +2035,10 @@ public interface AcknowledgementResultCallback<T> {
 	}
 
 }
-```
+----
 
-```java
+[source, java]
+----
 public interface AsyncAcknowledgementResultCallback<T> {
 
 	default CompletableFuture<Void> onSuccess(Collection<Message<T>> messages) {
@@ -2048,38 +2050,83 @@ public interface AsyncAcknowledgementResultCallback<T> {
 	}
 
 }
-```
+----
 
-If an acknowledgement operation partially fails, for example when `DeleteMessageBatch` returns failed entries, the callback `onFailure` receives a `SqsAcknowledgementException`.
-Use `getSuccessfullyAcknowledgedMessages()` and `getFailedAcknowledgementMessages()` to inspect the acknowledgement result and retry only failed messages if needed.
+Since 4.1.0, the auto-configured factory automatically injects any `AcknowledgementResultCallback` or `AsyncAcknowledgementResultCallback` beans declared in the application context:
 
-```java
-@Override
-public void onFailure(Collection<Message<Object>> messages, Throwable t) {
-    if (t instanceof SqsAcknowledgementException ex) {
-        Collection<Message<?>> failedMessages = ex.getFailedAcknowledgementMessages();
-        // retry only failedMessages
-    }
+[source, java]
+----
+@Bean
+public AcknowledgementResultCallback<Object> acknowledgementResultCallback() {
+	return new AcknowledgementResultCallback<>() {
+		@Override
+		public void onSuccess(Collection<Message<Object>> messages) {
+			// Custom logic after successful acknowledgement
+		}
+
+		@Override
+		public void onFailure(Collection<Message<Object>> messages, Throwable t) {
+			// Custom logic after acknowledgement failure
+		}
+	};
 }
-```
+----
 
-NOTE: If the failure IDs returned by AWS cannot be correlated with the original request IDs, a fail-safe is applied: `getSuccessfullyAcknowledgedMessages()` returns an empty collection and `getFailedAcknowledgementMessages()` returns all messages in the batch to prevent silent misclassification.
+Or using the async variant:
 
-```java
+[source, java]
+----
+@Bean
+public AsyncAcknowledgementResultCallback<Object> asyncAcknowledgementResultCallback() {
+	return new AsyncAcknowledgementResultCallback<>() {
+		@Override
+		public CompletableFuture<Void> onSuccess(Collection<Message<Object>> messages) {
+			// Custom async logic after successful acknowledgement
+			return CompletableFuture.completedFuture(null);
+		}
+
+		@Override
+		public CompletableFuture<Void> onFailure(Collection<Message<Object>> messages, Throwable t) {
+			// Custom async logic after acknowledgement failure
+			return CompletableFuture.completedFuture(null);
+		}
+	};
+}
+----
+
+Alternatively, implementations can be set in the `MessageListenerContainerFactory` or directly in the `MessageListenerContainer`:
+
+[source, java]
+----
 @Bean
 public SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
 	return SqsMessageListenerContainerFactory
 		.builder()
 		.sqsAsyncClient(sqsAsyncClient)
-		.acknowledgementResultCallback(getAcknowledgementResultCallback())
+		.acknowledgementResultCallback(acknowledgementResultCallback())
 		.build();
 }
-```
+----
 
 NOTE: When `immediate acknowledgement` is set, as is the default for `FIFO` queues, the callback will be executed **before** the next message in the batch is processed, and next message processing will wait for the callback completion.
 This can be useful for taking action such as retrying to delete the messages, or stopping the container to prevent duplicate processing in case an acknowledgement fails in a FIFO queue.
 For `batch parallel processing`, as is the default for `Standard` queues the callback execution happens asynchronously.
 
+If an acknowledgement operation partially fails, for example when `DeleteMessageBatch` returns failed entries, the callback `onFailure` receives a `SqsAcknowledgementException`.
+Use `getSuccessfullyAcknowledgedMessages()` and `getFailedAcknowledgementMessages()` to inspect the acknowledgement result and retry only failed messages if needed.
+
+[source, java]
+----
+@Override
+public void onFailure(Collection<Message<Object>> messages, Throwable t) {
+	if (t instanceof SqsAcknowledgementException ex) {
+		Collection<Message<?>> failedMessages = ex.getFailedAcknowledgementMessages();
+		// retry only failedMessages
+	}
+}
+----
+
+NOTE: If the failure IDs returned by AWS cannot be correlated with the original request IDs, a fail-safe is applied: `getSuccessfullyAcknowledgedMessages()` returns an empty collection and `getFailedAcknowledgementMessages()` returns all messages in the batch to prevent silent misclassification.
 
 === Global Configuration for @SqsListeners
 
