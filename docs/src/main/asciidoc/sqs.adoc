@@ -324,6 +324,9 @@ For convenience, the `additionalInformation` parameters can be found as constant
 By default, Spring Cloud AWS SQS expects the message ID returned by SQS to be a valid UUID.
 If a non-UUID message ID is received, an error is thrown with instructions to enable non-UUID support.
 
+The raw provider message ID is always stored in the `Sqs_RawMessageId` header, regardless of whether UUID conversion is enabled or disabled.
+Access the raw ID via `MessageHeaderUtils.getRawMessageId(message)`.
+
 To enable non-UUID message ID support (e.g., for Yandex Message Queue or other SQS-compatible providers):
 
 [source,properties]
@@ -333,12 +336,10 @@ spring.cloud.aws.sqs.convert-message-id-to-uuid=false
 
 When disabled:
 
-* **Receive side**: The raw provider message ID is stored in the `Sqs_RawMessageId` header.
-  A deterministic UUID derived from the raw ID is used as the Spring `MessageHeaders.ID`.
-  Access the raw ID via `MessageHeaderUtils.getRawMessageId(message)`.
+* **Receive side**: A deterministic UUID derived from the raw ID is used as the Spring `MessageHeaders.ID`.
 * **Send side**: If the send response contains a non-UUID message ID,
   `SendResult.messageId()` returns a deterministic UUID and the raw ID is available
-  in `SendResult.additionalInformation()` under the `rawMessageId` key.
+  in the `SendResult.message()` headers.
 
 [[template-message-conversion]]
 ==== Template Message Conversion

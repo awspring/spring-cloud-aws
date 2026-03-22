@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.support.converter;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
@@ -53,8 +54,9 @@ public final class SqsMessageIdResolver {
 			boolean convertMessageIdToUuid) {
 		MessageHeaders withRawId = MessageHeaderUtils.addHeaderIfAbsent(headers, SqsHeaders.SQS_RAW_MESSAGE_ID_HEADER,
 				messageId);
-		if (isValidUuid(messageId)) {
-			return new MessagingMessageHeaders(withRawId, UUID.fromString(messageId));
+		Optional<UUID> uuid = tryParseUuid(messageId);
+		if (uuid.isPresent()) {
+			return new MessagingMessageHeaders(withRawId, uuid.get());
 		}
 		if (convertMessageIdToUuid) {
 			throw new MessagingException(String.format(
@@ -85,13 +87,12 @@ public final class SqsMessageIdResolver {
 		}
 	}
 
-	private static boolean isValidUuid(String value) {
+	private static Optional<UUID> tryParseUuid(String value) {
 		try {
-			UUID.fromString(value);
-			return true;
+			return Optional.of(UUID.fromString(value));
 		}
 		catch (IllegalArgumentException e) {
-			return false;
+			return Optional.empty();
 		}
 	}
 

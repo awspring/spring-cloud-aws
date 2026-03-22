@@ -343,11 +343,13 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		MessageHeaders resolvedHeaders = SqsMessageIdResolver.resolveAndAddMessageId(rawMessageId,
 				originalMessage.getHeaders(), this.convertMessageIdToUuid);
 		UUID messageId = resolvedHeaders.getId();
+		org.springframework.messaging.Message<T> messageWithHeaders = MessageBuilder.createMessage(
+				originalMessage.getPayload(), resolvedHeaders);
 		Map<String, Object> additionalInfo = new HashMap<>();
 		if (sequenceNumber != null) {
 			additionalInfo.put(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber);
 		}
-		return new SendResult<>(messageId, endpointName, originalMessage,
+		return new SendResult<>(messageId, endpointName, messageWithHeaders,
 				additionalInfo.isEmpty() ? Collections.emptyMap() : additionalInfo);
 	}
 
