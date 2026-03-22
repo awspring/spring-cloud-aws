@@ -94,6 +94,7 @@
 |spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sns.region |  | Overrides the default region.
 |spring.cloud.aws.sqs.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
+|spring.cloud.aws.sqs.convert-message-id-to-uuid | `+++true+++` | Whether to convert SQS message IDs to UUIDs. Set to `false` for SQS-compatible providers that return non-UUID message IDs.
 |spring.cloud.aws.sqs.enabled | `+++true+++` | Enables SQS integration.
 |spring.cloud.aws.sqs.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sqs.listener.auto-startup |  | Defines whether SQS listeners will start automatically or not.

@@ -53,4 +53,5 @@ public class MessagingMessageHeaders extends MessageHeaders {
 	public MessagingMessageHeaders(@Nullable Map<String, Object> headers, @Nullable UUID id, @Nullable Long timestamp) {
 		super(headers, id, timestamp);
 	}
+
 }

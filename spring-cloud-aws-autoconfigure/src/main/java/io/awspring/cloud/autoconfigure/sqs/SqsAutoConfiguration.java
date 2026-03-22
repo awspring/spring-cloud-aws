@@ -64,6 +64,7 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Maciej Walkowiak
  * @author Wei Jiang
  * @author Dongha Kim
+ * @author Jeongmin Kim
  * @since 3.0
  */
 @AutoConfiguration
@@ -111,6 +112,7 @@ public class SqsAutoConfiguration {
 		if (sqsProperties.getQueueNotFoundStrategy() != null) {
 			builder.configure((options) -> options.queueNotFoundStrategy(sqsProperties.getQueueNotFoundStrategy()));
 		}
+		builder.configure(options -> options.convertMessageIdToUuid(sqsProperties.getConvertMessageIdToUuid()));
 		return builder.build();
 	}
 
@@ -152,6 +154,7 @@ public class SqsAutoConfiguration {
 		mapper.from(this.sqsProperties.getListener().getPollTimeout()).to(options::pollTimeout);
 		mapper.from(this.sqsProperties.getListener().getMaxDelayBetweenPolls()).to(options::maxDelayBetweenPolls);
 		mapper.from(this.sqsProperties.getListener().getAutoStartup()).to(options::autoStartup);
+		mapper.from(this.sqsProperties.getConvertMessageIdToUuid()).to(options::convertMessageIdToUuid);
 	}
 
 	@ConditionalOnClass(name = "tools.jackson.databind.json.JsonMapper")
@@ -160,8 +163,8 @@ public class SqsAutoConfiguration {
 		@ConditionalOnMissingBean
 		@Bean
 		public MessagingMessageConverter<Message> messageConverter(ObjectProvider<JsonMapper> jsonMapperProvider) {
-			JsonMapper jsonMapper = jsonMapperProvider.getIfAvailable();
-			return jsonMapper != null ? new SqsMessagingMessageConverter(jsonMapper)
+			return jsonMapperProvider.getIfAvailable() != null
+					? new SqsMessagingMessageConverter(jsonMapperProvider.getIfAvailable())
 					: new SqsMessagingMessageConverter();
 		}
 

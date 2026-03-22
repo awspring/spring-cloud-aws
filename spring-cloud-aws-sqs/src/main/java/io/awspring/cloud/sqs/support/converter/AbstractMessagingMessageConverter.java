@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.support.converter;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Tomaz Fernandes
  * @author Dongha Kim
+ * @author Jeongmin Kim
  *
  * @since 3.0
  * @see SqsHeaderMapper
@@ -117,6 +119,16 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	public void setPayloadTypeHeaderValueFunction(Function<Message<?>, String> payloadTypeHeaderFunction) {
 		Assert.notNull(payloadTypeHeaderFunction, "payloadTypeHeaderFunction cannot be null");
 		this.payloadTypeHeaderFunction = payloadTypeHeaderFunction;
+	}
+
+	/**
+	 * Configure the {@link HeaderMapper} used to convert headers for
+	 * {@link software.amazon.awssdk.services.sqs.model.Message} instances.
+	 * @param configurer the consumer to configure the header mapper.
+	 */
+	public void configureHeaderMapper(Consumer<HeaderMapper<S>> configurer) {
+		Assert.notNull(configurer, "configurer cannot be null");
+		configurer.accept(this.headerMapper);
 	}
 
 	/**
