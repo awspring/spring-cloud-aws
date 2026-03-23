@@ -28,6 +28,18 @@ LocalStackContainer localStackContainer() {
 }
 ----
 
+[IMPORTANT]
+====
+Starting from March 23, 2026, the `localstack:latest` community image will require a `LOCALSTACK_AUTH_TOKEN` to run.
+
+For more information about this change, pricing and how to use LocalStack going forward, see:
+
+- https://blog.localstack.cloud/2026-upcoming-pricing-changes/
+- https://blog.localstack.cloud/localstack-single-image-next-steps/
+- https://blog.localstack.cloud/the-road-ahead-for-localstack/
+
+====
+
 To understand in depth how service connection works, follow https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.testing.testcontainers.service-connections[Spring Boot Reference Guide] on this topic.
 
 === Using AWS Clients with LocalStack
@@ -41,7 +53,32 @@ class LocalstackAwsClientFactoryTest {
 
 	@Container
 	private LocalStackContainer localStackContainer = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:4.4.0"));
+			DockerImageName.parse("localstack/localstack:latest"))
+			.withEnv("LOCALSTACK_AUTH_TOKEN", System.getenv("LOCALSTACK_AUTH_TOKEN"));
+
+	@Test
+	void aTest() {
+		LocalstackAwsClientFactory factory = new LocalstackAwsClientFactory(localStackContainer);
+		S3Client s3Client = factory.create(S3Client.builder());
+		// ...
+	}
+}
+----
+
+[NOTE]
+====
+If this caught you off guard and your pipelines started to fail, or you want to try Spring Cloud AWS, you can pin LocalStack version to `4.12.0`. Note that new features, security patches and any other support will not be provided for pinned versions.
+====
+
+
+[source,java]
+----
+@Testcontainers
+class LocalstackAwsClientFactoryTest {
+
+	@Container
+	private LocalStackContainer localStackContainer = new LocalStackContainer(
+			DockerImageName.parse("localstack/localstack:4.12.0"));
 
 	@Test
 	void aTest() {
