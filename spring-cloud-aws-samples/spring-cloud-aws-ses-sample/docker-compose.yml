@@ -10,7 +10,7 @@ services:
       - AWS_DEFAULT_REGION=us-east-1
       - SERVICES=ses
       - S3_MOUNT=/tmp
-    image: localstack/localstack:latest
+    image: localstack/localstack:4.4.0
     ports:
       - "4566:4566"
     volumes:
