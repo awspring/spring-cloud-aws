@@ -65,6 +65,9 @@
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-sqs</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-sqs</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-imds</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-kinesis</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-kinesis-producer</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-kinesis-client-library</module>
 		<module>spring-cloud-aws-samples</module>
 		<module>spring-cloud-aws-test</module>
 		<module>spring-cloud-aws-modulith</module>
