@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * Sqs specific implementation of {@link ContainerOptions}.
  *
  * @author Tomaz Fernandes
+ * @author Jeongmin Kim
  * @since 3.0
  */
 public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOptions, SqsContainerOptionsBuilder> {
@@ -49,6 +50,8 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 
 	private final QueueNotFoundStrategy queueNotFoundStrategy;
 
+	private final boolean convertMessageIdToUuid;
+
 	/**
 	 * Create a {@link ContainerOptions} instance from the builder.
 	 * @param builder the builder.
@@ -61,6 +64,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		this.messageVisibility = builder.messageVisibility;
 		this.queueNotFoundStrategy = builder.queueNotFoundStrategy;
 		this.fifoBatchGroupingStrategy = builder.fifoBatchGroupingStrategy;
+		this.convertMessageIdToUuid = builder.convertMessageIdToUuid;
 	}
 
 	/**
@@ -121,6 +125,14 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		return this.queueNotFoundStrategy;
 	}
 
+	/**
+	 * Get whether to convert SQS message IDs to UUIDs.
+	 * @return whether to convert message IDs to UUIDs.
+	 */
+	public boolean getConvertMessageIdToUuid() {
+		return this.convertMessageIdToUuid;
+	}
+
 	@Override
 	public SqsContainerOptionsBuilder toBuilder() {
 		return new BuilderImpl(this);
@@ -153,6 +165,8 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		@Nullable
 		private Duration messageVisibility;
 
+		private boolean convertMessageIdToUuid = true;
+
 		protected BuilderImpl() {
 			super();
 		}
@@ -165,6 +179,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 			this.messageVisibility = options.messageVisibility;
 			this.fifoBatchGroupingStrategy = options.fifoBatchGroupingStrategy;
 			this.queueNotFoundStrategy = options.queueNotFoundStrategy;
+			this.convertMessageIdToUuid = options.convertMessageIdToUuid;
 		}
 
 		@Override
@@ -217,6 +232,12 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 				SqsListenerObservation.Convention observationConvention) {
 			Assert.notNull(observationConvention, "observationConvention cannot be null");
 			super.observationConvention(observationConvention);
+			return this;
+		}
+
+		@Override
+		public SqsContainerOptionsBuilder convertMessageIdToUuid(boolean convertMessageIdToUuid) {
+			this.convertMessageIdToUuid = convertMessageIdToUuid;
 			return this;
 		}
 
