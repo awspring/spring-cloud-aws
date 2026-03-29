@@ -25,6 +25,11 @@ package io.awspring.cloud.sqs.operations;
 public class SqsTemplateParameters {
 
 	/**
+	 * Raw message ID from the SQS-compatible broker.
+	 */
+	public static final String SQS_RAW_MESSAGE_ID_PARAMETER_NAME = "rawMessageId";
+
+	/**
 	 * Sequence number generated for SQS FIFO.
 	 */
 	public static final String SEQUENCE_NUMBER_PARAMETER_NAME = "sequenceNumber";

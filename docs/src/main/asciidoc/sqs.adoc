@@ -339,7 +339,7 @@ When disabled:
 * **Receive side**: A deterministic UUID derived from the raw ID is used as the Spring `MessageHeaders.ID`.
 * **Send side**: If the send response contains a non-UUID message ID,
   `SendResult.messageId()` returns a deterministic UUID and the raw ID is available
-  in the `SendResult.message()` headers.
+  in `SendResult.additionalInformation()` under the `SqsTemplateParameters.SQS_RAW_MESSAGE_ID_PARAMETER_NAME` key.
 
 [[template-message-conversion]]
 ==== Template Message Conversion
