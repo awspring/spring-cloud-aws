@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.listener;
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageExecutionThread;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.VirtualThreadUtils;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
@@ -112,23 +113,28 @@ public class AsyncComponentAdapters {
 		}
 
 		protected <T> CompletableFuture<T> execute(Supplier<T> executable) {
-			if (Thread.currentThread() instanceof MessageExecutionThread) {
-				logger.trace("Already in a {}, not switching", MessageExecutionThread.class.getSimpleName());
+			if (isOnExpectedThread()) {
+				logger.trace("Already on expected thread, not switching");
 				return supplyInSameThread(executable);
 			}
-			logger.trace("Not in a {}, submitting to executor", MessageExecutionThread.class.getSimpleName());
+			logger.trace("Not on expected thread, submitting to executor");
 			Assert.notNull(this.taskExecutor, "Task executor not set");
 			return supplyInNewThread(executable);
 		}
 
 		protected CompletableFuture<Void> execute(Runnable executable) {
-			if (Thread.currentThread() instanceof MessageExecutionThread) {
-				logger.trace("Already in a {}, not switching", MessageExecutionThread.class.getSimpleName());
+			if (isOnExpectedThread()) {
+				logger.trace("Already on expected thread, not switching");
 				return runInSameThread(executable);
 			}
-			logger.trace("Not in a {}, submitting to executor", MessageExecutionThread.class.getSimpleName());
+			logger.trace("Not on expected thread, submitting to executor");
 			Assert.notNull(this.taskExecutor, "Task executor not set");
 			return runInNewThread(executable);
+		}
+
+		private boolean isOnExpectedThread() {
+			return Thread.currentThread() instanceof MessageExecutionThread
+					|| VirtualThreadUtils.isVirtual(Thread.currentThread());
 		}
 
 		private CompletableFuture<Void> runInSameThread(Runnable blockingProcess) {
