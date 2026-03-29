@@ -193,6 +193,22 @@ class SqsMessageListenerContainerTests {
 	}
 
 	@Test
+	@org.junit.jupiter.api.condition.EnabledForJreRange(min = org.junit.jupiter.api.condition.JRE.JAVA_21)
+	void shouldNotThrowIfVirtualThreadExecutor() {
+		SqsAsyncClient client = mock(SqsAsyncClient.class);
+		given(client.getQueueUrl(any(GetQueueUrlRequest.class))).willReturn(
+				CompletableFuture.completedFuture(GetQueueUrlResponse.builder().queueUrl("test-queue").build()));
+		SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+		executor.setVirtualThreads(true);
+		SqsMessageListenerContainer<Object> container = SqsMessageListenerContainer.builder().sqsAsyncClient(client)
+				.queueNames("test-queue").componentFactories(getNoOpsComponentFactory())
+				.configure(options -> options.componentsTaskExecutor(executor)).messageListener(msg -> {
+				}).build();
+		container.start();
+		container.stop();
+	}
+
+	@Test
 	void shouldThrowIfMixedQueueTypes() {
 		SqsAsyncClient client = mock(SqsAsyncClient.class);
 		SqsMessageListenerContainer.Builder<Object> builder = SqsMessageListenerContainer.builder()
