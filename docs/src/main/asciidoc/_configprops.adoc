@@ -89,6 +89,12 @@
 |spring.cloud.aws.ses.from-arn |  | Configures from ARN. Only applies to SendRawEmail operation.
 |spring.cloud.aws.ses.region |  | Overrides the default region.
 |spring.cloud.aws.ses.source-arn |  | Configures source ARN. Used only for sending authorization.
+|spring.cloud.aws.sesv2.configuration-set-name |  | Configures configuration set name.
+|spring.cloud.aws.sesv2.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
+|spring.cloud.aws.sesv2.enabled | `+++true+++` | Enables Simple Email Service V2 integration.
+|spring.cloud.aws.sesv2.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.sesv2.region |  | Overrides the default region.
+|spring.cloud.aws.sesv2.identity-arn |  | Configures identity ARN. Used only for sending authorization.
 |spring.cloud.aws.sns.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.sns.enabled | `+++true+++` | Enables SNS integration.
 |spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
