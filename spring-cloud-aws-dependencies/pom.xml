@@ -289,11 +289,13 @@
 				<groupId>software.amazon.kinesis</groupId>
 				<artifactId>amazon-kinesis-client</artifactId>
 				<version>${kcl.version}</version>
+				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>software.amazon.kinesis</groupId>
 				<artifactId>amazon-kinesis-producer</artifactId>
 				<version>${kpl.version}</version>
+				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>com.amazonaws</groupId>
