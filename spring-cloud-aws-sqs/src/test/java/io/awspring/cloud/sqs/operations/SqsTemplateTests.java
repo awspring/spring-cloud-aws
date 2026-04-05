@@ -1209,7 +1209,8 @@ class SqsTemplateTests {
 		SendResult<String> result = template.send(to -> to.queue(queue).payload(payload));
 		assertThat(result.messageId())
 				.isEqualTo(UUID.nameUUIDFromBytes(nonUuidMessageId.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-		assertThat(result.additionalInformation().get(SqsTemplateParameters.SQS_RAW_MESSAGE_ID_PARAMETER_NAME)).isEqualTo(nonUuidMessageId);
+		assertThat(result.additionalInformation().get(SqsTemplateParameters.SQS_RAW_MESSAGE_ID_PARAMETER_NAME))
+				.isEqualTo(nonUuidMessageId);
 	}
 
 	@Test

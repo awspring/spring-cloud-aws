@@ -16,11 +16,12 @@
 package io.awspring.cloud.sqs.listener.pipeline;
 
 import io.awspring.cloud.sqs.CompletableFutures;
-import io.awspring.cloud.sqs.listener.ListenerExecutionFailedException;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
+import io.awspring.cloud.sqs.listener.MessageProcessingException;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -43,7 +44,7 @@ public abstract class AbstractAfterProcessingInterceptorExecutionStage<T> implem
 		return CompletableFutures.handleCompose(messageFuture,
 			(v, t) -> t == null
 				? applyInterceptors(v, null, getMessageInterceptors(context))
-				: applyInterceptors(ListenerExecutionFailedException.unwrapMessage(t), t, getMessageInterceptors(context))
+				: applyInterceptors(MessageProcessingException.unwrapMessage(t), t, getMessageInterceptors(context))
 				.thenCompose(msg -> CompletableFutures.failedFuture(t)));
 	}
 
@@ -64,11 +65,12 @@ public abstract class AbstractAfterProcessingInterceptorExecutionStage<T> implem
 		return CompletableFutures.handleCompose(messagesFuture,
 			(v, t) -> t == null
 				? applyInterceptors(v, null, getMessageInterceptors(context))
-				: applyInterceptors(ListenerExecutionFailedException.unwrapMessages(t), t, getMessageInterceptors(context))
+				// unwrapMessages is @Nullable but never returns null when t != null — it either returns the collection or throws
+				: applyInterceptors(MessageProcessingException.unwrapMessages(t), t, getMessageInterceptors(context))
 				.thenCompose(msg -> CompletableFutures.failedFuture(t)));
 	}
 
-	private CompletableFuture<Collection<Message<T>>> applyInterceptors(Collection<Message<T>> messages, Throwable t,
+	private CompletableFuture<Collection<Message<T>>> applyInterceptors(Collection<Message<T>> messages, @Nullable Throwable t,
 			Collection<AsyncMessageInterceptor<T>> messageInterceptors) {
 		return messageInterceptors.stream()
 			.reduce(CompletableFuture.<Void>completedFuture(null),
