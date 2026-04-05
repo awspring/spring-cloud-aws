@@ -13,6 +13,8 @@ Spring Cloud AWS has dedicated support to transfer Java objects with Amazon SQS 
 
 NOTE: Since 4.1.0 Spring Cloud AWS SQS also supports SQS-compatible brokers such as Yandex Message Queue. See <<sqs-compatible-brokers-support>>.
 
+NOTE: Since 4.1.0, the framework supports <<virtual-threads, virtual threads>> (JDK 21+) for message listener containers.
+
 A Spring Boot starter is provided to auto-configure SQS integration beans.
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
@@ -2333,6 +2335,8 @@ NOTE: In order to achieve higher throughput, it's encouraged that, at least for 
 
 ==== Threading and Blocking Components
 
+NOTE: See <<virtual-threads>> for virtual thread support.
+
 Message processing always starts in a framework thread from the default or provided `TaskExecutor`.
 
 If an async component is invoked and the execution returns to the framework on a different thread, such thread will be used until a `blocking` component is found, when the execution switches back to a `TaskExecutor` thread to avoid blocking i.e. `SqsAsyncClient` or `HttpClient` threads.
@@ -2349,8 +2353,34 @@ The default `TaskExecutor` is a `ThreadPoolTaskExecutor`, and a different `compo
 
 When providing a custom executor, it's important that it's configured to support all threads that will be created, which should be (maxConcurrentMessages * total number of queues).
 
-IMPORTANT: To avoid unnecessary thread hopping between blocking components, a `MessageExecutionThreadFactory` MUST be set to the executor.
+Since 4.1.0, the framework supports <<virtual-threads, virtual threads>>. If platform threads are used, a `MessageExecutionThreadFactory` MUST be set to the executor to avoid unnecessary thread hopping between blocking components.
 
+[[virtual-threads]]
+==== Virtual Threads Support
+
+Since 4.1.0, the framework supports virtual threads (JDK 21+). To use virtual threads, provide a virtual thread executor as the `componentsTaskExecutor`:
+
+[source,java]
+----
+@Bean
+SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+    SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+    executor.setVirtualThreads(true);
+    SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
+    factory.configure(options -> options
+        .componentsTaskExecutor(executor)
+        .maxConcurrentMessages(5000));
+    factory.setSqsAsyncClient(sqsAsyncClient);
+    return factory;
+}
+----
+
+When virtual threads are detected, the framework automatically:
+
+* Skips the `MessageExecutionThreadFactory` requirement
+* Detects when a `CompletableFuture` completes on a platform thread and hops back to a virtual thread before continuing execution
+
+Virtual threads allow higher `maxConcurrentMessages` values compared to platform threads, since each virtual thread has minimal memory overhead. This is particularly beneficial for I/O-bound workloads where listeners spend time waiting on databases, HTTP calls, or other services.
 
 === Client Customization
 
