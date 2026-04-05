@@ -20,6 +20,7 @@ import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
 import io.awspring.cloud.sqs.listener.ListenerExecutionFailedException;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
+import io.awspring.cloud.sqs.listener.MessageProcessingException;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class MessageListenerExecutionStage<T> implements MessageProcessingPipeli
 		logger.trace("Processing message {}", MessageHeaderUtils.getId(message));
 		return CompletableFutures.exceptionallyCompose(
 				this.messageListener.onMessage(message).thenApply(theVoid -> message),
-				t -> CompletableFutures.failedFuture(ListenerExecutionFailedException.hasListenerException(t) ? t
+				t -> CompletableFutures.failedFuture(MessageProcessingException.hasProcessingException(t) ? t
 						: new ListenerExecutionFailedException("Listener failed to process message", t, message)));
 	}
 
@@ -57,7 +58,7 @@ public class MessageListenerExecutionStage<T> implements MessageProcessingPipeli
 		logger.trace("Processing messages {}", MessageHeaderUtils.getId(messages));
 		return CompletableFutures.exceptionallyCompose(
 				this.messageListener.onMessage(messages).thenApply(theVoid -> messages),
-				t -> CompletableFutures.failedFuture(ListenerExecutionFailedException.hasListenerException(t) ? t
+				t -> CompletableFutures.failedFuture(MessageProcessingException.hasProcessingException(t) ? t
 						: new ListenerExecutionFailedException("Listener failed to process messages", t, messages)));
 	}
 
