@@ -22,8 +22,10 @@ import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
+import io.awspring.cloud.sqs.listener.InterceptorExecutionFailedException;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.listener.StandardSqsComponentFactory;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.BatchingAcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementMode;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
@@ -34,10 +36,12 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -68,6 +72,12 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME = "receives_changed_message_on_error_test_queue";
 
+	static final String INTERCEPTOR_THROWS_QUEUE_NAME = "interceptor_throws_test_queue";
+
+	static final String INTERCEPTOR_THROWS_BATCH_QUEUE_NAME = "interceptor_throws_batch_test_queue";
+
+	static final String INTERCEPTOR_THROWS_RECOVERS_QUEUE_NAME = "interceptor_throws_recovers_test_queue";
+
 	static final String SHOULD_CHANGE_PAYLOAD = "should-change-payload";
 
 	private static final String CHANGED_PAYLOAD = "Changed payload";
@@ -78,7 +88,10 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 	static void beforeTests() {
 		SqsAsyncClient client = createAsyncClient();
 		CompletableFuture.allOf(createQueue(client, RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME),
-				createQueue(client, RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME)).join();
+				createQueue(client, RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME),
+				createQueue(client, INTERCEPTOR_THROWS_QUEUE_NAME),
+				createQueue(client, INTERCEPTOR_THROWS_BATCH_QUEUE_NAME),
+				createQueue(client, INTERCEPTOR_THROWS_RECOVERS_QUEUE_NAME)).join();
 	}
 
 	@Autowired
@@ -89,6 +102,37 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Autowired(required = false)
 	ReceivesChangedPayloadListener receivesChangedPayloadListener;
+
+	@Test
+	void shouldInvokeErrorHandlerAndAfterProcessingInterceptorWhenInterceptorThrows() throws Exception {
+		sqsTemplate.send(INTERCEPTOR_THROWS_QUEUE_NAME, "any-payload");
+		assertThat(latchContainer.interceptorThrowsErrorHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsAfterProcessingLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsException.get().getCause())
+				.isInstanceOf(InterceptorExecutionFailedException.class);
+		assertThat(latchContainer.interceptorThrowsAfterProcessingException.get().getCause())
+				.isInstanceOf(InterceptorExecutionFailedException.class);
+	}
+
+	@Test
+	void shouldInvokeErrorHandlerAndAfterProcessingInterceptorWhenInterceptorThrowsBatch() throws Exception {
+		sqsTemplate.send(INTERCEPTOR_THROWS_BATCH_QUEUE_NAME, "any-payload");
+		assertThat(latchContainer.interceptorThrowsBatchErrorHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsBatchAfterProcessingLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsBatchException.get().getCause())
+				.isInstanceOf(InterceptorExecutionFailedException.class);
+		assertThat(latchContainer.interceptorThrowsBatchAfterProcessingException.get().getCause())
+				.isInstanceOf(InterceptorExecutionFailedException.class);
+	}
+
+	@Test
+	void shouldAcknowledgeAndNotProcessWhenErrorHandlerRecoversInterceptorException() throws Exception {
+		sqsTemplate.send(INTERCEPTOR_THROWS_RECOVERS_QUEUE_NAME, "any-payload");
+		assertThat(latchContainer.interceptorThrowsRecoversAckLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsRecoversAfterProcessingLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsRecoversAfterProcessingException.get()).isNull();
+		assertThat(latchContainer.interceptorThrowsRecoversListenerCalled).isFalse();
+	}
 
 	@Test
 	void shouldReceiveChangedMessageOnComponents() throws Exception {
@@ -144,11 +188,65 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	static class InterceptorThrowsRecoversListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@SqsListener(queueNames = INTERCEPTOR_THROWS_RECOVERS_QUEUE_NAME, id = "interceptor-throws-recovers", factory = "interceptorThrowsRecoversFactory")
+		void listen(Message<String> message) {
+			latchContainer.interceptorThrowsRecoversListenerCalled = true;
+		}
+
+	}
+
+	static class InterceptorThrowsListener {
+
+		@SqsListener(queueNames = INTERCEPTOR_THROWS_QUEUE_NAME, id = "interceptor-throws", factory = "interceptorThrowsFactory")
+		void listen(Message<String> message) {
+			throw new RuntimeException("Listener should not be called when interceptor throws");
+		}
+
+	}
+
+	static class InterceptorThrowsBatchListener {
+
+		@SqsListener(queueNames = INTERCEPTOR_THROWS_BATCH_QUEUE_NAME, id = "interceptor-throws-batch", factory = "interceptorThrowsBatchFactory")
+		void listen(List<Message<String>> messages) {
+			throw new RuntimeException("Listener should not be called when interceptor throws");
+		}
+
+	}
+
 	static class LatchContainer {
 
 		final CountDownLatch receivesChangedMessageLatch = new CountDownLatch(3);
 
 		final CountDownLatch receivesChangedMessageOnErrorLatch = new CountDownLatch(3);
+
+		final CountDownLatch interceptorThrowsErrorHandlerLatch = new CountDownLatch(1);
+
+		final CountDownLatch interceptorThrowsAfterProcessingLatch = new CountDownLatch(1);
+
+		final AtomicReference<Throwable> interceptorThrowsException = new AtomicReference<>();
+
+		final AtomicReference<Throwable> interceptorThrowsAfterProcessingException = new AtomicReference<>();
+
+		final CountDownLatch interceptorThrowsBatchErrorHandlerLatch = new CountDownLatch(1);
+
+		final CountDownLatch interceptorThrowsBatchAfterProcessingLatch = new CountDownLatch(1);
+
+		final AtomicReference<Throwable> interceptorThrowsBatchException = new AtomicReference<>();
+
+		final AtomicReference<Throwable> interceptorThrowsBatchAfterProcessingException = new AtomicReference<>();
+
+		final CountDownLatch interceptorThrowsRecoversAckLatch = new CountDownLatch(1);
+
+		final CountDownLatch interceptorThrowsRecoversAfterProcessingLatch = new CountDownLatch(1);
+
+		final AtomicReference<Throwable> interceptorThrowsRecoversAfterProcessingException = new AtomicReference<>();
+
+		volatile boolean interceptorThrowsRecoversListenerCalled = false;
 
 	}
 
@@ -172,6 +270,116 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 			return factory;
 		}
 		// @formatter:on
+
+		@Bean
+		public SqsMessageListenerContainerFactory<String> interceptorThrowsFactory() {
+			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
+			factory.configure(options -> options.maxDelayBetweenPolls(Duration.ofSeconds(1))
+					.acknowledgementMode(AcknowledgementMode.ALWAYS).pollTimeout(Duration.ofSeconds(3)));
+			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
+			factory.addMessageInterceptor(new AsyncMessageInterceptor<String>() {
+				@Override
+				public CompletableFuture<Message<String>> intercept(Message<String> message) {
+					throw new RuntimeException("Expected interceptor exception");
+				}
+
+				@Override
+				public CompletableFuture<Void> afterProcessing(Message<String> message, Throwable t) {
+					latchContainer.interceptorThrowsAfterProcessingException.set(t);
+					latchContainer.interceptorThrowsAfterProcessingLatch.countDown();
+					return CompletableFuture.completedFuture(null);
+				}
+			});
+			factory.setErrorHandler(new AsyncErrorHandler<String>() {
+				@Override
+				public CompletableFuture<Void> handle(Message<String> message, Throwable t) {
+					latchContainer.interceptorThrowsException.set(t);
+					latchContainer.interceptorThrowsErrorHandlerLatch.countDown();
+					return CompletableFutures.failedFuture(t);
+				}
+			});
+			return factory;
+		}
+
+		@Bean
+		public SqsMessageListenerContainerFactory<String> interceptorThrowsBatchFactory() {
+			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
+			factory.configure(options -> options.maxDelayBetweenPolls(Duration.ofSeconds(1))
+					.acknowledgementMode(AcknowledgementMode.ALWAYS).pollTimeout(Duration.ofSeconds(3)));
+			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
+			factory.addMessageInterceptor(new AsyncMessageInterceptor<String>() {
+				@Override
+				public CompletableFuture<Collection<Message<String>>> intercept(Collection<Message<String>> messages) {
+					throw new RuntimeException("Expected batch interceptor exception");
+				}
+
+				@Override
+				public CompletableFuture<Void> afterProcessing(Collection<Message<String>> messages, Throwable t) {
+					latchContainer.interceptorThrowsBatchAfterProcessingException.set(t);
+					latchContainer.interceptorThrowsBatchAfterProcessingLatch.countDown();
+					return CompletableFuture.completedFuture(null);
+				}
+			});
+			factory.setErrorHandler(new AsyncErrorHandler<String>() {
+				@Override
+				public CompletableFuture<Void> handle(Collection<Message<String>> messages, Throwable t) {
+					latchContainer.interceptorThrowsBatchException.set(t);
+					latchContainer.interceptorThrowsBatchErrorHandlerLatch.countDown();
+					return CompletableFutures.failedFuture(t);
+				}
+			});
+			return factory;
+		}
+
+		@Bean
+		public SqsMessageListenerContainerFactory<String> interceptorThrowsRecoversFactory() {
+			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
+			factory.configure(options -> options.maxDelayBetweenPolls(Duration.ofSeconds(1))
+					.acknowledgementMode(AcknowledgementMode.ON_SUCCESS).pollTimeout(Duration.ofSeconds(3)));
+			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
+			factory.addMessageInterceptor(new AsyncMessageInterceptor<String>() {
+				@Override
+				public CompletableFuture<Message<String>> intercept(Message<String> message) {
+					throw new RuntimeException("Simulated duplicate — interceptor rejects message");
+				}
+
+				@Override
+				public CompletableFuture<Void> afterProcessing(Message<String> message, Throwable t) {
+					latchContainer.interceptorThrowsRecoversAfterProcessingException.set(t);
+					latchContainer.interceptorThrowsRecoversAfterProcessingLatch.countDown();
+					return CompletableFuture.completedFuture(null);
+				}
+			});
+			factory.setErrorHandler(new AsyncErrorHandler<String>() {
+				@Override
+				public CompletableFuture<Void> handle(Message<String> message, Throwable t) {
+					// swallow — message is considered handled (e.g. duplicate, skip it)
+					return CompletableFuture.completedFuture(null);
+				}
+			});
+			factory.setAcknowledgementResultCallback(new AcknowledgementResultCallback<String>() {
+				@Override
+				public void onSuccess(Collection<Message<String>> messages) {
+					latchContainer.interceptorThrowsRecoversAckLatch.countDown();
+				}
+			});
+			return factory;
+		}
+
+		@Bean
+		InterceptorThrowsRecoversListener interceptorThrowsRecoversListener() {
+			return new InterceptorThrowsRecoversListener();
+		}
+
+		@Bean
+		InterceptorThrowsListener interceptorThrowsListener() {
+			return new InterceptorThrowsListener();
+		}
+
+		@Bean
+		InterceptorThrowsBatchListener interceptorThrowsBatchListener() {
+			return new InterceptorThrowsBatchListener();
+		}
 
 		@Bean
 		ReceivesChangedPayloadListener receivesChangedPayloadListener() {
