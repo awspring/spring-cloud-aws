@@ -22,20 +22,22 @@ import org.springframework.boot.docker.compose.service.connection.DockerComposeC
 import org.springframework.boot.docker.compose.service.connection.DockerComposeConnectionSource;
 
 /**
- * {@link DockerComposeConnectionDetailsFactory} to create {@link AwsConnectionDetails} for a {@code localstack}
+ * {@link DockerComposeConnectionDetailsFactory} to create {@link AwsConnectionDetails} for a {@code localstack} or {@code floci}
  * service.
  *
  * @author Dominik Kovács
+ * @author Bastian Hellmann
  * @since 3.2.0
  */
 class AwsDockerComposeConnectionDetailsFactory extends DockerComposeConnectionDetailsFactory<AwsConnectionDetails> {
 
-	private static final String[] LOCALSTACK_CONTAINER_NAMES = { "localstack/localstack", "localstack/localstack-pro" };
+	private static final String[]
+		AWS_EMULATOR_CONTAINER_NAMES = {"localstack/localstack", "localstack/localstack-pro", "hectorvent/floci" };
 
-	private static final int LOCALSTACK_PORT = 4566;
+	private static final int EMULATOR_PORT = 4566;
 
 	AwsDockerComposeConnectionDetailsFactory() {
-		super(LOCALSTACK_CONTAINER_NAMES);
+		super(AWS_EMULATOR_CONTAINER_NAMES);
 	}
 
 	@Override
@@ -49,14 +51,14 @@ class AwsDockerComposeConnectionDetailsFactory extends DockerComposeConnectionDe
 	private static final class AwsDockerComposeConnectionDetails extends DockerComposeConnectionDetails
 			implements AwsConnectionDetails {
 
-		private final LocalStackEnvironment environment;
+		private final AwsEmulatorEnvironment environment;
 
 		private final URI endpoint;
 
 		private AwsDockerComposeConnectionDetails(RunningService service) {
 			super(service);
-			this.environment = new LocalStackEnvironment(service.env());
-			this.endpoint = URI.create("http://%s:%s".formatted(service.host(), service.ports().get(LOCALSTACK_PORT)));
+			this.environment = new AwsEmulatorEnvironment(service.env());
+			this.endpoint = URI.create("http://%s:%s".formatted(service.host(), service.ports().get(EMULATOR_PORT)));
 		}
 
 		@Override

@@ -1,0 +1,9 @@
+services:
+  floci:
+    image: hectorvent/floci:1.5.3
+    environment:
+      AWS_ACCESS_KEY_ID: noop
+      AWS_SECRET_ACCESS_KEY: noop
+      AWS_DEFAULT_REGION: eu-central-1
+    ports:
+      - "4567:4566"
