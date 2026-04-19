@@ -381,17 +381,23 @@ public class AsyncComponentAdapters {
 
 			@Override
 			public Message<MessageType> onExecutionError(Message<MessageType> message, Throwable t) {
-				if (observationContext != null && ListenerExecutionFailedException.hasListenerException(t)) {
+				if (observationContext != null && MessageProcessingException.hasProcessingException(t)) {
 					Message<MessageType> failedMessage = Objects.requireNonNull(
-							ListenerExecutionFailedException.unwrapMessage(t),
-							"Message not found in Listener Exception.");
+							MessageProcessingException.unwrapMessage(t), "Message not found in processing exception.");
 					Message<MessageType> messageWithHeader = MessageHeaderUtils.addHeaderIfAbsent(failedMessage,
 							ObservationThreadLocalAccessor.KEY, observationContext);
-					throw new ListenerExecutionFailedException(t.getMessage(), t.getCause(), messageWithHeader);
+					throw rewrapWithUpdatedMessage(t, messageWithHeader);
 				}
 				return message;
 			}
 		}
+	}
+
+	private static <T> RuntimeException rewrapWithUpdatedMessage(Throwable t, Message<T> message) {
+		if (t instanceof InterceptorExecutionFailedException) {
+			return new InterceptorExecutionFailedException(t.getMessage(), t.getCause(), message);
+		}
+		return new ListenerExecutionFailedException(t.getMessage(), t.getCause(), message);
 	}
 
 }
