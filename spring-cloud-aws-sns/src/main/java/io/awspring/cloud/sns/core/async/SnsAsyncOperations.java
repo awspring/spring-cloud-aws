@@ -1,12 +1,26 @@
+/*
+ * Copyright 2013-2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.awspring.cloud.sns.core.async;
 
 import io.awspring.cloud.sns.core.SnsNotification;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.core.MessagePostProcessor;
-
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * High level asynchronous SNS operations.
@@ -20,73 +34,76 @@ public interface SnsAsyncOperations {
 	 * Sends a message to a destination.
 	 *
 	 * @param destination the destination name
-	 * @param message     the message to send
-	 * @param <T>         the message payload type
+	 * @param message the message to send
+	 * @param <T> the message payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<PublishMessageResult<T>> send(String destination, Message<T> message) ;
+	<T> CompletableFuture<PublishMessageResult<T>> send(String destination, Message<T> message);
 
 	/**
 	 * Converts and sends a payload to a destination.
 	 *
 	 * @param destination the destination name
-	 * @param payload     the payload to send
-	 * @param <T>         the payload type
+	 * @param payload the payload to send
+	 * @param <T> the payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload) ;
+	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload);
 
 	/**
 	 * Converts and sends a payload with headers to a destination.
 	 *
 	 * @param destination the destination name
-	 * @param payload     the payload to send
-	 * @param headers     the headers to include
-	 * @param <T>         the payload type
+	 * @param payload the payload to send
+	 * @param headers the headers to include
+	 * @param <T> the payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers);
+	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload,
+			@Nullable Map<String, Object> headers);
 
 	/**
 	 * Converts and sends a payload with a post processor to a destination.
 	 *
-	 * @param destination   the destination name
-	 * @param payload       the payload to send
+	 * @param destination the destination name
+	 * @param payload the payload to send
 	 * @param postProcessor the post processor to apply
-	 * @param <T>           the payload type
+	 * @param <T> the payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload, @Nullable MessagePostProcessor postProcessor);
+	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload,
+			@Nullable MessagePostProcessor postProcessor);
 
 	/**
 	 * Converts and sends a payload with headers and a post processor to a destination.
 	 *
-	 * @param destination   the destination name
-	 * @param payload       the payload to send
-	 * @param headers       the headers to include
+	 * @param destination the destination name
+	 * @param payload the payload to send
+	 * @param headers the headers to include
 	 * @param postProcessor the post processor to apply
-	 * @param <T>           the payload type
+	 * @param <T> the payload type
 	 * @return a CompletableFuture with the result
 	 */
-	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload, @Nullable Map<String, Object> headers,
-																  @Nullable MessagePostProcessor postProcessor);
+	<T> CompletableFuture<PublishMessageResult<T>> convertAndSend(String destination, T payload,
+			@Nullable Map<String, Object> headers, @Nullable MessagePostProcessor postProcessor);
 
 	/**
 	 * Sends a notification with a message and subject to a destination.
 	 *
 	 * @param destinationName the destination name
-	 * @param message         the message to send
-	 * @param subject         the subject (can be null)
+	 * @param message the message to send
+	 * @param subject the subject (can be null)
 	 * @return a CompletableFuture with the result
 	 */
-	CompletableFuture<PublishMessageResult<Object>> sendNotification(String destinationName, Object message, @Nullable String subject);
+	CompletableFuture<PublishMessageResult<Object>> sendNotification(String destinationName, Object message,
+			@Nullable String subject);
 
 	/**
 	 * Sends a notification to a topic.
 	 *
-	 * @param topic        the topic name
+	 * @param topic the topic name
 	 * @param notification the notification to send
-	 * @param <T>          the notification payload type
+	 * @param <T> the notification payload type
 	 * @return a CompletableFuture with the result
 	 */
 	<T> CompletableFuture<PublishMessageResult<T>> sendNotification(String topic, SnsNotification<T> notification);

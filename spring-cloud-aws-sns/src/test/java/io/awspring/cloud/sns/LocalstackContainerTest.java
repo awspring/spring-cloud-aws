@@ -59,9 +59,8 @@ public interface LocalstackContainerTest {
 
 	private static <B extends AwsClientBuilder<B, T>, T> T applyAwsClientOptions(B clientBuilder) {
 		return clientBuilder.region(Region.of(LOCAL_STACK_CONTAINER.getRegion()))
-			.credentialsProvider(credentialsProvider())
-			.endpointOverride(LOCAL_STACK_CONTAINER.getEndpoint())
-			.build();
+				.credentialsProvider(credentialsProvider()).endpointOverride(LOCAL_STACK_CONTAINER.getEndpoint())
+				.build();
 	}
 
 }

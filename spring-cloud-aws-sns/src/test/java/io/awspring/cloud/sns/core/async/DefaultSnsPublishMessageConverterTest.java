@@ -77,8 +77,7 @@ class DefaultSnsPublishMessageConverterTest {
 
 	@Test
 	void setsFifoHeaders() {
-		Message<String> message = MessageBuilder.withPayload("fifo")
-				.setHeader(MESSAGE_GROUP_ID_HEADER, "grp-1")
+		Message<String> message = MessageBuilder.withPayload("fifo").setHeader(MESSAGE_GROUP_ID_HEADER, "grp-1")
 				.setHeader(MESSAGE_DEDUPLICATION_ID_HEADER, "ded-1").build();
 
 		PublishRequestMessagePair<String> result = converter.convert(message);
@@ -89,8 +88,7 @@ class DefaultSnsPublishMessageConverterTest {
 
 	@Test
 	void convertsCustomHeadersToMessageAttributes() {
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader("priority", "high")
+		Message<String> message = MessageBuilder.withPayload("test").setHeader("priority", "high")
 				.setHeader("count", 42).build();
 
 		PublishRequestMessagePair<String> result = converter.convert(message);

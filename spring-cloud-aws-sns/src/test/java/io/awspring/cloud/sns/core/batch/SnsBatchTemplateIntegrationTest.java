@@ -79,22 +79,21 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 		standardTopicArn = snsClient.createTopic(r -> r.name(BATCH_TEST_TOPIC)).topicArn();
 		standardQueueUrl = sqsClient.createQueue(r -> r.queueName(BATCH_TEST_QUEUE)).queueUrl();
 		String standardQueueArn = sqsClient
-			.getQueueAttributes(r -> r.queueUrl(standardQueueUrl).attributeNames(QueueAttributeName.QUEUE_ARN))
-			.attributes().get(QueueAttributeName.QUEUE_ARN);
+				.getQueueAttributes(r -> r.queueUrl(standardQueueUrl).attributeNames(QueueAttributeName.QUEUE_ARN))
+				.attributes().get(QueueAttributeName.QUEUE_ARN);
 		snsClient.subscribe(r -> r.topicArn(standardTopicArn).protocol("sqs").endpoint(standardQueueArn));
 
 		// Fifo queue and Topic
 		fifoTopicArn = snsClient
-			.createTopic(CreateTopicRequest.builder().name(BATCH_TEST_TOPIC_FIFO)
-				.attributes(Map.of("FifoTopic", "true", "ContentBasedDeduplication", "true")).build())
-			.topicArn();
-		fifoQueueUrl = sqsClient
-			.createQueue(r -> r.queueName(BATCH_TEST_QUEUE_FIFO)
-				.attributes(Map.of(QueueAttributeName.FIFO_QUEUE, "true")))
-			.queueUrl();
+				.createTopic(CreateTopicRequest.builder().name(BATCH_TEST_TOPIC_FIFO)
+						.attributes(Map.of("FifoTopic", "true", "ContentBasedDeduplication", "true")).build())
+				.topicArn();
+		fifoQueueUrl = sqsClient.createQueue(
+				r -> r.queueName(BATCH_TEST_QUEUE_FIFO).attributes(Map.of(QueueAttributeName.FIFO_QUEUE, "true")))
+				.queueUrl();
 		String fifoQueueArn = sqsClient
-			.getQueueAttributes(r -> r.queueUrl(fifoQueueUrl).attributeNames(QueueAttributeName.QUEUE_ARN))
-			.attributes().get(QueueAttributeName.QUEUE_ARN);
+				.getQueueAttributes(r -> r.queueUrl(fifoQueueUrl).attributeNames(QueueAttributeName.QUEUE_ARN))
+				.attributes().get(QueueAttributeName.QUEUE_ARN);
 		snsClient.subscribe(r -> r.topicArn(fifoTopicArn).protocol("sqs").endpoint(fifoQueueArn));
 
 		JacksonJsonMessageConverter jacksonConverter = new JacksonJsonMessageConverter(new JsonMapper());
@@ -106,18 +105,17 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 	}
 
 	private static List<software.amazon.awssdk.services.sqs.model.Message> receiveAll(String queueUrl,
-																					  int expectedCount) {
+			int expectedCount) {
 		await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofMillis(500)).untilAsserted(() -> {
 			int count = getQueueMessageCount(queueUrl);
 			assertThat(count).isEqualTo(expectedCount);
 		});
 
-
 		// Visibility timeout is set so While will work only unique message will be polled.
 		List<software.amazon.awssdk.services.sqs.model.Message> messages = new ArrayList<>();
 		while (messages.size() < expectedCount) {
 			var response = sqsClient.receiveMessage(ReceiveMessageRequest.builder().queueUrl(queueUrl)
-				.maxNumberOfMessages(10).waitTimeSeconds(2).messageAttributeNames("All").build());
+					.maxNumberOfMessages(10).waitTimeSeconds(2).messageAttributeNames("All").build());
 			if (!response.hasMessages() || response.messages().isEmpty()) {
 				break;
 			}
@@ -128,9 +126,9 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 
 	private static int getQueueMessageCount(String queueUrl) {
 		var attrs = sqsClient.getQueueAttributes(GetQueueAttributesRequest.builder().queueUrl(queueUrl)
-			.attributeNames(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES).build());
-		return Integer.parseInt(
-			attrs.attributes().getOrDefault(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES, "0"));
+				.attributeNames(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES).build());
+		return Integer
+				.parseInt(attrs.attributes().getOrDefault(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES, "0"));
 	}
 
 	@Nested
@@ -158,8 +156,8 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 				JsonNode node = jsonMapper.readTree(m.body());
 				return node.get("Message").asString();
 			}).toList();
-			assertThat(bodies).containsExactlyInAnyOrder(
-				"Message 0", "Message 1", "Message 2", "Message 3", "Message 4");
+			assertThat(bodies).containsExactlyInAnyOrder("Message 0", "Message 1", "Message 2", "Message 3",
+					"Message 4");
 		}
 
 		@Test
@@ -179,17 +177,16 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 				JsonNode node = jsonMapper.readTree(m.body());
 				return node.get("Message").asString();
 			}).toList();
-			assertThat(bodies).containsExactlyInAnyOrder(
-				"Message 0", "Message 1", "Message 2", "Message 3", "Message 4",
-				"Message 5", "Message 6", "Message 7", "Message 8", "Message 9",
-				"Message 10", "Message 11");
+			assertThat(bodies).containsExactlyInAnyOrder("Message 0", "Message 1", "Message 2", "Message 3",
+					"Message 4", "Message 5", "Message 6", "Message 7", "Message 8", "Message 9", "Message 10",
+					"Message 11");
 		}
 
 		@Test
 		void sendsBatchWithCustomHeadersAndVerifiesAttributes() {
 			List<Message<String>> messages = new ArrayList<>();
 			messages.add(MessageBuilder.withPayload("Message with headers").setHeader("customHeader", "customValue")
-				.setHeader("anotherHeader", 123).build());
+					.setHeader("anotherHeader", 123).build());
 
 			BatchResult result = snsBatchTemplate.sendBatch(BATCH_TEST_TOPIC, messages);
 
@@ -229,6 +226,7 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 				assertThat(setOfPerson).contains(person);
 			});
 		}
+
 		@Test
 		void sendBatchNotificationsWithHeadersAndVerifiesContent() {
 			var john = new Person("john");
@@ -236,9 +234,9 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 			var test = new Person("test");
 			Set<Person> setOfPerson = Set.of(john, doe, test);
 			List<SnsNotification<Person>> notifications = List.of(
-				SnsNotification.builder(john).header("priority", "high").build(),
-				SnsNotification.builder(doe).header("priority", "low").build(),
-				SnsNotification.builder(test).header("priority", "medium").build());
+					SnsNotification.builder(john).header("priority", "high").build(),
+					SnsNotification.builder(doe).header("priority", "low").build(),
+					SnsNotification.builder(test).header("priority", "medium").build());
 
 			BatchResult result = snsBatchTemplate.sendBatchNotifications(BATCH_TEST_TOPIC, notifications);
 
@@ -254,8 +252,7 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 				JsonNode messageAttributes = snsEnvelope.get("MessageAttributes");
 				assertThat(messageAttributes).isNotNull();
 				assertThat(messageAttributes.get("priority")).isNotNull();
-				assertThat(messageAttributes.get("priority").get("Value").asString())
-					.isIn("high", "low", "medium");
+				assertThat(messageAttributes.get("priority").get("Value").asString()).isIn("high", "low", "medium");
 			});
 		}
 
@@ -297,8 +294,8 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 			List<Message<String>> messages = new ArrayList<>();
 			for (int i = 0; i < 3; i++) {
 				messages.add(MessageBuilder.withPayload("Fifo Message " + i)
-					.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "group-1")
-					.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-" + i).build());
+						.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "group-1")
+						.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "dedup-" + i).build());
 			}
 
 			BatchResult result = snsBatchTemplate.sendBatch(BATCH_TEST_TOPIC_FIFO, messages);
@@ -322,8 +319,8 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 			List<Message<String>> messages = new ArrayList<>();
 			for (int i = 0; i < 5; i++) {
 				messages.add(MessageBuilder.withPayload("Ordered " + i)
-					.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "order-group")
-					.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "order-dedup-" + i).build());
+						.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "order-group")
+						.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "order-dedup-" + i).build());
 			}
 
 			BatchResult result = snsBatchTemplate.sendBatch(BATCH_TEST_TOPIC_FIFO, messages);
@@ -346,14 +343,14 @@ class SnsBatchTemplateIntegrationTest implements LocalstackContainerTest {
 		void deduplicatesMessagesWithSameDeduplicationId() {
 			List<Message<String>> messages = new ArrayList<>();
 			messages.add(MessageBuilder.withPayload("Unique Message")
-				.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "dedup-group")
-				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "same-dedup-id").build());
+					.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "dedup-group")
+					.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "same-dedup-id").build());
 			messages.add(MessageBuilder.withPayload("Duplicate Message")
-				.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "dedup-group")
-				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "same-dedup-id").build());
+					.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "dedup-group")
+					.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "same-dedup-id").build());
 			messages.add(MessageBuilder.withPayload("Another Unique")
-				.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "dedup-group")
-				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "different-dedup-id").build());
+					.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "dedup-group")
+					.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "different-dedup-id").build());
 
 			BatchResult result = snsBatchTemplate.sendBatch(BATCH_TEST_TOPIC_FIFO, messages);
 
