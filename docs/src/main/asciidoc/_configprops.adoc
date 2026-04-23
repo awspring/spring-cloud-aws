@@ -1,6 +1,14 @@
 |===
 |Name | Default | Description
 
+|spring.cloud.aws.appconfig.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
+|spring.cloud.aws.appconfig.enabled | `+++true+++` | Enables App Config integration.
+|spring.cloud.aws.appconfig.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.appconfig.region |  | Overrides the default region.
+|spring.cloud.aws.appconfig.reload.max-wait-for-restart | `+++2s+++` | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
+|spring.cloud.aws.appconfig.reload.period | `+++1m+++` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
+|spring.cloud.aws.appconfig.reload.strategy |  | Reload strategy to run when properties change.
+|spring.cloud.aws.appconfig.separator | `+++#+++` | 
 |spring.cloud.aws.cloudwatch.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.cloudwatch.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.cloudwatch.region |  | Overrides the default region.
@@ -93,8 +101,8 @@
 |spring.cloud.aws.sns.enabled | `+++true+++` | Enables SNS integration.
 |spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sns.region |  | Overrides the default region.
+|spring.cloud.aws.sqs.convert-message-id-to-uuid | `+++true+++` | Whether to convert SQS message IDs to UUIDs. Set to {@code false} for SQS-compatible providers that return non-UUID message IDs.
 |spring.cloud.aws.sqs.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
-|spring.cloud.aws.sqs.convert-message-id-to-uuid | `+++true+++` | Whether to convert SQS message IDs to UUIDs. Set to `false` for SQS-compatible providers that return non-UUID message IDs.
 |spring.cloud.aws.sqs.enabled | `+++true+++` | Enables SQS integration.
 |spring.cloud.aws.sqs.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sqs.listener.auto-startup |  | Defines whether SQS listeners will start automatically or not.
