@@ -21,7 +21,6 @@ import io.awspring.cloud.sns.core.batch.converter.SnsMessageConverter;
 import io.awspring.cloud.sns.core.batch.executor.BatchExecutionStrategy;
 import java.util.Collection;
 import java.util.stream.Collectors;
-
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -81,13 +80,14 @@ public class SnsBatchTemplate implements SnsBatchOperations {
 	public <T> BatchResult convertAndSend(String topicName, Collection<T> payloads) {
 		Assert.notNull(topicName, "topicName is required");
 		Assert.notNull(payloads, "payloads are required");
-		var batchList = payloads.stream().map(it -> MessageBuilder.withPayload(it).build()).map(snsMessageConverter::convertMessage).collect(Collectors.toList());
+		var batchList = payloads.stream().map(it -> MessageBuilder.withPayload(it).build())
+				.map(snsMessageConverter::convertMessage).collect(Collectors.toList());
 		return batchExecutionStrategy.send(topicArnResolver.resolveTopicArn(topicName), batchList);
 	}
 
-
 	/**
-	 * Converts a collection of {@link SnsNotification} to Spring messages and sends them as a batch to the specified SNS topic.
+	 * Converts a collection of {@link SnsNotification} to Spring messages and sends them as a batch to the specified
+	 * SNS topic.
 	 *
 	 * @param topicName The logical name of the SNS topic
 	 * @param notifications Collection of payloads to convert and send
@@ -98,7 +98,9 @@ public class SnsBatchTemplate implements SnsBatchOperations {
 	public <T> BatchResult sendBatchNotifications(String topicName, Collection<SnsNotification<T>> notifications) {
 		Assert.notNull(topicName, "topicName is required");
 		Assert.notNull(notifications, "notifications are required");
-		var batchList = notifications.stream().map(it -> MessageBuilder.withPayload(it.getPayload()).copyHeaders(it.getHeaders()).build()).map(snsMessageConverter::convertMessage).collect(Collectors.toList());
+		var batchList = notifications.stream()
+				.map(it -> MessageBuilder.withPayload(it.getPayload()).copyHeaders(it.getHeaders()).build())
+				.map(snsMessageConverter::convertMessage).collect(Collectors.toList());
 		return batchExecutionStrategy.send(topicArnResolver.resolveTopicArn(topicName), batchList);
 	}
 

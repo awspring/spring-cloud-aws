@@ -16,7 +16,6 @@
 package io.awspring.cloud.sns.core.batch.executor;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -76,8 +75,8 @@ class SequentialBatchExecutionStrategyTest {
 
 		BatchResult result = strategy.send(TOPIC_ARN, entries);
 
-		assertThat(result.results()).extracting(BatchResult.SnsResult::messageId)
-				.containsExactlyInAnyOrder("msg-1", "msg-2", "msg-3", "msg-4", "msg-5");
+		assertThat(result.results()).extracting(BatchResult.SnsResult::messageId).containsExactlyInAnyOrder("msg-1",
+				"msg-2", "msg-3", "msg-4", "msg-5");
 		assertThat(result.errors()).isEmpty();
 		verify(snsClient, times(1)).publishBatch(any(PublishBatchRequest.class));
 	}
@@ -116,7 +115,7 @@ class SequentialBatchExecutionStrategyTest {
 		List<PublishBatchRequest> captured = requestCaptor.getAllValues();
 		assertThat(captured.get(0).publishBatchRequestEntries()).hasSize(10);
 		assertThat(captured.get(1).publishBatchRequestEntries()).hasSize(2);
-		//Verify that first and second batch are sent properly
+		// Verify that first and second batch are sent properly
 		assertThat(captured.get(0).publishBatchRequestEntries().get(0).message()).isEqualTo("Message 1");
 		assertThat(captured.get(1).publishBatchRequestEntries().get(0).message()).isEqualTo("Message 11");
 	}
@@ -126,8 +125,7 @@ class SequentialBatchExecutionStrategyTest {
 		var strategy = new SequentialBatchExecutionStrategy(snsClient);
 		var entries = createEntries(1);
 
-		when(snsClient.publishBatch(any(PublishBatchRequest.class)))
-				.thenReturn(successResponse("msg-1"));
+		when(snsClient.publishBatch(any(PublishBatchRequest.class))).thenReturn(successResponse("msg-1"));
 
 		strategy.send(TOPIC_ARN, entries);
 
@@ -141,25 +139,23 @@ class SequentialBatchExecutionStrategyTest {
 		var entries = createEntries(5);
 
 		PublishBatchResponse response = PublishBatchResponse.builder()
-				.successful(
-						PublishBatchResultEntry.builder().id("1").messageId("msg-1").build(),
+				.successful(PublishBatchResultEntry.builder().id("1").messageId("msg-1").build(),
 						PublishBatchResultEntry.builder().id("2").messageId("msg-2").build(),
 						PublishBatchResultEntry.builder().id("3").messageId("msg-3").build())
-				.failed(
-						BatchResultErrorEntry.builder().id("4").code("InvalidParameter")
-								.message("Invalid").senderFault(true).build(),
-						BatchResultErrorEntry.builder().id("5").code("ServiceError")
-								.message("Unavailable").senderFault(false).build())
+				.failed(BatchResultErrorEntry.builder().id("4").code("InvalidParameter").message("Invalid")
+						.senderFault(true).build(),
+						BatchResultErrorEntry.builder().id("5").code("ServiceError").message("Unavailable")
+								.senderFault(false).build())
 				.build();
 
 		when(snsClient.publishBatch(any(PublishBatchRequest.class))).thenReturn(response);
 
 		BatchResult result = strategy.send(TOPIC_ARN, entries);
 
-		assertThat(result.results()).extracting(BatchResult.SnsResult::messageId)
-				.containsExactlyInAnyOrder("msg-1", "msg-2", "msg-3");
-		assertThat(result.errors()).extracting(BatchResult.SnsError::code)
-				.containsExactlyInAnyOrder("InvalidParameter", "ServiceError");
+		assertThat(result.results()).extracting(BatchResult.SnsResult::messageId).containsExactlyInAnyOrder("msg-1",
+				"msg-2", "msg-3");
+		assertThat(result.errors()).extracting(BatchResult.SnsError::code).containsExactlyInAnyOrder("InvalidParameter",
+				"ServiceError");
 	}
 
 	@Test
@@ -168,8 +164,7 @@ class SequentialBatchExecutionStrategyTest {
 		var entries = createEntries(3);
 
 		PublishBatchResponse response = PublishBatchResponse.builder()
-				.failed(
-						BatchResultErrorEntry.builder().id("1").code("Err").message("e1").senderFault(true).build(),
+				.failed(BatchResultErrorEntry.builder().id("1").code("Err").message("e1").senderFault(true).build(),
 						BatchResultErrorEntry.builder().id("2").code("Err").message("e2").senderFault(true).build(),
 						BatchResultErrorEntry.builder().id("3").code("Err").message("e3").senderFault(true).build())
 				.build();
@@ -179,8 +174,8 @@ class SequentialBatchExecutionStrategyTest {
 		BatchResult result = strategy.send(TOPIC_ARN, entries);
 
 		assertThat(result.results()).isEmpty();
-		assertThat(result.errors()).extracting(BatchResult.SnsError::message)
-				.containsExactlyInAnyOrder("e1", "e2", "e3");
+		assertThat(result.errors()).extracting(BatchResult.SnsError::message).containsExactlyInAnyOrder("e1", "e2",
+				"e3");
 	}
 
 	@Test
@@ -190,8 +185,7 @@ class SequentialBatchExecutionStrategyTest {
 
 		// First batch: 8 success, 2 failures
 		PublishBatchResponse response1 = PublishBatchResponse.builder()
-				.successful(
-						PublishBatchResultEntry.builder().id("1").messageId("m1").build(),
+				.successful(PublishBatchResultEntry.builder().id("1").messageId("m1").build(),
 						PublishBatchResultEntry.builder().id("2").messageId("m2").build(),
 						PublishBatchResultEntry.builder().id("3").messageId("m3").build(),
 						PublishBatchResultEntry.builder().id("4").messageId("m4").build(),
@@ -199,29 +193,25 @@ class SequentialBatchExecutionStrategyTest {
 						PublishBatchResultEntry.builder().id("6").messageId("m6").build(),
 						PublishBatchResultEntry.builder().id("7").messageId("m7").build(),
 						PublishBatchResultEntry.builder().id("8").messageId("m8").build())
-				.failed(
-						BatchResultErrorEntry.builder().id("9").code("E1").message("err1").senderFault(true).build(),
+				.failed(BatchResultErrorEntry.builder().id("9").code("E1").message("err1").senderFault(true).build(),
 						BatchResultErrorEntry.builder().id("10").code("E2").message("err2").senderFault(true).build())
 				.build();
 
 		// Second batch: all 5 success
-		when(snsClient.publishBatch(any(PublishBatchRequest.class)))
-				.thenReturn(response1)
+		when(snsClient.publishBatch(any(PublishBatchRequest.class))).thenReturn(response1)
 				.thenReturn(successResponse("m11", "m12", "m13", "m14", "m15"));
 
 		BatchResult result = strategy.send(TOPIC_ARN, entries);
 
 		assertThat(result.results()).hasSize(13);
-		assertThat(result.errors()).extracting(BatchResult.SnsError::code)
-				.containsExactlyInAnyOrder("E1", "E2");
+		assertThat(result.errors()).extracting(BatchResult.SnsError::code).containsExactlyInAnyOrder("E1", "E2");
 		verify(snsClient, times(2)).publishBatch(any(PublishBatchRequest.class));
 	}
 
 	private List<PublishBatchRequestEntry> createEntries(int count) {
 		List<PublishBatchRequestEntry> entries = new ArrayList<>();
 		for (int i = 1; i <= count; i++) {
-			entries.add(PublishBatchRequestEntry.builder()
-					.id(String.valueOf(i)).message("Message " + i).build());
+			entries.add(PublishBatchRequestEntry.builder().id(String.valueOf(i)).message("Message " + i).build());
 		}
 		return entries;
 	}
@@ -230,8 +220,7 @@ class SequentialBatchExecutionStrategyTest {
 		var builder = PublishBatchResponse.builder();
 		List<PublishBatchResultEntry> results = new ArrayList<>();
 		for (int i = 0; i < messageIds.length; i++) {
-			results.add(PublishBatchResultEntry.builder()
-					.id(String.valueOf(i + 1)).messageId(messageIds[i]).build());
+			results.add(PublishBatchResultEntry.builder().id(String.valueOf(i + 1)).messageId(messageIds[i]).build());
 		}
 		return builder.successful(results).build();
 	}
