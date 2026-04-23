@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
@@ -182,6 +181,17 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 			this.convertMessageIdToUuid = options.convertMessageIdToUuid;
 		}
 
+		protected BuilderImpl(BuilderImpl builder) {
+			super(builder);
+			this.queueAttributeNames = builder.queueAttributeNames;
+			this.messageAttributeNames = builder.messageAttributeNames;
+			this.messageSystemAttributeNames = builder.messageSystemAttributeNames;
+			this.messageVisibility = builder.messageVisibility;
+			this.fifoBatchGroupingStrategy = builder.fifoBatchGroupingStrategy;
+			this.queueNotFoundStrategy = builder.queueNotFoundStrategy;
+			this.convertMessageIdToUuid = builder.convertMessageIdToUuid;
+		}
+
 		@Override
 		public SqsContainerOptionsBuilder queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notEmpty(queueAttributeNames, "queueAttributeNames cannot be empty");
@@ -248,14 +258,22 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 
 		@Override
 		public SqsContainerOptionsBuilder createCopy() {
-			BuilderImpl builder = new BuilderImpl();
-			ReflectionUtils.shallowCopyFieldState(this, builder);
-			return builder;
+			return new BuilderImpl(this);
 		}
 
 		@Override
 		public void fromBuilder(SqsContainerOptionsBuilder builder) {
-			ReflectionUtils.shallowCopyFieldState(builder, this);
+			Assert.notNull(builder, "builder cannot be null");
+			BuilderImpl source = builder instanceof BuilderImpl ? (BuilderImpl) builder
+					: new BuilderImpl(builder.build());
+			super.copyStateFrom(source);
+			this.queueAttributeNames = source.queueAttributeNames;
+			this.messageAttributeNames = source.messageAttributeNames;
+			this.messageSystemAttributeNames = source.messageSystemAttributeNames;
+			this.messageVisibility = source.messageVisibility;
+			this.fifoBatchGroupingStrategy = source.fifoBatchGroupingStrategy;
+			this.queueNotFoundStrategy = source.queueNotFoundStrategy;
+			this.convertMessageIdToUuid = source.convertMessageIdToUuid;
 		}
 	}
 

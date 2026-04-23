@@ -74,10 +74,32 @@ class ContainerOptionsTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
+	void shouldCreateCopyOfBuilderWithCustomMessageConverter() {
+		MessagingMessageConverter<Object> converter = mock(MessagingMessageConverter.class);
+		SqsContainerOptionsBuilder builder = createConfiguredBuilder().messageConverter(converter);
+		SqsContainerOptionsBuilder copy = builder.createCopy();
+		assertThat(copy.build().getMessageConverter()).isSameAs(converter);
+	}
+
+	@Test
 	void shouldHaveSameFieldsInBuilder() {
 		SqsContainerOptions options = createConfiguredOptions();
 		SqsContainerOptionsBuilder builtCopy = options.toBuilder();
 		assertThat(options).usingRecursiveComparison().isEqualTo(builtCopy);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void shouldCopyBuilderStateWithCustomMessageConverter() {
+		MessagingMessageConverter<Object> converter = mock(MessagingMessageConverter.class);
+		SqsContainerOptionsBuilder source = createConfiguredBuilder().messageConverter(converter);
+		SqsContainerOptionsBuilder target = SqsContainerOptions.builder();
+		target.fromBuilder(source);
+		SqsContainerOptions copiedOptions = target.build();
+		SqsContainerOptions expectedOptions = source.build();
+		assertThat(copiedOptions).usingRecursiveComparison().isEqualTo(expectedOptions);
+		assertThat(copiedOptions.getMessageConverter()).isSameAs(converter);
 	}
 
 	@Test

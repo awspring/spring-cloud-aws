@@ -32,6 +32,7 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -225,5 +226,18 @@ class SqsMessageListenerContainerFactoryTests {
 		assertThat(container.getId()).isEqualTo(id);
 		assertThat(container.getQueueNames()).containsExactlyElementsOf(queueNames);
 
+	}
+
+	@Test
+	void shouldPreserveCustomMessageConverterWhenCreatingContainer() {
+		SqsAsyncClient client = mock(SqsAsyncClient.class);
+		MessagingMessageConverter<Object> converter = mock(MessagingMessageConverter.class);
+		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
+		factory.setSqsAsyncClient(client);
+		factory.configure(options -> options.messageConverter(converter));
+
+		SqsMessageListenerContainer<Object> container = factory.createContainer("test-queue");
+
+		assertThat(container.getContainerOptions().getMessageConverter()).isSameAs(converter);
 	}
 }
