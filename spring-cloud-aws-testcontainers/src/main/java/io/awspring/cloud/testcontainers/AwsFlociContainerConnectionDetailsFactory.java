@@ -16,37 +16,37 @@
 package io.awspring.cloud.testcontainers;
 
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
+import io.floci.testcontainers.FlociContainer;
 import java.net.URI;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionDetailsFactory;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionSource;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.localstack.LocalStackContainer;
 
 /**
  * {@link ContainerConnectionDetailsFactory} to create {@link AwsConnectionDetails} from a
- * {@link ServiceConnection @ServiceConnection}-annotated {@link LocalStackContainer}.
+ * {@link ServiceConnection @ServiceConnection}-annotated {@link FlociContainer}.
  *
- * @author Maciej Walkowiak
- * @since 3.2.0
+ * @author Bastian Hellmann
+ * @since 4.1.0
  */
-public class AwsContainerConnectionDetailsFactory
-		extends ContainerConnectionDetailsFactory<LocalStackContainer, AwsConnectionDetails> {
+public class AwsFlociContainerConnectionDetailsFactory
+		extends ContainerConnectionDetailsFactory<FlociContainer, AwsConnectionDetails> {
 	@Override
 	protected AwsConnectionDetails getContainerConnectionDetails(
-			ContainerConnectionSource<LocalStackContainer> source) {
+			ContainerConnectionSource<FlociContainer> source) {
 		return new AwsContainerConnectionDetails(source);
 	}
 
-	private static final class AwsContainerConnectionDetails extends ContainerConnectionDetails<LocalStackContainer>
+	private static final class AwsContainerConnectionDetails extends ContainerConnectionDetails<FlociContainer>
 			implements AwsConnectionDetails {
 
-		protected AwsContainerConnectionDetails(ContainerConnectionSource<LocalStackContainer> source) {
+		protected AwsContainerConnectionDetails(ContainerConnectionSource<FlociContainer> source) {
 			super(source);
 		}
 
 		@Override
 		public URI getEndpoint() {
-			return getContainer().getEndpoint();
+			return URI.create(getContainer().getEndpoint());
 		}
 
 		@Override
