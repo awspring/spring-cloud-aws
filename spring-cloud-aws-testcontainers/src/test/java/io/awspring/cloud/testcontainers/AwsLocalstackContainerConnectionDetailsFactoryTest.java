@@ -17,7 +17,6 @@ package io.awspring.cloud.testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.jupiter.api.Assertions.*;
 
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -51,7 +50,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 @SpringJUnitConfig
 @Testcontainers(disabledWithoutDocker = true)
-class AwsContainerConnectionDetailsFactoryTest {
+class AwsLocalstackContainerConnectionDetailsFactoryTest {
 
 	@Container
 	@ServiceConnection
