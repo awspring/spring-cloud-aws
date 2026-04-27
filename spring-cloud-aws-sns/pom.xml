@@ -92,6 +92,11 @@
 			<optional>true</optional>
 		</dependency>
 
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>sns-message-manager</artifactId>
+		</dependency>
+
 	</dependencies>
 
 </project>

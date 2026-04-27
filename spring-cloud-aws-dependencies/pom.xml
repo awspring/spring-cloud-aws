@@ -24,7 +24,7 @@
 
 	<properties>
 		<spotless.version>2.31.0</spotless.version>
-		<awssdk-v2.version>2.41.5</awssdk-v2.version>
+		<awssdk-v2.version>2.42.36</awssdk-v2.version>
 		<kcl.version>3.1.2</kcl.version>
 		<kpl.version>1.0.4</kpl.version>
 		<amazon.dax.version>2.0.7</amazon.dax.version>

@@ -49,6 +49,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ConfirmSubscriptionRequest;
 
@@ -144,11 +145,16 @@ class NotificationEndpointControllerTest {
 		}
 
 		@Bean
-		public WebMvcConfigurer snsWebMvcConfigurer(SnsClient snsClient) {
+		SnsMessageManager snsMessageManager() {
+			return Mockito.mock(SnsMessageManager.class);
+		}
+
+		@Bean
+		public WebMvcConfigurer snsWebMvcConfigurer(SnsClient snsClient, SnsMessageManager snsMessageManager) {
 			return new WebMvcConfigurer() {
 				@Override
 				public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-					argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient));
+					argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient, snsMessageManager));
 				}
 			};
 		}
