@@ -84,17 +84,19 @@ class SnsAutoConfigurationTest {
 
 	@Test
 	void snsAutoConfigurationIsEnabledAndVerifyIsDisabled() {
-		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.enabled:true", "spring.cloud.aws.sns.verification:false").run(context -> {
-			assertThat(context).hasSingleBean(SnsClient.class);
-			assertThat(context).hasSingleBean(SnsTemplate.class);
-			assertThat(context).hasSingleBean(SnsSmsTemplate.class);
-			assertThat(context).hasBean("snsWebMvcConfigurer");
-			assertThat(context).doesNotHaveBean(SnsMessageManager.class);
+		this.contextRunner
+				.withPropertyValues("spring.cloud.aws.sns.enabled:true", "spring.cloud.aws.sns.verification:false")
+				.run(context -> {
+					assertThat(context).hasSingleBean(SnsClient.class);
+					assertThat(context).hasSingleBean(SnsTemplate.class);
+					assertThat(context).hasSingleBean(SnsSmsTemplate.class);
+					assertThat(context).hasBean("snsWebMvcConfigurer");
+					assertThat(context).doesNotHaveBean(SnsMessageManager.class);
 
-			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
-			assertThat(client.getEndpoint()).isEqualTo(URI.create("https://sns.eu-west-1.amazonaws.com"));
+					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
+					assertThat(client.getEndpoint()).isEqualTo(URI.create("https://sns.eu-west-1.amazonaws.com"));
 
-		});
+				});
 	}
 
 	@Test
