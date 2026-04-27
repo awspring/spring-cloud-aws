@@ -21,9 +21,11 @@ import io.awspring.cloud.sns.handlers.NotificationSubjectHandlerMethodArgumentRe
 import io.awspring.cloud.sns.handlers.legacy.LegacyJackson2NotificationMessageHandlerMethodArgumentResolver;
 import io.awspring.cloud.sns.handlers.legacy.LegacyJackson2NotificationStatusHandlerMethodArgumentResolver;
 import io.awspring.cloud.sns.handlers.legacy.LegacyJackson2NotificationSubjectHandlerMethodArgumentResolver;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolverComposite;
+import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
 import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
@@ -39,21 +41,40 @@ public final class NotificationHandlerMethodArgumentResolverConfigurationUtils {
 		throw new IllegalStateException("Can't instantiate a utility class");
 	}
 
-	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(SnsClient snsClient) {
+	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolver(SnsClient snsClient,
+			@Nullable SnsMessageManager snsMessageManager) {
 		Assert.notNull(snsClient, "snsClient is required");
 		HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
-		composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(snsClient));
-		composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver());
+
+		if (snsMessageManager != null) {
+			composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(snsClient, snsMessageManager));
+			composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver(
+					NotificationMessageHandlerMethodArgumentResolver.converters, snsMessageManager));
+		}
+		else {
+			composite.addResolver(new NotificationStatusHandlerMethodArgumentResolver(snsClient));
+			composite.addResolver(new NotificationMessageHandlerMethodArgumentResolver());
+		}
 		composite.addResolver(new NotificationSubjectHandlerMethodArgumentResolver());
+
 		return composite;
 	}
 
 	public static HandlerMethodArgumentResolver getNotificationHandlerMethodArgumentResolverLegacyJackson2(
-			SnsClient snsClient) {
+			SnsClient snsClient, @Nullable SnsMessageManager snsMessageManager) {
 		Assert.notNull(snsClient, "snsClient is required");
 		HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
-		composite.addResolver(new LegacyJackson2NotificationStatusHandlerMethodArgumentResolver(snsClient));
-		composite.addResolver(new LegacyJackson2NotificationMessageHandlerMethodArgumentResolver());
+		if (snsMessageManager != null) {
+			composite.addResolver(
+					new LegacyJackson2NotificationStatusHandlerMethodArgumentResolver(snsClient, snsMessageManager));
+			composite.addResolver(new LegacyJackson2NotificationMessageHandlerMethodArgumentResolver(
+					NotificationMessageHandlerMethodArgumentResolver.converters, snsMessageManager));
+		}
+		else {
+			composite.addResolver(new LegacyJackson2NotificationStatusHandlerMethodArgumentResolver(snsClient));
+			composite.addResolver(new LegacyJackson2NotificationMessageHandlerMethodArgumentResolver());
+		}
+
 		composite.addResolver(new LegacyJackson2NotificationSubjectHandlerMethodArgumentResolver());
 		return composite;
 	}

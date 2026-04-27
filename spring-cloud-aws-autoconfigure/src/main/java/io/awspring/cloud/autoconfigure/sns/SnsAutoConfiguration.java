@@ -61,6 +61,7 @@ import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
 import software.amazon.awssdk.services.sns.SnsAsyncClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 import tools.jackson.databind.json.JsonMapper;
@@ -92,6 +93,17 @@ public class SnsAutoConfiguration {
 		return awsClientBuilderConfigurer
 				.configureSyncClient(SnsClient.builder(), properties, connectionDetails.getIfAvailable(),
 						snsClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream())
+				.build();
+	}
+
+	@ConditionalOnProperty(name = "spring.cloud.aws.sns.verification", havingValue = "true", matchIfMissing = true)
+	@ConditionalOnMissingBean
+	@Bean
+	public SnsMessageManager snsMessageManager(SnsProperties snsProperties,
+			ObjectProvider<AwsConnectionDetails> connectionDetails,
+			AwsClientBuilderConfigurer awsClientBuilderConfigurer) {
+		return SnsMessageManager.builder()
+				.region(awsClientBuilderConfigurer.resolveRegion(snsProperties, connectionDetails.getIfAvailable()))
 				.build();
 	}
 
@@ -195,12 +207,14 @@ public class SnsAutoConfiguration {
 	static class SnsWebConfiguration {
 
 		@Bean
-		public WebMvcConfigurer snsWebMvcConfigurer(SnsClient snsClient) {
+		public WebMvcConfigurer snsWebMvcConfigurer(SnsClient snsClient,
+				ObjectProvider<SnsMessageManager> snsMessageManager) {
 			if (JacksonPresent.isJackson3Present()) {
 				return new WebMvcConfigurer() {
 					@Override
 					public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-						resolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient));
+						resolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient,
+								snsMessageManager.getIfAvailable()));
 					}
 				};
 			}
@@ -208,7 +222,8 @@ public class SnsAutoConfiguration {
 				return new WebMvcConfigurer() {
 					@Override
 					public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-						resolvers.add(getNotificationHandlerMethodArgumentResolverLegacyJackson2(snsClient));
+						resolvers.add(getNotificationHandlerMethodArgumentResolverLegacyJackson2(snsClient,
+								snsMessageManager.getIfAvailable()));
 					}
 				};
 			}
