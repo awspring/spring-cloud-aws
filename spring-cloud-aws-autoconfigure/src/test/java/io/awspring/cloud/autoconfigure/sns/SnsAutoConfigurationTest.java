@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.arns.Arn;
+import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
 import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
@@ -67,11 +68,29 @@ class SnsAutoConfigurationTest {
 			assertThat(context).hasSingleBean(SnsTemplate.class);
 			assertThat(context).hasSingleBean(SnsSmsTemplate.class);
 			assertThat(context).hasBean("snsWebMvcConfigurer");
+			assertThat(context).hasSingleBean(SnsMessageManager.class);
 
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
 			assertThat(client.getEndpoint()).isEqualTo(URI.create("https://sns.eu-west-1.amazonaws.com"));
 
 		});
+	}
+
+	@Test
+	void snsAutoConfigurationIsEnabledAndVerifyIsDisabled() {
+		this.contextRunner
+				.withPropertyValues("spring.cloud.aws.sns.enabled:true", "spring.cloud.aws.sns.verification:false")
+				.run(context -> {
+					assertThat(context).hasSingleBean(SnsClient.class);
+					assertThat(context).hasSingleBean(SnsTemplate.class);
+					assertThat(context).hasSingleBean(SnsSmsTemplate.class);
+					assertThat(context).hasBean("snsWebMvcConfigurer");
+					assertThat(context).doesNotHaveBean(SnsMessageManager.class);
+
+					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
+					assertThat(client.getEndpoint()).isEqualTo(URI.create("https://sns.eu-west-1.amazonaws.com"));
+
+				});
 	}
 
 	@Test
@@ -98,6 +117,7 @@ class SnsAutoConfigurationTest {
 			assertThat(context).hasSingleBean(SnsClient.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
 			assertThat(context).hasSingleBean(SnsSmsTemplate.class);
+			assertThat(context).hasSingleBean(SnsMessageManager.class);
 			assertThat(context).doesNotHaveBean("snsWebMvcConfigurer");
 		});
 	}
@@ -127,7 +147,7 @@ class SnsAutoConfigurationTest {
 	static class CustomTopicArnResolverConfiguration {
 
 		@Bean
-		TopicArnResolver customS3OutputStreamProvider() {
+		TopicArnResolver customTopicArnResolver() {
 			return new CustomTopicArnResolver();
 		}
 

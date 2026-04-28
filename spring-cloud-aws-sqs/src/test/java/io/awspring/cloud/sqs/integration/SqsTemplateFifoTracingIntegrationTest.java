@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.sqs.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
@@ -29,6 +31,10 @@ import io.micrometer.tracing.handler.PropagatingSenderTracingObservationHandler;
 import io.micrometer.tracing.propagation.Propagator;
 import io.micrometer.tracing.test.simple.SimpleTraceContext;
 import io.micrometer.tracing.test.simple.SimpleTracer;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -40,13 +46,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
-
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Integration tests for trace context propagation in FIFO queues with SqsTemplate.
@@ -76,8 +75,10 @@ public class SqsTemplateFifoTracingIntegrationTest extends BaseSqsIntegrationTes
 	@BeforeAll
 	static void beforeTests() {
 		var client = createAsyncClient();
-		createFifoQueue(client, FIFO_QUEUE_NAME, Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "false")).join();
-		createFifoQueue(client, FIFO_CACHE_HIT_QUEUE_NAME, Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "true")).join();
+		createFifoQueue(client, FIFO_QUEUE_NAME, Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "false"))
+				.join();
+		createFifoQueue(client, FIFO_CACHE_HIT_QUEUE_NAME,
+				Map.of(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, "true")).join();
 
 	}
 
@@ -119,7 +120,8 @@ public class SqsTemplateFifoTracingIntegrationTest extends BaseSqsIntegrationTes
 		sqsTemplate.sendAsync(FIFO_CACHE_HIT_QUEUE_NAME, warmupPayload).join();
 
 		// Drain the warmup message
-		sqsTemplate.receive(from -> from.queue(FIFO_CACHE_HIT_QUEUE_NAME).pollTimeout(Duration.ofSeconds(5)), TestEvent.class);
+		sqsTemplate.receive(from -> from.queue(FIFO_CACHE_HIT_QUEUE_NAME).pollTimeout(Duration.ofSeconds(5)),
+				TestEvent.class);
 
 		// Given - Start a NEW observation for the actual test
 		var observation = Observation.start("test-send-second", observationRegistry);
@@ -138,7 +140,8 @@ public class SqsTemplateFifoTracingIntegrationTest extends BaseSqsIntegrationTes
 		logger.info("expectedTraceId={}", expectedTraceId);
 
 		var receivedMessage = sqsTemplate
-				.receive(from -> from.queue(FIFO_CACHE_HIT_QUEUE_NAME).pollTimeout(Duration.ofSeconds(5)), TestEvent.class)
+				.receive(from -> from.queue(FIFO_CACHE_HIT_QUEUE_NAME).pollTimeout(Duration.ofSeconds(5)),
+						TestEvent.class)
 				.orElseThrow(() -> new AssertionError("Expected message was not received"));
 
 		assertThat(receivedMessage.getPayload()).isEqualTo(payload);
