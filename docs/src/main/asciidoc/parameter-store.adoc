@@ -280,7 +280,7 @@ This is very important design specification to have in mind when working with Pa
 Let's say you have 3 profiles `dev`, `uat` and `prod`.
 In `dev` profile you don't want to have loading from Parameterstore, but in other profiles you want load to happen.
 
-Our recommended way is to use `spring.config.import=aws-parameterstore:/` in profile `application-${profile}.properties` specific configuration files.
+Our recommended way is to use `spring.config.import=aws-parameterstore:/` in profile `application-$\{profile\}.properties` specific configuration files.
 
 `application.properties`
 [source,properties]
