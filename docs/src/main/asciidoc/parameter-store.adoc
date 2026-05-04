@@ -226,7 +226,6 @@ This reload level leverages the refresh feature of Spring Cloud Context.
 * `restart_context`: the whole Spring `ApplicationContext` is gracefully restarted. Beans are recreated with the new configuration.
 In order for the restart context functionality to work properly you must enable and expose the restart actuator endpoint
 [source,yaml]
-====
 ----
 management:
   endpoint:
@@ -237,12 +236,10 @@ management:
       exposure:
         include: restart
 ----
-====
 
 Assuming that the reload feature is enabled with default settings (`refresh` mode), the following bean is refreshed when the secret changes:
 
-====
-[java, source]
+[source,java]
 ----
 @Configuration
 @ConfigurationProperties(prefix = "bean")
@@ -254,11 +251,9 @@ public class MyConfig {
 
 }
 ----
-====
 
 To see that changes effectively happen, you can create another bean that prints the message periodically, as follows
 
-====
 [source,java]
 ----
 @Component
@@ -273,7 +268,6 @@ public class MyBean {
     }
 }
 ----
-====
 
 The reload feature periodically re-creates the configuration from config maps and secrets to see if it has changed.
 You can configure the polling period by using the `spring.cloud.aws.parameter.reload.period` (default value is 1 minute).
@@ -305,14 +299,14 @@ spring.cloud.aws.parameterstore.region=us-east-1
 [source,properties]
 ----
 spring.config.import=aws-parameterstore:/config/spring/
-spring.cloud.aws.parameterstore.reload.max-wait-time-for-restart=10s
+spring.cloud.aws.parameterstore.reload.max-wait-for-restart=10s
 ----
 
 `application-prod.properties`
 [source,properties]
 ----
 spring.config.import=aws-parameterstore:/config/spring/
-spring.cloud.aws.parameterstore.reload.max-wait-time-for-restart=60s
+spring.cloud.aws.parameterstore.reload.max-wait-for-restart=60s
 ----
 
 
@@ -332,9 +326,9 @@ The Spring Boot Starter for Parameter Store provides the following configuration
 | `spring.cloud.aws.parameterstore.enabled` | Enables the Parameter Store integration. | No | `true`
 | `spring.cloud.aws.parameterstore.endpoint` | Configures endpoint used by `SsmClient`. | No | `null`
 | `spring.cloud.aws.parameterstore.region` | Configures region used by `SsmClient`. | No | `null`
-| `spring.cloud.aws.parameterstore.reload.strategy` | `Enum` | `refresh` | The strategy to use when firing a reload (`refresh`, `restart_context`)
-| `spring.cloud.aws.parameterstore.reload.period` | `Duration`| `15s` | The period for verifying changes
-| `spring.cloud.aws.parameterstore.reload.max-wait-time-for-restart` | `Duration`| `2s` | The maximum time between the detection of changes in property source and the application context restart when `restart_context` strategy is used.
+| `spring.cloud.aws.parameterstore.reload.strategy` | The strategy to use when firing a reload (`refresh`, `restart_context`) | No | `refresh`
+| `spring.cloud.aws.parameterstore.reload.period` | The period for verifying changes | No | `15s`
+| `spring.cloud.aws.parameterstore.reload.max-wait-for-restart` | The maximum time between the detection of changes in property source and the application context restart when `restart_context` strategy is used. | No | `2s`
 |===
 
 === IAM Permissions
