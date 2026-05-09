@@ -28,7 +28,7 @@ image::images/kinesis-binder.png[width=300,scaledwidth="50%"]
 Unlike https://kafka.apache.org/[Apache Kafka], the AWS Kinesis doesn't provide out-of-the-box support for consumer groups.
 The support of this feature is implemented as a part of `MetadataStore` key for shard checkpoints in the `KinesisMessageDrivenChannelAdapter` - `[CONSUMER_GROUP]:[STREAM]:[SHARD_ID]`.
 In addition, the `LockRegistry` is used to ensure exclusive access to each shard.
-This way only one channel adapter in the same consumer group will consumer messages from a single shard in the stream it is configured for.
+This ensures that only one channel adapter in the same consumer group will consume messages from a single shard in the stream it is configured for.
 
 The partitioning logic in AWS Kinesis is similar to the Apache Kafka support but with slightly different logic.
 The `partitionKey` on the producer side determines which shard in the stream the data record is assigned to.
@@ -36,8 +36,8 @@ Partition keys are Unicode strings with a maximum length limit of 256 characters
 AWS Kinesis uses the partition key as input to a hash function that maps the partition key and associated data to a specific shard.
 Specifically, an MD5 hash function is used to map partition keys to 128-bit integer values and to map associated data records to shards.
 As a result of this hashing mechanism, all data records with the same partition key map to the same shard within the stream.
-But at the same time we can't select a target shard to send explicitly.
-Although calculating the hash manually (and use `explicitHashKeyExpression` for producer, respectively), we may track the target shard by inclusion into its `HashKeyRange`.
+However, it is not possible to explicitly select a target shard for sending.
+By calculating the hash manually and using `explicitHashKeyExpression` on the producer side, the target shard can be tracked by checking inclusion in its `HashKeyRange`.
 
 By default, a partition key is a result of the `Object.hash()` from the message `payload`.
 
@@ -47,7 +47,7 @@ On the consumer side the `instanceCount` and `instanceIndex` are used to distrib
 This has an effect only for regular `KinesisMessageDrivenChannelAdapter` which can assign specific shards for the target Kinesis consumer.
 
 == Consumer Groups
-Consumer groups are implemented with a focus on high availability, message ordering and guaranteed message delivery in Spring cloud stream.
+Consumer groups are implemented with a focus on high availability, message ordering, and guaranteed message delivery in Spring Cloud Stream.
 A `single consumer` for the message is ensured by https://docs.spring.io/spring-cloud-stream/reference/spring-cloud-stream/consumer-groups.html[consumer group abstraction].
 
 To have a highly available consumer group for your kinesis stream:
@@ -169,8 +169,8 @@ See https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html[Dy
 No default - means no record expiration.
 
 === LockRegistry
-LockRegistry is used to ensure exclusive access to each shard so that only one channel adapter in the same consumer group will consumer messages from a single shard in the stream.
-This is implemented using xref:dynamodb.adoc#spring-integration-support[DynamoDbLockRegistry]
+The `LockRegistry` is used to ensure exclusive access to each shard so that only one channel adapter in the same consumer group will consume messages from a single shard in the stream.
+This is implemented using xref:dynamodb.adoc#spring-integration-support[DynamoDbLockRegistry].
 
 DynamoDB `LockRegistry` properties are prefixed with `spring.cloud.stream.kinesis.binder.locks.`
 
@@ -464,7 +464,7 @@ If you're going to allow spring-cloud-stream-binder-kinesis to create the resour
 }
 ----
 
-If [Server-Side Encryption](https://docs.aws.amazon.com/streams/latest/dev/what-is-sse.html) is enabled, you'll need the following set of policies to encrypt and decrypt Kinesis messages.
+If https://docs.aws.amazon.com/streams/latest/dev/what-is-sse.html[Server-Side Encryption] is enabled, you will need the following policies to encrypt and decrypt Kinesis messages.
 [source,json]
 ----
 {

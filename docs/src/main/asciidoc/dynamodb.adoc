@@ -1,7 +1,7 @@
 [#spring-cloud-aws-dynamoDb]
 == DynamoDb Integration
 
-https://aws.amazon.com/dynamodb/[DynamoDb] is a fully managed serverless key/value Nosql database designed for high performance.
+https://aws.amazon.com/dynamodb/[DynamoDB] is a fully managed, serverless, key-value NoSQL database designed for high performance.
 A Spring Boot starter is provided to auto-configure DynamoDb integration beans.
 
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
@@ -14,7 +14,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-DynamoDb integration will only provide autoconfiguration and simple `DynamoDbOperations` which can be used to communicate with DynamoDb, build repositories and so on...
+The DynamoDB integration provides auto-configuration and a `DynamoDbOperations` interface that can be used to communicate with DynamoDB, build repositories, and more.
 
 === DynamoDbOperations
 
@@ -22,7 +22,7 @@ The starter automatically configures and registers a `DynamoDbOperations` bean p
 `DynamoDbTemplate` - a default `DynamoDbOperations` implementation - being built on top of `DynamoDbEnhancedClient` uses annotations provided by AWS.
 The list of supported annotations can be found https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/enhanced/dynamodb/mapper/annotations/package-summary.html[here].
 
-`DynamoDbEnchancedClient` supports a programming model similar to JPA - where a class is turned into an entity through applying certain annotations:
+`DynamoDbEnhancedClient` supports a programming model similar to JPA, where a class is turned into an entity by applying certain annotations:
 
 [source,java]
 ----
@@ -72,9 +72,9 @@ To use a custom implementation, declare a bean of type `DynamoDbTableNameResolve
 
 ==== Resolving Table Schema
 
-To resolve a table schema for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableSchemaResolver`. The default implementation caches `TableSchema` objects in internal map.
+To resolve a table schema for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableSchemaResolver`. The default implementation caches `TableSchema` objects in an internal map.
 To use custom implementation, declare a bean of type `DynamoDbTableSchemaResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
-To register a custom table schema for a DynamoDB entity a bean of type `TableSchema`  should be created:
+To register a custom table schema for a DynamoDB entity, a bean of type `TableSchema` should be created:
 [source, java]
 ----
 @Configuration
@@ -91,9 +91,9 @@ IMPORTANT: Because of classloader related https://github.com/aws/aws-sdk-java-v2
 
 === Using DynamoDb Client
 
-Autoconfiguration automatically configures `DynamoDbClient` which can be used for low level api calls and `DynamoDbEnhancedClient` if `DynamoDbOperations` are not enough.
+Auto-configuration automatically configures a `DynamoDbClient` for low-level API calls, and a `DynamoDbEnhancedClient` when `DynamoDbOperations` are not sufficient.
 
-If autoconfigured `DynamoDbClient` or `DynamoDbEnhancedClient` bean configuration does not meet your needs, it can be replaced by creating your custom bean.
+If the auto-configured `DynamoDbClient` or `DynamoDbEnhancedClient` bean configuration does not meet your needs, it can be replaced by declaring a custom bean.
 
 [source,java]
 ----
@@ -178,14 +178,14 @@ DynamoDbClientCustomizer customizer() {
 
 `DynamoDbClientCustomizer` is a functional interface that enables configuring `DynamoDbClientBuilder` before the `DynamoDbClient` is built in auto-configuration.
 
-There can be multiple `DynamoDbClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+There can be multiple `DynamoDbClientCustomizer` beans present in a single application context. The `@Order(..)` annotation can be used to define the order of execution.
 
 Note that `DynamoDbClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
 
 === IAM Permissions
 
-Since it depends on how you will use DynamoDb integration providing a list of IAM policies would be pointless since least privilege model should be used.
-To check what IAM policies DynamoDb uses and see which ones you should use please check https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/using-identity-based-policies.html[IAM policies]
+Since the required IAM permissions depend on which DynamoDB operations you use, a definitive list cannot be provided here. The principle of least privilege should be applied.
+For a full list of available DynamoDB IAM policies, see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/using-identity-based-policies.html[IAM policies for DynamoDB].
 
 [#spring-integration-support]
 === Spring Integration Support

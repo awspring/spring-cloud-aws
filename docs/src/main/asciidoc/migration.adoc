@@ -49,7 +49,7 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=http://127.0.0.1:4566/us-ea
 spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://127.0.0.1:4566/us-east-1_f865f8979c4d4361b6af703db533dbb4/.well-known/jwks.json
 ----
 
-The example above set the URIs to LocalStack's Cognito Server.
+The example above sets the URIs to LocalStack's Cognito server.
 
 === Parameter store migration
 
@@ -59,7 +59,7 @@ In 2.x, parameter store items were resolved using a combination of the following
 * `aws.paramstore.defaultContext` for shared config items
 * `aws.paramstore.name` for application-specific config items
 
-For example, if all you had done was set `aws.paramstore.enabled=true`, and your `spring.application.name` was `my-service`, then parameter store items could be resolved from either `/config/application` (for shared config items) and `/config/my-service` (for application specific config items)
+For example, if all you had done was set `aws.paramstore.enabled=true`, and your `spring.application.name` was `my-service`, then parameter store items could be resolved from either `/config/application` (for shared config items) or `/config/my-service` (for application-specific config items).
 
 If you overrode one or more of the settings, then there could potentially be other prefixes where the application would look for parameters.
 

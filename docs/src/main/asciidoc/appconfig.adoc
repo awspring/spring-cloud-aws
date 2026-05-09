@@ -112,8 +112,8 @@ org.springframework.boot.BootstrapRegistryInitializer=com.app.AppConfigBootstrap
 ----
 
 
-If you want to use autoconfigured `AppConfigDataClient` but change underlying SDKClient or `ClientOverrideConfiguration` you will need to register bean of type `AppConfigClientCustomizer`:
-Autoconfiguration will configure `AppConfigDataClient` Bean with provided values after that, for example:
+If you want to use the auto-configured `AppConfigDataClient` but change the underlying SDK client or `ClientOverrideConfiguration`, you will need to register a bean of type `AppConfigClientCustomizer`.
+Auto-configuration will then configure the `AppConfigDataClient` bean with the provided values. For example:
 
 [source,java]
 ----

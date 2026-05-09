@@ -9,19 +9,19 @@ include::contributing.adoc[]
 
 == Using Amazon Web Services
 
-AWS provides a https://aws.amazon.com/sdk-for-java/[Java SDK] to issue requests for the all services provided by the
-https://aws.amazon.com[Amazon Web Service] platform. While the SDK offers all functionality available on AWS, there is a considerable amount of low level code needed to use it in Spring idiomatic way.
-Spring Cloud AWS provides application developers already integrated Spring-based modules to consume the most popular AWS services and avoid low level code as much as possible.
+AWS provides a https://aws.amazon.com/sdk-for-java/[Java SDK] to issue requests for all services provided by the
+https://aws.amazon.com[Amazon Web Services] platform. While the SDK offers all functionality available on AWS, there is a considerable amount of low-level code needed to use it in a Spring-idiomatic way.
+Spring Cloud AWS provides application developers with pre-integrated Spring-based modules to consume the most popular AWS services and avoid low-level code as much as possible.
 
-Thanks to Spring Cloud AWS modularity you can include only dependencies relevant to the particular AWS service you want to integrate with.
+Thanks to Spring Cloud AWS's modularity, you can include only the dependencies relevant to the particular AWS service you want to integrate with.
 
-It also simplifies creating any non-integrated AWS SDK client by auto-configuring region and credentials providers.
+It also simplifies the creation of any non-integrated AWS SDK client by auto-configuring the region and credentials providers.
 
-That being said, it is perfectly valid option to use AWS SDK without using Spring Cloud AWS.
+That being said, it is a perfectly valid option to use the AWS SDK without using Spring Cloud AWS.
 
 [TIP]
 ====
-Note, that Spring provides support for other AWS services in following projects:
+Note that Spring provides support for other AWS services in the following projects:
 
 * https://github.com/spring-cloud/spring-cloud-stream-binder-aws-kinesis[Spring Cloud Stream Binder AWS Kinesis]
 * https://github.com/spring-cloud/spring-cloud-config[Spring Cloud Config Server] supports AWS Parameter Store and Secrets Manager
@@ -72,7 +72,7 @@ Each starter contains all the dependencies and transitive dependencies needed to
 For example, if you wish to write a Spring application with S3, you would include the `spring-cloud-aws-starter-s3` dependency in your project.
 You do *not* need to include the underlying `spring-cloud-aws-s3` dependency, because the `starter` dependency includes it.
 
-A summary of these artifacts are provided below.
+A summary of these artifacts is provided below.
 
 |===
 | Spring Cloud AWS Starter | Description | Maven Artifact Name
@@ -117,8 +117,8 @@ A summary of these artifacts are provided below.
 
 === Choosing AWS SDK version
 
-The AWS SDK is released more frequently than Spring Cloud AWS. If you need to use a  newer version of the SDK than
-the one configured by Spring Cloud AWS, add the SDK BOM to the dependency management section making sure it is declared
+The AWS SDK is released more frequently than Spring Cloud AWS. If you need to use a newer version of the SDK than
+the one configured by Spring Cloud AWS, add the SDK BOM to the dependency management section, making sure it is declared
 before any other BOM dependency that configures AWS SDK dependencies.
 
 [source,xml,indent=0]

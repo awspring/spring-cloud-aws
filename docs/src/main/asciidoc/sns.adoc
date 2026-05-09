@@ -1,7 +1,7 @@
 [#spring-cloud-aws-sns]
 == SNS Integration
 
-https://aws.amazon.com/sns/[SNS] is a pub/sub messaging service that allows clients to publish notifications to a particuluar topic.
+https://aws.amazon.com/sns/[SNS] is a pub/sub messaging service that allows clients to publish notifications to a particular topic.
 A Spring Boot starter is provided to auto-configure SNS integration beans.
 
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
@@ -27,7 +27,7 @@ It supports sending notifications with payload of type:
 * `Object` - which if Jackson 3 is on classpath gets serialized to JSON using `org.springframework.messaging.converter.JacksonJsonMessageConverter` and Jackson's `tools.jackson.databind.json.JsonMapper` autoconfigured by Spring Boot.
 * `Object` - which if Jackson 3 is not on classpath but Jackson 2 is gets serialized to JSON using `org.springframework.messaging.converter.MappingJackson2MessageConverter` and Jackson's `com.fasterxml.jackson.databind.ObjectMapper` autoconfigured by Spring Boot.
 
-Additionally, it exposes handful of methods supporting `org.springframework.messaging.Message`.
+Additionally, it exposes a handful of methods that accept `org.springframework.messaging.Message`.
 
 [source,java]
 ----
@@ -59,13 +59,13 @@ class NotificationService {
 
 If autoconfigured converters do not meet your needs, you can provide a custom `SnsTemplate` bean with a message converter of your choice.
 
-When sending SNS notification, it is required to provide a topic ARN. Spring Cloud AWS simplifies it and allows providing a topic name instead, under a condition that topic with that name has already been created.
-Otherwise, Spring Cloud AWS will make an attempt to create topic with this name with a first call.
+When sending an SNS notification, a topic ARN is required. Spring Cloud AWS simplifies this by allowing a topic name to be provided instead, on the condition that a topic with that name already exists.
+Otherwise, Spring Cloud AWS will attempt to create a topic with that name on the first call.
 
 The behavior of resolving topic ARN by a topic name can be altered by providing a custom bean of type `io.awspring.cloud.sns.core.TopicArnResolver`.
 
-If resolving topic name by create topic call is not possible you can autoconfigure Bean of `io.awspring.cloud.sns.core.TopicsListingTopicArnResolver`.
-Autoconfiguration will automatically configure `SnsTemplate` with `TopicArnResolverConfiguration`.
+If resolving a topic name via a `CreateTopic` call is not feasible, you can register a bean of type `io.awspring.cloud.sns.core.TopicsListingTopicArnResolver`.
+Auto-configuration will then automatically configure `SnsTemplate` with that resolver.
 
 ----
 import org.springframework.context.annotation.Bean;
@@ -86,12 +86,12 @@ public class TopicArnResolverConfiguration {
 
 ----
 
-However, when using the topic ARN in your application, the `SnsTemplate` provides a `topicExists` method to validate the existence of the SNS topic at application startup itself.
+When using a topic ARN directly, `SnsTemplate` provides a `topicExists` method to validate that the SNS topic exists at application startup.
 
 ==== SNS Operations
 
-Because of Spring Messaging compatibility, `SnsTemplate` exposes many methods that you may not need if you don't need Spring Messaging abstractions.
-In such case, we recommend using `SnsOperations` - an interface implemented by `SnsTemplate`, that exposes a convenient method for sending SNS notification, including support for FIFO topics.
+Due to Spring Messaging compatibility, `SnsTemplate` exposes many methods that may not be needed if Spring Messaging abstractions are not required.
+In such cases, we recommend using `SnsOperations` — an interface implemented by `SnsTemplate` — which exposes a convenient API for sending SNS notifications, including support for FIFO topics.
 
 [source,java]
 ----
@@ -190,7 +190,7 @@ The `SnsMessageConverter` interface controls how Spring messages are converted t
 
 === Sending SMS Messages
 
-The starter automatically configures and registers a `SnsSmsTemplate` bean providing higher level abstractions for sending SMS messages to SNS topic or directly to a phone number.
+The starter automatically configures and registers a `SnsSmsTemplate` bean, providing higher-level abstractions for sending SMS messages to an SNS topic or directly to a phone number.
 
 - https://docs.amazonaws.cn/en_us/sns/latest/dg/sns-mobile-phone-number-as-subscriber.html[Mobile text messaging (SMS)]
 - https://docs.amazonaws.cn/en_us/sns/latest/dg/sms_publish-to-phone.html[Publishing to a mobile phone]
@@ -223,7 +223,7 @@ class NotificationService {
 The starter automatically configures and registers a `SnsAsyncTemplate` bean when `SnsAsyncClient` bean is registered by user, providing non-blocking SNS operations.
 `SnsAsyncTemplate` returns `CompletableFuture` for all operations, making it suitable for high-throughput async applications.
 
-It supports the same payload types as `SnsTemplate` and uses the same Spring `MessageConverter` hirarchy inside of `DefaultSnsPublishMessageConverter` to convert payloads.
+It supports the same payload types as `SnsTemplate` and uses the same Spring `MessageConverter` hierarchy within `DefaultSnsPublishMessageConverter` to convert payloads.
 
 [source,java]
 ----
@@ -255,7 +255,7 @@ public SnsPublishMessageConverter customConverter() {
 }
 ----
 
-Autoconfiguration will pick it up and configure `SnsAsyncTemplate` automatically with it.
+Auto-configuration will automatically pick it up and configure `SnsAsyncTemplate` accordingly.
 
 === Using SNS Client
 
@@ -282,8 +282,8 @@ class NotificationService {
 
 === Annotation-driven HTTP notification endpoint
 
-SNS supports multiple endpoint types (SQS, Email, HTTP, HTTPS), Spring Cloud AWS provides support for HTTP(S) endpoints.
-SNS sends three type of requests to an HTTP topic listener endpoint, for each of them annotations are provided:
+SNS supports multiple endpoint types (SQS, Email, HTTP, HTTPS). Spring Cloud AWS provides support for HTTP(S) endpoints.
+SNS sends three types of requests to an HTTP topic listener endpoint, and annotations are provided for each of them:
 
 * Subscription request -> `@NotificationSubscriptionMapping`
 * Notification request -> `@NotificationMessageMapping`
@@ -291,12 +291,12 @@ SNS sends three type of requests to an HTTP topic listener endpoint, for each of
 
 [NOTE]
 ====
-Since 4.1.0 verification has been introduced for Notification request and is turned on by default. Verification uses the same region as `SNSClient`.
-To turn off verification simply set property `spring.cloud.aws.sns.verification=false`.
-For more information about SNS verification https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/sns/message/SnsMessageManager.html[here].
+Since 4.1.0, message verification has been introduced for notification requests and is enabled by default. Verification uses the same region as `SnsClient`.
+To disable verification, set the `spring.cloud.aws.sns.verification` property to `false`.
+For more information about SNS message verification, see https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/sns/message/SnsMessageManager.html[SnsMessageManager].
 ====
 
-HTTP endpoints are based on Spring MVC controllers. Spring Cloud AWS added some custom argument resolvers to extract the message and subject out of the notification requests.
+HTTP endpoints are based on Spring MVC controllers. Spring Cloud AWS provides custom argument resolvers to extract the message and subject from notification requests.
 
 Example of integration:
 
@@ -369,12 +369,12 @@ SnsClientCustomizer customizer() {
 
 `SnsClientCustomizer` is a functional interface that enables configuring `SnsClientBuilder` before the `SnsClient` is built in auto-configuration.
 
-There can be multiple `SnsClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+There can be multiple `SnsClientCustomizer` beans present in a single application context. The `@Order(..)` annotation can be used to define the order of execution.
 
 Note that `SnsClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
 
 === IAM Permissions
-Following IAM permissions are required by Spring Cloud AWS:
+The following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2,1"]
 |===
@@ -419,11 +419,11 @@ Sample IAM policy granting access to SNS:
 
 Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon SNS.
 
-The `SnsInboundChannelAdapter` is an extension of `HttpRequestHandlingMessagingGateway` and must be as a part of Spring MVC application.
-Its URL must be used from the AWS Management Console to add this endpoint as a subscriber to the SNS Topic.
+The `SnsInboundChannelAdapter` is an extension of `HttpRequestHandlingMessagingGateway` and must be used as part of a Spring MVC application.
+Its URL must be registered in the AWS Management Console to add this endpoint as a subscriber to the SNS topic.
 However, before receiving any notification itself, this HTTP endpoint must confirm the subscription.
 
-If you want to use Jackson 3 with spring cloud aws integrations you should use `SnsInboundChannelAdapter`. If you are still using Jackson 2 you should use `LegacyJackson2SnsInboundChannelAdapter`.
+If you want to use Jackson 3 with Spring Cloud AWS integrations, use `SnsInboundChannelAdapter`. If you are still using Jackson 2, use `LegacyJackson2SnsInboundChannelAdapter`.
 
 See `SnsInboundChannelAdapter` and `LegacyJackson2SnsInboundChannelAdapter` JavaDocs for more information.
 
@@ -432,9 +432,9 @@ This `boolean` flag indicates if the adapter should send `SubscriptionConfirmati
 If that is a case, the `SnsHeaders.NOTIFICATION_STATUS_HEADER` message header is present in the message with the `NotificationStatus` object, which can be used in the downstream flow to confirm subscription or not.
 Or "re-confirm" it in the case of `UnsubscribeConfirmation` message.
 
-In addition, the `SnsHeaders.SNS_MESSAGE_TYPE_HEADER` message header is represented to simplify a routing in the downstream flow.
+In addition, the `SnsHeaders.SNS_MESSAGE_TYPE_HEADER` message header is populated to simplify routing in the downstream flow.
 
-The Java Configuration is pretty simple:
+The Java configuration is straightforward:
 
 [source,java]
 ----
@@ -459,9 +459,9 @@ public static class MyConfiguration {
 }
 ----
 
-Note: by default, the message `payload` is a `Map` converted from the received Topic JSON message.
-For the convenience a `payload-expression` is provided with the `Message` as a root object of the evaluation context.
-Hence, even some HTTP headers, populated by the `DefaultHttpHeaderMapper`, are available for the evaluation context.
+NOTE: By default, the message `payload` is a `Map` converted from the received topic JSON message.
+For convenience, a `payload-expression` is provided with the `Message` as the root object of the evaluation context.
+As a result, HTTP headers populated by the `DefaultHttpHeaderMapper` are also available in the evaluation context.
 
 
 The `SnsMessageHandler` is a simple one-way Outbound Channel Adapter to send Topic Notification using `SnsAsyncClient` service.

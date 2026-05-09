@@ -36,7 +36,7 @@ spring.config.import=aws-parameterstore:/config/spring/
 
 Two parameters are added to environment: `message` and `httpUrl`.
 
-If a given path in Parameter Store does not exist, application will fail to start. If parameters retrieved from Parameter Store are not required for the application, and it should continue to startup even when the path is missing, add `optional` before prefix:
+If a given path in Parameter Store does not exist, the application will fail to start. If parameters retrieved from Parameter Store are not required for the application and it should continue to start up even when the path is missing, add `optional` before the prefix:
 
 [source,properties]
 ----
@@ -63,7 +63,7 @@ these will become accessible as array properties `cloud.aws.stack[0].name`, `clo
 
 ==== Adding prefix to property keys
 
-To avoid property key collisions it is possible to configure a property key prefix that gets added to each resolved parameter.
+To avoid property key collisions, it is possible to configure a property key prefix that is added to each resolved parameter.
 
 As an example, assuming the following parameters are stored under path `/config/my-datasource/`:
 
@@ -88,14 +88,14 @@ With such config, properties `spring.datasource.url` and `spring.datasource.user
 NOTE: Prefixes are added as-is to all property names returned by Parameter Store. If you want key names to be separated with a dot between the prefix and key name, make sure to add a trailing dot to the prefix.
 
 
-Sometimes it is useful to group multiple properties in a text-based format, similar to application.properties. With Spring Cloud AWS, you can load a Parameter Store parameter as a text-based key/value configuration by using the spring.config.import property with the ?extension= suffix:
+Sometimes it is useful to group multiple properties in a text-based format, similar to `application.properties`. With Spring Cloud AWS, you can load a Parameter Store parameter as a text-based key/value configuration by using the `spring.config.import` property with the `?extension=` suffix:
 
 [source,properties]
 ----
 spring.config.import=aws-parameterstore:/config/my-datasource/?extension=properties
 ----
 
-NOTE: Supported ?extension= types are `properties`, `json` and `yaml`. When any other format is specified exception will be raised and application will fail to start!
+NOTE: Supported `?extension=` types are `properties`, `json`, and `yaml`. If any other format is specified, an exception will be raised and the application will fail to start.
 
 
 All parameters stored under this path will be interpreted as key/value pairs. For example, if the value of a parameter is:
@@ -106,9 +106,10 @@ my.properties.sqs.queue_name=random_name
 my.properties.dynamodb.table_name=random_table_name
 ----
 
-Spring Cloud AWS will automatically load these as:
-Key: `my.properties.sqs.queue_name`, Value: `random_name`
-Key: `my.properties.dynamodb.table_name`, Value: `random_table_name`
+Spring Cloud AWS automatically loads these as:
+
+* Key: `my.properties.sqs.queue_name`, Value: `random_name`
+* Key: `my.properties.dynamodb.table_name`, Value: `random_table_name`
 
 NOTE: Standard Parameter Store parameters are limited to 4 KB of data.
 
@@ -166,8 +167,8 @@ Note that this class must be listed under `org.springframework.boot.BootstrapReg
 org.springframework.boot.BootstrapRegistryInitializer=com.app.ParameterStoreBootstrapConfiguration
 ----
 
-If you want to use autoconfigured `SsmClient` but change underlying `SDKClient` or `ClientOverrideConfiguration` you will need to register bean of type `SsmClientCustomizer`:
-Autoconfiguration will configure `SsmClient` Bean with provided values after that, for example:
+If you want to use the auto-configured `SsmClient` but change the underlying SDK client or `ClientOverrideConfiguration`, you will need to register a bean of type `SsmClientCustomizer`.
+Auto-configuration will then configure the `SsmClient` bean with the provided values. For example:
 
 [source,java]
 ----
@@ -200,7 +201,7 @@ class ParameterStoreBootstrapConfiguration implements BootstrapRegistryInitializ
 Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
 The reload feature of Spring Cloud AWS Parameter Store integration is able to trigger an application reload when a related parameter value changes.
 
-By default, this feature is disabled. You can enable it by using the `spring.cloud.aws.parameterstore.reload.strategy` configuration property (for example, in the `application.properties` file) and adding following dependencies:
+By default, this feature is disabled. You can enable it by using the `spring.cloud.aws.parameterstore.reload.strategy` configuration property (for example, in the `application.properties` file) and adding the following dependencies:
 
 [source,xml]
 ----
@@ -269,18 +270,18 @@ public class MyBean {
 }
 ----
 
-The reload feature periodically re-creates the configuration from config maps and secrets to see if it has changed.
-You can configure the polling period by using the `spring.cloud.aws.parameter.reload.period` (default value is 1 minute).
+The reload feature periodically re-creates the configuration from Parameter Store to see if it has changed.
+You can configure the polling period by using the `spring.cloud.aws.parameterstore.reload.period` property (default value is 1 minute).
 
 === Loading properties using profiles
 
-When using `spring.config.import` feature it is not possible to `bind` profile specific values from properties.
-This is very important design specification to have in mind when working with Parameterstore integration and profile specific configuration properties.
+When using the `spring.config.import` feature, it is not possible to bind profile-specific values from properties.
+This is an important design consideration when working with Parameter Store integration and profile-specific configuration properties.
 
-Let's say you have 3 profiles `dev`, `uat` and `prod`.
-In `dev` profile you don't want to have loading from Parameterstore, but in other profiles you want load to happen.
+For example, consider three profiles: `dev`, `uat`, and `prod`.
+In the `dev` profile you may not want to load from Parameter Store, whereas in other profiles you do.
 
-Our recommended way is to use `spring.config.import=aws-parameterstore:/` in profile `application-$\{profile\}.properties` specific configuration files.
+The recommended approach is to use `spring.config.import=aws-parameterstore:/` in profile-specific `application-${profile}.properties` configuration files.
 
 `application.properties`
 [source,properties]
@@ -310,8 +311,8 @@ spring.cloud.aws.parameterstore.reload.max-wait-for-restart=60s
 ----
 
 
-With this setup in place you won't be using integration in `dev` profile, but you would be using it in other active profiles.
-This means you want to place `spring.config.import` in profile specific configuration property.
+With this setup, Parameter Store integration is not active in the `dev` profile, but is active in other profiles.
+The `spring.config.import` property should therefore be placed in the relevant profile-specific configuration file.
 
 
 
@@ -332,7 +333,7 @@ The Spring Boot Starter for Parameter Store provides the following configuration
 |===
 
 === IAM Permissions
-Following IAM permissions are required by Spring Cloud AWS:
+The following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2"]
 |===

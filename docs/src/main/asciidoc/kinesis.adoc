@@ -7,17 +7,17 @@ The https://aws.amazon.com/kinesis/[Kinesis] is a platform for streaming data on
 
 === Spring Integration Support
 
-Also, starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon Kinesis.
+Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon Kinesis.
 
 The `KinesisMessageHandler` is an `AbstractMessageHandler` to perform put record(s) to the Kinesis stream.
 The stream, partition key (or explicit hash key) and sequence number can be determined against a request message via evaluation provided expressions or can be specified statically.
 They also can be specified as `KinesisHeaders.STREAM`, `KinesisHeaders.PARTITION_KEY` and `KinesisHeaders.SEQUENCE_NUMBER` respectively.
 
 The `KinesisMessageHandler` can be configured with the `outputChannel` for sending a `Message` on successful put operation.
-The payload is the original request and additional `KinesisHeaders.SHARD` and `KinesisHeaders.SEQUENCE_NUMBER` headers are populated from the `PutRecordResposne`.
+The payload is the original request, and the `KinesisHeaders.SHARD` and `KinesisHeaders.SEQUENCE_NUMBER` headers are populated from the `PutRecordResponse`.
 If the request payload is a `PutRecordsRequest`, the full `PutRecordsResponse` is populated in the `KinesisHeaders.SERVICE_RESULT` header instead.
 
-When an async failure is happened on the put operation, the `ErrorMessage` is sent to the `errorChannel` header or global one.
+When an async failure occurs during the put operation, an `ErrorMessage` is sent to the `errorChannel` header or to the global error channel.
 The payload is an `MessageHandlingException`.
 
 The `payload` of request message can be:
@@ -49,7 +49,7 @@ An offset of the records for the consuming shard is stored in the `ConcurrentMet
 If the `CheckpointMode` of the `KinesisMessageDrivenChannelAdapter` is set to `manual`, then `KinesisHeaders.CHECKPOINTER` is populated to the message this channel adapter produces downstream.
 The check-pointed offset is used to initiate an iterator on the shard after the application restart.
 
-The `KinesisMessageDrivenChannelAdapter` can be configured with a distributed `LockRegistry<?>` to managed exclusive access to the shard in the cluster of the application consuming from the Kinesis.
+The `KinesisMessageDrivenChannelAdapter` can be configured with a distributed `LockRegistry<?>` to manage exclusive access to shards across a cluster of application instances consuming from Kinesis.
 For example, the xref:dynamodb.adoc#spring-integration-support[`DynamoDbLockRegistry`] can be used to manage distributed locks via DynamoDB.
 In the case of many instances of the same consuming application in cluster, a distributed implementation of the `ConcurrentMetadataStore` is recommended, too, e.g. xref:dynamodb.adoc#spring-integration-support[`DynamoDbMetadataStore`].
 This way, when one instance leaves the cluster, it releases its locks for shards, and another instance can obtain those locks and continue consuming from the shard according to the stored offset in the mentioned shared meta-data store.
@@ -60,7 +60,7 @@ The `KinesisShardOffset` abstraction is used to represent an initial shard itera
 Or it can be used as an argument of the overloaded `KinesisMessageDrivenChannelAdapter` to consume from the specific shards.
 The concurrency and checkpoint management remain the same even for an explicit shard configuration.
 
-The `KinesisMessageDrivenChannelAdapter` also supports a `batch` mode to produce a message with a payload as a list of just returned by the shard iterator records.
+The `KinesisMessageDrivenChannelAdapter` also supports a `batch` mode that produces a message with a payload containing a list of records returned by the shard iterator.
 Each record data can be converted from `byte[]` via `Converter` setting.
 By default, a `DeserializingConverter` is used based on Java serialization specification.
 Which is aligned with the settings of the mentioned above `KinesisMessageHandler`.
@@ -119,7 +119,7 @@ The configuration and behavior are similar to the `KinesisMessageHandler` descri
 The request message payload could be as a `UserRecord`.
 Otherwise, such an instance is built against request messages and respective `KplMessageHandler` options, include https://docs.aws.amazon.com/streams/latest/dev/kpl-with-schemaregistry.html[AWS Glue Schema] for the record serialization.
 
-Due to asynchronous behavior and buffer of the `KinesisProducer`, a `KplBackpressureException` could be thrown from the  `KplMessageHandler` when `backPressureThreshold` as the number of outstanding records is provided.
+Due to the asynchronous nature and internal buffering of the `KinesisProducer`, a `KplBackpressureException` may be thrown from the `KplMessageHandler` when a `backPressureThreshold` is configured as the maximum number of outstanding records.
 
 The configuration of the `KplMessageHandler` is straightforward:
 
@@ -155,7 +155,7 @@ Therefore, a `CloudWatchAsyncClient` and `DynamoDbAsyncClient` can also be injec
 They are used by the KCL for checkpointing and `Kinesis` consumers coordination.
 By default, this channel adapter relies on the https://docs.aws.amazon.com/streams/latest/dev/building-enhanced-consumers-api.html[fan-out] retrieval strategy.
 
-The configuration of the `KclMessageDrivenChannelAdapter` is like following:
+The configuration of the `KclMessageDrivenChannelAdapter` is as follows:
 
 [source,java]
 ----

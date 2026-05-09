@@ -1,7 +1,7 @@
 [#spring-cloud-aws-s3]
 == S3 Integration
 
-https://aws.amazon.com/s3/[S3] allows storing files in a cloud.
+https://aws.amazon.com/s3/[S3] allows storing files in the cloud.
 A Spring Boot starter is provided to auto-configure the various S3 integration related components.
 
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
@@ -62,7 +62,7 @@ The starter automatically configures and registers a `software.amazon.awssdk.tra
 </dependency>
 ----
 
-Transfer Manager works the best with CRT S3 Client. To auto-configure CRT based `S3AsyncClient` add following dependency to your project:
+Transfer Manager works best with the CRT-based S3 Client. To auto-configure a CRT-based `S3AsyncClient`, add the following dependency to your project:
 
 [source,xml]
 ----
@@ -72,7 +72,7 @@ Transfer Manager works the best with CRT S3 Client. To auto-configure CRT based 
 </dependency>
 ----
 
-When no `S3AsyncClient` bean is created, the default `S3AsyncClient` created through AWS SDK is used. To benefit from maximum throughput, multipart upload/download and resumable file upload consider using CRT based `S3AsyncClient`.
+When no `S3AsyncClient` bean is created, the default `S3AsyncClient` provided by the AWS SDK is used. To benefit from maximum throughput, multipart upload/download, and resumable file upload, consider using a CRT-based `S3AsyncClient`.
 
 === S3 Objects as Spring Resources
 
@@ -129,10 +129,10 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
 
 === S3 Client Side Encryption
 
-AWS offers encryption library which is integrated inside of S3 Client called https://docs.aws.amazon.com/amazon-s3-encryption-client/latest/developerguide/what-is-s3-encryption-client.html[S3EncryptionClient].
-With encryption client you are going to encrypt your files before sending them to S3 bucket.
+AWS offers an encryption library integrated with the S3 Client, called the https://docs.aws.amazon.com/amazon-s3-encryption-client/latest/developerguide/what-is-s3-encryption-client.html[S3EncryptionClient].
+The encryption client encrypts files before they are sent to the S3 bucket.
 
-To autoconfigure Encryption Client simply add the following dependency.
+To auto-configure the encryption client, add the following dependency.
 
 [source,xml]
 ----
@@ -143,13 +143,13 @@ To autoconfigure Encryption Client simply add the following dependency.
 ----
 
 
-We are supporting 3 types of encryption.
+Three types of encryption are supported.
 
 ==== KMS Key Encryption
 
-To configure encryption via KMS key specify `spring.cloud.aws.s3.encryption.key-id` with KMS key arn and this key will be used to encrypt your files.
+To configure encryption via a KMS key, set `spring.cloud.aws.s3.encryption.key-id` to the KMS key ARN. That key will then be used to encrypt files.
 
-Also, following dependency is required.
+The following dependency is also required.
 
 [source,xml]
 ----
@@ -162,7 +162,7 @@ Also, following dependency is required.
 
 ==== RSA Asymmetric Encryption
 
-Asymmetric encryption is possible via RSA. To enable it you will have to implement `io.awspring.cloud.autoconfigure.s3.S3RsaProvider`.
+Asymmetric encryption is supported via RSA. To enable it, implement `io.awspring.cloud.autoconfigure.s3.S3RsaProvider`.
 
 NOTE: You will have to store private and public keys yourself otherwise you won't be able to decrypt the data later.
 
@@ -190,7 +190,7 @@ public class MyRsaProvider implements S3RsaProvider {
 
 ==== AES Symmetric Encryption
 
-If you want to use symmetric algorithm, this is possible via `io.awspring.cloud.autoconfigure.s3.S3AesProvider`.
+If you want to use a symmetric algorithm, this is possible via `io.awspring.cloud.autoconfigure.s3.S3AesProvider`.
 
 NOTE: Ensure the private key is stored using secure storage mechanisms that prevent unauthorized access.
 
@@ -219,7 +219,7 @@ public class MyAesProvider implements S3AesProvider {
 
 === S3 Output Stream
 
-Under the hood by default `S3Resource` uses a `io.awspring.cloud.s3.InMemoryBufferingS3OutputStream`. When data is written to the resource, is gets sent to S3 using multipart upload.
+By default, `S3Resource` uses `io.awspring.cloud.s3.InMemoryBufferingS3OutputStream`. When data is written to the resource, it is sent to S3 using multipart upload.
 If a network error occurs during upload, `S3Client` has a built-in retry mechanism that will retry each failed part. If the upload fails after retries, multipart upload gets aborted and `S3Resource` throws `io.awspring.cloud.s3.S3Exception`.
 
 If `InMemoryBufferingS3OutputStream` behavior does not fit your needs, you can use `io.awspring.cloud.s3.DiskBufferingS3OutputStream` by defining a bean of type `DiskBufferingS3OutputStreamProvider` which will override the default output stream provider.
@@ -278,10 +278,10 @@ Resolving resources throughout all buckets can be very time consuming depending 
 
 === Using S3 Access grants
 
-Sometimes there is a need to make access control to S3 bucket contents fine grained.
-Since IAM polices and S3 Policies only support 10kbs size, S3 Access Grant is solving this by allowing fine grained access control over content in bucket.
+Sometimes there is a need for fine-grained access control over S3 bucket contents.
+Since IAM policies and S3 bucket policies are limited to 10 KB in size, S3 Access Grants address this by enabling fine-grained access control over objects in a bucket.
 
-To use S3 Access Grants out of the box with `S3Client` and `S3Template` introduce following plugin:
+To use S3 Access Grants with `S3Client` and `S3Template`, add the following plugin:
 
 [source,xml]
 ----
@@ -293,9 +293,9 @@ To use S3 Access Grants out of the box with `S3Client` and `S3Template` introduc
 
 === Using S3Template
 
-Spring Cloud AWS provides a higher abstraction on the top of `S3Client` providing methods for the most common use cases when working with S3.
+Spring Cloud AWS provides a higher-level abstraction on top of `S3Client`, offering methods for the most common use cases when working with S3.
 
-On the top of self-explanatory methods for creating and deleting buckets, `S3Template` provides a simple methods for uploading and downloading files:
+In addition to self-explanatory methods for creating and deleting buckets, `S3Template` provides simple methods for uploading and downloading files:
 
 [source,java]
 ----
@@ -328,7 +328,7 @@ Person loadedPerson = s3Template.read(BUCKET, "person.json", Person.class);
 
 By default, if Jackson 3 is on the classpath, `S3Template` uses `JsonMapper` based `Jackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
 If Jackson 3 is not on classpath and Jackson 2 is, `S3Template` uses `ObjectMapper` based `LegacyJackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
-This behavior can be overwritten by providing custom bean of type `S3ObjectConverter`.
+This behavior can be overridden by providing a custom bean of type `S3ObjectConverter`.
 
 === Determining S3 Objects Content Type
 
@@ -383,13 +383,13 @@ S3ClientCustomizer customizer() {
 
 `S3ClientCustomizer` is a functional interface that enables configuring `S3ClientBuilder` before the `S3Client` is built in auto-configuration.
 
-There can be multiple `S3ClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+There can be multiple `S3ClientCustomizer` beans present in a single application context. The `@Order(..)` annotation can be used to define the order of execution.
 
 Note that `S3ClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
 
 === Loading External Configuration
 
-Just like Spring Boot supports configuring application through `application.properties` stored in the file system, Spring Cloud AWS S3 integration extends this capability with fetching application configuration the S3 bucket through `spring.config.import` property.
+Just as Spring Boot supports configuring an application through an `application.properties` file stored in the file system, Spring Cloud AWS S3 integration extends this capability by fetching application configuration from an S3 bucket via the `spring.config.import` property.
 
 For example, assuming that there is a file `config.properties` in a bucket named `bucket-name`, to include it as Spring Boot configuration, add a following property to `application.properties` or `application.yml`:
 
@@ -398,7 +398,7 @@ For example, assuming that there is a file `config.properties` in a bucket named
 spring.config.import=aws-s3:/bucket-name/config.properties
 ----
 
-If a file with given name does not exist in S3, application will fail to start. If file configuration is not required for the application, and it should continue to startup even when file configuration is missing, add `optional` before prefix:
+If a file with the given name does not exist in S3, the application will fail to start. If the file configuration is not required for the application and it should continue to start up even when the file is missing, add `optional` before the prefix:
 
 [source,properties]
 ----
@@ -420,7 +420,7 @@ spring.config.import[0]=optional:bucket-name/config.properties
 spring.config.import[1]=aws-s3=/another-name/config.yml
 ----
 
-Fetched files configuration can be referenced with `@Value`, bound to `@ConfigurationProperties` classes, or referenced in `application.properties` file.
+Fetched file configuration can be referenced with `@Value`, bound to `@ConfigurationProperties` classes, or referenced in the `application.properties` file.
 
 `JSON`, Java Properties and `YAML` configuration file formats are supported.
 
@@ -486,8 +486,8 @@ Note that this class must be listed under `org.springframework.boot.BootstrapReg
 org.springframework.boot.BootstrapRegistryInitializer=com.app.S3ClientBootstrapConfiguration
 ----
 
-If you want to use autoconfigured `S3Client` but change underlying SDKClient or `ClientOverrideConfiguration` you will need to register bean of type `S3ClientCustomizer`:
-Autoconfiguration will configure `S3Client` Bean with provided values after that, for example:
+If you want to use the auto-configured `S3Client` but change the underlying SDK client or `ClientOverrideConfiguration`, you will need to register a bean of type `S3ClientCustomizer`.
+Auto-configuration will then configure the `S3Client` bean with the provided values. For example:
 
 [source,java]
 ----
@@ -562,7 +562,7 @@ management:
 Assuming that the reload feature is enabled with default settings (`refresh` mode), the following bean is refreshed when the file changes:
 
 ====
-[java, source]
+[source,java]
 ----
 @Configuration
 @ConfigurationProperties(prefix = "bean")
@@ -630,7 +630,7 @@ To enable autoconfiguration you should add the following dependencies
 </dependency>
 ----
 
-After dependencies are introduced Spring Cloud AWS will automatically create a `S3VectorsClient` bean which can than be autowired and used.
+Once these dependencies are present, Spring Cloud AWS will automatically create an `S3VectorsClient` bean, which can then be autowired and used.
 
 [cols="2,3,1,1"]
 |===
@@ -643,7 +643,7 @@ After dependencies are introduced Spring Cloud AWS will automatically create a `
 
 === IAM Permissions
 
-Following IAM permissions are required by Spring Cloud AWS:
+The following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2,3,1,1"]
 |===
@@ -683,7 +683,7 @@ Sample IAM policy granting access to `spring-cloud-aws-demo` bucket:
 
 === Spring Integration Support
 
-Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon SQS.
+Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon S3.
 
 The S3 Channel Adapters are based on the `S3Client` template and `S3TransferManager`.
 See their specification and Javadocs for more information.
@@ -783,10 +783,10 @@ public class S3JavaApplication {
 }
 ----
 
-> NOTE: Unlike the non-streaming inbound channel adapter, this adapter does not prevent duplicates by default.
-> If you do not delete the remote file and wish to prevent the file being processed again, you can configure an `S3PersistentFileListFilter` in the `filter` attribute.
-> If you don’t want to persist the state, an in-memory `SimpleMetadataStore` can be used with the filter.
-> If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
+NOTE: Unlike the non-streaming inbound channel adapter, this adapter does not prevent duplicates by default.
+If you do not delete the remote file and wish to prevent the file from being processed again, you can configure an `S3PersistentFileListFilter` in the `filter` attribute.
+If you do not want to persist the state, an in-memory `SimpleMetadataStore` can be used with the filter.
+If you also wish to use a filename pattern (or regex), use a `CompositeFileListFilter`.
 
 The `S3MessageHandler` is an Outbound Channel Adapter and allows performing `upload`, `download` and `copy` (see `S3MessageHandler.Command` enum) operations in the provided S3 bucket.
 

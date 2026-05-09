@@ -1,11 +1,11 @@
 [#spring-cloud-aws-ses]
 == SES Integration
-Spring has a built-in support to send e-mails based on the https://www.oracle.com/technetwork/java/javamail/index.html[Java Mail API]
-to avoid any static method calls while using the Java Mail API and thus supporting the testability of an application.
-Spring Cloud AWS supports the https://aws.amazon.com/de/ses/[Amazon SES] as an implementation of the Spring Mail abstraction.
+Spring provides built-in support for sending e-mails through the https://www.oracle.com/technetwork/java/javamail/index.html[Java Mail API],
+which avoids static method calls and promotes testability.
+Spring Cloud AWS supports https://aws.amazon.com/de/ses/[Amazon SES] as an implementation of the Spring Mail abstraction.
 
-As a result Spring Cloud AWS users can decide to use the Spring Cloud AWS implementation of the Amazon SES service or
-use the standard Java Mail API based implementation that sends e-mails via SMTP to Amazon SES.
+As a result, Spring Cloud AWS users can choose to use the Spring Cloud AWS implementation of the Amazon SES service or
+the standard Java Mail API-based implementation that sends e-mails via SMTP to Amazon SES.
 
 [TIP]
 ====
@@ -27,7 +27,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 ----
 
 === Sending simple mails
-Application developers can inject the `MailSender` into their application code and directly send simple text based e-mail
+Application developers can inject the `MailSender` into their application code to send simple text-based e-mail
 messages. The sample below demonstrates the creation of a simple mail message.
 
 [source,java,indent=0]
@@ -57,10 +57,10 @@ class MailSendingService {
 
 === Sending attachments and/or HTML e-mails
 
-Sending attachments with e-mail or HTML e-mails requires MIME messages to be created and sent. In order to create MIME messages,
-the Java Mail API dependency and an implementation need to be in the classpath. Spring Cloud AWS will detect the
-dependency and create a `org.springframework.mail.javamail.JavaMailSender` implementation that allows to create and
-build MIME messages and send them. Dependencies for the Java Mail API and an implementation are the only needed configuration changes as shown below.
+Sending e-mail attachments or HTML e-mails requires MIME messages. To create MIME messages,
+the Java Mail API dependency and an implementation must be on the classpath. Spring Cloud AWS detects this
+dependency and creates a `org.springframework.mail.javamail.JavaMailSender` implementation that allows building
+and sending MIME messages. Adding the Java Mail API and an implementation are the only required configuration changes, as shown below.
 
 [source,xml,indent=0]
 ----
@@ -141,19 +141,18 @@ The Spring Boot Starter for SES provides the following configuration options:
 |===
 
 Amazon SES is not available in all https://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html[regions] of the
-Amazon Web Services cloud. Therefore, an application hosted and operated in a region that does not support the mail
-service will produce an error while using the mail service. Therefore, the region must be overridden for the mail
-sender configuration. The example below shows a typical combination of a region (`EU-CENTRAL-1`) that does not provide
+Amazon Web Services cloud. An application hosted in a region that does not support the mail service will encounter an
+error when attempting to send mail. In such cases, the region must be overridden in the mail sender configuration. The example below shows a typical combination of a region (`EU-CENTRAL-1`) that does not provide
 an SES service where the client is overridden to use a valid region (`EU-WEST-1`).
 
-`sourceArn` is the ARN of the identity that is associated with the sending authorization policy. For information about when to use this parameter, see the
-description see https://docs.aws.amazon.com/ses/latest/dg/sending-authorization-delegate-sender-tasks-email.html[Amazon SES Developer Guide].
+`sourceArn` is the ARN of the identity associated with the sending authorization policy. For information about when to use this parameter, see the
+https://docs.aws.amazon.com/ses/latest/dg/sending-authorization-delegate-sender-tasks-email.html[Amazon SES Developer Guide].
 
-`fromArn` is the ARN of the identity that is associated with the sending authorization policy that permits you to specify a particular "From" address in the header of the raw email.
-For information about when to use this parameter, see the description see https://docs.aws.amazon.com/ses/latest/dg/sending-authorization-delegate-sender-tasks-email.html[Amazon SES Developer Guide].
+`fromArn` is the ARN of the identity associated with the sending authorization policy that permits you to specify a particular "From" address in the header of the raw email.
+For information about when to use this parameter, see the https://docs.aws.amazon.com/ses/latest/dg/sending-authorization-delegate-sender-tasks-email.html[Amazon SES Developer Guide].
 
-`configurationSetName` sets the configuration set name on mail sender level and applies to every mail. For information about when to use this parameter, see the
-description https://docs.aws.amazon.com/ses/latest/dg/using-configuration-sets.html[Using configuration sets in Amazon SES].
+`configurationSetName` sets the configuration set name at the mail sender level and applies to every message. For information about when to use this parameter, see
+https://docs.aws.amazon.com/ses/latest/dg/using-configuration-sets.html[Using configuration sets in Amazon SES].
 
 [source,properties,indent=0]
 ----
@@ -186,12 +185,12 @@ SesClientCustomizer customizer() {
 
 `SesClientCustomizer` is a functional interface that enables configuring `SesClientBuilder` before the `SesClient` is built in auto-configuration.
 
-There can be multiple `SesClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+There can be multiple `SesClientCustomizer` beans present in a single application context. The `@Order(..)` annotation can be used to define the order of execution.
 
 Note that `SesClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
 
 === IAM Permissions
-Following IAM permissions are required by Spring Cloud AWS:
+The following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2"]
 |===
