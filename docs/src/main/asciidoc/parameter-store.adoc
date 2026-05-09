@@ -281,7 +281,7 @@ This is an important design consideration when working with Parameter Store inte
 For example, consider three profiles: `dev`, `uat`, and `prod`.
 In the `dev` profile you may not want to load from Parameter Store, whereas in other profiles you do.
 
-The recommended approach is to use `spring.config.import=aws-parameterstore:/` in profile-specific `application-${profile}.properties` configuration files.
+The recommended approach is to use `spring.config.import=aws-parameterstore:/` in profile-specific `application-$\{profile\}.properties` configuration files.
 
 `application.properties`
 [source,properties]
