@@ -178,7 +178,8 @@ class ContainerOptionsTests {
 		SqsListenerObservation.Convention observationConvention = mock(SqsListenerObservation.Convention.class);
 
 		return SqsContainerOptions.builder().acknowledgementShutdownTimeout(Duration.ofSeconds(7))
-				.messageVisibility(Duration.ofSeconds(11))
+				.messageVisibility(Duration.ofSeconds(11)).messageVisibilityHeartbeatInterval(Duration.ofSeconds(2))
+				.messageVisibilityHeartbeatTimeout(Duration.ofSeconds(30))
 				.pollBackOffPolicy(BackOffPolicyBuilder.newBuilder().delay(1000).build())
 				.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 				.messageSystemAttributeNames(Collections.singletonList(MessageSystemAttributeName.MESSAGE_GROUP_ID))

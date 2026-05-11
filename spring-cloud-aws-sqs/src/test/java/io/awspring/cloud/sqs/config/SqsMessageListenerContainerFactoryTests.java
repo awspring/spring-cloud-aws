@@ -56,6 +56,8 @@ class SqsMessageListenerContainerFactoryTests {
 		SqsEndpoint endpoint = mock(SqsEndpoint.class);
 		given(endpoint.getMaxConcurrentMessages()).willReturn(null);
 		given(endpoint.getMessageVisibility()).willReturn(null);
+		given(endpoint.getMessageVisibilityHeartbeatInterval()).willReturn(null);
+		given(endpoint.getMessageVisibilityHeartbeat()).willReturn(null);
 		given(endpoint.getMaxMessagesPerPoll()).willReturn(null);
 		given(endpoint.getPollTimeout()).willReturn(null);
 		given(endpoint.getLogicalNames()).willReturn(queueNames);
@@ -87,8 +89,12 @@ class SqsMessageListenerContainerFactoryTests {
 		int messagesPerPoll = 7;
 		Duration pollTimeout = Duration.ofSeconds(6);
 		Duration visibility = Duration.ofSeconds(8);
+		Duration heartbeatInterval = Duration.ofSeconds(2);
+		Duration heartbeatTimeout = Duration.ofSeconds(12);
 		given(endpoint.getMaxConcurrentMessages()).willReturn(inflight);
 		given(endpoint.getMessageVisibility()).willReturn(visibility);
+		given(endpoint.getMessageVisibilityHeartbeatInterval()).willReturn(heartbeatInterval);
+		given(endpoint.getMessageVisibilityHeartbeat()).willReturn(heartbeatTimeout);
 		given(endpoint.getMaxMessagesPerPoll()).willReturn(messagesPerPoll);
 		given(endpoint.getPollTimeout()).willReturn(pollTimeout);
 		given(endpoint.getLogicalNames()).willReturn(queueNames);
@@ -101,6 +107,8 @@ class SqsMessageListenerContainerFactoryTests {
 		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(SqsContainerOptions.class, options -> {
 			assertThat(options.getMaxConcurrentMessages()).isEqualTo(inflight);
 			assertThat(options.getMessageVisibility()).isEqualTo(visibility);
+			assertThat(options.getMessageVisibilityHeartbeatInterval()).isEqualTo(heartbeatInterval);
+			assertThat(options.getMessageVisibilityHeartbeatTimeout()).isEqualTo(heartbeatTimeout);
 			assertThat(options.getPollTimeout()).isEqualTo(pollTimeout);
 			assertThat(options.getMaxMessagesPerPoll()).isEqualTo(messagesPerPoll);
 		});
@@ -171,6 +179,8 @@ class SqsMessageListenerContainerFactoryTests {
 
 		given(sqsEndpoint.getMaxConcurrentMessages()).willReturn(null);
 		given(sqsEndpoint.getMessageVisibility()).willReturn(null);
+		given(sqsEndpoint.getMessageVisibilityHeartbeatInterval()).willReturn(null);
+		given(sqsEndpoint.getMessageVisibilityHeartbeat()).willReturn(null);
 		given(sqsEndpoint.getMaxMessagesPerPoll()).willReturn(null);
 		given(sqsEndpoint.getPollTimeout()).willReturn(null);
 		given(multiMethodSqsEndpoint.getLogicalNames()).willReturn(queueNames);
@@ -203,8 +213,12 @@ class SqsMessageListenerContainerFactoryTests {
 		int messagesPerPoll = 7;
 		Duration pollTimeout = Duration.ofSeconds(6);
 		Duration visibility = Duration.ofSeconds(8);
+		Duration heartbeatInterval = Duration.ofSeconds(2);
+		Duration heartbeatTimeout = Duration.ofSeconds(12);
 		given(sqsEndpoint.getMaxConcurrentMessages()).willReturn(inflight);
 		given(sqsEndpoint.getMessageVisibility()).willReturn(visibility);
+		given(sqsEndpoint.getMessageVisibilityHeartbeatInterval()).willReturn(heartbeatInterval);
+		given(sqsEndpoint.getMessageVisibilityHeartbeat()).willReturn(heartbeatTimeout);
 		given(sqsEndpoint.getMaxMessagesPerPoll()).willReturn(messagesPerPoll);
 		given(sqsEndpoint.getPollTimeout()).willReturn(pollTimeout);
 		given(multiMethodSqsEndpoint.getLogicalNames()).willReturn(queueNames);
@@ -218,6 +232,8 @@ class SqsMessageListenerContainerFactoryTests {
 		assertThat(container.getContainerOptions()).isInstanceOfSatisfying(SqsContainerOptions.class, options -> {
 			assertThat(options.getMaxConcurrentMessages()).isEqualTo(inflight);
 			assertThat(options.getMessageVisibility()).isEqualTo(visibility);
+			assertThat(options.getMessageVisibilityHeartbeatInterval()).isEqualTo(heartbeatInterval);
+			assertThat(options.getMessageVisibilityHeartbeatTimeout()).isEqualTo(heartbeatTimeout);
 			assertThat(options.getPollTimeout()).isEqualTo(pollTimeout);
 			assertThat(options.getMaxMessagesPerPoll()).isEqualTo(messagesPerPoll);
 		});

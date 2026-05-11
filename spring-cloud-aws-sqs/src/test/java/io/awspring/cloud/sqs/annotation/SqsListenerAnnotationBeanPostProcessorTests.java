@@ -31,6 +31,7 @@ import io.awspring.cloud.sqs.listener.MessageListenerContainer;
 import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
 import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import io.awspring.cloud.sqs.support.resolver.BatchPayloadMethodArgumentResolver;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -258,6 +259,33 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		});
 	}
 
+	@Test
+	void shouldMapVisibilityHeartbeatFromAnnotationToEndpoint() {
+		ListableBeanFactory beanFactory = mock(ListableBeanFactory.class);
+		MessageListenerContainerRegistry registry = mock(MessageListenerContainerRegistry.class);
+		MessageListenerContainerFactory<?> factory = mock(MessageListenerContainerFactory.class);
+
+		when(beanFactory.getBean(SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME, MessageListenerContainerRegistry.class))
+				.thenReturn(registry);
+		when(beanFactory.containsBean(EndpointRegistrar.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME)).thenReturn(true);
+		when(beanFactory.getBean(EndpointRegistrar.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME,
+				MessageListenerContainerFactory.class)).thenReturn(factory);
+
+		SqsListenerAnnotationBeanPostProcessor processor = new SqsListenerAnnotationBeanPostProcessor();
+
+		HeartbeatListener bean = new HeartbeatListener();
+		processor.setBeanFactory(beanFactory);
+		processor.postProcessAfterInitialization(bean, "heartbeatListener");
+		processor.afterSingletonsInstantiated();
+
+		ArgumentCaptor<Endpoint> captor = ArgumentCaptor.forClass(Endpoint.class);
+		then(factory).should().createContainer(captor.capture());
+		assertThat(captor.getValue()).isInstanceOfSatisfying(SqsEndpoint.class, endpoint -> {
+			assertThat(endpoint.getMessageVisibilityHeartbeatInterval()).isEqualTo(Duration.ofSeconds(3));
+			assertThat(endpoint.getMessageVisibilityHeartbeat()).isEqualTo(Duration.ofSeconds(20));
+		});
+	}
+
 	static class Listener {
 
 		@SqsListener("myQueue")
@@ -288,6 +316,14 @@ class SqsListenerAnnotationBeanPostProcessorTests {
 		}
 
 		@SqsListener("#{ sqsQueueNameReader.listQueueNames() }")
+		void listen(String message) {
+		}
+
+	}
+
+	static class HeartbeatListener {
+
+		@SqsListener(queueNames = "heartbeatQueue", messageVisibilityHeartbeatIntervalSeconds = "3", messageVisibilityHeartbeatSeconds = "20")
 		void listen(String message) {
 		}
 

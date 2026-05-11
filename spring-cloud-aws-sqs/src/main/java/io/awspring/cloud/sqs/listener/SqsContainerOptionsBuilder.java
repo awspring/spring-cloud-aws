@@ -61,6 +61,20 @@ public interface SqsContainerOptionsBuilder
 	SqsContainerOptionsBuilder messageVisibility(Duration messageVisibility);
 
 	/**
+	 * Set the interval between visibility heartbeat requests sent while a message is being processed.
+	 * @param messageVisibilityHeartbeatInterval the heartbeat interval.
+	 * @return this instance.
+	 */
+	SqsContainerOptionsBuilder messageVisibilityHeartbeatInterval(Duration messageVisibilityHeartbeatInterval);
+
+	/**
+	 * Set the visibility timeout to apply on each visibility heartbeat request.
+	 * @param messageVisibilityHeartbeatTimeout the timeout to set on each heartbeat.
+	 * @return this instance.
+	 */
+	SqsContainerOptionsBuilder messageVisibilityHeartbeatTimeout(Duration messageVisibilityHeartbeatTimeout);
+
+	/**
 	 * Set how the messages from FIFO queues should be grouped when container listener mode is
 	 * {@link ListenerMode#BATCH}. By default, messages are grouped in batches by message group, which are processed in
 	 * parallel, maintaining order within each message group.

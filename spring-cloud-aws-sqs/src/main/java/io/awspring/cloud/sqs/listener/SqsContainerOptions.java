@@ -40,6 +40,12 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	@Nullable
 	private final Duration messageVisibility;
 
+	@Nullable
+	private final Duration messageVisibilityHeartbeatInterval;
+
+	@Nullable
+	private final Duration messageVisibilityHeartbeatTimeout;
+
 	private final FifoBatchGroupingStrategy fifoBatchGroupingStrategy;
 
 	private final Collection<QueueAttributeName> queueAttributeNames;
@@ -62,6 +68,8 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		this.messageAttributeNames = builder.messageAttributeNames;
 		this.messageSystemAttributeNames = builder.messageSystemAttributeNames;
 		this.messageVisibility = builder.messageVisibility;
+		this.messageVisibilityHeartbeatInterval = builder.messageVisibilityHeartbeatInterval;
+		this.messageVisibilityHeartbeatTimeout = builder.messageVisibilityHeartbeatTimeout;
 		this.queueNotFoundStrategy = builder.queueNotFoundStrategy;
 		this.fifoBatchGroupingStrategy = builder.fifoBatchGroupingStrategy;
 		this.convertMessageIdToUuid = builder.convertMessageIdToUuid;
@@ -106,6 +114,24 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 	@Nullable
 	public Duration getMessageVisibility() {
 		return this.messageVisibility;
+	}
+
+	/**
+	 * Get the interval between visibility heartbeat requests sent while a message is being processed.
+	 * @return the heartbeat interval.
+	 */
+	@Nullable
+	public Duration getMessageVisibilityHeartbeatInterval() {
+		return this.messageVisibilityHeartbeatInterval;
+	}
+
+	/**
+	 * Get the visibility timeout to apply on each visibility heartbeat request.
+	 * @return the heartbeat timeout.
+	 */
+	@Nullable
+	public Duration getMessageVisibilityHeartbeatTimeout() {
+		return this.messageVisibilityHeartbeatTimeout;
 	}
 
 	/**
@@ -165,6 +191,12 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		@Nullable
 		private Duration messageVisibility;
 
+		@Nullable
+		private Duration messageVisibilityHeartbeatInterval;
+
+		@Nullable
+		private Duration messageVisibilityHeartbeatTimeout;
+
 		private boolean convertMessageIdToUuid = true;
 
 		protected BuilderImpl() {
@@ -177,6 +209,8 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 			this.messageAttributeNames = options.messageAttributeNames;
 			this.messageSystemAttributeNames = options.messageSystemAttributeNames;
 			this.messageVisibility = options.messageVisibility;
+			this.messageVisibilityHeartbeatInterval = options.messageVisibilityHeartbeatInterval;
+			this.messageVisibilityHeartbeatTimeout = options.messageVisibilityHeartbeatTimeout;
 			this.fifoBatchGroupingStrategy = options.fifoBatchGroupingStrategy;
 			this.queueNotFoundStrategy = options.queueNotFoundStrategy;
 			this.convertMessageIdToUuid = options.convertMessageIdToUuid;
@@ -209,6 +243,28 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		public SqsContainerOptionsBuilder messageVisibility(Duration messageVisibility) {
 			Assert.notNull(messageVisibility, "messageVisibility cannot be null");
 			this.messageVisibility = messageVisibility;
+			return this;
+		}
+
+		@Override
+		public SqsContainerOptionsBuilder messageVisibilityHeartbeatInterval(
+				Duration messageVisibilityHeartbeatInterval) {
+			Assert.notNull(messageVisibilityHeartbeatInterval, "messageVisibilityHeartbeatInterval cannot be null");
+			Assert.isTrue(
+					!messageVisibilityHeartbeatInterval.isNegative() && !messageVisibilityHeartbeatInterval.isZero(),
+					"messageVisibilityHeartbeatInterval must be greater than zero");
+			this.messageVisibilityHeartbeatInterval = messageVisibilityHeartbeatInterval;
+			return this;
+		}
+
+		@Override
+		public SqsContainerOptionsBuilder messageVisibilityHeartbeatTimeout(
+				Duration messageVisibilityHeartbeatTimeout) {
+			Assert.notNull(messageVisibilityHeartbeatTimeout, "messageVisibilityHeartbeatTimeout cannot be null");
+			Assert.isTrue(
+					!messageVisibilityHeartbeatTimeout.isNegative() && !messageVisibilityHeartbeatTimeout.isZero(),
+					"messageVisibilityHeartbeatTimeout must be greater than zero");
+			this.messageVisibilityHeartbeatTimeout = messageVisibilityHeartbeatTimeout;
 			return this;
 		}
 

@@ -141,6 +141,16 @@ public @interface SqsListener {
 	String messageVisibilitySeconds() default "";
 
 	/**
+	 * Interval between visibility heartbeat requests sent while listener execution is in progress.
+	 */
+	String messageVisibilityHeartbeatIntervalSeconds() default "";
+
+	/**
+	 * Visibility timeout to apply on each visibility heartbeat request.
+	 */
+	String messageVisibilityHeartbeatSeconds() default "";
+
+	/**
 	 * The acknowledgement mode to be used for the provided queues. If not specified, the acknowledgement mode defined
 	 * for the container factory will be used.
 	 */
