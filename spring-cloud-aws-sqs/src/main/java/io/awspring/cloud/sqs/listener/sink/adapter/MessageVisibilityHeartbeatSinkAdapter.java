@@ -44,9 +44,14 @@ import org.springframework.util.Assert;
 /**
  * A {@link AbstractDelegatingMessageListeningSinkAdapter} that adds an interceptor responsible for periodically
  * extending visibility while a message (or message batch) is being processed.
+ * This is known as heart beating and recommended in SQS best practices for cases when expected duration is unknown.
+ * See https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-visibility-timeout.html#visibility-timeout-best-practices
+ * > If you're unsure about the exact processing time, begin with a shorter timeout (for example, 2 minutes)
+ *   and extend it as necessary. Implement a heartbeat mechanism to periodically extend the visibility timeout,
+ *   ensuring the message remains invisible until processing is complete.
  *
- * @author Tomaz Fernandes
- * @since 3.5
+ * @author kzurawski
+ * @since 4.1.0
  */
 public class MessageVisibilityHeartbeatSinkAdapter<T> extends AbstractDelegatingMessageListeningSinkAdapter<T> {
 
