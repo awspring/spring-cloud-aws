@@ -59,7 +59,7 @@ class MailSendingService {
 
 Sending attachments with e-mail or HTML e-mails requires MIME messages to be created and sent. In order to create MIME messages,
 the Java Mail API dependency and an implementation need to be in the classpath. Spring Cloud AWS will detect the
-dependency and create a `org.springframework.mail.javamail.JavaMailSender` implementation that allows to create and
+dependency and create a `org.springframework.mail.javamail.JavaMailSender` implementation that allows you to create and
 build MIME messages and send them. Dependencies for the Java Mail API and an implementation are the only needed configuration changes as shown below.
 
 [source,xml,indent=0]

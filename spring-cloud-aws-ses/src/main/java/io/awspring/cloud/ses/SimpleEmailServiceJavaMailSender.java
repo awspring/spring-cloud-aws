@@ -47,7 +47,7 @@ import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 import software.amazon.awssdk.services.ses.model.SendRawEmailResponse;
 
 /**
- * {@link JavaMailSender} implementation that allows to send {@link MimeMessage} using the Simple E-Mail Service. In
+ * {@link JavaMailSender} implementation that allows sending {@link MimeMessage} using the Simple E-Mail Service. In
  * contrast to {@link SimpleEmailServiceMailSender} this class also allows the use of attachment and other mime parts
  * inside mail messages.
  *
