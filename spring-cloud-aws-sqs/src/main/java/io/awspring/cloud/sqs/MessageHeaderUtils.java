@@ -81,7 +81,7 @@ public class MessageHeaderUtils {
 	 */
 	public static <T, U> Collection<T> getHeader(Collection<Message<U>> messages, String headerName,
 			Class<T> classToCast) {
-		return messages.stream().map(msg -> getHeader(msg, headerName, classToCast)).collect(Collectors.toList());
+		return messages.stream().map(msg -> getHeader(msg, headerName, classToCast)).toList();
 	}
 
 	/**
