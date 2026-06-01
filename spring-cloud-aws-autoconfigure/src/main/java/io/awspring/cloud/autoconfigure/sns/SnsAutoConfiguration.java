@@ -17,6 +17,9 @@ package io.awspring.cloud.autoconfigure.sns;
 
 import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolver;
 import static io.awspring.cloud.sns.configuration.NotificationHandlerMethodArgumentResolverConfigurationUtils.getNotificationHandlerMethodArgumentResolverLegacyJackson2;
+import static io.awspring.cloud.sns.configuration.WebFluxNotificationHandlerMethodArgumentResolverConfigurationUtils.getWebFluxNotificationMessageHandlerMethodArgumentResolver;
+import static io.awspring.cloud.sns.configuration.WebFluxNotificationHandlerMethodArgumentResolverConfigurationUtils.getWebFluxNotificationStatusHandlerMethodArgumentResolver;
+import static io.awspring.cloud.sns.configuration.WebFluxNotificationHandlerMethodArgumentResolverConfigurationUtils.getWebFluxNotificationSubjectHandlerMethodArgumentResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
@@ -53,6 +56,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -60,6 +64,8 @@ import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
+import org.springframework.web.reactive.result.method.annotation.ArgumentResolverConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
 import software.amazon.awssdk.services.sns.SnsAsyncClient;
@@ -203,6 +209,7 @@ public class SnsAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 	@ConditionalOnClass(WebMvcConfigurer.class)
 	static class SnsWebConfiguration {
 
@@ -229,6 +236,28 @@ public class SnsAutoConfiguration {
 			}
 			throw new IllegalStateException(
 					"SnsWebMvc integration requires a Jackson 2 or Jackson 3 library on the classpath");
+		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
+	@ConditionalOnClass(WebFluxConfigurer.class)
+	static class SnsWebFluxWebConfiguration {
+
+		@Bean
+		public WebFluxConfigurer snsWebMvcConfigurer(SnsClient snsClient,
+				ObjectProvider<SnsMessageManager> snsMessageManager) {
+			return new WebFluxConfigurer() {
+				@Override
+				public void configureArgumentResolvers(ArgumentResolverConfigurer configurer) {
+					configurer.addCustomResolver(
+							getWebFluxNotificationStatusHandlerMethodArgumentResolver(snsClient,
+									snsMessageManager.getIfAvailable()),
+							getWebFluxNotificationMessageHandlerMethodArgumentResolver(
+									snsMessageManager.getIfAvailable()),
+							getWebFluxNotificationSubjectHandlerMethodArgumentResolver());
+				}
+			};
 		}
 	}
 

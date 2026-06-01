@@ -296,9 +296,16 @@ To turn off verification simply set property `spring.cloud.aws.sns.verification=
 For more information about SNS verification https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/sns/message/SnsMessageManager.html[here].
 ====
 
-HTTP endpoints are based on Spring MVC controllers. Spring Cloud AWS added some custom argument resolvers to extract the message and subject out of the notification requests.
+==== Spring MVC and Spring WebFlux support
 
-Example of integration:
+Spring Cloud AWS automatically detects whether your application is a Servlet (Spring MVC) or Reactive (Spring WebFlux) application and configures the appropriate argument resolvers. No code changes are required — the same controller annotations work in both environments:
+
+* In a **Servlet** application, Spring MVC `HandlerMethodArgumentResolver` implementations are registered via `WebMvcConfigurer`.
+* In a **Reactive** application, WebFlux `HandlerMethodArgumentResolver` implementations are registered via `WebFluxConfigurer`.
+
+The annotations `@NotificationSubscriptionMapping`, `@NotificationMessageMapping`, `@NotificationUnsubscribeConfirmationMapping`, `@NotificationMessage`, `@NotificationSubject`, and `NotificationStatus` are shared between both stacks.
+
+Example of integration (works identically for both Spring MVC and Spring WebFlux):
 
 [source,java]
 ----
@@ -333,6 +340,8 @@ public class NotificationTestController {
 	}
 }
 ----
+
+NOTE: WebFlux support was added in version 4.1.0.
 
 === Configuration
 
