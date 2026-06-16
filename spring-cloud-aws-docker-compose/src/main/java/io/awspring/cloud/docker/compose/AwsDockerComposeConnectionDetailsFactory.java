@@ -31,8 +31,8 @@ import org.springframework.boot.docker.compose.service.connection.DockerComposeC
  */
 class AwsDockerComposeConnectionDetailsFactory extends DockerComposeConnectionDetailsFactory<AwsConnectionDetails> {
 
-	private static final String[]
-		AWS_EMULATOR_CONTAINER_NAMES = {"localstack/localstack", "localstack/localstack-pro", "hectorvent/floci" };
+	private static final String[] AWS_EMULATOR_CONTAINER_NAMES = { "localstack/localstack", "localstack/localstack-pro",
+			"hectorvent/floci", "floci/floci" };
 
 	private static final int EMULATOR_PORT = 4566;
 

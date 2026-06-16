@@ -1,6 +1,6 @@
 services:
   floci:
-    image: hectorvent/floci:1.5.3
+    image: floci/floci:1.5.25
     environment:
       AWS_ACCESS_KEY_ID: noop
       AWS_SECRET_ACCESS_KEY: noop
