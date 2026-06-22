@@ -221,3 +221,32 @@ Sample IAM policy granting access to SES:
     ]
 }
 ----
+
+=== AWS SES API v2
+
+To use AWS SES API v2 instead of v1, use the following dependency instead:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter-sesv2</artifactId>
+</dependency>
+----
+
+The associated configuration options are:
+
+[cols="3,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.ses2.enabled` | Enables the SES integration. | No | `true`
+| `spring.cloud.aws.ses2.endpoint` | Configures endpoint used by `SesClient`. | No |
+| `spring.cloud.aws.ses2.region` | Configures region used by `SesClient`. | No |
+| `spring.cloud.aws.ses2.identity-arn` | Configures identity ARN, used only for sending authorization. | No |
+| `spring.cloud.aws.ses2.configuration-set-name` | The configuration set name used for every message | No |
+|===
+
+`identityArn` is the ARN of the identity that is associated with the sending authorization policy that permits you to use the email address specified as `from` when sending emails.
+For more information about sending authorization, see the https://docs.aws.amazon.com/ses/latest/dg/sending-authorization.html[Amazon SES Developer Guide].
+
+The `SesV2ClientCustomizer` can be used instead of the `SesClientCustomizer`.
