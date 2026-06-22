@@ -85,6 +85,38 @@ class RegionProviderAutoConfigurationTests {
 	}
 
 	@Test
+	void regionProvider_credentialProfileNameAndPathConfigured_profileRegionProviderConfiguredWithCustomProfile()
+			throws IOException {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.credentials.profile.name:customProfile",
+				"spring.cloud.aws.credentials.profile.path:"
+						+ new ClassPathResource(getClass().getSimpleName() + "-profile", getClass()).getFile()
+								.getAbsolutePath())
+				.run((context) -> {
+					AwsRegionProvider awsRegionProvider = context.getBean("regionProvider",
+							AwsProfileRegionProvider.class);
+					assertThat(awsRegionProvider).isNotNull();
+					assertThat(awsRegionProvider.getRegion()).isEqualTo(Region.EU_WEST_1);
+				});
+	}
+
+	@Test
+	void regionProvider_credentialAndRegionProfileNameAndPathBothConfigured_profileRegionProviderConfiguredWithCustomProfile()
+			throws IOException {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.credentials.profile.name:noneProfile",
+				"spring.cloud.aws.credentials.profile.path:",
+				"spring.cloud.aws.region.profile.name:customProfile",
+				"spring.cloud.aws.region.profile.path:"
+						+ new ClassPathResource(getClass().getSimpleName() + "-profile", getClass()).getFile()
+								.getAbsolutePath())
+				.run((context) -> {
+					AwsRegionProvider awsRegionProvider = context.getBean("regionProvider",
+							AwsProfileRegionProvider.class);
+					assertThat(awsRegionProvider).isNotNull();
+					assertThat(awsRegionProvider.getRegion()).isEqualTo(Region.EU_WEST_1);
+				});
+	}
+
+	@Test
 	void regionProvider_instanceProfileConfigured_configuresInstanceProfileCredentialsProvider() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.region.instance-profile:true").run((context) -> {
 			AwsRegionProvider awsCredentialsProvider = context.getBean("regionProvider",

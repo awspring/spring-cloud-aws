@@ -38,36 +38,42 @@ import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
  *
  * @author Siva Katamreddy
  * @author Eddú Meléndez
+ * @author Wei Jiang
  */
 @AutoConfiguration
 @ConditionalOnClass({ StaticRegionProvider.class, AwsRegionProvider.class, ProfileFile.class })
-@EnableConfigurationProperties(RegionProperties.class)
+@EnableConfigurationProperties({ CredentialsProperties.class, RegionProperties.class })
 public class RegionProviderAutoConfiguration {
 
-	private final RegionProperties properties;
+	private final CredentialsProperties credentialsProperties;
 
-	public RegionProviderAutoConfiguration(RegionProperties properties) {
-		this.properties = properties;
+	private final RegionProperties regionProperties;
+
+	public RegionProviderAutoConfiguration(CredentialsProperties credentialsProperties,
+			RegionProperties regionProperties) {
+		this.credentialsProperties = credentialsProperties;
+		this.regionProperties = regionProperties;
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	public AwsRegionProvider regionProvider() {
-		return createRegionProvider(this.properties);
+		return createRegionProvider(this.credentialsProperties, this.regionProperties);
 	}
 
-	public static AwsRegionProvider createRegionProvider(RegionProperties properties) {
+	public static AwsRegionProvider createRegionProvider(CredentialsProperties credentialsProperties,
+			RegionProperties regionProperties) {
 		final List<AwsRegionProvider> providers = new ArrayList<>();
 
-		if (properties.getStatic() != null && properties.isStatic()) {
-			providers.add(new StaticRegionProvider(properties.getStatic()));
+		if (regionProperties.getStatic() != null && regionProperties.isStatic()) {
+			providers.add(new StaticRegionProvider(regionProperties.getStatic()));
 		}
 
-		if (properties.isInstanceProfile()) {
+		if (regionProperties.isInstanceProfile()) {
 			providers.add(new InstanceProfileRegionProvider());
 		}
 
-		Profile profile = properties.getProfile();
+		Profile profile = getConfigurationProfile(credentialsProperties, regionProperties);
 		if (profile != null && profile.getName() != null) {
 			providers.add(createProfileRegionProvider(profile));
 		}
@@ -81,6 +87,17 @@ public class RegionProviderAutoConfiguration {
 		else {
 			return new AwsRegionProviderChain(providers.toArray(new AwsRegionProvider[0]));
 		}
+	}
+
+	private static Profile getConfigurationProfile(CredentialsProperties credentialsProperties,
+			RegionProperties regionProperties) {
+		Profile profile = regionProperties.getProfile();
+
+		if (profile != null) {
+			return profile;
+		}
+
+		return credentialsProperties.getProfile();
 	}
 
 	private static AwsProfileRegionProvider createProfileRegionProvider(Profile profile) {
