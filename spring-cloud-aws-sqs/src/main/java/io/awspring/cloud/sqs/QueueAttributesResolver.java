@@ -86,6 +86,13 @@ public class QueueAttributesResolver {
 	}
 
 	private CompletableFuture<QueueAttributes> wrapException(Throwable t) {
+		Throwable unwrapped = t instanceof CompletionException ? t.getCause() : t;
+		if (unwrapped instanceof QueueNotFoundException) {
+			// Already a typed "ignore this queue" signal — preserve the type so callers can distinguish it from
+			// other resolver failures and skip starting the listener gracefully.
+			return CompletableFutures.failedFuture(unwrapped);
+		}
+
 		String message = "Error resolving attributes for queue "
 			+ this.queueName + " with strategy " + this.queueNotFoundStrategy + " and queueAttributesNames " + this.queueAttributeNames;
 
@@ -94,8 +101,7 @@ public class QueueAttributesResolver {
 				"Please verify your AWS credentials, network settings, and queue configuration.";
 		}
 
-		return CompletableFutures.failedFuture(new QueueAttributesResolvingException(message,
-			t instanceof CompletionException ? t.getCause() : t));
+		return CompletableFutures.failedFuture(new QueueAttributesResolvingException(message, unwrapped));
 	}
 
 	private CompletableFuture<String> resolveQueueUrl() {
@@ -120,10 +126,17 @@ public class QueueAttributesResolver {
 	}
 
 	private CompletableFuture<String> handleException(Throwable t) {
-		return t.getCause() instanceof QueueDoesNotExistException
-			&& QueueNotFoundStrategy.CREATE.equals(this.queueNotFoundStrategy)
-				? createQueue()
-				: CompletableFutures.failedFuture(t);
+		if (t.getCause() instanceof QueueDoesNotExistException) {
+			if (QueueNotFoundStrategy.CREATE.equals(this.queueNotFoundStrategy)) {
+				return createQueue();
+			}
+			if (QueueNotFoundStrategy.IGNORE.equals(this.queueNotFoundStrategy)) {
+				logger.warn("Queue {} not found and strategy is IGNORE; the listener for this queue will be skipped",
+						this.queueName);
+				return CompletableFutures.failedFuture(new QueueNotFoundException(this.queueName, t.getCause()));
+			}
+		}
+		return CompletableFutures.failedFuture(t);
 	}
 
 	private CompletableFuture<String> createQueue() {

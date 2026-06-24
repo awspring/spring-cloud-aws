@@ -255,6 +255,7 @@ See <<template-message-conversion>> for more information.
 #CREATE
 |Set the strategy to use in case a queue is not found.
 With `QueueNotFoundStrategy#FAIL`, an exception is thrown in case a queue is not found.
+With `QueueNotFoundStrategy#IGNORE`, the listener for the missing queue is skipped at startup with a warning log and subsequent polls for it return no messages, so application startup is not blocked.
 
 |`queueAttributeNames`
 |Collection<AttributeNames>
