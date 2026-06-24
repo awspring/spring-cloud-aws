@@ -17,6 +17,7 @@ package io.awspring.cloud.sqs.listener.source;
 
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.QueueAttributesResolver;
+import io.awspring.cloud.sqs.QueueNotFoundException;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesAware;
@@ -34,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jspecify.annotations.Nullable;
@@ -92,6 +94,8 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 
 	private int pollTimeout;
 
+	private boolean skipped;
+
 	@Override
 	public void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 		Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null.");
@@ -119,7 +123,19 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 	protected void doStart() {
 		Assert.notNull(this.sqsAsyncClient, "sqsAsyncClient not set");
 		Assert.notNull(this.queueAttributeNames, "queueAttributeNames not set");
-		this.queueAttributes = resolveQueueAttributes();
+		try {
+			this.queueAttributes = resolveQueueAttributes();
+		}
+		catch (CompletionException ex) {
+			if (ex.getCause() instanceof QueueNotFoundException qnfe) {
+				// QueueNotFoundStrategy.IGNORE — log warning and short-circuit the source so the application
+				// context can come up. doPollForMessages() will return empty for the lifetime of this source.
+				logger.warn("Skipping start for queue {}: {}", qnfe.getQueueName(), qnfe.getMessage());
+				this.skipped = true;
+				return;
+			}
+			throw ex;
+		}
 		this.queueUrl = this.queueAttributes.getQueueUrl();
 		configureConversionContextAndAcknowledgement();
 	}
@@ -170,6 +186,9 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 	@Override
 	protected CompletableFuture<Collection<Message>> doPollForMessages(
 			int maxNumberOfMessages) {
+		if (this.skipped) {
+			return CompletableFuture.completedFuture(Collections.emptyList());
+		}
 		logger.debug("Polling queue {} for {} messages.", this.queueUrl, maxNumberOfMessages);
 		return maxNumberOfMessages <= 10
 			? executePoll(maxNumberOfMessages)
