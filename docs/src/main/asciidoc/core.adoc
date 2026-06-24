@@ -260,6 +260,64 @@ There can be multiple customizer beans present in single application context and
 
 Client-specific customizations can be applied through client-specific customizer interfaces (for example `S3ClientCustomizer` for S3). See integrations documentation for details.
 
+==== Configuring an HTTP Proxy
+
+The Apache (synchronous) and Netty (asynchronous) HTTP clients in AWS SDK v2 accept a `ProxyConfiguration` that can be wired through the customizer interfaces above. This is the supported way to route AWS API calls through an HTTP proxy on Spring Cloud AWS 3.x (Spring Cloud AWS 2.x's `ClientConfiguration#setProxyHost` is part of AWS SDK v1 and no longer applies).
+
+For synchronous integrations (DynamoDB, SES, SNS, Parameter Store, Secrets Manager, S3):
+
+[source,java,indent=0]
+----
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache.ProxyConfiguration;
+
+import java.net.URI;
+import java.util.Set;
+
+@Bean
+AwsSyncClientCustomizer proxyAwsSyncClientCustomizer() {
+	return builder -> {
+		ProxyConfiguration proxy = ProxyConfiguration.builder()
+			.endpoint(URI.create("http://proxy.internal:8080"))
+			.username("user")
+			.password("password")
+			.nonProxyHosts(Set.of("169.254.169.254", "localhost"))
+			.build();
+		builder.httpClient(ApacheHttpClient.builder().proxyConfiguration(proxy).build());
+	};
+}
+----
+
+For asynchronous integrations (SQS, CloudWatch):
+
+[source,java,indent=0]
+----
+import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
+
+import java.util.Set;
+
+@Bean
+AwsAsyncClientCustomizer proxyAwsAsyncClientCustomizer() {
+	return builder -> {
+		ProxyConfiguration proxy = ProxyConfiguration.builder()
+			.host("proxy.internal")
+			.port(8080)
+			.username("user")
+			.password("password")
+			.nonProxyHosts(Set.of("169.254.169.254", "localhost"))
+			.build();
+		builder.httpClient(NettyNioAsyncHttpClient.builder().proxyConfiguration(proxy).build());
+	};
+}
+----
+
+The two `ProxyConfiguration` types live in different packages (`software.amazon.awssdk.http.apache.ProxyConfiguration` and `software.amazon.awssdk.http.nio.netty.ProxyConfiguration`) and have slightly different builder APIs — the Apache builder takes a full URI via `endpoint(URI)`, the Netty builder takes `host(String)` and `port(int)` separately. Both accept `nonProxyHosts(Set<String>)` to exclude addresses such as the EC2 instance metadata service (`169.254.169.254`).
+
+Per-client customizer interfaces (for example `S3ClientCustomizer`) can be used the same way when only a single integration needs to go through the proxy.
+
 
 === GraalVM Native Image
 
