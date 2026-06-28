@@ -58,7 +58,7 @@ public class SqsProperties extends AwsClientProperties {
 	 */
 	private Boolean convertMessageIdToUuid = true;
 
-	private SqsExtendedClientProperties extended;
+	private SqsExtendedClientProperties extended = new SqsExtendedClientProperties();
 
 	public Boolean getConvertMessageIdToUuid() {
 		return convertMessageIdToUuid;
