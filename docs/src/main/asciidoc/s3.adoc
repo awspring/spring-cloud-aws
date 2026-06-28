@@ -148,7 +148,7 @@ public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
 [NOTE]
 ====
-Retaining the trailing slash is a behavior change introduced in `4.0.3` and `4.1.0`.
+Retaining the trailing slash is a behavior change introduced `4.1.0`.
 In earlier versions a trailing slash was stripped, so `s3://my-bucket/path/` resolved to the object key `path` instead of `path/`.
 If you relied on the previous behavior, drop the trailing slash from your locations (use `s3://my-bucket/path`).
 ====
