@@ -720,6 +720,15 @@ public class MyListener {
 
 The `isDefault = true` parameter designates a method as the fallback handler for messages that don't match any other handler's parameter type.
 
+Handler methods can also accept the payload wrapped in a `Message<T>`; routing is based on the generic type, so it works the same way as a plain payload parameter:
+[source, java]
+----
+@SqsHandler
+public void handle(Message<MyPojo> message) {
+	System.out.println(message.getPayload());
+}
+----
+
 To determine which handler method to invoke, the framework needs to know the payload type before deserialization.
 A custom `PayloadTypeMapper` should be configured to map incoming messages to their concrete types.
 See <<Custom Payload Type Mapping>> for an example.
