@@ -49,7 +49,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -244,7 +244,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 				}));
 			}));
 
-			SdkHttpClient mock = spy(ApacheHttpClient.builder().build());
+			SdkHttpClient mock = spy(Apache5HttpClient.builder().build());
 			when(mock.clientName()).thenReturn("mock-client");
 
 			registry.register(SdkHttpClient.class, context -> mock);

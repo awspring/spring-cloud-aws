@@ -53,7 +53,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -509,7 +509,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				}));
 			}));
 			registry.register(AwsSyncClientCustomizer.class, context -> (builder -> {
-				builder.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
+				builder.httpClient(Apache5HttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
 			}));
 		}
 	}

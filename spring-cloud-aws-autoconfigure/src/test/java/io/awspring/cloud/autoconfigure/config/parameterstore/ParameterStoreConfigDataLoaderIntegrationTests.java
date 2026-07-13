@@ -47,7 +47,7 @@ import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
@@ -519,7 +519,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				}));
 			}));
 			registry.register(AwsSyncClientCustomizer.class, context -> (builder -> {
-				builder.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
+				builder.httpClient(Apache5HttpClient.builder().connectionTimeout(Duration.ofMillis(1542))
+						.socketTimeout(Duration.ofSeconds(30)).build());
 			}));
 		}
 	}
