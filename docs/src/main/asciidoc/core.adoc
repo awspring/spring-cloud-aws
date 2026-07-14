@@ -1,11 +1,11 @@
 [#spring-cloud-aws-core]
-== Spring Cloud AWS Core
+== Spring Cloud AWS core
 
 Each Spring Cloud AWS module uses `AwsCredentialsProvider` and `AwsRegionProvider` to get the AWS region and access credentials.
 
 Spring Cloud AWS provides a Spring Boot starter to auto-configure the core components.
 
-Maven coordinates, using <<getting-started.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
 [source,xml]
 ----
@@ -43,11 +43,11 @@ logging.level.io.awspring.cloud=debug
 
 By default, Spring Cloud AWS starter auto-configures a `DefaultCredentialsProvider`, which looks for AWS credentials in this order:
 
-1. Java System Properties - `aws.accessKeyId` and `aws.secretAccessKey`
-2. Environment Variables - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
-3. Web Identity Token credentials from system properties or environment variables
+1. Java system properties - `aws.accessKeyId` and `aws.secretAccessKey`
+2. Environment variables - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+3. Web identity token credentials from system properties or environment variables
 4. Credential profiles file at the default location (`~/.aws/credentials`) shared by all AWS SDKs and the AWS CLI
-5. Credentials delivered through the Amazon EC2 container service if the `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` environment variable is set and the security manager has permission to access the variable,
+5. Credentials delivered through the Amazon EC2 container service if the `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` environment variable is set and the security manager has permission to access the variable
 6. Instance profile credentials delivered through the Amazon EC2 metadata service
 
 If it does not serve your project needs, this behavior can be changed by setting additional properties:
@@ -87,7 +87,7 @@ The `StsWebIdentityTokenFileCredentialsProvider` allows your application to assu
 1. Create a role that you want to assume.
 2. Create a web identity token file for your application.
 
-In EKS, please follow this guide to set up service accounts https://docs.aws.amazon.com/eks/latest/userguide/pod-configuration.html
+In EKS, follow this guide to set up service accounts: https://docs.aws.amazon.com/eks/latest/userguide/pod-configuration.html[EKS Pod Configuration].
 
 The `StsWebIdentityTokenFileCredentialsProvider` support is optional, so you need to include the following Maven dependency:
 [source,xml,indent=0]
@@ -100,9 +100,9 @@ The `StsWebIdentityTokenFileCredentialsProvider` support is optional, so you nee
 
 
 ===== Configuring
-In EKS no additional configuration is required as the service account already configures the correct environment variables; however, they can be overridden.
+In EKS, no additional configuration is required as the service account already configures the correct environment variables; however, they can be overridden.
 
-STS credentials configuration supports following properties:
+STS credentials configuration supports the following properties:
 
 [cols="2,3,1,1"]
 |===
@@ -212,11 +212,11 @@ To simplify using services with AWS compatible APIs, or running applications aga
 |endpoint url applied to auto-configured AWS clients
 |===
 
-=== Customizing AWS Clients
+=== Customizing AWS clients
 
 Properties cover the most common configuration needs. When more advanced configuration is required, Spring Cloud AWS offers a set of customizer interfaces that can be implemented to customize AWS clients.
 
-There are two types of AWS clients - synchronous and asynchronous. Each Spring Cloud AWS integration use one or the other type:
+There are two types of AWS clients - synchronous and asynchronous. Each Spring Cloud AWS integration uses one or the other type:
 
 [cols="2*", options="header"]
 |===
@@ -258,14 +258,14 @@ AwsAsyncClientCustomizer awsAsyncClientCustomizer() {
 
 There can be multiple customizer beans present in a single application context, and all of them will be used to configure AWS clients. If the order of customizers matters, use the `@Order` annotation on customizer beans.
 
-Client-specific customizations can be applied through client-specific customizer interfaces (for example `S3ClientCustomizer` for S3). See integrations documentation for details.
+Client-specific customizations can be applied through client-specific customizer interfaces (for example `S3ClientCustomizer` for S3). See the integrations documentation for details.
 
 
 === GraalVM Native Image
 
-Since version 3.3.0 the framework provides **experimental** support for GraalVM Native Image build.
+Since version 3.3.0, the framework provides **experimental** support for building a GraalVM Native Image.
 
 Known issues are:
 
-- in DynamoDB integration, `StaticTableSchema` must be used instead of `DynamicTableSchema` (see https://github.com/aws/aws-sdk-java-v2/issues/2445)
-- in S3 integration, when working with CRT client, following guide must be followed: https://github.com/awslabs/aws-crt-java?tab=readme-ov-file#graalvm-support
+- In DynamoDB integration, `StaticTableSchema` must be used instead of `DynamicTableSchema` (see https://github.com/aws/aws-sdk-java-v2/issues/2445).
+- In S3 integration, when working with the CRT client, the following guide must be followed: https://github.com/awslabs/aws-crt-java?tab=readme-ov-file#graalvm-support

@@ -1,5 +1,5 @@
 [#spring-cloud-aws-imds]
-== Instance Metadata Service Integration
+== Instance Metadata Service integration
 
 Spring Cloud AWS applications can use the Instance Metadata Service (IMDS) to acquire EC2 instance metadata when running within an EC2-based compute environment. This metadata can be used for a wide variety of purposes, including detecting the availability zone, public IP address, MAC address, and more. When available, properties can be referenced using the `@Value` annotation:
 

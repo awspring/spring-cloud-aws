@@ -1,17 +1,17 @@
 [#spring-cloud-aws-ses]
-== SES Integration
-Spring provides built-in support for sending e-mails through the https://www.oracle.com/technetwork/java/javamail/index.html[Java Mail API],
+== SES integration
+Spring provides built-in support for sending emails through the https://www.oracle.com/technetwork/java/javamail/index.html[Java Mail API],
 which avoids static method calls and promotes testability.
 Spring Cloud AWS supports https://aws.amazon.com/de/ses/[Amazon SES] as an implementation of the Spring Mail abstraction.
 
 As a result, Spring Cloud AWS users can choose to use the Spring Cloud AWS implementation of the Amazon SES service or
-the standard Java Mail API-based implementation that sends e-mails via SMTP to Amazon SES.
+the standard Java Mail API-based implementation that sends emails via SMTP to Amazon SES.
 
 [TIP]
 ====
 It is preferred to use the Spring Cloud AWS implementation instead of SMTP mainly for performance reasons.
 Spring Cloud AWS uses one API call to send a mail message, while the SMTP protocol makes multiple requests (EHLO, MAIL FROM, RCPT TO, DATA, QUIT)
-until it sends an e-mail.
+until it sends an email.
 ====
 
 A Spring Boot starter is provided to auto-configure SES integration beans.
@@ -26,8 +26,8 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-=== Sending simple mails
-Application developers can inject the `MailSender` into their application code to send simple text-based e-mail
+=== Sending simple emails
+Application developers can inject the `MailSender` into their application code to send simple text-based email
 messages. The sample below demonstrates the creation of a simple mail message.
 
 [source,java,indent=0]
@@ -55,9 +55,9 @@ class MailSendingService {
 ----
 
 
-=== Sending attachments and/or HTML e-mails
+=== Sending attachments and/or HTML emails
 
-Sending e-mail attachments or HTML e-mails requires MIME messages. To create MIME messages,
+Sending email attachments or HTML emails requires MIME messages. To create MIME messages,
 the Java Mail API dependency and an implementation must be on the classpath. Spring Cloud AWS detects this
 dependency and creates a `org.springframework.mail.javamail.JavaMailSender` implementation that allows building
 and sending MIME messages. Adding the Java Mail API and an implementation are the only required configuration changes, as shown below.
@@ -81,7 +81,7 @@ messages. There is no https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send
 on the Amazon AWS side.
 ====
 
-Sending the mail requires the application developer to use the `JavaMailSender` to send an e-mail as shown in the example
+Sending the mail requires the application developer to use the `JavaMailSender` to send an email as shown in the example
 below.
 
 [source,java,indent=0]
@@ -116,11 +116,11 @@ class MailSendingService {
 }
 ----
 
-=== Authenticating e-mails
+=== Authenticating emails
 
 To avoid any spam attacks on the Amazon SES mail service, applications without production access must
 https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses.html[verify] each
-e-mail receiver otherwise the mail sender will throw a `software.amazon.awssdk.services.ses.model.MessageRejectedException`.
+email receiver, or the mail sender will throw a `software.amazon.awssdk.services.ses.model.MessageRejectedException`.
 
 https://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html[Production access] can be requested
 and will disable the need for mail address verification.
@@ -162,7 +162,7 @@ spring.cloud.aws.ses.from-arn=arn:aws:ses:eu-west-1:123456789012:identity/exampl
 spring.cloud.aws.ses.configuration-set-name=ConfigSet
 ----
 
-=== Client Customization
+=== Client customization
 
 `SesClient` can be further customized by providing a bean of type `SesClientCustomizer`:
 
@@ -189,15 +189,15 @@ There can be multiple `SesClientCustomizer` beans present in a single applicatio
 
 Note that `SesClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
 
-=== IAM Permissions
+=== IAM permissions
 The following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2"]
 |===
-| Send e-mail without attachment
+| Send email without attachment
 | `ses:SendEmail`
 
-| Send e-mail with attachment
+| Send email with attachment
 | `ses:SendRawEmail`
 
 |===

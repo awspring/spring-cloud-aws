@@ -1,5 +1,5 @@
 [#spring-cloud-aws-modulith]
-== Spring Modulith Integration
+== Spring Modulith integration
 
 Integration with https://spring.io/projects/spring-modulith[Spring Modulith] provides the capability to send externalized events to SNS and SQS. For more information about externalizing events, see the https://docs.spring.io/spring-modulith/reference/events.html#externalization[Spring Modulith Reference Guide].
 

@@ -1,5 +1,5 @@
 [#spring-cloud-aws-app-config]
-== AppConfig Integration
+== AppConfig integration
 
 https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html[AppConfig] helps store configuration safely in the cloud. The service also supports continuous fetching of changes so they can be applied during runtime.
 
@@ -15,9 +15,9 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-=== Loading External Configuration
+=== Loading external configuration
 
-To fetch configuration from AppConfig and add it to Spring's environment properties, add the `spring.config.import` property to `application.properties`:
+To fetch configuration from AppConfig and add it to Spring's environment properties, add the `spring.config.import` property to `application.properties`.
 
 When specifying the key, all of the following values must be set:
 
@@ -73,7 +73,7 @@ private String password;
 
 === Using AppConfigDataClient
 
-The starter automatically configures and registers a `AppConfigDataClient` bean in the Spring application context. The `AppConfigDataClient` bean can be used to retrieve configuration files imperatively.
+The starter automatically configures and registers an `AppConfigDataClient` bean in the Spring application context. The `AppConfigDataClient` bean can be used to retrieve configuration files imperatively.
 
 === Customizing AppConfigDataClient
 
@@ -154,7 +154,7 @@ The Spring Boot Starter for AppConfig provides the following configuration optio
 | `spring.cloud.aws.appconfig.separator` | Configures the separator used to split the import key into application, profile, and environment. | No | `#`
 |===
 
-=== IAM Permissions
+=== IAM permissions
 
 The following IAM permissions are required by Spring Cloud AWS:
 
