@@ -38,9 +38,12 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
+import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.web.reactive.config.WebFluxConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import software.amazon.awssdk.arns.Arn;
 import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
@@ -73,7 +76,6 @@ class SnsAutoConfigurationTest {
 			assertThat(context).hasSingleBean(SnsClient.class);
 			assertThat(context).hasSingleBean(SnsTemplate.class);
 			assertThat(context).hasSingleBean(SnsSmsTemplate.class);
-			assertThat(context).hasBean("snsWebMvcConfigurer");
 			assertThat(context).hasSingleBean(SnsMessageManager.class);
 
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
@@ -90,7 +92,6 @@ class SnsAutoConfigurationTest {
 					assertThat(context).hasSingleBean(SnsClient.class);
 					assertThat(context).hasSingleBean(SnsTemplate.class);
 					assertThat(context).hasSingleBean(SnsSmsTemplate.class);
-					assertThat(context).hasBean("snsWebMvcConfigurer");
 					assertThat(context).doesNotHaveBean(SnsMessageManager.class);
 
 					ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
@@ -103,7 +104,6 @@ class SnsAutoConfigurationTest {
 	void withCustomEndpoint() {
 		this.contextRunner.withPropertyValues("spring.cloud.aws.sns.endpoint:http://localhost:8090").run(context -> {
 			assertThat(context).hasSingleBean(SnsTemplate.class);
-			assertThat(context).hasBean("snsWebMvcConfigurer");
 			assertThat(context).hasSingleBean(SnsMessageManager.class);
 
 			ConfiguredAwsClient client = new ConfiguredAwsClient(context.getBean(SnsClient.class));
@@ -130,6 +130,47 @@ class SnsAutoConfigurationTest {
 			assertThat(context).hasSingleBean(SnsMessageManager.class);
 			assertThat(context).doesNotHaveBean("snsWebMvcConfigurer");
 		});
+	}
+
+	@Nested
+	class SnsWebConfigurationTests {
+
+		private final AutoConfigurations autoConfigurations = AutoConfigurations.of(
+				RegionProviderAutoConfiguration.class, CredentialsProviderAutoConfiguration.class,
+				SnsAutoConfiguration.class, AwsAutoConfiguration.class);
+
+		private final WebApplicationContextRunner servletRunner = new WebApplicationContextRunner()
+				.withPropertyValues("spring.cloud.aws.region.static:eu-west-1").withConfiguration(autoConfigurations);
+
+		private final ReactiveWebApplicationContextRunner reactiveRunner = new ReactiveWebApplicationContextRunner()
+				.withPropertyValues("spring.cloud.aws.region.static:eu-west-1").withConfiguration(autoConfigurations);
+
+		@Test
+		void servletContext_configuresWebMvcConfigurer_andNotWebFluxConfigurer() {
+			this.servletRunner.run(context -> {
+				assertThat(context).hasBean("snsWebMvcConfigurer");
+				assertThat(context).hasSingleBean(WebMvcConfigurer.class);
+				assertThat(context).doesNotHaveBean(WebFluxConfigurer.class);
+			});
+		}
+
+		@Test
+		void reactiveContext_configuresWebFluxConfigurer_andNotWebMvcConfigurer() {
+			this.reactiveRunner.run(context -> {
+				assertThat(context).hasBean("snsWebMvcConfigurer");
+				assertThat(context).hasSingleBean(WebFluxConfigurer.class);
+				assertThat(context).doesNotHaveBean(WebMvcConfigurer.class);
+			});
+		}
+
+		@Test
+		void nonWebContext_configuresNeitherWebMvcNorWebFlux() {
+			contextRunner.run(context -> {
+				assertThat(context).doesNotHaveBean(WebMvcConfigurer.class);
+				assertThat(context).doesNotHaveBean(WebFluxConfigurer.class);
+			});
+		}
+
 	}
 
 	@Test
