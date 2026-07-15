@@ -17,6 +17,7 @@ package io.awspring.cloud.autoconfigure.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
@@ -25,6 +26,7 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +42,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 class SqsAsyncClientCustomizerTests {
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withClassLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class))
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1",
 					"spring.cloud.aws.credentials.access-key:noop", "spring.cloud.aws.credentials.secret-key:noop")
 			.withConfiguration(AutoConfigurations.of(AwsAutoConfiguration.class, RegionProviderAutoConfiguration.class,

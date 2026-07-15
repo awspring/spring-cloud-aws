@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.sqs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -44,6 +45,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -51,6 +53,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import tools.jackson.databind.json.JsonMapper;
@@ -66,6 +69,7 @@ class SqsAutoConfigurationTest {
 	private static final String CUSTOM_MESSAGE_CONVERTER_BEAN_NAME = "customMessageConverter";
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withClassLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class))
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, SqsAutoConfiguration.class,
@@ -305,6 +309,49 @@ class SqsAutoConfigurationTest {
 					.filteredOn(converter -> converter instanceof JacksonJsonMessageConverter).hasSize(1).first()
 					.extracting("mapper").isNotNull();
 		});
+	}
+
+	@Test
+	void createsExtendedClientWhenClassOnClasspathAndBucketConfigured() {
+		new ApplicationContextRunner()
+				.withPropertyValues("spring.cloud.aws.region.static:eu-west-1",
+						"spring.cloud.aws.sqs.extended.bucket=my-bucket")
+				.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+						CredentialsProviderAutoConfiguration.class, SqsAutoConfiguration.class,
+						AwsAutoConfiguration.class))
+				.withUserConfiguration(S3AsyncClientConfiguration.class).run(context -> {
+					assertThat(context).hasSingleBean(SqsAsyncClient.class);
+					assertThat(context.getBean(SqsAsyncClient.class)).isInstanceOf(AmazonSQSExtendedAsyncClient.class);
+				});
+	}
+
+	@Test
+	void createsNormalClientWhenExtendedClientOnClasspathButNoBucket() {
+		new ApplicationContextRunner().withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
+				.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+						CredentialsProviderAutoConfiguration.class, SqsAutoConfiguration.class,
+						AwsAutoConfiguration.class))
+				.withUserConfiguration(S3AsyncClientConfiguration.class).run(context -> {
+					assertThat(context).hasFailed();
+				});
+	}
+
+	@Test
+	void createsNormalClientWhenExtendedClientNotOnClasspath() {
+		this.contextRunner.withClassLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)).run(context -> {
+			assertThat(context).hasSingleBean(SqsAsyncClient.class);
+			assertThat(context.getBean(SqsAsyncClient.class)).isNotInstanceOf(AmazonSQSExtendedAsyncClient.class);
+		});
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class S3AsyncClientConfiguration {
+
+		@Bean
+		S3AsyncClient s3AsyncClient() {
+			return Mockito.mock(S3AsyncClient.class);
+		}
+
 	}
 
 	@Configuration(proxyBeanMethods = false)
