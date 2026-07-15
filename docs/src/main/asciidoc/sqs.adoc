@@ -86,6 +86,64 @@ public class SQSConfiguration {
 }
 ----
 
+=== SQS Extended Client Support
+
+When messages larger than the SQS size limit (256 KB, or 1 MiB with the newer limit) need to be sent, Spring Cloud AWS provides integration with the https://github.com/awslabs/amazon-sqs-java-extended-client-lib[Amazon SQS Extended Client Library] which transparently offloads large message payloads (up to 2 GB) to Amazon S3.
+
+When the extended client library is on the classpath and the `spring.cloud.aws.sqs.extended.bucket` property is set, the autoconfigured `SqsAsyncClient` is automatically wrapped with `AmazonSQSExtendedAsyncClient`. This means both `SqsTemplate` and `@SqsListener` transparently handle large payloads without any code changes.
+
+==== Dependency
+
+Add the following dependency to your project:
+
+[source,xml]
+----
+<dependency>
+    <groupId>com.amazonaws</groupId>
+    <artifactId>amazon-sqs-java-extended-client-lib</artifactId>
+</dependency>
+----
+
+The version is managed by the Spring Cloud AWS BOM.
+
+==== Configuration
+
+[source,properties]
+----
+spring.cloud.aws.sqs.extended.bucket=my-payload-bucket
+----
+
+All available properties:
+
+[cols="3,1,3", options="header"]
+|===
+| Property | Default | Description
+
+| `spring.cloud.aws.sqs.extended.bucket`
+| (required)
+| S3 bucket name for storing large payloads. Setting this property activates the extended client.
+
+| `spring.cloud.aws.sqs.extended.cleanup-s3-payload`
+| `true`
+| Whether to delete the S3 payload object when the SQS message is deleted.
+
+| `spring.cloud.aws.sqs.extended.use-legacy-reserved-attribute-name`
+| `true`
+| Whether to use the legacy `SQSLargePayloadSize` attribute name. Set to `false` for the current attribute name.
+
+| `spring.cloud.aws.sqs.extended.ignore-payload-not-found`
+| `false`
+| Whether to silently ignore messages whose payload is not found in S3.
+
+| `spring.cloud.aws.sqs.extended.s3-key-prefix`
+| `""`
+| Prefix prepended to S3 keys under which payloads are stored.
+|===
+
+NOTE: The extended client requires an `S3AsyncClient` bean in the application context. If you have the `spring-cloud-aws-starter-s3` starter on the classpath, this is autoconfigured automatically.
+
+NOTE: Messages smaller than 256 KB are sent directly to SQS by default. The extended client only offloads payloads exceeding the SQS size limit.
+
 === Sending Messages
 
 `Spring Cloud AWS` provides the `SqsTemplate` to send messages to `SQS`.

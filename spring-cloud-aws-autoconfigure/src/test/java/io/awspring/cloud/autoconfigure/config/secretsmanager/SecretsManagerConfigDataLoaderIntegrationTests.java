@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.File;
@@ -42,9 +43,11 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.bootstrap.BootstrapRegistry;
 import org.springframework.boot.bootstrap.BootstrapRegistryInitializer;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.localstack.LocalStackContainer;
@@ -95,6 +98,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void resolvesPropertyFromSecretsManager() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring;/config/second")) {
@@ -109,6 +114,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void resolvesPropertiesWithPrefixes() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring?prefix=first.;/config/second?prefix=second.")) {
@@ -125,6 +132,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void resolvesPropertyFromSecretsManager_PlainTextSecret() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/certs/prod/fn_certificate")) {
@@ -137,6 +146,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void resolvesPropertyFromSecretsManager_PlainTextSecret_endingWithSlash() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/certs/dev/fn_certificate/")) {
@@ -149,6 +160,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void resolvesPropertyFromSecretsManager_SecretBinary() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/blob/byte_certificate")) {
@@ -161,6 +174,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void resolvesPropertyFromSecretsManager_PlainTextSecret_WithoutSlashes() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:fn_certificate")) {
@@ -172,6 +187,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void respectsImportOrder() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application, "classpath:config.properties")) {
 			assertThat(context.getEnvironment().getProperty("another-parameter")).isEqualTo("from properties file");
@@ -182,6 +199,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void clientIsConfiguredWithCustomizerProvidedToBootstrapRegistry() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		application.addBootstrapRegistryInitializer(new CustomizerConfiguration());
 
 		try (ConfigurableApplicationContext context = runApplication(application,
@@ -196,6 +215,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void whenKeysAreNotSpecifiedFailsWithHumanReadableFailureMessage(CapturedOutput output) {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application, "aws-secretsmanager:")) {
 			fail("Context without keys should fail to start");
@@ -215,6 +236,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void whenKeysCannotBeFoundFailWithHumanReadableMessage(CapturedOutput output) {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/some/random/config")) {
@@ -238,6 +261,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				.name("secrets").secretString("{\"message\":\"value from mock\"}").build());
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		application.addBootstrapRegistryInitializer(registry -> {
 			registry.register(SecretsManagerClient.class, ctx -> mockClient);
 		});
@@ -256,6 +281,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				.create(AwsBasicCredentials.create("mock-key", "mock-secret"));
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		application.addBootstrapRegistryInitializer(registry -> {
 			registry.register(AwsCredentialsProvider.class, ctx -> bootstrapCredentialsProvider);
 		});
@@ -272,6 +299,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void outputsDebugLogs(CapturedOutput output) {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring;/config/second")) {
@@ -284,6 +313,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void endpointCanBeOverwrittenWithGlobalAwsProperties() {
 		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-secretsmanager:/config/spring;/config/second", "spring.cloud.aws.endpoint")) {
@@ -295,6 +326,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void propertyIsNotResolvedWhenIntegrationIsDisabled() {
 		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
@@ -311,6 +344,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void serviceSpecificEndpointTakesPrecedenceOverGlobalAwsRegion() {
 		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
@@ -330,6 +365,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		tempFile.createNewFile();
 		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=optional:aws-secretsmanager:/config/spring;/config/second",
@@ -346,6 +383,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 	void secretsManagerClientUsesGlobalRegion() {
 		SpringApplication application = new SpringApplication(SecretsManagerConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
@@ -369,6 +408,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		void reloadsProperties() {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
+			application.setResourceLoader(
+					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
 					"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
@@ -396,6 +437,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		void doesNotReloadPropertiesWhenMonitoringIsDisabled() {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
+			application.setResourceLoader(
+					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
 					"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
@@ -422,6 +465,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 		void reloadsPropertiesWithRestartContextStrategy() {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
+			application.setResourceLoader(
+					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
 					"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",

@@ -37,6 +37,7 @@
 		<eclipse.jakarta.mail.version>2.0.3</eclipse.jakarta.mail.version>
 		<spring-modulith.version>2.0.0</spring-modulith.version>
 		<amazon.s3.accessgrants>2.4.1</amazon.s3.accessgrants>
+		<amazon.sqs.extended.client>2.1.2</amazon.sqs.extended.client>
 	</properties>
 
 	<dependencyManagement>
@@ -85,6 +86,14 @@
 				<version>${amazon.encryption.s3.version}</version>
 				<optional>true</optional>
 			</dependency>
+
+			<dependency>
+				<groupId>com.amazonaws</groupId>
+				<artifactId>amazon-sqs-java-extended-client-lib</artifactId>
+				<version>${amazon.sqs.extended.client}</version>
+				<optional>true</optional>
+			</dependency>
+
 
 			<dependency>
 				<groupId>software.amazon.s3.accessgrants</groupId>
