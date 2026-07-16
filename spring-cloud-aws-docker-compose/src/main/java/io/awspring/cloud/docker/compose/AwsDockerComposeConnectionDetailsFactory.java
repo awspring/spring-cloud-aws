@@ -22,8 +22,8 @@ import org.springframework.boot.docker.compose.service.connection.DockerComposeC
 import org.springframework.boot.docker.compose.service.connection.DockerComposeConnectionSource;
 
 /**
- * {@link DockerComposeConnectionDetailsFactory} to create {@link AwsConnectionDetails} for a {@code localstack} or {@code floci}
- * service.
+ * {@link DockerComposeConnectionDetailsFactory} to create {@link AwsConnectionDetails} for a {@code localstack} or
+ * {@code floci} service.
  *
  * @author Dominik Kovács
  * @author Bastian Hellmann
@@ -31,8 +31,8 @@ import org.springframework.boot.docker.compose.service.connection.DockerComposeC
  */
 class AwsDockerComposeConnectionDetailsFactory extends DockerComposeConnectionDetailsFactory<AwsConnectionDetails> {
 
-	private static final String[] AWS_EMULATOR_CONTAINER_NAMES = { "localstack/localstack", "localstack/localstack-pro",
-			"hectorvent/floci", "floci/floci" };
+	private static final String[] AWS_EMULATOR_CONTAINER_NAMES = {"localstack/localstack", "localstack/localstack-pro",
+	                                                              "floci/floci"};
 
 	private static final int EMULATOR_PORT = 4566;
 
@@ -49,7 +49,7 @@ class AwsDockerComposeConnectionDetailsFactory extends DockerComposeConnectionDe
 	 * {@link DockerComposeConnectionDetails} backed by a {@code localstack} {@link RunningService}.
 	 */
 	private static final class AwsDockerComposeConnectionDetails extends DockerComposeConnectionDetails
-			implements AwsConnectionDetails {
+		implements AwsConnectionDetails {
 
 		private final AwsEmulatorEnvironment environment;
 
