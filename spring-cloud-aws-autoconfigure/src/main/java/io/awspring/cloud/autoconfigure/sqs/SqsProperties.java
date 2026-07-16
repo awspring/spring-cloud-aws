@@ -58,6 +58,8 @@ public class SqsProperties extends AwsClientProperties {
 	 */
 	private Boolean convertMessageIdToUuid = true;
 
+	private SqsExtendedClientProperties extended = new SqsExtendedClientProperties();
+
 	public Boolean getConvertMessageIdToUuid() {
 		return convertMessageIdToUuid;
 	}
@@ -89,6 +91,14 @@ public class SqsProperties extends AwsClientProperties {
 
 	public void setObservationEnabled(Boolean observationEnabled) {
 		this.observationEnabled = observationEnabled;
+	}
+
+	public SqsExtendedClientProperties getExtended() {
+		return extended;
+	}
+
+	public void setExtended(SqsExtendedClientProperties extended) {
+		this.extended = extended;
 	}
 
 	public static class Listener {
