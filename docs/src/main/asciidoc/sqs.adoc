@@ -13,6 +13,8 @@ Spring Cloud AWS has dedicated support to transfer Java objects with Amazon SQS 
 
 NOTE: Since 4.1.0 Spring Cloud AWS SQS also supports SQS-compatible brokers such as Yandex Message Queue. See <<sqs-compatible-brokers-support>>.
 
+NOTE: Since 4.1.0, the framework supports <<virtual-threads, virtual threads>> (JDK 21+) for message listener containers.
+
 A Spring Boot starter is provided to auto-configure SQS integration beans.
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
@@ -83,6 +85,64 @@ public class SQSConfiguration {
 
 }
 ----
+
+=== SQS Extended Client Support
+
+When messages larger than the SQS size limit (256 KB, or 1 MiB with the newer limit) need to be sent, Spring Cloud AWS provides integration with the https://github.com/awslabs/amazon-sqs-java-extended-client-lib[Amazon SQS Extended Client Library] which transparently offloads large message payloads (up to 2 GB) to Amazon S3.
+
+When the extended client library is on the classpath and the `spring.cloud.aws.sqs.extended.bucket` property is set, the autoconfigured `SqsAsyncClient` is automatically wrapped with `AmazonSQSExtendedAsyncClient`. This means both `SqsTemplate` and `@SqsListener` transparently handle large payloads without any code changes.
+
+==== Dependency
+
+Add the following dependency to your project:
+
+[source,xml]
+----
+<dependency>
+    <groupId>com.amazonaws</groupId>
+    <artifactId>amazon-sqs-java-extended-client-lib</artifactId>
+</dependency>
+----
+
+The version is managed by the Spring Cloud AWS BOM.
+
+==== Configuration
+
+[source,properties]
+----
+spring.cloud.aws.sqs.extended.bucket=my-payload-bucket
+----
+
+All available properties:
+
+[cols="3,1,3", options="header"]
+|===
+| Property | Default | Description
+
+| `spring.cloud.aws.sqs.extended.bucket`
+| (required)
+| S3 bucket name for storing large payloads. Setting this property activates the extended client.
+
+| `spring.cloud.aws.sqs.extended.cleanup-s3-payload`
+| `true`
+| Whether to delete the S3 payload object when the SQS message is deleted.
+
+| `spring.cloud.aws.sqs.extended.use-legacy-reserved-attribute-name`
+| `true`
+| Whether to use the legacy `SQSLargePayloadSize` attribute name. Set to `false` for the current attribute name.
+
+| `spring.cloud.aws.sqs.extended.ignore-payload-not-found`
+| `false`
+| Whether to silently ignore messages whose payload is not found in S3.
+
+| `spring.cloud.aws.sqs.extended.s3-key-prefix`
+| `""`
+| Prefix prepended to S3 keys under which payloads are stored.
+|===
+
+NOTE: The extended client requires an `S3AsyncClient` bean in the application context. If you have the `spring-cloud-aws-starter-s3` starter on the classpath, this is autoconfigured automatically.
+
+NOTE: Messages smaller than 256 KB are sent directly to SQS by default. The extended client only offloads payloads exceeding the SQS size limit.
 
 === Sending Messages
 
@@ -2333,6 +2393,8 @@ NOTE: In order to achieve higher throughput, it's encouraged that, at least for 
 
 ==== Threading and Blocking Components
 
+NOTE: See <<virtual-threads>> for virtual thread support.
+
 Message processing always starts in a framework thread from the default or provided `TaskExecutor`.
 
 If an async component is invoked and the execution returns to the framework on a different thread, such thread will be used until a `blocking` component is found, when the execution switches back to a `TaskExecutor` thread to avoid blocking i.e. `SqsAsyncClient` or `HttpClient` threads.
@@ -2349,8 +2411,34 @@ The default `TaskExecutor` is a `ThreadPoolTaskExecutor`, and a different `compo
 
 When providing a custom executor, it's important that it's configured to support all threads that will be created, which should be (maxConcurrentMessages * total number of queues).
 
-IMPORTANT: To avoid unnecessary thread hopping between blocking components, a `MessageExecutionThreadFactory` MUST be set to the executor.
+Since 4.1.0, the framework supports <<virtual-threads, virtual threads>>. If platform threads are used, a `MessageExecutionThreadFactory` MUST be set to the executor to avoid unnecessary thread hopping between blocking components.
 
+[[virtual-threads]]
+==== Virtual Threads Support
+
+Since 4.1.0, the framework supports virtual threads (JDK 21+). To use virtual threads, provide a virtual thread executor as the `componentsTaskExecutor`:
+
+[source,java]
+----
+@Bean
+SqsMessageListenerContainerFactory<Object> defaultSqsListenerContainerFactory(SqsAsyncClient sqsAsyncClient) {
+    SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
+    executor.setVirtualThreads(true);
+    SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
+    factory.configure(options -> options
+        .componentsTaskExecutor(executor)
+        .maxConcurrentMessages(5000));
+    factory.setSqsAsyncClient(sqsAsyncClient);
+    return factory;
+}
+----
+
+When virtual threads are detected, the framework automatically:
+
+* Skips the `MessageExecutionThreadFactory` requirement
+* Detects when a `CompletableFuture` completes on a platform thread and hops back to a virtual thread before continuing execution
+
+Virtual threads allow higher `maxConcurrentMessages` values compared to platform threads, since each virtual thread has minimal memory overhead. This is particularly beneficial for I/O-bound workloads where listeners spend time waiting on databases, HTTP calls, or other services.
 
 === Client Customization
 

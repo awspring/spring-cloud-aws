@@ -1,0 +1,38 @@
+/*
+ * Copyright 2013-2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.awspring.cloud.autoconfigure.config.appconfig;
+
+import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
+import org.springframework.boot.diagnostics.FailureAnalysis;
+
+/**
+ * An {@link AbstractFailureAnalyzer} that performs analysis of an AppConfig configuration failure caused by failure of
+ * {@link software.amazon.awssdk.services.appconfigdata.AppConfigDataClient} call.
+ *
+ * @author Matej Nedic
+ * @since 4.1.0
+ */
+public class AppConfigExceptionHappenedAnalyzer
+		extends AbstractFailureAnalyzer<AwsAppConfigPropertySourceNotFoundException> {
+
+	@Override
+	protected FailureAnalysis analyze(Throwable rootFailure, AwsAppConfigPropertySourceNotFoundException cause) {
+		return new FailureAnalysis(
+				"Could not import properties from App Config. Exception happened while trying to load the keys: "
+						+ cause.getMessage(),
+				"Depending on error message determine action course", cause);
+	}
+}

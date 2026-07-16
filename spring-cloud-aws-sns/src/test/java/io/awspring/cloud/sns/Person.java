@@ -35,11 +35,12 @@ public class Person {
 		this.name = name;
 	}
 
-
 	@Override
 	public boolean equals(Object object) {
-		if (this == object) return true;
-		if (object == null || getClass() != object.getClass()) return false;
+		if (this == object)
+			return true;
+		if (object == null || getClass() != object.getClass())
+			return false;
 		Person person = (Person) object;
 		return Objects.equals(name, person.name);
 	}

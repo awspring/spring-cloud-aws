@@ -73,11 +73,21 @@
 		</dependency>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-aws-app-config</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
 			<artifactId>spring-cloud-aws-ses</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>tools.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<optional>true</optional>
 		</dependency>
@@ -134,6 +144,11 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webflux</artifactId>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -201,11 +216,20 @@
 			<artifactId>amazon-s3-encryption-client-java</artifactId>
 			<optional>true</optional>
 		</dependency>
-
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>amazon-sqs-java-extended-client-lib</artifactId>
+			<optional>true</optional>
+		</dependency>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3vectors</artifactId>
 			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>appconfig</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.micrometer</groupId>

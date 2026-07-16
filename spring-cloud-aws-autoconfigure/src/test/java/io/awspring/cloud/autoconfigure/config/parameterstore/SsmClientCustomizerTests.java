@@ -29,7 +29,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
 /**
@@ -92,7 +92,8 @@ class SsmClientCustomizerTests {
 		@Bean
 		AwsSyncClientCustomizer awsSyncClientCustomizer() {
 			return builder -> {
-				builder.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
+				builder.httpClient(Apache5HttpClient.builder().connectionTimeout(Duration.ofMillis(1542))
+						.socketTimeout(Duration.ofSeconds(30)).build());
 			};
 		}
 	}

@@ -162,6 +162,8 @@ include::spring-modulith.adoc[]
 
 include::kinesis-stream-binder.adoc[]
 
+include::appconfig.adoc[]
+
 include::testing.adoc[]
 
 include::docker-compose.adoc[]

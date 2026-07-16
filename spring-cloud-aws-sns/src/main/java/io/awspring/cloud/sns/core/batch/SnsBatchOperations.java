@@ -15,13 +15,9 @@
  */
 package io.awspring.cloud.sns.core.batch;
 
-import java.util.Collection;
-import java.util.Map;
-
 import io.awspring.cloud.sns.core.SnsNotification;
-import org.jspecify.annotations.Nullable;
+import java.util.Collection;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessagingException;
 
 /**
  * Provides methods for sending multiple messages to SNS topics in a single batch operation, which is more efficient
@@ -46,8 +42,8 @@ public interface SnsBatchOperations {
 	<T> BatchResult sendBatch(String topicName, Collection<Message<T>> messages);
 
 	/**
-	 * Converts a collection of POJOs to Spring messages and sends them as a batch to the specified SNS topic.
-	 * Batch API limit, messages will be split into groups of 10.
+	 * Converts a collection of POJOs to Spring messages and sends them as a batch to the specified SNS topic. Batch API
+	 * limit, messages will be split into groups of 10.
 	 * <p>
 	 * The result contains information about both successful and failed messages.
 	 *
@@ -57,7 +53,6 @@ public interface SnsBatchOperations {
 	 * @return BatchResult containing successful results and errors if there are any
 	 */
 	<T> BatchResult convertAndSend(String topicName, Collection<T> payloads);
-
 
 	/**
 	 * Converts a collection of notifications to Spring messages and sends them as a batch to the specified SNS topic.
@@ -71,9 +66,5 @@ public interface SnsBatchOperations {
 	 * @return BatchResult containing successful results and errors if there are any
 	 */
 	<T> BatchResult sendBatchNotifications(String topicName, Collection<SnsNotification<T>> notifications);
-
-
-
-
 
 }

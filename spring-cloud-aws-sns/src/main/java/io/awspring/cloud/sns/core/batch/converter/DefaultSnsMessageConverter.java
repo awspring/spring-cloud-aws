@@ -92,8 +92,8 @@ public class DefaultSnsMessageConverter implements SnsMessageConverter {
 			publishBatchRequestEntry.messageAttributes(messageAttributes);
 		}
 
-		String id = Optional.ofNullable(message.getHeaders().get(MESSAGE_ID_HEADER, String.class)).filter(StringUtils::hasText)
-				.orElseGet(() -> UUID.randomUUID().toString());
+		String id = Optional.ofNullable(message.getHeaders().get(MESSAGE_ID_HEADER, String.class))
+				.filter(StringUtils::hasText).orElseGet(() -> UUID.randomUUID().toString());
 		publishBatchRequestEntry.id(id);
 
 		Optional.ofNullable(message.getHeaders().get(MESSAGE_GROUP_ID_HEADER, String.class))

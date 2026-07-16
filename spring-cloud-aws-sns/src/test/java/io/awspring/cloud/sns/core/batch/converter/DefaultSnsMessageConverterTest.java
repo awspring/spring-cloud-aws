@@ -83,16 +83,16 @@ class DefaultSnsMessageConverterTest {
 	void setsAllFifoHeaders() {
 		Message<String> message = MessageBuilder.withPayload("fifo payload")
 				.setHeader(SnsHeaders.MESSAGE_GROUP_ID_HEADER, "grp")
-				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "ded")
-				.setHeader("custom", "val").build();
+				.setHeader(SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER, "ded").setHeader("custom", "val").build();
 
 		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
 		assertThat(entry.message()).isEqualTo("fifo payload");
 		assertThat(entry.messageGroupId()).isEqualTo("grp");
 		assertThat(entry.messageDeduplicationId()).isEqualTo("ded");
-		//Test DataType as well
-		assertThat(entry.messageAttributes().get("custom")).isEqualTo(MessageAttributeValue.builder().stringValue("val").dataType("String").build());
+		// Test DataType as well
+		assertThat(entry.messageAttributes().get("custom"))
+				.isEqualTo(MessageAttributeValue.builder().stringValue("val").dataType("String").build());
 	}
 
 	@Test
@@ -107,13 +107,12 @@ class DefaultSnsMessageConverterTest {
 
 	@Test
 	void convertsCustomHeadersToMessageAttributes() {
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader("priority", "high").build();
+		Message<String> message = MessageBuilder.withPayload("test").setHeader("priority", "high").build();
 
 		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
 		assertThat(entry.messageAttributes()).containsKey("priority");
-		//Test plain String value\
+		// Test plain String value\
 		assertThat(entry.messageAttributes().get("priority").stringValue()).isEqualTo("high");
 	}
 

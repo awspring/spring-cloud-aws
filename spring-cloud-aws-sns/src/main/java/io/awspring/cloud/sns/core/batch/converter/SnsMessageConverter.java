@@ -19,7 +19,7 @@ import org.springframework.messaging.Message;
 import software.amazon.awssdk.services.sns.model.PublishBatchRequestEntry;
 
 /**
- *  Converter interface for converting Spring {@link Message} objects to SNS {@link PublishBatchRequestEntry}.
+ * Converter interface for converting Spring {@link Message} objects to SNS {@link PublishBatchRequestEntry}.
  *
  * @author Matej Nedic
  * @since 4.1.0

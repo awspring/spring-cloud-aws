@@ -20,6 +20,7 @@ import io.awspring.cloud.sqs.LifecycleHandler;
 import io.awspring.cloud.sqs.MessageExecutionThread;
 import io.awspring.cloud.sqs.MessageExecutionThreadFactory;
 import io.awspring.cloud.sqs.UnsupportedThreadFactoryException;
+import io.awspring.cloud.sqs.VirtualThreadUtils;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactory;
 import io.awspring.cloud.sqs.listener.pipeline.AcknowledgementHandlerExecutionStage;
@@ -145,10 +146,14 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 	}
 
 	private void verifyThreadType() {
-		if (!MessageExecutionThread.class.isAssignableFrom(Thread.currentThread().getClass())) {
-			throw new UnsupportedThreadFactoryException("Custom TaskExecutors must use a %s."
-				.formatted(MessageExecutionThreadFactory.class.getSimpleName()));
+		if (Thread.currentThread() instanceof MessageExecutionThread) {
+			return;
 		}
+		if (VirtualThreadUtils.isVirtual(Thread.currentThread())) {
+			return;
+		}
+		throw new UnsupportedThreadFactoryException("Custom TaskExecutors must use a %s or virtual threads."
+			.formatted(MessageExecutionThreadFactory.class.getSimpleName()));
 	}
 	// @formatter:on
 

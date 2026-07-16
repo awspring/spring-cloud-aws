@@ -218,6 +218,45 @@ class NotificationService {
 }
 ----
 
+==== SNS Async Template
+
+The starter automatically configures and registers a `SnsAsyncTemplate` bean when `SnsAsyncClient` bean is registered by user, providing non-blocking SNS operations.
+`SnsAsyncTemplate` returns `CompletableFuture` for all operations, making it suitable for high-throughput async applications.
+
+It supports the same payload types as `SnsTemplate` and uses the same Spring `MessageConverter` hirarchy inside of `DefaultSnsPublishMessageConverter` to convert payloads.
+
+[source,java]
+----
+import io.awspring.cloud.sns.core.async.SnsAsyncTemplate;
+import io.awspring.cloud.sns.core.async.PublishMessageResult;
+
+import java.util.concurrent.CompletableFuture;
+
+class NotificationService {
+	private final SnsAsyncTemplate snsAsyncTemplate;
+
+	NotificationService(SnsAsyncTemplate snsAsyncTemplate) {
+		this.snsAsyncTemplate = snsAsyncTemplate;
+	}
+
+	CompletableFuture<PublishMessageResult<String>> sendNotification() {
+		return snsAsyncTemplate.convertAndSend("topic-arn", "payload");
+	}
+}
+----
+
+To customize message conversion, provide a custom `SnsPublishMessageConverter` bean:
+
+[source,java]
+----
+@Bean
+public SnsPublishMessageConverter customConverter() {
+	return new MyCustomConverter();
+}
+----
+
+Autoconfiguration will pick it up and configure `SnsAsyncTemplate` automatically with it.
+
 === Using SNS Client
 
 To have access to all lower level SNS operations, we recommend using `SnsClient` from AWS SDK. `SnsClient` bean is autoconfigured by `SnsAutoConfiguration`.
@@ -250,9 +289,23 @@ SNS sends three type of requests to an HTTP topic listener endpoint, for each of
 * Notification request -> `@NotificationMessageMapping`
 * Unsubscription request -> `@NotificationUnsubscribeMapping`
 
-HTTP endpoints are based on Spring MVC controllers. Spring Cloud AWS added some custom argument resolvers to extract the message and subject out of the notification requests.
+[NOTE]
+====
+Since 4.1.0 verification has been introduced for Notification request and is turned on by default. Verification uses the same region as `SNSClient`.
+To turn off verification simply set property `spring.cloud.aws.sns.verification=false`.
+For more information about SNS verification https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/services/sns/message/SnsMessageManager.html[here].
+====
 
-Example of integration:
+==== Spring MVC and Spring WebFlux support
+
+Spring Cloud AWS automatically detects whether your application is a Servlet (Spring MVC) or Reactive (Spring WebFlux) application and configures the appropriate argument resolvers. No code changes are required — the same controller annotations work in both environments:
+
+* In a **Servlet** application, Spring MVC `HandlerMethodArgumentResolver` implementations are registered via `WebMvcConfigurer`.
+* In a **Reactive** application, WebFlux `HandlerMethodArgumentResolver` implementations are registered via `WebFluxConfigurer`.
+
+The annotations `@NotificationSubscriptionMapping`, `@NotificationMessageMapping`, `@NotificationUnsubscribeConfirmationMapping`, `@NotificationMessage`, `@NotificationSubject`, and `NotificationStatus` are shared between both stacks.
+
+Example of integration (works identically for both Spring MVC and Spring WebFlux):
 
 [source,java]
 ----
@@ -287,6 +340,8 @@ public class NotificationTestController {
 	}
 }
 ----
+
+NOTE: WebFlux support was added in version 4.1.0.
 
 === Configuration
 
