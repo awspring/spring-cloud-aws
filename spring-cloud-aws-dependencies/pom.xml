@@ -38,7 +38,6 @@
 		<jakarta.mail.version>2.1.3</jakarta.mail.version>
 		<eclipse.jakarta.mail.version>2.0.3</eclipse.jakarta.mail.version>
 		<spring-modulith.version>2.1.0</spring-modulith.version>
-		<testcontainers-floci.version>2.9.0</testcontainers-floci.version>
 	</properties>
 
 	<dependencyManagement>
@@ -323,11 +322,6 @@
 				<groupId>com.amazonaws</groupId>
 				<artifactId>dynamodb-streams-kinesis-adapter</artifactId>
 				<version>${dynamodb-streams.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>io.floci</groupId>
-				<artifactId>testcontainers-floci</artifactId>
-				<version>${testcontainers-floci.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

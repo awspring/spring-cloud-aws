@@ -33,12 +33,15 @@
 			<artifactId>spring-boot-testcontainers</artifactId>
 		</dependency>
 		<dependency>
-    <groupId>org.testcontainers</groupId>
-    <artifactId>testcontainers-localstack</artifactId>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-localstack</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>io.floci</groupId>
 			<artifactId>testcontainers-floci</artifactId>
+			<optional>true</optional>
+			<version>2.9.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -46,8 +49,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-<groupId>org.testcontainers</groupId>
-    <artifactId>testcontainers-junit-jupiter</artifactId>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
