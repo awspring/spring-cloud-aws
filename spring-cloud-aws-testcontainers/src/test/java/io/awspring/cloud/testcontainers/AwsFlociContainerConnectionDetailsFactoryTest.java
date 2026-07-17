@@ -54,8 +54,7 @@ class AwsFlociContainerConnectionDetailsFactoryTest {
 
 	@Container
 	@ServiceConnection
-	static final FlociContainer floci = new FlociContainer(
-			DockerImageName.parse("hectorvent/floci:1.5.5"));
+	static final FlociContainer floci = new FlociContainer(DockerImageName.parse("floci/floci:1.5.33"));
 
 	@Autowired(required = false)
 	private AwsConnectionDetails connectionDetails;
