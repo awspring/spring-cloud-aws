@@ -80,10 +80,13 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			logger.debug("Starting {}", getClass().getSimpleName());
+			// set running to true before starting the containers so that, if a container fails to start, Spring's
+			// DefaultLifecycleProcessor still invokes stop() on this registry during shutdown, which prevents
+			// hanging the JVM
+			this.running = true;
 			List<MessageListenerContainer<?>> containersToStart = this.listenerContainers.values().stream()
 					.filter(SmartLifecycle::isAutoStartup).collect(Collectors.toList());
 			LifecycleHandler.get().start(containersToStart);
-			this.running = true;
 			logger.debug("{} started", getClass().getSimpleName());
 		}
 	}

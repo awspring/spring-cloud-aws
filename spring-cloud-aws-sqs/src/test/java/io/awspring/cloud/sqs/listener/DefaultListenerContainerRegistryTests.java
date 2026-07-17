@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
@@ -116,6 +117,26 @@ class DefaultListenerContainerRegistryTests {
 		assertThat(registry.isRunning()).isFalse();
 		then(container1).should(times(0)).start();
 		then(container1).should().stop();
+	}
+
+	@Test
+	void shouldBeMarkedRunningWhenContainerFailsToStartSoRegistryIsStoppedOnShutdown() {
+		// a failing container simulates e.g. a queue that does not exist with QueueNotFoundStrategy.FAIL,
+		// which could lead to hanging the JVM
+		MessageListenerContainer<Object> failingContainer = mock(MessageListenerContainer.class);
+		given(failingContainer.getId()).willReturn("failing-container-id");
+		given(failingContainer.isAutoStartup()).willReturn(true);
+		var exception = new IllegalStateException("Queue does not exist");
+		willThrow(exception).given(failingContainer).start();
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.registerListenerContainer(failingContainer);
+
+		assertThatThrownBy(registry::start).hasRootCause(exception);
+		assertThat(registry.isRunning()).isTrue();
+
+		registry.stop();
+		assertThat(registry.isRunning()).isFalse();
+		then(failingContainer).should().stop();
 	}
 
 	@Test
