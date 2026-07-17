@@ -41,6 +41,7 @@
 			<groupId>io.floci</groupId>
 			<artifactId>testcontainers-floci</artifactId>
 			<optional>true</optional>
+			<version>2.9.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
