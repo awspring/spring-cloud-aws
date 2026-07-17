@@ -26,8 +26,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.SpringApplication;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -51,8 +51,6 @@ class AwsDockerComposeConnectionDetailsFactoryTest {
 			context.close();
 		}
 	}
-
-
 
 	@Nested
 	class LocalstackTests {
@@ -79,8 +77,8 @@ class AwsDockerComposeConnectionDetailsFactoryTest {
 			assertThat(connectionDetails.getSecretKey()).isEqualTo("noop");
 			assertThat(connectionDetails.getRegion()).isEqualTo("eu-central-1");
 			assertThat(connectionDetails.getEndpoint()).satisfiesAnyOf(
-				endpoint -> assertThat(endpoint).isEqualTo(URI.create("http://localhost:4566")),
-				endpoint -> assertThat(endpoint).isEqualTo(URI.create("http://127.0.0.1:4566")));
+					endpoint -> assertThat(endpoint).isEqualTo(URI.create("http://localhost:4566")),
+					endpoint -> assertThat(endpoint).isEqualTo(URI.create("http://127.0.0.1:4566")));
 		}
 
 		@AfterEach
@@ -113,8 +111,8 @@ class AwsDockerComposeConnectionDetailsFactoryTest {
 			assertThat(connectionDetails.getSecretKey()).isEqualTo("noop");
 			assertThat(connectionDetails.getRegion()).isEqualTo("eu-central-1");
 			assertThat(connectionDetails.getEndpoint()).satisfiesAnyOf(
-				endpoint -> assertThat(endpoint).isEqualTo(URI.create("http://localhost:4567")),
-				endpoint -> assertThat(endpoint).isEqualTo(URI.create("http://127.0.0.1:4567")));
+					endpoint -> assertThat(endpoint).isEqualTo(URI.create("http://localhost:4567")),
+					endpoint -> assertThat(endpoint).isEqualTo(URI.create("http://127.0.0.1:4567")));
 		}
 
 		@AfterEach

@@ -328,6 +328,7 @@
 				<groupId>io.floci</groupId>
 				<artifactId>testcontainers-floci</artifactId>
 				<version>${testcontainers-floci.version}</version>
+				<optional>true</optional>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

@@ -18,6 +18,8 @@ package io.awspring.cloud.testcontainers;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.floci.testcontainers.FlociContainer;
 import java.net.URI;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionDetailsFactory;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionSource;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -29,11 +31,12 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
  * @author Bastian Hellmann
  * @since 4.1.0
  */
+@ConditionalOnClass(FlociContainer.class)
+
 public class AwsFlociContainerConnectionDetailsFactory
 		extends ContainerConnectionDetailsFactory<FlociContainer, AwsConnectionDetails> {
 	@Override
-	protected AwsConnectionDetails getContainerConnectionDetails(
-			ContainerConnectionSource<FlociContainer> source) {
+	protected AwsConnectionDetails getContainerConnectionDetails(ContainerConnectionSource<FlociContainer> source) {
 		return new AwsContainerConnectionDetails(source);
 	}
 
