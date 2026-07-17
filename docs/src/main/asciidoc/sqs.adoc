@@ -1317,7 +1317,7 @@ MessageListenerContainer<Object> listenerContainer(SqsAsyncClient sqsAsyncClient
 }
 ----
 
-NOTE: The `SqsMessageListenerContainer.builder()` allows to specify the `SmartLifecycle.phase`, to override the default value defined in `MessageListenerContainer.DEFAULT_PHASE`
+NOTE: The `SqsMessageListenerContainer.builder()` allows you to specify the `SmartLifecycle.phase`, to override the default value defined in `MessageListenerContainer.DEFAULT_PHASE`
 
 ===== Retrieving Containers from the Registry
 

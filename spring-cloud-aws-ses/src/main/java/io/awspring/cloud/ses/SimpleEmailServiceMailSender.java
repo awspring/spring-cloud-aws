@@ -92,7 +92,7 @@ public class SimpleEmailServiceMailSender implements MailSender, DisposableBean 
 			try {
 				SendEmailResponse sendEmailResult = getEmailService().sendEmail(prepareMessage(simpleMessage));
 				if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Message with id: {} successfully send", sendEmailResult.messageId());
+					LOGGER.debug("Message with id: {} successfully sent", sendEmailResult.messageId());
 				}
 			}
 			catch (SesException e) {
