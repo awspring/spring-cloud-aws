@@ -1,7 +1,7 @@
 [#spring-cloud-aws-docker-compose]
 == Docker Compose
 
-Spring Cloud AWS provides Docker Compose support for https://docs.localstack.cloud/references/docker-images/[LocalStack docker images] which simplifies local development of Spring Cloud AWS based projects.
+Spring Cloud AWS provides Docker Compose support for https://docs.localstack.cloud/references/docker-images/[LocalStack docker images] and https://floci.io/floci/getting-started/quick-start/[Floci docker images] which simplifies local development of Spring Cloud AWS based projects.
 
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
@@ -15,7 +15,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
 For more information about Spring Docker Compose support please refer to https://docs.spring.io/spring-boot/reference/features/dev-services.html#features.dev-services.docker-compose[official Spring documentation]
 
-=== Example docker-compose.yaml file
+=== Localstack Example
 
 [source,yaml]
 ----
@@ -32,3 +32,19 @@ services:
 
 `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_DEFAULT_REGION` are required environment variables to ensure proper integration.
 
+=== Floci Example
+
+[source,yaml]
+----
+services:
+  floci:
+    image: hectorvent/floci
+    environment:
+      AWS_ACCESS_KEY_ID: noop
+      AWS_SECRET_ACCESS_KEY: noop
+      AWS_DEFAULT_REGION: eu-central-1
+    ports:
+      - "4566:4566"
+----
+
+Floci works with any provided credentials, but the region is neccessary to ensure proper integration with Spring Cloud AWS.

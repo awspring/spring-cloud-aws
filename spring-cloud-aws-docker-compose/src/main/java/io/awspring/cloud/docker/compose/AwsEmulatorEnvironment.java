@@ -18,12 +18,13 @@ package io.awspring.cloud.docker.compose;
 import java.util.Map;
 
 /**
- * LocalStack environment details.
+ * AWS emulator environment details.
  *
  * @author Dominik Kovács
+ * @author Bastian Hellmann
  * @since 3.2.0
  */
-class LocalStackEnvironment {
+class AwsEmulatorEnvironment {
 
 	private final String region;
 
@@ -31,7 +32,7 @@ class LocalStackEnvironment {
 
 	private final String secretKey;
 
-	LocalStackEnvironment(Map<String, String> env) {
+	AwsEmulatorEnvironment(Map<String, String> env) {
 		this.region = env.get("AWS_DEFAULT_REGION");
 		this.accessKey = env.get("AWS_ACCESS_KEY_ID");
 		this.secretKey = env.get("AWS_SECRET_ACCESS_KEY");
