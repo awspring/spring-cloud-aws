@@ -400,8 +400,14 @@ public abstract class AbstractMessagingTemplate<S> implements MessagingOperation
 	}
 
 	private <T> CompletableFuture<SendResult.Batch<T>> handleFailedSendBatch(String endpoint,
-			SendResult.Batch<T> result) {
-		return CompletableFuture.failedFuture(new SendBatchOperationFailedException("", endpoint, result));
+	                                                                         SendResult.Batch<T> result) {
+		return CompletableFuture.failedFuture(new SendBatchOperationFailedException(
+			"Batch send operation failed for %d of %d messages to endpoint %s. Failed message IDs: %s. Errors: %s"
+				.formatted(result.failed().size(),
+					result.failed().size() + result.successful().size(), endpoint,
+					MessageHeaderUtils.getId(result.failed().stream().map(SendResult.Failed::message).toList()),
+					result.failed().stream().map(SendResult.Failed::errorMessage)
+						.collect(Collectors.joining("; "))), endpoint, result));
 	}
 
 	private <T> Collection<S> convertMessagesToSend(Collection<Message<T>> messages) {
