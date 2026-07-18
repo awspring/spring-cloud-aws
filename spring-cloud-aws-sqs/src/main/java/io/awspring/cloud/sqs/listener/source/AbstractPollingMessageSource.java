@@ -342,7 +342,7 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 			if (!waitExistingTasksToFinish()) {
 				logger.warn("Tasks did not finish in {} seconds for queue {}, proceeding with shutdown",
 						this.shutdownTimeout.getSeconds(), this.pollingEndpointName);
-				this.pollingFutures.forEach(pollingFuture -> pollingFuture.cancel(true));
+				new ArrayList<>(this.pollingFutures).forEach(pollingFuture -> pollingFuture.cancel(true));
 			}
 			doStop();
 			this.acknowledgmentProcessor.stop();
