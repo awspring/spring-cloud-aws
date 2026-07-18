@@ -19,10 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationContextException;
+import org.springframework.context.support.GenericApplicationContext;
 
 /**
  * Tests for {@link DefaultListenerContainerRegistry}.
@@ -129,4 +135,78 @@ class DefaultListenerContainerRegistryTests {
 				.isInstanceOf(IllegalArgumentException.class);
 	}
 
+	@Test
+	void shouldRemainRunningAfterContainerFailsToStart() {
+		CountDownLatch healthyContainerUpSignal = new CountDownLatch(1);
+		MessageListenerContainer<Object> healthyContainer = mock(MessageListenerContainer.class);
+		MessageListenerContainer<Object> faultyContainer = mock(MessageListenerContainer.class);
+		String healthyId = "healthy-test-container-id";
+		String faultyId = "faulty-test-container-id";
+		given(healthyContainer.getId()).willReturn(healthyId);
+		given(healthyContainer.isAutoStartup()).willReturn(true);
+		given(faultyContainer.getId()).willReturn(faultyId);
+		given(faultyContainer.isAutoStartup()).willReturn(true);
+		willAnswer(invocation -> {
+			healthyContainerUpSignal.countDown();
+			return null;
+		}).given(healthyContainer).start();
+		String containerFailedToStartMessage = "Container failed to start";
+		willAnswer(invocation -> {
+			// Wait until the healthy container has started before failing the faulty container.
+			if (!healthyContainerUpSignal.await(5, TimeUnit.SECONDS)) {
+				throw new IllegalStateException("Test setup failed: healthy container start was not called");
+			}
+			throw new IllegalStateException(containerFailedToStartMessage);
+		}).given(faultyContainer).start();
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.registerListenerContainer(healthyContainer);
+		registry.registerListenerContainer(faultyContainer);
+		assertThatThrownBy(registry::start).isInstanceOf(CompletionException.class).cause()
+				.isInstanceOf(RuntimeException.class).hasMessage(containerFailedToStartMessage);
+		assertThat(registry.isRunning()).isTrue();
+		registry.stop();
+		then(healthyContainer).should(times(1)).stop();
+		then(faultyContainer).should(times(1)).stop();
+		assertThat(registry.isRunning()).isFalse();
+	}
+
+	@Test
+	void shouldBeStoppedBySpringLifecycleProcessorWhenOneContainerFailsToStart() {
+		CountDownLatch healthyContainerUpSignal = new CountDownLatch(1);
+		MessageListenerContainer<Object> healthyContainer = mock(MessageListenerContainer.class);
+		MessageListenerContainer<Object> faultyContainer = mock(MessageListenerContainer.class);
+		String healthyId = "healthy-test-container-id";
+		String faultyId = "faulty-test-container-id";
+		given(healthyContainer.getId()).willReturn(healthyId);
+		given(healthyContainer.isAutoStartup()).willReturn(true);
+		given(faultyContainer.getId()).willReturn(faultyId);
+		given(faultyContainer.isAutoStartup()).willReturn(true);
+		willAnswer(invocation -> {
+			healthyContainerUpSignal.countDown();
+			return null;
+		}).given(healthyContainer).start();
+		String containerFailedToStartMessage = "Container failed to start";
+		willAnswer(invocation -> {
+			if (!healthyContainerUpSignal.await(5, TimeUnit.SECONDS)) {
+				throw new IllegalStateException("Test setup failed: healthy container start was not called");
+			}
+			throw new IllegalStateException(containerFailedToStartMessage);
+		}).given(faultyContainer).start();
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.registerListenerContainer(healthyContainer);
+		registry.registerListenerContainer(faultyContainer);
+		GenericApplicationContext context = new GenericApplicationContext();
+
+		try (context) {
+			context.registerBean(DefaultListenerContainerRegistry.class, () -> registry);
+			assertThatThrownBy(context::refresh).isInstanceOf(ApplicationContextException.class)
+					.hasMessageContaining(DefaultListenerContainerRegistry.class.getName()).cause()
+					.isInstanceOf(CompletionException.class).cause().isInstanceOf(IllegalStateException.class)
+					.hasMessage(containerFailedToStartMessage);
+
+			then(healthyContainer).should(times(1)).stop();
+			then(faultyContainer).should(times(1)).stop();
+			assertThat(registry.isRunning()).isFalse();
+		}
+	}
 }
