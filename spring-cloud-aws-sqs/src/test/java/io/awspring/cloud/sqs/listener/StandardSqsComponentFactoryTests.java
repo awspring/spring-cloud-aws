@@ -25,6 +25,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.ImmediateAcknowledgementPr
 import io.awspring.cloud.sqs.listener.sink.BatchMessageSink;
 import io.awspring.cloud.sqs.listener.sink.FanOutMessageSink;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
+import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityHeartbeatSinkAdapter;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,26 @@ class StandardSqsComponentFactoryTests {
 		MessageSink<Object> messageSink = componentFactory
 				.createMessageSink(SqsContainerOptions.builder().listenerMode(ListenerMode.BATCH).build());
 		assertThat(messageSink).isInstanceOf(BatchMessageSink.class);
+	}
+
+	@Test
+	void shouldCreateSingleMessageSinkWithVisibilityHeartbeat() {
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = new StandardSqsComponentFactory<>();
+		MessageSink<Object> messageSink = componentFactory.createMessageSink(
+				SqsContainerOptions.builder().messageVisibilityHeartbeatInterval(Duration.ofSeconds(1))
+						.messageVisibilityHeartbeatTimeout(Duration.ofSeconds(15)).build());
+		assertThat(messageSink).isInstanceOf(MessageVisibilityHeartbeatSinkAdapter.class).extracting("delegate")
+				.isInstanceOf(FanOutMessageSink.class);
+	}
+
+	@Test
+	void shouldCreateBatchSinkWithVisibilityHeartbeat() {
+		ContainerComponentFactory<Object, SqsContainerOptions> componentFactory = new StandardSqsComponentFactory<>();
+		MessageSink<Object> messageSink = componentFactory.createMessageSink(SqsContainerOptions.builder()
+				.listenerMode(ListenerMode.BATCH).messageVisibilityHeartbeatInterval(Duration.ofSeconds(1))
+				.messageVisibilityHeartbeatTimeout(Duration.ofSeconds(15)).build());
+		assertThat(messageSink).isInstanceOf(MessageVisibilityHeartbeatSinkAdapter.class).extracting("delegate")
+				.isInstanceOf(BatchMessageSink.class);
 	}
 
 	@Test

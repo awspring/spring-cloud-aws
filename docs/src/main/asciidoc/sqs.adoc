@@ -873,6 +873,10 @@ See <<FIFO Support>> for more information.
 - `acknowledgementMode` - Set the acknowledgement mode for the container.
 If any value is set, it will take precedence over the acknowledgement mode defined for the container factory options.
 See <<Acknowledgement Mode>> for more information.
+- `messageVisibilityHeartbeatIntervalSeconds` - Set the interval for sending visibility heartbeats for messages that are being processed.
+Note that this is optional and used in conjunction with `messageVisibilityHeartbeatSeconds`.
+- `messageVisibilityHeartbeatSeconds` - Set the visibility timeout extension to be applied in the heartbeats for messages that are being processed.
+Note that this is optional and used in conjunction with `messageVisibilityHeartbeatIntervalSeconds`, and make sure the interval is shorter than this value.
 
 ===== Listener Method Arguments
 

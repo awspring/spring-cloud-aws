@@ -27,6 +27,7 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.sink.OrderedMessageSink;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageGroupingSinkAdapter;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityExtendingSinkAdapter;
+import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityHeartbeatSinkAdapter;
 import io.awspring.cloud.sqs.listener.source.FifoSqsMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import java.time.Duration;
@@ -72,6 +73,8 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 		MessageSink<T> deliverySink = createDeliverySink(options.getListenerMode());
 		MessageSink<T> wrappedDeliverySink = maybeWrapWithVisibilityAdapter(deliverySink,
 				options.getMessageVisibility());
+		wrappedDeliverySink = maybeWrapWithVisibilityHeartbeatAdapter(wrappedDeliverySink,
+				options.getMessageVisibilityHeartbeatInterval(), options.getMessageVisibilityHeartbeatTimeout());
 		return maybeWrapWithMessageGroupingAdapter(options, wrappedDeliverySink);
 	}
 
@@ -102,6 +105,18 @@ public class FifoSqsComponentFactory<T> implements ContainerComponentFactory<T, 
 				deliverySink);
 		visibilityAdapter.setMessageVisibility(messageVisibility);
 		return visibilityAdapter;
+	}
+
+	private MessageSink<T> maybeWrapWithVisibilityHeartbeatAdapter(MessageSink<T> deliverySink,
+			@Nullable Duration heartbeatInterval, @Nullable Duration heartbeatTimeout) {
+		if (heartbeatInterval == null || heartbeatTimeout == null) {
+			return deliverySink;
+		}
+		MessageVisibilityHeartbeatSinkAdapter<T> heartbeatAdapter = new MessageVisibilityHeartbeatSinkAdapter<>(
+				deliverySink);
+		heartbeatAdapter.setHeartbeatInterval(heartbeatInterval);
+		heartbeatAdapter.setHeartbeatVisibilityTimeout(heartbeatTimeout);
+		return heartbeatAdapter;
 	}
 
 	private Function<Message<T>, String> getMessageGroupingFunction() {

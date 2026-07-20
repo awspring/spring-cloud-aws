@@ -24,10 +24,12 @@ import io.awspring.cloud.sqs.listener.acknowledgement.ImmediateAcknowledgementPr
 import io.awspring.cloud.sqs.listener.sink.BatchMessageSink;
 import io.awspring.cloud.sqs.listener.sink.FanOutMessageSink;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
+import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityHeartbeatSinkAdapter;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.listener.source.StandardSqsMessageSource;
 import java.time.Duration;
 import java.util.Collection;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -57,11 +59,25 @@ public class StandardSqsComponentFactory<T> implements ContainerComponentFactory
 	// @formatter:off
 	@Override
 	public MessageSink<T> createMessageSink(SqsContainerOptions options) {
-		return ListenerMode.SINGLE_MESSAGE.equals(options.getListenerMode())
+		MessageSink<T> messageSink = ListenerMode.SINGLE_MESSAGE.equals(options.getListenerMode())
 			? new FanOutMessageSink<>()
 			: new BatchMessageSink<>();
+		return maybeWrapWithVisibilityHeartbeatAdapter(messageSink,
+				options.getMessageVisibilityHeartbeatInterval(), options.getMessageVisibilityHeartbeatTimeout());
 	}
 	// @formatter:on
+
+	private MessageSink<T> maybeWrapWithVisibilityHeartbeatAdapter(MessageSink<T> messageSink,
+			@Nullable Duration heartbeatInterval, @Nullable Duration heartbeatTimeout) {
+		if (heartbeatInterval == null || heartbeatTimeout == null) {
+			return messageSink;
+		}
+		MessageVisibilityHeartbeatSinkAdapter<T> heartbeatSinkAdapter = new MessageVisibilityHeartbeatSinkAdapter<>(
+				messageSink);
+		heartbeatSinkAdapter.setHeartbeatInterval(heartbeatInterval);
+		heartbeatSinkAdapter.setHeartbeatVisibilityTimeout(heartbeatTimeout);
+		return heartbeatSinkAdapter;
+	}
 
 	@Override
 	public AcknowledgementProcessor<T> createAcknowledgementProcessor(SqsContainerOptions options) {

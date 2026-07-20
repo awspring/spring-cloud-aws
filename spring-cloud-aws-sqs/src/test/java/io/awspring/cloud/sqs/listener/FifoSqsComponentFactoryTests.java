@@ -27,6 +27,7 @@ import io.awspring.cloud.sqs.listener.sink.MessageSink;
 import io.awspring.cloud.sqs.listener.sink.OrderedMessageSink;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageGroupingSinkAdapter;
 import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityExtendingSinkAdapter;
+import io.awspring.cloud.sqs.listener.sink.adapter.MessageVisibilityHeartbeatSinkAdapter;
 import java.time.Duration;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,19 @@ class FifoSqsComponentFactoryTests {
 				.extracting("delegate").isInstanceOf(MessageVisibilityExtendingSinkAdapter.class);
 		visibilitySinkAssertion.extracting("messageVisibility").isEqualTo((int) visbilityDuration.getSeconds());
 		visibilitySinkAssertion.extracting("delegate").isInstanceOf(OrderedMessageSink.class);
+	}
+
+	@Test
+	void shouldCreateGroupingSinkWithVisibilityHeartbeat() {
+		FifoSqsComponentFactory<Object> componentFactory = new FifoSqsComponentFactory<>();
+		MessageSink<Object> messageSink = componentFactory.createMessageSink(SqsContainerOptions.builder()
+				.messageVisibility(Duration.ofSeconds(1)).messageVisibilityHeartbeatInterval(Duration.ofSeconds(1))
+				.messageVisibilityHeartbeatTimeout(Duration.ofSeconds(15)).build());
+		assertThat(messageSink).isInstanceOf(MessageGroupingSinkAdapter.class)
+				.asInstanceOf(type(MessageGroupingSinkAdapter.class)).extracting("delegate")
+				.isInstanceOf(MessageVisibilityHeartbeatSinkAdapter.class).extracting("delegate")
+				.isInstanceOf(MessageVisibilityExtendingSinkAdapter.class).extracting("delegate")
+				.isInstanceOf(OrderedMessageSink.class);
 	}
 
 	@Test

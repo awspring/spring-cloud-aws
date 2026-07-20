@@ -38,6 +38,10 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 	private final Integer messageVisibility;
 
+	private final Integer messageVisibilityHeartbeatInterval;
+
+	private final Integer messageVisibilityHeartbeat;
+
 	private final Integer maxMessagesPerPoll;
 
 	@Nullable
@@ -48,6 +52,8 @@ public class SqsEndpoint extends AbstractEndpoint {
 		this.maxConcurrentMessages = builder.maxConcurrentMessages;
 		this.pollTimeoutSeconds = builder.pollTimeoutSeconds;
 		this.messageVisibility = builder.messageVisibility;
+		this.messageVisibilityHeartbeatInterval = builder.messageVisibilityHeartbeatInterval;
+		this.messageVisibilityHeartbeat = builder.messageVisibilityHeartbeat;
 		this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
 		this.acknowledgementMode = builder.acknowledgementMode;
 	}
@@ -98,6 +104,26 @@ public class SqsEndpoint extends AbstractEndpoint {
 	}
 
 	/**
+	 * Return the visibility heartbeat interval for this endpoint.
+	 * @return the visibility heartbeat interval.
+	 */
+	@Nullable
+	public Duration getMessageVisibilityHeartbeatInterval() {
+		return this.messageVisibilityHeartbeatInterval != null
+				? Duration.ofSeconds(this.messageVisibilityHeartbeatInterval)
+				: null;
+	}
+
+	/**
+	 * Return the visibility timeout to apply on each heartbeat request for this endpoint.
+	 * @return the visibility heartbeat timeout.
+	 */
+	@Nullable
+	public Duration getMessageVisibilityHeartbeat() {
+		return this.messageVisibilityHeartbeat != null ? Duration.ofSeconds(this.messageVisibilityHeartbeat) : null;
+	}
+
+	/**
 	 * Returns the acknowledgement mode configured for this endpoint.
 	 * @return the acknowledgement mode.
 	 */
@@ -117,6 +143,10 @@ public class SqsEndpoint extends AbstractEndpoint {
 		private String factoryName;
 
 		private Integer messageVisibility;
+
+		private Integer messageVisibilityHeartbeatInterval;
+
+		private Integer messageVisibilityHeartbeat;
 
 		private String id;
 
@@ -152,6 +182,16 @@ public class SqsEndpoint extends AbstractEndpoint {
 
 		public SqsEndpointBuilder messageVisibility(Integer messageVisibility) {
 			this.messageVisibility = messageVisibility;
+			return this;
+		}
+
+		public SqsEndpointBuilder messageVisibilityHeartbeatInterval(Integer messageVisibilityHeartbeatInterval) {
+			this.messageVisibilityHeartbeatInterval = messageVisibilityHeartbeatInterval;
+			return this;
+		}
+
+		public SqsEndpointBuilder messageVisibilityHeartbeat(Integer messageVisibilityHeartbeat) {
+			this.messageVisibilityHeartbeat = messageVisibilityHeartbeat;
 			return this;
 		}
 
