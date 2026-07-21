@@ -127,7 +127,6 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
 }
 ----
 
-=== S3 client-side encryption
 ==== Object keys and prefix locations
 
 A location is parsed into a bucket and an object key. A trailing slash in the key is significant and is preserved:
