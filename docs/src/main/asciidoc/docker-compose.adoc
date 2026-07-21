@@ -1,7 +1,7 @@
 [#spring-cloud-aws-docker-compose]
 == Docker Compose
 
-Spring Cloud AWS provides Docker Compose support for https://docs.localstack.cloud/references/docker-images/[LocalStack docker images] and https://floci.io/floci/getting-started/quick-start/[Floci docker images] which simplifies local development of Spring Cloud AWS based projects.
+Spring Cloud AWS provides Docker Compose support for https://docs.localstack.cloud/references/docker-images/[LocalStack Docker images] and https://floci.io/floci/getting-started/quick-start/[Floci Docker images] which simplifies local development of Spring Cloud AWS based projects.
 
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
@@ -13,7 +13,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-For more information about Spring Docker Compose support please refer to https://docs.spring.io/spring-boot/reference/features/dev-services.html#features.dev-services.docker-compose[official Spring documentation]
+For more information about Spring Docker Compose support, refer to the https://docs.spring.io/spring-boot/reference/features/dev-services.html#features.dev-services.docker-compose[official Spring documentation].
 
 === Localstack Example
 

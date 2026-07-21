@@ -1,7 +1,7 @@
 [#spring-cloud-aws-s3]
-== S3 Integration
+== S3 integration
 
-https://aws.amazon.com/s3/[S3] allows storing files in a cloud.
+https://aws.amazon.com/s3/[S3] allows storing files in the cloud.
 A Spring Boot starter is provided to auto-configure the various S3 integration related components.
 
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
@@ -16,7 +16,7 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
 === Using S3 client
 
-The starter automatically configures and registers a `S3Client` bean in the Spring application context. The `S3Client` bean can be used to perform operations on S3 buckets and objects.
+The starter automatically configures and registers an `S3Client` bean in the Spring application context. The `S3Client` bean can be used to perform operations on S3 buckets and objects.
 
 [source,java]
 ----
@@ -48,9 +48,9 @@ class S3ClientSample {
 	}
 }
 ----
-=== Using S3TransferManager and CRT-based S3 Client
+=== Using S3TransferManager and the CRT-based S3 client
 
-AWS https://aws.amazon.com/blogs/developer/introducing-crt-based-s3-client-and-the-s3-transfer-manager-in-the-aws-sdk-for-java-2-x/[launched] a high level file transfer utility, called Transfer Manager and a CRT based S3 client.
+AWS https://aws.amazon.com/blogs/developer/introducing-crt-based-s3-client-and-the-s3-transfer-manager-in-the-aws-sdk-for-java-2-x/[launched] a high-level file transfer utility, called Transfer Manager, and a CRT-based S3 client.
 
 The starter automatically configures and registers a `software.amazon.awssdk.transfer.s3.S3TransferManager` bean if the following dependency is added to the project:
 
@@ -62,7 +62,7 @@ The starter automatically configures and registers a `software.amazon.awssdk.tra
 </dependency>
 ----
 
-Transfer Manager works the best with CRT S3 Client. To auto-configure CRT based `S3AsyncClient` add following dependency to your project:
+Transfer Manager works best with the CRT-based S3 client. To auto-configure a CRT-based `S3AsyncClient`, add the following dependency to your project:
 
 [source,xml]
 ----
@@ -72,14 +72,14 @@ Transfer Manager works the best with CRT S3 Client. To auto-configure CRT based 
 </dependency>
 ----
 
-When no `S3AsyncClient` bean is created, the default `S3AsyncClient` created through AWS SDK is used. To benefit from maximum throughput, multipart upload/download and resumable file upload consider using CRT based `S3AsyncClient`.
+When no `S3AsyncClient` bean is created, the default `S3AsyncClient` provided by the AWS SDK is used. To benefit from maximum throughput, multipart upload/download, and resumable file upload, consider using a CRT-based `S3AsyncClient`.
 
-=== S3 Objects as Spring Resources
+=== S3 objects as Spring Resources
 
 https://docs.spring.io/spring/docs/current/spring-framework-reference/html/resources.html[Spring Resources] are an abstraction for a number of low-level resources, such as file system files, classpath files, servlet context-relative files, etc.
-Spring Cloud AWS adds a new resource type: a `S3Resource` object.
+Spring Cloud AWS adds a new resource type: an `S3Resource` object.
 
-The Spring Resource Abstraction for S3 allows S3 objects to be accessed by their S3 URL using the `@Value` annotation:
+The Spring resource abstraction for S3 allows S3 objects to be accessed by their S3 URL using the `@Value` annotation:
 
 [source,java]
 ----
@@ -87,7 +87,7 @@ The Spring Resource Abstraction for S3 allows S3 objects to be accessed by their
 private Resource s3Resource;
 ----
 
-...or the Spring application context
+...or the Spring application context:
 
 [source,java]
 ----
@@ -109,7 +109,7 @@ try (OutputStream os = ((WritableResource) s3Resource).getOutputStream()) {
 }
 ----
 
-To work with the `Resource` as a S3 resource, cast it to `io.awspring.cloud.s3.S3Resource`.
+To work with the `Resource` as an S3 resource, cast it to `io.awspring.cloud.s3.S3Resource`.
 Using `S3Resource` directly lets you set the https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html[S3 object metadata].
 
 [source,java]
@@ -155,10 +155,10 @@ If you relied on the previous behavior, drop the trailing slash from your locati
 
 === S3 Client Side Encryption
 
-AWS offers encryption library which is integrated inside of S3 Client called https://docs.aws.amazon.com/amazon-s3-encryption-client/latest/developerguide/what-is-s3-encryption-client.html[S3EncryptionClient].
-With encryption client you are going to encrypt your files before sending them to S3 bucket.
+AWS offers an encryption library integrated with the S3 client, called the https://docs.aws.amazon.com/amazon-s3-encryption-client/latest/developerguide/what-is-s3-encryption-client.html[S3EncryptionClient].
+The encryption client encrypts files before they are sent to the S3 bucket.
 
-To autoconfigure Encryption Client simply add the following dependency.
+To auto-configure the encryption client, add the following dependency:
 
 [source,xml]
 ----
@@ -169,13 +169,13 @@ To autoconfigure Encryption Client simply add the following dependency.
 ----
 
 
-We are supporting 3 types of encryption.
+Three types of encryption are supported.
 
-==== KMS Key Encryption
+==== KMS key encryption
 
-To configure encryption via KMS key specify `spring.cloud.aws.s3.encryption.key-id` with KMS key arn and this key will be used to encrypt your files.
+To configure encryption via a KMS key, set `spring.cloud.aws.s3.encryption.key-id` to the KMS key ARN. That key will then be used to encrypt files.
 
-Also, following dependency is required.
+The following dependency is also required:
 
 [source,xml]
 ----
@@ -186,13 +186,13 @@ Also, following dependency is required.
  </dependency>
 ----
 
-==== RSA Asymmetric Encryption
+==== RSA asymmetric encryption
 
-Asymmetric encryption is possible via RSA. To enable it you will have to implement `io.awspring.cloud.autoconfigure.s3.S3RsaProvider`.
+Asymmetric encryption is supported via RSA. To enable it, implement `io.awspring.cloud.autoconfigure.s3.S3RsaProvider`.
 
-NOTE: You will have to store private and public keys yourself otherwise you won't be able to decrypt the data later.
+NOTE: You will have to store private and public keys yourself, otherwise you won't be able to decrypt the data later.
 
-Example of simple `S3RsaProvider`:
+An example of a simple `S3RsaProvider`:
 
 [source,java,indent=0]
 ----
@@ -214,13 +214,13 @@ public class MyRsaProvider implements S3RsaProvider {
 }
 ----
 
-==== AES Symmetric Encryption
+==== AES symmetric encryption
 
-If you want to use symmetric algorithm, this is possible via `io.awspring.cloud.autoconfigure.s3.S3AesProvider`.
+If you want to use a symmetric algorithm, this is possible via `io.awspring.cloud.autoconfigure.s3.S3AesProvider`.
 
 NOTE: Ensure the private key is stored using secure storage mechanisms that prevent unauthorized access.
 
-Example of simple `S3AesProvider`:
+An example of a simple `S3AesProvider`:
 
 [source,java,indent=0]
 ----
@@ -243,14 +243,14 @@ public class MyAesProvider implements S3AesProvider {
 ----
 
 
-=== S3 Output Stream
+=== S3 output stream
 
-Under the hood by default `S3Resource` uses a `io.awspring.cloud.s3.InMemoryBufferingS3OutputStream`. When data is written to the resource, is gets sent to S3 using multipart upload.
-If a network error occurs during upload, `S3Client` has a built-in retry mechanism that will retry each failed part. If the upload fails after retries, multipart upload gets aborted and `S3Resource` throws `io.awspring.cloud.s3.S3Exception`.
+By default, `S3Resource` uses `io.awspring.cloud.s3.InMemoryBufferingS3OutputStream`. When data is written to the resource, it is sent to S3 using multipart upload.
+If a network error occurs during upload, `S3Client` has a built-in retry mechanism that will retry each failed part. If the upload fails after retries, the multipart upload gets aborted and `S3Resource` throws `io.awspring.cloud.s3.S3Exception`.
 
-If `InMemoryBufferingS3OutputStream` behavior does not fit your needs, you can use `io.awspring.cloud.s3.DiskBufferingS3OutputStream` by defining a bean of type `DiskBufferingS3OutputStreamProvider` which will override the default output stream provider.
-With `DiskBufferingS3OutputStream` when data is written to the resource, first it is stored on the disk in a `tmp` directory in the OS. Once the stream gets closed, the file gets uploaded with https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html#putObject-java.util.function.Consumer-java.nio.file.Path-[S3Client#putObject] method.
-If a network error occurs during upload, `S3Client` has a built-in retry mechanism. If the upload fails after retries, `S3Resource` throws `io.awspring.cloud.s3.UploadFailed` exception containing a file location in a temporary directory in a file system.
+If `InMemoryBufferingS3OutputStream` behavior does not fit your needs, you can use `io.awspring.cloud.s3.DiskBufferingS3OutputStream` by defining a bean of type `DiskBufferingS3OutputStreamProvider`, which will override the default output stream provider.
+With `DiskBufferingS3OutputStream`, when data is written to the resource, it is first stored on disk in a `tmp` directory in the OS. Once the stream gets closed, the file gets uploaded with the https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/S3Client.html#putObject-java.util.function.Consumer-java.nio.file.Path-[S3Client#putObject] method.
+If a network error occurs during upload, `S3Client` has a built-in retry mechanism. If the upload fails after retries, `S3Resource` throws an `io.awspring.cloud.s3.UploadFailed` exception containing a file location in a temporary directory in the file system.
 
 [source,java]
 ----
@@ -261,13 +261,13 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
 }
 ----
 
-If you are using the `S3TransferManager`, the default implementation will switch to `io.awspring.cloud.s3.TransferManagerS3OutputStream`. This OutputStream also uses a temporary file to write it on disk before uploading it to S3, but it may be faster as it uses a multi-part upload under the hood.
+If you are using the `S3TransferManager`, the default implementation will switch to `io.awspring.cloud.s3.TransferManagerS3OutputStream`. This output stream also uses a temporary file to write it to disk before uploading it to S3, but it may be faster as it uses a multi-part upload under the hood.
 
 === Searching resources
 
 The Spring resource loader also supports collecting resources based on an Ant-style path specification. Spring Cloud AWS
 offers the same support to resolve resources within a bucket and even throughout buckets. The actual resource loader needs
-to be wrapped with the Spring Cloud AWS one in order to search for S3 buckets, in case of non S3 bucket the resource loader
+to be wrapped with the Spring Cloud AWS one in order to search for S3 buckets. In the case of a non-S3 bucket, the resource loader
 will fall back to the original one. The next example shows the resource resolution by using different patterns.
 
 [source,java,indent=0]
@@ -299,15 +299,15 @@ public class SimpleResourceLoadingBean {
 
 [WARNING]
 ====
-Resolving resources throughout all buckets can be very time consuming depending on the number of buckets a user owns.
+Resolving resources throughout all buckets can be very time-consuming depending on the number of buckets a user owns.
 ====
 
-=== Using S3 Access grants
+=== Using S3 Access Grants
 
-Sometimes there is a need to make access control to S3 bucket contents fine grained.
-Since IAM polices and S3 Policies only support 10kbs size, S3 Access Grant is solving this by allowing fine grained access control over content in bucket.
+Sometimes there is a need for fine-grained access control over S3 bucket contents.
+Since IAM policies and S3 bucket policies are limited to 10 KB in size, S3 Access Grants addresses this by enabling fine-grained access control over objects in a bucket.
 
-To use S3 Access Grants out of the box with `S3Client` and `S3Template` introduce following plugin:
+To use S3 Access Grants with `S3Client` and `S3Template`, add the following plugin:
 
 [source,xml]
 ----
@@ -319,9 +319,9 @@ To use S3 Access Grants out of the box with `S3Client` and `S3Template` introduc
 
 === Using S3Template
 
-Spring Cloud AWS provides a higher abstraction on the top of `S3Client` providing methods for the most common use cases when working with S3.
+Spring Cloud AWS provides a higher-level abstraction on top of `S3Client`, offering methods for the most common use cases when working with S3.
 
-On the top of self-explanatory methods for creating and deleting buckets, `S3Template` provides a simple methods for uploading and downloading files:
+In addition to self-explanatory methods for creating and deleting buckets, `S3Template` provides simple methods for uploading and downloading files:
 
 [source,java]
 ----
@@ -336,13 +336,13 @@ s3Template.upload(BUCKET, "file.txt", is);
 s3Template.upload(BUCKET, "file.txt", is, ObjectMetadata.builder().contentType("text/plain").build());
 ----
 
-Another feature of `S3Template` is the ability to generate signed URLs for getting/putting S3 objects in a single method call.
+Another feature of `S3Template` is the ability to generate signed URLs for getting/putting S3 objects in a single method call:
 [source,java]
 ----
 URL signedGetUrl = s3Template.createSignedGetURL("bucket_name", "file.txt", Duration.ofMinutes(5));
 ----
 
-`S3Template` also allows storing & retrieving Java objects.
+`S3Template` also allows storing and retrieving Java objects.
 
 [source,java]
 ----
@@ -352,16 +352,16 @@ s3Template.store(BUCKET, "person.json", p);
 Person loadedPerson = s3Template.read(BUCKET, "person.json", Person.class);
 ----
 
-By default, if Jackson 3 is on the classpath, `S3Template` uses `JsonMapper` based `Jackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
-If Jackson 3 is not on classpath and Jackson 2 is, `S3Template` uses `ObjectMapper` based `LegacyJackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
-This behavior can be overwritten by providing custom bean of type `S3ObjectConverter`.
+By default, if Jackson 3 is on the classpath, `S3Template` uses the `JsonMapper`-based `Jackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
+If Jackson 3 is not on the classpath and Jackson 2 is, `S3Template` uses the `ObjectMapper`-based `LegacyJackson2JsonS3ObjectConverter` to convert from S3 object to Java object and vice versa.
+This behavior can be overridden by providing a custom bean of type `S3ObjectConverter`.
 
-=== Determining S3 Objects Content Type
+=== Determining S3 object content type
 
-All S3 objects stored in S3 through `S3Template`, `S3Resource` or `S3OutputStream` automatically get set a `contentType` property on the S3 object metadata, based on the S3 object key (file name).
+All S3 objects stored in S3 through `S3Template`, `S3Resource` or `S3OutputStream` automatically get a `contentType` property set on the S3 object metadata, based on the S3 object key (file name).
 
-By default, `PropertiesS3ObjectContentTypeResolver` - a component supporting over 800 file extensions is responsible for content type resolution.
-If this content type resolution does not meet your needs, you can provide a custom bean of type `S3ObjectContentTypeResolver` which will be automatically used in all components responsible for uploading files.
+By default, `PropertiesS3ObjectContentTypeResolver` - a component supporting over 800 file extensions - is responsible for content type resolution.
+If this content type resolution does not meet your needs, you can provide a custom bean of type `S3ObjectContentTypeResolver`, which will be automatically used in all components responsible for uploading files.
 
 === Configuration
 
@@ -371,8 +371,8 @@ The Spring Boot Starter for S3 provides the following configuration options:
 |===
 | Name | Description | Required | Default value
 | `spring.cloud.aws.s3.enabled` | Enables the S3 integration. | No | `true`
-| `spring.cloud.aws.s3.endpoint` | Configures endpoint used by `S3Client`. | No | `http://localhost:4566`
-| `spring.cloud.aws.s3.region` | Configures region used by `S3Client`. | No | `eu-west-1`
+| `spring.cloud.aws.s3.endpoint` | Configures the endpoint used by `S3Client`. | No | `http://localhost:4566`
+| `spring.cloud.aws.s3.region` | Configures the region used by `S3Client`. | No | `eu-west-1`
 | `spring.cloud.aws.s3.accelerate-mode-enabled` | Option to enable using the accelerate endpoint when accessing S3. Accelerate endpoints allow faster transfer of objects by using Amazon CloudFront's globally distributed edge locations. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.checksum-validation-enabled` | Option to disable doing a validation of the checksum of an object stored in S3. | No | `null` (falls back to SDK default)
 | `spring.cloud.aws.s3.chunked-encoding-enabled` | Option to enable using chunked encoding when signing the request payload for `PutObjectRequest` and `UploadPartRequest`. | No | `null` (falls back to SDK default)
@@ -386,7 +386,7 @@ The Spring Boot Starter for S3 provides the following configuration options:
 | `spring.cloud.aws.s3.transfer-manager.follow-symbolic-links` | Specifies whether to follow symbolic links when traversing the file tree in `S3TransferManager#uploadDirectory` operation | No | `null` (falls back to SDK default)
 |===
 
-=== Client Customization
+=== Client customization
 
 `S3Client` can be further customized by providing a bean of type `S3ClientCustomizer`:
 
@@ -409,22 +409,22 @@ S3ClientCustomizer customizer() {
 
 `S3ClientCustomizer` is a functional interface that enables configuring `S3ClientBuilder` before the `S3Client` is built in auto-configuration.
 
-There can be multiple `S3ClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+There can be multiple `S3ClientCustomizer` beans present in a single application context. The `@Order(..)` annotation can be used to define the order of execution.
 
 Note that `S3ClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
 
-=== Loading External Configuration
+=== Loading external configuration
 
-Just like Spring Boot supports configuring application through `application.properties` stored in the file system, Spring Cloud AWS S3 integration extends this capability with fetching application configuration the S3 bucket through `spring.config.import` property.
+Just as Spring Boot supports configuring an application through an `application.properties` file stored in the file system, the Spring Cloud AWS S3 integration extends this capability by fetching application configuration from an S3 bucket via the `spring.config.import` property.
 
-For example, assuming that there is a file `config.properties` in a bucket named `bucket-name`, to include it as Spring Boot configuration, add a following property to `application.properties` or `application.yml`:
+For example, assuming that there is a file `config.properties` in a bucket named `bucket-name`, to include it as Spring Boot configuration, add the following property to `application.properties` or `application.yml`:
 
 [source,properties]
 ----
 spring.config.import=aws-s3:/bucket-name/config.properties
 ----
 
-If a file with given name does not exist in S3, application will fail to start. If file configuration is not required for the application, and it should continue to startup even when file configuration is missing, add `optional` before prefix:
+If a file with the given name does not exist in S3, the application will fail to start. If the file configuration is not required for the application and it should continue to start up even when the file is missing, add `optional` before the prefix:
 
 [source,properties]
 ----
@@ -438,7 +438,7 @@ To load multiple files, separate their names with `;`:
 spring.config.import=aws-s3:/bucket-name/config.properties;/another-name/config.yml
 ----
 
-If some files are required, and other ones are optional, list them as separate entries in `spring.config.import` property:
+If some files are required and others are optional, list them as separate entries in the `spring.config.import` property:
 
 [source,properties]
 ----
@@ -446,12 +446,12 @@ spring.config.import[0]=optional:bucket-name/config.properties
 spring.config.import[1]=aws-s3=/another-name/config.yml
 ----
 
-Fetched files configuration can be referenced with `@Value`, bound to `@ConfigurationProperties` classes, or referenced in `application.properties` file.
+Fetched file configuration can be referenced with `@Value`, bound to `@ConfigurationProperties` classes, or referenced in the `application.properties` file.
 
-`JSON`, Java Properties and `YAML` configuration file formats are supported.
+`JSON`, Java properties, and `YAML` configuration file formats are supported.
 
-File resolved with `spring.config.import` can be also referenced in `application.properties`.
-For example, with a file `config.json` containing following JSON structure:
+The file resolved with `spring.config.import` can also be referenced in `application.properties`.
+For example, with a file `config.json` containing the following JSON structure:
 
 [source,json]
 ----
@@ -461,24 +461,24 @@ For example, with a file `config.json` containing following JSON structure:
 ----
 
 
-`spring.config.import` entry is added to `application.properties`:
+A `spring.config.import` entry is added to `application.properties`:
 
 [source, properties]
 ----
 spring.config.import=aws-s3:/bucket-name/config.json
 ----
 
-File configuration values can be referenced by JSON key names:
+The file configuration values can be referenced by JSON key names:
 
 [source, java]
 ----
-@Value("${url}"
+@Value("${url}")
 private String url;
 ----
 
 === Customizing S3Client
 
-To use custom `S3Client` in `spring.config.import`, provide an implementation of `BootstrapRegistryInitializer`. For example:
+To use a custom `S3Client` in `spring.config.import`, provide an implementation of `BootstrapRegistryInitializer`. For example:
 
 [source,java]
 ----
@@ -505,15 +505,15 @@ public class S3ClientBootstrapConfiguration implements BootstrapRegistryInitiali
 }
 ----
 
-Note that this class must be listed under `org.springframework.boot.BootstrapRegistryInitializer` key in `META-INF/spring.factories`:
+Note that this class must be listed under the `org.springframework.boot.BootstrapRegistryInitializer` key in `META-INF/spring.factories`:
 
 [source, properties]
 ----
 org.springframework.boot.BootstrapRegistryInitializer=com.app.S3ClientBootstrapConfiguration
 ----
 
-If you want to use autoconfigured `S3Client` but change underlying SDKClient or `ClientOverrideConfiguration` you will need to register bean of type `S3ClientCustomizer`:
-Autoconfiguration will configure `S3Client` Bean with provided values after that, for example:
+If you want to use the auto-configured `S3Client` but change the underlying SDK client or `ClientOverrideConfiguration`, you will need to register a bean of type `S3ClientCustomizer`.
+Auto-configuration will then configure the `S3Client` bean with the provided values. For example:
 
 [source,java]
 ----
@@ -541,12 +541,12 @@ class S3ClientBootstrapConfiguration implements BootstrapRegistryInitializer {
 }
 ----
 
-=== `PropertySource` Reload
+=== `PropertySource` reload
 
 Some applications may need to detect changes on external property sources and update their internal status to reflect the new configuration.
-The reload feature of Spring Cloud AWS S3 config import integration is able to trigger an application reload when a related file value changes.
+The reload feature of the Spring Cloud AWS S3 config import integration is able to trigger an application reload when a related file value changes.
 
-By default, this feature is disabled. You can enable it by using the `spring.cloud.aws.s3.config.reload.strategy` configuration property (for example, in the `application.properties` file) and adding following dependencies.
+By default, this feature is disabled. You can enable it by using the `spring.cloud.aws.s3.config.reload.strategy` configuration property (for example, in the `application.properties` file) and adding the following dependencies:
 
 [source,xml]
 ----
@@ -569,8 +569,8 @@ The following levels of reload are supported (by setting the `spring.cloud.aws.s
 * `refresh` (default): Only configuration beans annotated with `@ConfigurationProperties` or `@RefreshScope` are reloaded.
 This reload level leverages the refresh feature of Spring Cloud Context.
 
-* `restart_context`: the whole Spring `ApplicationContext` is gracefully restarted. Beans are recreated with the new configuration.
-In order for the restart context functionality to work properly you must enable and expose the restart actuator endpoint
+* `restart_context`: The whole Spring `ApplicationContext` is gracefully restarted. Beans are recreated with the new configuration.
+In order for the restart context functionality to work properly, you must enable and expose the restart actuator endpoint:
 [source,yaml]
 ====
 ----
@@ -588,7 +588,7 @@ management:
 Assuming that the reload feature is enabled with default settings (`refresh` mode), the following bean is refreshed when the file changes:
 
 ====
-[java, source]
+[source,java]
 ----
 @Configuration
 @ConfigurationProperties(prefix = "bean")
@@ -602,7 +602,7 @@ public class MyConfig {
 ----
 ====
 
-To see that changes effectively happen, you can create another bean that prints the message periodically, as follows
+To see that changes effectively happen, you can create another bean that prints the message periodically, as follows:
 
 ====
 [source,java]
@@ -621,8 +621,8 @@ public class MyBean {
 ----
 ====
 
-The reload feature periodically re-creates the configuration from S3 file to see if it has changed.
-You can configure the polling period by using the `spring.cloud.aws.s3.config.reload.period` (default value is 1 minute).
+The reload feature periodically re-creates the configuration from the S3 file to see if it has changed.
+You can configure the polling period by using the `spring.cloud.aws.s3.config.reload.period` property (default value is 1 minute).
 
 === Configuration
 
@@ -639,10 +639,10 @@ The Spring Boot Starter for S3 provides the following configuration options:
 
 === S3 Vector Client support
 
-https://aws.amazon.com/blogs/aws/introducing-amazon-s3-vectors-first-cloud-storage-with-native-vector-support-at-scale/[S3 Vector Store] is a vector storage which supports uploading, storing and querying vectors.
-To allow users simpler use of `S3VectorsClient` with https://github.com/spring-projects/spring-ai[Spring AI] project or use of a plain client, we support autoconfiguration of the `S3VectorsClient`.
+https://aws.amazon.com/blogs/aws/introducing-amazon-s3-vectors-first-cloud-storage-with-native-vector-support-at-scale/[S3 Vector Store] is a vector store which supports uploading, storing and querying vectors.
+To allow for simpler use of `S3VectorsClient` with the https://github.com/spring-projects/spring-ai[Spring AI] project, or for direct use as a plain client, Spring Cloud AWS supports autoconfiguration of the `S3VectorsClient`.
 
-To enable autoconfiguration you should add the following dependencies
+To enable autoconfiguration, you should add the following dependencies:
 [source,xml]
 ----
 <dependency>
@@ -656,30 +656,27 @@ To enable autoconfiguration you should add the following dependencies
 </dependency>
 ----
 
-After dependencies are introduced Spring Cloud AWS will automatically create a `S3VectorsClient` bean which can than be autowired and used.
+Once these dependencies are present, Spring Cloud AWS will automatically create an `S3VectorsClient` bean, which can then be autowired and used.
 
 [cols="2,3,1,1"]
 |===
 | Name | Description | Required | Default value
 | `spring.cloud.aws.s3.vector.config.enabled` | Enables the S3 config import integration. | No | `true`
-| `spring.cloud.aws.s3.config.reload.strategy` | `Enum` | `refresh` | The strategy to use when firing a reload (`refresh`, `restart_context`)
-| `spring.cloud.aws.s3.config.reload.period` | `Duration`| `15s` | The period for verifying changes
-| `spring.cloud.aws.s3.config.reload.max-wait-time-for-restart` | `Duration`| `2s` | The maximum time between the detection of changes in property source and the application context restart when `restart_context` strategy is used.
 |===
 
-=== IAM Permissions
+=== IAM permissions
 
-Following IAM permissions are required by Spring Cloud AWS:
+The following IAM permissions are required by Spring Cloud AWS:
 
 [cols="2,3,1,1"]
 |===
 | Name | Description | Required | Default value
 | `spring.cloud.aws.s3.vector.enabled` | Enables the S3VectorsClient autoconfiguration. | No | `true`
-| `spring.cloud.aws.s3.vector.endpoint` | Configures endpoint used by `S3VectorsClient`. | No | `http://localhost:4566`
-| `spring.cloud.aws.s3.vector.region` | Configures region used by `S3VectorsClient`. | No | `eu-west-1`
+| `spring.cloud.aws.s3.vector.endpoint` | Configures the endpoint used by `S3VectorsClient`. | No | `http://localhost:4566`
+| `spring.cloud.aws.s3.vector.region` | Configures the region used by `S3VectorsClient`. | No | `eu-west-1`
 |===
 
-=== Example of IAM policy for Spring Cloud AWS demo bucket
+=== Example of an IAM policy for the Spring Cloud AWS demo bucket
 
 Sample IAM policy granting access to `spring-cloud-aws-demo` bucket:
 
@@ -707,18 +704,18 @@ Sample IAM policy granting access to `spring-cloud-aws-demo` bucket:
 }
 ----
 
-=== Spring Integration Support
+=== Spring Integration support
 
-Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon SQS.
+Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] channel adapters for Amazon S3.
 
 The S3 Channel Adapters are based on the `S3Client` template and `S3TransferManager`.
 See their specification and Javadocs for more information.
 
 The S3 Inbound Channel Adapter is represented by the `S3InboundFileSynchronizingMessageSource` and allows pulling S3 objects as files from the S3 bucket to the local directory for synchronization.
-This adapter is fully similar to the Inbound Channel Adapters in the FTP and SFTP Spring Integration modules.
+This adapter is similar to the Inbound Channel Adapters in the FTP and SFTP Spring Integration modules.
 See more information in the https://docs.spring.io/spring-integration/reference/ftp.html[FTP/FTPS Adapters Chapter] for common options or `SessionFactory`, `RemoteFileTemplate` and `FileListFilter` abstractions.
 
-The Java Configuration is:
+The Java configuration is:
 
 [source,java]
 ----
@@ -758,12 +755,12 @@ public static class MyConfiguration {
 }
 ----
 
-With this config you receive messages with `java.io.File` `payload` from the `s3FilesChannel` after periodic synchronization of content from the Amazon S3 bucket into the local directory.
+With this configuration, you receive messages with `java.io.File` `payload` from the `s3FilesChannel` after periodic synchronization of content from the Amazon S3 bucket into the local directory.
 
 The `S3StreamingMessageSource` adapter produces messages with payloads of type `InputStream`, allowing S3 objects to be fetched without writing to the local file system.
 Since the session remains open, the consuming application is responsible for closing the session when the file has been consumed.
 The session is provided in the closeableResource header (`IntegrationMessageHeaderAccessor.CLOSEABLE_RESOURCE`).
-Standard framework components, such as the `FileSplitter` and `StreamTransformer` will automatically close the session.
+Standard framework components, such as the `FileSplitter` and `StreamTransformer`, will automatically close the session.
 
 The following Spring Boot application provides an example of configuring the S3 inbound streaming adapter using Java configuration:
 
@@ -809,14 +806,14 @@ public class S3JavaApplication {
 }
 ----
 
-> NOTE: Unlike the non-streaming inbound channel adapter, this adapter does not prevent duplicates by default.
-> If you do not delete the remote file and wish to prevent the file being processed again, you can configure an `S3PersistentFileListFilter` in the `filter` attribute.
-> If you don’t want to persist the state, an in-memory `SimpleMetadataStore` can be used with the filter.
-> If you wish to use a filename pattern (or regex) as well, use a `CompositeFileListFilter`.
+NOTE: Unlike the non-streaming inbound channel adapter, this adapter does not prevent duplicates by default.
+If you do not delete the remote file and wish to prevent the file from being processed again, you can configure an `S3PersistentFileListFilter` in the `filter` attribute.
+If you do not want to persist the state, an in-memory `SimpleMetadataStore` can be used with the filter.
+If you also wish to use a filename pattern (or regex), use a `CompositeFileListFilter`.
 
 The `S3MessageHandler` is an Outbound Channel Adapter and allows performing `upload`, `download` and `copy` (see `S3MessageHandler.Command` enum) operations in the provided S3 bucket.
 
-The Java Configuration is:
+The Java configuration is:
 
 [source,java]
 ----
@@ -835,20 +832,20 @@ public static class MyConfiguration {
 }
 ----
 
-With this config you can send a message with the `java.io.File` as `payload` and the `transferManager.upload()` operation will be performed, where the file name is used as a S3 Object key.
+With this configuration, you can send a message with `java.io.File` as the `payload`, and the `transferManager.upload()` operation will be performed, where the file name is used as an S3 object key.
 
-See more information in the `S3MessageHandler` JavaDocs.
+See the `S3MessageHandler` Javadocs for more information.
 
-NOTE: The AWS SDK recommends to use `S3CrtAsyncClient` for `S3TransferManager`, therefore an `S3AsyncClient.crtBuilder()` has to be used to achieve respective upload and download requirements, what is done internally in the `S3MessageHandler` when `S3CrtAsyncClient`-based constructor is used.
+NOTE: The AWS SDK recommends using `S3CrtAsyncClient` for `S3TransferManager`; therefore, an `S3AsyncClient.crtBuilder()` has to be used to achieve the required upload and download performance, which is done internally in the `S3MessageHandler` when the `S3CrtAsyncClient`-based constructor is used.
 
-The `S3MessageHandler` can be used as an Outbound Gateway with the `produceReply = true` constructor argument for Java Configuration.
+The `S3MessageHandler` can be used as an Outbound Gateway with the `produceReply = true` constructor argument for Java configuration.
 
-The "request-reply" nature of this gateway is async and the `Transfer` result from the `TransferManager` operation is sent to the `outputChannel`, assuming the transfer progress observation in the downstream flow.
+The "request-reply" nature of this gateway is async, and the `Transfer` result from the `TransferManager` operation is sent to the `outputChannel`, enabling transfer progress observation in the downstream flow.
 
-The `TransferListener` can be supplied to the `S3MessageHandler` to track the transfer progress per requests.
+The `TransferListener` can be supplied to the `S3MessageHandler` to track the transfer progress per request.
 
-See more information in the `S3MessageHandler` Javadocs.
+See the `S3MessageHandler` Javadocs for more information.
 
-The Spring Integration dependency (as well as `s3-transfer-manager` and `aws-crt-client`) in the `spring-cloud-aws-s3` module are `optional` to avoid unnecessary artifacts on classpath when Spring Integration is not used.
-For convenience, a dedicated `spring-cloud-aws-starter-integration-s3` is provided managing all the required dependencies for Spring Integration support with Amazon S3.
+The Spring Integration dependency (as well as `s3-transfer-manager` and `aws-crt-client`) in the `spring-cloud-aws-s3` module is `optional`, to avoid unnecessary artifacts on the classpath when Spring Integration is not used.
+For convenience, a dedicated `spring-cloud-aws-starter-integration-s3` is provided, managing all the required dependencies for Spring Integration support with Amazon S3.
 
