@@ -26,9 +26,12 @@ import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import io.awspring.cloud.sqs.support.converter.MessagingMessageHeaders;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
@@ -151,8 +154,8 @@ class SqsAcknowledgementExecutorTests {
 		given(queueAttributes.getQueueName()).willReturn(queueName);
 		given(queueAttributes.getQueueUrl()).willReturn(queueUrl);
 
-		BatchResultErrorEntry failedEntry = BatchResultErrorEntry.builder().id(failedMessageHeaders.getId().toString())
-				.code("ReceiptHandleIsInvalid").message("Receipt handle expired").build();
+		BatchResultErrorEntry failedEntry = BatchResultErrorEntry.builder().id("0").code("ReceiptHandleIsInvalid")
+				.message("Receipt handle expired").build();
 
 		DeleteMessageBatchResponse partialFailureResponse = DeleteMessageBatchResponse.builder().failed(failedEntry)
 				.build();
@@ -170,6 +173,35 @@ class SqsAcknowledgementExecutorTests {
 					assertThat(ex.getFailedAcknowledgementMessages()).containsExactly(failedMessage);
 					assertThat(ex.getSuccessfullyAcknowledgedMessages()).containsExactly(successfulMessage);
 				});
+	}
+
+	@Test
+	void shouldUseUniqueBatchEntryIdsWhenMessageIdIsDuplicated() throws Exception {
+		UUID sharedMessageId = UUID.randomUUID();
+		MessageHeaders firstHeaders = new MessagingMessageHeaders(
+				Map.of(SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, receiptHandle), sharedMessageId);
+		MessageHeaders secondHeaders = new MessagingMessageHeaders(
+				Map.of(SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, secondReceiptHandle), sharedMessageId);
+		Collection<Message<String>> messagesToAck = List.of(message, secondMessage);
+		given(message.getHeaders()).willReturn(firstHeaders);
+		given(secondMessage.getHeaders()).willReturn(secondHeaders);
+		given(queueAttributes.getQueueName()).willReturn(queueName);
+		given(queueAttributes.getQueueUrl()).willReturn(queueUrl);
+		given(sqsAsyncClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(DeleteMessageBatchResponse.builder().build()));
+
+		SqsAcknowledgementExecutor<String> executor = new SqsAcknowledgementExecutor<>();
+		executor.setSqsAsyncClient(sqsAsyncClient);
+		executor.setQueueAttributes(queueAttributes);
+		executor.execute(messagesToAck).get();
+
+		ArgumentCaptor<DeleteMessageBatchRequest> requestCaptor = ArgumentCaptor
+				.forClass(DeleteMessageBatchRequest.class);
+		verify(sqsAsyncClient).deleteMessageBatch(requestCaptor.capture());
+		List<DeleteMessageBatchRequestEntry> entries = requestCaptor.getValue().entries();
+		assertThat(entries).extracting(DeleteMessageBatchRequestEntry::id).doesNotHaveDuplicates();
+		assertThat(entries).extracting(DeleteMessageBatchRequestEntry::receiptHandle).containsExactly(receiptHandle,
+				secondReceiptHandle);
 	}
 
 	@Test
