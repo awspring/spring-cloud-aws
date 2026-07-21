@@ -15,6 +15,8 @@
  */
 package io.awspring.cloud.autoconfigure.sqs;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
+import com.amazon.sqs.javamessaging.ExtendedAsyncClientConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
@@ -55,6 +57,7 @@ import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import tools.jackson.databind.json.JsonMapper;
@@ -67,6 +70,7 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Wei Jiang
  * @author Dongha Kim
  * @author Jeongmin Kim
+ * @author Matej Nedic
  * @since 3.0
  */
 @AutoConfiguration
@@ -83,16 +87,68 @@ public class SqsAutoConfiguration {
 		this.sqsProperties = sqsProperties;
 	}
 
-	@ConditionalOnMissingBean
-	@Bean
-	public SqsAsyncClient sqsAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+	static SqsAsyncClient createSqsAsyncClient(SqsProperties sqsProperties,
+			AwsClientBuilderConfigurer awsClientBuilderConfigurer,
 			ObjectProvider<AwsConnectionDetails> connectionDetails,
 			ObjectProvider<SqsAsyncClientCustomizer> sqsAsyncClientCustomizers,
 			ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers) {
 		return awsClientBuilderConfigurer
-				.configureAsyncClient(SqsAsyncClient.builder(), this.sqsProperties, connectionDetails.getIfAvailable(),
+				.configureAsyncClient(SqsAsyncClient.builder(), sqsProperties, connectionDetails.getIfAvailable(),
 						sqsAsyncClientCustomizers.orderedStream(), awsAsyncClientCustomizers.orderedStream())
 				.build();
+	}
+
+	@ConditionalOnMissingClass(value = "com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient")
+	@Configuration
+	static class SqsClientConfiguration {
+
+		private final SqsProperties sqsProperties;
+
+		SqsClientConfiguration(SqsProperties sqsProperties) {
+			this.sqsProperties = sqsProperties;
+		}
+
+		@ConditionalOnMissingBean
+		@Bean
+		public SqsAsyncClient sqsAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+				ObjectProvider<AwsConnectionDetails> connectionDetails,
+				ObjectProvider<SqsAsyncClientCustomizer> sqsAsyncClientCustomizers,
+				ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers) {
+			return createSqsAsyncClient(this.sqsProperties, awsClientBuilderConfigurer, connectionDetails,
+					sqsAsyncClientCustomizers, awsAsyncClientCustomizers);
+		}
+
+	}
+
+	@ConditionalOnClass(name = "com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient")
+	@ConditionalOnProperty(prefix = "spring.cloud.aws.sqs.extended", name = "bucket")
+	@Configuration
+	static class SqsExtendedClientConfiguration {
+
+		private final SqsProperties sqsProperties;
+
+		SqsExtendedClientConfiguration(SqsProperties sqsProperties) {
+			this.sqsProperties = sqsProperties;
+		}
+
+		@ConditionalOnMissingBean
+		@Bean
+		public SqsAsyncClient sqsAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
+				ObjectProvider<AwsConnectionDetails> connectionDetails,
+				ObjectProvider<SqsAsyncClientCustomizer> sqsAsyncClientCustomizers,
+				ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers, S3AsyncClient s3AsyncClient) {
+			SqsAsyncClient sqsAsyncClient = createSqsAsyncClient(this.sqsProperties, awsClientBuilderConfigurer,
+					connectionDetails, sqsAsyncClientCustomizers, awsAsyncClientCustomizers);
+			SqsExtendedClientProperties props = this.sqsProperties.getExtended();
+			ExtendedAsyncClientConfiguration extendedConfig = new ExtendedAsyncClientConfiguration()
+					.withPayloadSupportEnabled(s3AsyncClient, props.getBucket(), props.isCleanupS3Payload())
+					.withIgnorePayloadNotFound(props.isIgnorePayloadNotFound()).withS3KeyPrefix(props.getS3KeyPrefix());
+			if (!props.isUseLegacyReservedAttributeName()) {
+				extendedConfig = extendedConfig.withLegacyReservedAttributeNameDisabled();
+			}
+			return new AmazonSQSExtendedAsyncClient(sqsAsyncClient, extendedConfig);
+		}
+
 	}
 
 	@ConditionalOnMissingBean

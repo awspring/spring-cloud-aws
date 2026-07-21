@@ -1,6 +1,6 @@
-== CloudWatch Metrics
+== CloudWatch metrics
 Spring Cloud AWS provides Spring Boot auto-configuration for Micrometer CloudWatch integration.
-To send metrics to CloudWatch add a dependency to `micrometer-registry-cloudwatch` module:
+To send metrics to CloudWatch, add a dependency to the `micrometer-registry-cloudwatch2` module:
 
 [source,xml,indent=0]
 ----
@@ -12,7 +12,7 @@ To send metrics to CloudWatch add a dependency to `micrometer-registry-cloudwatc
 
 Additionally, CloudWatch integration requires a value provided for `management.cloudwatch.metrics.export.namespace` configuration property.
 
-Following configuration properties are available to configure CloudWatch integration:
+The following configuration properties are available to configure CloudWatch integration:
 
 [cols="3*", options="header"]
 |===
@@ -22,7 +22,7 @@ Following configuration properties are available to configure CloudWatch integra
 
 |management.cloudwatch.metrics.export.namespace
 |
-|The namespace which will be used when sending metrics to CloudWatch. This property is needed and must not be null.
+|The namespace used when sending metrics to CloudWatch. This property is required and must not be null.
 
 |management.cloudwatch.metrics.export.step
 |1m
@@ -30,7 +30,7 @@ Following configuration properties are available to configure CloudWatch integra
 
 |spring.cloud.aws.cloudwatch.enabled
 |true
-|If CloudWatch integration should be enabled. This property should be likely set to `false` for a local development profile.
+|Whether CloudWatch integration is enabled. This property should typically be set to `false` for local development profiles.
 
 |spring.cloud.aws.cloudwatch.endpoint
 |
@@ -45,12 +45,12 @@ Following configuration properties are available to configure CloudWatch integra
 ====
 Enabling CloudWatch metrics integration can lead to unexpected costs. By default, Spring Boot captures a large number of metrics (e.g., JVM, CPU, memory, disk usage), and each unique metric (name + dimensions) published to CloudWatch is billed as a custom metric.
 
-AWS CloudWatch Free Tier includes only a limited number of metrics. Please review the https://aws.amazon.com/cloudwatch/pricing/[CloudWatch pricing page] for more details.
+The AWS CloudWatch Free Tier includes only a limited number of metrics. Review the https://aws.amazon.com/cloudwatch/pricing/[CloudWatch pricing page] for more details.
 
 To limit costs, it is highly recommended to use a `MeterFilter` to publish only the metrics that are relevant to your application.
 ====
 
-=== Filtering Metrics
+=== Filtering metrics
 
 To filter which metrics are sent to CloudWatch, you can define a `MeterFilter` bean. For example, to only allow a specific set of metrics:
 
@@ -66,7 +66,7 @@ public MeterFilter cloudWatchMeterFilter() {
 }
 ----
 
-=== Client Customization
+=== Client customization
 
 `CloudWatchAsyncClient` can be further customized by providing a bean of type `CloudWatchAsyncClientCustomizer`:
 
@@ -89,6 +89,6 @@ CloudWatchAsyncClientCustomizer customizer() {
 
 `CloudWatchAsyncClientCustomizer` is a functional interface that enables configuring `CloudWatchAsyncClientBuilder` before the `CloudWatchAsyncClient` is built in auto-configuration.
 
-There can be multiple `CloudWatchAsyncClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+There can be multiple `CloudWatchAsyncClientCustomizer` beans present in a single application context. The `@Order(..)` annotation can be used to define the order of execution.
 
 Note that `CloudWatchAsyncClientCustomizer` beans are applied **after** `AwsAsyncClientCustomizer` beans and therefore can overwrite previously set configurations.
