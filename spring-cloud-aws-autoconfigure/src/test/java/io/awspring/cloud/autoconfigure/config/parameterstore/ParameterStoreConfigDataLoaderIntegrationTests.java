@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import java.io.IOException;
@@ -37,9 +38,11 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.bootstrap.BootstrapRegistry;
 import org.springframework.boot.bootstrap.BootstrapRegistryInitializer;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.localstack.LocalStackContainer;
@@ -47,7 +50,7 @@ import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
@@ -82,6 +85,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void resolvesPropertyFromParameterStore() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-parameterstore:/config/spring/")) {
@@ -95,6 +100,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void propertyIsNotResolvedWhenIntegrationIsDisabled() {
 		SpringApplication application = new SpringApplication(ParameterStoreConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-parameterstore:/config/spring/",
@@ -111,6 +118,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void resolvesPropertiesWithPrefixes() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-parameterstore:/config/spring/?prefix=first.;/config/second/?prefix=second.")) {
@@ -127,6 +136,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void resolvesPropertiesWithPrefixProperties() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		String applicationProperties = """
 				first.message=value from tests
 				first.another-parameter=another parameter value
@@ -149,6 +160,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void resolvesPropertiesWithPrefixYaml() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		String applicationYaml = """
 				first:
 				  message: value from tests
@@ -173,6 +186,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void clientIsConfiguredWithCustomizerProvidedToBootstrapRegistry() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		application.addBootstrapRegistryInitializer(new CustomizerConfiguration());
 
 		try (ConfigurableApplicationContext context = runApplication(application,
@@ -187,6 +202,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void whenKeysAreNotSpecifiedFailsWithHumanReadableFailureMessage(CapturedOutput output) {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application, "aws-parameterstore:")) {
 			fail("Context without keys should fail to start");
@@ -206,6 +223,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void whenKeysCannotBeFoundFailWithHumanReadableMessage(CapturedOutput output) {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplicationWithWrongEndpoint(application,
 				"aws-parameterstore:/config/fail/")) {
@@ -230,6 +249,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 						.parameters(Parameter.builder().name("message").value("value from mock").build()).build());
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		application.addBootstrapRegistryInitializer(registry -> {
 			registry.register(SsmClient.class, ctx -> mockClient);
 		});
@@ -248,6 +269,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				.create(AwsBasicCredentials.create("mock-key", "mock-secret"));
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		application.addBootstrapRegistryInitializer(registry -> {
 			registry.register(AwsCredentialsProvider.class, ctx -> bootstrapCredentialsProvider);
 		});
@@ -263,6 +286,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void outputsDebugLogs(CapturedOutput output) {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-parameterstore:/config/spring/")) {
@@ -275,6 +300,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void endpointCanBeOverwrittenWithGlobalAwsProperties() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application, "aws-parameterstore:/config/spring/",
 				"spring.cloud.aws.endpoint")) {
@@ -286,6 +313,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void serviceSpecificEndpointTakesPrecedenceOverGlobalAwsRegion() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-parameterstore:/config/spring/",
@@ -303,6 +332,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void parameterStoreClientUsesGlobalRegion() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.config.import=aws-parameterstore:/config/spring/",
@@ -318,6 +349,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 	void arrayParameterNames() {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		putParameter(localstack, "/config/myservice/key_0_.value", "value1", REGION);
 		putParameter(localstack, "/config/myservice/key_0_.nested_0_.nestedValue", "key_nestedValue1", REGION);
@@ -353,6 +386,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		void reloadsPropertiesWhenPropertyValueChanges() {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
+			application.setResourceLoader(
+					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
 					"--spring.config.import=aws-parameterstore:/config/spring/",
@@ -379,6 +414,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		void reloadsPropertiesWhenNewPropertyIsAdded() {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
+			application.setResourceLoader(
+					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
 					"--spring.config.import=aws-parameterstore:/config/spring/",
@@ -405,6 +442,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		void doesNotReloadPropertiesWhenReloadStrategyIsNotSet() {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
+			application.setResourceLoader(
+					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
 					"--spring.config.import=aws-parameterstore:/config/spring/",
@@ -430,6 +469,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 		void reloadsPropertiesWithRestartContextStrategy() {
 			SpringApplication application = new SpringApplication(App.class);
 			application.setWebApplicationType(WebApplicationType.NONE);
+			application.setResourceLoader(
+					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
 					"--spring.config.import=aws-parameterstore:/config/spring/",
@@ -519,7 +560,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				}));
 			}));
 			registry.register(AwsSyncClientCustomizer.class, context -> (builder -> {
-				builder.httpClient(ApacheHttpClient.builder().connectionTimeout(Duration.ofMillis(1542)).build());
+				builder.httpClient(Apache5HttpClient.builder().connectionTimeout(Duration.ofMillis(1542))
+						.socketTimeout(Duration.ofSeconds(30)).build());
 			}));
 		}
 	}

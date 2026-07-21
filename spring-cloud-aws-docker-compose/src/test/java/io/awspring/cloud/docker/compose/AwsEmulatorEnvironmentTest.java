@@ -21,41 +21,41 @@ import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class LocalStackEnvironmentTest {
+class AwsEmulatorEnvironmentTest {
 
 	@Test
 	void getRegionWhenRegionIsNotSet() {
-		var environment = new LocalStackEnvironment(Collections.emptyMap());
+		var environment = new AwsEmulatorEnvironment(Collections.emptyMap());
 		assertThat(environment.getRegion()).isNull();
 	}
 
 	@Test
 	void getRegionWhenRegionIsSet() {
-		var environment = new LocalStackEnvironment(Map.of("AWS_DEFAULT_REGION", "us-west-1"));
+		var environment = new AwsEmulatorEnvironment(Map.of("AWS_DEFAULT_REGION", "us-west-1"));
 		assertThat(environment.getRegion()).isEqualTo("us-west-1");
 	}
 
 	@Test
 	void getAccessKeyWhenAccessKeyIsNotSet() {
-		var environment = new LocalStackEnvironment(Collections.emptyMap());
+		var environment = new AwsEmulatorEnvironment(Collections.emptyMap());
 		assertThat(environment.getAccessKey()).isNull();
 	}
 
 	@Test
 	void getAccessKeyWhenAccessKeyIsSet() {
-		var environment = new LocalStackEnvironment(Map.of("AWS_ACCESS_KEY_ID", "access-key"));
+		var environment = new AwsEmulatorEnvironment(Map.of("AWS_ACCESS_KEY_ID", "access-key"));
 		assertThat(environment.getAccessKey()).isEqualTo("access-key");
 	}
 
 	@Test
 	void getSecretKeyWhenSecretKeyIsNotSet() {
-		var environment = new LocalStackEnvironment(Collections.emptyMap());
+		var environment = new AwsEmulatorEnvironment(Collections.emptyMap());
 		assertThat(environment.getSecretKey()).isNull();
 	}
 
 	@Test
 	void getSecretKeyWhenSecretKeyIsSet() {
-		var environment = new LocalStackEnvironment(Map.of("AWS_SECRET_ACCESS_KEY", "secret-key"));
+		var environment = new AwsEmulatorEnvironment(Map.of("AWS_SECRET_ACCESS_KEY", "secret-key"));
 		assertThat(environment.getSecretKey()).isEqualTo("secret-key");
 	}
 }

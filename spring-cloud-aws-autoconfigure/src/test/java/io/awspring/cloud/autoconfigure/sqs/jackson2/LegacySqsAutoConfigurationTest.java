@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.sqs.jackson2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
@@ -75,6 +76,7 @@ class LegacySqsAutoConfigurationTest {
 	private static final String CUSTOM_MESSAGE_CONVERTER_BEAN_NAME = "customMessageConverter";
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withClassLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class))
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, SqsAutoConfiguration.class,

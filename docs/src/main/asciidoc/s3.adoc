@@ -128,6 +128,33 @@ try (OutputStream outputStream = s3Resource.getOutputStream()) {
 ----
 
 === S3 client-side encryption
+==== Object keys and prefix locations
+
+A location is parsed into a bucket and an object key. A trailing slash in the key is significant and is preserved:
+
+* `s3://my-bucket/path/file.txt` resolves to the object key `path/file.txt`.
+* `s3://my-bucket/path/` resolves to the *prefix* key `path/` (it is not stripped to `path`).
+* `s3://my-bucket/` resolves to a bucket-only location with an empty object key.
+
+Because the trailing slash is retained, a prefix location can be used as a Spring static resource handler location, which Spring requires to end with a slash:
+
+[source,java]
+----
+@Override
+public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/files/**")
+        .addResourceLocations("s3://my-bucket/path/");
+}
+----
+
+[NOTE]
+====
+Retaining the trailing slash is a behavior change introduced `4.1.0`.
+In earlier versions a trailing slash was stripped, so `s3://my-bucket/path/` resolved to the object key `path` instead of `path/`.
+If you relied on the previous behavior, drop the trailing slash from your locations (use `s3://my-bucket/path`).
+====
+
+=== S3 Client Side Encryption
 
 AWS offers an encryption library integrated with the S3 client, called the https://docs.aws.amazon.com/amazon-s3-encryption-client/latest/developerguide/what-is-s3-encryption-client.html[S3EncryptionClient].
 The encryption client encrypts files before they are sent to the S3 bucket.

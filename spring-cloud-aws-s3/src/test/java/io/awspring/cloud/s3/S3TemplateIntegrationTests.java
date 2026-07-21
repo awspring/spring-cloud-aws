@@ -29,13 +29,14 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import net.bytebuddy.utility.RandomString;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -266,9 +267,9 @@ class S3TemplateIntegrationTests implements LocalstackContainerTest {
 
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		HttpGet httpGet = new HttpGet(signedGetUrl.toString());
-		HttpResponse response = httpClient.execute(httpGet);
 
-		try (InputStream content = response.getEntity().getContent()) {
+		try (ClassicHttpResponse response = httpClient.executeOpen(null, httpGet, null);
+				InputStream content = response.getEntity().getContent()) {
 			String result = StreamUtils.copyToString(content, StandardCharsets.UTF_8);
 			assertThat(result).isEqualTo("hello");
 		}
@@ -299,7 +300,7 @@ class S3TemplateIntegrationTests implements LocalstackContainerTest {
 		HeadObjectResponse headObjectResponse = client
 				.headObject(HeadObjectRequest.builder().bucket(BUCKET_NAME).key("file.txt").build());
 
-		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatusCode.OK);
+		assertThat(response.getCode()).isEqualTo(HttpStatusCode.OK);
 		assertThat(headObjectResponse.contentLength()).isEqualTo(contentLength);
 		assertThat(headObjectResponse.metadata().containsKey("testkey")).isTrue();
 		assertThat(headObjectResponse.metadata().get("testkey")).isEqualTo("testvalue");
@@ -326,7 +327,7 @@ class S3TemplateIntegrationTests implements LocalstackContainerTest {
 		HttpResponse response = httpClient.execute(httpPut);
 		httpClient.close();
 
-		assertThat(response.getStatusLine().getStatusCode()).isEqualTo(HttpStatusCode.FORBIDDEN);
+		assertThat(response.getCode()).isEqualTo(HttpStatusCode.FORBIDDEN);
 	}
 
 	private void bucketDoesNotExist(ListBucketsResponse r, String bucketName) {
