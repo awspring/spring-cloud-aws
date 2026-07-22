@@ -165,6 +165,19 @@ public interface S3Operations {
 	S3Resource download(String bucketName, String key);
 
 	/**
+	 * Copies an object from one S3 location to another.
+	 *
+	 * @param sourceBucketName - the source bucket name
+	 * @param sourceKey - the source object key
+	 * @param destinationBucketName - the destination bucket name
+	 * @param destinationKey - the destination object key
+	 * @param objectMetadata - the object metadata
+	 * @return copied object represented as {@link S3Resource}
+	 */
+	S3Resource copy(String sourceBucketName, String sourceKey, String destinationBucketName, String destinationKey,
+			@Nullable ObjectMetadata objectMetadata);
+
+	/**
 	 * Creates a signed URL for retrieving an object from S3.
 	 *
 	 * @param bucketName - the bucket name
