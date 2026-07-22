@@ -260,6 +260,95 @@ public class ObjectMetadata {
 		}
 	}
 
+	void apply(CopyObjectRequest.Builder builder) {
+		builder.metadataDirective(MetadataDirective.REPLACE);
+		if (acl != null) {
+			builder.acl(acl);
+		}
+		if (cacheControl != null) {
+			builder.cacheControl(cacheControl);
+		}
+		if (contentDisposition != null) {
+			builder.contentDisposition(contentDisposition);
+		}
+		if (contentEncoding != null) {
+			builder.contentEncoding(contentEncoding);
+		}
+		if (contentLanguage != null) {
+			builder.contentLanguage(contentLanguage);
+		}
+		if (contentType != null) {
+			builder.contentType(contentType);
+		}
+		if (expires != null) {
+			builder.expires(expires);
+		}
+		if (grantFullControl != null) {
+			builder.grantFullControl(grantFullControl);
+		}
+		if (grantRead != null) {
+			builder.grantRead(grantRead);
+		}
+		if (grantReadACP != null) {
+			builder.grantReadACP(grantReadACP);
+		}
+		if (grantWriteACP != null) {
+			builder.grantWriteACP(grantWriteACP);
+		}
+		if (metadata != null) {
+			builder.metadata(metadata);
+		}
+		if (serverSideEncryption != null) {
+			builder.serverSideEncryption(serverSideEncryption);
+		}
+		if (storageClass != null) {
+			builder.storageClass(storageClass);
+		}
+		if (websiteRedirectLocation != null) {
+			builder.websiteRedirectLocation(websiteRedirectLocation);
+		}
+		if (sseCustomerAlgorithm != null) {
+			builder.sseCustomerAlgorithm(sseCustomerAlgorithm);
+		}
+		if (sseCustomerKey != null) {
+			builder.sseCustomerKey(sseCustomerKey);
+		}
+		if (sseCustomerKeyMD5 != null) {
+			builder.sseCustomerKeyMD5(sseCustomerKeyMD5);
+		}
+		if (ssekmsKeyId != null) {
+			builder.ssekmsKeyId(ssekmsKeyId);
+		}
+		if (ssekmsEncryptionContext != null) {
+			builder.ssekmsEncryptionContext(ssekmsEncryptionContext);
+		}
+		if (bucketKeyEnabled != null) {
+			builder.bucketKeyEnabled(bucketKeyEnabled);
+		}
+		if (requestPayer != null) {
+			builder.requestPayer(requestPayer);
+		}
+		if (tagging != null) {
+			builder.taggingDirective(TaggingDirective.REPLACE);
+			builder.tagging(tagging);
+		}
+		if (objectLockMode != null) {
+			builder.objectLockMode(objectLockMode);
+		}
+		if (objectLockRetainUntilDate != null) {
+			builder.objectLockRetainUntilDate(objectLockRetainUntilDate);
+		}
+		if (objectLockLegalHoldStatus != null) {
+			builder.objectLockLegalHoldStatus(objectLockLegalHoldStatus);
+		}
+		if (expectedBucketOwner != null) {
+			builder.expectedBucketOwner(expectedBucketOwner);
+		}
+		if (checksumAlgorithm != null) {
+			builder.checksumAlgorithm(checksumAlgorithm);
+		}
+	}
+
 	void apply(CreateMultipartUploadRequest.Builder builder) {
 		if (acl != null) {
 			builder.acl(acl);

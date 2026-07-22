@@ -261,6 +261,35 @@ class S3TemplateIntegrationTests implements LocalstackContainerTest {
 	}
 
 	@Test
+	void copiesObject() throws IOException {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("file.txt"), RequestBody.fromString("hello"));
+
+		S3Resource copied = s3Template.copy(BUCKET_NAME, "file.txt", BUCKET_NAME,
+			"file-copy.txt", null);
+
+		assertThat(copied).isNotNull();
+		assertThat(copied.getLocation().getObject()).isEqualTo("file-copy.txt");
+		ResponseInputStream<GetObjectResponse> response = client
+				.getObject(r -> r.bucket(BUCKET_NAME).key("file-copy.txt"));
+		String result = StreamUtils.copyToString(response, StandardCharsets.UTF_8);
+		assertThat(result).isEqualTo("hello");
+	}
+
+	@Test
+	void copiesObjectWithMetadata() {
+		client.putObject(r -> r.bucket(BUCKET_NAME).key("file.gz"), RequestBody.fromString("hello"));
+
+		S3Resource copied = s3Template.copy(BUCKET_NAME, "file.gz", BUCKET_NAME, "file-copy.gz",
+				ObjectMetadata.builder().contentEncoding("gzip").contentType("application/gzip").build());
+
+		assertThat(copied).isNotNull();
+		HeadObjectResponse headObjectResponse = client
+				.headObject(HeadObjectRequest.builder().bucket(BUCKET_NAME).key("file-copy.gz").build());
+		assertThat(headObjectResponse.contentEncoding()).isEqualTo("gzip");
+		assertThat(headObjectResponse.contentType()).isEqualTo("application/gzip");
+	}
+
+	@Test
 	void createsWorkingSignedGetURL() throws IOException {
 		client.putObject(r -> r.bucket(BUCKET_NAME).key("file.txt"), RequestBody.fromString("hello"));
 		URL signedGetUrl = s3Template.createSignedGetURL(BUCKET_NAME, "file.txt", Duration.ofMinutes(1));
