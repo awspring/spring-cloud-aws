@@ -32,6 +32,15 @@ public enum QueueNotFoundStrategy {
 	 * Create queues that are not found at startup. Mind that in production environments the application might not have
 	 * permissions to create the queue and throw an exception.
 	 */
-	CREATE
+	CREATE,
+
+	/**
+	 * Skip starting the listener for a queue that is not found, log a warning, and allow application startup to
+	 * proceed. Subsequent polls for that listener return no messages. Useful when a queue may legitimately be absent in
+	 * some deployments (for example, optional feature queues) and neither {@link #CREATE} nor {@link #FAIL} fits — this
+	 * mirrors the default behavior of Spring Cloud AWS 2.x's {@code spring-cloud-starter-aws-messaging}, which silently
+	 * ignored missing queues at startup.
+	 */
+	IGNORE
 
 }
