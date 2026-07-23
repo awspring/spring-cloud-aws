@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
@@ -192,6 +193,25 @@ public class S3Template implements S3Operations {
 		Assert.notNull(key, "key is required");
 
 		return new S3Resource(bucketName, key, s3Client, s3OutputStreamProvider);
+	}
+
+	@Override
+	public S3Resource copy(String sourceBucketName, String sourceKey, String destinationBucketName,
+			String destinationKey, @Nullable ObjectMetadata objectMetadata) {
+		Assert.notNull(sourceBucketName, "sourceBucketName is required");
+		Assert.notNull(sourceKey, "sourceKey is required");
+		Assert.notNull(destinationBucketName, "destinationBucketName is required");
+		Assert.notNull(destinationKey, "destinationKey is required");
+
+		CopyObjectRequest.Builder requestBuilder = CopyObjectRequest.builder().sourceBucket(sourceBucketName)
+				.sourceKey(sourceKey).destinationBucket(destinationBucketName).destinationKey(destinationKey);
+
+		if (objectMetadata != null) {
+			objectMetadata.apply(requestBuilder);
+		}
+
+		s3Client.copyObject(requestBuilder.build());
+		return new S3Resource(destinationBucketName, destinationKey, s3Client, s3OutputStreamProvider);
 	}
 
 	@Override
