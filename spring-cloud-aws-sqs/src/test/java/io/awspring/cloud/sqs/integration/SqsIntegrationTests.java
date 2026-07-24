@@ -343,6 +343,15 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
+	void shouldSendMoreThan10MessagesToStandardQueue() {
+		List<Message<String>> messages = IntStream.range(0, 11).mapToObj(index -> "moreThan10Messages-payload-" + index)
+				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
+		SendResult.Batch<String> result = sqsTemplate.sendMany(RECEIVES_MESSAGE_QUEUE_NAME, messages);
+		assertThat(result.successful()).hasSize(11);
+		assertThat(result.failed()).isEmpty();
+	}
+
+	@Test
 	void receivesMessageAsync() throws Exception {
 		String messageBody = "receivesMessageAsync-payload";
 		sqsTemplate.send(RECEIVES_MESSAGE_ASYNC_QUEUE_NAME, messageBody);

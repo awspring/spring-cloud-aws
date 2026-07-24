@@ -87,12 +87,14 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 
 /**
  * Integration tests for handling SQS FIFO queues.
  *
  * @author Tomaz Fernandes
  * @author Mikhail Strokov
+ * @author José Iêdo
  */
 @SpringBootTest
 class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
@@ -122,6 +124,10 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 	static final String OBSERVES_MESSAGE_FIFO_QUEUE_NAME = "observes_fifo_message_test_queue.fifo";
 
 	static final String FIFO_VISIBILITY_TIMEOUT_EXTENSION_QUEUE_NAME = "fifo_visibility_timeout_extension_test_queue.fifo";
+
+	static final String FIFO_SEND_MORE_THAN_10_MESSAGES_QUEUE_NAME = "fifo_send_more_than_10_messages.fifo";
+
+	static final String FIFO_SEND_MORE_THAN_10_MULTIPLE_GROUPS_QUEUE_NAME = "fifo_send_more_than_10_multiple_groups.fifo";
 
 	private static final String ERROR_ON_ACK_FACTORY = "errorOnAckFactory";
 	private static final String VISIBILITY_TIMEOUT_EXTENSION_FACTORY = "visibilityTimeoutExtensionFactory";
@@ -174,6 +180,8 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_BATCH_CONTAINER_QUEUE_NAME),
 				createFifoQueue(client, OBSERVES_MESSAGE_FIFO_QUEUE_NAME),
 				createFifoQueue(client, FIFO_VISIBILITY_TIMEOUT_EXTENSION_QUEUE_NAME, getVisibilityAttribute("5")),
+				createFifoQueue(client, FIFO_SEND_MORE_THAN_10_MESSAGES_QUEUE_NAME),
+				createFifoQueue(client, FIFO_SEND_MORE_THAN_10_MULTIPLE_GROUPS_QUEUE_NAME),
 				createFifoQueue(client, FIFO_MANUALLY_CREATE_BATCH_FACTORY_QUEUE_NAME)).join();
 	}
 
@@ -533,6 +541,50 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 				latchContainer.manuallyCreatedBatchFactoryLatch.await(settings.latchTimeoutSeconds, TimeUnit.SECONDS))
 				.isTrue();
 		assertThat(messagesContainer.manuallyCreatedBatchFactoryMessages).containsExactlyElementsOf(values);
+	}
+
+	@Test
+	void shouldSendBatchesInParallelAcrossMultipleMessageGroups() throws Exception {
+		List<String> valuesGroup1 = IntStream.range(0, 20).mapToObj(String::valueOf).collect(toList());
+		List<String> valuesGroup2 = IntStream.range(0, 15).mapToObj(String::valueOf).collect(toList());
+		String messageGroupId1 = UUID.randomUUID().toString();
+		String messageGroupId2 = UUID.randomUUID().toString();
+		List<Message<String>> messages = new ArrayList<>();
+		messages.addAll(createMessagesFromValues(messageGroupId1, valuesGroup1));
+		messages.addAll(createMessagesFromValues(messageGroupId2, valuesGroup2));
+		SqsAsyncClient spyClient = spy(createAsyncClient());
+		List<SendMessageBatchRequest> capturedRequests = Collections.synchronizedList(new ArrayList<>());
+		doAnswer(invocation -> {
+			capturedRequests.add(invocation.getArgument(0));
+			return invocation.callRealMethod();
+		}).when(spyClient).sendMessageBatch(any(SendMessageBatchRequest.class));
+		SqsTemplate fifoTemplate = SqsTemplate.newTemplate(spyClient);
+		SendResult.Batch<String> result = fifoTemplate.sendMany(FIFO_SEND_MORE_THAN_10_MULTIPLE_GROUPS_QUEUE_NAME,
+				messages);
+		assertThat(result.successful()).hasSize(35);
+		assertThat(result.failed()).isEmpty();
+		assertThat(capturedRequests).hasSize(4);
+	}
+
+	@Test
+	void shouldSendBatchesSequentiallyWithinMessageGroup() throws Exception {
+		List<String> values = IntStream.range(0, 25).mapToObj(String::valueOf).collect(toList());
+		String messageGroupId = UUID.randomUUID().toString();
+		List<Message<String>> messages = createMessagesFromValues(messageGroupId, values);
+		SqsAsyncClient spyClient = spy(createAsyncClient());
+		List<SendMessageBatchRequest> capturedRequests = Collections.synchronizedList(new ArrayList<>());
+		doAnswer(invocation -> {
+			capturedRequests.add(invocation.getArgument(0));
+			return invocation.callRealMethod();
+		}).when(spyClient).sendMessageBatch(any(SendMessageBatchRequest.class));
+		SqsTemplate fifoTemplate = SqsTemplate.newTemplate(spyClient);
+		SendResult.Batch<String> result = fifoTemplate.sendMany(FIFO_SEND_MORE_THAN_10_MESSAGES_QUEUE_NAME, messages);
+		assertThat(result.successful()).hasSize(25);
+		assertThat(result.failed()).isEmpty();
+		assertThat(capturedRequests).hasSize(3);
+		assertThat(capturedRequests.get(0).entries()).hasSize(10);
+		assertThat(capturedRequests.get(1).entries()).hasSize(10);
+		assertThat(capturedRequests.get(2).entries()).hasSize(5);
 	}
 
 	private Message<String> createMessage(String body, String messageGroupId) {
