@@ -590,9 +590,8 @@ class SqsTemplateTests {
 		AtomicInteger callCount = new AtomicInteger();
 		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class))).willAnswer(invocation -> {
 			SendMessageBatchRequest request = invocation.getArgument(0);
-			int call = callCount.incrementAndGet();
 			List<SendMessageBatchRequestEntry> entries = request.entries();
-			if (call == 2) {
+			if (callCount.incrementAndGet() == 2) {
 				return CompletableFuture.completedFuture(SendMessageBatchResponse.builder()
 						.successful(entries.subList(0, 5)
 								.stream().<Consumer<SendMessageBatchResultEntry.Builder>> map(
@@ -617,7 +616,9 @@ class SqsTemplateTests {
 		SendResult.Batch<String> result = template.sendMany(queue, messages);
 		then(mockClient).should(times(2)).sendMessageBatch(any(SendMessageBatchRequest.class));
 		assertThat(result.successful()).hasSize(15);
-		assertThat(result.failed()).hasSize(5);
+		assertThat(result.failed()).hasSize(10);
+		assertThat(result.failed().stream()
+				.filter(f -> "Skipped due to previous batch failure".equals(f.errorMessage())).count()).isEqualTo(5);
 	}
 
 	@Test

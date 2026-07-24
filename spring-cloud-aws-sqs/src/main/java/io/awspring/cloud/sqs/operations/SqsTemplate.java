@@ -373,21 +373,18 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	/**
 	 * Sends a collection of messages using one or more SQS batch requests.
 	 * <p>
-	 * The provided messages are automatically partitioned into batches of up to 10
-	 * messages,
-	 * which is the maximum size supported by Amazon SQS.
+	 * The provided messages are automatically partitioned into batches of up to 10 messages, which is the maximum size
+	 * supported by Amazon SQS.
 	 * <p>
 	 * For standard queues, all batches are sent in parallel.
 	 * <p>
 	 * For FIFO queues, messages are first grouped by
-	 * {@link io.awspring.cloud.sqs.listener.SqsHeaders.MessageSystemAttributes#SQS_MESSAGE_GROUP_ID_HEADER
-	 * message group ID}. Batches belonging to the same message group are sent
-	 * sequentially to preserve message ordering, while different groups may be
-	 * processed concurrently.
+	 * {@link io.awspring.cloud.sqs.listener.SqsHeaders.MessageSystemAttributes#SQS_MESSAGE_GROUP_ID_HEADER message
+	 * group ID}. Batches belonging to the same message group are sent sequentially to preserve message ordering, while
+	 * different groups may be processed concurrently.
 	 * <p>
-	 * If a batch for a FIFO message group completes with a partial failure,
-	 * no subsequent batches for that group are sent, ensuring the ordering
-	 * guarantees of the message group are maintained.
+	 * If a batch for a FIFO message group completes with a partial failure, no subsequent batches for that group are
+	 * sent, ensuring the ordering guarantees of the message group are maintained.
 	 */
 	@Override
 	protected <T> CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName,
@@ -443,13 +440,23 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		for (Collection<Message> partition : CollectionUtils.partition(messages, 10)) {
 			result = result.thenCompose(acc -> {
 				if (!acc.failed().isEmpty()) {
-					return CompletableFuture.completedFuture(acc);
+					return CompletableFuture.completedFuture(
+							mergeBatchResults(acc, createSkippedResult(partition, endpointName, originalMessagesById)));
 				}
 				return sendSingleBatch(endpointName, partition, originalMessagesById)
 						.thenApply(batchResult -> mergeBatchResults(acc, batchResult));
 			});
 		}
 		return result;
+	}
+
+	private <T> SendResult.Batch<T> createSkippedResult(Collection<Message> partition, String endpointName,
+			Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		List<SendResult.Failed<T>> skipped = partition.stream()
+				.map(msg -> new SendResult.Failed<>("Skipped due to previous batch failure", endpointName,
+						originalMessagesById.get(msg.messageId()), Map.of()))
+				.toList();
+		return new SendResult.Batch<>(List.of(), skipped);
 	}
 
 	private <T> SendResult.Batch<T> mergeBatchResults(SendResult.Batch<T> batch1, SendResult.Batch<T> batch2) {
