@@ -38,7 +38,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -571,6 +573,51 @@ class SqsTemplateTests {
 							failedResult.additionalInformation().get(SqsTemplateParameters.SENDER_FAULT_PARAMETER_NAME))
 							.isEqualTo(senderFault);
 				});
+	}
+
+	@Test
+	void shouldNotSendSubsequentFifoBatchesAfterPartialFailure() {
+		String queue = "test-queue.fifo";
+		String groupId = "test-group";
+		List<Message<String>> messages = IntStream.range(0, 25)
+				.mapToObj(i -> MessageBuilder.withPayload("test-payload-" + i)
+						.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, groupId).build())
+				.toList();
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+		AtomicInteger callCount = new AtomicInteger();
+		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class))).willAnswer(invocation -> {
+			SendMessageBatchRequest request = invocation.getArgument(0);
+			int call = callCount.incrementAndGet();
+			List<SendMessageBatchRequestEntry> entries = request.entries();
+			if (call == 2) {
+				return CompletableFuture.completedFuture(SendMessageBatchResponse.builder()
+						.successful(entries.subList(0, 5)
+								.stream().<Consumer<SendMessageBatchResultEntry.Builder>> map(
+										e -> b -> b.id(e.id()).messageId(UUID.randomUUID().toString()))
+								.toArray(Consumer[]::new))
+						.failed(entries.subList(5, entries.size())
+								.stream().<Consumer<BatchResultErrorEntry.Builder>> map(
+										e -> b -> b.id(e.id()).message("error").code("ERR").senderFault(true))
+								.toArray(Consumer[]::new))
+						.build());
+			}
+			return CompletableFuture.completedFuture(SendMessageBatchResponse.builder()
+					.successful(entries
+							.stream().<Consumer<SendMessageBatchResultEntry.Builder>> map(
+									e -> b -> b.id(e.id()).messageId(UUID.randomUUID().toString()))
+							.toArray(Consumer[]::new))
+					.build());
+		});
+		SqsTemplate template = SqsTemplate.builder().configure(
+				options -> options.sendBatchFailureHandlingStrategy(SendBatchFailureHandlingStrategy.DO_NOT_THROW))
+				.sqsAsyncClient(mockClient).build();
+		SendResult.Batch<String> result = template.sendMany(queue, messages);
+		then(mockClient).should(times(2)).sendMessageBatch(any(SendMessageBatchRequest.class));
+		assertThat(result.successful()).hasSize(15);
+		assertThat(result.failed()).hasSize(5);
 	}
 
 	@Test
