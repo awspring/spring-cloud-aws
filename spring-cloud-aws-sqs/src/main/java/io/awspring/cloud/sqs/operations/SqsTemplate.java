@@ -371,12 +371,23 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	}
 
 	/**
-	 * Sends a batch of messages in a single SQS batch request. The collection may have more than 10 messages &mdash;
-	 * the template automatically partitions it into batches of 10: for standard queues batches are sent in parallel,
-	 * for FIFO queues messages are grouped by
-	 * {@link io.awspring.cloud.sqs.listener.SqsHeaders.MessageSystemAttributes#SQS_MESSAGE_GROUP_ID_HEADER message
-	 * group ID} and each group's batches are sent sequentially. If a FIFO batch returns a partial failure, subsequent
-	 * batches for that group are skipped to preserve ordering within the message group.
+	 * Sends a collection of messages using one or more SQS batch requests.
+	 * <p>
+	 * The provided messages are automatically partitioned into batches of up to 10
+	 * messages,
+	 * which is the maximum size supported by Amazon SQS.
+	 * <p>
+	 * For standard queues, all batches are sent in parallel.
+	 * <p>
+	 * For FIFO queues, messages are first grouped by
+	 * {@link io.awspring.cloud.sqs.listener.SqsHeaders.MessageSystemAttributes#SQS_MESSAGE_GROUP_ID_HEADER
+	 * message group ID}. Batches belonging to the same message group are sent
+	 * sequentially to preserve message ordering, while different groups may be
+	 * processed concurrently.
+	 * <p>
+	 * If a batch for a FIFO message group completes with a partial failure,
+	 * no subsequent batches for that group are sent, ensuring the ordering
+	 * guarantees of the message group are maintained.
 	 */
 	@Override
 	protected <T> CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName,
