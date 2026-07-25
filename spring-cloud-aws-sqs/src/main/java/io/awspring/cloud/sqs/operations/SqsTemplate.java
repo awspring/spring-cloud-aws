@@ -89,6 +89,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
  */
 public class SqsTemplate extends AbstractMessagingTemplate<Message> implements SqsOperations, SqsAsyncOperations {
 
+	private static final int SQS_MAX_BATCH_SIZE = 10;
+
 	private static final Logger logger = LoggerFactory.getLogger(SqsTemplate.class);
 
 	private static final SqsTemplateObservation.SqsSpecifics SQS_OBSERVATION_SPECIFICS = new SqsTemplateObservation.SqsSpecifics();
@@ -379,11 +381,13 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	 * <p>
 	 * For FIFO queues, messages are first grouped by
 	 * {@link io.awspring.cloud.sqs.listener.SqsHeaders.MessageSystemAttributes#SQS_MESSAGE_GROUP_ID_HEADER message
-	 * group ID}. Batches belonging to the same message group are sent sequentially to preserve message ordering, while
-	 * different groups may be processed concurrently.
+	 * group ID}. Groups larger than 10 messages are sent sequentially to preserve message ordering within each group,
+	 * with a skip-on-failure strategy: if a batch completes with a partial failure, no subsequent batches for that
+	 * group are sent.
 	 * <p>
-	 * If a batch for a FIFO message group completes with a partial failure, no subsequent batches for that group are
-	 * sent, ensuring the ordering guarantees of the message group are maintained.
+	 * Groups with up to 10 messages are bin-packed into shared batches on a best-effort basis (first-fit decreasing),
+	 * reducing the number of requests while keeping each group whole within a single batch to preserve ordering. Packed
+	 * batches are sent in parallel, as are large-group chains across different groups.
 	 */
 	@Override
 	protected <T> CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName,
@@ -391,7 +395,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		logger.debug("Sending messages {} to endpoint {}", messages, endpointName);
 		Map<String, org.springframework.messaging.Message<T>> originalMessagesById = originalMessages.stream()
 				.collect(Collectors.toMap(MessageHeaderUtils::getRawMessageId, msg -> msg));
-		if (messages.size() <= 10) {
+		if (messages.size() <= SQS_MAX_BATCH_SIZE) {
 			return sendSingleBatch(endpointName, messages, originalMessagesById);
 		}
 		return FifoUtils.isFifo(endpointName) ? sendFifoBatches(endpointName, messages, originalMessagesById)
@@ -406,8 +410,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private <T> CompletableFuture<SendResult.Batch<T>> sendStandardBatches(String endpointName,
 			Collection<Message> messages, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
-		List<CompletableFuture<SendResult.Batch<T>>> futures = CollectionUtils.partition(messages, 10).stream()
-				.map(partition -> sendSingleBatch(endpointName, partition, originalMessagesById)).toList();
+		List<CompletableFuture<SendResult.Batch<T>>> futures = CollectionUtils.partition(messages, SQS_MAX_BATCH_SIZE)
+				.stream().map(partition -> sendSingleBatch(endpointName, partition, originalMessagesById)).toList();
 		return combineBatchFutures(futures);
 	}
 
@@ -417,14 +421,38 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			String groupId = msg.attributes().get(MessageSystemAttributeName.MESSAGE_GROUP_ID);
 			return groupId != null ? groupId : "";
 		}));
-		List<CompletableFuture<SendResult.Batch<T>>> groupFutures = groupedByMessageGroup.values().stream()
-				.map(msgs -> sendSequentialBatches(endpointName, msgs, originalMessagesById)).toList();
-		return combineBatchFutures(groupFutures);
+		Map<Boolean, List<List<Message>>> partitioned = groupedByMessageGroup.values().stream()
+				.collect(Collectors.partitioningBy(group -> group.size() <= SQS_MAX_BATCH_SIZE));
+		List<List<Message>> smallGroups = partitioned.get(true);
+		List<List<Message>> largeGroups = partitioned.get(false);
+		List<CompletableFuture<SendResult.Batch<T>>> futures = largeGroups.stream()
+				.map(msgs -> sendSequentialBatches(endpointName, msgs, originalMessagesById))
+				.collect(Collectors.toList());
+		if (!smallGroups.isEmpty()) {
+			smallGroups.sort((a, b) -> Integer.compare(b.size(), a.size()));
+			List<List<Message>> packedBatches = new ArrayList<>();
+			for (List<Message> group : smallGroups) {
+				boolean packed = false;
+				for (List<Message> batch : packedBatches) {
+					if (batch.size() + group.size() <= SQS_MAX_BATCH_SIZE) {
+						batch.addAll(group);
+						packed = true;
+						break;
+					}
+				}
+				if (!packed) {
+					packedBatches.add(new ArrayList<>(group));
+				}
+			}
+			packedBatches.stream().map(batch -> sendSingleBatch(endpointName, batch, originalMessagesById))
+					.forEach(futures::add);
+		}
+		return combineBatchFutures(futures);
 	}
 
 	private <T> CompletableFuture<SendResult.Batch<T>> combineBatchFutures(
 			List<CompletableFuture<SendResult.Batch<T>>> futures) {
-		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+		return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
 				.thenApply(v -> futures.stream().map(CompletableFuture::join)
 						.reduce(new SendResult.Batch<>(List.of(), List.of()), this::mergeBatchResults));
 	}
@@ -433,7 +461,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			List<Message> messages, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
 		CompletableFuture<SendResult.Batch<T>> result = CompletableFuture
 				.completedFuture(new SendResult.Batch<>(List.of(), List.of()));
-		for (Collection<Message> partition : CollectionUtils.partition(messages, 10)) {
+		for (Collection<Message> partition : CollectionUtils.partition(messages, SQS_MAX_BATCH_SIZE)) {
 			result = result.thenCompose(acc -> {
 				if (!acc.failed().isEmpty()) {
 					return CompletableFuture.completedFuture(
@@ -1026,8 +1054,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		@Override
 		public SqsReceiveOptionsImpl maxNumberOfMessages(Integer maxNumberOfMessages) {
 			Assert.notNull(maxNumberOfMessages, "maxNumberOfMessages must not be null");
-			Assert.isTrue(maxNumberOfMessages > 0 && maxNumberOfMessages <= 10,
-					"maxNumberOfMessages must be between 0 and 10");
+			Assert.isTrue(maxNumberOfMessages > 0 && maxNumberOfMessages <= SQS_MAX_BATCH_SIZE,
+					"maxNumberOfMessages must be between 0 and " + SQS_MAX_BATCH_SIZE);
 			this.maxNumberOfMessages = maxNumberOfMessages;
 			return this;
 		}

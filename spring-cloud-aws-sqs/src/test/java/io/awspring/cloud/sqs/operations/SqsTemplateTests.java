@@ -680,6 +680,108 @@ class SqsTemplateTests {
 	}
 
 	@Test
+	void shouldBinPackSmallFifoGroupsIntoSharedBatches() {
+		String queue = "test-queue.fifo";
+		String groupA = "group-a";
+		String groupB = "group-b";
+		String groupC = "group-c";
+		String groupD = "group-d";
+		List<Message<String>> messages = new ArrayList<>();
+		messages.addAll(createMessagesForGroup(groupA, 3));
+		messages.addAll(createMessagesForGroup(groupB, 3));
+		messages.addAll(createMessagesForGroup(groupC, 3));
+		messages.addAll(createMessagesForGroup(groupD, 3));
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
+		List<SendMessageBatchRequest> captured = new ArrayList<>();
+		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class))).willAnswer(invocation -> {
+			SendMessageBatchRequest request = invocation.getArgument(0);
+			captured.add(request);
+			return CompletableFuture.completedFuture(
+					SendMessageBatchResponse.builder().successful(successEntries(request.entries())).build());
+		});
+
+		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
+		SendResult.Batch<String> result = template.sendMany(queue, messages);
+
+		assertThat(result.successful()).hasSize(12);
+		assertThat(result.failed()).isEmpty();
+		assertThat(captured).hasSize(2);
+		assertThat(captured.get(0).entries()).hasSize(9);
+		assertThat(captured.get(1).entries()).hasSize(3);
+	}
+
+	@Test
+	void shouldBinPackFifoGroupsOfDifferentSizes() {
+		String queue = "test-queue.fifo";
+		List<Message<String>> messages = new ArrayList<>();
+		messages.addAll(createMessagesForGroup("group-4", 4));
+		messages.addAll(createMessagesForGroup("group-6", 6));
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
+		List<SendMessageBatchRequest> captured = new ArrayList<>();
+		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class))).willAnswer(invocation -> {
+			SendMessageBatchRequest request = invocation.getArgument(0);
+			captured.add(request);
+			return CompletableFuture.completedFuture(
+					SendMessageBatchResponse.builder().successful(successEntries(request.entries())).build());
+		});
+
+		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
+		SendResult.Batch<String> result = template.sendMany(queue, messages);
+
+		assertThat(result.successful()).hasSize(10);
+		assertThat(result.failed()).isEmpty();
+		assertThat(captured).hasSize(1);
+		assertThat(captured.get(0).entries()).hasSize(10);
+	}
+
+	@Test
+	void shouldBinPackLargeAndSmallGroupsTogether() {
+		String queue = "test-queue.fifo";
+		List<Message<String>> messages = new ArrayList<>();
+		messages.addAll(createMessagesForGroup("large-a", 15));
+		messages.addAll(createMessagesForGroup("large-b", 12));
+		messages.addAll(createMessagesForGroup("small-a", 3));
+		messages.addAll(createMessagesForGroup("small-b", 2));
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+
+		List<SendMessageBatchRequest> captured = new ArrayList<>();
+		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class))).willAnswer(invocation -> {
+			SendMessageBatchRequest request = invocation.getArgument(0);
+			captured.add(request);
+			return CompletableFuture.completedFuture(
+					SendMessageBatchResponse.builder().successful(successEntries(request.entries())).build());
+		});
+
+		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
+		SendResult.Batch<String> result = template.sendMany(queue, messages);
+
+		assertThat(result.successful()).hasSize(32);
+		assertThat(result.failed()).isEmpty();
+		assertThat(captured).hasSize(5);
+	}
+
+	private static List<Message<String>> createMessagesForGroup(String groupId, int count) {
+		return IntStream.range(0, count)
+				.mapToObj(i -> MessageBuilder.withPayload("payload-" + groupId + "-" + i)
+						.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, groupId).build())
+				.toList();
+	}
+
+	@Test
 	void shouldCreateByDefaultIfQueueNotFound() {
 		String queue = "test-queue";
 		String payload = "test-payload";
