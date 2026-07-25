@@ -343,11 +343,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
-	void shouldSendMoreThan10MessagesToStandardQueue() {
-		List<Message<String>> messages = IntStream.range(0, 11).mapToObj(index -> "moreThan10Messages-payload-" + index)
-				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
+	void shouldSendMoreThan10MessagesAtOnce() {
+		List<Message<String>> messages = IntStream.range(0, 25)
+				.mapToObj(i -> MessageBuilder.withPayload("moreThan10-payload-" + i).build()).toList();
 		SendResult.Batch<String> result = sqsTemplate.sendMany(RECEIVES_MESSAGE_QUEUE_NAME, messages);
-		assertThat(result.successful()).hasSize(11);
+		assertThat(result.successful()).hasSize(25);
 		assertThat(result.failed()).isEmpty();
 	}
 
