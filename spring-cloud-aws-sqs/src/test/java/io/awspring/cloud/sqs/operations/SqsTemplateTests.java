@@ -674,7 +674,7 @@ class SqsTemplateTests {
 		assertThat(result.failed()).isEmpty();
 		assertThat(captured).hasSize(4);
 		assertThat(captured).allSatisfy(request -> {
-			String firstGroupId = request.entries().getFirst().messageGroupId();
+			String firstGroupId = request.entries().get(0).messageGroupId();
 			assertThat(request.entries()).allMatch(entry -> firstGroupId.equals(entry.messageGroupId()));
 		});
 	}
