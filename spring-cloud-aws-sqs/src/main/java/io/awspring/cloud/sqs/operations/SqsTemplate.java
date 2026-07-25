@@ -47,7 +47,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -419,10 +418,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			return groupId != null ? groupId : "";
 		}));
 		List<CompletableFuture<SendResult.Batch<T>>> groupFutures = groupedByMessageGroup.values().stream()
-				.map(msgs -> CompletableFuture
-						.supplyAsync(() -> sendSequentialBatches(endpointName, msgs, originalMessagesById))
-						.thenCompose(Function.identity()))
-				.toList();
+				.map(msgs -> sendSequentialBatches(endpointName, msgs, originalMessagesById)).toList();
 		return combineBatchFutures(groupFutures);
 	}
 
