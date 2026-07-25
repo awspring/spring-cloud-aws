@@ -25,9 +25,8 @@ public class CollectionUtils {
 	public static <T> List<Collection<T>> partition(Collection<T> messagesToAck, int pageSize) {
 		List<T> messagesToUse = getAsList(messagesToAck);
 		int totalSize = messagesToUse.size();
-		return IntStream.rangeClosed(0, (totalSize - 1) / pageSize)
-				.mapToObj(index -> (Collection<T>) messagesToUse.subList(index * pageSize, Math.min((index + 1) * pageSize, totalSize)))
-				.toList();
+		return IntStream.rangeClosed(0, (totalSize - 1) / pageSize).mapToObj(index -> (Collection<T>) messagesToUse
+				.subList(index * pageSize, Math.min((index + 1) * pageSize, totalSize))).toList();
 	}
 
 	private static <T> List<T> getAsList(Collection<T> elements) {

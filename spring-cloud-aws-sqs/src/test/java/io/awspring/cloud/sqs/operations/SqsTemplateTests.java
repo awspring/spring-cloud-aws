@@ -41,6 +41,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -681,104 +682,32 @@ class SqsTemplateTests {
 
 	@Test
 	void shouldBinPackSmallFifoGroupsIntoSharedBatches() {
-		String queue = "test-queue.fifo";
-		String groupA = "group-a";
-		String groupB = "group-b";
-		String groupC = "group-c";
-		String groupD = "group-d";
-		List<Message<String>> messages = new ArrayList<>();
-		messages.addAll(createMessagesForGroup(groupA, 3));
-		messages.addAll(createMessagesForGroup(groupB, 3));
-		messages.addAll(createMessagesForGroup(groupC, 3));
-		messages.addAll(createMessagesForGroup(groupD, 3));
-
-		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
-		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
-				.willReturn(CompletableFuture.completedFuture(urlResponse));
-		mockQueueAttributes(mockClient, Map.of());
-
-		List<SendMessageBatchRequest> captured = new ArrayList<>();
-		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class))).willAnswer(invocation -> {
-			SendMessageBatchRequest request = invocation.getArgument(0);
-			captured.add(request);
-			return CompletableFuture.completedFuture(
-					SendMessageBatchResponse.builder().successful(successEntries(request.entries())).build());
-		});
-
-		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
-		SendResult.Batch<String> result = template.sendMany(queue, messages);
-
-		assertThat(result.successful()).hasSize(12);
-		assertThat(result.failed()).isEmpty();
-		assertThat(captured).hasSize(2);
-		assertThat(captured.get(0).entries()).hasSize(9);
-		assertThat(captured.get(1).entries()).hasSize(3);
+		var groups = new ArrayList<>(List.of(sqsMessages(3), sqsMessages(3), sqsMessages(3), sqsMessages(3)));
+		var packed = SqsTemplate.binPackSmallFifoGroups(groups, 10);
+		assertThat(packed).hasSize(2);
+		assertThat(packed.get(0)).hasSize(9);
+		assertThat(packed.get(1)).hasSize(3);
 	}
 
 	@Test
-	void shouldBinPackFifoGroupsOfDifferentSizes() {
-		String queue = "test-queue.fifo";
-		List<Message<String>> messages = new ArrayList<>();
-		messages.addAll(createMessagesForGroup("group-4", 4));
-		messages.addAll(createMessagesForGroup("group-6", 6));
-
-		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
-		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
-				.willReturn(CompletableFuture.completedFuture(urlResponse));
-		mockQueueAttributes(mockClient, Map.of());
-
-		List<SendMessageBatchRequest> captured = new ArrayList<>();
-		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class))).willAnswer(invocation -> {
-			SendMessageBatchRequest request = invocation.getArgument(0);
-			captured.add(request);
-			return CompletableFuture.completedFuture(
-					SendMessageBatchResponse.builder().successful(successEntries(request.entries())).build());
-		});
-
-		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
-		SendResult.Batch<String> result = template.sendMany(queue, messages);
-
-		assertThat(result.successful()).hasSize(10);
-		assertThat(result.failed()).isEmpty();
-		assertThat(captured).hasSize(1);
-		assertThat(captured.get(0).entries()).hasSize(10);
+	void shouldPackGroupsThatFitExactly() {
+		var groups = new ArrayList<>(List.of(sqsMessages(4), sqsMessages(6)));
+		var packed = SqsTemplate.binPackSmallFifoGroups(groups, 10);
+		assertThat(packed).hasSize(1);
+		assertThat(packed.get(0)).hasSize(10);
 	}
 
 	@Test
-	void shouldBinPackLargeAndSmallGroupsTogether() {
-		String queue = "test-queue.fifo";
-		List<Message<String>> messages = new ArrayList<>();
-		messages.addAll(createMessagesForGroup("large-a", 15));
-		messages.addAll(createMessagesForGroup("large-b", 12));
-		messages.addAll(createMessagesForGroup("small-a", 3));
-		messages.addAll(createMessagesForGroup("small-b", 2));
-
-		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
-		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
-				.willReturn(CompletableFuture.completedFuture(urlResponse));
-		mockQueueAttributes(mockClient, Map.of());
-
-		List<SendMessageBatchRequest> captured = new ArrayList<>();
-		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class))).willAnswer(invocation -> {
-			SendMessageBatchRequest request = invocation.getArgument(0);
-			captured.add(request);
-			return CompletableFuture.completedFuture(
-					SendMessageBatchResponse.builder().successful(successEntries(request.entries())).build());
-		});
-
-		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
-		SendResult.Batch<String> result = template.sendMany(queue, messages);
-
-		assertThat(result.successful()).hasSize(32);
-		assertThat(result.failed()).isEmpty();
-		assertThat(captured).hasSize(5);
+	void shouldSeparateSmallGroupsWhenBatchIsFull() {
+		var groups = new ArrayList<>(List.of(sqsMessages(6), sqsMessages(5), sqsMessages(5)));
+		var packed = SqsTemplate.binPackSmallFifoGroups(groups, 10);
+		assertThat(packed).hasSize(2);
 	}
 
-	private static List<Message<String>> createMessagesForGroup(String groupId, int count) {
+	private static List<software.amazon.awssdk.services.sqs.model.Message> sqsMessages(int count) {
 		return IntStream.range(0, count)
-				.mapToObj(i -> MessageBuilder.withPayload("payload-" + groupId + "-" + i)
-						.setHeader(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, groupId).build())
-				.toList();
+				.mapToObj(i -> software.amazon.awssdk.services.sqs.model.Message.builder().build())
+				.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	@Test

@@ -429,25 +429,38 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 				.map(msgs -> sendSequentialBatches(endpointName, msgs, originalMessagesById))
 				.collect(Collectors.toList());
 		if (!smallGroups.isEmpty()) {
-			smallGroups.sort((a, b) -> Integer.compare(b.size(), a.size()));
-			List<List<Message>> packedBatches = new ArrayList<>();
-			for (List<Message> group : smallGroups) {
-				boolean packed = false;
-				for (List<Message> batch : packedBatches) {
-					if (batch.size() + group.size() <= SQS_MAX_BATCH_SIZE) {
-						batch.addAll(group);
-						packed = true;
-						break;
-					}
-				}
-				if (!packed) {
-					packedBatches.add(new ArrayList<>(group));
-				}
-			}
-			packedBatches.stream().map(batch -> sendSingleBatch(endpointName, batch, originalMessagesById))
-					.forEach(futures::add);
+			binPackSmallFifoGroups(smallGroups, SQS_MAX_BATCH_SIZE).stream()
+					.map(batch -> sendSingleBatch(endpointName, batch, originalMessagesById)).forEach(futures::add);
 		}
 		return combineBatchFutures(futures);
+	}
+
+	/**
+	 * Bin-pack small FIFO groups into shared batches using first-fit decreasing algorithm. Each group is kept whole
+	 * within a single batch. Groups are sorted by size descending before packing to minimize the number of batches.
+	 * @param smallGroups groups with size <= maxBatchSize
+	 * @param maxBatchSize the maximum number of messages per batch (SQS limit is 10)
+	 * @return packed batches, each containing one or more whole groups
+	 */
+	protected static List<List<Message>> binPackSmallFifoGroups(List<List<Message>> smallGroups, int maxBatchSize) {
+		Assert.notNull(smallGroups, "smallGroups must not be null");
+		Assert.isTrue(maxBatchSize > 0, "maxBatchSize must be positive");
+		smallGroups.sort((a, b) -> Integer.compare(b.size(), a.size()));
+		List<List<Message>> packedBatches = new ArrayList<>();
+		for (List<Message> group : smallGroups) {
+			boolean packed = false;
+			for (List<Message> batch : packedBatches) {
+				if (batch.size() + group.size() <= maxBatchSize) {
+					batch.addAll(group);
+					packed = true;
+					break;
+				}
+			}
+			if (!packed) {
+				packedBatches.add(new ArrayList<>(group));
+			}
+		}
+		return packedBatches;
 	}
 
 	private <T> CompletableFuture<SendResult.Batch<T>> combineBatchFutures(
