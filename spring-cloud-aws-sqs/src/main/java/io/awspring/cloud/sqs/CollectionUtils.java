@@ -26,7 +26,7 @@ public class CollectionUtils {
 		List<T> messagesToUse = getAsList(messagesToAck);
 		int totalSize = messagesToUse.size();
 		return IntStream.rangeClosed(0, (totalSize - 1) / pageSize)
-				.mapToObj(index -> messagesToUse.subList(index * pageSize, Math.min((index + 1) * pageSize, totalSize)))
+				.mapToObj(index -> (Collection<T>) messagesToUse.subList(index * pageSize, Math.min((index + 1) * pageSize, totalSize)))
 				.toList();
 	}
 
