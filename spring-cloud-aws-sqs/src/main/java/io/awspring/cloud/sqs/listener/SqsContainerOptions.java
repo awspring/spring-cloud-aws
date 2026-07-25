@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
@@ -211,7 +210,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 				Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
 			Assert.notEmpty(messageSystemAttributeNames, "messageSystemAttributeNames cannot be empty");
 			this.messageSystemAttributeNames = messageSystemAttributeNames.stream()
-					.map(MessageSystemAttributeName::toString).collect(Collectors.toList());
+					.map(MessageSystemAttributeName::toString).toList();
 			return this;
 		}
 

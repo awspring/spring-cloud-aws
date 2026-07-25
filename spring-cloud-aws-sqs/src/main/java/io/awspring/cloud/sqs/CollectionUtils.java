@@ -18,7 +18,6 @@ package io.awspring.cloud.sqs;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class CollectionUtils {
@@ -28,7 +27,7 @@ public class CollectionUtils {
 		int totalSize = messagesToUse.size();
 		return IntStream.rangeClosed(0, (totalSize - 1) / pageSize)
 				.mapToObj(index -> messagesToUse.subList(index * pageSize, Math.min((index + 1) * pageSize, totalSize)))
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	private static <T> List<T> getAsList(Collection<T> elements) {
