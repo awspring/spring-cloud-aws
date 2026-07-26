@@ -94,8 +94,6 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 
 	private int pollTimeout;
 
-	private boolean skipped;
-
 	@Override
 	public void setSqsAsyncClient(SqsAsyncClient sqsAsyncClient) {
 		Assert.notNull(sqsAsyncClient, "sqsAsyncClient cannot be null.");
@@ -128,11 +126,7 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 		}
 		catch (CompletionException ex) {
 			if (ex.getCause() instanceof QueueNotFoundException qnfe) {
-				// QueueNotFoundStrategy.IGNORE — log warning and short-circuit the source so the application
-				// context can come up. doPollForMessages() will return empty for the lifetime of this source.
-				logger.warn("Skipping start for queue {}: {}", qnfe.getQueueName(), qnfe.getMessage());
-				this.skipped = true;
-				return;
+				throw qnfe;
 			}
 			throw ex;
 		}
@@ -186,9 +180,6 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 	@Override
 	protected CompletableFuture<Collection<Message>> doPollForMessages(
 			int maxNumberOfMessages) {
-		if (this.skipped) {
-			return CompletableFuture.completedFuture(Collections.emptyList());
-		}
 		logger.debug("Polling queue {} for {} messages.", this.queueUrl, maxNumberOfMessages);
 		return maxNumberOfMessages <= 10
 			? executePoll(maxNumberOfMessages)
