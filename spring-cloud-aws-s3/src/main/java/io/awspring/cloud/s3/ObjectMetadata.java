@@ -120,6 +120,9 @@ public class ObjectMetadata {
 	@Nullable
 	private final String contentMD5;
 
+	@Nullable
+	private final MetadataDirective metadataDirective;
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -128,8 +131,8 @@ public class ObjectMetadata {
 			@Nullable String contentEncoding, @Nullable String contentLanguage, @Nullable String contentType,
 			@Nullable Long contentLength, @Nullable Instant expires, @Nullable String grantFullControl,
 			@Nullable String grantRead, @Nullable String grantReadACP, @Nullable String grantWriteACP,
-			@Nullable Map<String, String> metadata, @Nullable String serverSideEncryption,
-			@Nullable String storageClass, @Nullable String websiteRedirectLocation,
+			@Nullable Map<String, String> metadata, @Nullable MetadataDirective metadataDirective,
+			@Nullable String serverSideEncryption, @Nullable String storageClass, @Nullable String websiteRedirectLocation,
 			@Nullable String sseCustomerAlgorithm, @Nullable String sseCustomerKey, @Nullable String sseCustomerKeyMD5,
 			@Nullable String ssekmsKeyId, @Nullable String ssekmsEncryptionContext, @Nullable Boolean bucketKeyEnabled,
 			@Nullable String requestPayer, @Nullable String tagging, @Nullable String objectLockMode,
@@ -148,6 +151,7 @@ public class ObjectMetadata {
 		this.grantReadACP = grantReadACP;
 		this.grantWriteACP = grantWriteACP;
 		this.metadata = metadata;
+		this.metadataDirective = metadataDirective;
 		this.serverSideEncryption = serverSideEncryption;
 		this.storageClass = storageClass;
 		this.websiteRedirectLocation = websiteRedirectLocation;
@@ -261,7 +265,7 @@ public class ObjectMetadata {
 	}
 
 	void apply(CopyObjectRequest.Builder builder) {
-		builder.metadataDirective(MetadataDirective.REPLACE);
+		builder.metadataDirective(metadataDirective == null ? MetadataDirective.REPLACE : metadataDirective);
 		if (acl != null) {
 			builder.acl(acl);
 		}
@@ -716,6 +720,9 @@ public class ObjectMetadata {
 		@Nullable
 		private String contentMD5;
 
+		@Nullable
+		private MetadataDirective metadataDirective;
+
 		public Builder acl(@Nullable String acl) {
 			this.acl = acl;
 			return this;
@@ -782,6 +789,11 @@ public class ObjectMetadata {
 
 		public Builder metadata(@Nullable String key, String value) {
 			this.metadata.put(key, value);
+			return this;
+		}
+
+		public Builder metadataDirective(@Nullable MetadataDirective metadataDirective) {
+			this.metadataDirective = metadataDirective;
 			return this;
 		}
 
@@ -898,7 +910,7 @@ public class ObjectMetadata {
 		public ObjectMetadata build() {
 			return new ObjectMetadata(acl, cacheControl, contentDisposition, contentEncoding, contentLanguage,
 					contentType, contentLength, expires, grantFullControl, grantRead, grantReadACP, grantWriteACP,
-					metadata, serverSideEncryption, storageClass, websiteRedirectLocation, sseCustomerAlgorithm,
+					metadata, metadataDirective, serverSideEncryption, storageClass, websiteRedirectLocation, sseCustomerAlgorithm,
 					sseCustomerKey, sseCustomerKeyMD5, ssekmsKeyId, ssekmsEncryptionContext, bucketKeyEnabled,
 					requestPayer, tagging, objectLockMode, objectLockRetainUntilDate, objectLockLegalHoldStatus,
 					expectedBucketOwner, checksumAlgorithm, contentMD5);
