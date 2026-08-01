@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.awspring.cloud.sqs.QueueAttributesResolver;
 import io.awspring.cloud.sqs.QueueAttributesResolvingException;
-import io.awspring.cloud.sqs.QueueNotFoundException;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
@@ -116,9 +115,6 @@ class QueueAttributesResolverIntegrationTests extends BaseSqsIntegrationTest {
 
 	@Test
 	void shouldIgnoreQueueWhenStrategyIsIgnore() {
-		// GH-1143: With QueueNotFoundStrategy.IGNORE, a missing queue must surface as QueueNotFoundException
-		// (a subtype of QueueAttributesResolvingException) so the listener container can catch it and skip
-		// startup for that queue rather than failing the application context.
 		String queueName = "testQueueName-" + UUID.randomUUID();
 		SqsAsyncClient client = createAsyncClient();
 		QueueAttributesResolver resolver = QueueAttributesResolver
@@ -130,9 +126,10 @@ class QueueAttributesResolverIntegrationTests extends BaseSqsIntegrationTest {
 			.build();
 		assertThatThrownBy(() -> resolver.resolveQueueAttributes().join())
 			.isInstanceOf(CompletionException.class)
-			.extracting(Throwable::getCause)
-			.isInstanceOf(QueueNotFoundException.class)
-			.extracting(Throwable::getCause)
+			.cause()
+			.isInstanceOfSatisfying(QueueAttributesResolvingException.class,
+				qare -> assertThat(qare.isQueueIgnored()).isTrue())
+			.cause()
 			.isInstanceOf(QueueDoesNotExistException.class);
 	}
 
