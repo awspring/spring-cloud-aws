@@ -17,7 +17,6 @@ package io.awspring.cloud.sqs.listener.source;
 
 import io.awspring.cloud.sqs.ConfigUtils;
 import io.awspring.cloud.sqs.QueueAttributesResolver;
-import io.awspring.cloud.sqs.QueueNotFoundException;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesAware;
@@ -35,7 +34,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jspecify.annotations.Nullable;
@@ -121,15 +119,7 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 	protected void doStart() {
 		Assert.notNull(this.sqsAsyncClient, "sqsAsyncClient not set");
 		Assert.notNull(this.queueAttributeNames, "queueAttributeNames not set");
-		try {
-			this.queueAttributes = resolveQueueAttributes();
-		}
-		catch (CompletionException ex) {
-			if (ex.getCause() instanceof QueueNotFoundException qnfe) {
-				throw qnfe;
-			}
-			throw ex;
-		}
+		this.queueAttributes = resolveQueueAttributes();
 		this.queueUrl = this.queueAttributes.getQueueUrl();
 		configureConversionContextAndAcknowledgement();
 	}
