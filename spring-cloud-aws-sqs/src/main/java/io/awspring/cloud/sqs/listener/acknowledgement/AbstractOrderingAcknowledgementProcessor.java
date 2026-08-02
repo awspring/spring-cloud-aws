@@ -64,7 +64,8 @@ public abstract class AbstractOrderingAcknowledgementProcessor<T>
 	private AsyncAcknowledgementResultCallback<T> acknowledgementResultCallback = new AsyncAcknowledgementResultCallback<T>() {
 	};
 
-	private boolean running;
+	// Written under lifecycleMonitor, but read without synchronization from the polling and scheduler threads
+	private volatile boolean running;
 
 	private String id;
 

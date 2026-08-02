@@ -250,6 +250,7 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 					if (LocalDateTime.now().isAfter(endTime)) {
 						throw new TimeoutException();
 					}
+					flushRemainingAcks();
 					Thread.sleep(200);
 				}
 				logger.debug("All acknowledgements completed.");
@@ -266,6 +267,28 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 				logger.warn(
 						"Error thrown when waiting for acknowledgement tasks to finish in {}. Continuing with shutdown.",
 						this.parent.getId(), e);
+			}
+		}
+
+		/**
+		 * Flushes whatever is left in the buffer, so that messages below the acknowledgement threshold are acknowledged
+		 * on shutdown instead of being discarded when the buffer is cleared. Waits for the ack queue to drain first so
+		 * that batches are not needlessly split.
+		 *
+		 * This has to be retried on every iteration of the shutdown wait loop rather than executed once: the polling
+		 * thread may be holding a message it has already polled but not yet added to the buffer, in which case the
+		 * queue looks empty while the message is in neither the queue nor the buffer.
+		 */
+		private void flushRemainingAcks() {
+			if (!this.acks.isEmpty()) {
+				return;
+			}
+			this.context.lock();
+			try {
+				this.context.executeAllAcks();
+			}
+			finally {
+				this.context.unlock();
 			}
 		}
 
