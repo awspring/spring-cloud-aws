@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -78,6 +79,13 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 
 	private BlockingQueue<Message<T>> acks;
 
+	/**
+	 * Number of messages that have been received for acknowledgement but are not in {@link #acks} nor in the buffer yet.
+	 * Incremented before a message is offered to the queue and decremented after it has been added to the buffer, so a
+	 * message is always accounted for while the polling thread is holding it in between the two.
+	 */
+	private final AtomicInteger unbufferedAcks = new AtomicInteger();
+
 	private Integer ackThreshold;
 
 	private Duration ackInterval;
@@ -103,7 +111,9 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 
 	@Override
 	protected CompletableFuture<Void> doOnAcknowledge(Message<T> message) {
+		this.unbufferedAcks.incrementAndGet();
 		if (!this.acks.offer(message)) {
+			this.unbufferedAcks.decrementAndGet();
 			logger.warn("Acknowledgement queue full, dropping acknowledgement for message {}",
 					MessageHeaderUtils.getId(message));
 		}
@@ -128,6 +138,7 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 				() -> getClass().getSimpleName() + " cannot be used with Duration.ZERO and acknowledgement threshold 0."
 						+ "Consider using a " + ImmediateAcknowledgementProcessor.class + "instead");
 		this.acks = new LinkedBlockingQueue<>();
+		this.unbufferedAcks.set(0);
 		this.taskScheduler = createTaskScheduler();
 		this.acknowledgementProcessor = createAcknowledgementProcessor();
 		this.taskExecutor.execute(this.acknowledgementProcessor);
@@ -199,7 +210,12 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 				try {
 					Message<T> polledMessage = this.acks.poll(1, TimeUnit.SECONDS);
 					if (polledMessage != null) {
-						addMessageToBuffer(polledMessage);
+						try {
+							addMessageToBuffer(polledMessage);
+						}
+						finally {
+							this.parent.unbufferedAcks.decrementAndGet();
+						}
 						this.thresholdAcknowledgementExecution.checkAndExecute();
 					}
 				}
@@ -299,12 +315,18 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 			return unfinishedAcks > 0;
 		}
 
+		/**
+		 * Whether any acknowledgement is still unaccounted for. Uses {@link #unbufferedAcks} rather than the queue size
+		 * so that a message the polling thread has already taken off the queue but not yet added to the buffer still
+		 * counts - otherwise the shutdown wait can end while such a message is in flight, and it is then added to a
+		 * buffer that has already been cleared and never acknowledged.
+		 */
 		private boolean hasAcksLeft() {
-			int messagesInAcks = this.acks.size();
+			int unbufferedAcks = this.parent.unbufferedAcks.get();
 			int messagesInAcksBuffer = this.context.acksBuffer.size();
-			logger.trace("Acknowledgement queue has {} messages.", messagesInAcks);
-			logger.trace("Acknowledgement buffer has {} messages.", messagesInAcksBuffer);
-			return messagesInAcksBuffer > 0 || messagesInAcks > 0;
+			logger.trace("{} acknowledgements not buffered yet.", unbufferedAcks);
+			logger.trace("Acknowledgement buffer has {} message groups.", messagesInAcksBuffer);
+			return messagesInAcksBuffer > 0 || unbufferedAcks > 0;
 		}
 
 	}
