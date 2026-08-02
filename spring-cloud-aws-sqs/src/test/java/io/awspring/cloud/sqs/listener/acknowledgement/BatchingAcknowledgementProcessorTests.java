@@ -238,6 +238,51 @@ class BatchingAcknowledgementProcessorTests {
 		assertThat(acknowledgedMessages).containsExactlyInAnyOrderElementsOf(messages);
 	}
 
+	@Test
+	void givenMessagePolledButNotBufferedYet_whenStopped_shouldAcknowledgeIt() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("0").build();
+		Collection<Message<String>> acknowledgedMessages = Collections.synchronizedList(new ArrayList<>());
+		CountDownLatch pollingThreadInsideBufferAdd = new CountDownLatch(1);
+		CountDownLatch releasePollingThread = new CountDownLatch(1);
+
+		BatchingAcknowledgementProcessor<String> processor = new BatchingAcknowledgementProcessor<>();
+		processor.configure(SqsContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_THIRTY_SECONDS)
+				.acknowledgementThreshold(ACK_THRESHOLD_TEN)
+				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
+				.acknowledgementShutdownTimeout(Duration.ofSeconds(10)).build());
+		// The grouping function is applied while adding the message to the buffer, so blocking in it parks the polling
+		// thread at exactly the point where the message is in neither the queue nor the buffer.
+		processor.setMessageGroupingFunction(messageToGroup -> {
+			pollingThreadInsideBufferAdd.countDown();
+			try {
+				releasePollingThread.await(10, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			return "group";
+		});
+		processor.setTaskExecutor(new SimpleAsyncTaskExecutor());
+		processor.setAcknowledgementExecutor(messagesToAck -> {
+			acknowledgedMessages.addAll(messagesToAck);
+			return CompletableFuture.completedFuture(null);
+		});
+		processor.setMaxAcknowledgementsPerBatch(MAX_ACKNOWLEDGEMENTS_PER_BATCH_TEN);
+		processor.setId(ID);
+		processor.start();
+
+		processor.doOnAcknowledge(message);
+		assertThat(pollingThreadInsideBufferAdd.await(10, TimeUnit.SECONDS)).isTrue();
+
+		CompletableFuture<Void> stopping = CompletableFuture.runAsync(processor::stop);
+		// Give the shutdown wait loop, which polls every 200ms, several chances to observe the in-flight message
+		Thread.sleep(1000);
+		releasePollingThread.countDown();
+		stopping.get(30, TimeUnit.SECONDS);
+
+		assertThat(acknowledgedMessages).containsExactly(message);
+	}
+
 	private static List<Message<String>> buildMessages(int count) {
 		return IntStream.range(0, count).mapToObj(index -> MessageBuilder.withPayload(String.valueOf(index)).build())
 				.collect(Collectors.toList());
