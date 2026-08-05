@@ -32,10 +32,13 @@ import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
 import io.awspring.cloud.sqs.listener.pipeline.MessageProcessingPipeline;
 import io.awspring.cloud.sqs.listener.sink.MessageSink;
+import io.awspring.cloud.sqs.listener.source.AbstractMessageConvertingMessageSource;
 import io.awspring.cloud.sqs.listener.source.MessageSource;
 import io.awspring.cloud.sqs.support.observation.AbstractListenerObservation;
 import io.awspring.cloud.sqs.support.observation.SqsListenerObservation;
 import io.micrometer.observation.ObservationRegistry;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +46,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
@@ -125,6 +129,36 @@ class SqsMessageListenerContainerTests {
 		assertThat(container.getAcknowledgementResultCallback()).isEqualTo(callback);
 		assertThat(container.getMessageInterceptors()).containsExactly(interceptor1, interceptor2);
 		assertThat(container.getPhase()).isEqualTo(MessageListenerContainer.DEFAULT_PHASE);
+	}
+
+	@Test
+	void shouldPropagatePayloadClassAndConversionHintToMessageSource() throws Exception {
+		Method listenerMethod = GenericListener.class.getDeclaredMethod("listen", GenericWrapper.class);
+		MethodParameter conversionHint = new MethodParameter(listenerMethod, 0);
+		RecordingMessageSource messageSource = new RecordingMessageSource();
+		TestSqsMessageListenerContainer container = new TestSqsMessageListenerContainer(mock(SqsAsyncClient.class),
+				SqsContainerOptions.builder().build());
+		container.setId("test-container");
+		container.setPayloadDeserializationType(GenericWrapper.class, conversionHint);
+
+		container.configureMessageSource(messageSource);
+
+		assertThat(messageSource.payloadClass).isEqualTo(GenericWrapper.class);
+		assertThat(messageSource.conversionHint).isSameAs(conversionHint);
+	}
+
+	@Test
+	void shouldClearConversionHintWhenPayloadDeserializationTypeIsSetWithoutHint() throws Exception {
+		Method listenerMethod = GenericListener.class.getDeclaredMethod("listen", GenericWrapper.class);
+		MethodParameter conversionHint = new MethodParameter(listenerMethod, 0);
+		TestSqsMessageListenerContainer container = new TestSqsMessageListenerContainer(mock(SqsAsyncClient.class),
+				SqsContainerOptions.builder().build());
+		container.setPayloadDeserializationType(GenericWrapper.class, conversionHint);
+
+		container.setPayloadDeserializationType(String.class);
+
+		assertThat(container.getPayloadDeserializationType()).isEqualTo(String.class);
+		assertThat(container.getPayloadConversionHint()).isNull();
 	}
 
 	@Test
@@ -308,10 +342,31 @@ class SqsMessageListenerContainerTests {
 			return this.createdMessageSink;
 		}
 
+		void configureMessageSource(MessageSource<Object> messageSource) {
+			try {
+				Field field = AbstractPipelineMessageListenerContainer.class.getDeclaredField("messageSources");
+				field.setAccessible(true);
+				field.set(this, List.of(messageSource));
+				configureMessageSources(new ContainerComponentFactory<>() {
+					@Override
+					public MessageSource<Object> createMessageSource(SqsContainerOptions options) {
+						return messageSource;
+					}
+
+					@Override
+					public MessageSink<Object> createMessageSink(SqsContainerOptions options) {
+						return (messages, context) -> CompletableFuture.completedFuture(null);
+					}
+				});
+			}
+			catch (ReflectiveOperationException e) {
+				throw new IllegalStateException("Could not configure test message source", e);
+			}
+		}
+
 		private MessageSink<Object> getMessageSink() {
 			try {
-				java.lang.reflect.Field field = AbstractPipelineMessageListenerContainer.class
-						.getDeclaredField("messageSink");
+				Field field = AbstractPipelineMessageListenerContainer.class.getDeclaredField("messageSink");
 				field.setAccessible(true);
 				return (MessageSink<Object>) field.get(this);
 			}
@@ -319,6 +374,39 @@ class SqsMessageListenerContainerTests {
 				throw new RuntimeException("Could not access messageSink field", e);
 			}
 		}
+	}
+
+	private static class RecordingMessageSource extends AbstractMessageConvertingMessageSource<Object, Object> {
+
+		private Class<?> payloadClass;
+
+		private Object conversionHint;
+
+		@Override
+		public void setPayloadDeserializationType(Class<?> payloadDeserializationType) {
+			this.payloadClass = payloadDeserializationType;
+		}
+
+		@Override
+		public void setPayloadDeserializationType(Class<?> payloadDeserializationType, Object conversionHint) {
+			this.payloadClass = payloadDeserializationType;
+			this.conversionHint = conversionHint;
+		}
+
+		@Override
+		public void setMessageSink(MessageSink<Object> messageSink) {
+		}
+
+	}
+
+	static class GenericListener {
+
+		void listen(GenericWrapper<String> payload) {
+		}
+
+	}
+
+	static class GenericWrapper<T> {
 	}
 
 }

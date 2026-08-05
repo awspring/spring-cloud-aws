@@ -74,6 +74,9 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	@Nullable
 	private Class<?> payloadDeserializationType;
 
+	@Nullable
+	private Object payloadConversionHint;
+
 	/**
 	 * Create an instance with the provided {@link ContainerOptions}
 	 * @param containerOptions the options instance.
@@ -190,6 +193,21 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	 */
 	public void setPayloadDeserializationType(@Nullable Class<?> payloadDeserializationType) {
 		this.payloadDeserializationType = payloadDeserializationType;
+		this.payloadConversionHint = null;
+	}
+
+	/**
+	 * Set the target type and conversion hint for payload deserialization.
+	 * <p>
+	 * Since 4.0.0, the target type is typically inferred automatically from the {@code @SqsListener} method signature.
+	 * A conversion hint can additionally preserve generic type information from that method.
+	 * @param payloadDeserializationType the target type for deserialization
+	 * @param conversionHint an optional hint for a smart message converter
+	 */
+	public void setPayloadDeserializationType(@Nullable Class<?> payloadDeserializationType,
+			@Nullable Object conversionHint) {
+		setPayloadDeserializationType(payloadDeserializationType);
+		this.payloadConversionHint = payloadDeserializationType != null ? conversionHint : null;
 	}
 
 	/**
@@ -254,6 +272,15 @@ public abstract class AbstractMessageListenerContainer<T, O extends ContainerOpt
 	@Nullable
 	public Class<?> getPayloadDeserializationType() {
 		return this.payloadDeserializationType;
+	}
+
+	/**
+	 * Return the payload conversion hint, or null if not set.
+	 * @return the payload conversion hint.
+	 */
+	@Nullable
+	public Object getPayloadConversionHint() {
+		return this.payloadConversionHint;
 	}
 
 	@Override

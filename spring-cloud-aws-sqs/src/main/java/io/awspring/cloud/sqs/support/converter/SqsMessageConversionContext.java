@@ -48,6 +48,9 @@ public class SqsMessageConversionContext
 	@Nullable
 	private Class<?> payloadClass;
 
+	@Nullable
+	private Object conversionHint;
+
 	@Override
 	public void setQueueAttributes(QueueAttributes queueAttributes) {
 		this.queueAttributes = queueAttributes;
@@ -65,6 +68,10 @@ public class SqsMessageConversionContext
 
 	public void setPayloadClass(Class<?> payloadClass) {
 		this.payloadClass = payloadClass;
+	}
+
+	public void setConversionHint(@Nullable Object conversionHint) {
+		this.conversionHint = conversionHint;
 	}
 
 	@Nullable
@@ -86,5 +93,11 @@ public class SqsMessageConversionContext
 	@Nullable
 	public Class<?> getPayloadClass() {
 		return this.payloadClass;
+	}
+
+	@Nullable
+	@Override
+	public Object getConversionHint() {
+		return this.conversionHint;
 	}
 }
