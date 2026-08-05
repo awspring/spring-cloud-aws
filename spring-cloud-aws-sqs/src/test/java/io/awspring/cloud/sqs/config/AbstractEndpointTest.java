@@ -122,6 +122,21 @@ class AbstractEndpointTest {
 	}
 
 	@Test
+	void shouldConfigurePayloadDeserializationMetadataOnContainer() throws Exception {
+		Method method = TestListener.class.getMethod("handleMessage", String.class);
+		MethodParameter conversionHint = new MethodParameter(method, 0);
+		MethodPayloadMetadata metadata = new MethodPayloadMetadata(String.class, conversionHint);
+		endpoint.setMethod(method);
+		endpoint.setMethodPayloadTypeInferrer(inferrer);
+
+		when(inferrer.inferPayloadMetadata(any(Method.class), any())).thenReturn(metadata);
+
+		endpoint.setupContainer(container);
+
+		verify(container).setPayloadDeserializationType(String.class, conversionHint);
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	void shouldNotOverrideCustomMapper() throws Exception {
 		Method method = TestListener.class.getMethod("handleMessage", String.class);

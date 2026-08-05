@@ -257,6 +257,86 @@ class DefaultMethodPayloadTypeInferrerTest {
 		assertThat(result).isEqualTo(CustomEvent.class);
 	}
 
+	@Test
+	void shouldPreserveMethodParameterAsConversionHintForGenericWrapper() throws Exception {
+		Method method = TestMethods.class.getMethod("genericWrapperOfCustomEvent", GenericWrapper.class);
+
+		MethodPayloadMetadata metadata = inferrer.inferPayloadMetadata(method, createNonSupportingResolvers());
+
+		assertThat(metadata).isNotNull();
+		assertThat(metadata.payloadClass()).isEqualTo(GenericWrapper.class);
+		assertThat(metadata.conversionHint()).isInstanceOfSatisfying(MethodParameter.class, methodParameter -> {
+			assertThat(methodParameter.getMethod()).isEqualTo(method);
+			assertThat(methodParameter.getParameterIndex()).isZero();
+			assertThat(methodParameter.getGenericParameterType()).isEqualTo(method.getGenericParameterTypes()[0]);
+		});
+	}
+
+	@Test
+	void shouldPreserveMethodParameterAsConversionHintForMessageWithGenericCollectionPayload() throws Exception {
+		Method method = TestMethods.class.getMethod("messageOfListOfCustomEvents", Message.class);
+
+		MethodPayloadMetadata metadata = inferrer.inferPayloadMetadata(method, createNonSupportingResolvers());
+
+		assertThat(metadata).isNotNull();
+		assertThat(metadata.payloadClass()).isEqualTo(List.class);
+		assertThat(metadata.conversionHint()).isInstanceOfSatisfying(MethodParameter.class, methodParameter -> {
+			assertThat(methodParameter.getMethod()).isEqualTo(method);
+			assertThat(methodParameter.getParameterIndex()).isZero();
+			assertThat(methodParameter.getGenericParameterType()).isEqualTo(method.getGenericParameterTypes()[0]);
+		});
+	}
+
+	@Test
+	void shouldNestConversionHintForBatchGenericWrapper() throws Exception {
+		Method method = TestMethods.class.getMethod("listOfGenericWrapperOfCustomEvent", List.class);
+
+		MethodPayloadMetadata metadata = inferrer.inferPayloadMetadata(method, createNonSupportingResolvers());
+
+		assertThat(metadata).isNotNull();
+		assertThat(metadata.payloadClass()).isEqualTo(GenericWrapper.class);
+		assertThat(metadata.conversionHint()).isInstanceOfSatisfying(MethodParameter.class, methodParameter -> {
+			assertThat(methodParameter.getNestingLevel()).isEqualTo(2);
+			assertThat(methodParameter.getNestedGenericParameterType().getTypeName())
+					.isEqualTo(GenericWrapper.class.getName() + "<" + CustomEvent.class.getName() + ">");
+		});
+	}
+
+	@Test
+	void shouldNestConversionHintPastMessageForBatchGenericWrapper() throws Exception {
+		Method method = TestMethods.class.getMethod("listOfMessageOfGenericWrapperOfCustomEvent", List.class);
+
+		MethodPayloadMetadata metadata = inferrer.inferPayloadMetadata(method, createNonSupportingResolvers());
+
+		assertThat(metadata).isNotNull();
+		assertThat(metadata.payloadClass()).isEqualTo(GenericWrapper.class);
+		assertThat(metadata.conversionHint()).isInstanceOfSatisfying(MethodParameter.class, methodParameter -> {
+			assertThat(methodParameter.getNestingLevel()).isEqualTo(3);
+			assertThat(methodParameter.getNestedGenericParameterType().getTypeName())
+					.isEqualTo(GenericWrapper.class.getName() + "<" + CustomEvent.class.getName() + ">");
+		});
+	}
+
+	@Test
+	void shouldAdaptCustomInferrerToPayloadMetadataWithoutConversionHint() throws Exception {
+		Method method = TestMethods.class.getMethod("customEventPayload", CustomEvent.class);
+		MethodPayloadTypeInferrer customInferrer = (listenerMethod, argumentResolvers) -> CustomEvent.class;
+
+		MethodPayloadMetadata metadata = customInferrer.inferPayloadMetadata(method, createNonSupportingResolvers());
+
+		assertThat(metadata).isEqualTo(new MethodPayloadMetadata(CustomEvent.class, null));
+	}
+
+	@Test
+	void shouldReturnNullMetadataWhenCustomInferrerCannotInferPayloadType() throws Exception {
+		Method method = TestMethods.class.getMethod("customEventPayload", CustomEvent.class);
+		MethodPayloadTypeInferrer customInferrer = (listenerMethod, argumentResolvers) -> null;
+
+		MethodPayloadMetadata metadata = customInferrer.inferPayloadMetadata(method, createNonSupportingResolvers());
+
+		assertThat(metadata).isNull();
+	}
+
 	// ========== Various Payload Type Tests ==========
 
 	@Test
@@ -438,6 +518,20 @@ class DefaultMethodPayloadTypeInferrerTest {
 		return createStandardResolvers();
 	}
 
+	private List<HandlerMethodArgumentResolver> createNonSupportingResolvers() {
+		return List.of(new HandlerMethodArgumentResolver() {
+			@Override
+			public boolean supportsParameter(MethodParameter parameter) {
+				return false;
+			}
+
+			@Override
+			public Object resolveArgument(MethodParameter parameter, Message<?> message) {
+				return null;
+			}
+		});
+	}
+
 	private List<HandlerMethodArgumentResolver> createMixedResolvers() {
 		List<HandlerMethodArgumentResolver> resolvers = createStandardResolvers();
 
@@ -548,12 +642,38 @@ class DefaultMethodPayloadTypeInferrerTest {
 		public void collectionOfMessageOfCustomEvent(Collection<Message<CustomEvent>> messages) {
 		}
 
+		public void genericWrapperOfCustomEvent(GenericWrapper<CustomEvent> event) {
+		}
+
+		public void messageOfListOfCustomEvents(Message<List<CustomEvent>> message) {
+		}
+
+		public void listOfGenericWrapperOfCustomEvent(List<GenericWrapper<CustomEvent>> events) {
+		}
+
+		public void listOfMessageOfGenericWrapperOfCustomEvent(List<Message<GenericWrapper<CustomEvent>>> messages) {
+		}
+
 		// Message parameter
 		public void messageParameter(Message<?> message) {
 		}
 
 		// Only payload
 		public void onlyPayload(CustomEvent payload) {
+		}
+
+	}
+
+	static class GenericWrapper<T> {
+
+		private T value;
+
+		public T getValue() {
+			return this.value;
+		}
+
+		public void setValue(T value) {
+			this.value = value;
 		}
 
 	}

@@ -56,9 +56,9 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
  * </p>
  *
  * <p>
- * Note that currently the payload is not converted here and is returned as String. The actual conversion to the
- * {@link io.awspring.cloud.sqs.annotation.SqsListener} argument type happens on
- * {@link org.springframework.messaging.handler.invocation.InvocableHandlerMethod} invocation.
+ * Payload conversion happens in the message source before the resulting message is emitted to the message sink and
+ * processing pipeline. When available, the inferred listener payload class and conversion hint are configured on the
+ * {@link SqsMessageConversionContext} and used by the messaging message converter during this step.
  * </p>
  *
  * @param <T> the {@link Message} payload type.
@@ -139,6 +139,14 @@ public abstract class AbstractSqsMessageSource<T> extends AbstractPollingMessage
 	protected void doConfigurePayloadTypeOnContext(Class<?> payloadType, MessageConversionContext context) {
 		ConfigUtils.INSTANCE.acceptIfInstance(context, SqsMessageConversionContext.class,
 				ctx -> ctx.setPayloadClass(payloadType));
+	}
+
+	@Override
+	protected void doConfigurePayloadTypeOnContext(Class<?> payloadType, @Nullable Object conversionHint,
+			MessageConversionContext context) {
+		doConfigurePayloadTypeOnContext(payloadType, context);
+		ConfigUtils.INSTANCE.acceptIfInstance(context, SqsMessageConversionContext.class,
+				ctx -> ctx.setConversionHint(conversionHint));
 	}
 
 	// @formatter:off

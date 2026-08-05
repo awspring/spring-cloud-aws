@@ -33,11 +33,29 @@ public interface MethodPayloadTypeInferrer {
 
 	/**
 	 * Infer the payload class from the given method and its argument resolvers.
+	 * @deprecated in favor of {@link #inferPayloadMetadata(Method, List)}
 	 * @param method the listener method
 	 * @param argumentResolvers the argument resolvers available for this method, may be null or empty
 	 * @return the inferred payload class, or null if it cannot be determined
 	 */
 	@Nullable
+	@Deprecated
 	Class<?> inferPayloadType(Method method, @Nullable List<HandlerMethodArgumentResolver> argumentResolvers);
+
+	/**
+	 * Infer payload metadata from the given method and its argument resolvers.
+	 * <p>
+	 * The default implementation adapts existing {@link MethodPayloadTypeInferrer} implementations by returning the
+	 * inferred class without a conversion hint.
+	 * @param method the listener method
+	 * @param argumentResolvers the argument resolvers available for this method, may be null or empty
+	 * @return the inferred payload metadata, or null if it cannot be determined
+	 */
+	@Nullable
+	default MethodPayloadMetadata inferPayloadMetadata(Method method,
+			@Nullable List<HandlerMethodArgumentResolver> argumentResolvers) {
+		Class<?> payloadClass = inferPayloadType(method, argumentResolvers);
+		return payloadClass != null ? new MethodPayloadMetadata(payloadClass, null) : null;
+	}
 
 }

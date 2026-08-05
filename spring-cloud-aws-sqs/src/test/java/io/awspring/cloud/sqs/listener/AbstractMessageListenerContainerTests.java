@@ -106,4 +106,53 @@ class AbstractMessageListenerContainerTests {
 
 	}
 
+	@Test
+	void shouldDelegatePayloadTypeOnlySetterToConversionHintAwareOverload() {
+		RecordingMessageListenerContainer container = new RecordingMessageListenerContainer(
+				SqsContainerOptions.builder().build());
+
+		container.setPayloadDeserializationType(String.class);
+
+		assertThat(container.payloadType).isEqualTo(String.class);
+		assertThat(container.conversionHint).isNull();
+		assertThat(container.conversionHintAwareSetterInvocations).isEqualTo(1);
+	}
+
+	@Test
+	void shouldClearConversionHintWhenPayloadTypeIsCleared() {
+		AbstractMessageListenerContainer<Object, SqsContainerOptions, SqsContainerOptionsBuilder> container = new AbstractMessageListenerContainer<>(
+				SqsContainerOptions.builder().build()) {
+		};
+		Object conversionHint = new Object();
+		container.setPayloadDeserializationType(String.class, conversionHint);
+
+		container.setPayloadDeserializationType(null, conversionHint);
+
+		assertThat(container.getPayloadDeserializationType()).isNull();
+		assertThat(container.getPayloadConversionHint()).isNull();
+	}
+
+	private static class RecordingMessageListenerContainer
+			extends AbstractMessageListenerContainer<Object, SqsContainerOptions, SqsContainerOptionsBuilder> {
+
+		private int conversionHintAwareSetterInvocations;
+
+		private Class<?> payloadType;
+
+		private Object conversionHint;
+
+		RecordingMessageListenerContainer(SqsContainerOptions containerOptions) {
+			super(containerOptions);
+		}
+
+		@Override
+		public void setPayloadDeserializationType(Class<?> payloadType, Object conversionHint) {
+			this.conversionHintAwareSetterInvocations++;
+			this.payloadType = payloadType;
+			this.conversionHint = conversionHint;
+			super.setPayloadDeserializationType(payloadType, conversionHint);
+		}
+
+	}
+
 }

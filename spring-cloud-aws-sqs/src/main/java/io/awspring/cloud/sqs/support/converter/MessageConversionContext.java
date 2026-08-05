@@ -33,4 +33,13 @@ public interface MessageConversionContext {
 	@Nullable
 	Class<?> getPayloadClass();
 
+	/**
+	 * An optional hint to be used by the payload conversion process.
+	 * @return the conversion hint.
+	 */
+	@Nullable
+	default Object getConversionHint() {
+		return null;
+	}
+
 }

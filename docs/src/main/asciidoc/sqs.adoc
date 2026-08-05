@@ -1782,8 +1782,12 @@ This allows payloads to be deserialized early in the message processing flow wit
 
 This enables accessing the deserialized payload in components such as `MessageInterceptor`, `ErrorHandler`, and `AcknowledgementResultCallback` without type headers.
 
-The inference supports simple types, generic types like `List<MyEvent>`, `Message<MyEvent>`, and `List<Message<MyEvent>>`.
+The inference supports simple types, generic types like `List<MyEvent>`, `Message<MyEvent>`,
+`List<Message<MyEvent>>`, `Wrapper<MyEvent>`, and `Message<List<MyEvent>>`.
 Parameters annotated with `@Payload` are explicitly recognized as the payload parameter.
+
+Generic type information is provided to payload converters through the `SmartMessageConverter` conversion hint.
+Custom payload converters that only implement `MessageConverter` continue to receive the inferred raw payload class.
 
 For polymorphic types (interfaces, `Object`, or `@SqsHandler` methods), a custom mapper is required.
 See <<Custom payload type mapping>>.
