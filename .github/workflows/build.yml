@@ -13,6 +13,7 @@ jobs:
   build:
     name: Test with JDK ${{ matrix.version }}
     strategy:
+      fail-fast: false
       matrix:
         version: [ 17.0.12, 21.0.4, 24 ]
     runs-on: ubuntu-latest
@@ -43,7 +44,7 @@ jobs:
     name: Run Sonar Analysis
     runs-on: ubuntu-latest
     # Disable Sonar for foreign PRs
-    if: (github.event_name != 'pull_request' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
+    if: false
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK 17

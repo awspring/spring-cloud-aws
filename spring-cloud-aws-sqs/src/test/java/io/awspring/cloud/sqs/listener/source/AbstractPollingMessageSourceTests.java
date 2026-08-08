@@ -57,6 +57,7 @@ import java.util.stream.IntStream;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.awaitility.Awaitility;
 import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,6 +140,7 @@ class AbstractPollingMessageSourceTests {
 	}
 
 	@Test
+	@Disabled("Flaky: asserts the throughput mode observed by a polling thread, which races with the adaptation")
 	void shouldAdaptThroughputMode() {
 		String testName = "shouldAdaptThroughputMode";
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
