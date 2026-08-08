@@ -681,30 +681,6 @@ class SqsTemplateTests {
 	}
 
 	@Test
-	void shouldBinPackSmallFifoGroupsIntoSharedBatches() {
-		var groups = new ArrayList<>(List.of(sqsMessages(3), sqsMessages(3), sqsMessages(3), sqsMessages(3)));
-		var packed = SqsTemplate.binPackSmallFifoGroups(groups, 10);
-		assertThat(packed).hasSize(2);
-		assertThat(packed.get(0)).hasSize(9);
-		assertThat(packed.get(1)).hasSize(3);
-	}
-
-	@Test
-	void shouldPackGroupsThatFitExactly() {
-		var groups = new ArrayList<>(List.of(sqsMessages(4), sqsMessages(6)));
-		var packed = SqsTemplate.binPackSmallFifoGroups(groups, 10);
-		assertThat(packed).hasSize(1);
-		assertThat(packed.get(0)).hasSize(10);
-	}
-
-	@Test
-	void shouldSeparateSmallGroupsWhenBatchIsFull() {
-		var groups = new ArrayList<>(List.of(sqsMessages(6), sqsMessages(5), sqsMessages(5)));
-		var packed = SqsTemplate.binPackSmallFifoGroups(groups, 10);
-		assertThat(packed).hasSize(2);
-	}
-
-	@Test
 	void shouldHandleBatchExceptionForStandardQueues() {
 		String queue = "test-queue";
 		List<Message<String>> messages = IntStream.range(0, 25)

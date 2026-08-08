@@ -464,7 +464,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	 * @param maxBatchSize the maximum number of messages per batch (SQS limit is 10)
 	 * @return packed batches, each containing one or more whole groups
 	 */
-	protected static List<List<Message>> binPackSmallFifoGroups(List<List<Message>> smallGroups, int maxBatchSize) {
+	private static List<List<Message>> binPackSmallFifoGroups(List<List<Message>> smallGroups, int maxBatchSize) {
 		Assert.notNull(smallGroups, "smallGroups must not be null");
 		Assert.isTrue(maxBatchSize > 0, "maxBatchSize must be positive");
 		smallGroups.sort((a, b) -> Integer.compare(b.size(), a.size()));
