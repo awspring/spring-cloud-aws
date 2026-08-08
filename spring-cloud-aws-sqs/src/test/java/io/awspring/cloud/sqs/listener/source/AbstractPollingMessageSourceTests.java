@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -392,6 +393,31 @@ class AbstractPollingMessageSourceTests {
 		assertThat(futures).isEmpty();
 
 		source.stop();
+	}
+
+	@Test
+	void shouldNotThrowConcurrentModificationExceptionWhenCancellingPollsOnStop() {
+		String testName = "shouldNotThrowConcurrentModificationExceptionWhenCancellingPollsOnStop";
+
+		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
+			@Override
+			protected CompletableFuture<Collection<Message>> doPollForMessages(int messagesToRequest) {
+				return new CompletableFuture<>();
+			}
+		};
+
+		source.setId(testName + " source");
+		source.setPollingEndpointName("test-queue");
+		source.configure(SqsContainerOptions.builder().listenerShutdownTimeout(Duration.ZERO).build());
+		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
+
+		// Cancelling an in-flight poll runs the whenComplete callback registered in managePollingFuture
+		// inline on the stopping thread, removing the future from pollingFutures while it's being iterated
+		CompletableFuture<Object> pollingFuture = new CompletableFuture<>();
+		ReflectionTestUtils.invokeMethod(source, "managePollingFuture", pollingFuture);
+
+		assertThatNoException().isThrownBy(source::stop);
+		assertThat(pollingFuture).isCancelled();
 	}
 
 	private static boolean doAwait(CountDownLatch processingLatch) {
