@@ -109,4 +109,20 @@
 
 	</dependencies>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- spring-cloud-build excludes '**/Abstract*.java' assuming such classes are test base
+						classes. In this module several concrete test classes are named after the Abstract*
+						production classes they test and were silently skipped. Clear the exclusion; actual
+						abstract base classes are not executable by JUnit anyway. -->
+					<excludes combine.self="override" />
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>
