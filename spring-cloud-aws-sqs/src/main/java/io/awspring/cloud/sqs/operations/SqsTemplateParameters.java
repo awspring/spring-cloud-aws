@@ -47,6 +47,6 @@ public class SqsTemplateParameters {
 	/**
 	 * The class name of the exception that was thrown.
 	 */
-	public static final String EXCEPTION_PARAMETER_NAME =  "exception";
+	public static final String EXCEPTION_PARAMETER_NAME = "exception";
 
 }

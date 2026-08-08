@@ -421,7 +421,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			cause = cause.getCause();
 		}
 		String errorMessage = cause != null && cause.getMessage() != null ? cause.getMessage() : "Unknown error";
-		Map<String, Object> additionalInformation = Map.of(SqsTemplateParameters.EXCEPTION_PARAMETER_NAME, cause != null ? cause.getClass().getName() : "");
+		Map<String, Object> additionalInformation = Map.of(SqsTemplateParameters.EXCEPTION_PARAMETER_NAME,
+				cause != null ? cause.getClass().getName() : "");
 		List<SendResult.Failed<T>> failed = partition.stream().map(msg -> new SendResult.Failed<>(errorMessage,
 				endpointName, originalMessagesById.get(msg.messageId()), additionalInformation)).toList();
 		return new SendResult.Batch<>(List.of(), failed);
