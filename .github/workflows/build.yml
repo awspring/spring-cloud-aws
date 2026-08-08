@@ -25,7 +25,7 @@ jobs:
           java-version: ${{ matrix.version }}
           cache: maven
       - name: Build with Maven
-        run: ./mvnw -V -B verify -Pspring
+        run: ./mvnw -V -B -T 1C verify -Pspring
   sonar:
     name: Run Sonar Analysis
     runs-on: ubuntu-latest
@@ -49,4 +49,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw -V -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage,spring
+        run: ./mvnw -V -B -T 1C verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Pcoverage,spring
