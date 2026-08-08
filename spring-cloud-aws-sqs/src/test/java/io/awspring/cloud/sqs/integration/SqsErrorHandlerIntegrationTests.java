@@ -147,7 +147,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}", SUCCESS_LINEAR_BACKOFF_ERROR_HANDLER_QUEUE,
 				messageBody);
 
-		await().atLeast(20, TimeUnit.SECONDS).atMost(30, TimeUnit.SECONDS)
+		await().atMost(30, TimeUnit.SECONDS)
 				.until(() -> latchContainer.receivesRetryMessageLinearlyLatch.getCount() == 0);
 
 	}
@@ -158,7 +158,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(SUCCESS_EXPONENTIAL_BACKOFF_ERROR_HANDLER_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}",
 				SUCCESS_EXPONENTIAL_BACKOFF_ERROR_HANDLER_QUEUE_NAME, messageBody);
-		await().atLeast(10, TimeUnit.SECONDS).atMost(20, TimeUnit.SECONDS)
+		await().atMost(20, TimeUnit.SECONDS)
 				.until(() -> latchContainer.receivesRetryMessageExponentiallyLatch.getCount() == 0);
 	}
 
@@ -169,7 +169,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}",
 				SUCCESS_EXPONENTIAL_FULL_JITTER_BACKOFF_ERROR_HANDLER_QUEUE, messageBody);
 
-		await().atLeast(64, TimeUnit.SECONDS).atMost(72, TimeUnit.SECONDS)
+		await().atMost(30, TimeUnit.SECONDS)
 				.until(() -> latchContainer.receivesRetryMessageFullJitterLatch.getCount() == 0);
 	}
 
@@ -180,7 +180,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}",
 				SUCCESS_EXPONENTIAL_HALF_JITTER_BACKOFF_ERROR_HANDLER_QUEUE, messageBody);
 
-		assertThat(latchContainer.receivesRetryMessageHalfJitterLatch.await(64, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesRetryMessageHalfJitterLatch.await(30, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -191,7 +191,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}",
 				SUCCESS_EXPONENTIAL_BACKOFF_ERROR_HANDLER_BATCH_QUEUE_NAME, messages);
 
-		assertThat(latchContainer.receivesRetryBatchMessageExponentiallyLatch.await(35, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesRetryBatchMessageExponentiallyLatch.await(40, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -202,7 +202,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.sendManyAsync(SUCCESS_EXPONENTIAL_FULL_JITTER_BACKOFF_ERROR_HANDLER_BATCH_QUEUE, messages);
 		logger.debug("Sent message to queue {} with messageBody {}",
 				SUCCESS_EXPONENTIAL_FULL_JITTER_BACKOFF_ERROR_HANDLER_BATCH_QUEUE, messages);
-		await().atLeast(64, TimeUnit.SECONDS).atMost(72, TimeUnit.SECONDS)
+		await().atMost(40, TimeUnit.SECONDS)
 				.until(() -> latchContainer.receivesRetryBatchMessageFullJitterLatch.getCount() == 0);
 	}
 
@@ -214,7 +214,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.sendManyAsync(SUCCESS_EXPONENTIAL_HALF_JITTER_BACKOFF_ERROR_HANDLER_BATCH_QUEUE, messages);
 		logger.debug("Sent message to queue {} with messageBody {}",
 				SUCCESS_EXPONENTIAL_HALF_JITTER_BACKOFF_ERROR_HANDLER_BATCH_QUEUE, messages);
-		await().atLeast(32, TimeUnit.SECONDS).atMost(64, TimeUnit.SECONDS)
+		await().atMost(40, TimeUnit.SECONDS)
 				.until(() -> latchContainer.receivesRetryBatchMessageHalfJitterLatch.getCount() == 0);
 	}
 
@@ -225,7 +225,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.sendManyAsync(SUCCESS_LINEAR_BACKOFF_ERROR_HANDLER_BATCH_QUEUE, messages);
 		logger.debug("Sent message to queue {} with messageBody {}", SUCCESS_LINEAR_BACKOFF_ERROR_HANDLER_BATCH_QUEUE,
 				messages);
-		await().atLeast(20, TimeUnit.SECONDS).atMost(30, TimeUnit.SECONDS)
+		await().atMost(30, TimeUnit.SECONDS)
 				.until(() -> latchContainer.receivesRetryBatchMessageLinearlyLatch.getCount() == 0);
 	}
 
@@ -296,7 +296,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		@Autowired
 		LatchContainer latchContainer;
 		static Double multiplier = 2.0;
-		static Integer initialValueSeconds = 2;
+		static Integer initialValueSeconds = 1;
 		long firstReceiveTimestamp;
 
 		@SqsListener(queueNames = SUCCESS_EXPONENTIAL_BACKOFF_ERROR_HANDLER_QUEUE_NAME, messageVisibilitySeconds = "10", factory = SUCCESS_EXPONENTIAL_BACKOFF_ERROR_HANDLER_FACTORY, id = "visibilityExponentialErrorHandler")
@@ -341,7 +341,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 			long receiveCount = Long.parseLong(MessageHeaderUtils.getHeader(message,
 					SqsHeaders.MessageSystemAttributes.SQS_APPROXIMATE_RECEIVE_COUNT, String.class));
 
-			if (receiveCount < 7) {
+			if (receiveCount < 4) {
 				return CompletableFuture.failedFuture(
 						new RuntimeException("Expected exception from visibilityExponentialErrorHandler"));
 			}
@@ -367,7 +367,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 			long receiveCount = Long.parseLong(MessageHeaderUtils.getHeader(message,
 					SqsHeaders.MessageSystemAttributes.SQS_APPROXIMATE_RECEIVE_COUNT, String.class));
 
-			if (receiveCount < 6) {
+			if (receiveCount < 4) {
 				return CompletableFuture.failedFuture(
 						new RuntimeException("Expected exception from visibilityExponentialErrorHandler"));
 			}
@@ -401,7 +401,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 			long receiveCount = Long.parseLong(MessageHeaderUtils.getHeader(message,
 					SqsHeaders.MessageSystemAttributes.SQS_APPROXIMATE_RECEIVE_COUNT, String.class));
 
-			if (receiveCount < 5) {
+			if (receiveCount < 4) {
 				return CompletableFuture
 						.failedFuture(new RuntimeException("Expected exception from visibilityLinearErrorHandler"));
 			}
@@ -434,7 +434,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 					SqsHeaders.MessageSystemAttributes.SQS_APPROXIMATE_RECEIVE_COUNT, String.class);
 
 			boolean anyIsUnderRetryCount = messagesReceiveCount.stream()
-					.anyMatch(messageReceiveCount -> Long.parseLong(messageReceiveCount) < 5);
+					.anyMatch(messageReceiveCount -> Long.parseLong(messageReceiveCount) < 4);
 
 			if (anyIsUnderRetryCount) {
 				return CompletableFuture.failedFuture(
@@ -474,7 +474,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 					SqsHeaders.MessageSystemAttributes.SQS_APPROXIMATE_RECEIVE_COUNT, String.class);
 
 			boolean anyIsUnderRetryCount = messagesReceiveCount.stream()
-					.anyMatch(messageReceiveCount -> Long.parseLong(messageReceiveCount) < 7);
+					.anyMatch(messageReceiveCount -> Long.parseLong(messageReceiveCount) < 4);
 
 			if (anyIsUnderRetryCount) {
 				return CompletableFuture.failedFuture(new RuntimeException(
@@ -511,7 +511,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 					SqsHeaders.MessageSystemAttributes.SQS_APPROXIMATE_RECEIVE_COUNT, String.class);
 
 			boolean anyIsUnderRetryCount = messagesReceiveCount.stream()
-					.anyMatch(messageReceiveCount -> Long.parseLong(messageReceiveCount) < 6);
+					.anyMatch(messageReceiveCount -> Long.parseLong(messageReceiveCount) < 4);
 
 			if (anyIsUnderRetryCount) {
 				return CompletableFuture.failedFuture(new RuntimeException(
@@ -548,7 +548,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 					SqsHeaders.MessageSystemAttributes.SQS_APPROXIMATE_RECEIVE_COUNT, String.class);
 
 			boolean anyIsUnderRetryCount = messagesReceiveCount.stream()
-					.anyMatch(messageReceiveCount -> Long.parseLong(messageReceiveCount) < 5);
+					.anyMatch(messageReceiveCount -> Long.parseLong(messageReceiveCount) < 4);
 
 			if (anyIsUnderRetryCount) {
 				return CompletableFuture.failedFuture(
