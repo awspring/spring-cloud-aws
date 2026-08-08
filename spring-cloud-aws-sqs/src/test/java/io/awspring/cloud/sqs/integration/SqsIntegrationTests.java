@@ -145,6 +145,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String MAX_CONCURRENT_MESSAGES_QUEUE_NAME = "max_concurrent_messages_test_queue";
 
+	static final String SEND_MORE_THAN_10_MESSAGES_AT_ONCE_QUEUE_NAME = "send_more_than_10_message_test_queue";
+
 	static final String LOW_RESOURCE_FACTORY = "lowResourceFactory";
 
 	static final String MANUAL_ACK_FACTORY = "manualAcknowledgementFactory";
@@ -178,7 +180,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME),
 				createQueue(client, CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME),
 				createQueue(client, OBSERVES_MESSAGE_QUEUE_NAME), createQueue(client, OBSERVES_ERROR_QUEUE_NAME),
-				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME)).join();
+				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME),
+				createQueue(client, SEND_MORE_THAN_10_MESSAGES_AT_ONCE_QUEUE_NAME)).join();
 	}
 
 	@Autowired
@@ -346,7 +349,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 	void shouldSendMoreThan10MessagesAtOnce() {
 		List<Message<String>> messages = IntStream.range(0, 25)
 				.mapToObj(i -> MessageBuilder.withPayload("moreThan10-payload-" + i).build()).toList();
-		SendResult.Batch<String> result = sqsTemplate.sendMany(RECEIVES_MESSAGE_QUEUE_NAME, messages);
+		SendResult.Batch<String> result = sqsTemplate.sendMany(SEND_MORE_THAN_10_MESSAGES_AT_ONCE_QUEUE_NAME, messages);
 		assertThat(result.successful()).hasSize(25);
 		assertThat(result.failed()).isEmpty();
 	}
