@@ -408,10 +408,31 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 				.thenApply(response -> createSendResultBatch(response, endpointName, originalMessagesById));
 	}
 
+	private <T> CompletableFuture<SendResult.Batch<T>> sendPartitionedBatch(String endpointName,
+			Collection<Message> messages, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		return sendSingleBatch(endpointName, messages, originalMessagesById)
+				.exceptionally(t -> createFailedBatchResult(messages, t, endpointName, originalMessagesById));
+	}
+
+	private <T> SendResult.Batch<T> createFailedBatchResult(Collection<Message> partition, Throwable throwable,
+			String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		Throwable cause = throwable;
+		if (cause instanceof java.util.concurrent.CompletionException) {
+			cause = cause.getCause();
+		}
+		String errorMessage = cause != null && cause.getMessage() != null ? cause.getMessage() : "Unknown error";
+		Map<String, Object> additionalInformation = Map.of(SqsTemplateParameters.ERROR_CODE_PARAMETER_NAME,
+				cause != null ? cause.getClass().getName() : "");
+		List<SendResult.Failed<T>> failed = partition.stream().map(msg -> new SendResult.Failed<>(errorMessage,
+				endpointName, originalMessagesById.get(msg.messageId()), additionalInformation)).toList();
+		return new SendResult.Batch<>(List.of(), failed);
+	}
+
 	private <T> CompletableFuture<SendResult.Batch<T>> sendStandardBatches(String endpointName,
 			Collection<Message> messages, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
 		List<CompletableFuture<SendResult.Batch<T>>> futures = CollectionUtils.partition(messages, SQS_MAX_BATCH_SIZE)
-				.stream().map(partition -> sendSingleBatch(endpointName, partition, originalMessagesById)).toList();
+				.stream().map(partition -> sendPartitionedBatch(endpointName, partition, originalMessagesById))
+				.toList();
 		return combineBatchFutures(futures);
 	}
 
@@ -430,7 +451,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 				.collect(Collectors.toList());
 		if (!smallGroups.isEmpty()) {
 			binPackSmallFifoGroups(smallGroups, SQS_MAX_BATCH_SIZE).stream()
-					.map(batch -> sendSingleBatch(endpointName, batch, originalMessagesById)).forEach(futures::add);
+					.map(batch -> sendPartitionedBatch(endpointName, batch, originalMessagesById))
+					.forEach(futures::add);
 		}
 		return combineBatchFutures(futures);
 	}
@@ -480,7 +502,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 					return CompletableFuture.completedFuture(
 							mergeBatchResults(acc, createSkippedResult(partition, endpointName, originalMessagesById)));
 				}
-				return sendSingleBatch(endpointName, partition, originalMessagesById)
+				return sendPartitionedBatch(endpointName, partition, originalMessagesById)
 						.thenApply(batchResult -> mergeBatchResults(acc, batchResult));
 			});
 		}
