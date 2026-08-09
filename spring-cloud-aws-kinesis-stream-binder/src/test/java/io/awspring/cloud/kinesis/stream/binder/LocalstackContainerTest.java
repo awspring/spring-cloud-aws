@@ -48,7 +48,9 @@ public interface LocalstackContainerTest {
 
 	@BeforeAll
 	static void startContainer() {
-		LOCAL_STACK_CONTAINER.start();
+		synchronized (LOCAL_STACK_CONTAINER) {
+			LOCAL_STACK_CONTAINER.start();
+		}
 		System.setProperty("spring.cloud.aws.region.static", LOCAL_STACK_CONTAINER.getRegion());
 		System.setProperty("spring.cloud.aws.endpoint", LOCAL_STACK_CONTAINER.getEndpoint().toString());
 		System.setProperty("spring.cloud.aws.credentials.access-key", LOCAL_STACK_CONTAINER.getAccessKey());
