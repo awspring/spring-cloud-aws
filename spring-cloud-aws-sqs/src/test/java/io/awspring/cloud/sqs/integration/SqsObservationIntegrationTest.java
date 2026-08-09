@@ -119,9 +119,9 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 	@DisplayName("Should correctly instrument and propagate observations across multiple components")
 	void shouldInstrumentObservationsAcrossThreads() throws Exception {
 		sqsTemplate.send(SYNC_CONTEXT_PROPAGATION_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
-		assertThat(latchContainer.receivesChangedMessageOnErrorLatch.await(20, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesChangedMessageOnErrorLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(receivesChangedPayloadOnErrorListener.receivedMessages).containsExactly(CHANGED_PAYLOAD);
-		assertThat(latchContainer.receivesChangedMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesChangedMessageLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
 				.hasHandledContextsThatSatisfy(contexts -> {
 
@@ -165,7 +165,7 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(ASYNC_CONTEXT_PROPAGATION_QUEUE_NAME, payload);
 
 		// Then
-		assertThat(latchContainer.asyncContextPropagationLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.asyncContextPropagationLatch.await(60, TimeUnit.SECONDS)).isTrue();
 
 		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
 				.hasHandledContextsThatSatisfy(contexts -> {

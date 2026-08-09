@@ -276,7 +276,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		String messageDeduplicationId = MessageHeaderUtils.getHeaderAsString(sendResult.message(),
 				SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_DEDUPLICATION_ID_HEADER);
 		logger.debug("Sent message to queue {} with messageBody {}", OBSERVES_MESSAGE_FIFO_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.observesFifoMessageLatch.await(10, TimeUnit.MINUTES)).isTrue();
+		assertThat(latchContainer.observesFifoMessageLatch.await(30, TimeUnit.SECONDS)).isTrue();
 		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
 				.hasNumberOfObservationsEqualTo(3).hasHandledContextsThatSatisfy(contexts -> {
 					ObservationContextAssert.then(contexts.get(0)).hasNameEqualTo("spring.aws.sqs.template")
