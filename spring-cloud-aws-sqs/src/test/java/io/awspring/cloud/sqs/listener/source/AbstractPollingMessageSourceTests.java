@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.listener.source;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
@@ -30,6 +31,7 @@ import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementProcessor;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandlerFactories;
+import io.awspring.cloud.sqs.listener.backpressure.BatchAwareBackPressureHandler;
 import io.awspring.cloud.sqs.listener.backpressure.CompositeBackPressureHandler;
 import io.awspring.cloud.sqs.listener.backpressure.ConcurrencyLimiterBlockingBackPressureHandler;
 import io.awspring.cloud.sqs.listener.backpressure.ThroughputBackPressureHandler;
@@ -144,13 +146,46 @@ class AbstractPollingMessageSourceTests {
 		SqsContainerOptions options = SqsContainerOptions.builder().maxMessagesPerPoll(10).maxConcurrentMessages(10)
 				.backPressureMode(BackPressureMode.ALWAYS_POLL_MAX_MESSAGES)
 				.maxDelayBetweenPolls(Duration.ofMillis(150)).listenerShutdownTimeout(Duration.ZERO).build();
-		BackPressureHandler backPressureHandler = BackPressureHandlerFactories.adaptiveThroughputBackPressureHandler()
-				.createBackPressureHandler(options);
+		BatchAwareBackPressureHandler delegate = (BatchAwareBackPressureHandler) BackPressureHandlerFactories
+				.adaptiveThroughputBackPressureHandler().createBackPressureHandler(options);
+
+		// The throughput mode is only briefly high: the first poll raises it and the next empty poll lowers it
+		// again. Record it right after each release, on the thread that performed it, rather than sampling for it.
+		Collection<String> modeAfterRelease = new ConcurrentLinkedQueue<>();
+		BatchAwareBackPressureHandler backPressureHandler = new BatchAwareBackPressureHandler() {
+
+			@Override
+			public int request(int amount) throws InterruptedException {
+				return delegate.request(amount);
+			}
+
+			@Override
+			public int requestBatch() throws InterruptedException {
+				return delegate.requestBatch();
+			}
+
+			@Override
+			public int getBatchSize() {
+				return delegate.getBatchSize();
+			}
+
+			@Override
+			public void release(int amount, ReleaseReason reason) {
+				delegate.release(amount, reason);
+				modeAfterRelease.add(reason + ":" + currentThroughputMode(delegate));
+			}
+
+			@Override
+			public boolean drain(Duration timeout) {
+				return delegate.drain(timeout);
+			}
+		};
 
 		ExecutorService threadPool = Executors.newCachedThreadPool();
-		CountDownLatch pollingCounter = new CountDownLatch(3);
 		CountDownLatch processingCounter = new CountDownLatch(1);
+		CountDownLatch emptyPollCounter = new CountDownLatch(2);
 		Collection<Throwable> errors = new ConcurrentLinkedQueue<>();
+		Collection<Integer> requestedAmounts = new ConcurrentLinkedQueue<>();
 
 		AbstractPollingMessageSource<Object, Message> source = new AbstractPollingMessageSource<>() {
 
@@ -160,44 +195,21 @@ class AbstractPollingMessageSourceTests {
 			protected CompletableFuture<Collection<Message>> doPollForMessages(int messagesToRequest) {
 				return CompletableFuture.supplyAsync(() -> {
 					try {
-						int pollAttempt = pollAttemptCounter.incrementAndGet();
-						logger.warn("Poll attempt {}", pollAttempt);
-						if (pollAttempt == 1) {
-							// Initial poll; throughput mode should be low
-							assertThroughputMode(backPressureHandler, "low");
-							// Since no permits were acquired yet, should be 10
-							assertThat(messagesToRequest).isEqualTo(10);
+						requestedAmounts.add(messagesToRequest);
+						// Fewer messages than requested on the first poll, none afterwards
+						if (pollAttemptCounter.incrementAndGet() == 1) {
 							return (Collection<Message>) List.of(
 									Message.builder().messageId(UUID.randomUUID().toString()).body("message").build());
 						}
-						else if (pollAttempt == 2) {
-							// Messages returned in the previous poll; throughput mode should be high
-							assertThroughputMode(backPressureHandler, "high");
-							// Since throughput mode is high, should be 10
-							assertThat(messagesToRequest).isEqualTo(10);
-							return Collections.<Message> emptyList();
-						}
-						else {
-							// No Messages returned in the previous poll; throughput mode should be low
-							assertThroughputMode(backPressureHandler, "low");
-							return Collections.<Message> emptyList();
-						}
+						emptyPollCounter.countDown();
+						return Collections.<Message> emptyList();
 					}
 					catch (Throwable t) {
 						logger.error("Error (not expecting it)", t);
 						errors.add(t);
 						throw new RuntimeException(t);
 					}
-				}, threadPool).whenComplete((v, t) -> {
-					if (t == null) {
-						logger.warn("Polling succeeded", t);
-						pollingCounter.countDown();
-					}
-					else {
-						logger.warn("Polling failed with error", t);
-						errors.add(t);
-					}
-				});
+				}, threadPool);
 			}
 		};
 
@@ -212,15 +224,30 @@ class AbstractPollingMessageSourceTests {
 		source.setTaskExecutor(createTaskExecutor(testName));
 		source.setAcknowledgementProcessor(getNoOpsAcknowledgementProcessor());
 		try {
+			assertThroughputMode(delegate, "low");
 			source.start();
-			assertThat(doAwait(pollingCounter)).isTrue();
+
 			assertThat(doAwait(processingCounter)).isTrue();
+			assertThat(doAwait(emptyPollCounter)).isTrue();
+			await().atMost(Duration.ofSeconds(10))
+					.untilAsserted(() -> assertThat(modeAfterRelease).contains("NONE_FETCHED:low"));
+
+			// A poll returning fewer messages than requested raises the throughput mode, and one returning
+			// none lowers it again
+			assertThat(modeAfterRelease).contains("PARTIAL_FETCH:high", "NONE_FETCHED:low");
+			// Every poll asks for the full batch, in either throughput mode
+			assertThat(requestedAmounts).isNotEmpty().allMatch(amount -> amount == 10);
 			assertThat(errors).isEmpty();
 		}
 		finally {
 			source.stop();
 			threadPool.shutdownNow();
 		}
+	}
+
+	private String currentThroughputMode(BackPressureHandler backPressureHandler) {
+		var bph = extractBackPressureHandler(backPressureHandler, ThroughputBackPressureHandler.class);
+		return getThroughputModeValue(bph, "currentThroughputMode");
 	}
 
 	private static final AtomicInteger testCounter = new AtomicInteger();
