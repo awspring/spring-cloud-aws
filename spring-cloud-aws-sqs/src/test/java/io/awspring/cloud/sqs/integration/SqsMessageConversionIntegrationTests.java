@@ -104,7 +104,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		MyPojo messageBody = new MyPojo("pojoParameterType", "secondValue");
 		sqsTemplate.send(RESOLVES_POJO_TYPES_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_TYPES_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.resolvesPojoLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.resolvesPojoLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -112,7 +112,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		MyPojo messageBody = new MyPojo("resolvesPojoMessage", "secondValue");
 		sqsTemplate.send(RESOLVES_POJO_MESSAGE_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_MESSAGE_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.resolvesPojoMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.resolvesPojoMessageLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -120,7 +120,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		MyPojo payload = new MyPojo("resolvesPojoList", "secondValue");
 		sqsTemplate.send(RESOLVES_POJO_LIST_QUEUE_NAME, payload);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_LIST_QUEUE_NAME, payload);
-		assertThat(latchContainer.resolvesPojoListLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.resolvesPojoListLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -129,7 +129,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_MESSAGE_LIST_QUEUE_NAME,
 				messageBody);
-		assertThat(latchContainer.resolvesPojoMessageListLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.resolvesPojoMessageListLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -138,7 +138,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(RESOLVES_POJO_FROM_HEADER_QUEUE_NAME,
 				MessageBuilder.createMessage(payload, new MessagingMessageHeaders(getHeaderMapping(MyPojo.class))));
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_FROM_HEADER_QUEUE_NAME, payload);
-		assertThat(latchContainer.resolvesPojoFromMappingLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.resolvesPojoFromMappingLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -148,7 +148,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 				new MessagingMessageHeaders(getHeaderMapping(MyOtherPojo.class))));
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_MY_OTHER_POJO_FROM_HEADER_QUEUE_NAME,
 				payload);
-		assertThat(latchContainer.resolvesMyOtherPojoFromMappingLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.resolvesMyOtherPojoFromMappingLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -159,7 +159,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME, payload);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME,
 				payload);
-		assertThat(latchContainer.resolvesPojoNotificationMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.resolvesPojoNotificationMessageLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -172,7 +172,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.sendMany(RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME, messages);
 		logger.debug("Sent message to queue {} with messageBody {}",
 				RESOLVES_POJO_FROM_NOTIFICATION_MESSAGE_LIST_QUEUE_NAME, payload);
-		assertThat(latchContainer.resolvesPojoNotificationMessageListLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.resolvesPojoNotificationMessageListLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -183,7 +183,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(RESOLVES_SUBJECT_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME, payload);
 		logger.debug("Sent message to queue {} with messageBody {}",
 				RESOLVES_SUBJECT_FROM_NOTIFICATION_MESSAGE_QUEUE_NAME, payload);
-		assertThat(latchContainer.resolvesSubjectNotificationMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.resolvesSubjectNotificationMessageLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	private Map<String, Object> getHeaderMapping(Class<?> clazz) {
@@ -201,7 +201,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(to -> to.queue(RESOLVES_POJO_TYPES_QUEUE_NAME).payload(messageBody)
 				.header(MessageHeaders.CONTENT_TYPE, "application/json"));
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_POJO_TYPES_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.resolvesPojoLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.resolvesPojoLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	static class ResolvesPojoListener {

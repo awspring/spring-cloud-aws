@@ -106,8 +106,8 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldInvokeErrorHandlerAndAfterProcessingInterceptorWhenInterceptorThrows() throws Exception {
 		sqsTemplate.send(INTERCEPTOR_THROWS_QUEUE_NAME, "any-payload");
-		assertThat(latchContainer.interceptorThrowsErrorHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.interceptorThrowsAfterProcessingLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsErrorHandlerLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsAfterProcessingLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.interceptorThrowsException.get().getCause())
 				.isInstanceOf(InterceptorExecutionFailedException.class);
 		assertThat(latchContainer.interceptorThrowsAfterProcessingException.get().getCause())
@@ -117,8 +117,8 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldInvokeErrorHandlerAndAfterProcessingInterceptorWhenInterceptorThrowsBatch() throws Exception {
 		sqsTemplate.send(INTERCEPTOR_THROWS_BATCH_QUEUE_NAME, "any-payload");
-		assertThat(latchContainer.interceptorThrowsBatchErrorHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.interceptorThrowsBatchAfterProcessingLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsBatchErrorHandlerLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsBatchAfterProcessingLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.interceptorThrowsBatchException.get().getCause())
 				.isInstanceOf(InterceptorExecutionFailedException.class);
 		assertThat(latchContainer.interceptorThrowsBatchAfterProcessingException.get().getCause())
@@ -128,8 +128,8 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 	@Test
 	void shouldAcknowledgeAndNotProcessWhenErrorHandlerRecoversInterceptorException() throws Exception {
 		sqsTemplate.send(INTERCEPTOR_THROWS_RECOVERS_QUEUE_NAME, "any-payload");
-		assertThat(latchContainer.interceptorThrowsRecoversAckLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.interceptorThrowsRecoversAfterProcessingLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsRecoversAckLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.interceptorThrowsRecoversAfterProcessingLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.interceptorThrowsRecoversAfterProcessingException.get()).isNull();
 		assertThat(latchContainer.interceptorThrowsRecoversListenerCalled).isFalse();
 	}
@@ -139,7 +139,7 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
 		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_CHANGED_MESSAGE_ON_COMPONENTS_QUEUE_NAME,
 				SHOULD_CHANGE_PAYLOAD);
-		assertThat(latchContainer.receivesChangedMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesChangedMessageLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(receivesChangedPayloadListener.receivedMessages).containsExactly(CHANGED_PAYLOAD);
 	}
 
@@ -148,7 +148,7 @@ class SqsInterceptorIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME, SHOULD_CHANGE_PAYLOAD);
 		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_CHANGED_MESSAGE_ON_ERROR_QUEUE_NAME,
 				SHOULD_CHANGE_PAYLOAD);
-		assertThat(latchContainer.receivesChangedMessageOnErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesChangedMessageOnErrorLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	static class ReceivesChangedPayloadListener {

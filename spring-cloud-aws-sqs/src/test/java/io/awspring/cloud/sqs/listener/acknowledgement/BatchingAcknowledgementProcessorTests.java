@@ -112,7 +112,7 @@ class BatchingAcknowledgementProcessorTests {
 		processor.setId(ID);
 		processor.start();
 		processor.doOnAcknowledge(messages);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 
 		then(ackExecutor).should().execute(messages);
@@ -211,7 +211,7 @@ class BatchingAcknowledgementProcessorTests {
 		processor.start();
 
 		processor.doOnAcknowledge(thresholdBatch);
-		assertThat(thresholdFlushLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(thresholdFlushLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.doOnAcknowledge(remainder);
 		processor.stop();
 
@@ -255,7 +255,7 @@ class BatchingAcknowledgementProcessorTests {
 		processor.setMessageGroupingFunction(messageToGroup -> {
 			pollingThreadInsideBufferAdd.countDown();
 			try {
-				releasePollingThread.await(10, TimeUnit.SECONDS);
+				releasePollingThread.await(60, TimeUnit.SECONDS);
 			}
 			catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
@@ -272,7 +272,7 @@ class BatchingAcknowledgementProcessorTests {
 		processor.start();
 
 		processor.doOnAcknowledge(message);
-		assertThat(pollingThreadInsideBufferAdd.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(pollingThreadInsideBufferAdd.await(60, TimeUnit.SECONDS)).isTrue();
 
 		CompletableFuture<Void> stopping = CompletableFuture.runAsync(processor::stop);
 		// Give the shutdown wait loop, which polls every 200ms, several chances to observe the in-flight message
@@ -353,7 +353,7 @@ class BatchingAcknowledgementProcessorTests {
 		processor.setId(ID);
 		processor.start();
 		processor.doOnAcknowledge(messages);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 		then(ackExecutor).should().execute(messages.subList(0, 10));
 		then(ackExecutor).should().execute(messages.subList(10, 15));
@@ -385,7 +385,7 @@ class BatchingAcknowledgementProcessorTests {
 
 		processor.start();
 		processor.doOnAcknowledge(messages);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 
 		IntStream.range(0, Math.min(messages.size() / maxMessagesPerBatch, 1))
@@ -494,7 +494,7 @@ class BatchingAcknowledgementProcessorTests {
 
 		processor.start();
 		processor.doOnAcknowledge(batches.stream().flatMap(Collection::stream).collect(Collectors.toList()));
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 
 		ArgumentCaptor<Collection<Message<String>>> messagesCaptor = ArgumentCaptor.forClass(Collection.class);

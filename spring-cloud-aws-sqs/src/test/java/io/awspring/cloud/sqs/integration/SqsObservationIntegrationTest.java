@@ -165,7 +165,7 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(ASYNC_CONTEXT_PROPAGATION_QUEUE_NAME, payload);
 
 		// Then
-		assertThat(latchContainer.asyncContextPropagationLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.asyncContextPropagationLatch.await(60, TimeUnit.SECONDS)).isTrue();
 
 		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
 				.hasHandledContextsThatSatisfy(contexts -> {

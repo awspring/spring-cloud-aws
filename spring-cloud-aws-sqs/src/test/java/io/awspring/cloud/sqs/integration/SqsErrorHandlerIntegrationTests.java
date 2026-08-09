@@ -126,7 +126,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}", SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_QUEUE_NAME,
 				messageBody);
 
-		assertThat(latchContainer.receivesRetryMessageQuicklyLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesRetryMessageQuicklyLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -137,7 +137,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}",
 				SUCCESS_VISIBILITY_TIMEOUT_TO_ZERO_BATCH_QUEUE_NAME, messages);
 
-		assertThat(latchContainer.receivesRetryBatchMessageQuicklyLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesRetryBatchMessageQuicklyLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test

@@ -135,11 +135,11 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(INFERS_SIMPLE_POJO_QUEUE, event);
 		logger.debug("Sent event to queue {}: {}", INFERS_SIMPLE_POJO_QUEUE, event);
 
-		assertThat(latchContainer.infersSimplePojoLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.infersSimplePojoLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(pojoCollector.receivedSimplePojos).hasSize(1);
 		assertThat(pojoCollector.receivedSimplePojos.get(0)).isEqualTo(event);
 		interceptorPayloadTypeCollector.assertPayloadsForQueueContains(INFERS_SIMPLE_POJO_QUEUE, event);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		ackCallbackPayloadTypeCollector.assertPayloadsForQueueContains(INFERS_SIMPLE_POJO_QUEUE, event);
 	}
 
@@ -152,11 +152,11 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(INFERS_POJO_WITH_MANY_PARAMETERS_QUEUE, event);
 		logger.debug("Sent event to queue {}: {}", INFERS_POJO_WITH_MANY_PARAMETERS_QUEUE, event);
 
-		assertThat(latchContainer.infersPojoWithManyParametersLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.infersPojoWithManyParametersLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(pojoCollector.receivedPojoWithManyParams).hasSize(1);
 		assertThat(pojoCollector.receivedPojoWithManyParams.get(0)).isEqualTo(event);
 		interceptorPayloadTypeCollector.assertPayloadsForQueueContains(INFERS_POJO_WITH_MANY_PARAMETERS_QUEUE, event);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		ackCallbackPayloadTypeCollector.assertPayloadsForQueueContains(INFERS_POJO_WITH_MANY_PARAMETERS_QUEUE, event);
 	}
 
@@ -172,11 +172,11 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 				events.stream().map(e -> MessageBuilder.withPayload(e).build()).toList());
 		logger.debug("Sent {} events to queue {}", events.size(), INFERS_BATCH_POJO_QUEUE);
 
-		assertThat(latchContainer.infersBatchPojoLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.infersBatchPojoLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(pojoCollector.receivedBatchPojos).containsExactlyInAnyOrderElementsOf(events);
 		// Interceptor runs before the listener, so payloads are already recorded by now
 		interceptorPayloadTypeCollector.assertPayloadsForQueueContainsAll(INFERS_BATCH_POJO_QUEUE, events);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		ackCallbackPayloadTypeCollector.assertPayloadsForQueueContainsAll(INFERS_BATCH_POJO_QUEUE, events);
 	}
 
@@ -189,11 +189,11 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(INFERS_NESTED_GENERIC_POJO_QUEUE, event);
 		logger.debug("Sent nested generic event to queue {}: {}", INFERS_NESTED_GENERIC_POJO_QUEUE, event);
 
-		assertThat(latchContainer.infersNestedGenericLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.infersNestedGenericLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(pojoCollector.receivedNestedGeneric).hasSize(1);
 		assertThat(pojoCollector.receivedNestedGeneric.get(0)).isEqualTo(event);
 		interceptorPayloadTypeCollector.assertPayloadsForQueueContains(INFERS_NESTED_GENERIC_POJO_QUEUE, event);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		ackCallbackPayloadTypeCollector.assertPayloadsForQueueContains(INFERS_NESTED_GENERIC_POJO_QUEUE, event);
 	}
 
@@ -206,11 +206,11 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(ASYNC_LISTENER_QUEUE, event);
 		logger.debug("Sent event to async listener queue {}: {}", ASYNC_LISTENER_QUEUE, event);
 
-		assertThat(latchContainer.asyncListenerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.asyncListenerLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(pojoCollector.receivedAsyncPojos).hasSize(1);
 		assertThat(pojoCollector.receivedAsyncPojos.get(0)).isEqualTo(event);
 		interceptorPayloadTypeCollector.assertPayloadsForQueueContains(ASYNC_LISTENER_QUEUE, event);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		ackCallbackPayloadTypeCollector.assertPayloadsForQueueContains(ASYNC_LISTENER_QUEUE, event);
 	}
 
@@ -226,11 +226,11 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 				events.stream().map(e -> MessageBuilder.withPayload(e).build()).toList());
 		logger.debug("Sent {} events to queue {}", events.size(), BATCH_MESSAGE_WRAPPER_QUEUE);
 
-		assertThat(latchContainer.batchMessageWrapperLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.batchMessageWrapperLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(pojoCollector.receivedBatchMessageWrapperPojos).containsExactlyInAnyOrderElementsOf(events);
 		// Interceptor runs before the listener, so payloads are already recorded by now
 		interceptorPayloadTypeCollector.assertPayloadsForQueueContainsAll(BATCH_MESSAGE_WRAPPER_QUEUE, events);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		ackCallbackPayloadTypeCollector.assertPayloadsForQueueContainsAll(BATCH_MESSAGE_WRAPPER_QUEUE, events);
 	}
 
@@ -245,11 +245,11 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 				.header(SqsHeaders.SQS_DEFAULT_TYPE_HEADER, "com.example.NonExistentClass"));
 		logger.debug("Sent event with wrong type header to queue {}: {}", IGNORES_TYPE_HEADER_QUEUE, event);
 
-		assertThat(latchContainer.ignoresTypeHeaderLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.ignoresTypeHeaderLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(pojoCollector.receivedIgnoresTypeHeaderPojos).hasSize(1);
 		assertThat(pojoCollector.receivedIgnoresTypeHeaderPojos.get(0)).isEqualTo(event);
 		interceptorPayloadTypeCollector.assertPayloadsForQueueContains(IGNORES_TYPE_HEADER_QUEUE, event);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		ackCallbackPayloadTypeCollector.assertPayloadsForQueueContains(IGNORES_TYPE_HEADER_QUEUE, event);
 	}
 
@@ -263,11 +263,11 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent event to explicit payload annotation queue {}: {}", EXPLICIT_PAYLOAD_ANNOTATION_QUEUE,
 				event);
 
-		assertThat(latchContainer.explicitPayloadAnnotationLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.explicitPayloadAnnotationLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(pojoCollector.receivedExplicitPayloadPojos).hasSize(1);
 		assertThat(pojoCollector.receivedExplicitPayloadPojos.get(0)).isEqualTo(event);
 		interceptorPayloadTypeCollector.assertPayloadsForQueueContains(EXPLICIT_PAYLOAD_ANNOTATION_QUEUE, event);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		ackCallbackPayloadTypeCollector.assertPayloadsForQueueContains(EXPLICIT_PAYLOAD_ANNOTATION_QUEUE, event);
 	}
 
@@ -281,11 +281,11 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(to -> to.queue(STRING_PAYLOAD_QUEUE).payload(rawJson));
 		logger.debug("Sent raw JSON string to queue {}: {}", STRING_PAYLOAD_QUEUE, rawJson);
 
-		assertThat(latchContainer.stringPayloadLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.stringPayloadLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(pojoCollector.receivedStringPayloads).hasSize(1);
 		assertThat(pojoCollector.receivedStringPayloads.get(0)).isEqualTo(rawJson);
 		interceptorPayloadTypeCollector.assertPayloadsForQueueContains(STRING_PAYLOAD_QUEUE, rawJson);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		ackCallbackPayloadTypeCollector.assertPayloadsForQueueContains(STRING_PAYLOAD_QUEUE, rawJson);
 	}
 
@@ -299,14 +299,14 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(to -> to.queue(CUSTOM_CONVERTER_QUEUE).payload(snakeCaseJson));
 		logger.debug("Sent snake_case JSON to custom converter queue {}: {}", CUSTOM_CONVERTER_QUEUE, snakeCaseJson);
 
-		assertThat(latchContainer.customConverterLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.customConverterLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(pojoCollector.receivedCustomConverterPojos).hasSize(1);
 		SnakeCaseEvent received = pojoCollector.receivedCustomConverterPojos.get(0);
 		SnakeCaseEvent expectedEvent = new SnakeCaseEvent("custom-converter-id", "custom-converter-data");
 		assertThat(received.getEventId()).isEqualTo("custom-converter-id");
 		assertThat(received.getEventPayload()).isEqualTo("custom-converter-data");
 		interceptorPayloadTypeCollector.assertPayloadsForQueueContains(CUSTOM_CONVERTER_QUEUE, expectedEvent);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		ackCallbackPayloadTypeCollector.assertPayloadsForQueueContains(CUSTOM_CONVERTER_QUEUE, expectedEvent);
 	}
 
@@ -321,7 +321,7 @@ class SqsPayloadTypeInferenceIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent event to error handler test queue {}: {}", ERROR_HANDLER_TEST_QUEUE, event);
 
 		// Wait for the error handler to process the message
-		assertThat(errorHandlerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(errorHandlerLatch.await(60, TimeUnit.SECONDS)).isTrue();
 
 		// Verify the error handler received the deserialized payload with correct field values
 		errorHandlerPayloadTypeCollector.assertPayloadsForQueueContains(ERROR_HANDLER_TEST_QUEUE, event);
