@@ -340,7 +340,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		public SqsMessageListenerContainerFactory<String> defaultSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
-			factory.configure(options -> options
+			factory.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 				.maxDelayBetweenPolls(Duration.ofSeconds(1))
 				.pollTimeout(Duration.ofSeconds(3)));
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);
@@ -353,7 +353,7 @@ class SqsMessageConversionIntegrationTests extends BaseSqsIntegrationTest {
 			// Configure converter to use header-based type resolution, which takes precedence over type inference
 			SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter();
 			converter.setPayloadTypeHeader(SqsHeaders.SQS_DEFAULT_TYPE_HEADER);
-			factory.configure(options -> options
+			factory.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.messageConverter(converter)
 					.queueAttributeNames(Collections.singletonList(QueueAttributeName.VISIBILITY_TIMEOUT))
 					.maxDelayBetweenPolls(Duration.ofSeconds(1))

@@ -133,8 +133,9 @@ class SqsExtendedClientIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		SqsMessageListenerContainerFactory<String> defaultSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
-			factory.configure(
-					options -> options.maxDelayBetweenPolls(Duration.ofSeconds(1)).pollTimeout(Duration.ofSeconds(3)));
+			factory.configure(options -> options.listenerShutdownTimeout(Duration.ZERO)
+					.acknowledgementShutdownTimeout(Duration.ZERO).maxDelayBetweenPolls(Duration.ofSeconds(1))
+					.pollTimeout(Duration.ofSeconds(3)));
 			factory.setSqsAsyncClientSupplier(SqsExtendedClientIntegrationTests::createExtendedAsyncClient);
 			return factory;
 		}

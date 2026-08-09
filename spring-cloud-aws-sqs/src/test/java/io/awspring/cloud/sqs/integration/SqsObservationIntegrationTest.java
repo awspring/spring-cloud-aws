@@ -359,7 +359,7 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		SqsMessageListenerContainerFactory<String> defaultSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
-			factory.configure(options -> options
+			factory.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 				.maxDelayBetweenPolls(Duration.ofSeconds(1))
 				.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 				.acknowledgementMode(AcknowledgementMode.ALWAYS)
@@ -379,7 +379,7 @@ class SqsObservationIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		SqsMessageListenerContainerFactory<String> asyncSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
-			factory.configure(options -> options
+			factory.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 				.maxDelayBetweenPolls(Duration.ofSeconds(1))
 				.pollTimeout(Duration.ofSeconds(3)));
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient);

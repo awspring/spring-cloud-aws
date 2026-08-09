@@ -595,7 +595,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> errorHandlerVisibility() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.maxConcurrentMessages(10)
 					.pollTimeout(Duration.ofSeconds(10))
 					.maxMessagesPerPoll(10)
@@ -612,7 +612,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> exponentialBackOffErrorHandler() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.maxConcurrentMessages(10)
 					.pollTimeout(Duration.ofSeconds(15))
 					.maxMessagesPerPoll(10)
@@ -632,7 +632,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> exponentialBackOffFullJitterErrorHandler() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.maxConcurrentMessages(10)
 					.pollTimeout(Duration.ofSeconds(15))
 					.maxMessagesPerPoll(10)
@@ -654,7 +654,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> exponentialBackOffHalfJitterErrorHandler() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.maxConcurrentMessages(10)
 					.pollTimeout(Duration.ofSeconds(15))
 					.maxMessagesPerPoll(10)
@@ -676,7 +676,7 @@ public class SqsErrorHandlerIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> linearBackOffErrorHandler() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.maxConcurrentMessages(10)
 					.pollTimeout(Duration.ofSeconds(15))
 					.maxMessagesPerPoll(10)
