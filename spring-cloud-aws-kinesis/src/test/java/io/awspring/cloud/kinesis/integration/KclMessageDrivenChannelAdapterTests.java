@@ -187,9 +187,12 @@ public class KclMessageDrivenChannelAdapterTests implements LocalstackContainerT
 			adapter.setMetricsLevel(MetricsLevel.NONE);
 			adapter.setLeaseManagementConfigCustomizer(
 					leaseManagementConfig -> leaseManagementConfig.maxLeasesForWorker(10).shardSyncIntervalMillis(0)
+							.failoverTimeMillis(1000).leaseAssignmentIntervalMillis(1000L)
 							.workerUtilizationAwareAssignmentConfig().disableWorkerMetrics(true));
+			adapter.setLifecycleConfigCustomizer(lifecycleConfig -> lifecycleConfig.taskBackoffTimeMillis(100L));
 			adapter.setCoordinatorConfigCustomizer(
-					coordinatorConfig -> coordinatorConfig.shardConsumerDispatchPollIntervalMillis(500L));
+					coordinatorConfig -> coordinatorConfig.shardConsumerDispatchPollIntervalMillis(500L)
+							.parentShardPollIntervalMillis(1000L).schedulerInitializationBackoffTimeMillis(200L));
 			adapter.setBindSourceRecord(true);
 			adapter.setEmptyRecordList(true);
 			adapter.setPollingMaxRecords(99);
@@ -205,8 +208,7 @@ public class KclMessageDrivenChannelAdapterTests implements LocalstackContainerT
 	}
 
 	private static CompletableFuture<WaiterResponse<DescribeStreamResponse>> initializeStream(String streamName) {
-		return AMAZON_KINESIS.createStream(request -> request.streamName(streamName).shardCount(1)).thenCompose(
-				result -> AMAZON_KINESIS.waiter().waitUntilStreamExists(request -> request.streamName(streamName)));
+		return LocalstackContainerTest.createStream(AMAZON_KINESIS, streamName, 1);
 	}
 
 	/**
