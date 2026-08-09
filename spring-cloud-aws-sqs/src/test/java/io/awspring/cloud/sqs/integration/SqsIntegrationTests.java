@@ -319,6 +319,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 							.filter(context -> context.getContextualName() != null
 									&& context.getContextualName().equals("observes_error_test_queue receive"))
 							.toList();
+					// The second context is the redelivery, which arrives after the visibility timeout. Assert
+					// on its presence first: 'untilAsserted' only retries AssertionError, so indexing straight
+					// into the list would escape the wait with an ArrayIndexOutOfBoundsException instead.
+					assertThat(receivingContexts).hasSize(2);
 					ObservationContextAssert.then(receivingContexts.get(0)).hasNameEqualTo("spring.aws.sqs.listener")
 							.isInstanceOf(AbstractListenerObservation.Context.class).doesNotHaveParentObservation()
 							.assertThatError().isInstanceOf(RuntimeException.class)
