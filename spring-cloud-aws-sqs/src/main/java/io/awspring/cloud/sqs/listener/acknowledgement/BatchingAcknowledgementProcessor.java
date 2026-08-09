@@ -80,9 +80,9 @@ public class BatchingAcknowledgementProcessor<T> extends AbstractOrderingAcknowl
 	private BlockingQueue<Message<T>> acks;
 
 	/**
-	 * Number of messages that have been received for acknowledgement but are not in {@link #acks} nor in the buffer
-	 * yet. Incremented before a message is offered to the queue and decremented after it has been added to the buffer,
-	 * so a message is always accounted for while the polling thread is holding it in between the two.
+	 * Number of messages that have been received for acknowledgement but are not in {@link #acks} nor in the buffer yet.
+	 * Incremented before a message is offered to the queue and decremented after it has been added to the buffer, so a
+	 * message is always accounted for while the polling thread is holding it in between the two.
 	 */
 	private final AtomicInteger unbufferedAcks = new AtomicInteger();
 
