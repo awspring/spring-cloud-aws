@@ -81,7 +81,7 @@ class MessageGroupingSinkTests {
 			public CompletableFuture<Message<Integer>> process(Message<Integer> message,
 					MessageProcessingContext<Integer> context) {
 				try {
-					Thread.sleep(new Random().nextInt(1000));
+					Thread.sleep(new Random().nextInt(50));
 				}
 				catch (InterruptedException e) {
 					throw new RuntimeException(e);

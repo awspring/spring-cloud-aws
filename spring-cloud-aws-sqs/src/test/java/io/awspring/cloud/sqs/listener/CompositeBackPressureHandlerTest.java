@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
 import io.awspring.cloud.sqs.listener.backpressure.BackPressureHandler;
@@ -76,7 +77,7 @@ class CompositeBackPressureHandlerTest {
 	void request_shouldWaitIfNoPermitsAndTimeout() throws InterruptedException {
 		// given
 		CompositeBackPressureHandler compositeHandler = compositeHandlerBuilder()
-				.noPermitsReturnedWaitTimeout(Duration.ofSeconds(5)).backPressureHandlers(List.of(handler1, handler2))
+				.noPermitsReturnedWaitTimeout(Duration.ofSeconds(2)).backPressureHandlers(List.of(handler1, handler2))
 				.build();
 		when(handler1.request(5)).thenReturn(0);
 		when(handler2.request(5)).thenReturn(0);
@@ -148,7 +149,9 @@ class CompositeBackPressureHandlerTest {
 			}
 		});
 		requester.start();
-		Thread.sleep(200); // Ensure requester is waiting
+		// Wait for the requester to actually block rather than guess at how long it takes to get there
+		await().atMost(Duration.ofSeconds(10)).until(() -> requester.getState() == Thread.State.WAITING
+				|| requester.getState() == Thread.State.TIMED_WAITING);
 		assertThat(requester.isAlive()).isTrue();
 		// when
 		compositeHandler.release(5, BackPressureHandler.ReleaseReason.PROCESSED);

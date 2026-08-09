@@ -768,8 +768,9 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<String> observationSqsListenerContainerFactory(
 				ObservationRegistry observationRegistry) {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
-			factory.configure(options -> options.maxConcurrentMessages(10).acknowledgementThreshold(10)
-					.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
+			factory.configure(options -> options.listenerShutdownTimeout(Duration.ZERO)
+					.acknowledgementShutdownTimeout(Duration.ZERO).maxConcurrentMessages(10)
+					.acknowledgementThreshold(10).acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
 					.acknowledgementInterval(Duration.ofSeconds(1)).observationRegistry(observationRegistry));
 			factory.setSqsAsyncClientSupplier(BaseSqsIntegrationTest::createHighThroughputAsyncClient);
 			return factory;
@@ -779,7 +780,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		public SqsMessageListenerContainerFactory<String> defaultSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
-			factory.configure(options -> options
+			factory.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 				.maxConcurrentMessages(10)
 				.acknowledgementThreshold(10)
 				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
@@ -813,7 +814,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean(ERROR_ON_ACK_FACTORY)
 		public SqsMessageListenerContainerFactory<String> errorOnAckSqsListenerContainerFactory() {
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
-			factory.configure(options -> options
+			factory.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 				.maxConcurrentMessages(10)
 				.acknowledgementThreshold(10)
 				.acknowledgementInterval(Duration.ofMillis(200))
@@ -872,7 +873,7 @@ class SqsFifoIntegrationTests extends BaseSqsIntegrationTest {
 			}).when(spyAsyncClient).changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class));
 
 			SqsMessageListenerContainerFactory<String> factory = new SqsMessageListenerContainerFactory<>();
-			factory.configure(options -> options
+			factory.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 				.maxConcurrentMessages(10)
 				.acknowledgementThreshold(10)
 				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)

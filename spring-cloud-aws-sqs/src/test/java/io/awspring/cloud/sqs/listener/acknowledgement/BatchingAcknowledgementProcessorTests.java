@@ -458,7 +458,7 @@ class BatchingAcknowledgementProcessorTests {
 
 	private void sleep() {
 		try {
-			Thread.sleep(new Random().nextInt(100));
+			Thread.sleep(new Random().nextInt(10));
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

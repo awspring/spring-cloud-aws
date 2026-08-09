@@ -762,7 +762,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> lowResourceFactory() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.maxConcurrentMessages(1)
 					.pollTimeout(Duration.ofSeconds(5))
 					.maxMessagesPerPoll(1)
@@ -778,7 +778,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> ackAfterSecondErrorFactory() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.maxConcurrentMessages(10)
 					.pollTimeout(Duration.ofSeconds(10))
 					.maxMessagesPerPoll(10)
@@ -823,7 +823,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> manualAcknowledgementFactory() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.acknowledgementMode(AcknowledgementMode.MANUAL)
 					.maxConcurrentMessages(1)
 					.pollTimeout(Duration.ofSeconds(3))
@@ -847,7 +847,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> manualAcknowledgementBatchFactory() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.acknowledgementMode(AcknowledgementMode.MANUAL)
 					.maxConcurrentMessages(10)
 					.pollTimeout(Duration.ofSeconds(10))

@@ -280,7 +280,8 @@ public class SqsAnnotationAcknowledgementIntegrationTests extends BaseSqsIntegra
 			return SqsMessageListenerContainerFactory.builder()
 					.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
 					.acknowledgementResultCallback(getAcknowledgementResultCallback())
-					.configure(options -> options.maxDelayBetweenPolls(Duration.ofSeconds(5))
+					.configure(options -> options.listenerShutdownTimeout(Duration.ZERO)
+							.acknowledgementShutdownTimeout(Duration.ZERO).maxDelayBetweenPolls(Duration.ofSeconds(5))
 							.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 							.pollTimeout(Duration.ofSeconds(5)))
 					.build();
@@ -289,8 +290,10 @@ public class SqsAnnotationAcknowledgementIntegrationTests extends BaseSqsIntegra
 		@Bean(name = ACK_AFTER_SECOND_ERROR_FACTORY)
 		public SqsMessageListenerContainerFactory<Object> ackAfterSecondErrorFactory() {
 			return SqsMessageListenerContainerFactory.builder()
-					.configure(options -> options.maxConcurrentMessages(10).pollTimeout(Duration.ofSeconds(10))
-							.maxMessagesPerPoll(10).maxDelayBetweenPolls(Duration.ofSeconds(1)))
+					.configure(options -> options.listenerShutdownTimeout(Duration.ZERO)
+							.acknowledgementShutdownTimeout(Duration.ZERO).maxConcurrentMessages(10)
+							.pollTimeout(Duration.ofSeconds(10)).maxMessagesPerPoll(10)
+							.maxDelayBetweenPolls(Duration.ofSeconds(1)))
 					.containerComponentFactories(getExceptionThrowingAckExecutor())
 					.acknowledgementResultCallback(getAcknowledgementResultCallback()).errorHandler(testErrorHandler())
 					.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient).build();
