@@ -87,14 +87,16 @@ public class QueueAttributesResolver {
 
 	private CompletableFuture<QueueAttributes> wrapException(Throwable t) {
 		Throwable unwrapped = t instanceof CompletionException ? t.getCause() : t;
-		if (unwrapped instanceof QueueAttributesResolvingException) {
-			return CompletableFutures.failedFuture(unwrapped);
+
+		if (unwrapped instanceof QueueDoesNotExistException && QueueNotFoundStrategy.IGNORE.equals(this.queueNotFoundStrategy)) {
+			return CompletableFutures.failedFuture(new QueueAttributesResolvingException(
+					"Queue not found: " + this.queueName, unwrapped, true));
 		}
 
 		String message = "Error resolving attributes for queue "
 			+ this.queueName + " with strategy " + this.queueNotFoundStrategy + " and queueAttributesNames " + this.queueAttributeNames;
 
-		if (t.getCause() instanceof SqsException) {
+		if (unwrapped instanceof SqsException) {
 			message += "\n This might be due to connectivity issues or incorrect configuration. " +
 				"Please verify your AWS credentials, network settings, and queue configuration.";
 		}
@@ -124,16 +126,8 @@ public class QueueAttributesResolver {
 	}
 
 	private CompletableFuture<String> handleException(Throwable t) {
-		if (t.getCause() instanceof QueueDoesNotExistException) {
-			if (QueueNotFoundStrategy.CREATE.equals(this.queueNotFoundStrategy)) {
-				return createQueue();
-			}
-			if (QueueNotFoundStrategy.IGNORE.equals(this.queueNotFoundStrategy)) {
-				logger.warn("Queue {} not found and strategy is IGNORE; the listener for this queue will be skipped",
-						this.queueName);
-				return CompletableFutures.failedFuture(new QueueAttributesResolvingException(
-						"Queue not found: " + this.queueName, t.getCause(), true));
-			}
+		if (t.getCause() instanceof QueueDoesNotExistException && QueueNotFoundStrategy.CREATE.equals(this.queueNotFoundStrategy)) {
+			return createQueue();
 		}
 		return CompletableFutures.failedFuture(t);
 	}
