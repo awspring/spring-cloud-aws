@@ -450,7 +450,7 @@ class BatchingAcknowledgementProcessorTests {
 		messages.forEach(
 				(group, theMessages) -> CompletableFuture.runAsync(() -> processor.doOnAcknowledge(theMessages)));
 		logger.info("Sent all messages for acknowledgement");
-		assertThat(ackLatch.await(1000, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(30, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 		messages.forEach((group, messagesFromGroup) -> assertThat(acknowledgedMessages.get(group))
 				.containsExactlyElementsOf(messagesFromGroup.stream().map(Message::getPayload).collect(toList())));
