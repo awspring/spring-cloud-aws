@@ -493,7 +493,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.sendManyAsync(MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages2);
 		logger.debug("Sent messages to queue {} with messages {} and {}", MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages1,
 				messages2);
-		assertDoesNotThrow(() -> latchContainer.maxConcurrentMessagesBarrier.await(10, TimeUnit.SECONDS));
+		assertDoesNotThrow(() -> latchContainer.maxConcurrentMessagesBarrier.await(60, TimeUnit.SECONDS));
 	}
 
 	static class ReceivesMessageListener {

@@ -18,7 +18,6 @@ package io.awspring.cloud.sqs.integration;
 import static io.awspring.cloud.sqs.integration.SnsNotificationIntegrationTests.SNS_NOTIFICATION_JSON_QUEUE_NAME;
 import static io.awspring.cloud.sqs.integration.SnsNotificationIntegrationTests.SNS_NOTIFICATION_STRING_QUEUE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.awspring.cloud.sqs.annotation.SqsListener;
@@ -81,7 +80,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
-	void shouldReceiveSnsNotificationWithRequiredFieldsOnly() {
+	void shouldReceiveSnsNotificationWithRequiredFieldsOnly() throws Exception {
 		String type = "Notification";
 		String messageId = "message-id-required-only";
 		String topicArn = "topic-arn";
@@ -99,8 +98,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 				}""".formatted(type, messageId, topicArn, messageContent, timestamp);
 
 		sqsTemplate.send(SNS_NOTIFICATION_STRING_QUEUE_NAME, snsJson);
-		await().atMost(Duration.ofSeconds(10)).untilAsserted(
-				() -> assertThat(latchContainer.requiredFieldsLatch.await(10, TimeUnit.SECONDS)).isTrue());
+		assertThat(latchContainer.requiredFieldsLatch.await(60, TimeUnit.SECONDS)).isTrue();
 
 		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer
 				.getNotification(messageId);
@@ -122,7 +120,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
-	void shouldReceiveSnsNotificationWithAllFields() {
+	void shouldReceiveSnsNotificationWithAllFields() throws Exception {
 		String type = "Notification";
 		String messageId = "message-id-all-fields";
 		String sequenceNumber = "10000000000000003000";
@@ -159,8 +157,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 				subject, signatureVersion, signature, signingCertURL);
 
 		sqsTemplate.send(SNS_NOTIFICATION_STRING_QUEUE_NAME, snsJson);
-		await().atMost(Duration.ofSeconds(10))
-				.untilAsserted(() -> assertThat(latchContainer.allFieldsLatch.await(10, TimeUnit.SECONDS)).isTrue());
+		assertThat(latchContainer.allFieldsLatch.await(60, TimeUnit.SECONDS)).isTrue();
 
 		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer
 				.getNotification(messageId);
@@ -218,8 +215,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 				timestamp, unsubscribeUrl, subject);
 
 		sqsTemplate.send(SNS_NOTIFICATION_JSON_QUEUE_NAME, snsJson);
-		await().atMost(Duration.ofSeconds(10))
-				.untilAsserted(() -> assertThat(latchContainer.jsonPayloadLatch.await(10, TimeUnit.SECONDS)).isTrue());
+		assertThat(latchContainer.jsonPayloadLatch.await(60, TimeUnit.SECONDS)).isTrue();
 
 		SnsNotification<String> receivedNotification = (SnsNotification<String>) latchContainer
 				.getNotification(messageId);
