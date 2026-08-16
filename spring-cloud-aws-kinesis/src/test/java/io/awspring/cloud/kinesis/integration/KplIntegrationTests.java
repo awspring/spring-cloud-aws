@@ -68,9 +68,7 @@ class KplIntegrationTests implements LocalstackContainerTest {
 		AMAZON_KINESIS = LocalstackContainerTest.kinesisClient();
 		CLOUD_WATCH = LocalstackContainerTest.cloudWatchClient();
 
-		AMAZON_KINESIS.createStream(request -> request.streamName(TEST_STREAM).shardCount(1)).thenCompose(
-				result -> AMAZON_KINESIS.waiter().waitUntilStreamExists(request -> request.streamName(TEST_STREAM)))
-				.join();
+		LocalstackContainerTest.createStream(AMAZON_KINESIS, TEST_STREAM, 1).join();
 	}
 
 	@Test
