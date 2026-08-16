@@ -20,19 +20,25 @@ import io.awspring.cloud.kinesis.stream.binder.properties.KinesisBinderConfigura
 import io.awspring.cloud.kinesis.stream.binder.properties.KinesisConsumerProperties;
 import io.awspring.cloud.kinesis.stream.binder.properties.KinesisProducerProperties;
 import io.awspring.cloud.kinesis.stream.binder.provisioning.KinesisStreamProvisioner;
+import java.time.Duration;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.cloud.stream.binder.AbstractTestBinder;
 import org.springframework.cloud.stream.binder.ExtendedConsumerProperties;
 import org.springframework.cloud.stream.binder.ExtendedProducerProperties;
 import org.springframework.cloud.stream.binder.PartitionTestSupport;
 import org.springframework.cloud.stream.provisioning.ConsumerDestination;
+import org.springframework.cloud.stream.provisioning.ProducerDestination;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageProducer;
+import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
@@ -52,6 +58,8 @@ public class KinesisTestBinder extends
 
 	private final GenericApplicationContext applicationContext;
 
+	private final Set<String> provisionedStreams = ConcurrentHashMap.newKeySet();
+
 	public KinesisTestBinder(KinesisAsyncClient amazonKinesis, DynamoDbAsyncClient dynamoDbClient,
 			CloudWatchAsyncClient cloudWatchClient,
 			KinesisBinderConfigurationProperties kinesisBinderConfigurationProperties) {
@@ -60,8 +68,8 @@ public class KinesisTestBinder extends
 
 		this.amazonKinesis = amazonKinesis;
 
-		KinesisStreamProvisioner provisioningProvider = new KinesisStreamProvisioner(amazonKinesis,
-				kinesisBinderConfigurationProperties);
+		KinesisStreamProvisioner provisioningProvider = new RecordingProvisioner(amazonKinesis,
+				kinesisBinderConfigurationProperties, this.provisionedStreams);
 
 		KinesisMessageChannelBinder binder = new TestKinesisMessageChannelBinder(amazonKinesis, dynamoDbClient,
 				cloudWatchClient, kinesisBinderConfigurationProperties, provisioningProvider);
@@ -77,13 +85,64 @@ public class KinesisTestBinder extends
 
 	@Override
 	public void cleanup() {
-		this.amazonKinesis.listStreams()
-				.thenCompose(reply -> CompletableFuture.allOf(reply.streamNames().stream()
-						.map(streamName -> this.amazonKinesis.deleteStream(request -> request.streamName(streamName))
-								.thenCompose(result -> this.amazonKinesis.waiter()
-										.waitUntilStreamNotExists(request -> request.streamName(streamName))))
-						.toArray(CompletableFuture[]::new)))
-				.join();
+		// Delete only the streams this binder provisioned. Listing the account and deleting everything
+		// removes streams that other test classes are still using, which is invisible while the classes run
+		// one at a time and fails them with ResourceNotFoundException as soon as they do not.
+		CompletableFuture.allOf(this.provisionedStreams.stream().map(streamName -> this.amazonKinesis
+				.deleteStream(request -> request.streamName(streamName))
+				// The SDK default waiter backs off in flat 10-second steps, so every
+				// stream deletion costs at least 10 seconds. Poll once per second.
+				.thenCompose(result -> this.amazonKinesis.waiter().waitUntilStreamNotExists(
+						request -> request.streamName(streamName),
+						waiter -> waiter.maxAttempts(60)
+								.backoffStrategyV2(BackoffStrategy.fixedDelayWithoutJitter(Duration.ofSeconds(1)))))
+				.exceptionally(throwable -> null)).toArray(CompletableFuture[]::new)).join();
+		this.provisionedStreams.clear();
+	}
+
+	private static final class RecordingProvisioner extends KinesisStreamProvisioner {
+
+		/**
+		 * Localstack only creates a few streams at a time, and the provisioner creates one per binding, so concurrent
+		 * classes can exceed that limit. Gate provisioning rather than retry it: CreateStream is not idempotent and
+		 * answers ResourceInUseException once the stream exists.
+		 */
+		private static final Semaphore PROVISIONING = new Semaphore(3);
+
+		private final Set<String> provisionedStreams;
+
+		RecordingProvisioner(KinesisAsyncClient amazonKinesis,
+				KinesisBinderConfigurationProperties configurationProperties, Set<String> provisionedStreams) {
+			super(amazonKinesis, configurationProperties);
+			this.provisionedStreams = provisionedStreams;
+		}
+
+		@Override
+		public ProducerDestination provisionProducerDestination(String name,
+				ExtendedProducerProperties<KinesisProducerProperties> properties) {
+			this.provisionedStreams.add(name);
+			PROVISIONING.acquireUninterruptibly();
+			try {
+				return super.provisionProducerDestination(name, properties);
+			}
+			finally {
+				PROVISIONING.release();
+			}
+		}
+
+		@Override
+		public ConsumerDestination provisionConsumerDestination(String name, String group,
+				ExtendedConsumerProperties<KinesisConsumerProperties> properties) {
+			this.provisionedStreams.add(name);
+			PROVISIONING.acquireUninterruptibly();
+			try {
+				return super.provisionConsumerDestination(name, group, properties);
+			}
+			finally {
+				PROVISIONING.release();
+			}
+		}
+
 	}
 
 	/**

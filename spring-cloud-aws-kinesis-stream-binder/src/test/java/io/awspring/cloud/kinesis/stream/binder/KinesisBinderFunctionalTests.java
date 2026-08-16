@@ -31,6 +31,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.assertj.core.api.Condition;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -66,6 +68,7 @@ import software.amazon.awssdk.services.kinesis.model.PutRecordsRequestEntry;
 		"spring.cloud.stream.kinesis.binder.headers = event.eventType",
 		"spring.cloud.stream.kinesis.binder.autoAddShards = true" })
 @DirtiesContext
+@ResourceLock(value = "kinesis-binder", mode = ResourceAccessMode.READ_WRITE)
 public class KinesisBinderFunctionalTests implements LocalstackContainerTest {
 
 	static final String KINESIS_STREAM = "test_stream";
