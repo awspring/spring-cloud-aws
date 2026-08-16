@@ -22,6 +22,9 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
+import io.awspring.cloud.sqs.listener.SqsContainerOptions;
+import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.core.MethodParameter;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -92,8 +96,34 @@ class AbstractSqsMessageSourceTests {
 		assertThat(requests.get(10)).extracting(ReceiveMessageRequest::maxNumberOfMessages).isEqualTo(1);
 	}
 
+	@Test
+	void shouldConfigurePayloadClassAndConversionHintOnContext() throws Exception {
+		Method listenerMethod = GenericListener.class.getDeclaredMethod("listen", GenericWrapper.class);
+		MethodParameter conversionHint = new MethodParameter(listenerMethod, 0);
+		AbstractSqsMessageSource<Object> source = new StandardSqsMessageSource<>();
+		source.configure(SqsContainerOptions.builder().build());
+
+		source.setPayloadDeserializationType(GenericWrapper.class, conversionHint);
+
+		assertThat(source.getMessageConversionContext()).isInstanceOfSatisfying(SqsMessageConversionContext.class,
+				context -> {
+					assertThat(context.getPayloadClass()).isEqualTo(GenericWrapper.class);
+					assertThat(context.getConversionHint()).isSameAs(conversionHint);
+				});
+	}
+
 	private List<Message> getHundredMessages(List<Message> batch) {
 		return IntStream.range(0, 10).mapToObj(index -> batch).flatMap(Collection::stream).collect(Collectors.toList());
+	}
+
+	static class GenericListener {
+
+		void listen(GenericWrapper<String> payload) {
+		}
+
+	}
+
+	static class GenericWrapper<T> {
 	}
 
 }

@@ -172,7 +172,7 @@ public abstract class AbstractPipelineMessageListenerContainer<T, O extends Cont
 						teac -> teac.setTaskExecutor(taskExecutor))
 				.acceptManyIfNotNullAndInstance(getPayloadDeserializationType(), this.messageSources,
 						AbstractMessageConvertingMessageSource.class,
-						(type, source) -> source.setPayloadDeserializationType(type));
+						(type, source) -> source.setPayloadDeserializationType(type, getPayloadConversionHint()));
 
 		doConfigureMessageSources(this.messageSources);
 	}

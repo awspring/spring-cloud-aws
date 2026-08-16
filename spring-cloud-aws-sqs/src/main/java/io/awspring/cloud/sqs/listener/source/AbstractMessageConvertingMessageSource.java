@@ -90,12 +90,38 @@ public abstract class AbstractMessageConvertingMessageSource<T, S> implements Me
 	}
 
 	/**
+	 * Set the payload deserialization type and conversion hint.
+	 * @param payloadDeserializationType the target class
+	 * @param conversionHint an optional hint for a smart message converter
+	 */
+	public void setPayloadDeserializationType(@Nullable Class<?> payloadDeserializationType,
+			@Nullable Object conversionHint) {
+		ConfigUtils.INSTANCE.acceptBothIfNoneNull(payloadDeserializationType, this.messageConversionContext,
+				(payloadType, context) -> doConfigurePayloadTypeOnContext(payloadType, conversionHint, context));
+	}
+
+	/**
 	 * Hook method for subclasses to configure the payload type on their specific MessageConversionContext
 	 * implementation.
 	 * @param payloadType the payload type to configure
 	 * @param context the message conversion context
 	 */
 	protected void doConfigurePayloadTypeOnContext(Class<?> payloadType, MessageConversionContext context) {
+	}
+
+	/**
+	 * Hook method for subclasses to configure the payload type and conversion hint on their specific
+	 * {@link MessageConversionContext} implementation.
+	 * <p>
+	 * The default implementation delegates to {@link #doConfigurePayloadTypeOnContext(Class, MessageConversionContext)}
+	 * for backwards compatibility with existing subclasses.
+	 * @param payloadType the payload type to configure
+	 * @param conversionHint an optional hint for a smart message converter
+	 * @param context the message conversion context
+	 */
+	protected void doConfigurePayloadTypeOnContext(Class<?> payloadType, @Nullable Object conversionHint,
+			MessageConversionContext context) {
+		doConfigurePayloadTypeOnContext(payloadType, context);
 	}
 
 	@Nullable
