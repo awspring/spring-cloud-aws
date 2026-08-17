@@ -114,6 +114,26 @@ class QueueAttributesResolverIntegrationTests extends BaseSqsIntegrationTest {
 	}
 
 	@Test
+	void shouldIgnoreQueueWhenStrategyIsIgnore() {
+		String queueName = "testQueueName-" + UUID.randomUUID();
+		SqsAsyncClient client = createAsyncClient();
+		QueueAttributesResolver resolver = QueueAttributesResolver
+			.builder()
+			.queueAttributeNames(Collections.emptyList())
+			.sqsAsyncClient(client)
+			.queueName(queueName)
+			.queueNotFoundStrategy(QueueNotFoundStrategy.IGNORE)
+			.build();
+		assertThatThrownBy(() -> resolver.resolveQueueAttributes().join())
+			.isInstanceOf(CompletionException.class)
+			.cause()
+			.isInstanceOfSatisfying(QueueAttributesResolvingException.class,
+				qare -> assertThat(qare.isQueueIgnored()).isTrue())
+			.cause()
+			.isInstanceOf(QueueDoesNotExistException.class);
+	}
+
+	@Test
 	void shouldGetQueueAttributes() {
 		String queueName = "should-get-queue-attributes";
 		SqsAsyncClient client = createAsyncClient();
