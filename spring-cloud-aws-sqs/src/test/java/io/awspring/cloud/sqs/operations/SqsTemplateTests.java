@@ -23,6 +23,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.QueueAttributesResolvingException;
 import io.awspring.cloud.sqs.SqsAcknowledgementException;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
@@ -555,6 +556,8 @@ class SqsTemplateTests {
 		assertThatThrownBy(() -> template.sendMany(queue, messages))
 				.isInstanceOf(SendBatchOperationFailedException.class)
 				.isInstanceOfSatisfying(SendBatchOperationFailedException.class, ex -> {
+					assertThat(ex.getMessage()).contains(queue).contains(testErrorMessage)
+							.contains(MessageHeaderUtils.getRawMessageId(message2));
 					assertThat(ex.getFailedMessages().iterator().next().getPayload()).isEqualTo(payload2);
 					assertThat(ex.getEndpoint()).isEqualTo(queue);
 					SendResult.Batch<String> sendBatchResult = ex.getSendBatchResult(String.class);
