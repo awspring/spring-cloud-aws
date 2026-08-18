@@ -17,7 +17,6 @@ package io.awspring.cloud.sqs.listener;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.stream.Collectors;
 import org.springframework.messaging.Message;
 
 /**
@@ -43,7 +42,7 @@ public class InterceptorExecutionFailedException extends RuntimeException implem
 	public <T> InterceptorExecutionFailedException(String message, Throwable cause,
 			Collection<Message<T>> failedMessages) {
 		super(message, cause);
-		this.failedMessages = failedMessages.stream().map(msg -> (Message<?>) msg).collect(Collectors.toList());
+		this.failedMessages = failedMessages.stream().map(msg -> (Message<?>) msg).toList();
 	}
 
 	@Override

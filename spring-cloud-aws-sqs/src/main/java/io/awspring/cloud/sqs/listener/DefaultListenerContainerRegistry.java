@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +81,7 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 			logger.debug("Starting {}", getClass().getSimpleName());
 			this.running = true;
 			List<MessageListenerContainer<?>> containersToStart = this.listenerContainers.values().stream()
-					.filter(SmartLifecycle::isAutoStartup).collect(Collectors.toList());
+					.filter(SmartLifecycle::isAutoStartup).toList();
 			LifecycleHandler.get().start(containersToStart);
 			logger.debug("{} started", getClass().getSimpleName());
 		}
