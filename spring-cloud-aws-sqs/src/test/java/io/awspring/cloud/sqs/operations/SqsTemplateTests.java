@@ -574,6 +574,37 @@ class SqsTemplateTests {
 	}
 
 	@Test
+	void shouldIncludeFailureDetailsInBatchExceptionMessage() {
+		String queue = "test-queue";
+		Message<String> message1 = MessageBuilder.withPayload("test-payload-1").build();
+		Message<String> message2 = MessageBuilder.withPayload("test-payload-2").build();
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+			.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+		SendMessageBatchResponse response = SendMessageBatchResponse.builder()
+			.successful(builder -> builder.id(message1.getHeaders().getId().toString())
+				.messageId(UUID.randomUUID().toString()))
+			.failed(builder -> builder.id(message2.getHeaders().getId().toString()).message("send failed")
+				.code("BC01").senderFault(true))
+			.build();
+		given(mockClient.sendMessageBatch(any(SendMessageBatchRequest.class)))
+			.willReturn(CompletableFuture.completedFuture(response));
+
+		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
+		assertThatThrownBy(() -> template.sendMany(queue, List.of(message1, message2)))
+			.isInstanceOf(SendBatchOperationFailedException.class)
+			.isInstanceOfSatisfying(SendBatchOperationFailedException.class, ex -> {
+				assertThat(ex.getMessage())
+					.contains("1 of 2")
+					.contains(queue)
+					.contains(message2.getHeaders().getId().toString())
+					.contains("send failed");
+			});
+	}
+
+	@Test
 	void shouldCreateByDefaultIfQueueNotFound() {
 		String queue = "test-queue";
 		String payload = "test-payload";
