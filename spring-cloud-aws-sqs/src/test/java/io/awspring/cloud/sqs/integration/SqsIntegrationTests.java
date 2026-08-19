@@ -121,6 +121,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME = "receives_message_multi_method_test_queue";
 
+	static final String RECEIVES_MESSAGE_MULTI_METHOD_WITH_MESSAGE_ENVELOPE_QUEUE_NAME = "receives_message_multi_method_with_message_envelope_test_queue";
+
 	static final String RECEIVES_MESSAGE_ASYNC_QUEUE_NAME = "receives_message_async_test_queue";
 
 	static final String DOES_NOT_ACK_ON_ERROR_QUEUE_NAME = "does_not_ack_test_queue";
@@ -221,6 +223,18 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				message3);
 
 		assertThat(latchContainer.receivesMessageMultiMethodLatch.await(60, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void receivesMessageOnMultiMethodWithMessageEnvelope() throws Exception {
+		String payload = "receivesMessageOnMultiMethodWithMessageEnvelope-payload";
+
+		sqsTemplate.send(RECEIVES_MESSAGE_MULTI_METHOD_WITH_MESSAGE_ENVELOPE_QUEUE_NAME, payload);
+		logger.debug("Sent message to queue {} with messageBody {}",
+				RECEIVES_MESSAGE_MULTI_METHOD_WITH_MESSAGE_ENVELOPE_QUEUE_NAME, payload);
+
+		assertThat(latchContainer.receivesMessageMultiMethodMessageEnvelopeLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesMessageMultiMethodDefaultHandlerLatch.getCount()).isEqualTo(1);
 	}
 
 	@Test
@@ -537,6 +551,25 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		}
 	}
 
+	@SqsListener(queueNames = RECEIVES_MESSAGE_MULTI_METHOD_WITH_MESSAGE_ENVELOPE_QUEUE_NAME, pollTimeoutSeconds = "${property.one}", maxMessagesPerPoll = "${property.one}", maxConcurrentMessages = "${missing.property:5}", id = "receivesMessageMultiMethodWithMessageEnvelopeListener")
+	static class ReceivesMessageMultiMethodWithMessageEnvelopeListener {
+
+		@Autowired
+		LatchContainer latchContainer;
+
+		@SqsHandler
+		void handle(Message<String> message) {
+			logger.debug("Received Message<String> in Listener Method: " + message.getPayload());
+			latchContainer.receivesMessageMultiMethodMessageEnvelopeLatch.countDown();
+		}
+
+		@SqsHandler(isDefault = true)
+		void handleDefault(Object message) {
+			logger.debug("Received default message in Listener Method: " + message);
+			latchContainer.receivesMessageMultiMethodDefaultHandlerLatch.countDown();
+		}
+	}
+
 	static class ReceivesMessageBatchListener {
 
 		@Autowired
@@ -715,6 +748,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		final CountDownLatch receivesMessageBatchLatch = new CountDownLatch(20);
 		final CountDownLatch receivesMessageAsyncLatch = new CountDownLatch(1);
 		final CountDownLatch receivesMessageMultiMethodLatch = new CountDownLatch(3);
+		final CountDownLatch receivesMessageMultiMethodMessageEnvelopeLatch = new CountDownLatch(1);
+		final CountDownLatch receivesMessageMultiMethodDefaultHandlerLatch = new CountDownLatch(1);
 		final CountDownLatch doesNotAckLatch = new CountDownLatch(2);
 		final CountDownLatch doesNotAckAsyncLatch = new CountDownLatch(2);
 		final CountDownLatch doesNotAckBatchLatch = new CountDownLatch(20);
@@ -947,6 +982,11 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		@Bean
 		ReceivesMessageMultiMethodListener receivesMessageMultiMethodListener() {
 			return new ReceivesMessageMultiMethodListener();
+		}
+
+		@Bean
+		ReceivesMessageMultiMethodWithMessageEnvelopeListener receivesMessageMultiMethodWithMessageEnvelopeListener() {
+			return new ReceivesMessageMultiMethodWithMessageEnvelopeListener();
 		}
 
 		@Bean
