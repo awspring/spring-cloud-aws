@@ -71,13 +71,13 @@ class S3InboundChannelAdapterTests implements LocalstackContainerTest {
 	private PollableChannel s3FilesChannel;
 
 	@BeforeAll
-	static void setup() {
+	static void setup() throws IOException {
 		S3 = LocalstackContainerTest.s3Client();
 		S3.createBucket(request -> request.bucket(S3_BUCKET));
 		S3.putObject(request -> request.bucket(S3_BUCKET).key("subdir/a.test"), RequestBody.fromString("Hello"));
 		S3.putObject(request -> request.bucket(S3_BUCKET).key("subdir/b.test"), RequestBody.fromString("Bye"));
 
-		LOCAL_FOLDER = TEMPORARY_FOLDER.resolve("local").toFile();
+		LOCAL_FOLDER = TEMPORARY_FOLDER.toRealPath().resolve("local").toFile();
 	}
 
 	@Test
