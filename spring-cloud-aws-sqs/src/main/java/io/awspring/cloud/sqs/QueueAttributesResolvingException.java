@@ -41,6 +41,7 @@ public class QueueAttributesResolvingException extends RuntimeException {
 	 * @param message the error message.
 	 * @param cause the cause.
 	 * @param queueIgnored whether the resolver signalled that the queue should be ignored.
+	 * @since 4.2
 	 */
 	public QueueAttributesResolvingException(String message, Throwable cause, boolean queueIgnored) {
 		super(message, cause);
@@ -52,6 +53,7 @@ public class QueueAttributesResolvingException extends RuntimeException {
 	 * {@link io.awspring.cloud.sqs.listener.QueueNotFoundStrategy#IGNORE}, so the listener can skip startup rather than
 	 * fail the application context.
 	 * @return {@code true} if the queue should be ignored.
+	 * @since 4.2
 	 */
 	public boolean isQueueIgnored() {
 		return this.queueIgnored;

@@ -108,7 +108,8 @@ class QueueAttributesResolverIntegrationTests extends BaseSqsIntegrationTest {
 		assertThatThrownBy(() -> resolver.resolveQueueAttributes().join())
 			.isInstanceOf(CompletionException.class)
 			.extracting(Throwable::getCause)
-			.isInstanceOf(QueueAttributesResolvingException.class)
+			.isInstanceOfSatisfying(QueueAttributesResolvingException.class,
+				qare -> assertThat(qare.isQueueIgnored()).isFalse())
 			.extracting(Throwable::getCause)
 			.isInstanceOf(QueueDoesNotExistException.class);
 	}
