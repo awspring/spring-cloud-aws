@@ -57,6 +57,8 @@ import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.support.AbstractIntegrationMessageBuilder;
 import org.springframework.integration.support.ErrorMessageStrategy;
 import org.springframework.integration.support.ErrorMessageUtils;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.support.ExecutorServiceAdapter;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.locks.RenewableLockRegistry;
 import org.springframework.integration.support.management.IntegrationManagedResource;
@@ -361,13 +363,34 @@ public class KinesisMessageDrivenChannelAdapter extends MessageProducerSupport
 		super.onInit();
 
 		final String componentName = getComponentName();
+		boolean virtualThreadsEnabled = false;
+		var applicationContext = getApplicationContext();
+		if (applicationContext != null) {
+			virtualThreadsEnabled = applicationContext.getEnvironment()
+					.getProperty("spring.threads.virtual.enabled", Boolean.class, false);
+		}
+
 		if (this.consumerExecutor == null) {
-			this.consumerExecutor = Executors.newCachedThreadPool(
-					new CustomizableThreadFactory((componentName == null ? "" : componentName) + "-kinesis-consumer-"));
+			if (virtualThreadsEnabled) {
+				SimpleAsyncTaskExecutor sate = new SimpleAsyncTaskExecutor((componentName == null ? "" : componentName) + "-kinesis-consumer-");
+				sate.setVirtualThreads(true);
+				this.consumerExecutor = new ExecutorServiceAdapter(sate);
+			}
+			else {
+				this.consumerExecutor = Executors.newCachedThreadPool(
+						new CustomizableThreadFactory((componentName == null ? "" : componentName) + "-kinesis-consumer-"));
+			}
 		}
 		if (this.dispatcherExecutor == null) {
-			this.dispatcherExecutor = Executors.newCachedThreadPool(new CustomizableThreadFactory(
-					(componentName == null ? "" : componentName) + "-kinesis-dispatcher-"));
+			if (virtualThreadsEnabled) {
+				SimpleAsyncTaskExecutor sate = new SimpleAsyncTaskExecutor((componentName == null ? "" : componentName) + "-kinesis-dispatcher-");
+				sate.setVirtualThreads(true);
+				this.dispatcherExecutor = new ExecutorServiceAdapter(sate);
+			}
+			else {
+				this.dispatcherExecutor = Executors.newCachedThreadPool(new CustomizableThreadFactory(
+						(componentName == null ? "" : componentName) + "-kinesis-dispatcher-"));
+			}
 		}
 
 		if (this.streams == null) {
