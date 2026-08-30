@@ -51,6 +51,7 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -445,6 +446,50 @@ class SqsAutoConfigurationTest {
 			};
 		}
 
+	}
+
+	@Test
+	void withVirtualThreadsEnabled() {
+		this.contextRunner.withPropertyValues("spring.threads.virtual.enabled=true").run(context -> {
+			assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+			assertThat(context.getBean(SqsMessageListenerContainerFactory.class)).extracting("containerOptionsBuilder")
+					.asInstanceOf(type(ContainerOptionsBuilder.class)).extracting(ContainerOptionsBuilder::build)
+					.satisfies(options -> {
+						assertThat(options).extracting("componentsTaskExecutor").isInstanceOf(SimpleAsyncTaskExecutor.class);
+						SimpleAsyncTaskExecutor executor = (SimpleAsyncTaskExecutor) options.getComponentsTaskExecutor();
+						try {
+							executor.submit(() -> {
+								assertThat(Thread.currentThread().isVirtual()).isTrue();
+							}).get();
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+
+						assertThat(options).extracting("acknowledgementResultTaskExecutor")
+								.isInstanceOf(SimpleAsyncTaskExecutor.class);
+						SimpleAsyncTaskExecutor ackExecutor = (SimpleAsyncTaskExecutor) options.getAcknowledgementResultTaskExecutor();
+						try {
+							ackExecutor.submit(() -> {
+								assertThat(Thread.currentThread().isVirtual()).isTrue();
+							}).get();
+						} catch (Exception e) {
+							throw new RuntimeException(e);
+						}
+					});
+		});
+	}
+
+	@Test
+	void withVirtualThreadsDisabled() {
+		this.contextRunner.withPropertyValues("spring.threads.virtual.enabled=false").run(context -> {
+			assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+			assertThat(context.getBean(SqsMessageListenerContainerFactory.class)).extracting("containerOptionsBuilder")
+					.asInstanceOf(type(ContainerOptionsBuilder.class)).extracting(ContainerOptionsBuilder::build)
+					.satisfies(options -> {
+						assertThat(options).extracting("componentsTaskExecutor").isNull();
+						assertThat(options).extracting("acknowledgementResultTaskExecutor").isNull();
+					});
+		});
 	}
 
 }
