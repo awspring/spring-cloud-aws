@@ -417,11 +417,14 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private <T> SendResult.Batch<T> createFailedBatchResult(Collection<Message> partition, Throwable throwable,
 			String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
 		Throwable cause = throwable;
-		if (cause instanceof java.util.concurrent.CompletionException) {
-			cause = cause.getCause();
+		if (cause instanceof java.util.concurrent.CompletionException completionException
+				&& completionException.getCause() != null) {
+			cause = completionException.getCause();
 		}
+		Throwable exceptionParameter = cause != null ? cause : throwable;
+		Map<String, Object> additionalInformation = Map.of(SqsTemplateParameters.EXCEPTION_PARAMETER_NAME,
+				exceptionParameter);
 		String errorMessage = cause != null && cause.getMessage() != null ? cause.getMessage() : "Unknown error";
-		Map<String, Object> additionalInformation = Map.of(SqsTemplateParameters.EXCEPTION_PARAMETER_NAME, cause);
 		List<SendResult.Failed<T>> failed = partition.stream().map(msg -> new SendResult.Failed<>(errorMessage,
 				endpointName, originalMessagesById.get(msg.messageId()), additionalInformation)).toList();
 		return new SendResult.Batch<>(List.of(), failed);
