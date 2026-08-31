@@ -322,7 +322,7 @@ NOTE: To send a collection of objects, it is recommended to use `sendMany(String
 To send a collection of objects in a single message, the collection must be wrapped in an object.
 The underlying AWS SQS API has a limitation that only up to 10 messages can be sent in a single batch request using `SendMessageBatch`.
 Since 4.2.0, Spring Cloud AWS automatically splits larger collections into batches of 10 or fewer messages.
-For standard queues, all batches are sent in parallel. For FIFO queues, we send the batches in parallel grouped by message group ID.
+For standard queues, all batches are sent in parallel. For FIFO queues, batches are sent in parallel, grouped by message group ID.
 
 An example using the `options` variant follows:
 
@@ -352,11 +352,11 @@ For FIFO queues, messages are first grouped by message group ID.
 Each group is kept whole: groups larger than 10 messages are sent sequentially to preserve the message order within the group, while groups of up to 10 messages are packed into shared batches that are sent in parallel.
 This preserves the ordering guarantees that FIFO queues provide per message group.
 
-Send failures within a batch can surface in the following ways:
+Send failures within a batch can occur in the following ways:
 
-* **Partial failures**: if only some messages in a single batch request fail, the successful ones are returned in `successful` and the failed ones in `failed` as `SendResult.Failed` entries in the `SendResult.Batch`.
-* **Skipped batches (FIFO only)**: if a batch fails within a FIFO group, the remaining batches for that group are not sent and are returned as failed entries with the message `Skipped due to previous batch failure`.
-* **Batch-level exceptions**: if sending a batch fails entirely with an exception, all messages in that batch are returned as failed entries, with the exception available in the `additionalInformation` map under the `SqsTemplateParameters.EXCEPTION_PARAMETER_NAME` key.
+* **Partial failures**: If only some messages in a single batch request fail, the successful ones are returned in `successful` and the failed ones in `failed` as `SendResult.Failed` entries in the `SendResult.Batch`.
+* **Skipped batches (FIFO only)**: If a batch fails within a FIFO group, the remaining batches for that group are not sent and are returned as failed entries with the message `Skipped due to previous batch failure`.
+* **Batch-level exceptions**: If sending a batch fails entirely with an exception, all messages in that batch are returned as failed entries, with the exception available in the `additionalInformation` map under the `SqsTemplateParameters.EXCEPTION_PARAMETER_NAME` key.
 
 How failed entries are surfaced depends on the `sendBatchFailureHandlingStrategy` option.
 By default (`THROW`), a `SendBatchOperationFailedException` is thrown if at least one message fails, containing the `SendResult.Batch` with both successful and failed messages.
