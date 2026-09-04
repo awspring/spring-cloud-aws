@@ -23,6 +23,7 @@ import io.awspring.cloud.sqs.listener.SqsHeaders;
 import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import java.nio.ByteBuffer;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -42,6 +43,10 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * A {@link HeaderMapper} implementation for SQS {@link Message}s. Enables creating additional SQS related headers from
@@ -58,6 +63,11 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsHeaderMapper.class);
+
+	private static final TypeReference<Map<String, SnsNotification.MessageAttribute>> SNS_MESSAGE_ATTRIBUTES_TYPE = new TypeReference<>() {
+	};
+
+	private final JsonMapper jsonMapper = new JsonMapper();
 
 	private BiFunction<Message, MessageHeaderAccessor, MessageHeaders> additionalHeadersFunction = ((message,
 			accessor) -> accessor.toMessageHeaders());
@@ -163,6 +173,7 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 		accessor.copyHeadersIfAbsent(getMessageAttributesAsHeaders(source));
 		accessor.copyHeadersIfAbsent(createDefaultHeaders(source));
 		accessor.copyHeadersIfAbsent(createAdditionalHeaders(source));
+		accessor.copyHeadersIfAbsent(getSnsMessageAttributesAsHeaders(source));
 
 		MessageHeaders messageHeaders = accessor.toMessageHeaders();
 		logger.trace("Mapped headers {} for message {}", messageHeaders, source.messageId());
@@ -191,6 +202,36 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 			.collect(Collectors.toMap(Map.Entry::getKey, this::getValue));
 	}
 
+	private Map<String, Object> getSnsMessageAttributesAsHeaders(Message source) {
+		String body = source.body();
+		if (body == null || !body.contains("\"MessageAttributes\"")) {
+			return Map.of();
+		}
+		try {
+			JsonNode jsonNode = jsonMapper.readTree(body);
+			if (!isSnsNotification(jsonNode)) {
+				return Map.of();
+			}
+			JsonNode messageAttributes = jsonNode.get("MessageAttributes");
+			if (messageAttributes == null || !messageAttributes.isObject()) {
+				return Map.of();
+			}
+			Map<String, SnsNotification.MessageAttribute> attributes = jsonMapper.convertValue(messageAttributes,
+					SNS_MESSAGE_ATTRIBUTES_TYPE);
+			return attributes.entrySet().stream()
+					.collect(Collectors.toMap(Map.Entry::getKey, entry -> getValue(entry.getValue())));
+		}
+		catch (JacksonException | IllegalArgumentException e) {
+			logger.trace("Could not map SNS message attributes for message " + source.messageId(), e);
+			return Map.of();
+		}
+	}
+
+	private boolean isSnsNotification(JsonNode jsonNode) {
+		JsonNode type = jsonNode.get("Type");
+		return type != null && "Notification".equals(type.asString()) && jsonNode.has("Message");
+	}
+
 	private Object getValue(Map.Entry<String, MessageAttributeValue> entry) {
 		MessageAttributeValue value = entry.getValue();
 		String dataType = value.dataType();
@@ -204,6 +245,19 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 			case MessageAttributeDataTypes.NUMBER -> getNumberValue(value);
 			case MessageAttributeDataTypes.BINARY -> value.binaryValue();
 			default -> value.stringValue();
+		};
+	}
+
+	private Object getValue(SnsNotification.MessageAttribute value) {
+		String dataType = value.getType();
+		Assert.notNull(dataType, "dataType must not be null");
+		String baseDataType = dataType.contains(".") ? dataType.substring(0, dataType.indexOf('.')) : dataType;
+
+		return switch (baseDataType) {
+			case MessageAttributeDataTypes.NUMBER -> getNumberValue(value.getValue(), dataType);
+			case MessageAttributeDataTypes.BINARY -> SdkBytes
+					.fromByteArray(Base64.getDecoder().decode(value.getValue()));
+			default -> value.getValue();
 		};
 	}
 
