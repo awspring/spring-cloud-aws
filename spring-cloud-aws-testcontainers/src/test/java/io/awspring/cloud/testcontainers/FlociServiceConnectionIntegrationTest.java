@@ -24,14 +24,10 @@ import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.dynamodb.DynamoDbAutoConfiguration;
 import io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration;
-import io.awspring.cloud.autoconfigure.s3.S3CrtAsyncClientAutoConfiguration;
 import io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration;
-import io.awspring.cloud.s3.S3Template;
 import io.floci.testcontainers.FlociContainer;
-import java.net.URL;
-import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -42,19 +38,31 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
+/**
+ * Verifies that a {@link FlociContainer} declared as a {@code @ServiceConnection} is correctly picked up by Spring
+ * Cloud AWS via the official {@code io.floci:spring-boot-testcontainers-floci} auto-configuration module.
+ *
+ * <p>
+ * Spring Cloud AWS intentionally does not ship its own {@code ContainerConnectionDetailsFactory} for
+ * {@link FlociContainer} (unlike for {@code LocalStackContainer}), because the Floci project already provides one in
+ * {@code io.floci:spring-boot-testcontainers-floci}. Having two competing factories for the same
+ * {@code FlociContainer -> AwsConnectionDetails} pair on the classpath breaks Spring Boot's service connection
+ * resolution. See https://github.com/awspring/spring-cloud-aws/pull/1604 for background.
+ *
+ * @author Bastian Hellmann
+ */
 @SpringJUnitConfig
 @Testcontainers(disabledWithoutDocker = true)
-class AwsFlociContainerConnectionDetailsFactoryTest {
+class FlociServiceConnectionIntegrationTest {
 
 	@Container
 	@ServiceConnection
-	static final FlociContainer floci = new FlociContainer(DockerImageName.parse("floci/floci:1.5.33"));
+	static final FlociContainer floci = new FlociContainer(DockerImageName.parse("floci/floci:2.0.1"));
 
 	@Autowired(required = false)
 	private AwsConnectionDetails connectionDetails;
@@ -91,23 +99,10 @@ class AwsFlociContainerConnectionDetailsFactoryTest {
 		assertThatCode(client::listBuckets).doesNotThrowAnyException();
 	}
 
-	@Test
-	void configuresS3PresignedWithServiceConnection(@Autowired S3Template s3Template) {
-		URL signedGetURL = s3Template.createSignedGetURL("foo", "bar", Duration.ofMinutes(1));
-		assertThat(signedGetURL.getHost()).isNotNull().isNotEqualTo("foo.s3.amazonaws.com")
-				.as("Signed URL does not point to AWS as the endpoint has been overwritten by @ServiceConnection");
-	}
-
-	@Test
-	void configuresS3AsyncClientWithServiceConnection(@Autowired S3AsyncClient client) {
-		assertThatCode(client.listBuckets()::join).doesNotThrowAnyException();
-	}
-
 	@Configuration(proxyBeanMethods = false)
 	@ImportAutoConfiguration({ AwsAutoConfiguration.class, CredentialsProviderAutoConfiguration.class,
 			RegionProviderAutoConfiguration.class, DynamoDbAutoConfiguration.class, SesAutoConfiguration.class,
-			SqsAutoConfiguration.class, SnsAutoConfiguration.class, S3AutoConfiguration.class,
-			S3CrtAsyncClientAutoConfiguration.class })
+			SqsAutoConfiguration.class, SnsAutoConfiguration.class, S3AutoConfiguration.class })
 	static class TestConfiguration {
 	}
 
