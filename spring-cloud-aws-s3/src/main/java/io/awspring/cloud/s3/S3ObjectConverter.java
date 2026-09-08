@@ -16,6 +16,7 @@
 package io.awspring.cloud.s3;
 
 import java.io.InputStream;
+import org.springframework.core.ParameterizedTypeReference;
 import software.amazon.awssdk.core.sync.RequestBody;
 
 /**
@@ -43,6 +44,15 @@ public interface S3ObjectConverter {
 	 */
 	<T> T read(InputStream is, Class<T> clazz);
 
+	/**
+	 * Reads S3 object from the input stream into a Java object.
+	 * @param is - the input stream
+	 * @param valueTypeRef - the type reference of the object
+	 * @param <T> - the the type of the object
+	 * @return deserialized object
+	 */
+	<T> T read(InputStream is, ParameterizedTypeReference<T> valueTypeRef);
+	
 	/**
 	 * Supported content type.
 	 *
