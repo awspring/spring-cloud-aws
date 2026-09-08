@@ -21,6 +21,8 @@ import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.test.util.TestUtils;
@@ -30,6 +32,7 @@ import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 class KinesisVirtualThreadsTest {
 
 	@Test
+	@EnabledForJreRange(min = JRE.JAVA_21)
 	void kinesisAdapterVirtualThreadsEnabled() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		MockEnvironment env = new MockEnvironment();
@@ -54,10 +57,10 @@ class KinesisVirtualThreadsTest {
 
 		try {
 			consumer.submit(() -> {
-				assertThat(Thread.currentThread().isVirtual()).isTrue();
+				assertThat(isVirtualThread(Thread.currentThread())).isTrue();
 			}).get();
 			dispatcher.submit(() -> {
-				assertThat(Thread.currentThread().isVirtual()).isTrue();
+				assertThat(isVirtualThread(Thread.currentThread())).isTrue();
 			}).get();
 		}
 		catch (Exception e) {
@@ -90,10 +93,10 @@ class KinesisVirtualThreadsTest {
 
 		try {
 			consumer.submit(() -> {
-				assertThat(Thread.currentThread().isVirtual()).isFalse();
+				assertThat(isVirtualThread(Thread.currentThread())).isFalse();
 			}).get();
 			dispatcher.submit(() -> {
-				assertThat(Thread.currentThread().isVirtual()).isFalse();
+				assertThat(isVirtualThread(Thread.currentThread())).isFalse();
 			}).get();
 		}
 		catch (Exception e) {
@@ -102,6 +105,7 @@ class KinesisVirtualThreadsTest {
 	}
 
 	@Test
+	@EnabledForJreRange(min = JRE.JAVA_21)
 	void kclAdapterVirtualThreadsEnabled() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		MockEnvironment env = new MockEnvironment();
@@ -122,7 +126,7 @@ class KinesisVirtualThreadsTest {
 		SimpleAsyncTaskExecutor sate = (SimpleAsyncTaskExecutor) executor;
 		try {
 			sate.submit(() -> {
-				assertThat(Thread.currentThread().isVirtual()).isTrue();
+				assertThat(isVirtualThread(Thread.currentThread())).isTrue();
 			}).get();
 		}
 		catch (Exception e) {
@@ -151,8 +155,20 @@ class KinesisVirtualThreadsTest {
 		SimpleAsyncTaskExecutor sate = (SimpleAsyncTaskExecutor) executor;
 		try {
 			sate.submit(() -> {
-				assertThat(Thread.currentThread().isVirtual()).isFalse();
+				assertThat(isVirtualThread(Thread.currentThread())).isFalse();
 			}).get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static boolean isVirtualThread(Thread thread) {
+		try {
+			return (boolean) Thread.class.getMethod("isVirtual").invoke(thread);
+		}
+		catch (NoSuchMethodException e) {
+			return false;
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
