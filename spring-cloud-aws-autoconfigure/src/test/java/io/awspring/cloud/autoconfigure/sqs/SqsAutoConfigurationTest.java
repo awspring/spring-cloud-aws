@@ -45,6 +45,8 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
@@ -449,6 +451,7 @@ class SqsAutoConfigurationTest {
 	}
 
 	@Test
+	@EnabledForJreRange(min = JRE.JAVA_21)
 	void withVirtualThreadsEnabled() {
 		this.contextRunner.withPropertyValues("spring.threads.virtual.enabled=true").run(context -> {
 			assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
@@ -459,7 +462,7 @@ class SqsAutoConfigurationTest {
 						SimpleAsyncTaskExecutor executor = (SimpleAsyncTaskExecutor) options.getComponentsTaskExecutor();
 						try {
 							executor.submit(() -> {
-								assertThat(Thread.currentThread().isVirtual()).isTrue();
+								assertThat(isVirtualThread(Thread.currentThread())).isTrue();
 							}).get();
 						} catch (Exception e) {
 							throw new RuntimeException(e);
@@ -470,13 +473,22 @@ class SqsAutoConfigurationTest {
 						SimpleAsyncTaskExecutor ackExecutor = (SimpleAsyncTaskExecutor) options.getAcknowledgementResultTaskExecutor();
 						try {
 							ackExecutor.submit(() -> {
-								assertThat(Thread.currentThread().isVirtual()).isTrue();
+								assertThat(isVirtualThread(Thread.currentThread())).isTrue();
 							}).get();
 						} catch (Exception e) {
 							throw new RuntimeException(e);
 						}
 					});
 		});
+	}
+
+	private static boolean isVirtualThread(Thread thread) {
+		try {
+			return (boolean) Thread.class.getMethod("isVirtual").invoke(thread);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Test
