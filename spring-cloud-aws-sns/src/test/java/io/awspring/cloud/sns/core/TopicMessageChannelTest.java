@@ -212,6 +212,22 @@ class TopicMessageChannelTest {
 	}
 
 	@Test
+	void sendMessage_withUnsupportedContentTypeHeader_shouldNotSetItAsMessageAttribute() {
+		// Arrange
+		// a contentType that is neither a MimeType nor a String
+		Message<String> message = MessageBuilder.withPayload("Hello")
+				.setHeader(MessageHeaders.CONTENT_TYPE, new Object()).build();
+
+		// Act
+		boolean sent = messageChannel.send(message);
+
+		// Assert
+		assertThat(sent).isTrue();
+		verify(snsClient).publish(requestMatches(
+				it -> assertThat(it.messageAttributes()).doesNotContainKey(MessageHeaders.CONTENT_TYPE)));
+	}
+
+	@Test
 	void sendMessage_withMessageGroupIdHeader_shouldSetMessageGroupIdOnPublishRequestAndNotSetItAsMessageAttribute() {
 		// Arrange
 		Message<String> message = MessageBuilder.withPayload("Hello").setHeader(MESSAGE_GROUP_ID_HEADER, "id-5")
