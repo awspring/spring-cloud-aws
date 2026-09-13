@@ -96,11 +96,24 @@ class DefaultSnsMessageConverterTest {
 	}
 
 	@Test
+	void setsNotificationSubject() {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(SnsHeaders.NOTIFICATION_SUBJECT_HEADER, "a subject").build();
+
+		PublishBatchRequestEntry entry = converter.convertMessage(message);
+
+		assertThat(entry.subject()).isEqualTo("a subject");
+		// the subject travels on the entry, not as a message attribute
+		assertThat(entry.messageAttributes()).doesNotContainKey(SnsHeaders.NOTIFICATION_SUBJECT_HEADER);
+	}
+
+	@Test
 	void leavesOptionalHeadersNullWhenAbsent() {
 		Message<String> message = MessageBuilder.withPayload("plain").build();
 
 		PublishBatchRequestEntry entry = converter.convertMessage(message);
 
+		assertThat(entry.subject()).isNull();
 		assertThat(entry.messageGroupId()).isNull();
 		assertThat(entry.messageDeduplicationId()).isNull();
 	}
