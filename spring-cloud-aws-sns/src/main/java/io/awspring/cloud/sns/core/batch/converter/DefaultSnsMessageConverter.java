@@ -18,6 +18,7 @@ package io.awspring.cloud.sns.core.batch.converter;
 import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_DEDUPLICATION_ID_HEADER;
 import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_GROUP_ID_HEADER;
 import static io.awspring.cloud.sns.core.SnsHeaders.MESSAGE_ID_HEADER;
+import static io.awspring.cloud.sns.core.SnsHeaders.NOTIFICATION_SUBJECT_HEADER;
 
 import io.awspring.cloud.sns.core.SnsHeaderConverterUtil;
 import java.util.ArrayList;
@@ -95,6 +96,9 @@ public class DefaultSnsMessageConverter implements SnsMessageConverter {
 		String id = Optional.ofNullable(message.getHeaders().get(MESSAGE_ID_HEADER, String.class))
 				.filter(StringUtils::hasText).orElseGet(() -> UUID.randomUUID().toString());
 		publishBatchRequestEntry.id(id);
+
+		Optional.ofNullable(message.getHeaders().get(NOTIFICATION_SUBJECT_HEADER, String.class))
+				.ifPresent(publishBatchRequestEntry::subject);
 
 		Optional.ofNullable(message.getHeaders().get(MESSAGE_GROUP_ID_HEADER, String.class))
 				.ifPresent(publishBatchRequestEntry::messageGroupId);
