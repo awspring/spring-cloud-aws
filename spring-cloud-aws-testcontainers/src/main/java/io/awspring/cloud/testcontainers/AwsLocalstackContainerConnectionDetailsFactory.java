@@ -17,6 +17,8 @@ package io.awspring.cloud.testcontainers;
 
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import java.net.URI;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionDetailsFactory;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionSource;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -29,7 +31,9 @@ import org.testcontainers.localstack.LocalStackContainer;
  * @author Maciej Walkowiak
  * @since 3.2.0
  */
-public class AwsContainerConnectionDetailsFactory
+@ConditionalOnClass(LocalStackContainer.class)
+
+public class AwsLocalstackContainerConnectionDetailsFactory
 		extends ContainerConnectionDetailsFactory<LocalStackContainer, AwsConnectionDetails> {
 	@Override
 	protected AwsConnectionDetails getContainerConnectionDetails(

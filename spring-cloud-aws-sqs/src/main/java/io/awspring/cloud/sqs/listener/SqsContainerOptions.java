@@ -21,10 +21,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
 import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
@@ -32,6 +30,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
  * Sqs specific implementation of {@link ContainerOptions}.
  *
  * @author Tomaz Fernandes
+ * @author Jeongmin Kim
  * @since 3.0
  */
 public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOptions, SqsContainerOptionsBuilder> {
@@ -49,6 +48,8 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 
 	private final QueueNotFoundStrategy queueNotFoundStrategy;
 
+	private final boolean convertMessageIdToUuid;
+
 	/**
 	 * Create a {@link ContainerOptions} instance from the builder.
 	 * @param builder the builder.
@@ -61,6 +62,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		this.messageVisibility = builder.messageVisibility;
 		this.queueNotFoundStrategy = builder.queueNotFoundStrategy;
 		this.fifoBatchGroupingStrategy = builder.fifoBatchGroupingStrategy;
+		this.convertMessageIdToUuid = builder.convertMessageIdToUuid;
 	}
 
 	/**
@@ -121,6 +123,14 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		return this.queueNotFoundStrategy;
 	}
 
+	/**
+	 * Get whether to convert SQS message IDs to UUIDs.
+	 * @return whether to convert message IDs to UUIDs.
+	 */
+	public boolean getConvertMessageIdToUuid() {
+		return this.convertMessageIdToUuid;
+	}
+
 	@Override
 	public SqsContainerOptionsBuilder toBuilder() {
 		return new BuilderImpl(this);
@@ -153,6 +163,8 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		@Nullable
 		private Duration messageVisibility;
 
+		private boolean convertMessageIdToUuid = true;
+
 		protected BuilderImpl() {
 			super();
 		}
@@ -165,6 +177,18 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 			this.messageVisibility = options.messageVisibility;
 			this.fifoBatchGroupingStrategy = options.fifoBatchGroupingStrategy;
 			this.queueNotFoundStrategy = options.queueNotFoundStrategy;
+			this.convertMessageIdToUuid = options.convertMessageIdToUuid;
+		}
+
+		protected BuilderImpl(BuilderImpl builder) {
+			super(builder);
+			this.queueAttributeNames = builder.queueAttributeNames;
+			this.messageAttributeNames = builder.messageAttributeNames;
+			this.messageSystemAttributeNames = builder.messageSystemAttributeNames;
+			this.messageVisibility = builder.messageVisibility;
+			this.fifoBatchGroupingStrategy = builder.fifoBatchGroupingStrategy;
+			this.queueNotFoundStrategy = builder.queueNotFoundStrategy;
+			this.convertMessageIdToUuid = builder.convertMessageIdToUuid;
 		}
 
 		@Override
@@ -186,7 +210,7 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 				Collection<MessageSystemAttributeName> messageSystemAttributeNames) {
 			Assert.notEmpty(messageSystemAttributeNames, "messageSystemAttributeNames cannot be empty");
 			this.messageSystemAttributeNames = messageSystemAttributeNames.stream()
-					.map(MessageSystemAttributeName::toString).collect(Collectors.toList());
+					.map(MessageSystemAttributeName::toString).toList();
 			return this;
 		}
 
@@ -221,20 +245,34 @@ public class SqsContainerOptions extends AbstractContainerOptions<SqsContainerOp
 		}
 
 		@Override
+		public SqsContainerOptionsBuilder convertMessageIdToUuid(boolean convertMessageIdToUuid) {
+			this.convertMessageIdToUuid = convertMessageIdToUuid;
+			return this;
+		}
+
+		@Override
 		public SqsContainerOptions build() {
 			return new SqsContainerOptions(this);
 		}
 
 		@Override
 		public SqsContainerOptionsBuilder createCopy() {
-			BuilderImpl builder = new BuilderImpl();
-			ReflectionUtils.shallowCopyFieldState(this, builder);
-			return builder;
+			return new BuilderImpl(this);
 		}
 
 		@Override
 		public void fromBuilder(SqsContainerOptionsBuilder builder) {
-			ReflectionUtils.shallowCopyFieldState(builder, this);
+			Assert.notNull(builder, "builder cannot be null");
+			BuilderImpl source = builder instanceof BuilderImpl ? (BuilderImpl) builder
+					: new BuilderImpl(builder.build());
+			super.copyStateFrom(source);
+			this.queueAttributeNames = source.queueAttributeNames;
+			this.messageAttributeNames = source.messageAttributeNames;
+			this.messageSystemAttributeNames = source.messageSystemAttributeNames;
+			this.messageVisibility = source.messageVisibility;
+			this.fifoBatchGroupingStrategy = source.fifoBatchGroupingStrategy;
+			this.queueNotFoundStrategy = source.queueNotFoundStrategy;
+			this.convertMessageIdToUuid = source.convertMessageIdToUuid;
 		}
 	}
 

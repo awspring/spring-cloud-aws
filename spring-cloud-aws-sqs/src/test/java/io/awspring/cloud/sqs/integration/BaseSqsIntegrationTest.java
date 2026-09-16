@@ -21,6 +21,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,13 +58,37 @@ abstract class BaseSqsIntegrationTest {
 
 	static StaticCredentialsProvider credentialsProvider;
 
-	@BeforeAll
-	static synchronized void beforeAll() {
-		if (!localstack.isRunning()) {
-			localstack.start();
-			credentialsProvider = StaticCredentialsProvider
-					.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
+	private static final CompletableFuture<Void> STARTED = new CompletableFuture<>();
+
+	private static final AtomicBoolean STARTING = new AtomicBoolean();
+
+	/**
+	 * Starts the container off the JUnit worker threads. The workers block in {@link #beforeAll()} until it is up, and
+	 * a blocking wait does not make the pool compensate with another thread, so starting it from a test would hold as
+	 * many workers as there are integration classes scheduled and leave the rest of the suite idle.
+	 */
+	static void startAsync() {
+		if (!STARTING.compareAndSet(false, true)) {
+			return;
 		}
+		Thread starter = new Thread(() -> {
+			try {
+				localstack.start();
+				credentialsProvider = StaticCredentialsProvider
+						.create(AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey()));
+				STARTED.complete(null);
+			}
+			catch (Throwable t) {
+				STARTED.completeExceptionally(t);
+			}
+		}, "localstack-starter");
+		starter.setDaemon(true);
+		starter.start();
+	}
+
+	@BeforeAll
+	static void beforeAll() {
+		STARTED.join();
 	}
 
 	@DynamicPropertySource
@@ -84,7 +112,30 @@ abstract class BaseSqsIntegrationTest {
 		return createQueue(client, queueName, attributes);
 	}
 
+	// A test class creates its queues in parallel, but only one class does so at a time. Localstack serves
+	// creations from every class at a similar rate, so when all classes create at once each one's last queue lands
+	// near the end of the whole batch and no class can start its tests before then. Giving a class exclusive access
+	// lets it be ready in the time its own queues take, and start running while the next class creates its own.
+	private static final Semaphore CREATION_SLOT = new Semaphore(1);
+
+	private static final Map<Thread, AtomicInteger> PENDING_CREATIONS = new ConcurrentHashMap<>();
+
 	protected static CompletableFuture<?> createQueue(SqsAsyncClient client, String queueName,
+			Map<QueueAttributeName, String> attributes) {
+		Thread owner = Thread.currentThread();
+		AtomicInteger pending = PENDING_CREATIONS.computeIfAbsent(owner, thread -> new AtomicInteger());
+		if (pending.getAndIncrement() == 0) {
+			CREATION_SLOT.acquireUninterruptibly();
+		}
+		return doCreateQueue(client, queueName, attributes).whenComplete((v, t) -> {
+			if (pending.decrementAndGet() == 0) {
+				PENDING_CREATIONS.remove(owner);
+				CREATION_SLOT.release();
+			}
+		});
+	}
+
+	private static CompletableFuture<?> doCreateQueue(SqsAsyncClient client, String queueName,
 			Map<QueueAttributeName, String> attributes) {
 		logger.debug("Creating queue {} with attributes {}", queueName, attributes);
 		return client.createQueue(req -> getCreateQueueRequest(queueName, attributes, req)).handle((v, t) -> {

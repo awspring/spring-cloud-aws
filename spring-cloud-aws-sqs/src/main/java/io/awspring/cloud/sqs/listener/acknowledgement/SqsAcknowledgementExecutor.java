@@ -22,9 +22,12 @@ import io.awspring.cloud.sqs.listener.QueueAttributes;
 import io.awspring.cloud.sqs.listener.QueueAttributesAware;
 import io.awspring.cloud.sqs.listener.SqsAsyncClientAware;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -34,8 +37,10 @@ import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StopWatch;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchResponse;
 
 /**
  * {@link AcknowledgementExecutor} implementation for SQS queues. Handle the messages deletion, usually requested by an
@@ -94,26 +99,98 @@ public class SqsAcknowledgementExecutor<T>
 				MessageHeaderUtils.getId(messagesToAck));
 		StopWatch watch = new StopWatch();
 		watch.start();
+		List<Message<T>> orderedMessages = new ArrayList<>(messagesToAck);
 		return CompletableFutures.exceptionallyCompose(this.sqsAsyncClient
-			.deleteMessageBatch(createDeleteMessageBatchRequest(messagesToAck))
-			.thenRun(() -> {}),
-				t -> CompletableFutures.failedFuture(createAcknowledgementException(messagesToAck, t)))
-			.whenComplete((v, t) -> logAckResult(messagesToAck, t, watch));
+			.deleteMessageBatch(createDeleteMessageBatchRequest(orderedMessages)).thenCompose(
+					response -> handleDeleteMessageBatchResponse(orderedMessages, response)),
+			t -> toAcknowledgementFailure(orderedMessages, t))
+			.whenComplete((v, t) -> logAckResult(orderedMessages, t, watch));
 	}
 
-	private DeleteMessageBatchRequest createDeleteMessageBatchRequest(Collection<Message<T>> messagesToAck) {
-		return DeleteMessageBatchRequest
-			.builder()
-			.queueUrl(this.queueUrl)
-			.entries(messagesToAck.stream().map(this::toDeleteMessageEntry).collect(Collectors.toList()))
-			.build();
+	private CompletableFuture<Void> handleDeleteMessageBatchResponse(List<Message<T>> messagesToAck,
+			DeleteMessageBatchResponse response) {
+		if (!response.failed().isEmpty()) {
+			return CompletableFutures.<Void>failedFuture(createPartialFailureException(messagesToAck, response));
+		}
+		return CompletableFuture.<Void>completedFuture(null);
 	}
 
-	private DeleteMessageBatchRequestEntry toDeleteMessageEntry(Message<T> message) {
+	private CompletableFuture<Void> toAcknowledgementFailure(Collection<Message<T>> messagesToAck, Throwable throwable) {
+		Throwable cause = throwable instanceof CompletionException && throwable.getCause() != null ? throwable.getCause()
+				: throwable;
+		if (cause instanceof SqsAcknowledgementException) {
+			return CompletableFutures.<Void>failedFuture(cause);
+		}
+		return CompletableFutures.<Void>failedFuture(createAcknowledgementException(messagesToAck, cause));
+	}
+
+	private SqsAcknowledgementException createPartialFailureException(List<Message<T>> messages,
+			DeleteMessageBatchResponse response) {
+		Set<Integer> failedIndices = new HashSet<>();
+		boolean allIdsCorrelated = true;
+		for (BatchResultErrorEntry errorEntry : response.failed()) {
+			Integer index = parseBatchEntryIndex(errorEntry.id());
+			if (index == null || index < 0 || index >= messages.size()) {
+				allIdsCorrelated = false;
+				break;
+			}
+			failedIndices.add(index);
+		}
+
+		if (!allIdsCorrelated) {
+			Set<String> rawFailedIds = response.failed().stream()
+					.map(BatchResultErrorEntry::id)
+					.collect(Collectors.toSet());
+			logger.warn("Could not correlate all acknowledgement failure ids in queue {}: {}", this.queueName,
+					rawFailedIds);
+			return new SqsAcknowledgementException("Could not correlate acknowledgement failure ids: " + rawFailedIds,
+					Collections.emptyList(), messages.stream().map(msg -> (Message<?>) msg).collect(Collectors.toList()),
+					this.queueUrl, null);
+		}
+
+		List<Message<?>> successfulMessages = new ArrayList<>();
+		List<Message<?>> failedMessages = new ArrayList<>();
+
+		for (int i = 0; i < messages.size(); i++) {
+			if (failedIndices.contains(i)) {
+				failedMessages.add(messages.get(i));
+			} else {
+				successfulMessages.add(messages.get(i));
+			}
+		}
+
+		Set<String> failedMessageIds = failedMessages.stream()
+				.map(MessageHeaderUtils::getId)
+				.collect(Collectors.toSet());
+		logger.warn("Some messages could not be acknowledged in queue {}: {}", this.queueName, failedMessageIds);
+
+		return new SqsAcknowledgementException("Error acknowledging messages " + failedMessageIds, successfulMessages,
+				failedMessages, this.queueUrl, null);
+	}
+
+	private Integer parseBatchEntryIndex(String id) {
+		try {
+			return Integer.valueOf(id);
+		}
+		catch (NumberFormatException ex) {
+			return null;
+		}
+	}
+
+	private DeleteMessageBatchRequest createDeleteMessageBatchRequest(List<Message<T>> messagesToAck) {
+		List<DeleteMessageBatchRequestEntry> entries = new ArrayList<>(messagesToAck.size());
+		for (int i = 0; i < messagesToAck.size(); i++) {
+			entries.add(toDeleteMessageEntry(messagesToAck.get(i), i));
+		}
+		return DeleteMessageBatchRequest.builder().queueUrl(this.queueUrl).entries(entries).build();
+	}
+
+	// Positional index keeps the batch-local id unique even when SQS redelivers the same message id.
+	private DeleteMessageBatchRequestEntry toDeleteMessageEntry(Message<T> message, int index) {
 		return DeleteMessageBatchRequestEntry
 			.builder()
 			.receiptHandle(MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER))
-			.id(UUID.randomUUID().toString())
+			.id(Integer.toString(index))
 			.build();
 	}
 	// @formatter:on

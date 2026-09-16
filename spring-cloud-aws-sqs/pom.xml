@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>spring-cloud-aws</artifactId>
 		<groupId>io.awspring.cloud</groupId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.1.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 
@@ -96,7 +96,33 @@
 			<artifactId>testcontainers-junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>amazon-sqs-java-extended-client-lib</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<!-- spring-cloud-build excludes '**/Abstract*.java' assuming such classes are test base
+						classes. In this module several concrete test classes are named after the Abstract*
+						production classes they test and were silently skipped. Clear the exclusion; actual
+						abstract base classes are not executable by JUnit anyway. -->
+					<excludes combine.self="override" />
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

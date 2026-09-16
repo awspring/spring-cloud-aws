@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.support.converter;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.SqsHeaders;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -34,6 +36,7 @@ import org.springframework.util.Assert;
  *
  * @author Tomaz Fernandes
  * @author Dongha Kim
+ * @author Jeongmin Kim
  *
  * @since 3.0
  * @see SqsHeaderMapper
@@ -120,6 +123,16 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	}
 
 	/**
+	 * Configure the {@link HeaderMapper} used to convert headers for
+	 * {@link software.amazon.awssdk.services.sqs.model.Message} instances.
+	 * @param configurer the consumer to configure the header mapper.
+	 */
+	public void configureHeaderMapper(Consumer<HeaderMapper<S>> configurer) {
+		Assert.notNull(configurer, "configurer cannot be null");
+		configurer.accept(this.headerMapper);
+	}
+
+	/**
 	 * Set the {@link HeaderMapper} to used to convert headers for
 	 * {@link software.amazon.awssdk.services.sqs.model.Message} instances.
 	 * @param headerMapper the header mapper instance.
@@ -159,19 +172,23 @@ public abstract class AbstractMessagingMessageConverter<S> implements ContextAwa
 	private Object convertPayload(S message, MessageHeaders messageHeaders,
 			@Nullable MessageConversionContext context) {
 		Message<?> messagingMessage = MessageBuilder.createMessage(getPayloadToDeserialize(message), messageHeaders);
-		Class<?> targetType = getTargetType(messagingMessage, context);
-		return targetType != null
-				? Objects.requireNonNull(this.payloadMessageConverter.fromMessage(messagingMessage, targetType),
-						"payloadMessageConverter returned null payload")
+		Class<?> mappedTargetType = this.payloadTypeMapper.apply(messagingMessage);
+		if (mappedTargetType != null) {
+			return convertPayload(messagingMessage, mappedTargetType, null);
+		}
+
+		Class<?> inferredTargetType = context != null ? context.getPayloadClass() : null;
+		return inferredTargetType != null
+				? convertPayload(messagingMessage, inferredTargetType, context.getConversionHint())
 				: messagingMessage.getPayload();
 	}
 
-	@Nullable
-	private Class<?> getTargetType(Message<?> messagingMessage, @Nullable MessageConversionContext context) {
-		Class<?> classFromTypeMapper = this.payloadTypeMapper.apply(messagingMessage);
-		return classFromTypeMapper == null && context != null && context.getPayloadClass() != null
-				? context.getPayloadClass()
-				: classFromTypeMapper;
+	private Object convertPayload(Message<?> message, Class<?> targetType, @Nullable Object conversionHint) {
+		Object convertedPayload = conversionHint != null
+				&& this.payloadMessageConverter instanceof SmartMessageConverter smartMessageConverter
+						? smartMessageConverter.fromMessage(message, targetType, conversionHint)
+						: this.payloadMessageConverter.fromMessage(message, targetType);
+		return Objects.requireNonNull(convertedPayload, "payloadMessageConverter returned null payload");
 	}
 
 	protected abstract Object getPayloadToDeserialize(S message);

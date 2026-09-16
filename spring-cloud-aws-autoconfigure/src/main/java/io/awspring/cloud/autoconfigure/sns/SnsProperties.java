@@ -31,4 +31,17 @@ public class SnsProperties extends AwsClientProperties {
 	 * The prefix used for AWS SNS configuration.
 	 */
 	public static final String PREFIX = "spring.cloud.aws.sns";
+
+	/**
+	 * Defines if SNS massages will be verified. By default, verification is used.
+	 */
+	private boolean verification = true;
+
+	public boolean getVerification() {
+		return verification;
+	}
+
+	public void setVerification(boolean verification) {
+		this.verification = verification;
+	}
 }

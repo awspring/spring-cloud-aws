@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.sqs.jackson2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
@@ -33,6 +34,8 @@ import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
+import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
+import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
@@ -73,6 +76,7 @@ class LegacySqsAutoConfigurationTest {
 	private static final String CUSTOM_MESSAGE_CONVERTER_BEAN_NAME = "customMessageConverter";
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withClassLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class))
 			.withPropertyValues("spring.cloud.aws.region.static:eu-west-1")
 			.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
 					CredentialsProviderAutoConfiguration.class, SqsAutoConfiguration.class,
@@ -224,6 +228,8 @@ class LegacySqsAutoConfigurationTest {
 							.getBean(SqsMessageListenerContainerFactory.class);
 					assertThat(factory).hasFieldOrProperty("errorHandler").extracting("asyncMessageInterceptors")
 							.asList().isNotEmpty();
+					assertThat(factory).extracting("acknowledgementResultCallback").isNull();
+					assertThat(factory).extracting("asyncAcknowledgementResultCallback").isNull();
 					assertThat(factory).extracting("containerOptionsBuilder")
 							.asInstanceOf(type(ContainerOptionsBuilder.class))
 							.extracting(ContainerOptionsBuilder::build)
@@ -242,6 +248,36 @@ class LegacySqsAutoConfigurationTest {
 											jackson2MessageConverter -> assertThat(
 													jackson2MessageConverter.getObjectMapper().getRegisteredModuleIds())
 													.contains("jackson-datatype-jsr310")));
+				});
+	}
+
+	@Test
+	void configuresFactoryWithBlockingAcknowledgementCallback() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true")
+				.withUserConfiguration(BlockingAcknowledgementCallbackConfiguration.class).run(context -> {
+					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+					assertThat(context).hasSingleBean(AcknowledgementResultCallback.class);
+
+					SqsMessageListenerContainerFactory<?> factory = context
+							.getBean(SqsMessageListenerContainerFactory.class);
+
+					assertThat(factory).extracting("acknowledgementResultCallback")
+							.isEqualTo(context.getBean(AcknowledgementResultCallback.class));
+				});
+	}
+
+	@Test
+	void configuresFactoryWithAsyncAcknowledgementCallback() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.enabled:true")
+				.withUserConfiguration(AsyncAcknowledgementCallbackConfiguration.class).run(context -> {
+					assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+					assertThat(context).hasSingleBean(AsyncAcknowledgementResultCallback.class);
+
+					SqsMessageListenerContainerFactory<?> factory = context
+							.getBean(SqsMessageListenerContainerFactory.class);
+
+					assertThat(factory).extracting("asyncAcknowledgementResultCallback")
+							.isEqualTo(context.getBean(AsyncAcknowledgementResultCallback.class));
 				});
 	}
 
@@ -364,4 +400,25 @@ class LegacySqsAutoConfigurationTest {
 
 	}
 
+	@Configuration(proxyBeanMethods = false)
+	static class BlockingAcknowledgementCallbackConfiguration {
+
+		@Bean
+		AcknowledgementResultCallback<Object> acknowledgementResultCallback() {
+			return new AcknowledgementResultCallback<>() {
+			};
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class AsyncAcknowledgementCallbackConfiguration {
+
+		@Bean
+		AsyncAcknowledgementResultCallback<Object> asyncAcknowledgementResultCallback() {
+			return new AsyncAcknowledgementResultCallback<>() {
+			};
+		}
+
+	}
 }

@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
+import io.awspring.cloud.sqs.listener.InterceptorExecutionFailedException;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
@@ -167,8 +168,11 @@ class BeforeProcessingContextInterceptorExecutionStageTests {
 				createConfiguration());
 		CompletableFuture<Message<Object>> future = stage.process(message1, context);
 		assertThat(future).isCompletedExceptionally();
-		assertThatThrownBy(future::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
-				.isEqualTo(exception);
+		assertThatThrownBy(future::join).isInstanceOf(CompletionException.class).cause()
+				.isInstanceOf(InterceptorExecutionFailedException.class)
+				.satisfies(e -> assertThat(((InterceptorExecutionFailedException) e).getFailedMessages())
+						.containsExactly(message1))
+				.cause().hasCauseInstanceOf(RuntimeException.class);
 
 		verify(interceptor1).intercept(message1);
 		verify(interceptor2, never()).intercept(any(Message.class));
@@ -202,8 +206,11 @@ class BeforeProcessingContextInterceptorExecutionStageTests {
 				createConfiguration());
 		CompletableFuture<Collection<Message<Object>>> future = stage.process(firstBatch, context);
 		assertThat(future).isCompletedExceptionally();
-		assertThatThrownBy(future::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
-				.isEqualTo(exception);
+		assertThatThrownBy(future::join).isInstanceOf(CompletionException.class).cause()
+				.isInstanceOf(InterceptorExecutionFailedException.class)
+				.satisfies(e -> assertThat(((InterceptorExecutionFailedException) e).getFailedMessages())
+						.containsExactlyElementsOf(firstBatch))
+				.cause().hasCauseInstanceOf(RuntimeException.class);
 
 		verify(interceptor1).intercept(firstBatch);
 		verify(interceptor2, never()).intercept(any(Message.class));

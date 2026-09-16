@@ -73,10 +73,7 @@ class KinesisIntegrationTests implements LocalstackContainerTest {
 	@BeforeAll
 	static void setup() {
 		AMAZON_KINESIS_ASYNC = LocalstackContainerTest.kinesisClient();
-		AMAZON_KINESIS_ASYNC.createStream(request -> request.streamName(TEST_STREAM).shardCount(1))
-				.thenCompose(result -> AMAZON_KINESIS_ASYNC.waiter()
-						.waitUntilStreamExists(request -> request.streamName(TEST_STREAM)))
-				.join();
+		LocalstackContainerTest.createStream(AMAZON_KINESIS_ASYNC, TEST_STREAM, 1).join();
 	}
 
 	@Test

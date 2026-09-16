@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.sqs;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.ApplicationContextException;
@@ -40,6 +42,11 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.shaded.org.bouncycastle.util.Arrays;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 
 /**
@@ -73,9 +80,11 @@ class SqsAutoConfigurationIntegrationTest {
 			SqsAutoConfiguration.class, AwsAutoConfiguration.class, ListenerConfiguration.class);
 
 	private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+			.withClassLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class))
 			.withPropertyValues(BASE_PARAMS).withConfiguration(BASE_CONFIGURATIONS);
 
 	private final ApplicationContextRunner applicationContextRunnerWithFailStrategy = new ApplicationContextRunner()
+			.withClassLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class))
 			.withPropertyValues(Arrays.append(BASE_PARAMS, "spring.cloud.aws.sqs.queue-not-found-strategy=fail"))
 			.withConfiguration(BASE_CONFIGURATIONS);
 
@@ -108,6 +117,39 @@ class SqsAutoConfigurationIntegrationTest {
 				.cause().isInstanceOf(CompletionException.class).cause()
 				.isInstanceOf(QueueAttributesResolvingException.class).cause()
 				.isInstanceOf(QueueDoesNotExistException.class));
+	}
+
+	@Test
+	void sendsAndReceivesLargeMessageWithExtendedClient() {
+		String largePayload = "x".repeat(300_000);
+		// Create the S3 bucket for extended client payload offloading
+		S3AsyncClient s3 = S3AsyncClient.builder()
+				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
+				.endpointOverride(localstack.getEndpoint()).region(Region.EU_WEST_1).forcePathStyle(true).build();
+		s3.createBucket(r -> r.bucket("extended-payload-bucket")).join();
+
+		new ApplicationContextRunner()
+				.withPropertyValues(BASE_PARAMS[0], BASE_PARAMS[1], BASE_PARAMS[2], BASE_PARAMS[3], BASE_PARAMS[4],
+						"spring.cloud.aws.sqs.extended.bucket=extended-payload-bucket")
+				.withConfiguration(AutoConfigurations.of(RegionProviderAutoConfiguration.class,
+						CredentialsProviderAutoConfiguration.class, SqsAutoConfiguration.class,
+						AwsAutoConfiguration.class))
+				.withUserConfiguration(ExtendedClientS3Configuration.class).run(context -> {
+					assertThat(context).hasSingleBean(SqsAsyncClient.class);
+					assertThat(context.getBean(SqsAsyncClient.class)).isInstanceOf(AmazonSQSExtendedAsyncClient.class);
+					SqsTemplate sqsTemplate = context.getBean(SqsTemplate.class);
+					sqsTemplate.send(to -> to.queue(QUEUE_NAME).payload(largePayload));
+				});
+	}
+
+	@Configuration
+	static class ExtendedClientS3Configuration {
+		@Bean
+		S3AsyncClient s3AsyncClient() {
+			return S3AsyncClient.builder()
+					.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
+					.endpointOverride(localstack.getEndpoint()).region(Region.EU_WEST_1).forcePathStyle(true).build();
+		}
 	}
 
 	static class Listener {

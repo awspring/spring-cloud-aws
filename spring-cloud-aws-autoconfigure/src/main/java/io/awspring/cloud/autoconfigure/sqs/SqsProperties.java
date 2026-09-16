@@ -26,6 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  *
  * @author Tomaz Fernandes
  * @author Wei Jiang
+ * @author Jeongmin Kim
  * @since 3.0
  */
 @ConfigurationProperties(prefix = SqsProperties.PREFIX)
@@ -52,6 +53,22 @@ public class SqsProperties extends AwsClientProperties {
 	private Boolean observationEnabled = false;
 
 	/**
+	 * Whether to convert SQS message IDs to UUIDs. Set to {@code false} for SQS-compatible providers that return
+	 * non-UUID message IDs.
+	 */
+	private Boolean convertMessageIdToUuid = true;
+
+	private SqsExtendedClientProperties extended = new SqsExtendedClientProperties();
+
+	public Boolean getConvertMessageIdToUuid() {
+		return convertMessageIdToUuid;
+	}
+
+	public void setConvertMessageIdToUuid(Boolean convertMessageIdToUuid) {
+		this.convertMessageIdToUuid = convertMessageIdToUuid;
+	}
+
+	/**
 	 * Return the strategy to use if the queue is not found.
 	 * @return the {@link QueueNotFoundStrategy}
 	 */
@@ -74,6 +91,14 @@ public class SqsProperties extends AwsClientProperties {
 
 	public void setObservationEnabled(Boolean observationEnabled) {
 		this.observationEnabled = observationEnabled;
+	}
+
+	public SqsExtendedClientProperties getExtended() {
+		return extended;
+	}
+
+	public void setExtended(SqsExtendedClientProperties extended) {
+		this.extended = extended;
 	}
 
 	public static class Listener {

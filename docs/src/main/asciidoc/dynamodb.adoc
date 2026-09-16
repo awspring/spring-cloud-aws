@@ -1,8 +1,8 @@
 [#spring-cloud-aws-dynamoDb]
-== DynamoDb Integration
+== DynamoDB integration
 
-https://aws.amazon.com/dynamodb/[DynamoDb] is a fully managed serverless key/value Nosql database designed for high performance.
-A Spring Boot starter is provided to auto-configure DynamoDb integration beans.
+https://aws.amazon.com/dynamodb/[DynamoDB] is a fully managed, serverless, key-value NoSQL database designed for high performance.
+A Spring Boot starter is provided to auto-configure DynamoDB integration beans.
 
 Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 
@@ -14,15 +14,15 @@ Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>:
 </dependency>
 ----
 
-DynamoDb integration will only provide autoconfiguration and simple `DynamoDbOperations` which can be used to communicate with DynamoDb, build repositories and so on...
+The DynamoDB integration provides auto-configuration and a `DynamoDbOperations` interface that can be used to communicate with DynamoDB, build repositories, and more.
 
 === DynamoDbOperations
 
-The starter automatically configures and registers a `DynamoDbOperations` bean providing higher level abstractions for working with DynamoDb.
+The starter automatically configures and registers a `DynamoDbOperations` bean providing higher-level abstractions for working with DynamoDB.
 `DynamoDbTemplate` - a default `DynamoDbOperations` implementation - being built on top of `DynamoDbEnhancedClient` uses annotations provided by AWS.
 The list of supported annotations can be found https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/enhanced/dynamodb/mapper/annotations/package-summary.html[here].
 
-`DynamoDbEnchancedClient` supports a programming model similar to JPA - where a class is turned into an entity through applying certain annotations:
+`DynamoDbEnhancedClient` supports a programming model similar to JPA, where a class is turned into an entity by applying certain annotations:
 
 [source,java]
 ----
@@ -45,7 +45,7 @@ public class Person {
 }
 ----
 
-`DynamoDbTemplate` provides methods to perform typical CRUD operations on such entities, plus it adds convenience methods for querying DynamoDb:
+`DynamoDbTemplate` provides methods to perform typical CRUD operations on such entities, plus it adds convenience methods for querying DynamoDB:
 
 [source,java]
 ----
@@ -60,21 +60,21 @@ Person person = new Person(...)
 dynamoDbTemplate.save(person);
 ----
 
-==== Resolving Table Name
+==== Resolving table name
 
 To resolve a table name for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableNameResolver`. The default implementation turns an entity class name into its snake case representation with the possibility of using a table name prefix (optional), suffix (optional), or overriding the separator (optional).
 
 Specify the `spring.cloud.aws.dynamodb.table-prefix` and `spring.cloud.aws.dynamodb.table-suffix` to provide a table name prefix and suffix. The prefix is prepended to the table name and suffix is appended to the table name. For example, if `spring.cloud.aws.dynamodb.table-prefix` is configured as `foo_` and `spring.cloud.aws.dynamodb.table-suffix` is configured as `_foo2` and the entity class is `Person`, then the default implementation resolves the table name as `foo_person_foo2`. You can configure both properties, only one of them or none. However if you do not specify `spring.cloud.aws.dynamodb.table-prefix` and `spring.cloud.aws.dynamodb.table-suffix`, the table name will be resolved as `person`.
 
-Specify the `spring.cloud.aws.dynamodb.table-separator` to override the `_` word separator.  For example if `spring.cloud.aws.dynamodb.table-separator` is configured as `-` and the entity class is `MoreComplexPerson`, then the table name will be resolved as `more-complex-person`.
+Specify the `spring.cloud.aws.dynamodb.table-separator` to override the `_` word separator. For example, if `spring.cloud.aws.dynamodb.table-separator` is configured as `-` and the entity class is `MoreComplexPerson`, then the table name will be resolved as `more-complex-person`.
 
 To use a custom implementation, declare a bean of type `DynamoDbTableNameResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
 
-==== Resolving Table Schema
+==== Resolving table schema
 
-To resolve a table schema for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableSchemaResolver`. The default implementation caches `TableSchema` objects in internal map.
+To resolve a table schema for an entity, `DynamoDbTemplate` uses a bean of type `DynamoDbTableSchemaResolver`. The default implementation caches `TableSchema` objects in an internal map.
 To use custom implementation, declare a bean of type `DynamoDbTableSchemaResolver` and it will get injected into `DynamoDbTemplate` automatically during auto-configuration.
-To register a custom table schema for a DynamoDB entity a bean of type `TableSchema`  should be created:
+To register a custom table schema for a DynamoDB entity, a bean of type `TableSchema` should be created:
 [source, java]
 ----
 @Configuration
@@ -89,11 +89,11 @@ public class MyTableSchemaConfiguration {
 
 IMPORTANT: Because of classloader related https://github.com/aws/aws-sdk-java-v2/issues/2604[issue] in AWS SDK DynamoDB Enhanced client, to use Spring Cloud AWS DynamoDB module together with Spring Boot DevTools you must create a custom table schema resolver and define schema using `StaticTableSchema`.
 
-=== Using DynamoDb Client
+=== Using the DynamoDB client
 
-Autoconfiguration automatically configures `DynamoDbClient` which can be used for low level api calls and `DynamoDbEnhancedClient` if `DynamoDbOperations` are not enough.
+Auto-configuration automatically configures a `DynamoDbClient` for low-level API calls, and a `DynamoDbEnhancedClient` when `DynamoDbOperations` are not sufficient.
 
-If autoconfigured `DynamoDbClient` or `DynamoDbEnhancedClient` bean configuration does not meet your needs, it can be replaced by creating your custom bean.
+If the auto-configured `DynamoDbClient` or `DynamoDbEnhancedClient` bean configuration does not meet your needs, it can be replaced by declaring a custom bean.
 
 [source,java]
 ----
@@ -117,7 +117,7 @@ public class DynamoDbService {
 
 === Using DynamoDB Accelerator
 
-The starter automatically configures and registers an `software.amazon.dax.ClusterDaxClient` bean if it finds the following is added to the project:
+The starter automatically configures and registers a `software.amazon.dax.ClusterDaxClient` bean if the following dependency is found on the classpath:
 
 [source,xml]
 ----
@@ -129,33 +129,33 @@ The starter automatically configures and registers an `software.amazon.dax.Clust
 
 === Configuration
 
-The Spring Boot Starter for DynamoDb provides the following configuration options:
+The Spring Boot Starter for DynamoDB provides the following configuration options:
 
 [cols="3,3,1,1"]
 |===
 | Name | Description | Required | Default value
-| `spring.cloud.aws.dynamodb.enabled` | Enables the DynamoDb integration. | No | `true`
+| `spring.cloud.aws.dynamodb.enabled` | Enables the DynamoDB integration. | No | `true`
 | `spring.cloud.aws.dynamodb.endpoint` | Configures endpoint used by `DynamoDbClient`. | No |
 | `spring.cloud.aws.dynamodb.region` | Configures region used by `DynamoDbClient`. | No |
 | `spring.cloud.aws.dynamodb.table-prefix` | Table name prefix used by the default `DynamoDbTableNameResolver` implementation. | No |
 | `spring.cloud.aws.dynamodb.table-suffix` | Table name suffix used by the default `DynamoDbTableNameResolver` implementation. | No |
 | `spring.cloud.aws.dynamodb.table-separator` | Table name word separator used by the default `DynamoDbTableNameResolver` implementation. | No | `_`
 
-| `spring.cloud.aws.dynamodb.dax.idle-timeout-millis` |Timeout for idle connections with the DAX cluster. | No | `30000`
+| `spring.cloud.aws.dynamodb.dax.idle-timeout-millis` | Timeout for idle connections with the DAX cluster. | No | `30000`
 | `spring.cloud.aws.dynamodb.dax.url` | DAX cluster endpoint. | Yes |
-| `spring.cloud.aws.dynamodb.dax.connection-ttl-millis` |  Connection time to live. | No | `0`
-| `spring.cloud.aws.dynamodb.dax.connect-timeout-millis` | Connection timeout | No | `1000`
+| `spring.cloud.aws.dynamodb.dax.connection-ttl-millis` | Connection time to live. | No | `0`
+| `spring.cloud.aws.dynamodb.dax.connect-timeout-millis` | Connection timeout. | No | `1000`
 | `spring.cloud.aws.dynamodb.dax.request-timeout-millis` | Request timeout for connections with the DAX cluster. | No | `1000`
 | `spring.cloud.aws.dynamodb.dax.write-retries` | Number of times to retry writes, initial try is not counted. | No | `2`
 | `spring.cloud.aws.dynamodb.dax.read-retries` | Number of times to retry reads, initial try is not counted. | No | `2`
 | `spring.cloud.aws.dynamodb.dax.cluster-update-interval-millis` | Interval between polling of cluster members for membership changes. | No | `4000`
 | `spring.cloud.aws.dynamodb.dax.endpoint-refresh-timeout-millis` | Timeout for endpoint refresh. | No | `6000`
 | `spring.cloud.aws.dynamodb.dax.max-concurrency` | Maximum number of concurrent requests. | No | 1000
-| `spring.cloud.aws.dynamodb.dax.max-pending-connection-acquires` | Maximum number of pending Connections to acquire. | No | 10000
-| `spring.cloud.aws.dynamodb.dax.skip-host-name-verification` | Skips hostname verification in url. | No |
+| `spring.cloud.aws.dynamodb.dax.max-pending-connection-acquires` | Maximum number of pending connections to acquire. | No | 10000
+| `spring.cloud.aws.dynamodb.dax.skip-host-name-verification` | Skips hostname verification in the URL. | No |
 |===
 
-=== Client Customization
+=== Client customization
 
 `DynamoDbClient` can be further customized by providing a bean of type `DynamoDbClientCustomizer`:
 
@@ -178,40 +178,40 @@ DynamoDbClientCustomizer customizer() {
 
 `DynamoDbClientCustomizer` is a functional interface that enables configuring `DynamoDbClientBuilder` before the `DynamoDbClient` is built in auto-configuration.
 
-There can be multiple `DynamoDbClientCustomizer` beans present in single application context. `@Order(..)` annotation can be used to define the order of the execution.
+There can be multiple `DynamoDbClientCustomizer` beans present in a single application context. The `@Order(..)` annotation can be used to define the order of execution.
 
 Note that `DynamoDbClientCustomizer` beans are applied **after** `AwsSyncClientCustomizer` beans and therefore can overwrite previously set configurations.
 
-=== IAM Permissions
+=== IAM permissions
 
-Since it depends on how you will use DynamoDb integration providing a list of IAM policies would be pointless since least privilege model should be used.
-To check what IAM policies DynamoDb uses and see which ones you should use please check https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/using-identity-based-policies.html[IAM policies]
+Since the required IAM permissions depend on which DynamoDB operations you use, a definitive list cannot be provided here. The principle of least privilege should be applied.
+For a full list of available DynamoDB IAM policies, see https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/using-identity-based-policies.html[IAM policies for DynamoDB].
 
 [#spring-integration-support]
-=== Spring Integration Support
+=== Spring Integration support
 
 Starting with version 4.0, Spring Cloud AWS provides https://spring.io/projects/spring-integration[Spring Integration] components for Amazon DynamoDB.
 
-The `DynamoDbMetadataStore` is a https://docs.spring.io/spring-integration/reference/meta-data-store.html[`ConcurrentMetadataStore`] implementation to store and retrieve key-value entries in the specific DynamoDB.
-It requires a `DynamoDbAsyncClient` and default table name is `SpringIntegrationMetadataStore`.
-If the table is not present, the `DynamoDbMetadataStore` creates it on its initialization issuing an async `dynamoDB.createTable()` request.
-The table structure is like:
+The `DynamoDbMetadataStore` is a https://docs.spring.io/spring-integration/reference/meta-data-store.html[`ConcurrentMetadataStore`] implementation to store and retrieve key-value entries in a specific DynamoDB table.
+It requires a `DynamoDbAsyncClient`, and the default table name is `SpringIntegrationMetadataStore`.
+If the table is not present, the `DynamoDbMetadataStore` creates it during initialization, issuing an async `dynamoDB.createTable()` request.
+The table structure is as follows:
 
 - the `metadataKey` is a string table key as a hash;
 - the `metadataValue` is a string for entry value;
-- the `expireAt` is time-to-live attribute according to respective algorithm in DynamoDB.
+- the `expireAt` is a time-to-live attribute according to the respective algorithm in DynamoDB.
 
 See `DynamoDbMetadataStore` Javadocs for more information.
 
-The `DynamoDbLockRegistry` is an `ExpirableLockRegistry` and `RenewableLockRegistry` implementation for the https://docs.spring.io/spring-integration/reference/distributed-locks.html[`DistributedLock`] abstraction based on DynamoDB table.
+The `DynamoDbLockRegistry` is an `ExpirableLockRegistry` and `RenewableLockRegistry` implementation for the https://docs.spring.io/spring-integration/reference/distributed-locks.html[`DistributedLock`] abstraction based on a DynamoDB table.
 The supporting `DynamoDbLockRepository` class is for DynamoDB table management and low-level DynamoDB API interaction.
 It requires a `DynamoDbAsyncClient`, and the default table name is `SpringIntegrationLockRegistry`.
 
-The table structure is like:
+The table structure is as follows:
 
 - the `lockKey` is a string table key as a hash;
 - the `lockOwner` is a string for lock record ownership — the instance which holds the lock at the moment;
 - the `createdAt` is an `Instant.now().getEpochSecond()` when the lock record was created;
-- the `expireAt` is time-to-live attribute according to respective algorithm in DynamoDB.
+- the `expireAt` is a time-to-live attribute according to the respective algorithm in DynamoDB.
 
 See `DynamoDbLockRegistry` and `DynamoDbLockRepository` Javadocs for more information.

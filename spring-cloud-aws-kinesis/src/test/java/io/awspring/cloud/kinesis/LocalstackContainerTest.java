@@ -15,6 +15,9 @@
  */
 package io.awspring.cloud.kinesis;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Semaphore;
 import org.junit.jupiter.api.BeforeAll;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.localstack.LocalStackContainer;
@@ -23,12 +26,15 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
+import software.amazon.awssdk.services.kinesis.model.DescribeStreamResponse;
+import software.amazon.awssdk.services.kinesis.model.ResourceInUseException;
 
 /**
  * The base contract for JUnit tests based on the container for Localstack. The Testcontainers 'reuse' option must be
@@ -46,9 +52,53 @@ public interface LocalstackContainerTest {
 	LocalStackContainer LOCAL_STACK_CONTAINER = new LocalStackContainer(
 			DockerImageName.parse("localstack/localstack:4.4.0"));
 
+	Semaphore STREAM_CREATION = new Semaphore(3);
+
 	@BeforeAll
 	static void startContainer() {
-		LOCAL_STACK_CONTAINER.start();
+		synchronized (LOCAL_STACK_CONTAINER) {
+			LOCAL_STACK_CONTAINER.start();
+		}
+	}
+
+	/**
+	 * Creates a stream and waits until it exists, at most three at a time. Test classes run concurrently and AWS only
+	 * allows a few streams to be in the 'CREATING' state at once, which the concurrent creations were exceeding.
+	 */
+	static CompletableFuture<WaiterResponse<DescribeStreamResponse>> createStream(KinesisAsyncClient client,
+			String streamName, int shardCount) {
+		STREAM_CREATION.acquireUninterruptibly();
+		try {
+			return client.createStream(request -> request.streamName(streamName).shardCount(shardCount))
+					// A slow CreateStream can exceed the client's read timeout, and the SDK retries it. The
+					// stream is created either way, so the retry answers 'already exists', which is the state
+					// this method is asking for.
+					.exceptionally(throwable -> {
+						if (hasCause(throwable, ResourceInUseException.class)) {
+							return null;
+						}
+						throw throwable instanceof CompletionException ? (CompletionException) throwable
+								: new CompletionException(throwable);
+					})
+					.thenCompose(
+							result -> client.waiter().waitUntilStreamExists(request -> request.streamName(streamName)))
+					.whenComplete((result, throwable) -> STREAM_CREATION.release());
+		}
+		catch (RuntimeException ex) {
+			// The release is attached to the future, so a throw before it exists would lose the permit and
+			// eventually block every later creation.
+			STREAM_CREATION.release();
+			throw ex;
+		}
+	}
+
+	private static boolean hasCause(Throwable throwable, Class<? extends Throwable> type) {
+		for (Throwable current = throwable; current != null; current = current.getCause()) {
+			if (type.isInstance(current)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	static KinesisAsyncClient kinesisClient() {

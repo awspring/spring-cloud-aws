@@ -6,13 +6,13 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>5.0.0</version>
+		<version>5.0.2</version>
 		<relativePath/><!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>io.awspring.cloud</groupId>
 	<artifactId>spring-cloud-aws</artifactId>
-	<version>4.0.0-SNAPSHOT</version>
+	<version>4.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Cloud AWS</name>
 
@@ -44,6 +44,7 @@
 		<module>spring-cloud-aws-sns</module>
 		<module>spring-cloud-aws-sqs</module>
 		<module>spring-cloud-aws-dynamodb</module>
+		<module>spring-cloud-aws-app-config</module>
 		<module>spring-cloud-aws-kinesis</module>
 		<module>spring-cloud-aws-kinesis-stream-binder</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis</module>
@@ -57,6 +58,7 @@
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-metrics</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-parameter-store</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-s3</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-app-config</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-s3</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-secrets-manager</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-ses</module>

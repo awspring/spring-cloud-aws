@@ -315,6 +315,10 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 		protected Builder() {
 		}
 
+		protected Builder(Builder<?, ?> builder) {
+			copyStateFrom(builder);
+		}
+
 		protected Builder(AbstractContainerOptions<?, ?> options) {
 			this.maxConcurrentMessages = options.maxConcurrentMessages;
 			this.maxMessagesPerPoll = options.maxMessagesPerPoll;
@@ -336,6 +340,29 @@ public abstract class AbstractContainerOptions<O extends ContainerOptions<O, B>,
 			this.acknowledgementResultTaskExecutor = options.acknowledgementResultTaskExecutor;
 			this.observationRegistry = options.observationRegistry;
 			this.observationConvention = options.observationConvention;
+		}
+
+		protected void copyStateFrom(Builder<?, ?> builder) {
+			this.maxConcurrentMessages = builder.maxConcurrentMessages;
+			this.maxMessagesPerPoll = builder.maxMessagesPerPoll;
+			this.autoStartup = builder.autoStartup;
+			this.pollTimeout = builder.pollTimeout;
+			this.pollBackOffPolicy = builder.pollBackOffPolicy;
+			this.maxDelayBetweenPolls = builder.maxDelayBetweenPolls;
+			this.listenerShutdownTimeout = builder.listenerShutdownTimeout;
+			this.acknowledgementShutdownTimeout = builder.acknowledgementShutdownTimeout;
+			this.backPressureMode = builder.backPressureMode;
+			this.backPressureHandlerFactory = builder.backPressureHandlerFactory;
+			this.listenerMode = builder.listenerMode;
+			this.messageConverter = builder.messageConverter;
+			this.acknowledgementMode = builder.acknowledgementMode;
+			this.acknowledgementOrdering = builder.acknowledgementOrdering;
+			this.acknowledgementInterval = builder.acknowledgementInterval;
+			this.acknowledgementThreshold = builder.acknowledgementThreshold;
+			this.componentsTaskExecutor = builder.componentsTaskExecutor;
+			this.acknowledgementResultTaskExecutor = builder.acknowledgementResultTaskExecutor;
+			this.observationRegistry = builder.observationRegistry;
+			this.observationConvention = builder.observationConvention;
 		}
 
 		@Override

@@ -66,11 +66,8 @@ class KinesisMessageHandlerIntegrationTests implements LocalstackContainerTest {
 	@BeforeAll
 	static void setup() {
 		AMAZON_KINESIS = LocalstackContainerTest.kinesisClient();
-		WaiterResponse<DescribeStreamResponse> describeStreamResponse = AMAZON_KINESIS
-				.createStream(request -> request.streamName(TEST_STREAM).shardCount(1))
-				.thenCompose(result -> AMAZON_KINESIS.waiter()
-						.waitUntilStreamExists(request -> request.streamName(TEST_STREAM)))
-				.join();
+		WaiterResponse<DescribeStreamResponse> describeStreamResponse = LocalstackContainerTest
+				.createStream(AMAZON_KINESIS, TEST_STREAM, 1).join();
 
 		StreamDescription streamDescription = describeStreamResponse.matched().response().get().streamDescription();
 		TEST_STREAM_SHARD_ID = streamDescription.shards().get(0).shardId();

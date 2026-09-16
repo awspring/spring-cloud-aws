@@ -49,7 +49,15 @@ public class DefaultMethodPayloadTypeInferrer implements MethodPayloadTypeInferr
 
 	@Override
 	@Nullable
-	public Class<?> inferPayloadType(Method method, List<HandlerMethodArgumentResolver> argumentResolvers) {
+	public Class<?> inferPayloadType(Method method, @Nullable List<HandlerMethodArgumentResolver> argumentResolvers) {
+		MethodPayloadMetadata metadata = inferPayloadMetadata(method, argumentResolvers);
+		return metadata != null ? metadata.payloadClass() : null;
+	}
+
+	@Override
+	@Nullable
+	public MethodPayloadMetadata inferPayloadMetadata(Method method,
+			@Nullable List<HandlerMethodArgumentResolver> argumentResolvers) {
 		if (argumentResolvers == null || argumentResolvers.isEmpty()) {
 			return null;
 		}
@@ -61,14 +69,14 @@ public class DefaultMethodPayloadTypeInferrer implements MethodPayloadTypeInferr
 			MethodParameter parameter = new MethodParameter(method, i);
 
 			if (parameter.hasParameterAnnotation(Payload.class)) {
-				return extractClass(parameter.getGenericParameterType());
+				return extractMetadata(parameter);
 			}
 
 			boolean supportedByNonPayloadResolver = nonPayloadResolvers.stream()
 					.anyMatch(resolver -> resolver.supportsParameter(parameter));
 
 			if (!supportedByNonPayloadResolver) {
-				return extractClass(parameter.getGenericParameterType());
+				return extractMetadata(parameter);
 			}
 		}
 
@@ -76,13 +84,14 @@ public class DefaultMethodPayloadTypeInferrer implements MethodPayloadTypeInferr
 	}
 
 	/**
-	 * Extract the target class for payload conversion from the inferred type. Handles generic types like
-	 * {@code List<CustomEvent>} by extracting the element type.
-	 * @param type the inferred payload type
-	 * @return the class to be used for payload conversion, or null if cannot be determined
+	 * Extract the target class and conversion hint from the inferred payload parameter. Collection parameters represent
+	 * batch listeners, so the conversion hint is nested to point at the payload of each individual message. Other
+	 * parameters retain the method parameter so smart converters can recover their generic type.
+	 * @param parameter the inferred payload method parameter
+	 * @return the metadata to be used for payload conversion
 	 */
-	@Nullable
-	private Class<?> extractClass(Type type) {
+	private MethodPayloadMetadata extractMetadata(MethodParameter parameter) {
+		Type type = parameter.getGenericParameterType();
 		ResolvableType resolvableType = ResolvableType.forType(type);
 		Class<?> rawClass = resolvableType.toClass();
 
@@ -91,18 +100,17 @@ public class DefaultMethodPayloadTypeInferrer implements MethodPayloadTypeInferr
 			Class<?> elementClass = resolvableType.getNested(2).toClass();
 			// If it's a Collection of Messages (e.g., List<Message<CustomEvent>>), go one level deeper
 			if (Message.class.isAssignableFrom(elementClass)) {
-				return resolvableType.getNested(3).toClass();
+				return new MethodPayloadMetadata(resolvableType.getNested(3).toClass(), parameter.nested().nested());
 			}
-			return elementClass;
+			return new MethodPayloadMetadata(elementClass, parameter.nested());
 		}
 
 		// If it's a Message<T>, unwrap to get T
 		if (Message.class.isAssignableFrom(rawClass)) {
-			return resolvableType.getNested(2).toClass();
+			return new MethodPayloadMetadata(resolvableType.getNested(2).toClass(), parameter);
 		}
 
-		// For simple types, return as-is
-		return rawClass;
+		return new MethodPayloadMetadata(rawClass, parameter);
 	}
 
 	private boolean isPayloadResolver(HandlerMethodArgumentResolver resolver) {

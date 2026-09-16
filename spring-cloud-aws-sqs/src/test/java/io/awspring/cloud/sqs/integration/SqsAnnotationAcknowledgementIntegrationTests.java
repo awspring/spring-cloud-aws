@@ -109,7 +109,7 @@ public class SqsAnnotationAcknowledgementIntegrationTests extends BaseSqsIntegra
 		sqsTemplate.send(ANNOTATION_ALWAYS_ACK_SUCCESS_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", ANNOTATION_ALWAYS_ACK_SUCCESS_QUEUE_NAME,
 				messageBody);
-		assertThat(latchContainer.annotationAlwaysAckSuccessLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.annotationAlwaysAckSuccessLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -118,7 +118,7 @@ public class SqsAnnotationAcknowledgementIntegrationTests extends BaseSqsIntegra
 		sqsTemplate.send(ANNOTATION_ALWAYS_ACK_ERROR_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", ANNOTATION_ALWAYS_ACK_ERROR_QUEUE_NAME,
 				messageBody);
-		assertThat(latchContainer.annotationAlwaysAckErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.annotationAlwaysAckErrorLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -127,7 +127,7 @@ public class SqsAnnotationAcknowledgementIntegrationTests extends BaseSqsIntegra
 		sqsTemplate.send(ANNOTATION_ON_SUCCESS_ACK_SUCCESS_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", ANNOTATION_ON_SUCCESS_ACK_SUCCESS_QUEUE_NAME,
 				messageBody);
-		assertThat(latchContainer.annotationOnSuccessAckSuccessLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.annotationOnSuccessAckSuccessLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -136,8 +136,8 @@ public class SqsAnnotationAcknowledgementIntegrationTests extends BaseSqsIntegra
 		sqsTemplate.send(ANNOTATION_ON_SUCCESS_ACK_ERROR_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", ANNOTATION_ON_SUCCESS_ACK_ERROR_QUEUE_NAME,
 				messageBody);
-		assertThat(latchContainer.annotationOnSuccessAckErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.annotationOnSuccessAckErrorCallbackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.annotationOnSuccessAckErrorLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.annotationOnSuccessAckErrorCallbackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -145,7 +145,7 @@ public class SqsAnnotationAcknowledgementIntegrationTests extends BaseSqsIntegra
 		String messageBody = "annotationManualAck-payload";
 		sqsTemplate.send(ANNOTATION_MANUAL_ACK_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", ANNOTATION_MANUAL_ACK_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.annotationManualAckLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.annotationManualAckLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		assertThat(latchContainer.annotationManualAckLatchCallback.await(10, TimeUnit.SECONDS)).isFalse();
 	}
 
@@ -280,7 +280,8 @@ public class SqsAnnotationAcknowledgementIntegrationTests extends BaseSqsIntegra
 			return SqsMessageListenerContainerFactory.builder()
 					.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
 					.acknowledgementResultCallback(getAcknowledgementResultCallback())
-					.configure(options -> options.maxDelayBetweenPolls(Duration.ofSeconds(5))
+					.configure(options -> options.listenerShutdownTimeout(Duration.ZERO)
+							.acknowledgementShutdownTimeout(Duration.ZERO).maxDelayBetweenPolls(Duration.ofSeconds(5))
 							.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 							.pollTimeout(Duration.ofSeconds(5)))
 					.build();
@@ -289,8 +290,10 @@ public class SqsAnnotationAcknowledgementIntegrationTests extends BaseSqsIntegra
 		@Bean(name = ACK_AFTER_SECOND_ERROR_FACTORY)
 		public SqsMessageListenerContainerFactory<Object> ackAfterSecondErrorFactory() {
 			return SqsMessageListenerContainerFactory.builder()
-					.configure(options -> options.maxConcurrentMessages(10).pollTimeout(Duration.ofSeconds(10))
-							.maxMessagesPerPoll(10).maxDelayBetweenPolls(Duration.ofSeconds(1)))
+					.configure(options -> options.listenerShutdownTimeout(Duration.ZERO)
+							.acknowledgementShutdownTimeout(Duration.ZERO).maxConcurrentMessages(10)
+							.pollTimeout(Duration.ofSeconds(10)).maxMessagesPerPoll(10)
+							.maxDelayBetweenPolls(Duration.ofSeconds(1)))
 					.containerComponentFactories(getExceptionThrowingAckExecutor())
 					.acknowledgementResultCallback(getAcknowledgementResultCallback()).errorHandler(testErrorHandler())
 					.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient).build();

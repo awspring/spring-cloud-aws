@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,6 +117,7 @@ class DynamoDbStreamToKinesisIntegrationTests implements LocalstackContainerTest
 	}
 
 	@Test
+	@Disabled("Flaky test, see https://github.com/awspring/spring-cloud-aws/issues/1667")
 	void fromDynamoDbStreamToKinesis() {
 		Map<?, ?> shardConsumers = TestUtils.getPropertyValue(this.kinesisMessageDrivenChannelAdapter, "shardConsumers",
 				Map.class);

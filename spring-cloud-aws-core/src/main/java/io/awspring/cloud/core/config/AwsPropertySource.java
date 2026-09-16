@@ -41,4 +41,13 @@ public abstract class AwsPropertySource<K extends AwsPropertySource, T> extends 
 	 * @return a property source
 	 */
 	abstract public K copy();
+
+	/**
+	 * Takes over state from a clone created by {@link #copy()} and initialized by the change detector on every
+	 * execution cycle. Implementations holding state that must survive across cycles, such as a session token, should
+	 * override this method.
+	 * @param clone an initialized copy of this property source
+	 */
+	public void refresh(AwsPropertySource<?, ?> clone) {
+	}
 }

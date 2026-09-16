@@ -18,7 +18,6 @@ package io.awspring.cloud.sqs.listener;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
@@ -61,7 +60,7 @@ public class QueueMessageVisibility implements Visibility {
 	public BatchVisibility toBatchVisibility(Collection<Message<?>> messages) {
 		return new QueueMessageBatchVisibility(this.sqsAsyncClient, this.queueUrl, messages.stream().map(
 				message -> MessageHeaderUtils.getHeader(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER, String.class))
-				.collect(Collectors.toList()));
+				.toList());
 	}
 
 	@Override

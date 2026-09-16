@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Maciej Walkowiak
  * @author Tobias Soloschenko
+ * @author Matej Nedic
  * @since 3.0
  */
 public class Location {
@@ -98,7 +99,14 @@ public class Location {
 	}
 
 	public Location relative(String relativePath) {
-		String relativeKey = StringUtils.hasText(object) ? object + "/" + relativePath : relativePath;
+		String relativeKey;
+		if (StringUtils.hasText(object)) {
+			relativeKey = object.endsWith(PATH_DELIMITER) ? object + relativePath
+					: object + PATH_DELIMITER + relativePath;
+		}
+		else {
+			relativeKey = relativePath;
+		}
 		return Location.of(bucket, relativeKey);
 	}
 
@@ -145,9 +153,6 @@ public class Location {
 		}
 
 		int endIndex = location.length();
-		if (location.endsWith(PATH_DELIMITER)) {
-			endIndex--;
-		}
 
 		if (bucketEndIndex >= endIndex) {
 			return "";

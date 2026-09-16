@@ -145,6 +145,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 
 	static final String MAX_CONCURRENT_MESSAGES_QUEUE_NAME = "max_concurrent_messages_test_queue";
 
+	static final String SEND_MORE_THAN_10_MESSAGES_AT_ONCE_QUEUE_NAME = "send_more_than_10_message_test_queue";
+
 	static final String LOW_RESOURCE_FACTORY = "lowResourceFactory";
 
 	static final String MANUAL_ACK_FACTORY = "manualAcknowledgementFactory";
@@ -178,7 +180,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				createQueue(client, MANUALLY_CREATE_FACTORY_QUEUE_NAME),
 				createQueue(client, CONSUMES_ONE_MESSAGE_AT_A_TIME_QUEUE_NAME),
 				createQueue(client, OBSERVES_MESSAGE_QUEUE_NAME), createQueue(client, OBSERVES_ERROR_QUEUE_NAME),
-				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME)).join();
+				createQueue(client, MAX_CONCURRENT_MESSAGES_QUEUE_NAME),
+				createQueue(client, SEND_MORE_THAN_10_MESSAGES_AT_ONCE_QUEUE_NAME)).join();
 	}
 
 	@Autowired
@@ -199,9 +202,9 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		String messageBody = "receivesMessage-payload";
 		sqsTemplate.send(RECEIVES_MESSAGE_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.receivesMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.invocableHandlerMethodLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.acknowledgementCallbackSuccessLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesMessageLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.invocableHandlerMethodLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.acknowledgementCallbackSuccessLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -220,7 +223,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_MULTI_METHOD_QUEUE_NAME,
 				message3);
 
-		assertThat(latchContainer.receivesMessageMultiMethodLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesMessageMultiMethodLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -229,7 +232,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		SendResult<Object> sendResult = sqsTemplate
 				.send(to -> to.queue(OBSERVES_MESSAGE_QUEUE_NAME).payload(messageBody));
 		logger.debug("Sent message to queue {} with messageBody {}", OBSERVES_MESSAGE_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.observesMessageLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.observesMessageLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
 				.hasHandledContextsThatSatisfy(contexts -> {
 					ObservationContextAssert
@@ -308,7 +311,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		String messageBody = "observesMessage-payload";
 		sqsTemplate.send(to -> to.queue(OBSERVES_ERROR_QUEUE_NAME).payload(messageBody));
 		logger.debug("Sent message to queue {} with messageBody {}", OBSERVES_ERROR_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.observesErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.observesErrorLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> TestObservationRegistryAssert.then(observationRegistry)
 				.hasHandledContextsThatSatisfy(contexts -> {
 					ObservationContextAssert
@@ -319,6 +322,10 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 							.filter(context -> context.getContextualName() != null
 									&& context.getContextualName().equals("observes_error_test_queue receive"))
 							.toList();
+					// The second context is the redelivery, which arrives after the visibility timeout. Assert
+					// on its presence first: 'untilAsserted' only retries AssertionError, so indexing straight
+					// into the list would escape the wait with an ArrayIndexOutOfBoundsException instead.
+					assertThat(receivingContexts).hasSize(2);
 					ObservationContextAssert.then(receivingContexts.get(0)).hasNameEqualTo("spring.aws.sqs.listener")
 							.isInstanceOf(AbstractListenerObservation.Context.class).doesNotHaveParentObservation()
 							.assertThatError().isInstanceOf(RuntimeException.class)
@@ -339,7 +346,16 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 			// ensure that first batch was processed more than once
 			assertThat(latchContainer.receivesMessageBatchLatch.getCount()).isLessThan(10);
 		});
-		assertThat(latchContainer.acknowledgementCallbackBatchLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.acknowledgementCallbackBatchLatch.await(60, TimeUnit.SECONDS)).isTrue();
+	}
+
+	@Test
+	void shouldSendMoreThan10MessagesAtOnce() {
+		List<Message<String>> messages = IntStream.range(0, 25)
+				.mapToObj(i -> MessageBuilder.withPayload("moreThan10-payload-" + i).build()).toList();
+		SendResult.Batch<String> result = sqsTemplate.sendMany(SEND_MORE_THAN_10_MESSAGES_AT_ONCE_QUEUE_NAME, messages);
+		assertThat(result.successful()).hasSize(25);
+		assertThat(result.failed()).isEmpty();
 	}
 
 	@Test
@@ -347,7 +363,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		String messageBody = "receivesMessageAsync-payload";
 		sqsTemplate.send(RECEIVES_MESSAGE_ASYNC_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", RECEIVES_MESSAGE_ASYNC_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.receivesMessageAsyncLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.receivesMessageAsyncLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -355,8 +371,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		String messageBody = "doesNotAckOnError-payload";
 		sqsTemplate.send(DOES_NOT_ACK_ON_ERROR_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", DOES_NOT_ACK_ON_ERROR_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.doesNotAckLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.acknowledgementCallbackErrorLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.doesNotAckLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.acknowledgementCallbackErrorLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -365,7 +381,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.send(DOES_NOT_ACK_ON_ERROR_ASYNC_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", DOES_NOT_ACK_ON_ERROR_ASYNC_QUEUE_NAME,
 				messageBody);
-		assertThat(latchContainer.doesNotAckAsyncLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.doesNotAckAsyncLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -375,7 +391,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 				.map(payload -> MessageBuilder.withPayload(payload).build()).collect(Collectors.toList());
 		sqsTemplate.sendManyAsync(DOES_NOT_ACK_ON_ERROR_BATCH_QUEUE_NAME, messages);
 		logger.debug("Sent messages to queue {} with messages {}", DOES_NOT_ACK_ON_ERROR_BATCH_QUEUE_NAME, messages);
-		assertThat(latchContainer.doesNotAckBatchLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.doesNotAckBatchLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -386,7 +402,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.sendManyAsync(DOES_NOT_ACK_ON_ERROR_BATCH_ASYNC_QUEUE_NAME, messages);
 		logger.debug("Sent messages to queue {} with messages {}", DOES_NOT_ACK_ON_ERROR_BATCH_ASYNC_QUEUE_NAME,
 				messages);
-		assertThat(latchContainer.doesNotAckBatchAsyncLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.doesNotAckBatchAsyncLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -394,8 +410,8 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		String messageBody = "many-parameter-types-payload";
 		sqsTemplate.send(RESOLVES_PARAMETER_TYPES_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", RESOLVES_PARAMETER_TYPES_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.manyParameterTypesLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.manyParameterTypesSecondLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manyParameterTypesLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manyParameterTypesSecondLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -403,7 +419,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		String messageBody = "Testing manually creates container";
 		sqsTemplate.send(MANUALLY_CREATE_CONTAINER_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_CONTAINER_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.manuallyCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manuallyCreatedContainerLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -414,7 +430,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		inactiveMessageListenerContainer.start();
 		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_INACTIVE_CONTAINER_QUEUE_NAME,
 				messageBody);
-		assertThat(latchContainer.manuallyInactiveCreatedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manuallyInactiveCreatedContainerLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		inactiveMessageListenerContainer.stop();
 	}
 
@@ -434,7 +450,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		String messageBody1 = "MyTest";
 		sqsTemplate.send(MANUALLY_START_CONTAINER, messageBody1);
 		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_START_CONTAINER, messageBody1);
-		assertThat(latchContainer.manuallyStartedContainerLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manuallyStartedContainerLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 		container.setMessageListener(msg -> latchContainer.manuallyStartedContainerLatch2.countDown());
 		SqsContainerOptionsBuilder builder = container.getContainerOptions().toBuilder();
@@ -444,7 +460,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		String messageBody2 = "MyTest2";
 		sqsTemplate.send(MANUALLY_START_CONTAINER, messageBody2);
 		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_START_CONTAINER, messageBody2);
-		assertThat(latchContainer.manuallyStartedContainerLatch2.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manuallyStartedContainerLatch2.await(60, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 	}
 	// @formatter:on
@@ -454,9 +470,9 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		String messageBody = "Testing manually creates factory";
 		sqsTemplate.send(MANUALLY_CREATE_FACTORY_QUEUE_NAME, messageBody);
 		logger.debug("Sent message to queue {} with messageBody {}", MANUALLY_CREATE_FACTORY_QUEUE_NAME, messageBody);
-		assertThat(latchContainer.manuallyCreatedFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.manuallyCreatedFactorySourceFactoryLatch.await(10, TimeUnit.SECONDS)).isTrue();
-		assertThat(latchContainer.manuallyCreatedFactorySinkLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manuallyCreatedFactoryLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manuallyCreatedFactorySourceFactoryLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		assertThat(latchContainer.manuallyCreatedFactorySinkLatch.await(60, TimeUnit.SECONDS)).isTrue();
 	}
 
 	@Test
@@ -472,7 +488,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 						.pollTimeout(Duration.ofSeconds(1)).maxConcurrentMessages(1).maxMessagesPerPoll(1))
 				.messageListener(msg -> latch.countDown()).build();
 		container.start();
-		assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(latch.await(60, TimeUnit.SECONDS)).isTrue();
 		container.stop();
 	}
 
@@ -493,7 +509,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		sqsTemplate.sendManyAsync(MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages2);
 		logger.debug("Sent messages to queue {} with messages {} and {}", MAX_CONCURRENT_MESSAGES_QUEUE_NAME, messages1,
 				messages2);
-		assertDoesNotThrow(() -> latchContainer.maxConcurrentMessagesBarrier.await(10, TimeUnit.SECONDS));
+		assertDoesNotThrow(() -> latchContainer.maxConcurrentMessagesBarrier.await(60, TimeUnit.SECONDS));
 	}
 
 	static class ReceivesMessageListener {
@@ -758,7 +774,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> lowResourceFactory() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.maxConcurrentMessages(1)
 					.pollTimeout(Duration.ofSeconds(5))
 					.maxMessagesPerPoll(1)
@@ -774,7 +790,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> ackAfterSecondErrorFactory() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.maxConcurrentMessages(10)
 					.pollTimeout(Duration.ofSeconds(10))
 					.maxMessagesPerPoll(10)
@@ -819,7 +835,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> manualAcknowledgementFactory() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.acknowledgementMode(AcknowledgementMode.MANUAL)
 					.maxConcurrentMessages(1)
 					.pollTimeout(Duration.ofSeconds(3))
@@ -843,7 +859,7 @@ class SqsIntegrationTests extends BaseSqsIntegrationTest {
 		public SqsMessageListenerContainerFactory<Object> manualAcknowledgementBatchFactory() {
 			return SqsMessageListenerContainerFactory
 				.builder()
-				.configure(options -> options
+				.configure(options -> options.listenerShutdownTimeout(Duration.ZERO).acknowledgementShutdownTimeout(Duration.ZERO)
 					.acknowledgementMode(AcknowledgementMode.MANUAL)
 					.maxConcurrentMessages(10)
 					.pollTimeout(Duration.ofSeconds(10))

@@ -33,6 +33,8 @@ import java.util.function.Supplier;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.micrometer.tracing.test.autoconfigure.AutoConfigureTracing;
@@ -70,6 +72,7 @@ import reactor.core.publisher.Flux;
 		"management.tracing.sampling.probability=1.0" })
 @AutoConfigureTracing
 @DirtiesContext
+@ResourceLock(value = "kinesis-binder", mode = ResourceAccessMode.READ)
 public class KinesisBinderObservationTests implements LocalstackContainerTest {
 
 	private static final Log LOGGER = LogFactory.getLog(KinesisBinderObservationTests.class);

@@ -1,6 +1,6 @@
 services:
   localstack:
-    image: localstack/localstack
+    image: localstack/localstack:4.4.0
     environment:
       AWS_ACCESS_KEY_ID: noop
       AWS_SECRET_ACCESS_KEY: noop

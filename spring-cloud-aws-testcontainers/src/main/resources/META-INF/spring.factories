@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.service.connection.ConnectionDetailsFactory=\
-io.awspring.cloud.testcontainers.AwsContainerConnectionDetailsFactory
+io.awspring.cloud.testcontainers.AwsLocalstackContainerConnectionDetailsFactory, \
+io.awspring.cloud.testcontainers.AwsFlociContainerConnectionDetailsFactory

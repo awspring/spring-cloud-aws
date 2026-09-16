@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.operations;
 
 import io.awspring.cloud.core.support.JacksonPresent;
+import io.awspring.cloud.sqs.CollectionUtils;
 import io.awspring.cloud.sqs.FifoUtils;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.QueueAttributesResolver;
@@ -30,13 +31,16 @@ import io.awspring.cloud.sqs.support.converter.MessageAttributeDataTypes;
 import io.awspring.cloud.sqs.support.converter.MessageConversionContext;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.SqsMessageConversionContext;
+import io.awspring.cloud.sqs.support.converter.SqsMessageIdResolver;
 import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.observation.SqsTemplateObservation;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,6 +53,7 @@ import java.util.stream.Stream;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
@@ -77,10 +82,14 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
  * @author Tomaz Fernandes
  * @author Zhong Xi Lu
  * @author Hyunggeol Lee
+ * @author Jeongmin Kim
+ * @author José Iêdo
  *
  * @since 3.0
  */
 public class SqsTemplate extends AbstractMessagingTemplate<Message> implements SqsOperations, SqsAsyncOperations {
+
+	private static final int SQS_MAX_BATCH_SIZE = 10;
 
 	private static final Logger logger = LoggerFactory.getLogger(SqsTemplate.class);
 
@@ -102,6 +111,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private final TemplateContentBasedDeduplication contentBasedDeduplication;
 
+	private final boolean convertMessageIdToUuid;
+
 	private SqsTemplate(SqsTemplateBuilderImpl builder) {
 		super(builder.messageConverter, builder.options, SQS_OBSERVATION_SPECIFICS);
 		SqsTemplateOptionsImpl options = builder.options;
@@ -111,6 +122,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		this.queueNotFoundStrategy = options.queueNotFoundStrategy;
 		this.messageSystemAttributeNames = options.messageSystemAttributeNames;
 		this.contentBasedDeduplication = options.contentBasedDeduplication;
+		this.convertMessageIdToUuid = options.convertMessageIdToUuid;
+		SqsMessageIdResolver.configureMessageIdResolution(builder.messageConverter, options.convertMessageIdToUuid);
 	}
 
 	/**
@@ -327,16 +340,21 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	protected <T> CompletableFuture<SendResult<T>> doSendAsync(String endpointName, Message message,
 			org.springframework.messaging.Message<T> originalMessage) {
 		return createSendMessageRequest(endpointName, message).thenCompose(this.sqsAsyncClient::sendMessage)
-				.thenApply(response -> createSendResult(UUID.fromString(response.messageId()),
-						response.sequenceNumber(), endpointName, originalMessage));
+				.thenApply(response -> createSendResult(response.messageId(), response.sequenceNumber(), endpointName,
+						originalMessage));
 	}
 
-	private <T> SendResult<T> createSendResult(UUID messageId, @Nullable String sequenceNumber, String endpointName,
-			org.springframework.messaging.Message<T> originalMessage) {
-		return new SendResult<>(messageId, endpointName, originalMessage,
-				sequenceNumber != null
-						? Collections.singletonMap(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber)
-						: Collections.emptyMap());
+	private <T> SendResult<T> createSendResult(String rawMessageId, @Nullable String sequenceNumber,
+			String endpointName, org.springframework.messaging.Message<T> originalMessage) {
+		MessageHeaders resolvedHeaders = SqsMessageIdResolver.resolveAndAddMessageId(rawMessageId,
+				originalMessage.getHeaders(), this.convertMessageIdToUuid);
+		UUID messageId = resolvedHeaders.getId();
+		Map<String, Object> additionalInfo = new HashMap<>();
+		additionalInfo.put(SqsTemplateParameters.SQS_RAW_MESSAGE_ID_PARAMETER_NAME, rawMessageId);
+		if (sequenceNumber != null) {
+			additionalInfo.put(SqsTemplateParameters.SEQUENCE_NUMBER_PARAMETER_NAME, sequenceNumber);
+		}
+		return new SendResult<>(messageId, endpointName, originalMessage, additionalInfo);
 	}
 
 	private CompletableFuture<SendMessageRequest> createSendMessageRequest(String endpointName, Message message) {
@@ -353,13 +371,161 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 				.messageSystemAttributes(mapMessageSystemAttributes(message)).build();
 	}
 
+	/**
+	 * Sends a collection of messages using one or more SQS batch requests.
+	 * <p>
+	 * The provided messages are automatically partitioned into batches of up to 10 messages, which is the maximum size
+	 * supported by Amazon SQS.
+	 * <p>
+	 * For standard queues, all batches are sent in parallel.
+	 * <p>
+	 * For FIFO queues, messages are first grouped by
+	 * {@link io.awspring.cloud.sqs.listener.SqsHeaders.MessageSystemAttributes#SQS_MESSAGE_GROUP_ID_HEADER message
+	 * group ID}. Groups larger than 10 messages are sent sequentially to preserve message ordering within each group,
+	 * with a skip-on-failure strategy: if a batch completes with a partial failure, no subsequent batches for that
+	 * group are sent.
+	 * <p>
+	 * Groups with up to 10 messages are bin-packed into shared batches on a best-effort basis (first-fit decreasing),
+	 * reducing the number of requests while keeping each group whole within a single batch to preserve ordering. Packed
+	 * batches are sent in parallel, as are large-group chains across different groups.
+	 */
 	@Override
 	protected <T> CompletableFuture<SendResult.Batch<T>> doSendBatchAsync(String endpointName,
 			Collection<Message> messages, Collection<org.springframework.messaging.Message<T>> originalMessages) {
 		logger.debug("Sending messages {} to endpoint {}", messages, endpointName);
+		Map<String, org.springframework.messaging.Message<T>> originalMessagesById = originalMessages.stream()
+				.collect(Collectors.toMap(MessageHeaderUtils::getRawMessageId, msg -> msg));
+		if (messages.size() <= SQS_MAX_BATCH_SIZE) {
+			return sendSingleBatch(endpointName, messages, originalMessagesById);
+		}
+		return FifoUtils.isFifo(endpointName) ? sendFifoBatches(endpointName, messages, originalMessagesById)
+				: sendStandardBatches(endpointName, messages, originalMessagesById);
+	}
+
+	private <T> CompletableFuture<SendResult.Batch<T>> sendSingleBatch(String endpointName,
+			Collection<Message> messages, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
 		return createSendMessageBatchRequest(endpointName, messages).thenCompose(this.sqsAsyncClient::sendMessageBatch)
-				.thenApply(response -> createSendResultBatch(response, endpointName,
-						originalMessages.stream().collect(Collectors.toMap(MessageHeaderUtils::getId, msg -> msg))));
+				.thenApply(response -> createSendResultBatch(response, endpointName, originalMessagesById));
+	}
+
+	private <T> CompletableFuture<SendResult.Batch<T>> sendPartitionedBatch(String endpointName,
+			Collection<Message> messages, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		return sendSingleBatch(endpointName, messages, originalMessagesById)
+				.exceptionally(t -> createFailedBatchResult(messages, t, endpointName, originalMessagesById));
+	}
+
+	private <T> SendResult.Batch<T> createFailedBatchResult(Collection<Message> partition, Throwable throwable,
+			String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		Throwable cause = throwable;
+		if (cause instanceof java.util.concurrent.CompletionException completionException
+				&& completionException.getCause() != null) {
+			cause = completionException.getCause();
+		}
+		Throwable exceptionParameter = cause != null ? cause : throwable;
+		Map<String, Object> additionalInformation = Map.of(SqsTemplateParameters.EXCEPTION_PARAMETER_NAME,
+				exceptionParameter);
+		String errorMessage = cause != null && cause.getMessage() != null ? cause.getMessage() : "Unknown error";
+		List<SendResult.Failed<T>> failed = partition.stream().map(msg -> new SendResult.Failed<>(errorMessage,
+				endpointName, originalMessagesById.get(msg.messageId()), additionalInformation)).toList();
+		return new SendResult.Batch<>(List.of(), failed);
+	}
+
+	private <T> CompletableFuture<SendResult.Batch<T>> sendStandardBatches(String endpointName,
+			Collection<Message> messages, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		List<CompletableFuture<SendResult.Batch<T>>> futures = CollectionUtils.partition(messages, SQS_MAX_BATCH_SIZE)
+				.stream().map(partition -> sendPartitionedBatch(endpointName, partition, originalMessagesById))
+				.toList();
+		return combineBatchFutures(futures);
+	}
+
+	private <T> CompletableFuture<SendResult.Batch<T>> sendFifoBatches(String endpointName,
+			Collection<Message> messages, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		Map<String, List<Message>> groupedByMessageGroup = messages.stream().collect(Collectors.groupingBy(msg -> {
+			String groupId = msg.attributes().get(MessageSystemAttributeName.MESSAGE_GROUP_ID);
+			return groupId != null ? groupId : "";
+		}));
+		Map<Boolean, List<List<Message>>> partitioned = groupedByMessageGroup.values().stream()
+				.collect(Collectors.partitioningBy(group -> group.size() <= SQS_MAX_BATCH_SIZE));
+		List<List<Message>> smallGroups = partitioned.get(true);
+		List<List<Message>> largeGroups = partitioned.get(false);
+		List<CompletableFuture<SendResult.Batch<T>>> futures = largeGroups.stream()
+				.map(msgs -> sendSequentialBatches(endpointName, msgs, originalMessagesById))
+				.collect(Collectors.toList());
+		if (!smallGroups.isEmpty()) {
+			binPackSmallFifoGroups(smallGroups, SQS_MAX_BATCH_SIZE).stream()
+					.map(batch -> sendPartitionedBatch(endpointName, batch, originalMessagesById))
+					.forEach(futures::add);
+		}
+		return combineBatchFutures(futures);
+	}
+
+	/**
+	 * Bin-pack small FIFO groups into shared batches using first-fit decreasing algorithm. Each group is kept whole
+	 * within a single batch. Groups are sorted by size descending before packing to minimize the number of batches.
+	 * @param smallGroups groups with size <= maxBatchSize
+	 * @param maxBatchSize the maximum number of messages per batch (SQS limit is 10)
+	 * @return packed batches, each containing one or more whole groups
+	 */
+	private static List<List<Message>> binPackSmallFifoGroups(List<List<Message>> smallGroups, int maxBatchSize) {
+		Assert.notNull(smallGroups, "smallGroups must not be null");
+		Assert.isTrue(maxBatchSize > 0, "maxBatchSize must be positive");
+		smallGroups.sort((a, b) -> Integer.compare(b.size(), a.size()));
+		List<List<Message>> packedBatches = new ArrayList<>();
+		for (List<Message> group : smallGroups) {
+			boolean packed = false;
+			for (List<Message> batch : packedBatches) {
+				if (batch.size() + group.size() <= maxBatchSize) {
+					batch.addAll(group);
+					packed = true;
+					break;
+				}
+			}
+			if (!packed) {
+				packedBatches.add(new ArrayList<>(group));
+			}
+		}
+		return packedBatches;
+	}
+
+	private <T> CompletableFuture<SendResult.Batch<T>> combineBatchFutures(
+			List<CompletableFuture<SendResult.Batch<T>>> futures) {
+		return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+				.thenApply(v -> futures.stream().map(CompletableFuture::join)
+						.reduce(new SendResult.Batch<>(List.of(), List.of()), this::mergeBatchResults));
+	}
+
+	private <T> CompletableFuture<SendResult.Batch<T>> sendSequentialBatches(String endpointName,
+			List<Message> messages, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		CompletableFuture<SendResult.Batch<T>> result = CompletableFuture
+				.completedFuture(new SendResult.Batch<>(List.of(), List.of()));
+		for (Collection<Message> partition : CollectionUtils.partition(messages, SQS_MAX_BATCH_SIZE)) {
+			result = result.thenCompose(acc -> {
+				if (!acc.failed().isEmpty()) {
+					return CompletableFuture.completedFuture(
+							mergeBatchResults(acc, createSkippedResult(partition, endpointName, originalMessagesById)));
+				}
+				return sendPartitionedBatch(endpointName, partition, originalMessagesById)
+						.thenApply(batchResult -> mergeBatchResults(acc, batchResult));
+			});
+		}
+		return result;
+	}
+
+	private <T> SendResult.Batch<T> createSkippedResult(Collection<Message> partition, String endpointName,
+			Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
+		List<SendResult.Failed<T>> skipped = partition.stream()
+				.map(msg -> new SendResult.Failed<>("Skipped due to previous batch failure", endpointName,
+						originalMessagesById.get(msg.messageId()), Map.of()))
+				.toList();
+		return new SendResult.Batch<>(List.of(), skipped);
+	}
+
+	private <T> SendResult.Batch<T> mergeBatchResults(SendResult.Batch<T> batch1, SendResult.Batch<T> batch2) {
+		List<SendResult<T>> allSuccessful = new ArrayList<>(batch1.successful());
+		allSuccessful.addAll(batch2.successful());
+		List<SendResult.Failed<T>> allFailed = new ArrayList<>(batch1.failed());
+		allFailed.addAll(batch2.failed());
+		return new SendResult.Batch<>(allSuccessful, allFailed);
 	}
 
 	private <T> SendResult.Batch<T> createSendResultBatch(SendMessageBatchResponse response, String endpointName,
@@ -379,10 +545,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private <T> Collection<SendResult<T>> doCreateSendResultBatch(SendMessageBatchResponse response,
 			String endpointName, Map<String, org.springframework.messaging.Message<T>> originalMessagesById) {
-		return response
-				.successful().stream().map(entry -> createSendResult(UUID.fromString(entry.messageId()),
-						entry.sequenceNumber(), endpointName, getOriginalMessage(originalMessagesById, entry)))
-				.toList();
+		return response.successful().stream().map(entry -> createSendResult(entry.messageId(), entry.sequenceNumber(),
+				endpointName, getOriginalMessage(originalMessagesById, entry))).toList();
 	}
 
 	private <T> org.springframework.messaging.Message<T> getOriginalMessage(
@@ -540,7 +704,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	private CompletableFuture<Void> deleteMessages(String endpointName,
 			Collection<org.springframework.messaging.Message<?>> messages) {
 		logger.trace("Acknowledging in queue {} messages {}", endpointName,
-				MessageHeaderUtils.getId(addTypeToMessages(messages)));
+				MessageHeaderUtils.getRawMessageId(addTypeToMessages(messages)));
 		return getQueueAttributes(endpointName)
 				.thenCompose(attributes -> this.sqsAsyncClient.deleteMessageBatch(DeleteMessageBatchRequest.builder()
 						.queueUrl(attributes.getQueueUrl()).entries(createDeleteMessageEntries(messages)).build()))
@@ -559,7 +723,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<?>> messages,
 			String endpointName) {
 		return response.failed().stream().map(BatchResultErrorEntry::id)
-				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst()
+				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getRawMessageId(msg).equals(id))
+						.findFirst()
 						.orElseThrow(() -> new SqsAcknowledgementException(
 								"Could not correlate ids for acknowledgement failure", Collections.emptyList(),
 								messages, endpointName)))
@@ -570,7 +735,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			DeleteMessageBatchResponse response, Collection<org.springframework.messaging.Message<?>> messages,
 			String endpointName) {
 		return response.successful().stream().map(DeleteMessageBatchResultEntry::id)
-				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getId(msg).equals(id)).findFirst()
+				.map(id -> messages.stream().filter(msg -> MessageHeaderUtils.getRawMessageId(msg).equals(id))
+						.findFirst()
 						.orElseThrow(() -> new SqsAcknowledgementException(
 								"Could not correlate ids for acknowledgement failure", Collections.emptyList(),
 								messages, endpointName)))
@@ -588,7 +754,7 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 			DeleteMessageBatchResponse response, @Nullable Throwable t) {
 		if (t != null) {
 			logger.error("Error acknowledging in queue {} messages {}", endpointName,
-					MessageHeaderUtils.getId(addTypeToMessages(messages)));
+					MessageHeaderUtils.getRawMessageId(addTypeToMessages(messages)));
 		}
 		else if (!response.failed().isEmpty()) {
 			logger.warn("Some messages could not be acknowledged in queue {}: {}", endpointName,
@@ -596,14 +762,14 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		}
 		else {
 			logger.trace("Acknowledged messages in queue {}: {}", endpointName,
-					MessageHeaderUtils.getId(addTypeToMessages(messages)));
+					MessageHeaderUtils.getRawMessageId(addTypeToMessages(messages)));
 		}
 	}
 
 	private Collection<DeleteMessageBatchRequestEntry> createDeleteMessageEntries(
 			Collection<org.springframework.messaging.Message<?>> messages) {
 		return messages.stream()
-				.map(message -> DeleteMessageBatchRequestEntry.builder().id(MessageHeaderUtils.getId(message))
+				.map(message -> DeleteMessageBatchRequestEntry.builder().id(MessageHeaderUtils.getRawMessageId(message))
 						.receiptHandle(
 								MessageHeaderUtils.getHeaderAsString(message, SqsHeaders.SQS_RECEIPT_HANDLE_HEADER))
 						.build())
@@ -661,6 +827,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 		private TemplateContentBasedDeduplication contentBasedDeduplication = TemplateContentBasedDeduplication.AUTO;
 
+		private boolean convertMessageIdToUuid = true;
+
 		@Override
 		public SqsTemplateOptions queueAttributeNames(Collection<QueueAttributeName> queueAttributeNames) {
 			Assert.notEmpty(queueAttributeNames, "queueAttributeNames cannot be null or empty");
@@ -706,6 +874,12 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		public SqsTemplateOptions observationConvention(SqsTemplateObservation.Convention observationConvention) {
 			Assert.notNull(observationConvention, "observationConvention cannot be null");
 			super.observationConvention(observationConvention);
+			return this;
+		}
+
+		@Override
+		public SqsTemplateOptions convertMessageIdToUuid(boolean convertMessageIdToUuid) {
+			this.convertMessageIdToUuid = convertMessageIdToUuid;
 			return this;
 		}
 
@@ -917,8 +1091,8 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 		@Override
 		public SqsReceiveOptionsImpl maxNumberOfMessages(Integer maxNumberOfMessages) {
 			Assert.notNull(maxNumberOfMessages, "maxNumberOfMessages must not be null");
-			Assert.isTrue(maxNumberOfMessages > 0 && maxNumberOfMessages <= 10,
-					"maxNumberOfMessages must be between 0 and 10");
+			Assert.isTrue(maxNumberOfMessages > 0 && maxNumberOfMessages <= SQS_MAX_BATCH_SIZE,
+					"maxNumberOfMessages must be between 0 and " + SQS_MAX_BATCH_SIZE);
 			this.maxNumberOfMessages = maxNumberOfMessages;
 			return this;
 		}

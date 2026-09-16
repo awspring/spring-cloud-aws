@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.awspring.cloud.sqs.listener.AsyncMessageListener;
+import io.awspring.cloud.sqs.listener.InterceptorExecutionFailedException;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
@@ -104,8 +105,10 @@ class BeforeProcessingInterceptorExecutionStageTests {
 		MessageProcessingPipeline<Object> stage = new BeforeProcessingInterceptorExecutionStage<>(
 				createConfiguration(Arrays.asList(interceptor1, interceptor2)));
 		CompletableFuture<Message<Object>> future = stage.process(message1, context);
-		assertThatThrownBy(future::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
-				.isInstanceOf(IllegalArgumentException.class);
+		assertThatThrownBy(future::join).isInstanceOf(CompletionException.class).cause()
+				.isInstanceOf(InterceptorExecutionFailedException.class)
+				.satisfies(e -> assertThat(((InterceptorExecutionFailedException) e).getFailedMessages())
+						.containsExactly(message1));
 
 		InOrder inOrder = inOrder(interceptor1, interceptor2);
 		inOrder.verify(interceptor1).intercept(message1);
@@ -222,8 +225,10 @@ class BeforeProcessingInterceptorExecutionStageTests {
 		MessageProcessingPipeline<Object> stage = new BeforeProcessingInterceptorExecutionStage<>(
 				createConfiguration(Arrays.asList(interceptor1, interceptor2)));
 		CompletableFuture<Collection<Message<Object>>> result = stage.process(firstBatch, context);
-		assertThatThrownBy(result::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
-				.isInstanceOf(IllegalArgumentException.class);
+		assertThatThrownBy(result::join).isInstanceOf(CompletionException.class).cause()
+				.isInstanceOf(InterceptorExecutionFailedException.class)
+				.satisfies(e -> assertThat(((InterceptorExecutionFailedException) e).getFailedMessages())
+						.containsExactlyElementsOf(firstBatch));
 
 		InOrder inOrder = inOrder(interceptor1, interceptor2);
 		inOrder.verify(interceptor1).intercept(firstBatch);
@@ -249,8 +254,11 @@ class BeforeProcessingInterceptorExecutionStageTests {
 				createConfiguration(Arrays.asList(interceptor1, interceptor2, interceptor3)));
 		CompletableFuture<Message<Object>> future = stage.process(message1, context);
 		assertThat(future).isCompletedExceptionally();
-		assertThatThrownBy(future::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
-				.isEqualTo(exception);
+		assertThatThrownBy(future::join).isInstanceOf(CompletionException.class).cause()
+				.isInstanceOf(InterceptorExecutionFailedException.class)
+				.satisfies(e -> assertThat(((InterceptorExecutionFailedException) e).getFailedMessages())
+						.containsExactly(message1))
+				.cause().hasCauseInstanceOf(RuntimeException.class);
 
 		verify(interceptor1).intercept(message1);
 		verify(interceptor2, never()).intercept(any(Message.class));
@@ -283,8 +291,11 @@ class BeforeProcessingInterceptorExecutionStageTests {
 				createConfiguration(Arrays.asList(interceptor1, interceptor2, interceptor3)));
 		CompletableFuture<Collection<Message<Object>>> future = stage.process(firstBatch, context);
 		assertThat(future).isCompletedExceptionally();
-		assertThatThrownBy(future::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
-				.isEqualTo(exception);
+		assertThatThrownBy(future::join).isInstanceOf(CompletionException.class).cause()
+				.isInstanceOf(InterceptorExecutionFailedException.class)
+				.satisfies(e -> assertThat(((InterceptorExecutionFailedException) e).getFailedMessages())
+						.containsExactlyElementsOf(firstBatch))
+				.cause().hasCauseInstanceOf(RuntimeException.class);
 
 		verify(interceptor1).intercept(firstBatch);
 		verify(interceptor2, never()).intercept(any(Message.class));

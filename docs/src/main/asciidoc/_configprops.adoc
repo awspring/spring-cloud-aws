@@ -1,6 +1,14 @@
 |===
 |Name | Default | Description
 
+|spring.cloud.aws.appconfig.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
+|spring.cloud.aws.appconfig.enabled | `+++true+++` | Enables App Config integration.
+|spring.cloud.aws.appconfig.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.appconfig.region |  | Overrides the default region.
+|spring.cloud.aws.appconfig.reload.max-wait-for-restart | `+++2s+++` | If {@link ReloadStrategy#RESTART_CONTEXT} is configured, maximum waiting time for server restart.
+|spring.cloud.aws.appconfig.reload.period | `+++1m+++` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
+|spring.cloud.aws.appconfig.reload.strategy |  | Reload strategy to run when properties change.
+|spring.cloud.aws.appconfig.separator | `+++#+++` | 
 |spring.cloud.aws.cloudwatch.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.cloudwatch.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.cloudwatch.region |  | Overrides the default region.
@@ -72,6 +80,9 @@
 |spring.cloud.aws.s3.transfer-manager.follow-symbolic-links |  | Specifies whether to follow symbolic links when traversing the file tree in `S3TransferManager#uploadDirectory` operation.
 |spring.cloud.aws.s3.transfer-manager.max-depth |  | Specifies the maximum number of levels of directories to visit in `S3TransferManager#uploadDirectory` operation.
 |spring.cloud.aws.s3.use-arn-region-enabled |  | If an S3 resource ARN is passed in as the target of an S3 operation that has a different region to the one the client was configured with, this flag must be set to 'true' to permit the client to make a cross-region call to the region specified in the ARN otherwise an exception will be thrown.
+|spring.cloud.aws.s3.vector.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
+|spring.cloud.aws.s3.vector.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.s3.vector.region |  | Overrides the default region.
 |spring.cloud.aws.secretsmanager.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.secretsmanager.enabled | `+++true+++` | Enables Secrets Manager integration.
 |spring.cloud.aws.secretsmanager.endpoint |  | Overrides the default endpoint.
@@ -90,14 +101,17 @@
 |spring.cloud.aws.sns.enabled | `+++true+++` | Enables SNS integration.
 |spring.cloud.aws.sns.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.sns.region |  | Overrides the default region.
+|spring.cloud.aws.sns.verification | `+++true+++` | Defines if SNS massages will be verified. By default, verification is used.
+|spring.cloud.aws.sqs.convert-message-id-to-uuid | `+++true+++` | Whether to convert SQS message IDs to UUIDs. Set to {@code false} for SQS-compatible providers that return non-UUID message IDs.
 |spring.cloud.aws.sqs.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.sqs.enabled | `+++true+++` | Enables SQS integration.
 |spring.cloud.aws.sqs.endpoint |  | Overrides the default endpoint.
-|spring.cloud.aws.sqs.listener.auto-startup |  | Configure whether SQS listeners are started automatically or not. If set to false, the listener containers need to be started manually.
+|spring.cloud.aws.sqs.listener.auto-startup |  | Defines whether SQS listeners will start automatically or not.
 |spring.cloud.aws.sqs.listener.max-concurrent-messages |  | The maximum concurrent messages that can be processed simultaneously for each queue. Note that if acknowledgement batching is being used, the actual maximum number of messages inflight might be higher.
 |spring.cloud.aws.sqs.listener.max-delay-between-polls |  | The maximum amount of time to wait between consecutive polls to SQS.
 |spring.cloud.aws.sqs.listener.max-messages-per-poll |  | The maximum number of messages to be retrieved in a single poll to SQS.
 |spring.cloud.aws.sqs.listener.poll-timeout |  | The maximum amount of time for a poll to SQS.
+|spring.cloud.aws.sqs.observation-enabled | `+++false+++` | 
 |spring.cloud.aws.sqs.queue-not-found-strategy |  | 
 |spring.cloud.aws.sqs.region |  | Overrides the default region.
 

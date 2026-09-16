@@ -1,0 +1,9 @@
+services:
+  floci:
+    image: floci/floci:1.5.25
+    environment:
+      AWS_ACCESS_KEY_ID: noop
+      AWS_SECRET_ACCESS_KEY: noop
+      AWS_DEFAULT_REGION: eu-central-1
+    ports:
+      - "4567:4566"

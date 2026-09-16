@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.s3.S3ClientCustomizer;
@@ -35,9 +36,11 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.bootstrap.BootstrapRegistry;
 import org.springframework.boot.bootstrap.BootstrapRegistryInitializer;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.localstack.LocalStackContainer;
@@ -49,7 +52,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -84,6 +87,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void resolvesPropertyFromS3() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		uploadFileToBucket("key1=value1", "application.properties", TEXT_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
@@ -96,6 +101,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void resolvesPropertyFromS3ComplexPath() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		uploadFileToBucket("key1=value1", "myPath/unusual/application.properties", TEXT_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
@@ -108,6 +115,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void resolvesYamlFromS3() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		uploadFileToBucket("key1: value1", "application.yaml", YAML_TYPE);
 
 		try (ConfigurableApplicationContext context = runApplication(application,
@@ -120,6 +129,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void resolvesYamlAlternative() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		uploadFileToBucket("key1: value1", "test.yaml", YAML_TYPE_ALTERNATIVE);
 
 		try (ConfigurableApplicationContext context = runApplication(application, "aws-s3:test-bucket/test.yaml")) {
@@ -131,6 +142,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void resolveJson() throws JsonProcessingException {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		uploadFileToBucket(new ObjectMapper().writeValueAsString(Map.of("key1", "value1")), "application.json",
 				JSON_TYPE);
 
@@ -144,6 +157,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void clientIsConfiguredWithCustomizerProvidedToBootstrapRegistry() throws JsonProcessingException {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		application.addBootstrapRegistryInitializer(new S3ConfigDataLoaderIntegrationTests.CustomizerConfiguration());
 		uploadFileToBucket(new ObjectMapper().writeValueAsString(Map.of("key1", "value1")), "application.json",
 				JSON_TYPE);
@@ -161,6 +176,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void failOnKeysMissing(CapturedOutput output) {
 		SpringApplication application = new SpringApplication(App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = runApplication(application,
 				"aws-s3:test-bucket/tst.properties")) {
@@ -181,6 +198,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 	void reloadPropertiesFromS3() {
 		SpringApplication application = new SpringApplication(S3ConfigDataLoaderIntegrationTests.App.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 		uploadFileToBucket("key1=value1", "reload.properties", TEXT_TYPE);
 
 		try (ConfigurableApplicationContext context = application.run(
@@ -244,7 +263,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 				}));
 			}));
 
-			SdkHttpClient mock = spy(ApacheHttpClient.builder().build());
+			SdkHttpClient mock = spy(Apache5HttpClient.builder().build());
 			when(mock.clientName()).thenReturn("mock-client");
 
 			registry.register(SdkHttpClient.class, context -> mock);

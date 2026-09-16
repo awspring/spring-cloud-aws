@@ -149,7 +149,7 @@ class MethodEndpointControllerTest {
 			return new WebMvcConfigurer() {
 				@Override
 				public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-					argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient));
+					argumentResolvers.add(getNotificationHandlerMethodArgumentResolver(snsClient, null));
 				}
 			};
 		}

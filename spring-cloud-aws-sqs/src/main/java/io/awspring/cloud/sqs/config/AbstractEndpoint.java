@@ -211,10 +211,10 @@ public abstract class AbstractEndpoint implements HandlerMethodEndpoint {
 
 		if (this.methodPayloadTypeInferrer != null
 				&& container instanceof AbstractMessageListenerContainer<?, ?, ?> amlc) {
-			Class<?> inferredType = this.methodPayloadTypeInferrer.inferPayloadType(this.method,
+			MethodPayloadMetadata payloadMetadata = this.methodPayloadTypeInferrer.inferPayloadMetadata(this.method,
 					this.argumentResolvers);
-			if (inferredType != null) {
-				amlc.setPayloadDeserializationType(inferredType);
+			if (payloadMetadata != null) {
+				amlc.setPayloadDeserializationType(payloadMetadata.payloadClass(), payloadMetadata.conversionHint());
 			}
 			disableDefaultPayloadTypeMapper(amlc);
 		}

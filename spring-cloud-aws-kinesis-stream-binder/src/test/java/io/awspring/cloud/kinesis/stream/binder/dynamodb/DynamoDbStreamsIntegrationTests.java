@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -60,6 +62,7 @@ import software.amazon.awssdk.services.dynamodb.model.StreamViewType;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = "spring.cloud.stream.kinesis.bindings.dynamoDbConsumer-in-0.consumer.dynamoDbStreams=true")
 @DirtiesContext
+@ResourceLock(value = "kinesis-binder", mode = ResourceAccessMode.READ)
 public class DynamoDbStreamsIntegrationTests implements LocalstackContainerTest {
 
 	static final String TEST_TABLE = "StreamsBinderDemoTable";

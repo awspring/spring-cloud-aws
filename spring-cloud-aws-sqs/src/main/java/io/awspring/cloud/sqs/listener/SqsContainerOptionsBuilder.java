@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 /**
  * {@link ContainerOptionsBuilder} specialization for SQS specific options.
  * @author Tomaz Fernandes
+ * @author Jeongmin Kim
  * @since 3.0
  */
 public interface SqsContainerOptionsBuilder
@@ -81,5 +82,13 @@ public interface SqsContainerOptionsBuilder
 	 * @return this instance.
 	 */
 	SqsContainerOptionsBuilder observationConvention(SqsListenerObservation.Convention observationConvention);
+
+	/**
+	 * Set whether to convert SQS message IDs to UUIDs. Set to {@code false} for SQS-compatible providers that return
+	 * non-UUID message IDs.
+	 * @param convertMessageIdToUuid whether to convert message IDs to UUIDs.
+	 * @return this instance.
+	 */
+	SqsContainerOptionsBuilder convertMessageIdToUuid(boolean convertMessageIdToUuid);
 
 }

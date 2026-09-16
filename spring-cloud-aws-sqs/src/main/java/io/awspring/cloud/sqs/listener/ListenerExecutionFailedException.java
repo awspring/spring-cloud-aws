@@ -19,8 +19,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -31,9 +29,7 @@ import org.springframework.util.Assert;
  * @author Tomaz Fernandes
  * @since 3.0
  */
-public class ListenerExecutionFailedException extends RuntimeException {
-
-	private static final Logger logger = LoggerFactory.getLogger(ListenerExecutionFailedException.class);
+public class ListenerExecutionFailedException extends RuntimeException implements MessageProcessingException {
 
 	private final Collection<Message<?>> failedMessages;
 
@@ -66,57 +62,42 @@ public class ListenerExecutionFailedException extends RuntimeException {
 	}
 
 	/**
-	 * Look for a potentially nested {@link ListenerExecutionFailedException} and if found return the wrapped
-	 * {@link Message} instance.
+	 * Look for a potentially nested {@link MessageProcessingException} in the cause chain and if found return the
+	 * wrapped {@link Message} instance.
 	 * @param t the throwable
 	 * @param <T> the message type.
 	 * @return the message.
+	 * @deprecated use {@link MessageProcessingException#unwrapMessage(Throwable)} instead.
 	 */
-	// @formatter:off
-	@SuppressWarnings("unchecked")
+	@Deprecated
 	@Nullable
 	public static <T> Message<T> unwrapMessage(Throwable t) {
-		Throwable exception = findListenerException(t);
-		return t == null
-				? null
-				: exception != null
-					? (Message<T>) ((ListenerExecutionFailedException) exception).getFailedMessage()
-				: (Message<T>) wrapAndRethrowError(t);
+		return MessageProcessingException.unwrapMessage(t);
 	}
 
 	/**
-	 * Look for a potentially nested {@link ListenerExecutionFailedException} and if found return the wrapped {@link Message} instances.
+	 * Look for a potentially nested {@link MessageProcessingException} in the cause chain and if found return the
+	 * wrapped {@link Message} instances.
 	 * @param t the throwable
 	 * @param <T> the message type.
 	 * @return the messages.
+	 * @deprecated use {@link MessageProcessingException#unwrapMessages(Throwable)} instead.
 	 */
-	@SuppressWarnings("unchecked")
+	@Deprecated
 	@Nullable
 	public static <T> Collection<Message<T>> unwrapMessages(Throwable t) {
-		Throwable exception = findListenerException(t);
-		return t == null
-			? null
-			: exception != null
-				? ((ListenerExecutionFailedException) exception).getFailedMessages().stream().map(msg -> (Message<T>) msg).collect(Collectors.toList())
-				: (Collection<Message<T>>) wrapAndRethrowError(t);
+		return MessageProcessingException.unwrapMessages(t);
 	}
 
-	@Nullable
-	private static Throwable findListenerException(Throwable t) {
-		return t == null
-			? null
-			: t instanceof ListenerExecutionFailedException
-				? t
-				: findListenerException(t.getCause());
-	}
-	// @formatter:on
-
-	private static Object wrapAndRethrowError(Throwable t) {
-		throw new IllegalArgumentException("No ListenerExecutionFailedException found to unwrap messages.", t);
-	}
-
+	/**
+	 * Check whether a {@link MessageProcessingException} is present anywhere in the cause chain of {@code t}.
+	 * @param t the throwable.
+	 * @return whether a {@link MessageProcessingException} is present.
+	 * @deprecated use {@link MessageProcessingException#hasProcessingException(Throwable)} instead.
+	 */
+	@Deprecated
 	public static boolean hasListenerException(Throwable t) {
-		return findListenerException(t) != null;
+		return MessageProcessingException.hasProcessingException(t);
 	}
 
 }

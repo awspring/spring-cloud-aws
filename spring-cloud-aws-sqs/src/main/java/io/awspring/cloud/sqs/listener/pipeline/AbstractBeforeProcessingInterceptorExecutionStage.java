@@ -15,8 +15,11 @@
  */
 package io.awspring.cloud.sqs.listener.pipeline;
 
+import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.listener.InterceptorExecutionFailedException;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
+import io.awspring.cloud.sqs.listener.MessageProcessingException;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -40,20 +43,26 @@ public abstract class AbstractBeforeProcessingInterceptorExecutionStage<T> imple
 	@Override
 	public CompletableFuture<Message<T>> process(Message<T> message, MessageProcessingContext<T> context) {
 		logger.trace("Processing message {}", MessageHeaderUtils.getId(message));
-		return getInterceptors(context).stream().reduce(CompletableFuture.completedFuture(message), (messageFuture,
-				interceptor) -> messageFuture.thenCompose(interceptor::intercept).thenApply(validateMessageNotNull()),
-				(a, b) -> a);
+		return CompletableFutures.exceptionallyCompose(
+				getInterceptors(context).stream().reduce(CompletableFuture.completedFuture(message),
+						(messageFuture, interceptor) -> messageFuture.thenCompose(interceptor::intercept)
+								.thenApply(validateMessageNotNull()),
+						(a, b) -> a),
+				t -> CompletableFutures.failedFuture(MessageProcessingException.hasProcessingException(t) ? t
+						: new InterceptorExecutionFailedException("Interceptor threw an exception", t, message)));
 	}
 
 	@Override
 	public CompletableFuture<Collection<Message<T>>> process(Collection<Message<T>> messages,
 			MessageProcessingContext<T> context) {
 		logger.trace("Processing messages {}", MessageHeaderUtils.getId(messages));
-		return getInterceptors(context)
-				.stream().reduce(
-						CompletableFuture.completedFuture(messages), (messageFuture, interceptor) -> messageFuture
+		return CompletableFutures.exceptionallyCompose(
+				getInterceptors(context).stream().reduce(CompletableFuture.completedFuture(messages),
+						(messageFuture, interceptor) -> messageFuture
 								.thenCompose(interceptor::intercept).thenApply(validateMessagesNotEmpty()),
-						(a, b) -> a);
+						(a, b) -> a),
+				t -> CompletableFutures.failedFuture(MessageProcessingException.hasProcessingException(t) ? t
+						: new InterceptorExecutionFailedException("Interceptor threw an exception", t, messages)));
 	}
 
 	protected abstract Collection<AsyncMessageInterceptor<T>> getInterceptors(MessageProcessingContext<T> context);

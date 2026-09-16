@@ -65,7 +65,7 @@ class ImmediateAcknowledgementProcessorTests {
 				SqsContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
 		processor.start();
 		processor.doOnAcknowledge(message);
-		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(countDownLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 	}
 
@@ -128,7 +128,7 @@ class ImmediateAcknowledgementProcessorTests {
 				SqsContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
 		processor.start();
 		processor.doOnAcknowledge(message);
-		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(countDownLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 	}
 
@@ -158,7 +158,7 @@ class ImmediateAcknowledgementProcessorTests {
 				SqsContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
 		processor.start();
 		processor.doOnAcknowledge(message);
-		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(countDownLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 	}
 
@@ -188,7 +188,7 @@ class ImmediateAcknowledgementProcessorTests {
 				SqsContainerOptions.builder().acknowledgementOrdering(AcknowledgementOrdering.PARALLEL).build());
 		processor.start();
 		CompletableFuture<Void> resultFuture = processor.doOnAcknowledge(message);
-		assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(countDownLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 		assertThatThrownBy(resultFuture::join).isInstanceOf(CompletionException.class).extracting(Throwable::getCause)
 				.isInstanceOf(AcknowledgementResultCallbackException.class).extracting(Throwable::getCause)

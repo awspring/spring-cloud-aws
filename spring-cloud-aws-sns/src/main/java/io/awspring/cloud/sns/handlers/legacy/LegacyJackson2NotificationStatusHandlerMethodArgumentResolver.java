@@ -17,8 +17,10 @@ package io.awspring.cloud.sns.handlers.legacy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.awspring.cloud.sns.handlers.NotificationStatus;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
+import software.amazon.awssdk.messagemanager.sns.SnsMessageManager;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.ConfirmSubscriptionRequest;
 
@@ -34,8 +36,17 @@ public class LegacyJackson2NotificationStatusHandlerMethodArgumentResolver
 
 	private final SnsClient snsClient;
 
+	@Nullable
+	private final SnsMessageManager snsMessageManager;
+
 	public LegacyJackson2NotificationStatusHandlerMethodArgumentResolver(SnsClient snsClient) {
+		this(snsClient, null);
+	}
+
+	public LegacyJackson2NotificationStatusHandlerMethodArgumentResolver(SnsClient snsClient,
+			@Nullable SnsMessageManager snsMessageManager) {
 		this.snsClient = snsClient;
+		this.snsMessageManager = snsMessageManager;
 	}
 
 	@Override
@@ -51,8 +62,17 @@ public class LegacyJackson2NotificationStatusHandlerMethodArgumentResolver
 			throw new IllegalArgumentException(
 					"NotificationStatus is only available for subscription and unsubscription requests");
 		}
+
+		if (snsMessageManager != null) {
+			verifySignature(content.toString());
+		}
+
 		return new AmazonSnsNotificationStatus(this.snsClient, content.get("TopicArn").asText(),
 				content.get("Token").asText());
+	}
+
+	private void verifySignature(String payload) {
+		snsMessageManager.parseMessage(payload);
 	}
 
 	public static final class AmazonSnsNotificationStatus implements NotificationStatus {

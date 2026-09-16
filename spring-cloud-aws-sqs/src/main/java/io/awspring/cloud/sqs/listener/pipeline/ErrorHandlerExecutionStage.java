@@ -19,6 +19,7 @@ import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
 import io.awspring.cloud.sqs.listener.ListenerExecutionFailedException;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
+import io.awspring.cloud.sqs.listener.MessageProcessingException;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -48,7 +49,7 @@ public class ErrorHandlerExecutionStage<T> implements MessageProcessingPipeline<
 			MessageProcessingContext<T> context) {
 		return this.errorHandler == null ? messageFuture
 				: CompletableFutures.exceptionallyCompose(messageFuture,
-						t -> handleError(ListenerExecutionFailedException.unwrapMessage(t), t));
+						t -> handleError(MessageProcessingException.unwrapMessage(t), t));
 	}
 
 	private CompletableFuture<Message<T>> handleError(Message<T> failedMessage, Throwable t) {
@@ -59,7 +60,7 @@ public class ErrorHandlerExecutionStage<T> implements MessageProcessingPipeline<
 	}
 
 	private Throwable maybeWrap(Message<T> failedMessage, Throwable eht) {
-		return ListenerExecutionFailedException.hasListenerException(eht) ? eht
+		return MessageProcessingException.hasProcessingException(eht) ? eht
 				: new ListenerExecutionFailedException("Error handler returned an exception", eht, failedMessage);
 	}
 
@@ -68,7 +69,7 @@ public class ErrorHandlerExecutionStage<T> implements MessageProcessingPipeline<
 			CompletableFuture<Collection<Message<T>>> messagesFuture, MessageProcessingContext<T> context) {
 		return this.errorHandler == null ? messagesFuture
 				: CompletableFutures.exceptionallyCompose(messagesFuture,
-						t -> handleErrors(ListenerExecutionFailedException.unwrapMessages(t), t));
+						t -> handleErrors(MessageProcessingException.unwrapMessages(t), t));
 	}
 
 	private CompletableFuture<Collection<Message<T>>> handleErrors(Collection<Message<T>> failedMessages, Throwable t) {
@@ -79,7 +80,7 @@ public class ErrorHandlerExecutionStage<T> implements MessageProcessingPipeline<
 	}
 
 	private Throwable maybeWrap(Collection<Message<T>> failedMessages, Throwable eht) {
-		return ListenerExecutionFailedException.hasListenerException(eht) ? eht
+		return MessageProcessingException.hasProcessingException(eht) ? eht
 				: new ListenerExecutionFailedException("Error handler returned an exception", eht, failedMessages);
 	}
 

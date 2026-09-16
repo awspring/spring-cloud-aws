@@ -18,6 +18,7 @@ package io.awspring.cloud.sqs.listener;
 import io.awspring.cloud.sqs.CompletableFutures;
 import io.awspring.cloud.sqs.MessageExecutionThread;
 import io.awspring.cloud.sqs.MessageHeaderUtils;
+import io.awspring.cloud.sqs.VirtualThreadUtils;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
@@ -112,23 +113,28 @@ public class AsyncComponentAdapters {
 		}
 
 		protected <T> CompletableFuture<T> execute(Supplier<T> executable) {
-			if (Thread.currentThread() instanceof MessageExecutionThread) {
-				logger.trace("Already in a {}, not switching", MessageExecutionThread.class.getSimpleName());
+			if (isOnExpectedThread()) {
+				logger.trace("Already on expected thread, not switching");
 				return supplyInSameThread(executable);
 			}
-			logger.trace("Not in a {}, submitting to executor", MessageExecutionThread.class.getSimpleName());
+			logger.trace("Not on expected thread, submitting to executor");
 			Assert.notNull(this.taskExecutor, "Task executor not set");
 			return supplyInNewThread(executable);
 		}
 
 		protected CompletableFuture<Void> execute(Runnable executable) {
-			if (Thread.currentThread() instanceof MessageExecutionThread) {
-				logger.trace("Already in a {}, not switching", MessageExecutionThread.class.getSimpleName());
+			if (isOnExpectedThread()) {
+				logger.trace("Already on expected thread, not switching");
 				return runInSameThread(executable);
 			}
-			logger.trace("Not in a {}, submitting to executor", MessageExecutionThread.class.getSimpleName());
+			logger.trace("Not on expected thread, submitting to executor");
 			Assert.notNull(this.taskExecutor, "Task executor not set");
 			return runInNewThread(executable);
+		}
+
+		private boolean isOnExpectedThread() {
+			return Thread.currentThread() instanceof MessageExecutionThread
+					|| VirtualThreadUtils.isVirtual(Thread.currentThread());
 		}
 
 		private CompletableFuture<Void> runInSameThread(Runnable blockingProcess) {
@@ -381,17 +387,23 @@ public class AsyncComponentAdapters {
 
 			@Override
 			public Message<MessageType> onExecutionError(Message<MessageType> message, Throwable t) {
-				if (observationContext != null && ListenerExecutionFailedException.hasListenerException(t)) {
+				if (observationContext != null && MessageProcessingException.hasProcessingException(t)) {
 					Message<MessageType> failedMessage = Objects.requireNonNull(
-							ListenerExecutionFailedException.unwrapMessage(t),
-							"Message not found in Listener Exception.");
+							MessageProcessingException.unwrapMessage(t), "Message not found in processing exception.");
 					Message<MessageType> messageWithHeader = MessageHeaderUtils.addHeaderIfAbsent(failedMessage,
 							ObservationThreadLocalAccessor.KEY, observationContext);
-					throw new ListenerExecutionFailedException(t.getMessage(), t.getCause(), messageWithHeader);
+					throw rewrapWithUpdatedMessage(t, messageWithHeader);
 				}
 				return message;
 			}
 		}
+	}
+
+	private static <T> RuntimeException rewrapWithUpdatedMessage(Throwable t, Message<T> message) {
+		if (t instanceof InterceptorExecutionFailedException) {
+			return new InterceptorExecutionFailedException(t.getMessage(), t.getCause(), message);
+		}
+		return new ListenerExecutionFailedException(t.getMessage(), t.getCause(), message);
 	}
 
 }

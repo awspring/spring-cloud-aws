@@ -18,6 +18,7 @@ package io.awspring.cloud.autoconfigure.metrics;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
@@ -27,7 +28,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.micrometer.metrics.test.autoconfigure.AutoConfigureMetrics;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Container;
@@ -53,7 +56,7 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 
 	@Container
 	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:latest"));
+			DockerImageName.parse("localstack/localstack:4.14.0"));
 
 	@DynamicPropertySource
 	static void registerProperties(DynamicPropertyRegistry registry) {
@@ -65,6 +68,8 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 		SpringApplication application = new SpringApplication(
 				CloudWatchExportAutoConfigurationIntegrationTests.Application.class);
 		application.setWebApplicationType(WebApplicationType.NONE);
+		application.setResourceLoader(
+				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),

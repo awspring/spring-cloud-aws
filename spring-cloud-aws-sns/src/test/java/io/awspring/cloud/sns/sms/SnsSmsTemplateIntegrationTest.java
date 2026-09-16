@@ -18,38 +18,26 @@ package io.awspring.cloud.sns.sms;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import io.awspring.cloud.sns.LocalstackContainerTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.output.OutputFrame;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.localstack.LocalStackContainer;
-import org.testcontainers.utility.DockerImageName;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 
 /**
  * Integration tests for {@link SnsSmsTemplate}.
  *
  * @author Matej Nedic
+ * @author haroya01
  */
-@Testcontainers
-class SnsSmsTemplateIntegrationTest {
-	private static SnsSmsTemplate snsSmsTemplate;
+class SnsSmsTemplateIntegrationTest implements LocalstackContainerTest {
 
-	@Container
-	static LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:4.4.0")).withEnv("DEBUG", "1");
+	private static SnsSmsTemplate snsSmsTemplate;
 
 	@BeforeAll
 	public static void createSnsTemplate() {
-		SnsClient snsClient = SnsClient.builder().endpointOverride(localstack.getEndpoint())
-				.region(Region.of(localstack.getRegion()))
-				.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("noop", "noop")))
-				.build();
+		SnsClient snsClient = LocalstackContainerTest.snsClient();
 		snsSmsTemplate = new SnsSmsTemplate(snsClient);
 	}
 
@@ -58,7 +46,7 @@ class SnsSmsTemplateIntegrationTest {
 		Assertions.assertDoesNotThrow(() -> snsSmsTemplate.send("+385000000000", "Spring Cloud AWS got you covered!"));
 
 		await().untilAsserted(() -> {
-			String logs = localstack.getLogs(OutputFrame.OutputType.STDOUT, OutputFrame.OutputType.STDERR);
+			String logs = LOCAL_STACK_CONTAINER.getLogs(OutputFrame.OutputType.STDOUT, OutputFrame.OutputType.STDERR);
 			assertThat(logs).contains("Delivering SMS message to +385000000000: Spring Cloud AWS got you covered!");
 		});
 	}
@@ -70,7 +58,7 @@ class SnsSmsTemplateIntegrationTest {
 						.builder().smsType(SmsType.PROMOTIONAL).senderID("AWSPRING").maxPrice("1.00").build()));
 
 		await().untilAsserted(() -> {
-			String logs = localstack.getLogs(OutputFrame.OutputType.STDOUT, OutputFrame.OutputType.STDERR);
+			String logs = LOCAL_STACK_CONTAINER.getLogs(OutputFrame.OutputType.STDOUT, OutputFrame.OutputType.STDERR);
 			assertThat(logs).contains("Delivering SMS message to +385000000000: Spring Cloud AWS got you covered!");
 		});
 	}

@@ -18,14 +18,18 @@ package io.awspring.cloud.s3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Utilities;
 
 /**
  * Unit tests for {@link S3Resource}.
  *
  * @author Maciej Walkowiak
+ * @author Matej Nedic
  */
 class S3ResourceTests {
 
@@ -53,6 +57,17 @@ class S3ResourceTests {
 		assertThat(resourceOne.getFilename()).isEqualTo("objectOne");
 		assertThat(resourceTwo.getFilename()).isEqualTo("objectTwo");
 		assertThatNoException().isThrownBy(() -> resourceOne.getFilename().compareTo(resourceTwo.getFilename()));
+	}
+
+	@Test
+	void getUrlRetainsTrailingSlashForPrefixLocation() throws Exception {
+		S3Client s3Client = mock(S3Client.class);
+		when(s3Client.utilities()).thenReturn(S3Utilities.builder().region(Region.US_EAST_1).build());
+
+		S3Resource resource = new S3Resource("s3://bucket/path/", s3Client, mock(S3OutputStreamProvider.class));
+
+		assertThat(resource.getLocation().getObject()).isEqualTo("path/");
+		assertThat(resource.getURL().getPath()).endsWith("/");
 	}
 
 }

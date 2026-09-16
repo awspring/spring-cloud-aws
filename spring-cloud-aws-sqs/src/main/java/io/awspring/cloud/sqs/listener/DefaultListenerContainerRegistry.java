@@ -80,10 +80,10 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			logger.debug("Starting {}", getClass().getSimpleName());
+			this.running = true;
 			List<MessageListenerContainer<?>> containersToStart = this.listenerContainers.values().stream()
 					.filter(SmartLifecycle::isAutoStartup).collect(Collectors.toList());
 			LifecycleHandler.get().start(containersToStart);
-			this.running = true;
 			logger.debug("{} started", getClass().getSimpleName());
 		}
 	}

@@ -16,8 +16,8 @@
 package io.awspring.cloud.sqs.listener.pipeline;
 
 import io.awspring.cloud.sqs.CompletableFutures;
-import io.awspring.cloud.sqs.listener.ListenerExecutionFailedException;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
+import io.awspring.cloud.sqs.listener.MessageProcessingException;
 import io.awspring.cloud.sqs.listener.acknowledgement.handler.AcknowledgementHandler;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -47,8 +47,7 @@ public class AcknowledgementHandlerExecutionStage<T> implements MessageProcessin
 		return CompletableFutures.handleCompose(messageFuture, (v, t) -> t == null
 				? this.acknowledgementHandler.onSuccess(v, context.getAcknowledgmentCallback()).thenApply(theVoid -> v)
 				: this.acknowledgementHandler
-						.onError(ListenerExecutionFailedException.unwrapMessage(t), t,
-								context.getAcknowledgmentCallback())
+						.onError(MessageProcessingException.unwrapMessage(t), t, context.getAcknowledgmentCallback())
 						.thenCompose(theVoid -> CompletableFutures.failedFuture(t)));
 	}
 
@@ -56,7 +55,9 @@ public class AcknowledgementHandlerExecutionStage<T> implements MessageProcessin
 	public CompletableFuture<Collection<Message<T>>> processMany(
 			CompletableFuture<Collection<Message<T>>> messagesFuture, MessageProcessingContext<T> context) {
 		return CompletableFutures.handleCompose(messagesFuture, (v, t) -> {
-			Collection<Message<T>> originalMessages = ListenerExecutionFailedException.unwrapMessages(t);
+			// unwrapMessages returns null when t is null, but originalMessages is only used in the t != null branch
+			// below
+			Collection<Message<T>> originalMessages = MessageProcessingException.unwrapMessages(t);
 			return t == null
 					? this.acknowledgementHandler.onSuccess(v, context.getAcknowledgmentCallback())
 							.thenApply(theVoid -> v)

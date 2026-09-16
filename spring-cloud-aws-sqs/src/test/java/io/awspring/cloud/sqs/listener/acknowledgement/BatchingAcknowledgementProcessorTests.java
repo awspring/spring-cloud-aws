@@ -68,6 +68,8 @@ class BatchingAcknowledgementProcessorTests {
 
 	private static final Duration ACK_INTERVAL_ZERO = Duration.ZERO;
 
+	private static final Duration ACK_INTERVAL_THIRTY_SECONDS = Duration.ofSeconds(30);
+
 	private static final int MAX_ACKNOWLEDGEMENTS_PER_BATCH_TEN = 10;
 
 	private static final Integer ACK_THRESHOLD_TEN = 10;
@@ -110,7 +112,7 @@ class BatchingAcknowledgementProcessorTests {
 		processor.setId(ID);
 		processor.start();
 		processor.doOnAcknowledge(messages);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 
 		then(ackExecutor).should().execute(messages);
@@ -190,6 +192,116 @@ class BatchingAcknowledgementProcessorTests {
 	}
 
 	@Test
+	void givenScheduledAcknowledgement_whenStoppedWithRemainderBelowThreshold_shouldAcknowledgeRemainingMessages()
+			throws Exception {
+		List<Message<String>> messages = buildMessages(ACK_THRESHOLD_TEN + 5);
+		List<Message<String>> thresholdBatch = messages.subList(0, ACK_THRESHOLD_TEN);
+		List<Message<String>> remainder = messages.subList(ACK_THRESHOLD_TEN, messages.size());
+		Collection<Message<String>> acknowledgedMessages = Collections.synchronizedList(new ArrayList<>());
+		CountDownLatch thresholdFlushLatch = new CountDownLatch(1);
+
+		// The interval outlasts the test, so the remainder can only be flushed by the shutdown drain and never by a
+		// scheduled execution. A scheduled execution does exist here, unlike in the interval ZERO scenario below.
+		BatchingAcknowledgementProcessor<String> processor = createProcessor(ACK_INTERVAL_THIRTY_SECONDS,
+				messagesToAck -> {
+					acknowledgedMessages.addAll(messagesToAck);
+					thresholdFlushLatch.countDown();
+					return CompletableFuture.completedFuture(null);
+				});
+		processor.start();
+
+		processor.doOnAcknowledge(thresholdBatch);
+		assertThat(thresholdFlushLatch.await(60, TimeUnit.SECONDS)).isTrue();
+		processor.doOnAcknowledge(remainder);
+		processor.stop();
+
+		assertThat(acknowledgedMessages).containsExactlyInAnyOrderElementsOf(messages);
+	}
+
+	@Test
+	void givenZeroIntervalAndThreshold_whenStoppedWithRemainderBelowThreshold_shouldAcknowledgeRemainingMessages()
+			throws Exception {
+		List<Message<String>> messages = buildMessages(ACK_THRESHOLD_TEN + 5);
+		Collection<Message<String>> acknowledgedMessages = Collections.synchronizedList(new ArrayList<>());
+
+		// No scheduled execution is ever created with interval ZERO, so the shutdown drain is the only thing that can
+		// flush the remainder.
+		BatchingAcknowledgementProcessor<String> processor = createProcessor(ACK_INTERVAL_ZERO, messagesToAck -> {
+			acknowledgedMessages.addAll(messagesToAck);
+			return CompletableFuture.completedFuture(null);
+		});
+		processor.start();
+
+		processor.doOnAcknowledge(messages);
+		processor.stop();
+
+		assertThat(acknowledgedMessages).containsExactlyInAnyOrderElementsOf(messages);
+	}
+
+	@Test
+	void givenMessagePolledButNotBufferedYet_whenStopped_shouldAcknowledgeIt() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("0").build();
+		Collection<Message<String>> acknowledgedMessages = Collections.synchronizedList(new ArrayList<>());
+		CountDownLatch pollingThreadInsideBufferAdd = new CountDownLatch(1);
+		CountDownLatch releasePollingThread = new CountDownLatch(1);
+
+		BatchingAcknowledgementProcessor<String> processor = new BatchingAcknowledgementProcessor<>();
+		processor.configure(SqsContainerOptions.builder().acknowledgementInterval(ACK_INTERVAL_THIRTY_SECONDS)
+				.acknowledgementThreshold(ACK_THRESHOLD_TEN)
+				.acknowledgementOrdering(AcknowledgementOrdering.ORDERED_BY_GROUP)
+				.acknowledgementShutdownTimeout(Duration.ofSeconds(10)).build());
+		// The grouping function is applied while adding the message to the buffer, so blocking in it parks the polling
+		// thread at exactly the point where the message is in neither the queue nor the buffer.
+		processor.setMessageGroupingFunction(messageToGroup -> {
+			pollingThreadInsideBufferAdd.countDown();
+			try {
+				releasePollingThread.await(60, TimeUnit.SECONDS);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+			return "group";
+		});
+		processor.setTaskExecutor(new SimpleAsyncTaskExecutor());
+		processor.setAcknowledgementExecutor(messagesToAck -> {
+			acknowledgedMessages.addAll(messagesToAck);
+			return CompletableFuture.completedFuture(null);
+		});
+		processor.setMaxAcknowledgementsPerBatch(MAX_ACKNOWLEDGEMENTS_PER_BATCH_TEN);
+		processor.setId(ID);
+		processor.start();
+
+		processor.doOnAcknowledge(message);
+		assertThat(pollingThreadInsideBufferAdd.await(60, TimeUnit.SECONDS)).isTrue();
+
+		CompletableFuture<Void> stopping = CompletableFuture.runAsync(processor::stop);
+		// Give the shutdown wait loop, which polls every 200ms, several chances to observe the in-flight message
+		Thread.sleep(1000);
+		releasePollingThread.countDown();
+		stopping.get(30, TimeUnit.SECONDS);
+
+		assertThat(acknowledgedMessages).containsExactly(message);
+	}
+
+	private static List<Message<String>> buildMessages(int count) {
+		return IntStream.range(0, count).mapToObj(index -> MessageBuilder.withPayload(String.valueOf(index)).build())
+				.collect(Collectors.toList());
+	}
+
+	private static BatchingAcknowledgementProcessor<String> createProcessor(Duration acknowledgementInterval,
+			AcknowledgementExecutor<String> acknowledgementExecutor) {
+		BatchingAcknowledgementProcessor<String> processor = new BatchingAcknowledgementProcessor<>();
+		processor.configure(SqsContainerOptions.builder().acknowledgementInterval(acknowledgementInterval)
+				.acknowledgementThreshold(ACK_THRESHOLD_TEN).acknowledgementOrdering(AcknowledgementOrdering.PARALLEL)
+				.acknowledgementShutdownTimeout(Duration.ofSeconds(10)).build());
+		processor.setTaskExecutor(new SimpleAsyncTaskExecutor());
+		processor.setAcknowledgementExecutor(acknowledgementExecutor);
+		processor.setMaxAcknowledgementsPerBatch(MAX_ACKNOWLEDGEMENTS_PER_BATCH_TEN);
+		processor.setId(ID);
+		return processor;
+	}
+
+	@Test
 	void shouldAckAfterTime() throws Exception {
 		given(message.getHeaders()).willReturn(messageHeaders);
 		TaskExecutor executor = new SimpleAsyncTaskExecutor();
@@ -241,7 +353,7 @@ class BatchingAcknowledgementProcessorTests {
 		processor.setId(ID);
 		processor.start();
 		processor.doOnAcknowledge(messages);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 		then(ackExecutor).should().execute(messages.subList(0, 10));
 		then(ackExecutor).should().execute(messages.subList(10, 15));
@@ -273,7 +385,7 @@ class BatchingAcknowledgementProcessorTests {
 
 		processor.start();
 		processor.doOnAcknowledge(messages);
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 
 		IntStream.range(0, Math.min(messages.size() / maxMessagesPerBatch, 1))
@@ -338,7 +450,7 @@ class BatchingAcknowledgementProcessorTests {
 		messages.forEach(
 				(group, theMessages) -> CompletableFuture.runAsync(() -> processor.doOnAcknowledge(theMessages)));
 		logger.info("Sent all messages for acknowledgement");
-		assertThat(ackLatch.await(1000, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(30, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 		messages.forEach((group, messagesFromGroup) -> assertThat(acknowledgedMessages.get(group))
 				.containsExactlyElementsOf(messagesFromGroup.stream().map(Message::getPayload).collect(toList())));
@@ -346,7 +458,7 @@ class BatchingAcknowledgementProcessorTests {
 
 	private void sleep() {
 		try {
-			Thread.sleep(new Random().nextInt(100));
+			Thread.sleep(new Random().nextInt(10));
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
@@ -382,7 +494,7 @@ class BatchingAcknowledgementProcessorTests {
 
 		processor.start();
 		processor.doOnAcknowledge(batches.stream().flatMap(Collection::stream).collect(Collectors.toList()));
-		assertThat(ackLatch.await(10, TimeUnit.SECONDS)).isTrue();
+		assertThat(ackLatch.await(60, TimeUnit.SECONDS)).isTrue();
 		processor.stop();
 
 		ArgumentCaptor<Collection<Message<String>>> messagesCaptor = ArgumentCaptor.forClass(Collection.class);

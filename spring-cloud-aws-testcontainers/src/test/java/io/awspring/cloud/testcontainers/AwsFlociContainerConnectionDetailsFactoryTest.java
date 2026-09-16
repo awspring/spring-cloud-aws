@@ -17,7 +17,6 @@ package io.awspring.cloud.testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.jupiter.api.Assertions.*;
 
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -30,6 +29,7 @@ import io.awspring.cloud.autoconfigure.ses.SesAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sns.SnsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.sqs.SqsAutoConfiguration;
 import io.awspring.cloud.s3.S3Template;
+import io.floci.testcontainers.FlociContainer;
 import java.net.URL;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -51,12 +50,11 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 
 @SpringJUnitConfig
 @Testcontainers(disabledWithoutDocker = true)
-class AwsContainerConnectionDetailsFactoryTest {
+class AwsFlociContainerConnectionDetailsFactoryTest {
 
 	@Container
 	@ServiceConnection
-	static final LocalStackContainer localstack = new LocalStackContainer(
-			DockerImageName.parse("localstack/localstack:4.4.0"));
+	static final FlociContainer floci = new FlociContainer(DockerImageName.parse("floci/floci:1.5.33"));
 
 	@Autowired(required = false)
 	private AwsConnectionDetails connectionDetails;

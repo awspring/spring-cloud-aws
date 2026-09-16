@@ -26,6 +26,8 @@ import java.time.Duration;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.cloud.stream.binder.ExtendedConsumerProperties;
 import org.springframework.cloud.stream.binder.ExtendedProducerProperties;
 import org.springframework.cloud.stream.binder.HeaderMode;
@@ -45,6 +47,7 @@ import software.amazon.awssdk.services.kinesis.model.ResourceNotFoundException;
  *
  * @since 4.0
  */
+@ResourceLock(value = "kinesis-binder", mode = ResourceAccessMode.READ)
 class KinesisStreamProvisionerTests implements LocalstackContainerTest {
 
 	private static KinesisAsyncClient AMAZON_KINESIS;
