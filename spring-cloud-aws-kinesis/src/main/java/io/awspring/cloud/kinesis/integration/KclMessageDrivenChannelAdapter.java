@@ -401,6 +401,13 @@ public class KclMessageDrivenChannelAdapter extends MessageProducerSupport imple
 	@Override
 	protected void onInit() {
 		super.onInit();
+		var applicationContext = getApplicationContext();
+		if (applicationContext != null && applicationContext.getEnvironment()
+				.getProperty("spring.threads.virtual.enabled", Boolean.class, false)) {
+			if (this.executor instanceof SimpleAsyncTaskExecutor sate) {
+				sate.setVirtualThreads(true);
+			}
+		}
 		if (this.listenerMode.equals(ListenerMode.record) && this.emptyRecordList) {
 			this.emptyRecordList = false;
 			logger.warn("The 'emptyRecordList' is processed only in the [ListenerMode.batch].");
