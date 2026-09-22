@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  sesv2-sample-localstack:
+    container_name: localstack
+    environment:
+      - DEBUG=1
+      - LOCALSTACK_HOSTNAME=localhost
+      - TEST_AWS_ACCOUNT_ID=000000000000
+      - AWS_DEFAULT_REGION=us-east-1
+      - SERVICES=sesv2
+      - S3_MOUNT=/tmp
+      - LOCALSTACK_AUTH_TOKEN=
+    # SES V2 is only available in the pro version. See https://docs.localstack.cloud/references/coverage/coverage_sesv2/
+    image: localstack/localstack-pro:latest
+    ports:
+      - "4566:4566"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
