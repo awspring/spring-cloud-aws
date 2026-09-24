@@ -16,7 +16,6 @@
 package io.awspring.cloud.kinesis.annotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.awspring.cloud.kinesis.config.KclBootstrapConfiguration;
 import io.awspring.cloud.kinesis.config.KclEndpoint;
@@ -27,6 +26,8 @@ import io.awspring.cloud.kinesis.listener.MessageListenerContainer;
 import io.awspring.cloud.kinesis.listener.MessageListenerContainerRegistry;
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
 import io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -99,11 +100,11 @@ class KclListenerAnnotationBeanPostProcessorTests {
 	}
 
 	@Test
-	@DisplayName("defaults the initial position in stream to TRIM_HORIZON")
-	void initialPositionDefaultsToTrimHorizon() {
+	@DisplayName("leaves the initial position unset by default so the factory value is inherited")
+	void initialPositionDefaultsToFactoryValue() {
 		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(TestConfig.class)) {
 			KclEndpoint endpoint = context.getBean(CapturingContainerFactory.class).endpoints.get(0);
-			assertThat(endpoint.getInitialPositionInStream()).isEqualTo(InitialPositionInStream.TRIM_HORIZON);
+			assertThat(endpoint.getInitialPositionInStream()).isNull();
 		}
 	}
 
@@ -138,11 +139,18 @@ class KclListenerAnnotationBeanPostProcessorTests {
 	}
 
 	@Test
-	@DisplayName("AT_TIMESTAMP is rejected on the annotation since it cannot carry a timestamp")
-	void rejectsAtTimestampInitialPosition() {
-		assertThatThrownBy(() -> new AnnotationConfigApplicationContext(AtTimestampPositionConfig.class))
-				.hasRootCauseInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("AT_TIMESTAMP is not supported on @KclListener");
+	@DisplayName("resolves timestamp, lifecycle and periodic checkpoint overrides")
+	void resolvesContainerOptionOverrides() {
+		try (AnnotationConfigApplicationContext context = contextWith(AtTimestampPositionConfig.class,
+				Map.of("app.initial-timestamp", "2026-09-24T10:15:30Z", "app.checkpoint-count", "250",
+						"app.auto-startup", "false"))) {
+			KclEndpoint endpoint = context.getBean(CapturingContainerFactory.class).endpoints.get(0);
+			assertThat(endpoint.getInitialPositionInStream()).isEqualTo(InitialPositionInStream.AT_TIMESTAMP);
+			assertThat(endpoint.getInitialPositionTimestamp()).isEqualTo(Instant.parse("2026-09-24T10:15:30Z"));
+			assertThat(endpoint.getAutoStartup()).isFalse();
+			assertThat(endpoint.getCheckpointInterval()).isEqualTo(Duration.ofSeconds(15));
+			assertThat(endpoint.getCheckpointRecordCount()).isEqualTo(250L);
+		}
 	}
 
 	@Test
@@ -187,7 +195,12 @@ class KclListenerAnnotationBeanPostProcessorTests {
 		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(TestConfig.class)) {
 			KclEndpoint endpoint = context.getBean(CapturingContainerFactory.class).endpoints.get(0);
 			assertThat(endpoint.getCheckpointMode()).isNull();
+			assertThat(endpoint.getCheckpointInterval()).isNull();
+			assertThat(endpoint.getCheckpointRecordCount()).isNull();
+			assertThat(endpoint.getAutoStartup()).isNull();
 			assertThat(endpoint.getRetrievalMode()).isNull();
+			assertThat(endpoint.getInitialPositionInStream()).isNull();
+			assertThat(endpoint.getInitialPositionTimestamp()).isNull();
 			assertThat(endpoint.getReplyStream()).isNull();
 		}
 	}
@@ -269,8 +282,13 @@ class KclListenerAnnotationBeanPostProcessorTests {
 	}
 
 	private static AnnotationConfigApplicationContext contextWith(Class<?> configClass, String key, String value) {
+		return contextWith(configClass, Map.of(key, value));
+	}
+
+	private static AnnotationConfigApplicationContext contextWith(Class<?> configClass,
+			Map<String, Object> properties) {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", Map.of(key, value)));
+		context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("test", properties));
 		context.register(configClass);
 		context.refresh();
 		return context;
@@ -531,7 +549,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class AtTimestampPositionListener {
 
-		@KclListener(id = "at-timestamp-position", streamNames = "orders", initialPositionInStream = "AT_TIMESTAMP")
+		@KclListener(id = "at-timestamp-position", streamNames = "orders", initialPositionInStream = "AT_TIMESTAMP", initialPositionTimestamp = "${app.initial-timestamp}", checkpointMode = "PERIODIC", checkpointInterval = "#{T(java.time.Duration).ofSeconds(15)}", checkpointRecordCount = "${app.checkpoint-count}", autoStartup = "${app.auto-startup}")
 		void handle(String payload) {
 		}
 
@@ -745,6 +763,127 @@ class KclListenerAnnotationBeanPostProcessorTests {
 		MessageListener getMessageListener() {
 			return null;
 		}
+
+	}
+
+	@Test
+	@DisplayName("flattens stream names resolved from SpEL arrays and iterables")
+	void resolvesStreamNamesFromSpelArraysAndIterables() {
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
+				SpelStreamNamesConfig.class)) {
+			KclEndpoint endpoint = context.getBean(CapturingContainerFactory.class).endpoints.get(0);
+			assertThat(endpoint.getStreamNames()).containsExactly("orders", "shipments", "invoices", "payments");
+		}
+	}
+
+	@Test
+	@DisplayName("invokes listener methods through JDK proxies")
+	void invokesListenerMethodThroughJdkProxy() throws Exception {
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
+				JdkProxyConfig.class)) {
+			KclHandlerMethodEndpoint endpoint = (KclHandlerMethodEndpoint) context
+					.getBean(CapturingContainerFactory.class).endpoints.get(0);
+			assertThat(org.springframework.aop.support.AopUtils.isJdkDynamicProxy(endpoint.getBean())).isTrue();
+
+			endpoint.getHandlerMethodFactory().createInvocableHandlerMethod(endpoint.getBean(), endpoint.getMethod())
+					.invoke(new org.springframework.messaging.support.GenericMessage<>("payload"));
+
+			assertThat(context.getBean(InvocationState.class).payload).isEqualTo("payload");
+		}
+	}
+
+	@Configuration
+	@Import(KclBootstrapConfiguration.class)
+	static class SpelStreamNamesConfig {
+
+		@Bean
+		CapturingContainerFactory containerFactory() {
+			return new CapturingContainerFactory();
+		}
+
+		@Bean
+		StreamNamesProvider streamNamesProvider() {
+			return new StreamNamesProvider();
+		}
+
+		@Bean
+		SpelStreamNamesListener spelStreamNamesListener() {
+			return new SpelStreamNamesListener();
+		}
+
+	}
+
+	static class StreamNamesProvider {
+
+		public String[] arrayNames() {
+			return new String[] { "orders", "shipments" };
+		}
+
+		public Iterable<String> iterableNames() {
+			return List.of("invoices", "payments");
+		}
+
+	}
+
+	static class SpelStreamNamesListener {
+
+		@KclListener(id = "spel-streams", streamNames = { "#{@streamNamesProvider.arrayNames()}",
+				"#{@streamNamesProvider.iterableNames()}" })
+		void handle(String payload) {
+		}
+
+	}
+
+	@Configuration
+	@Import(KclBootstrapConfiguration.class)
+	static class JdkProxyConfig {
+
+		@Bean
+		CapturingContainerFactory containerFactory() {
+			return new CapturingContainerFactory();
+		}
+
+		@Bean
+		InvocationState invocationState() {
+			return new InvocationState();
+		}
+
+		@Bean
+		ProxiedListener proxiedListener(InvocationState invocationState) {
+			org.springframework.aop.framework.ProxyFactory proxyFactory = new org.springframework.aop.framework.ProxyFactory(
+					new ProxiedListenerImpl(invocationState));
+			proxyFactory.setProxyTargetClass(false);
+			return (ProxiedListener) proxyFactory.getProxy();
+		}
+
+	}
+
+	interface ProxiedListener {
+
+		void handle(String payload);
+
+	}
+
+	static class ProxiedListenerImpl implements ProxiedListener {
+
+		private final InvocationState invocationState;
+
+		ProxiedListenerImpl(InvocationState invocationState) {
+			this.invocationState = invocationState;
+		}
+
+		@Override
+		@KclListener(id = "jdk-proxy", streamNames = "orders")
+		public void handle(String payload) {
+			this.invocationState.payload = payload;
+		}
+
+	}
+
+	static class InvocationState {
+
+		@Nullable
+		private String payload;
 
 	}
 

@@ -19,6 +19,8 @@ import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
 import io.awspring.cloud.kinesis.listener.retrieval.KinesisConsumerResolver;
 import io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode;
 import java.lang.reflect.Method;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
@@ -52,10 +54,22 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 	private final KclCheckpointMode checkpointMode;
 
 	@Nullable
+	private final Duration checkpointInterval;
+
+	@Nullable
+	private final Long checkpointRecordCount;
+
+	@Nullable
+	private final Boolean autoStartup;
+
+	@Nullable
 	private final RetrievalMode retrievalMode;
 
 	@Nullable
 	private final InitialPositionInStream initialPositionInStream;
+
+	@Nullable
+	private final Instant initialPositionTimestamp;
 
 	@Nullable
 	private final String consumerArn;
@@ -88,8 +102,12 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 		this.bean = builder.bean;
 		this.method = builder.method;
 		this.checkpointMode = builder.checkpointMode;
+		this.checkpointInterval = builder.checkpointInterval;
+		this.checkpointRecordCount = builder.checkpointRecordCount;
+		this.autoStartup = builder.autoStartup;
 		this.retrievalMode = builder.retrievalMode;
 		this.initialPositionInStream = builder.initialPositionInStream;
+		this.initialPositionTimestamp = builder.initialPositionTimestamp;
 		this.consumerArn = builder.consumerArn;
 		this.consumerName = builder.consumerName;
 		this.leaseTableName = builder.leaseTableName;
@@ -151,6 +169,24 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 
 	@Nullable
 	@Override
+	public Duration getCheckpointInterval() {
+		return this.checkpointInterval;
+	}
+
+	@Nullable
+	@Override
+	public Long getCheckpointRecordCount() {
+		return this.checkpointRecordCount;
+	}
+
+	@Nullable
+	@Override
+	public Boolean getAutoStartup() {
+		return this.autoStartup;
+	}
+
+	@Nullable
+	@Override
 	public RetrievalMode getRetrievalMode() {
 		return this.retrievalMode;
 	}
@@ -159,6 +195,12 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 	@Override
 	public InitialPositionInStream getInitialPositionInStream() {
 		return this.initialPositionInStream;
+	}
+
+	@Nullable
+	@Override
+	public Instant getInitialPositionTimestamp() {
+		return this.initialPositionTimestamp;
 	}
 
 	@Nullable
@@ -215,10 +257,22 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 		private KclCheckpointMode checkpointMode;
 
 		@Nullable
+		private Duration checkpointInterval;
+
+		@Nullable
+		private Long checkpointRecordCount;
+
+		@Nullable
+		private Boolean autoStartup;
+
+		@Nullable
 		private RetrievalMode retrievalMode;
 
 		@Nullable
 		private InitialPositionInStream initialPositionInStream;
+
+		@Nullable
+		private Instant initialPositionTimestamp;
 
 		@Nullable
 		private String consumerArn;
@@ -277,6 +331,21 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 			return this;
 		}
 
+		public Builder checkpointInterval(@Nullable Duration checkpointInterval) {
+			this.checkpointInterval = checkpointInterval;
+			return this;
+		}
+
+		public Builder checkpointRecordCount(@Nullable Long checkpointRecordCount) {
+			this.checkpointRecordCount = checkpointRecordCount;
+			return this;
+		}
+
+		public Builder autoStartup(@Nullable Boolean autoStartup) {
+			this.autoStartup = autoStartup;
+			return this;
+		}
+
 		public Builder retrievalMode(@Nullable RetrievalMode retrievalMode) {
 			this.retrievalMode = retrievalMode;
 			return this;
@@ -284,6 +353,11 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 
 		public Builder initialPositionInStream(@Nullable InitialPositionInStream initialPositionInStream) {
 			this.initialPositionInStream = initialPositionInStream;
+			return this;
+		}
+
+		public Builder initialPositionTimestamp(@Nullable Instant initialPositionTimestamp) {
+			this.initialPositionTimestamp = initialPositionTimestamp;
 			return this;
 		}
 

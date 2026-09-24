@@ -19,6 +19,8 @@ import io.awspring.cloud.kinesis.listener.KclContainerOptions;
 import io.awspring.cloud.kinesis.listener.MessageListenerContainer;
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
 import io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import org.jspecify.annotations.Nullable;
 import software.amazon.kinesis.common.InitialPositionInStream;
@@ -69,6 +71,30 @@ public interface KclEndpoint {
 	KclCheckpointMode getCheckpointMode();
 
 	/**
+	 * @return the checkpoint interval override, or {@code null} to inherit from the factory.
+	 */
+	@Nullable
+	default Duration getCheckpointInterval() {
+		return null;
+	}
+
+	/**
+	 * @return the checkpoint record count override, or {@code null} to inherit from the factory.
+	 */
+	@Nullable
+	default Long getCheckpointRecordCount() {
+		return null;
+	}
+
+	/**
+	 * @return the auto-startup override, or {@code null} to inherit from the factory.
+	 */
+	@Nullable
+	default Boolean getAutoStartup() {
+		return null;
+	}
+
+	/**
 	 * The retrieval mode overriding the one configured on the factory.
 	 * @return the retrieval mode, or {@code null} to keep the factory value.
 	 */
@@ -81,6 +107,14 @@ public interface KclEndpoint {
 	 */
 	@Nullable
 	InitialPositionInStream getInitialPositionInStream();
+
+	/**
+	 * @return the initial position timestamp override, or {@code null} to inherit from the factory.
+	 */
+	@Nullable
+	default Instant getInitialPositionTimestamp() {
+		return null;
+	}
 
 	/**
 	 * The ARN of the enhanced fan-out consumer to read this stream with.

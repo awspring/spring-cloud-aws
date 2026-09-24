@@ -89,6 +89,24 @@ public @interface KclListener {
 	String checkpointMode() default "";
 
 	/**
+	 * The ISO-8601 periodic checkpoint interval, or empty to inherit from the factory.
+	 * @return the checkpoint interval.
+	 */
+	String checkpointInterval() default "";
+
+	/**
+	 * The periodic checkpoint record count, or empty to inherit from the factory.
+	 * @return the checkpoint record count.
+	 */
+	String checkpointRecordCount() default "";
+
+	/**
+	 * Whether the listener starts automatically, or empty to inherit from the factory.
+	 * @return whether the listener starts automatically.
+	 */
+	String autoStartup() default "";
+
+	/**
 	 * The {@link io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode} to be used for this endpoint. If not
 	 * specified, the mode defined on the container factory is used.
 	 * @return the retrieval mode.
@@ -97,13 +115,16 @@ public @interface KclListener {
 
 	/**
 	 * The {@link software.amazon.kinesis.common.InitialPositionInStream} to be used for this endpoint when no
-	 * checkpoint exists yet for a shard, {@code TRIM_HORIZON} by default. Only {@code LATEST} and {@code TRIM_HORIZON}
-	 * are supported here and the value always takes precedence over the position configured for the container factory.
-	 * To fall back to the factory (for example to start {@code AT_TIMESTAMP}, which needs a timestamp the annotation
-	 * cannot carry), set this attribute to an empty string.
+	 * checkpoint exists yet for a shard. An empty value inherits the position configured on the container factory.
 	 * @return the initial position in stream.
 	 */
-	String initialPositionInStream() default "TRIM_HORIZON";
+	String initialPositionInStream() default "";
+
+	/**
+	 * The ISO-8601 timestamp used with {@code AT_TIMESTAMP}, or empty to inherit from the factory.
+	 * @return the initial position timestamp.
+	 */
+	String initialPositionTimestamp() default "";
 
 	/**
 	 * The pre-registered enhanced fan-out consumer to read this stream with, given either as its name or as its ARN

@@ -128,8 +128,9 @@ public class KinesisTemplate implements KinesisOperations {
 	public CompletableFuture<BatchSendResult> sendBatchAsync(String streamName, List<SendRequest> requests) {
 		Assert.hasText(streamName, "streamName must not be empty");
 		Assert.notEmpty(requests, "requests must not be empty");
-		List<PutRecordsRequestEntry> entries = new ArrayList<>(requests.size());
-		for (SendRequest request : requests) {
+		List<SendRequest> requestSnapshot = new ArrayList<>(requests);
+		List<PutRecordsRequestEntry> entries = new ArrayList<>(requestSnapshot.size());
+		for (SendRequest request : requestSnapshot) {
 			Assert.notNull(request, "request must not be null");
 			Assert.isTrue(request.streamName().equals(streamName),
 					"every request must target the batch streamName " + streamName);
@@ -138,7 +139,7 @@ public class KinesisTemplate implements KinesisOperations {
 		PutRecordsRequest putRecordsRequest = PutRecordsRequest.builder().streamName(streamName).records(entries)
 				.build();
 		return this.kinesisAsyncClient.putRecords(putRecordsRequest)
-				.thenApply(response -> toBatchResult(response, requests));
+				.thenApply(response -> toBatchResult(response, requestSnapshot));
 	}
 
 	private static BatchSendResult toBatchResult(PutRecordsResponse response, List<SendRequest> requests) {

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import io.awspring.cloud.kinesis.support.converter.KinesisMessageConverter;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -192,6 +193,30 @@ class KinesisTemplateTests {
 		assertThat(result.failed().get(0).partitionKey()).isEqualTo("pk-1");
 		assertThat(result.failed().get(0).errorCode()).isEqualTo("InternalFailure");
 		assertThat(result.failed().get(0).payload()).isEqualTo("v1");
+	}
+
+	@Test
+	void sendBatchAsyncSnapshotsRequests() {
+		KinesisAsyncClient client = mock(KinesisAsyncClient.class);
+		CompletableFuture<PutRecordsResponse> responseFuture = new CompletableFuture<>();
+		when(client.putRecords(any(PutRecordsRequest.class))).thenReturn(responseFuture);
+		KinesisTemplate template = new KinesisTemplate(client, new JsonMapper());
+		SendRequest original = SendRequest.builder().streamName("orders").partitionKey("original-pk")
+				.payload("original-payload").build();
+		List<SendRequest> requests = new ArrayList<>(List.of(original));
+
+		CompletableFuture<BatchSendResult> resultFuture = template.sendBatchAsync("orders", requests);
+		requests.clear();
+		requests.add(SendRequest.builder().streamName("orders").partitionKey("replacement-pk")
+				.payload("replacement-payload").build());
+		responseFuture.complete(
+				PutRecordsResponse.builder().failedRecordCount(1).records(failure("InternalFailure", "boom")).build());
+
+		BatchSendResult result = resultFuture.join();
+		assertThat(result.failed()).singleElement().satisfies(failed -> {
+			assertThat(failed.partitionKey()).isEqualTo("original-pk");
+			assertThat(failed.payload()).isEqualTo("original-payload");
+		});
 	}
 
 	private static PutRecordsResponse successResponse(int count) {

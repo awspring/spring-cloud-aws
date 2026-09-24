@@ -172,8 +172,20 @@ class KclShardRecordProcessorTests {
 	}
 
 	@Test
-	@DisplayName("aggregated records (subsequence > 0) checkpoint with the subsequence number")
-	void aggregatedRecordCheckpointsWithSubsequence() throws Exception {
+	@DisplayName("the first aggregated record checkpoints with subsequence zero")
+	void firstAggregatedRecordCheckpointsWithSubsequenceZero() throws Exception {
+		RecordProcessorCheckpointer checkpointer = mock(RecordProcessorCheckpointer.class);
+		KclShardRecordProcessor processor = singleRecordProcessor(KclCheckpointMode.RECORD, message -> {
+		}, RETHROWING);
+
+		processor.processRecords(input(checkpointer, aggregatedRecord("pk", "seq-1", 0L, "a")));
+
+		verify(checkpointer).checkpoint("seq-1", 0L);
+	}
+
+	@Test
+	@DisplayName("a later aggregated record checkpoints with its subsequence")
+	void laterAggregatedRecordCheckpointsWithSubsequence() throws Exception {
 		RecordProcessorCheckpointer checkpointer = mock(RecordProcessorCheckpointer.class);
 		KclShardRecordProcessor processor = singleRecordProcessor(KclCheckpointMode.RECORD, message -> {
 		}, RETHROWING);
@@ -264,7 +276,8 @@ class KclShardRecordProcessorTests {
 	private KinesisClientRecord aggregatedRecord(String partitionKey, String sequenceNumber, long subSequenceNumber,
 			String body) {
 		return KinesisClientRecord.builder().partitionKey(partitionKey).sequenceNumber(sequenceNumber)
-				.subSequenceNumber(subSequenceNumber).approximateArrivalTimestamp(Instant.ofEpochMilli(1000L))
+				.subSequenceNumber(subSequenceNumber).aggregated(true)
+				.approximateArrivalTimestamp(Instant.ofEpochMilli(1000L))
 				.data(ByteBuffer.wrap(body.getBytes(StandardCharsets.UTF_8))).build();
 	}
 

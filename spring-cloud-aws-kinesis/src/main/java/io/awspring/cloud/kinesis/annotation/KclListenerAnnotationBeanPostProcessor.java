@@ -26,7 +26,11 @@ import io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode;
 import io.awspring.cloud.kinesis.support.resolver.BatchMessagesArgumentResolver;
 import io.awspring.cloud.kinesis.support.resolver.CheckpointerArgumentResolver;
 import java.lang.reflect.Method;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +38,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,52 +140,74 @@ public class KclListenerAnnotationBeanPostProcessor
 
 	private KclListenerEndpoint createEndpoint(Object bean, Method method, KclListener annotation) {
 		String id = getEndpointId(annotation.id());
-		List<String> streamNames = resolveStreamNames(annotation.streamNames());
+		Collection<String> streamNames = resolveEndpointNames(annotation.streamNames());
 		String applicationName = StringUtils.hasText(annotation.applicationName())
 				? resolveRequired(annotation.applicationName(), "applicationName")
 				: id;
 		String factory = resolve(annotation.factory());
 		String factoryBeanName = StringUtils.hasText(factory) ? factory : null;
+		Method invocableMethod = MethodIntrospector.selectInvocableMethod(method, bean.getClass());
 		return KclListenerEndpoint.builder().id(id).streamNames(streamNames).applicationName(applicationName)
-				.factoryBeanName(factoryBeanName).bean(bean).method(method)
+				.factoryBeanName(factoryBeanName).bean(bean).method(invocableMethod)
 				.checkpointMode(resolveCheckpointMode(annotation.checkpointMode()))
+				.checkpointInterval(resolveValue(annotation.checkpointInterval(), Duration::parse))
+				.checkpointRecordCount(resolveValue(annotation.checkpointRecordCount(), Long::valueOf))
+				.autoStartup(resolveBoolean(annotation.autoStartup()))
 				.retrievalMode(resolveRetrievalMode(annotation.retrievalMode()))
 				.initialPositionInStream(resolveInitialPositionInStream(annotation.initialPositionInStream()))
+				.initialPositionTimestamp(resolveValue(annotation.initialPositionTimestamp(), Instant::parse))
 				.consumerName(resolveOptional(annotation.consumerName()))
 				.leaseTableName(resolveOptional(annotation.leaseTableName()))
 				.metricsNamespace(resolveOptional(annotation.metricsNamespace()))
 				.replyStream(resolveReplyStream(method)).build();
 	}
 
-	private List<String> resolveStreamNames(String[] streamNames) {
-		Assert.notEmpty(streamNames, "At least one stream name must be provided on @KclListener");
-		List<String> resolved = new ArrayList<>(streamNames.length);
-		for (String streamName : streamNames) {
-			resolved.add(resolveRequired(streamName, "streamNames"));
+	protected Collection<String> resolveEndpointNames(String[] endpointNames) {
+		return Arrays.stream(endpointNames).map(this::resolveExpression)
+				.flatMap(resolvedName -> resolveAsStrings(resolvedName).stream()).collect(Collectors.toList());
+	}
+
+	private Collection<String> resolveAsStrings(@Nullable Object resolvedValue) {
+		if (resolvedValue instanceof String[] strArr) {
+			return resolveFromStream(Arrays.stream(strArr));
 		}
-		return resolved;
+		else if (resolvedValue instanceof Iterable<?> itr) {
+			return resolveFromStream(StreamSupport.stream(itr.spliterator(), false));
+		}
+		else if (resolvedValue instanceof String str) {
+			return Collections.singletonList(str);
+		}
+		else {
+			throw new IllegalArgumentException("Cannot resolve " + resolvedValue + " as String");
+		}
+	}
+
+	private List<String> resolveFromStream(Stream<?> stream) {
+		return stream.flatMap(str -> resolveAsStrings(str).stream()).collect(Collectors.toList());
 	}
 
 	@Nullable
 	private KclCheckpointMode resolveCheckpointMode(String value) {
-		return resolveEnum(value, KclCheckpointMode::valueOf);
+		return resolveValue(value, KclCheckpointMode::valueOf);
 	}
 
 	@Nullable
 	private RetrievalMode resolveRetrievalMode(String value) {
-		return resolveEnum(value, RetrievalMode::valueOf);
+		return resolveValue(value, RetrievalMode::valueOf);
 	}
 
 	@Nullable
 	private InitialPositionInStream resolveInitialPositionInStream(String value) {
-		InitialPositionInStream initialPosition = resolveEnum(value, InitialPositionInStream::valueOf);
-		Assert.isTrue(initialPosition != InitialPositionInStream.AT_TIMESTAMP,
-				"AT_TIMESTAMP is not supported on @KclListener because the annotation cannot carry a timestamp: set 'initialPositionInStream' to an empty string to fall back to the container factory, and configure AT_TIMESTAMP together with a timestamp there or through the 'spring.cloud.aws.kinesis.listener' properties");
-		return initialPosition;
+		return resolveValue(value, InitialPositionInStream::valueOf);
 	}
 
 	@Nullable
-	private <T> T resolveEnum(String value, Function<String, T> parser) {
+	private Boolean resolveBoolean(String value) {
+		return resolveValue(value, Boolean::valueOf);
+	}
+
+	@Nullable
+	private <T> T resolveValue(String value, Function<String, T> parser) {
 		String resolved = resolve(value);
 		return StringUtils.hasText(resolved) ? parser.apply(resolved) : null;
 	}

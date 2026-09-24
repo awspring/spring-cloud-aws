@@ -28,9 +28,13 @@ import io.awspring.cloud.kinesis.support.resolver.BatchMessagesArgumentResolver;
 import io.awspring.cloud.kinesis.support.resolver.CheckpointerArgumentResolver;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Queue;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
@@ -148,14 +152,43 @@ class KclMessageListenerContainerFactoryTests {
 	}
 
 	@Test
-	@DisplayName("initial position in stream configured on the factory options is kept when the endpoint does not specify one")
-	void initialPositionFromOptionsPreservedWhenEndpointUnset() throws Exception {
-		this.factory.configure(options -> options.initialPositionInStream(InitialPositionInStream.LATEST));
+	@DisplayName("container options from the factory are kept when the endpoint does not override them")
+	void containerOptionsFromFactoryPreservedWhenEndpointUnset() throws Exception {
+		Instant timestamp = Instant.parse("2026-09-24T10:15:30Z");
+		this.factory.configure(options -> options.autoStartup(false).checkpointInterval(Duration.ofSeconds(20))
+				.checkpointRecordCount(300).initialPositionInStream(InitialPositionInStream.AT_TIMESTAMP)
+				.initialPositionTimestamp(timestamp));
 		KclMessageListenerContainer container = (KclMessageListenerContainer) this.factory
 				.createContainer(endpoint(new RecordingListener(), "handle", String.class, String.class));
 
+		assertThat(container.isAutoStartup()).isFalse();
+		assertThat(container.getContainerOptions().getCheckpointInterval()).isEqualTo(Duration.ofSeconds(20));
+		assertThat(container.getContainerOptions().getCheckpointRecordCount()).isEqualTo(300L);
 		assertThat(container.getContainerOptions().getInitialPositionInStream())
-				.isEqualTo(InitialPositionInStream.LATEST);
+				.isEqualTo(InitialPositionInStream.AT_TIMESTAMP);
+		assertThat(container.getContainerOptions().getInitialPositionTimestamp()).isEqualTo(timestamp);
+	}
+
+	@Test
+	@DisplayName("container option overrides from the endpoint replace factory values")
+	void endpointContainerOptionOverridesReplaceFactoryValues() throws Exception {
+		this.factory.configure(options -> options.autoStartup(true).checkpointInterval(Duration.ofMinutes(1))
+				.checkpointRecordCount(1000).initialPositionInStream(InitialPositionInStream.TRIM_HORIZON));
+		Instant timestamp = Instant.parse("2026-09-24T10:15:30Z");
+		KclListenerEndpoint endpoint = endpointBuilder(new RecordingListener(), "handle", String.class, String.class)
+				.autoStartup(false).checkpointInterval(Duration.ofSeconds(15)).checkpointRecordCount(250L)
+				.initialPositionInStream(InitialPositionInStream.AT_TIMESTAMP).initialPositionTimestamp(timestamp)
+				.build();
+		endpoint.setHandlerMethodFactory(handlerMethodFactory());
+
+		KclMessageListenerContainer container = (KclMessageListenerContainer) this.factory.createContainer(endpoint);
+
+		assertThat(container.isAutoStartup()).isFalse();
+		assertThat(container.getContainerOptions().getCheckpointInterval()).isEqualTo(Duration.ofSeconds(15));
+		assertThat(container.getContainerOptions().getCheckpointRecordCount()).isEqualTo(250L);
+		assertThat(container.getContainerOptions().getInitialPositionInStream())
+				.isEqualTo(InitialPositionInStream.AT_TIMESTAMP);
+		assertThat(container.getContainerOptions().getInitialPositionTimestamp()).isEqualTo(timestamp);
 	}
 
 	@Test
@@ -283,6 +316,12 @@ class KclMessageListenerContainerFactoryTests {
 
 		void handleBatch(List<Message<?>> messages) {
 			this.batchSizes.add(messages.size());
+		}
+
+		void handleSet(Set<Order> orders) {
+		}
+
+		void handleQueue(Queue<Order> orders) {
 		}
 
 		void handleWithHeaderList(String payload, @Header("ids") List<String> ids) {

@@ -73,8 +73,11 @@ public class DefaultKclCheckpointer implements KclCheckpointer {
 		String sequenceNumber = message.getHeaders().get(KinesisMessageHeaders.SEQUENCE_NUMBER, String.class);
 		Assert.notNull(sequenceNumber, "message is missing the " + KinesisMessageHeaders.SEQUENCE_NUMBER + " header");
 		Long subSequenceNumber = message.getHeaders().get(KinesisMessageHeaders.SUBSEQUENCE_NUMBER, Long.class);
+		Boolean aggregated = message.getHeaders().get(KinesisMessageHeaders.AGGREGATED, Boolean.class);
 		execute(() -> {
-			if (subSequenceNumber != null && subSequenceNumber > 0) {
+			if (Boolean.TRUE.equals(aggregated)) {
+				Assert.notNull(subSequenceNumber,
+						"aggregated message is missing the " + KinesisMessageHeaders.SUBSEQUENCE_NUMBER + " header");
 				this.delegate.checkpoint(sequenceNumber, subSequenceNumber);
 			}
 			else {

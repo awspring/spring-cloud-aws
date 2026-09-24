@@ -32,6 +32,8 @@ public final class KinesisMessageHeaders {
 
 	public static final String SUBSEQUENCE_NUMBER = PREFIX + "subSequenceNumber";
 
+	public static final String AGGREGATED = PREFIX + "aggregated";
+
 	public static final String SHARD_ID = PREFIX + "shardId";
 
 	public static final String APPROXIMATE_ARRIVAL_TIMESTAMP = PREFIX + "approximateArrivalTimestamp";

@@ -61,11 +61,23 @@ class DefaultKclCheckpointerTests {
 	}
 
 	@Test
-	@DisplayName("checkpoint(message) uses sequence and subsequence when subsequence > 0")
-	void checkpointMessageUsesSubsequenceNumber() throws Exception {
+	@DisplayName("checkpoint(message) uses sequence and subsequence zero for the first aggregated record")
+	void checkpointFirstAggregatedRecordUsesSubsequenceZero() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("p")
 				.setHeader(KinesisMessageHeaders.SEQUENCE_NUMBER, "seq-1")
-				.setHeader(KinesisMessageHeaders.SUBSEQUENCE_NUMBER, 5L).build();
+				.setHeader(KinesisMessageHeaders.SUBSEQUENCE_NUMBER, 0L)
+				.setHeader(KinesisMessageHeaders.AGGREGATED, true).build();
+		checkpointer(3).checkpoint(message);
+		verify(this.delegate).checkpoint("seq-1", 0L);
+	}
+
+	@Test
+	@DisplayName("checkpoint(message) uses sequence and subsequence for a later aggregated record")
+	void checkpointLaterAggregatedRecordUsesSubsequence() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("p")
+				.setHeader(KinesisMessageHeaders.SEQUENCE_NUMBER, "seq-1")
+				.setHeader(KinesisMessageHeaders.SUBSEQUENCE_NUMBER, 5L)
+				.setHeader(KinesisMessageHeaders.AGGREGATED, true).build();
 		checkpointer(3).checkpoint(message);
 		verify(this.delegate).checkpoint("seq-1", 5L);
 	}

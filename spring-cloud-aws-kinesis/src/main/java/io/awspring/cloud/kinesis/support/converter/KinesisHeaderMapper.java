@@ -31,6 +31,7 @@ class KinesisHeaderMapper {
 		headers.put(KinesisMessageHeaders.PARTITION_KEY, record.partitionKey());
 		headers.put(KinesisMessageHeaders.SEQUENCE_NUMBER, record.sequenceNumber());
 		headers.put(KinesisMessageHeaders.SUBSEQUENCE_NUMBER, record.subSequenceNumber());
+		headers.put(KinesisMessageHeaders.AGGREGATED, record.aggregated());
 		if (record.approximateArrivalTimestamp() != null) {
 			headers.put(KinesisMessageHeaders.APPROXIMATE_ARRIVAL_TIMESTAMP, record.approximateArrivalTimestamp());
 		}

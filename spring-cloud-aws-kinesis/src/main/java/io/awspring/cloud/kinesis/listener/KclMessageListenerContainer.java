@@ -299,6 +299,19 @@ public class KclMessageListenerContainer implements MessageListenerContainer {
 		catch (Throwable ex) {
 			logger.error("KCL scheduler for container '{}' terminated abnormally", getId(), ex);
 		}
+		finally {
+			synchronized (this.lifecycleMonitor) {
+				if (this.scheduler == schedulerToRun) {
+					this.running = false;
+					this.scheduler = null;
+					ExecutorService currentExecutor = this.executorService;
+					this.executorService = null;
+					if (currentExecutor != null) {
+						currentExecutor.shutdown();
+					}
+				}
+			}
+		}
 	}
 
 	private Scheduler createScheduler() {

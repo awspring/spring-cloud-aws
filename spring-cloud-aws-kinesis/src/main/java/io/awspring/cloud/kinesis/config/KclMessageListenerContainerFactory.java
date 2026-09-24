@@ -91,6 +91,10 @@ public class KclMessageListenerContainerFactory implements MessageListenerContai
 		}
 		applyWhenNonNull(endpoint.getRetrievalMode(), optionsBuilder::retrievalMode);
 		applyWhenNonNull(endpoint.getInitialPositionInStream(), optionsBuilder::initialPositionInStream);
+		applyWhenNonNull(endpoint.getInitialPositionTimestamp(), optionsBuilder::initialPositionTimestamp);
+		applyWhenNonNull(endpoint.getCheckpointInterval(), optionsBuilder::checkpointInterval);
+		applyWhenNonNull(endpoint.getCheckpointRecordCount(), optionsBuilder::checkpointRecordCount);
+		applyWhenNonNull(endpoint.getAutoStartup(), optionsBuilder::autoStartup);
 		applyWhenNonNull(endpoint.getConsumerArn(), optionsBuilder::consumerArn);
 		applyWhenNonNull(endpoint.getConsumerName(), optionsBuilder::consumerName);
 		applyWhenNonNull(endpoint.getLeaseTableName(), optionsBuilder::leaseTableName);
@@ -132,7 +136,8 @@ public class KclMessageListenerContainerFactory implements MessageListenerContai
 
 	private static boolean isBatchListener(Method method) {
 		for (Parameter parameter : method.getParameters()) {
-			if (Collection.class.isAssignableFrom(parameter.getType()) && !isHeaderParameter(parameter)) {
+			Class<?> parameterType = parameter.getType();
+			if (Collection.class.isAssignableFrom(parameterType) && !isHeaderParameter(parameter)) {
 				return true;
 			}
 		}
