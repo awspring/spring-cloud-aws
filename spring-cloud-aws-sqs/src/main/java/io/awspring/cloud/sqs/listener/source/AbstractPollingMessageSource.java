@@ -16,6 +16,7 @@
 package io.awspring.cloud.sqs.listener.source;
 
 import io.awspring.cloud.sqs.ConfigUtils;
+import io.awspring.cloud.sqs.QueueAttributesResolvingException;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.IdentifiableContainerComponent;
 import io.awspring.cloud.sqs.listener.MessageProcessingContext;
@@ -185,7 +186,17 @@ public abstract class AbstractPollingMessageSource<T, S> extends AbstractMessage
 							eap -> eap.setAcknowledgementResultCallback(this.acknowledgementResultCallback))
 					.acceptIfInstance(this.acknowledgmentProcessor, TaskExecutorAware.class,
 							ea -> ea.setTaskExecutor(this.taskExecutor));
-			doStart();
+			try {
+				doStart();
+			}
+			catch (CompletionException ce) {
+				if (ce.getCause() instanceof QueueAttributesResolvingException qare && qare.isQueueIgnored()) {
+					logger.warn("Skipping start for queue {}: {}", this.pollingEndpointName, qare.getMessage());
+					this.running = false;
+					return;
+				}
+				throw ce;
+			}
 			setupAcknowledgementForConversion(this.acknowledgmentProcessor.getAcknowledgementCallback());
 			this.acknowledgmentProcessor.start();
 			startPollingThread();

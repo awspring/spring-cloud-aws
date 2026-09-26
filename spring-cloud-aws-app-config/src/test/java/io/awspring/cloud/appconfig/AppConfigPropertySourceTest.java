@@ -19,19 +19,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.appconfigdata.AppConfigDataClient;
+import software.amazon.awssdk.services.appconfigdata.model.BadRequestDetails;
+import software.amazon.awssdk.services.appconfigdata.model.BadRequestException;
+import software.amazon.awssdk.services.appconfigdata.model.BadRequestReason;
 import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationRequest;
 import software.amazon.awssdk.services.appconfigdata.model.GetLatestConfigurationResponse;
+import software.amazon.awssdk.services.appconfigdata.model.InvalidParameterDetail;
+import software.amazon.awssdk.services.appconfigdata.model.InvalidParameterProblem;
 import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionRequest;
 import software.amazon.awssdk.services.appconfigdata.model.StartConfigurationSessionResponse;
 
@@ -268,6 +278,138 @@ class AppConfigPropertySourceTest {
 	}
 
 	@Test
+	void refreshShouldTakeOverSessionTokenFromClone() {
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
+
+		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class)))
+				.thenReturn(buildResponse("key1=value1", "text/plain", "next-token-1"));
+
+		propertySource.init();
+
+		AppConfigPropertySource copy = propertySource.copy();
+
+		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class)))
+				.thenReturn(buildResponse("key1=value1", "text/plain", "next-token-2"));
+
+		copy.init();
+		propertySource.refresh(copy);
+
+		AppConfigPropertySource nextCopy = propertySource.copy();
+		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenAnswer(invocation -> {
+			GetLatestConfigurationRequest request = invocation.getArgument(0);
+			assertThat(request.configurationToken()).isEqualTo("next-token-2");
+			return buildResponse("key1=value1", "text/plain", "next-token-3");
+		});
+
+		nextCopy.init();
+	}
+
+	@Test
+	void everyPollingCycleUsesFreshSessionToken() {
+		List<String> tokensUsed = new ArrayList<>();
+		AtomicInteger counter = new AtomicInteger();
+
+		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenAnswer(invocation -> {
+			GetLatestConfigurationRequest request = invocation.getArgument(0);
+			tokensUsed.add(request.configurationToken());
+			return buildResponse("key1=value1", "text/plain", "next-token-" + counter.incrementAndGet());
+		});
+
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client);
+		propertySource.init();
+
+		for (int i = 0; i < 3; i++) {
+			AppConfigPropertySource copy = propertySource.copy();
+			copy.init();
+			propertySource.refresh(copy);
+		}
+
+		assertThat(tokensUsed).containsExactly("initial-token", "next-token-1", "next-token-2", "next-token-3");
+		assertThat(tokensUsed).doesNotHaveDuplicates();
+		verify(client, times(1)).startConfigurationSession(any(StartConfigurationSessionRequest.class));
+	}
+
+	@Test
+	void shouldStartNewSessionWhenTokenExpired() {
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client, "expired-token",
+				null);
+
+		List<String> tokensUsed = new ArrayList<>();
+		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class))).thenAnswer(invocation -> {
+			GetLatestConfigurationRequest request = invocation.getArgument(0);
+			tokensUsed.add(request.configurationToken());
+			if (tokensUsed.size() == 1) {
+				throw badRequest(InvalidParameterProblem.EXPIRED);
+			}
+			return buildResponse("key1=value1", "text/plain", "next-token-1");
+		});
+
+		propertySource.init();
+
+		assertThat(tokensUsed).containsExactly("expired-token", "initial-token");
+		assertThat(propertySource.getProperty("key1")).isEqualTo("value1");
+		verify(client, times(1)).startConfigurationSession(any(StartConfigurationSessionRequest.class));
+	}
+
+	@Test
+	void shouldStartNewSessionWhenTokenCorrupted() {
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client, "corrupted-token",
+				null);
+
+		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class)))
+				.thenThrow(badRequest(InvalidParameterProblem.CORRUPTED))
+				.thenReturn(buildResponse("key1=value1", "text/plain", "next-token-1"));
+
+		propertySource.init();
+
+		assertThat(propertySource.getProperty("key1")).isEqualTo("value1");
+		verify(client, times(1)).startConfigurationSession(any(StartConfigurationSessionRequest.class));
+		verify(client, times(2)).getLatestConfiguration(any(GetLatestConfigurationRequest.class));
+	}
+
+	@Test
+	void shouldNotStartNewSessionWhenPollIntervalNotSatisfied() {
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client, "valid-token",
+				null);
+
+		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class)))
+				.thenThrow(badRequest(InvalidParameterProblem.POLL_INTERVAL_NOT_SATISFIED));
+
+		assertThatThrownBy(propertySource::init).isInstanceOf(BadRequestException.class);
+
+		verify(client, never()).startConfigurationSession(any(StartConfigurationSessionRequest.class));
+		verify(client, times(1)).getLatestConfiguration(any(GetLatestConfigurationRequest.class));
+	}
+
+	@Test
+	void shouldRethrowBadRequestExceptionWithoutDetails() {
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client, "valid-token",
+				null);
+
+		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class)))
+				.thenThrow(BadRequestException.builder().message("Bad request").build());
+
+		assertThatThrownBy(propertySource::init).isInstanceOf(BadRequestException.class);
+
+		verify(client, never()).startConfigurationSession(any(StartConfigurationSessionRequest.class));
+		verify(client, times(1)).getLatestConfiguration(any(GetLatestConfigurationRequest.class));
+	}
+
+	@Test
+	void shouldRetryOnlyOnceWhenNewSessionAlsoFails() {
+		AppConfigPropertySource propertySource = new AppConfigPropertySource(DEFAULT_CONTEXT, client, "expired-token",
+				null);
+
+		when(client.getLatestConfiguration(any(GetLatestConfigurationRequest.class)))
+				.thenThrow(badRequest(InvalidParameterProblem.EXPIRED));
+
+		assertThatThrownBy(propertySource::init).isInstanceOf(BadRequestException.class);
+
+		verify(client, times(1)).startConfigurationSession(any(StartConfigurationSessionRequest.class));
+		verify(client, times(2)).getLatestConfiguration(any(GetLatestConfigurationRequest.class));
+	}
+
+	@Test
 	void shouldUseCorrectContextIdentifiers() {
 		RequestContext context = new RequestContext("myProfile", "myEnv", "myApp", "myApp#myProfile#myEnv");
 		AppConfigPropertySource propertySource = new AppConfigPropertySource(context, client);
@@ -298,5 +440,14 @@ class AppConfigPropertySourceTest {
 	private GetLatestConfigurationResponse buildResponse(String content, String contentType, String nextToken) {
 		return GetLatestConfigurationResponse.builder().configuration(SdkBytes.fromUtf8String(content))
 				.contentType(contentType).nextPollConfigurationToken(nextToken).build();
+	}
+
+	private BadRequestException badRequest(InvalidParameterProblem problem) {
+		return BadRequestException.builder().message("Token not valid").reason(BadRequestReason.INVALID_PARAMETERS)
+				.details(BadRequestDetails.builder()
+						.invalidParameters(
+								Map.of("ConfigurationToken", InvalidParameterDetail.builder().problem(problem).build()))
+						.build())
+				.build();
 	}
 }

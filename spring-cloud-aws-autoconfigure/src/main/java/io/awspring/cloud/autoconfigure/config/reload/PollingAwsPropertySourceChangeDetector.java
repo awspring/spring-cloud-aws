@@ -66,6 +66,7 @@ public class PollingAwsPropertySourceChangeDetector<T extends AwsPropertySource<
 				for (T propertySource : currentSecretSources) {
 					AwsPropertySource<?, ?> clone = propertySource.copy();
 					clone.init();
+					propertySource.refresh(clone);
 					if (changed(propertySource, clone)) {
 						reloadProperties();
 					}
