@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.ResolvableType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 
@@ -173,13 +174,20 @@ public class CompositeInvocableHandler {
 	}
 
 	/**
-	 * Checks if the given method parameter is assignable from the payload type.
+	 * Checks if the given method parameter is assignable from the payload type. For a {@link Message} parameter, the
+	 * payload is matched against the resolved generic type.
 	 *
 	 * @param methodParameter the method parameter to check
 	 * @param payloadClass the class of the payload
 	 * @return true if the parameter type is assignable from the payload type, false otherwise
 	 */
 	private boolean isPayloadAssignable(MethodParameter methodParameter, Class<?> payloadClass) {
-		return methodParameter.getParameterType().isAssignableFrom(payloadClass);
+		Class<?> parameterType = methodParameter.getParameterType();
+		if (Message.class.isAssignableFrom(parameterType)) {
+			ResolvableType resolvableType = ResolvableType.forMethodParameter(methodParameter);
+			Class<?> genericType = resolvableType.getGeneric(0).resolve();
+			return genericType != null && genericType.isAssignableFrom(payloadClass);
+		}
+		return parameterType.isAssignableFrom(payloadClass);
 	}
 }
