@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.autoconfigure.kinesis;
 
+import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
@@ -46,10 +47,10 @@ import tools.jackson.databind.json.JsonMapper;
  * @since 4.2.0
  */
 @AutoConfiguration
-@ConditionalOnClass({ KinesisAsyncClient.class, KclBootstrapConfiguration.class })
+@ConditionalOnClass({KinesisAsyncClient.class, KclBootstrapConfiguration.class})
 @EnableConfigurationProperties(KinesisProperties.class)
 @Import(KclBootstrapConfiguration.class)
-@AutoConfigureAfter({ CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class })
+@AutoConfigureAfter({CredentialsProviderAutoConfiguration.class, RegionProviderAutoConfiguration.class})
 @ConditionalOnProperty(name = "spring.cloud.aws.kinesis.enabled", havingValue = "true", matchIfMissing = true)
 public class KinesisAutoConfiguration {
 
@@ -62,42 +63,50 @@ public class KinesisAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public KinesisAsyncClient kinesisAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+												 ObjectProvider<KinesisAsyncClientCustomizer> kinesisAsyncClientCustomizers,
+												 ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers,
+												 ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		return awsClientBuilderConfigurer
-				.configure(KinesisAsyncClient.builder(), this.properties, connectionDetails.getIfAvailable()).build();
+			.configureAsyncClient(KinesisAsyncClient.builder(), this.properties, connectionDetails.getIfAvailable(), kinesisAsyncClientCustomizers.orderedStream(),
+				awsAsyncClientCustomizers.orderedStream()).build();
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public DynamoDbAsyncClient kinesisDynamoDbAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+														  ObjectProvider<DynamoDbAsyncClientCustomizer> dynamoDbAsyncClientCustomizers,
+														  ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers,
+														  ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		return awsClientBuilderConfigurer
-				.configure(DynamoDbAsyncClient.builder(), this.properties, connectionDetails.getIfAvailable()).build();
+			.configureAsyncClient(DynamoDbAsyncClient.builder(), this.properties, connectionDetails.getIfAvailable(), dynamoDbAsyncClientCustomizers.orderedStream(),
+				awsAsyncClientCustomizers.orderedStream()).build();
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public CloudWatchAsyncClient kinesisCloudWatchAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<AwsConnectionDetails> connectionDetails) {
+															  ObjectProvider<CloudwatchAsyncClientCustomizer> cloudwatchAsyncClientCustomizers,
+															  ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers,
+															  ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		return awsClientBuilderConfigurer
-				.configure(CloudWatchAsyncClient.builder(), this.properties, connectionDetails.getIfAvailable())
-				.build();
+			.configureAsyncClient(CloudWatchAsyncClient.builder(), this.properties, connectionDetails.getIfAvailable(), cloudwatchAsyncClientCustomizers.orderedStream(),
+				awsAsyncClientCustomizers.orderedStream()).build();
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public KinesisTemplate kinesisTemplate(KinesisAsyncClient kinesisAsyncClient,
-			ObjectProvider<JsonMapper> jsonMapperProvider) {
+										   ObjectProvider<JsonMapper> jsonMapperProvider) {
 		return new KinesisTemplate(kinesisAsyncClient, jsonMapperProvider.getIfAvailable(JsonMapper::new));
 	}
 
 	@ConditionalOnMissingBean
 	@Bean
 	public KclMessageListenerContainerFactory defaultKclListenerContainerFactory(KinesisAsyncClient kinesisAsyncClient,
-			DynamoDbAsyncClient dynamoDbAsyncClient, CloudWatchAsyncClient cloudWatchAsyncClient,
-			ObjectProvider<ErrorHandler> errorHandler, ObjectProvider<KinesisOperations> kinesisOperations) {
+																				 DynamoDbAsyncClient dynamoDbAsyncClient, CloudWatchAsyncClient cloudWatchAsyncClient,
+																				 ObjectProvider<ErrorHandler> errorHandler, ObjectProvider<KinesisOperations> kinesisOperations) {
 		KclMessageListenerContainerFactory factory = new KclMessageListenerContainerFactory(kinesisAsyncClient,
-				dynamoDbAsyncClient, cloudWatchAsyncClient);
+			dynamoDbAsyncClient, cloudWatchAsyncClient);
 		factory.configure(this::configureContainerOptions);
 		errorHandler.ifUnique(factory::setErrorHandler);
 		kinesisOperations.ifUnique(factory::setKinesisOperations);
@@ -109,7 +118,7 @@ public class KinesisAutoConfiguration {
 		KinesisProperties.Listener listener = this.properties.getListener();
 		mapper.from(listener.getMaxRecords()).to(options::maxRecords);
 		mapper.from(listener.getIdleTimeBetweenReads())
-				.to(duration -> options.idleTimeBetweenReadsInMillis(duration.toMillis()));
+			.to(duration -> options.idleTimeBetweenReadsInMillis(duration.toMillis()));
 		mapper.from(listener.getRetrievalMode()).to(options::retrievalMode);
 		mapper.from(listener.getCheckpointMode()).to(options::checkpointMode);
 		mapper.from(listener.getInitialPosition()).to(options::initialPositionInStream);
