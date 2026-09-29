@@ -47,6 +47,7 @@
 		<module>spring-cloud-aws-app-config</module>
 		<module>spring-cloud-aws-kinesis</module>
 		<module>spring-cloud-aws-kinesis-stream-binder</module>
+		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-kinesis</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis-producer</module>
 		<module>spring-cloud-aws-starters/spring-cloud-aws-starter-integration-kinesis-client</module>
