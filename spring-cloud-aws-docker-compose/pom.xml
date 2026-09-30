@@ -14,6 +14,10 @@
 	<name>Spring Cloud AWS Docker Compose</name>
 	<description>Spring Cloud AWS Docker Compose Integration</description>
 
+	<properties>
+		<automatic.module.name>io.awspring.cloud.docker.compose</automatic.module.name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>

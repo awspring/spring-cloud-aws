@@ -12,6 +12,10 @@
 	<artifactId>spring-cloud-aws-parameter-store</artifactId>
 	<name>Spring Cloud AWS Parameter Store Integration</name>
 
+	<properties>
+		<automatic.module.name>io.awspring.cloud.parameterstore</automatic.module.name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>

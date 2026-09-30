@@ -14,6 +14,10 @@
 	<name>Spring Cloud AWS Testcontainers</name>
 	<description>Spring Cloud AWS Testcontainers Integration</description>
 
+	<properties>
+		<automatic.module.name>io.awspring.cloud.testcontainers</automatic.module.name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>

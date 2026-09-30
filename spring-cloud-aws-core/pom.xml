@@ -13,6 +13,10 @@
     <artifactId>spring-cloud-aws-core</artifactId>
     <name>Spring Cloud AWS Core</name>
 
+    <properties>
+        <automatic.module.name>io.awspring.cloud.core</automatic.module.name>
+    </properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
