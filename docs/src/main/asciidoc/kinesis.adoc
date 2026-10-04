@@ -3,7 +3,277 @@
 
 https://aws.amazon.com/kinesis/[Amazon Kinesis] is a platform for streaming data on AWS, making it easy to load and analyze streaming data and also providing the ability for you to build custom streaming data applications for specialized needs.
 
-// TODO: auto-configuration
+=== KCL message listener container (`@KclListener`)
+
+Starting with version 4.2.0, the standalone `spring-cloud-aws-kinesis` module provides an annotation-driven message listener container backed by the https://docs.aws.amazon.com/streams/latest/dev/shared-throughput-kcl-consumers.html[Kinesis Client Library (KCL)], in the spirit of `@SqsListener`.
+Add the `spring-cloud-aws-starter-kinesis` starter (it pulls in the standalone `spring-cloud-aws-kinesis` module and its auto-configuration) and annotate a method with `@KclListener`:
+
+[source,java]
+----
+@KclListener(streamName = "orders", applicationName = "order-processor")
+public void handle(Order order) {
+    // ...
+}
+----
+
+Each `@KclListener` is backed by a `KclMessageListenerContainer` that wraps a KCL `Scheduler`.
+The scheduler performs shard discovery, lease coordination (in a DynamoDB lease table) and record retrieval, and delivers each record to the annotated method as a Spring `Message`.
+Records are converted to `Message<byte[]>` and the payload is converted to the method's parameter type by the standard message converters.
+The following method signatures are supported:
+
+[source,java]
+----
+public void handle(Order order) { }                                    // converted payload
+public void handle(Order order, @Header("Kinesis_partitionKey") String key) { }
+public void handle(Message<Order> message) { }                         // full envelope
+public void handle(List<Message<?>> batch) { }                         // batch mode (a Collection parameter)
+public void handle(Order order, KclCheckpointer checkpointer) { }         // manual checkpointing
+----
+
+`KclCheckpointer` is a Spring Messaging abstraction; the raw KCL checkpointer is never exposed to user code.
+
+NOTE: The container API types carry a `Kcl` prefix (`KclCheckpointer`, `KclCheckpointMode`, `KclListenerMode`) and message headers live in `KinesisMessageHeaders`, so they never clash with the similarly-named types of the <<Spring Integration support>> channel adapters (`Checkpointer`, `CheckpointMode`, `ListenerMode`, `KinesisHeaders`).
+
+`@KclListener` can only be placed on methods: a container is always bound to a single listener method, so there is no class-level form.
+
+The `@KclListener` annotation supports the following attributes (all string-valued so that they can use property placeholders and SpEL):
+
+[cols="2,4"]
+|===
+| Attribute | Description
+
+| `streamNames` | Required. The Kinesis stream(s) to consume from. Several streams are consumed by *one* container under a single KCL application, so they share one lease table and one set of workers instead of one application per stream. Requires `POLLING` retrieval.
+| `applicationName` | KCL application name; drives the DynamoDB table names and the consumer group. Defaults to the resolved `id` when left empty.
+| `id` | Container id / registry key. Defaults to a generated `io.awspring.cloud.kinesis.KclListenerEndpointContainer#<n>` id.
+| `factory` | Bean name of the `KclMessageListenerContainerFactory` to use. Defaults to the single auto-configured factory.
+| `checkpointMode` | Overrides the checkpoint mode for this listener (`BATCH`, `RECORD`, `PERIODIC`, `MANUAL`). Falls back to the factory/property value when empty.
+| `retrievalMode` | Overrides the retrieval mode for this listener (`POLLING`, `ENHANCED_FAN_OUT`). Falls back to the factory/property value when empty.
+| `initialPositionInStream` | Where to start reading a shard when no checkpoint exists yet: `TRIM_HORIZON` (default, oldest retained record) or `LATEST` (only records arriving after the listener starts). Always takes precedence over the factory/property value; set it to an empty string to fall back to the factory instead.
+| `consumerName` | The pre-registered enhanced fan-out consumer for this stream, given either as its *name* or as its *ARN* (`ENHANCED_FAN_OUT` retrieval only) — a value starting with `arn:` is resolved as an ARN, anything else as a name. When empty, a consumer derived from `applicationName` is registered or reused.
+| `leaseTableName` | DynamoDB lease table for this listener. Defaults to `applicationName`. Never share one lease table between listeners.
+| `metricsNamespace` | CloudWatch namespace for this listener's KCL metrics. Falls back to the factory/property value when empty.
+|===
+
+`consumerName` and `leaseTableName` are per-stream identities rather than tuning knobs, which is why they exist only here and not under `spring.cloud.aws.kinesis.listener`: an enhanced fan-out consumer belongs to exactly one stream, and a lease table belongs to exactly one KCL application, so a single application-wide value would be wrong as soon as a second listener is added.
+
+NOTE: The reply destination is not an annotation attribute — annotate the method with `@SendTo("stream")` to forward the return value (see <<Batch listeners and replies>>).
+
+==== Checkpoint and retrieval modes
+
+The checkpoint mode controls when processed records are checkpointed (the Kinesis analog of an acknowledgement mode):
+
+- `BATCH` (default): checkpoint once after a batch has been processed successfully.
+- `RECORD`: checkpoint after each record.
+- `PERIODIC`: checkpoint at most every configured number of records or time interval.
+- `MANUAL`: never checkpoint automatically; the listener checkpoints through an injected `KclCheckpointer`.
+
+NOTE: In the automatic modes (`BATCH`, `RECORD`, `PERIODIC`) the container checkpoints on `shutdownRequested` for you. In `MANUAL` mode the container deliberately does *not* checkpoint on `shutdownRequested`, because auto-checkpointing there would commit records the listener never acknowledged through the `KclCheckpointer`. This is an intentional trade-off: `MANUAL` mode forgoes the KCL 3.x _graceful lease handoff_ optimisation (which checkpoints on shutdown to minimise reprocessing when a lease moves to another worker), so a handoff reprocesses from the listener's last manual checkpoint. Checkpointing is never performed on `leaseLost` (not allowed by KCL) and is always performed on `shardEnded` (mandatory to complete a shard so its child-shard leases can be created).
+
+The retrieval mode selects how the scheduler reads records: `POLLING` (default) or `ENHANCED_FAN_OUT`.
+The container defaults to `POLLING`, which differs from the raw KCL 3.x default of enhanced fan-out. This is a deliberate cost-oriented default: `POLLING` uses the shared 2 MB/sec per-shard throughput and avoids the per-consumer-shard-hour cost of enhanced fan-out. Enhanced fan-out is best reserved for latency-sensitive consumers (~70 ms propagation) or when more than two consumers read the same stream.
+Opt into enhanced fan-out per listener with `retrievalMode = "ENHANCED_FAN_OUT"`, or globally with `spring.cloud.aws.kinesis.listener.retrieval-mode=enhanced_fan_out`. By default the container registers (or reuses) an EFO consumer derived from the `applicationName`. To point at a pre-existing consumer instead, set `consumerName` on the `@KclListener` itself, since a consumer belongs to a single stream. The attribute accepts either the consumer name or its full ARN:
+
+[source,java]
+----
+@KclListener(streamName = "orders", retrievalMode = "ENHANCED_FAN_OUT", consumerName = "orders-efo")
+public void handle(Order order) { }
+
+@KclListener(streamName = "orders", retrievalMode = "ENHANCED_FAN_OUT",
+        consumerName = "arn:aws:kinesis:eu-west-1:123456789012:stream/orders/consumer/orders-efo:1234567890")
+public void handleByArn(Order order) { }
+----
+
+[source,java]
+----
+@KclListener(streamName = "orders", checkpointMode = "MANUAL", retrievalMode = "ENHANCED_FAN_OUT")
+public void handle(Order order, KclCheckpointer checkpointer) {
+    // ...
+    checkpointer.checkpoint();
+}
+----
+
+==== Consuming several streams with one listener
+
+A listener can declare more than one stream, in which case a single container consumes all of them as one KCL application:
+
+[source,java]
+----
+@KclListener(streamNames = { "orders", "shipments" }, applicationName = "fulfilment")
+public void handle(Order order, @Header(KinesisMessageHeaders.STREAM_NAME) String stream) { }
+----
+
+This runs KCL in multi-stream mode; for what that means operationally, see https://docs.aws.amazon.com/streams/latest/dev/kcl-multi-stream.html[Multi-stream processing with KCL]. Every record carries `KinesisMessageHeaders.STREAM_NAME`, so the handler can tell the streams apart.
+
+Most listeners consume a single stream, and that remains the recommended shape. Group streams into one listener only when they are handled identically, and note what they then share:
+
+* One method signature, so all streams must deserialize into the declared payload type. Use `Message<?>`, `String` or `byte[]` when the payloads differ.
+* One `applicationName`, lease table, checkpoint mode, initial position, metrics namespace and scheduler.
+* `POLLING` retrieval only: `ENHANCED_FAN_OUT` with several streams fails at startup, because a consumer is registered against one stream.
+
+WARNING: Adding a second stream to a listener that already ran with a single stream changes KCL's lease key format, which is incompatible with the existing lease table. Use a new `applicationName` (or `leaseTableName`) when making that switch.
+
+==== Error handling
+
+When a listener throws, the container passes the failing message and the exception to the configured `ErrorHandler`:
+
+[source,java]
+----
+@FunctionalInterface
+public interface ErrorHandler {
+    void handle(Message<?> message, Throwable throwable);
+}
+----
+
+`handle` returns `void`, and its outcome is load-bearing because it decides whether the record is checkpointed:
+
+- If `handle` *returns normally*, the container treats the record(s) as processed: processing continues and the configured checkpoint mode advances the position past the failed record.
+- If `handle` *throws*, the exception propagates out of `processRecords` and the container does *not* checkpoint that batch.
+
+The default `ErrorHandler` is `LoggingErrorHandler`, which logs the failure and *rethrows* it (a `RuntimeException` is rethrown as-is; a checked exception is wrapped in `ListenerExecutionFailedException`).
+
+Records that fail to convert into a `Message` are routed to the same `ErrorHandler`, carrying the raw KCL record as the payload.
+
+IMPORTANT: Throwing out of `processRecords` does *not* make KCL retry the batch. The KCL catches the exception, logs `Application processRecords() threw an exception when processing shard` followed by `Skipping over the following data records`, and calls `processRecords` with the *next* batch without restarting the record processor — see https://docs.aws.amazon.com/streams/latest/dev/troubleshooting-consumers.html[Troubleshooting Kinesis Data Streams consumers]. The failed records are therefore skipped in-process, and once a later batch is checkpointed the position moves past them for good. They are only reprocessed if the worker dies or the lease moves before that next checkpoint, because the failed batch itself was never committed.
+
+WARNING: There is no DLQ or re-drive support, and no in-place retry. If a record must not be lost, handle it inside `ErrorHandler.handle` — for example by writing it to a dead-letter stream or store there — rather than relying on redelivery. Make listeners idempotent, since a record can still be delivered more than once after a lease handoff or worker restart.
+
+[source,java]
+----
+@Bean
+ErrorHandler kinesisErrorHandler() {
+    return (message, throwable) -> {
+        // log / forward to your own DLQ, then RETURN so the record is skipped
+        log.error("Skipping poison record {}", message, throwable);
+    };
+}
+----
+
+NOTE: For failures raised inside the listener method, the `ErrorHandler` receives the failure wrapped in a `ListenerExecutionFailedException`; the original exception thrown by the listener method is available through `getCause()`.
+
+==== Batch listeners and replies
+
+A listener with a `Collection` parameter receives a batch. The declared element type is honoured: use `List<Message<?>>` for the raw messages, `List<Order>` for converted payloads, or `List<Message<Order>>` for converted payloads with their headers.
+
+To forward a result, return a value and annotate the method with `@SendTo("another-stream")`; the container publishes the return value to that stream through the auto-configured `KinesisTemplate` (which must be present as a bean). Void methods and `null` returns forward nothing.
+
+=== Producing records (`KinesisTemplate`)
+
+The `KinesisTemplate` is an auto-configured, AWS SDK v2 based producer:
+
+[source,java]
+----
+@Autowired
+KinesisTemplate kinesisTemplate;
+
+kinesisTemplate.send("orders", order);                     // generated partition key, JSON payload
+kinesisTemplate.send("orders", "partition-key", order);
+CompletableFuture<SendResult> result = kinesisTemplate.sendAsync("orders", "partition-key", order);
+----
+
+`byte[]` and `String` payloads are sent as-is; any other payload is serialized to JSON with the configured `JsonMapper`.
+Each call returns a `SendResult`, which exposes the `sequenceNumber` and `shardId` that Kinesis assigned to the record.
+
+For finer-grained control, build a `SendRequest`. In addition to the stream name, partition key and payload, it supports an explicit hash key (to target a specific shard directly) and a sequence number for ordering:
+
+[source,java]
+----
+SendRequest request = SendRequest.builder()
+        .streamName("orders")
+        .partitionKey("partition-key")
+        .payload(order)
+        .explicitHashKey("0")                      // optional: route by hash key instead of the partition key
+        .sequenceNumberForOrdering("49590338...")  // optional: putRecord ordering hint
+        .build();
+SendResult result = kinesisTemplate.send(request);              // or sendAsync(request)
+----
+
+To send several records in a single `PutRecords` call, use the batch overloads:
+
+[source,java]
+----
+BatchSendResult batch = kinesisTemplate.sendBatch("orders", List.of(
+        SendRequest.builder().streamName("orders").partitionKey("k1").payload(order1).build(),
+        SendRequest.builder().streamName("orders").partitionKey("k2").payload(order2).build()));
+if (batch.hasFailures()) {
+    batch.failed().forEach(failed ->
+            log.warn("Failed record {}: {}", failed.partitionKey(), failed.errorMessage()));
+}
+----
+
+Every request in a batch must target the same `streamName`. A `PutRecords` call can partially fail, so `BatchSendResult` separates the `successful()` results from the `failed()` records (each carrying the original payload, partition key and the Kinesis `errorCode`/`errorMessage`); `hasFailures()` reports whether any record was rejected.
+
+The `KinesisTemplate` is a thin wrapper over the AWS SDK v2 `KinesisAsyncClient`; the single-record overloads call `putRecord` and the batch overloads call `putRecords`. It is *not* the https://docs.aws.amazon.com/streams/latest/dev/developing-producers-with-kpl.html[Kinesis Producer Library (KPL)]; KPL is used only by the separate Spring Integration `KplMessageHandler` described below.
+
+Keep the following in mind when ordering matters:
+
+- Throttling and retries are delegated entirely to the injected `KinesisAsyncClient`'s SDK retry policy. SDK-level retries can reorder records relative to the order in which you submitted them, because a retried record may land after a later record that succeeded first.
+- Strict ordering therefore requires serial writes to a single shard: send the next record only after the previous `sendAsync` future has completed, and route related records to the same shard (same partition key). The `sequenceNumberForOrdering` on `SendRequest` provides an additional `putRecord` ordering hint across sequential writes to the same shard.
+- The `send(streamName, payload)` overload generates a random UUID partition key, so it gives *no* co-location or ordering guarantee between related records. Use the `send(streamName, partitionKey, payload)` / `sendAsync(streamName, partitionKey, payload)` overloads, or a `SendRequest` with a stable partition key, when related records must share a shard.
+
+=== Configuration
+
+The standalone Kinesis auto-configuration provides a `KinesisAsyncClient`, a `DynamoDbAsyncClient` and a `CloudWatchAsyncClient` (KCL requires all three), a `KinesisTemplate`, and a default `KclMessageListenerContainerFactory`.
+All beans are declared as `@ConditionalOnMissingBean`, so any of them can be overridden.
+
+The following configuration properties are available:
+
+[cols="3,1,4"]
+|===
+| Property | Default | Description
+
+| `spring.cloud.aws.kinesis.enabled` | `true` | Enables Kinesis integration.
+| `spring.cloud.aws.kinesis.listener.max-records` | `10000` | Maximum number of records returned in a single poll (`POLLING` retrieval only).
+| `spring.cloud.aws.kinesis.listener.idle-time-between-reads` | `1s` | Idle time between polling reads (`POLLING` retrieval only).
+| `spring.cloud.aws.kinesis.listener.retrieval-mode` | `POLLING` | Retrieval mode: `POLLING` or `ENHANCED_FAN_OUT`.
+| `spring.cloud.aws.kinesis.listener.checkpoint-mode` | `BATCH` | Checkpoint mode: `BATCH`, `RECORD`, `PERIODIC` or `MANUAL`.
+| `spring.cloud.aws.kinesis.listener.initial-position` | `TRIM_HORIZON` | Position used when no checkpoint exists. Note that `@KclListener` declares its own `initialPositionInStream` default of `TRIM_HORIZON`, which wins over this property unless the listener sets the attribute to an empty string.
+| `spring.cloud.aws.kinesis.listener.graceful-shutdown-timeout` | `20s` | Maximum time to wait for the scheduler to shut down.
+| `spring.cloud.aws.kinesis.listener.checkpoint-record-count` | `1000` | Records after which a periodic checkpoint is taken.
+| `spring.cloud.aws.kinesis.listener.checkpoint-interval` | `60s` | Interval after which a periodic checkpoint is taken.
+| `spring.cloud.aws.kinesis.listener.metrics-level` | `DETAILED` | CloudWatch metrics granularity: `NONE`, `SUMMARY` or `DETAILED`. Left unset by the container, so the KCL default of `DETAILED` applies.
+| `spring.cloud.aws.kinesis.listener.metrics-namespace` | | Default CloudWatch namespace under which KCL publishes its metrics, overridable per listener with `@KclListener(metricsNamespace = "...")`. Left unset by the container, so the KCL default (the application name) applies.
+| `spring.cloud.aws.kinesis.listener.auto-startup` | `true` | Whether the listener containers start automatically with the application context.
+| `spring.cloud.aws.kinesis.listener.phase` | | `SmartLifecycle` phase for the listener containers. Left unset, so the default phase applies.
+| `spring.cloud.aws.kinesis.listener.initial-position-timestamp` | | Timestamp used when `initial-position` is `AT_TIMESTAMP`. Reachable for a `@KclListener` only when the listener sets `initialPositionInStream = ""`, since the annotation default otherwise overrides the position.
+| `spring.cloud.aws.kinesis.listener.billing-mode` | `PAY_PER_REQUEST` | DynamoDB table billing mode: `PAY_PER_REQUEST` (on-demand) or `PROVISIONED`. Left unset by the container, so the KCL default of on-demand (`PAY_PER_REQUEST`) applies, which is the mode https://docs.aws.amazon.com/streams/latest/dev/kcl-dynamoDB.html[AWS recommends].
+| `spring.cloud.aws.kinesis.listener.content-type` | | Optional content-type applied to inbound messages (for example `application/json`) to enable strict message-converter matching. Unset by default, so `byte[]`, `String` and JSON POJO payloads all convert.
+|===
+
+NOTE: These properties are application-wide *defaults* shared by every listener created by the auto-configured factory. Values that identify a single stream or KCL application — the enhanced fan-out consumer (`consumerArn` / `consumerName`) and the DynamoDB `leaseTableName` — are deliberately *not* available as properties, because two listeners can never share them: one consumer ARN belongs to one stream, and two applications sharing a lease table would compete for each other's leases. Declare those on `@KclListener` instead.
+
+==== DynamoDB metadata tables
+
+KCL 3.x stores its coordination state in https://docs.aws.amazon.com/streams/latest/dev/kcl-dynamoDB.html[DynamoDB] and creates *three* tables per application, not one:
+
+- the *lease* table (named after `applicationName`), holding shard leases and checkpoints;
+- `<applicationName>-WorkerMetricStats`, holding per-worker metrics used for load balancing;
+- `<applicationName>-CoordinatorState`, holding coordinator state.
+
+TIP: KCL 3.5 can consolidate all three tables into the lease table (_single table format_). It stays off by default: enable it with `CoordinatorConfig#migrateAllEntitiesToLeaseTable(true)` through the coordinator config customizer, following the two-phase deployment AWS describes in https://docs.aws.amazon.com/streams/latest/dev/kcl-single-table-format.html[Single table format for KCL].
+
+The `@KclListener(leaseTableName = "...")` attribute renames *only* the lease table. The `-WorkerMetricStats` and `-CoordinatorState` table names stay derived from `applicationName` and cannot be overridden through the annotation (use the coordinator/lease KCL config customizers for finer control). All three are created with the configured billing mode, which defaults to on-demand (`PAY_PER_REQUEST`) as https://docs.aws.amazon.com/streams/latest/dev/kcl-dynamoDB.html[AWS recommends].
+
+==== Advanced KCL configuration
+
+For any KCL setting not exposed as a property, `KclContainerOptions` provides per-config customizers that receive the raw KCL config objects (checkpoint, coordinator, lease-management, lifecycle, metrics, processor and retrieval) just before the `Scheduler` is built.
+Set them on a custom `KclMessageListenerContainerFactory` bean via `configure(...)`:
+
+[source,java]
+----
+@Bean
+KclMessageListenerContainerFactory kclMessageListenerContainerFactory(KinesisAsyncClient kinesisClient,
+        DynamoDbAsyncClient dynamoDbClient, CloudWatchAsyncClient cloudWatchClient) {
+    KclMessageListenerContainerFactory factory =
+            new KclMessageListenerContainerFactory(kinesisClient, dynamoDbClient, cloudWatchClient);
+    factory.configure(options -> options
+            .metricsLevel(MetricsLevel.NONE)
+            .leaseManagementConfigCustomizer(lease -> lease.failoverTimeMillis(30_000))
+            .coordinatorConfigCustomizer(coordinator -> {
+                // any CoordinatorConfig tuning, e.g. worker-metrics based load balancing
+            }));
+    return factory;
+}
+----
 
 === Spring Integration support
 
@@ -188,7 +458,17 @@ The `SpringDynamoDBStreamsAdapterClient` is an extension of the `AmazonDynamoDBS
 Both channel adapters require a Stream ARN for the DynamoDB Stream on the table.
 Using the AWS SDK API, such a Stream ARN value is available as a result of `DescribeTableResponse.table().latestStreamArn()` in the response to a `DynamoDbAsyncClient.describeTable()` request.
 
-==== Spring Integration starters
+==== Starters
+
+The `spring-cloud-aws-starter-kinesis` starter is the entry point for the standalone Kinesis support — the `@KclListener` message listener container and the `KinesisTemplate` — together with their auto-configuration. It does *not* put Spring Integration on the classpath.
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter-kinesis</artifactId>
+</dependency>
+----
 
 The Spring Integration dependency in the `spring-cloud-aws-kinesis` module is `optional` to avoid unnecessary artifacts on the classpath when Spring Integration is not used.
 For convenience, a dedicated `spring-cloud-aws-starter-integration-kinesis` is provided, managing all the required dependencies for Spring Integration support with a classical Amazon Kinesis client.
