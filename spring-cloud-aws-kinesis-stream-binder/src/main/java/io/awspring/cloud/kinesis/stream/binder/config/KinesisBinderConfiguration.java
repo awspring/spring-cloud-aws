@@ -32,7 +32,6 @@ import io.awspring.cloud.kinesis.stream.binder.provisioning.KinesisStreamProvisi
 import io.micrometer.observation.ObservationRegistry;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -204,8 +203,9 @@ public class KinesisBinderConfiguration {
 			ObjectProvider<AwsClientCustomizer<CloudWatchAsyncClientBuilder>> configurer) {
 
 		if (this.hasInputs) {
-			return awsClientBuilderConfigurer.configureAsyncClient(CloudWatchAsyncClient.builder(), properties, null,
-					Stream.of(configurer.getIfAvailable()), null).build();
+			return awsClientBuilderConfigurer
+					.configureAsyncClient(CloudWatchAsyncClient.builder(), properties, null, configurer.stream(), null)
+					.build();
 		}
 		else {
 			return null;
