@@ -92,6 +92,33 @@ class ParameterStorePropertySourceTest {
 	}
 
 	@Test
+	void resolvesNestedParameterNamesUnderTheRootPath() {
+		ParameterStorePropertySource propertySource = new ParameterStorePropertySource("/", ssmClient);
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class)))
+				.thenReturn(GetParametersByPathResponse.builder()
+						.parameters(Parameter.builder().name("/config/myservice/key1").value("value1").build())
+						.build());
+
+		propertySource.init();
+
+		assertThat(propertySource.getPropertyNames()).containsExactly("config.myservice.key1");
+		assertThat(propertySource.getProperty("config.myservice.key1")).isEqualTo("value1");
+	}
+
+	@Test
+	void removesTheParameterPathOnlyFromTheStartOfTheName() {
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class)))
+				.thenReturn(GetParametersByPathResponse.builder().parameters(
+						Parameter.builder().name("/config/myservice/legacy/config/myservice/key1").value("value1").build())
+						.build());
+
+		propertySource.init();
+
+		assertThat(propertySource.getPropertyNames()).containsExactly("legacy.config.myservice.key1");
+		assertThat(propertySource.getProperty("legacy.config.myservice.key1")).isEqualTo("value1");
+	}
+
+	@Test
 	void resolvesPrefixAndParameterPathFromContext() {
 		ParameterStorePropertySource propertySource = new ParameterStorePropertySource("/config/myservice/?prefix=xxx",
 				ssmClient);
