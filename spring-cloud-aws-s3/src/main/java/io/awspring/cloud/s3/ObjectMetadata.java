@@ -120,6 +120,9 @@ public class ObjectMetadata {
 	@Nullable
 	private final String contentMD5;
 
+	@Nullable
+	private final MetadataDirective metadataDirective;
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -128,8 +131,8 @@ public class ObjectMetadata {
 			@Nullable String contentEncoding, @Nullable String contentLanguage, @Nullable String contentType,
 			@Nullable Long contentLength, @Nullable Instant expires, @Nullable String grantFullControl,
 			@Nullable String grantRead, @Nullable String grantReadACP, @Nullable String grantWriteACP,
-			@Nullable Map<String, String> metadata, @Nullable String serverSideEncryption,
-			@Nullable String storageClass, @Nullable String websiteRedirectLocation,
+			@Nullable Map<String, String> metadata, @Nullable MetadataDirective metadataDirective,
+			@Nullable String serverSideEncryption, @Nullable String storageClass, @Nullable String websiteRedirectLocation,
 			@Nullable String sseCustomerAlgorithm, @Nullable String sseCustomerKey, @Nullable String sseCustomerKeyMD5,
 			@Nullable String ssekmsKeyId, @Nullable String ssekmsEncryptionContext, @Nullable Boolean bucketKeyEnabled,
 			@Nullable String requestPayer, @Nullable String tagging, @Nullable String objectLockMode,
@@ -148,6 +151,7 @@ public class ObjectMetadata {
 		this.grantReadACP = grantReadACP;
 		this.grantWriteACP = grantWriteACP;
 		this.metadata = metadata;
+		this.metadataDirective = metadataDirective;
 		this.serverSideEncryption = serverSideEncryption;
 		this.storageClass = storageClass;
 		this.websiteRedirectLocation = websiteRedirectLocation;
@@ -257,6 +261,95 @@ public class ObjectMetadata {
 		}
 		if (contentMD5 != null) {
 			builder.contentMD5(contentMD5);
+		}
+	}
+
+	void apply(CopyObjectRequest.Builder builder) {
+		builder.metadataDirective(metadataDirective == null ? MetadataDirective.REPLACE : metadataDirective);
+		if (acl != null) {
+			builder.acl(acl);
+		}
+		if (cacheControl != null) {
+			builder.cacheControl(cacheControl);
+		}
+		if (contentDisposition != null) {
+			builder.contentDisposition(contentDisposition);
+		}
+		if (contentEncoding != null) {
+			builder.contentEncoding(contentEncoding);
+		}
+		if (contentLanguage != null) {
+			builder.contentLanguage(contentLanguage);
+		}
+		if (contentType != null) {
+			builder.contentType(contentType);
+		}
+		if (expires != null) {
+			builder.expires(expires);
+		}
+		if (grantFullControl != null) {
+			builder.grantFullControl(grantFullControl);
+		}
+		if (grantRead != null) {
+			builder.grantRead(grantRead);
+		}
+		if (grantReadACP != null) {
+			builder.grantReadACP(grantReadACP);
+		}
+		if (grantWriteACP != null) {
+			builder.grantWriteACP(grantWriteACP);
+		}
+		if (metadata != null) {
+			builder.metadata(metadata);
+		}
+		if (serverSideEncryption != null) {
+			builder.serverSideEncryption(serverSideEncryption);
+		}
+		if (storageClass != null) {
+			builder.storageClass(storageClass);
+		}
+		if (websiteRedirectLocation != null) {
+			builder.websiteRedirectLocation(websiteRedirectLocation);
+		}
+		if (sseCustomerAlgorithm != null) {
+			builder.sseCustomerAlgorithm(sseCustomerAlgorithm);
+		}
+		if (sseCustomerKey != null) {
+			builder.sseCustomerKey(sseCustomerKey);
+		}
+		if (sseCustomerKeyMD5 != null) {
+			builder.sseCustomerKeyMD5(sseCustomerKeyMD5);
+		}
+		if (ssekmsKeyId != null) {
+			builder.ssekmsKeyId(ssekmsKeyId);
+		}
+		if (ssekmsEncryptionContext != null) {
+			builder.ssekmsEncryptionContext(ssekmsEncryptionContext);
+		}
+		if (bucketKeyEnabled != null) {
+			builder.bucketKeyEnabled(bucketKeyEnabled);
+		}
+		if (requestPayer != null) {
+			builder.requestPayer(requestPayer);
+		}
+		if (tagging != null) {
+			builder.taggingDirective(TaggingDirective.REPLACE);
+			builder.tagging(tagging);
+		}
+		if (objectLockMode != null) {
+			builder.objectLockMode(objectLockMode);
+		}
+		if (objectLockRetainUntilDate != null) {
+			builder.objectLockRetainUntilDate(objectLockRetainUntilDate);
+		}
+		if (objectLockLegalHoldStatus != null) {
+			builder.objectLockLegalHoldStatus(objectLockLegalHoldStatus);
+		}
+		if (expectedBucketOwner != null) {
+			builder.expectedBucketOwner(expectedBucketOwner);
+		}
+		if (checksumAlgorithm != null) {
+			builder.checksumAlgorithm(checksumAlgorithm);
 		}
 	}
 
@@ -627,6 +720,9 @@ public class ObjectMetadata {
 		@Nullable
 		private String contentMD5;
 
+		@Nullable
+		private MetadataDirective metadataDirective;
+
 		public Builder acl(@Nullable String acl) {
 			this.acl = acl;
 			return this;
@@ -693,6 +789,11 @@ public class ObjectMetadata {
 
 		public Builder metadata(@Nullable String key, String value) {
 			this.metadata.put(key, value);
+			return this;
+		}
+
+		public Builder metadataDirective(@Nullable MetadataDirective metadataDirective) {
+			this.metadataDirective = metadataDirective;
 			return this;
 		}
 
@@ -809,7 +910,7 @@ public class ObjectMetadata {
 		public ObjectMetadata build() {
 			return new ObjectMetadata(acl, cacheControl, contentDisposition, contentEncoding, contentLanguage,
 					contentType, contentLength, expires, grantFullControl, grantRead, grantReadACP, grantWriteACP,
-					metadata, serverSideEncryption, storageClass, websiteRedirectLocation, sseCustomerAlgorithm,
+					metadata, metadataDirective, serverSideEncryption, storageClass, websiteRedirectLocation, sseCustomerAlgorithm,
 					sseCustomerKey, sseCustomerKeyMD5, ssekmsKeyId, ssekmsEncryptionContext, bucketKeyEnabled,
 					requestPayer, tagging, objectLockMode, objectLockRetainUntilDate, objectLockLegalHoldStatus,
 					expectedBucketOwner, checksumAlgorithm, contentMD5);
