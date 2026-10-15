@@ -261,6 +261,44 @@ There can be multiple customizer beans present in a single application context, 
 Client-specific customizations can be applied through client-specific customizer interfaces (for example `S3ClientCustomizer` for S3). See the integrations documentation for details.
 
 
+=== Publishing AWS SDK metrics to CloudWatch
+
+The AWS SDK can collect metrics for each request, such as the API call duration and the number of retries, and publish them to CloudWatch through the `CloudWatchMetricPublisher` of the `cloudwatch-metric-publisher` module.
+When this module is on the classpath, Spring Cloud AWS adds a `CloudWatchMetricPublisher` to every AWS client that it auto-configures:
+
+[source,xml]
+----
+<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>cloudwatch-metric-publisher</artifactId>
+</dependency>
+----
+
+The publisher uploads the metrics with its own `CloudWatchAsyncClient`, which uses the same credentials as the other clients and does not publish metrics itself.
+Its region is `spring.cloud.aws.client.metrics.region` or, when that is not set, the region resolved as described in the Region section above. When neither is available, for example because only service-specific regions are configured, Spring Cloud AWS logs a warning that names these properties, and the clients do not publish metrics.
+Its CloudWatch namespace, upload frequency, number of calls per upload and metric level can be configured:
+
+[cols="3,3,1,1"]
+|===
+| Name | Description | Required | Default value
+| `spring.cloud.aws.client.metrics.enabled` | Enables publishing the metrics of the AWS SDK clients to CloudWatch. | No | `true`
+| `spring.cloud.aws.client.metrics.namespace` | CloudWatch namespace of the metrics. | No | `AwsSdk/JavaSdk2`
+| `spring.cloud.aws.client.metrics.upload-frequency` | How often the metrics are uploaded to CloudWatch. | No | `1m`
+| `spring.cloud.aws.client.metrics.maximum-calls-per-upload` | Maximum number of `PutMetricData` calls per upload. | No | `10`
+| `spring.cloud.aws.client.metrics.metric-level` | Level of the metrics to publish: `ERROR`, `INFO` or `TRACE`. | No | `INFO`
+| `spring.cloud.aws.client.metrics.region` | Region of the CloudWatch client of the publisher. | No |
+| `spring.cloud.aws.client.metrics.endpoint` | Endpoint of the CloudWatch client of the publisher. | No |
+|===
+
+The publisher needs the `cloudwatch:PutMetricData` IAM permission. When an upload fails, for example without that permission, it logs a warning and the application keeps running.
+CloudWatch charges for the metrics it receives, see https://aws.amazon.com/cloudwatch/pricing/[Amazon CloudWatch pricing].
+
+To configure the publisher further, for example with other dimensions, define a `CloudWatchMetricPublisher` bean, and Spring Cloud AWS adds it to the clients instead of its own.
+Spring Cloud AWS adds every `MetricPublisher` bean of the application context to the clients that it auto-configures.
+Since each client needs the publishers when it is created, a `MetricPublisher` bean must not depend on a client that Spring Cloud AWS configures.
+
+NOTE: The clients that load configuration through `spring.config.import`, such as the Parameter Store and Secrets Manager clients, are created before the application context, so they do not publish metrics.
+
 === GraalVM Native Image
 
 Since version 3.3.0, the framework provides **experimental** support for building a GraalVM Native Image.
