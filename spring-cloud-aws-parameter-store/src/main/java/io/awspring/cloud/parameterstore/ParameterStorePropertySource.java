@@ -19,6 +19,7 @@ import io.awspring.cloud.core.config.AwsPropertySource;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
+import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.services.ssm.model.Parameter;
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
  * @author Matej Nedic
+ * @author Sharang Gupta
  * @since 2.0.0
  */
 public class ParameterStorePropertySource extends AwsPropertySource<ParameterStorePropertySource, SsmClient> {
@@ -45,6 +47,14 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 	// ParameterStoreConfigDataLoader
 	private static Log LOG = LogFactory.getLog(ParameterStorePropertySource.class);
 	private static final String PREFIX_PART = "?prefix=";
+
+	/**
+	 * Index notation in parameter names, such as {@code _0_} in {@code stack_0_.name}: a number without leading zeros
+	 * between underscores, followed by a '.' (a '/' in the parameter name), another index or the end of the name. The
+	 * lookahead leaves the closing underscore of an index unconsumed, so that consecutive indexes such as
+	 * {@code matrix_0__1_} are converted too.
+	 */
+	private static final Pattern INDEX_NOTATION = Pattern.compile("_(0|[1-9]\\d*)_(?=$|\\.|_(?:0|[1-9]\\d*)_)");
 
 	private static final String PREFIX_PROPERTIES_LOAD = "?extension=";
 	private final String context;
@@ -113,8 +123,8 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 				}
 			}
 			else {
-				String key = parameter.name().replace(this.parameterPath, "").replace('/', '.').replaceAll("_(\\d)_",
-						"[$1]");
+				String key = INDEX_NOTATION.matcher(parameter.name().replace(this.parameterPath, "").replace('/', '.'))
+						.replaceAll("[$1]");
 				LOG.debug("Populating property retrieved from AWS Parameter Store: " + key);
 				String propertyKey = prefix != null ? prefix + key : key;
 				this.properties.put(propertyKey, parameter.value());
