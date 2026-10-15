@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import org.springframework.util.Assert;
+import org.springframework.core.ParameterizedTypeReference;
 import software.amazon.awssdk.core.sync.RequestBody;
 
 /**
@@ -54,6 +55,18 @@ public class LegacyJackson2JsonS3ObjectConverter implements S3ObjectConverter {
 		Assert.notNull(clazz, "Clazz is required");
 		try {
 			return objectMapper.readValue(is, clazz);
+		}
+		catch (IOException e) {
+			throw new S3Exception("Failed to deserialize object from JSON", e);
+		}
+	}
+
+	@Override
+	public <T> T read(InputStream is, ParametrizedTypeReference<T> valueTypeRef) {
+		Assert.notNull(is, "InputStream is required");
+		Assert.notNull(valueTypeRef, "valueTypeRef is required");
+		try {
+			return objectMapper.readValue(is, objectMapper.constructType(valueTypeRef.getType()));
 		}
 		catch (IOException e) {
 			throw new S3Exception("Failed to deserialize object from JSON", e);
