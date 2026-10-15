@@ -36,6 +36,8 @@ spring.config.import=aws-parameterstore:/config/spring/
 
 Two parameters are added to the environment: `message` and `httpUrl`.
 
+NOTE: Without a trailing `/`, as in `aws-parameterstore:/config/spring`, the property names start with `.`, such as `.message` and `.httpUrl`, and a warning is logged.
+
 If a given path in Parameter Store does not exist, the application will fail to start. If parameters retrieved from Parameter Store are not required for the application and it should continue to start up even when the path is missing, add `optional` before the prefix:
 
 [source,properties]
