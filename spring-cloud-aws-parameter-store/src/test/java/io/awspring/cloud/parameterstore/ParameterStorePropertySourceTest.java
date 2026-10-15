@@ -64,6 +64,44 @@ class ParameterStorePropertySourceTest {
 	}
 
 	@Test
+	void keepsNumbersBetweenUnderscoresThatAreNotIndexes() {
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class)))
+				.thenReturn(GetParametersByPathResponse.builder().parameters(
+						Parameter.builder().name("/config/myservice/WORD_2_WORD_WORD").value("value1").build(),
+						Parameter.builder().name("/config/myservice/KEY_01_").value("value2").build(),
+						Parameter.builder().name("/config/myservice/key_0_name").value("value3").build()).build());
+
+		propertySource.init();
+
+		assertThat(propertySource.getPropertyNames()).containsExactly("WORD_2_WORD_WORD", "KEY_01_", "key_0_name");
+		assertThat(propertySource.getProperty("WORD_2_WORD_WORD")).isEqualTo("value1");
+	}
+
+	@Test
+	void convertsIndexesWithSeveralDigits() {
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class)))
+				.thenReturn(GetParametersByPathResponse.builder().parameters(
+						Parameter.builder().name("/config/myservice/stack_10_.name").value("value1").build(),
+						Parameter.builder().name("/config/myservice/hosts_12_").value("value2").build()).build());
+
+		propertySource.init();
+
+		assertThat(propertySource.getPropertyNames()).containsExactly("stack[10].name", "hosts[12]");
+	}
+
+	@Test
+	void convertsConsecutiveIndexes() {
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class)))
+				.thenReturn(GetParametersByPathResponse.builder()
+						.parameters(Parameter.builder().name("/config/myservice/matrix_0__1_").value("value1").build())
+						.build());
+
+		propertySource.init();
+
+		assertThat(propertySource.getPropertyNames()).containsExactly("matrix[0][1]");
+	}
+
+	@Test
 	void arrayParameterNames() {
 		GetParametersByPathResponse result = GetParametersByPathResponse.builder()
 				.parameters(Parameter.builder().name("/config/myservice/key_0_.value").value("value1").build(),
