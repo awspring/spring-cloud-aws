@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 class FlociAwsClientFactoryTest {
 
 	@Container
-	private FlociContainer flociContainer = new FlociContainer(DockerImageName.parse("floci/floci:1.5.33"));
+	private FlociContainer flociContainer = new FlociContainer(DockerImageName.parse(Images.FLOCI));
 
 	@Test
 	void createsClient() {
