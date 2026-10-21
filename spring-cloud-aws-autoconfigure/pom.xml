@@ -177,6 +177,11 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>cloudwatch-metric-publisher</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-commons</artifactId>
 			<optional>true</optional>
