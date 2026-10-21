@@ -49,6 +49,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>io.floci</groupId>
+			<artifactId>testcontainers-floci</artifactId>
+			<version>2.9.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>spring-integration-test</artifactId>
 			<scope>test</scope>

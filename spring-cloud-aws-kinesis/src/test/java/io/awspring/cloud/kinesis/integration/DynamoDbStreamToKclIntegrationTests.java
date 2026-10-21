@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import com.amazonaws.services.dynamodbv2.streamsadapter.AmazonDynamoDBStreamsAdapterClient;
-import io.awspring.cloud.kinesis.LocalstackContainerTest;
+import io.awspring.cloud.kinesis.FlociContainerTest;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
@@ -59,7 +59,7 @@ import software.amazon.kinesis.metrics.MetricsLevel;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class DynamoDbStreamToKclIntegrationTests implements LocalstackContainerTest {
+class DynamoDbStreamToKclIntegrationTests implements FlociContainerTest {
 
 	static final String TEST_TABLE = "StreamsKclTable";
 
@@ -82,10 +82,10 @@ class DynamoDbStreamToKclIntegrationTests implements LocalstackContainerTest {
 
 	@BeforeAll
 	static void setup() {
-		AMAZON_KINESIS = LocalstackContainerTest.kinesisClient();
-		CLOUD_WATCH = LocalstackContainerTest.cloudWatchClient();
-		DYNAMODB = LocalstackContainerTest.dynamoDbClient();
-		DYNAMODB_STREAMS = LocalstackContainerTest.dynamoDbStreamsClient();
+		AMAZON_KINESIS = FlociContainerTest.kinesisClient();
+		CLOUD_WATCH = FlociContainerTest.cloudWatchClient();
+		DYNAMODB = FlociContainerTest.dynamoDbClient();
+		DYNAMODB_STREAMS = FlociContainerTest.dynamoDbStreamsClient();
 		DYNAMODB_STREAM_ARN = createDemoTable();
 
 		AmazonDynamoDBStreamsAdapterClient streamsAdapterClient = new AmazonDynamoDBStreamsAdapterClient(

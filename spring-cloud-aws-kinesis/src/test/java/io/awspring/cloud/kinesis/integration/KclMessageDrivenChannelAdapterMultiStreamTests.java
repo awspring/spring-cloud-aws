@@ -17,7 +17,7 @@ package io.awspring.cloud.kinesis.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.awspring.cloud.kinesis.LocalstackContainerTest;
+import io.awspring.cloud.kinesis.FlociContainerTest;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,7 +48,7 @@ import software.amazon.kinesis.metrics.MetricsLevel;
  */
 @SpringJUnitConfig
 @DirtiesContext
-class KclMessageDrivenChannelAdapterMultiStreamTests implements LocalstackContainerTest {
+class KclMessageDrivenChannelAdapterMultiStreamTests implements FlociContainerTest {
 
 	private static final String TEST_STREAM1 = "MultiStreamKcl1";
 
@@ -65,13 +65,13 @@ class KclMessageDrivenChannelAdapterMultiStreamTests implements LocalstackContai
 
 	@BeforeAll
 	static void setup() {
-		AMAZON_KINESIS = LocalstackContainerTest.kinesisClient();
-		DYNAMO_DB = LocalstackContainerTest.dynamoDbClient();
-		CLOUD_WATCH = LocalstackContainerTest.cloudWatchClient();
+		AMAZON_KINESIS = FlociContainerTest.kinesisClient();
+		DYNAMO_DB = FlociContainerTest.dynamoDbClient();
+		CLOUD_WATCH = FlociContainerTest.cloudWatchClient();
 
-		CompletableFuture<?> completableFuture1 = LocalstackContainerTest.createStream(AMAZON_KINESIS, TEST_STREAM1, 1);
+		CompletableFuture<?> completableFuture1 = FlociContainerTest.createStream(AMAZON_KINESIS, TEST_STREAM1, 1);
 
-		CompletableFuture<?> completableFuture2 = LocalstackContainerTest.createStream(AMAZON_KINESIS, TEST_STREAM2, 1);
+		CompletableFuture<?> completableFuture2 = FlociContainerTest.createStream(AMAZON_KINESIS, TEST_STREAM2, 1);
 
 		CompletableFuture.allOf(completableFuture1, completableFuture2).join();
 	}

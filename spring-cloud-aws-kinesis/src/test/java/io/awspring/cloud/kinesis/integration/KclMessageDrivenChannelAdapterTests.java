@@ -17,7 +17,7 @@ package io.awspring.cloud.kinesis.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.awspring.cloud.kinesis.LocalstackContainerTest;
+import io.awspring.cloud.kinesis.FlociContainerTest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +64,7 @@ import software.amazon.kinesis.metrics.NullMetricsFactory;
  */
 @SpringJUnitConfig
 @DirtiesContext
-public class KclMessageDrivenChannelAdapterTests implements LocalstackContainerTest {
+public class KclMessageDrivenChannelAdapterTests implements FlociContainerTest {
 
 	private static final String TEST_STREAM = "TestStreamKcl";
 
@@ -86,9 +86,9 @@ public class KclMessageDrivenChannelAdapterTests implements LocalstackContainerT
 
 	@BeforeAll
 	static void setup() {
-		AMAZON_KINESIS = LocalstackContainerTest.kinesisClient();
-		DYNAMO_DB = LocalstackContainerTest.dynamoDbClient();
-		CLOUD_WATCH = LocalstackContainerTest.cloudWatchClient();
+		AMAZON_KINESIS = FlociContainerTest.kinesisClient();
+		DYNAMO_DB = FlociContainerTest.dynamoDbClient();
+		CLOUD_WATCH = FlociContainerTest.cloudWatchClient();
 
 		CompletableFuture.allOf(initializeStream(TEST_STREAM), initializeLeaseTableFor(LEASE_TABLE_NAME)).join();
 	}
@@ -208,7 +208,7 @@ public class KclMessageDrivenChannelAdapterTests implements LocalstackContainerT
 	}
 
 	private static CompletableFuture<WaiterResponse<DescribeStreamResponse>> initializeStream(String streamName) {
-		return LocalstackContainerTest.createStream(AMAZON_KINESIS, streamName, 1);
+		return FlociContainerTest.createStream(AMAZON_KINESIS, streamName, 1);
 	}
 
 	/**

@@ -17,7 +17,7 @@ package io.awspring.cloud.kinesis.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.awspring.cloud.kinesis.LocalstackContainerTest;
+import io.awspring.cloud.kinesis.FlociContainerTest;
 import java.net.URI;
 import java.util.Date;
 import java.util.Map;
@@ -65,7 +65,7 @@ import software.amazon.kinesis.producer.KinesisProducerConfiguration;
 @SpringJUnitConfig
 @DirtiesContext
 @Disabled("KCL fails with acquiring DB lock when KPL is there as well")
-class KplKclIntegrationTests implements LocalstackContainerTest {
+class KplKclIntegrationTests implements FlociContainerTest {
 
 	private static final String TEST_STREAM = "TestStreamKplKcl";
 
@@ -88,11 +88,11 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 
 	@BeforeAll
 	static void setup() {
-		AMAZON_KINESIS = LocalstackContainerTest.kinesisClient();
-		DYNAMO_DB = LocalstackContainerTest.dynamoDbClient();
-		CLOUD_WATCH = LocalstackContainerTest.cloudWatchClient();
+		AMAZON_KINESIS = FlociContainerTest.kinesisClient();
+		DYNAMO_DB = FlociContainerTest.dynamoDbClient();
+		CLOUD_WATCH = FlociContainerTest.cloudWatchClient();
 
-		LocalstackContainerTest.createStream(AMAZON_KINESIS, TEST_STREAM, 1).join();
+		FlociContainerTest.createStream(AMAZON_KINESIS, TEST_STREAM, 1).join();
 
 		initializeLeaseTable();
 	}
@@ -160,11 +160,10 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 
 		@Bean
 		public KinesisProducerConfiguration kinesisProducerConfiguration() {
-			URI localstackEndpoint = LocalstackContainerTest.LOCAL_STACK_CONTAINER.getEndpoint();
+			URI localstackEndpoint = FlociContainerTest.endpoint();
 
-			return new KinesisProducerConfiguration()
-					.setCredentialsProvider(LocalstackContainerTest.credentialsProvider())
-					.setRegion(LocalstackContainerTest.LOCAL_STACK_CONTAINER.getRegion())
+			return new KinesisProducerConfiguration().setCredentialsProvider(FlociContainerTest.credentialsProvider())
+					.setRegion(FlociContainerTest.FLOCI_CONTAINER.getRegion())
 					.setKinesisEndpoint(localstackEndpoint.getHost()).setKinesisPort(localstackEndpoint.getPort())
 					.setCloudwatchEndpoint(localstackEndpoint.getHost()).setCloudwatchPort(localstackEndpoint.getPort())
 					.setStsEndpoint(localstackEndpoint.getHost()).setStsPort(localstackEndpoint.getPort())
