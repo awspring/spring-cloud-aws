@@ -58,7 +58,8 @@ class ObjectMetadataTests {
 				.ignoringFields("awsRequestOverrideConfig", "checksumCRC32", "checksumCRC32C", "checksumCRC64NVME",
 						"checksumSHA1", "checksumSHA256", "checksumSHA512", "checksumMD5", "checksumXXHASH64",
 						"checksumXXHASH128", "checksumXXHASH3", "contentMD5", "bucket", "key", "contentLength",
-						"ifNoneMatch", "ifMatch", "writeOffsetBytes")
+						"ifNoneMatch", "ifMatch", "writeOffsetBytes", "objectLockEventHold",
+						"objectLockEventHoldDurationYears", "objectLockEventHoldDurationDays")
 				.isEqualTo(objectMetadata);
 	}
 
