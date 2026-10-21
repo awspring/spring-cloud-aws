@@ -103,6 +103,10 @@ class KplIntegrationTests implements LocalstackContainerTest {
 			KplMessageHandler kinesisMessageHandler = new KplMessageHandler(
 					new KinesisProducer(kinesisProducerConfiguration));
 			kinesisMessageHandler.setPartitionKey("1");
+			// The KPL native daemon blocks up to 5s each for the Kinesis and CloudWatch credentials during
+			// startup, before it reads the credentials Java sent, so the first send takes longer than the
+			// default 10s.
+			kinesisMessageHandler.setSendTimeout(30_000);
 			return kinesisMessageHandler;
 		}
 
