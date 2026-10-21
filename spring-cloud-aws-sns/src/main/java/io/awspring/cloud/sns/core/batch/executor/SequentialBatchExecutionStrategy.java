@@ -55,7 +55,7 @@ public class SequentialBatchExecutionStrategy implements BatchExecutionStrategy 
 	@Override
 	public BatchResult send(Arn topicArn, Collection<PublishBatchRequestEntry> entries) {
 		Assert.notNull(topicArn, "topicArn is required");
-		Assert.notNull(topicArn, "entries are required");
+		Assert.notNull(entries, "entries are required");
 
 		List<BatchResult.SnsResult> allResults = new ArrayList<>();
 		List<BatchResult.SnsError> allErrors = new ArrayList<>();
