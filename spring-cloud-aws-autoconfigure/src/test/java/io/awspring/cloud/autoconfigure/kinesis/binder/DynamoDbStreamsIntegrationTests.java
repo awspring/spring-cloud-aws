@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.kinesis.stream.binder.dynamodb;
+package io.awspring.cloud.autoconfigure.kinesis.binder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import com.amazonaws.services.dynamodbv2.streamsadapter.AmazonDynamoDBStreamsAdapterClient;
-import io.awspring.cloud.kinesis.stream.binder.LocalstackContainerTest;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +43,8 @@ import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import software.amazon.awssdk.retries.api.BackoffStrategy;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
@@ -64,6 +65,12 @@ import software.amazon.awssdk.services.dynamodb.model.StreamViewType;
 @DirtiesContext
 @ResourceLock(value = "kinesis-binder", mode = ResourceAccessMode.READ)
 public class DynamoDbStreamsIntegrationTests implements LocalstackContainerTest {
+
+	@DynamicPropertySource
+	static void awsProperties(DynamicPropertyRegistry registry) {
+		LocalstackContainerTest.registerAwsProperties(registry);
+		registry.add("spring.cloud.stream.bindings.dynamoDbConsumer-in-0.destination", () -> DYNAMODB_STREAM_ARN);
+	}
 
 	static final String TEST_TABLE = "StreamsBinderDemoTable";
 
@@ -97,7 +104,6 @@ public class DynamoDbStreamsIntegrationTests implements LocalstackContainerTest 
 								.streamStatusAsString())
 						.isEqualTo("ENABLED"));
 
-		System.setProperty("spring.cloud.stream.bindings.dynamoDbConsumer-in-0.destination", DYNAMODB_STREAM_ARN);
 	}
 
 	private static String createDemoTable() {

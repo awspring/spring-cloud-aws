@@ -20,6 +20,7 @@
 		<dependency>
 			<groupId>software.amazon.kinesis</groupId>
 			<artifactId>amazon-kinesis-producer</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>software.amazon.kinesis</groupId>
@@ -28,6 +29,7 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>dynamodb-streams-kinesis-adapter</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>

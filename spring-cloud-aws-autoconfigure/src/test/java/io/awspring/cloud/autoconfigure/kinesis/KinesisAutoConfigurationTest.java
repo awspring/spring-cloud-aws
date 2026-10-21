@@ -24,9 +24,11 @@ import io.awspring.cloud.kinesis.config.KclMessageListenerContainerFactory;
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
 import io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode;
 import io.awspring.cloud.kinesis.operations.KinesisTemplate;
+import io.awspring.cloud.kinesis.stream.binder.KinesisMessageChannelBinder;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.cloud.stream.config.BindingHandlerAdvise.MappingsProvider;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
@@ -57,6 +59,15 @@ class KinesisAutoConfigurationTest {
 			assertThat(context).hasSingleBean(CloudWatchAsyncClient.class);
 			assertThat(context).hasSingleBean(KinesisTemplate.class);
 			assertThat(context).hasSingleBean(KclMessageListenerContainerFactory.class);
+		});
+	}
+
+	@Test
+	void registersBinderMappingsButNotBinderInMainContext() {
+		this.contextRunner.run(context -> {
+			assertThat(context).hasSingleBean(MappingsProvider.class);
+			assertThat(context).doesNotHaveBean(KinesisMessageChannelBinder.class);
+			assertThat(context).doesNotHaveBean(KinesisAutoConfiguration.KinesisBinderConfiguration.class);
 		});
 	}
 

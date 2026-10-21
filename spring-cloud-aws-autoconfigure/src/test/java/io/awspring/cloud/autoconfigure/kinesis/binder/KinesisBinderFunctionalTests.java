@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.kinesis.stream.binder;
+package io.awspring.cloud.autoconfigure.kinesis.binder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -49,6 +49,8 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kinesis.model.PutRecordsRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordsRequestEntry;
@@ -70,6 +72,11 @@ import software.amazon.awssdk.services.kinesis.model.PutRecordsRequestEntry;
 @DirtiesContext
 @ResourceLock(value = "kinesis-binder", mode = ResourceAccessMode.READ_WRITE)
 public class KinesisBinderFunctionalTests implements LocalstackContainerTest {
+
+	@DynamicPropertySource
+	static void awsProperties(DynamicPropertyRegistry registry) {
+		LocalstackContainerTest.registerAwsProperties(registry);
+	}
 
 	static final String KINESIS_STREAM = "test_stream";
 

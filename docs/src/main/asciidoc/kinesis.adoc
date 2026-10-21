@@ -470,7 +470,9 @@ The `spring-cloud-aws-starter-kinesis` starter is the entry point for the standa
 </dependency>
 ----
 
-The Spring Integration dependency in the `spring-cloud-aws-kinesis` module is `optional` to avoid unnecessary artifacts on the classpath when Spring Integration is not used.
+The Spring Integration, Kinesis Producer Library and DynamoDB Streams Kinesis Adapter dependencies in the `spring-cloud-aws-kinesis` module are `optional` to avoid unnecessary artifacts on the classpath when they are not used.
+All starters are configured by the same `KinesisAutoConfiguration` and share the `spring.cloud.aws.kinesis.*` properties.
 For convenience, a dedicated `spring-cloud-aws-starter-integration-kinesis` is provided, managing all the required dependencies for Spring Integration support with a classical Amazon Kinesis client.
 The `spring-cloud-aws-starter-integration-kinesis-producer` artifact is dedicated for dependencies related to the Kinesis Producer Library.
 The `spring-cloud-aws-starter-integration-kinesis-client` artifact is dedicated for dependencies related to the Kinesis Client Library.
+The `spring-cloud-aws-starter-stream-kinesis` artifact brings the Spring Cloud Stream Kinesis binder, see <<spring-cloud-aws-kinesis-stream-binder>>.

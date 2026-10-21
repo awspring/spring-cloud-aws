@@ -6,15 +6,18 @@ It contains information about its design, usage and configuration options, as we
 
 == Usage
 
-For using Spring Cloud Stream with AWS Kinesis, the dedicated dependency for Kinesis Binder has to be added to the target project:
+For using Spring Cloud Stream with AWS Kinesis, the dedicated starter for Kinesis Binder has to be added to the target project:
 
 [source,xml]
 ----
 <dependency>
     <groupId>io.awspring.cloud</groupId>
-    <artifactId>spring-cloud-aws-kinesis-stream-binder</artifactId>
+    <artifactId>spring-cloud-aws-starter-stream-kinesis</artifactId>
 </dependency>
 ----
+
+The binder is configured by `KinesisAutoConfiguration`, the same auto-configuration used for `@KclListener` and `KinesisTemplate`.
+The `KinesisAsyncClient`, `DynamoDbAsyncClient`, `CloudWatchAsyncClient` and `DynamoDbStreamsClient` used by the binder are configured with the `spring.cloud.aws.kinesis.*` properties and can be overridden by declaring beans of these types.
 
 == Kinesis binder overview
 

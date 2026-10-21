@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.awspring.cloud.kinesis.stream.binder.observation;
+package io.awspring.cloud.autoconfigure.kinesis.binder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -21,7 +21,6 @@ import static org.awaitility.Awaitility.await;
 import brave.handler.SpanHandler;
 import brave.test.TestSpanHandler;
 import io.awspring.cloud.kinesis.integration.KinesisHeaders;
-import io.awspring.cloud.kinesis.stream.binder.LocalstackContainerTest;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.brave.bridge.BraveFinishedSpan;
 import io.micrometer.tracing.test.simple.SpansAssert;
@@ -53,6 +52,8 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.GenericMessage;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import reactor.core.publisher.Flux;
 
 /**
@@ -74,6 +75,11 @@ import reactor.core.publisher.Flux;
 @DirtiesContext
 @ResourceLock(value = "kinesis-binder", mode = ResourceAccessMode.READ)
 public class KinesisBinderObservationTests implements LocalstackContainerTest {
+
+	@DynamicPropertySource
+	static void awsProperties(DynamicPropertyRegistry registry) {
+		LocalstackContainerTest.registerAwsProperties(registry);
+	}
 
 	private static final Log LOGGER = LogFactory.getLog(KinesisBinderObservationTests.class);
 
