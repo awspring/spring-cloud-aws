@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.Map;
@@ -39,9 +40,16 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
  * @author Alain Sahli
  * @author Maciej Walkowiak
  * @author Yuki Yoshida
+ * @author Sharang Gupta
  * @since 3.0
  */
 public class S3Resource extends AbstractResource implements WritableResource {
+
+	/**
+	 * Object key used only to build a bucket URL with {@link S3Client#utilities()}, which rejects blank keys. The
+	 * object is never requested.
+	 */
+	private static final String BUCKET_URL_PLACEHOLDER_KEY = "placeholder";
 
 	protected final Location location;
 
@@ -84,11 +92,28 @@ public class S3Resource extends AbstractResource implements WritableResource {
 	@Override
 	public URL getURL() throws IOException {
 		if (!StringUtils.hasText(this.location.getObject())) {
-			return new URL("https", location.getBucket() + ".s3.amazonaws.com", "/");
+			return getBucketUrl();
 		}
 		GetUrlRequest getUrlRequest = GetUrlRequest.builder().bucket(this.getLocation().getBucket())
 				.key(this.location.getObject()).versionId(this.location.getVersion()).build();
 		return s3Client.utilities().getUrl(getUrlRequest);
+	}
+
+	/**
+	 * Resolves the bucket URL against the URL of an object in the bucket, since
+	 * {@link software.amazon.awssdk.services.s3.S3Utilities} only builds object URLs. This keeps the endpoint, region
+	 * and addressing style of the configured {@link S3Client}.
+	 */
+	private URL getBucketUrl() throws IOException {
+		URL objectUrl = s3Client.utilities()
+				.getUrl(GetUrlRequest.builder().bucket(location.getBucket()).key(BUCKET_URL_PLACEHOLDER_KEY).build());
+		try {
+			return objectUrl.toURI().resolve(".").toURL();
+		}
+		catch (URISyntaxException ex) {
+			throw new IOException("Could not resolve the URL of bucket " + location.getBucket() + " from " + objectUrl,
+					ex);
+		}
 	}
 
 	@Override
