@@ -60,7 +60,13 @@ public class SnsHeaderConverterUtil {
 			}
 
 			if (MessageHeaders.CONTENT_TYPE.equals(messageHeaderName) && messageHeaderValue != null) {
-				messageAttributes.put(messageHeaderName, getContentTypeMessageAttribute(messageHeaderValue));
+				MessageAttributeValue contentType = getContentTypeMessageAttribute(messageHeaderValue);
+				if (contentType != null) {
+					messageAttributes.put(messageHeaderName, contentType);
+				}
+				else {
+					logUnsupportedHeader(messageHeaderName, messageHeaderValue);
+				}
 			}
 			else if (MessageHeaders.ID.equals(messageHeaderName) && messageHeaderValue != null) {
 				messageAttributes.put(messageHeaderName, getStringMessageAttribute(messageHeaderValue.toString()));
@@ -81,14 +87,18 @@ public class SnsHeaderConverterUtil {
 				messageAttributes.put(messageHeaderName, getStringArrayMessageAttribute((List<?>) messageHeaderValue));
 			}
 			else {
-				logger.warn(String.format(
-						"Message header with name '%s' and type '%s' cannot be sent as"
-								+ " message attribute because it is not supported by SNS.",
-						messageHeaderName, messageHeaderValue != null ? messageHeaderValue.getClass().getName() : ""));
+				logUnsupportedHeader(messageHeaderName, messageHeaderValue);
 			}
 		}
 
 		return messageAttributes;
+	}
+
+	private static void logUnsupportedHeader(String messageHeaderName, @Nullable Object messageHeaderValue) {
+		logger.warn(String.format(
+				"Message header with name '%s' and type '%s' cannot be sent as"
+						+ " message attribute because it is not supported by SNS.",
+				messageHeaderName, messageHeaderValue != null ? messageHeaderValue.getClass().getName() : ""));
 	}
 
 	private static boolean isSkipHeader(String headerName) {
