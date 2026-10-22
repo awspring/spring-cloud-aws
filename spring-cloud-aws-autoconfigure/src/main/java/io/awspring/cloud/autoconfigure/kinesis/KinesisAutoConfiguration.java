@@ -182,7 +182,7 @@ public class KinesisAutoConfiguration {
 	 * Registers the default mappings for {@code spring.cloud.stream.kinesis.default} in the main application context
 	 * when the Spring Cloud Stream Kinesis binder is on the classpath.
 	 */
-	@Configuration(proxyBeanMethods = false)
+	@Configuration
 	@ConditionalOnClass({ KinesisMessageChannelBinder.class, MappingsProvider.class })
 	static class KinesisBinderMappingsConfiguration {
 
@@ -199,7 +199,7 @@ public class KinesisAutoConfiguration {
 	 * {@code spring-cloud-aws-starter-stream-kinesis} and only applied in the binder child context, where AWS clients
 	 * are resolved from the parent (main) application context.
 	 */
-	@Configuration(proxyBeanMethods = false)
+	@Configuration
 	@ConditionalOnClass(KinesisMessageChannelBinder.class)
 	@Conditional(OnBinderChildContextCondition.class)
 	@EnableConfigurationProperties({ KinesisBinderConfigurationProperties.class,
@@ -310,7 +310,7 @@ public class KinesisAutoConfiguration {
 			return binder;
 		}
 
-		@Configuration(proxyBeanMethods = false)
+		@Configuration
 		@ConditionalOnClass(HealthIndicator.class)
 		@ConditionalOnEnabledHealthIndicator("binders")
 		static class KinesisBinderHealthIndicatorConfiguration {
