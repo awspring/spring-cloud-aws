@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -207,7 +206,7 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 			return s3ObjectKeyMatchesS3KeyPattern;
 		}).peek(s3Object -> LOGGER.debug("Resolved key: {} based on pattern: {}", s3Object.key(), s3KeyPattern))
 				.map(s3Object -> getResource(S3_PROTOCOL_PREFIX + s3BucketName + "/" + s3Object.key()))
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	/**
@@ -259,7 +258,7 @@ public class S3PathMatchingResourcePatternResolver implements ResourcePatternRes
 					bucketNameMatchesBucketPattern);
 			return bucketNameMatchesBucketPattern;
 		}).peek(name -> LOGGER.debug("Resolved bucket name: {} based on pattern: {}", name, bucketPattern))
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	/**
