@@ -93,6 +93,7 @@ import software.amazon.kinesis.producer.KinesisProducerConfiguration;
  * @author Asiel Caballero
  * @author Dmytro Danilenkov
  * @author Minkyu Moon
+ * @author Jeongkyun An
  *
  * @since 4.0
  */
@@ -336,6 +337,7 @@ public class KinesisMessageChannelBinder extends
 		adapter.registerObservationRegistry(this.observationRegistry);
 		adapter.setBeanFactory(getBeanFactory());
 		adapter.setComponentName(String.format("Consumer for [%s]", destination.getName()));
+		adapter.setSendTimeout(properties.getExtension().getSendTimeout());
 
 		return adapter;
 	}

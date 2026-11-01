@@ -29,6 +29,7 @@ import software.amazon.kinesis.retrieval.polling.PollingConfig;
  * @author Arnaud Lecollaire
  * @author Dmytro Danilenkov
  * @author Minkyu Moon
+ * @author Jeongkyun An
  *
  * @since 4.0
  */
@@ -98,6 +99,12 @@ public class KinesisConsumerProperties {
 	 * The {@link MetricsLevel} for emitting (or not) metrics into Cloud Watch.
 	 */
 	private MetricsLevel metricsLevel = MetricsLevel.DETAILED;
+
+	/**
+	 * Timeout, in milliseconds, to wait for a record to be accepted by the output channel. A negative value waits
+	 * indefinitely, which lets a non-draining channel block the shard's processing thread forever.
+	 */
+	private long sendTimeout = -1;
 
 	public int getStartTimeout() {
 		return this.startTimeout;
@@ -241,6 +248,14 @@ public class KinesisConsumerProperties {
 
 	public void setGracefulShutdownTimeout(long gracefulShutdownTimeout) {
 		this.gracefulShutdownTimeout = gracefulShutdownTimeout;
+	}
+
+	public long getSendTimeout() {
+		return this.sendTimeout;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	public boolean isDynamoDbStreams() {
