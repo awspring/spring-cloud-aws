@@ -136,6 +136,23 @@ before any other BOM dependency that configures AWS SDK dependencies.
 </dependencyManagement>
 ----
 
+Spring Cloud AWS also manages the version of the AWS Common Runtime (`software.amazon.awssdk.crt:aws-crt`) used by the CRT-based clients, aligned with the AWS SDK version it ships with.
+The AWS SDK BOM does not manage `aws-crt`, so when you override the AWS SDK version and use CRT-based clients, also declare the `aws-crt` version that matches your AWS SDK version
+(the `awscrt.version` property of `software.amazon.awssdk:aws-sdk-java-pom`):
+
+[source,xml,indent=0]
+----
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+            <groupId>software.amazon.awssdk.crt</groupId>
+            <artifactId>aws-crt</artifactId>
+            <version>${aws-crt.version}</version>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+----
+
 include::core.adoc[]
 
 include::dynamodb.adoc[]
