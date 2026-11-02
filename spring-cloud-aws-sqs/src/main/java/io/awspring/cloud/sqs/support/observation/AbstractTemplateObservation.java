@@ -143,7 +143,7 @@ public abstract class AbstractTemplateObservation {
 		@Override
 		@NonNull
 		public KeyName[] getHighCardinalityKeyNames() {
-			return KeyName.merge(AbstractTemplateObservation.Documentation.LowCardinalityTags.values(),
+			return KeyName.merge(AbstractTemplateObservation.Documentation.HighCardinalityTags.values(),
 					getSpecificHighCardinalityKeyNames());
 		}
 
