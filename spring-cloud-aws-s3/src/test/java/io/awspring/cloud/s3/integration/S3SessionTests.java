@@ -25,7 +25,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 /**
  * An Amazon S3 {@link Session} implementation tests.
  * @author Karol Kosiacki
- * @since 4.0
+ * 
  */
 public class S3SessionTests implements LocalstackContainerTest {
 
