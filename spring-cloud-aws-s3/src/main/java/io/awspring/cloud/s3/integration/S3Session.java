@@ -47,6 +47,7 @@ import software.amazon.awssdk.utils.IoUtils;
  * @author Anwar Chirakkattil
  * @author Xavier François
  * @author Rogerio Lino
+ * @author Karol Kosiacki
  *
  * @since 4.0
  */
