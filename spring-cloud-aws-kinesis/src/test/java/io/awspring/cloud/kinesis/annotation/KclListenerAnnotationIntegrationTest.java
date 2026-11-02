@@ -40,7 +40,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 class KclListenerAnnotationIntegrationTest implements LocalstackContainerTest {
 

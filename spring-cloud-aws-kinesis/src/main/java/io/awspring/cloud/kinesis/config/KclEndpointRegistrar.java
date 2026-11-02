@@ -26,7 +26,7 @@ import org.springframework.validation.Validator;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public class KclEndpointRegistrar {
 
@@ -35,6 +35,25 @@ public class KclEndpointRegistrar {
 
 	@Nullable
 	private Validator validator;
+
+	private String defaultListenerContainerFactoryBeanName = KclBeanNames.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME;
+
+	/**
+	 * Set the name of the {@link MessageListenerContainerFactory} bean used by {@code @KclListener} methods that do not
+	 * set a {@code factory}. Defaults to {@link KclBeanNames#DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME}. When no
+	 * bean with this name exists, the only {@link MessageListenerContainerFactory} bean (or the {@code @Primary} one)
+	 * is used.
+	 * @param defaultListenerContainerFactoryBeanName the bean name.
+	 */
+	public void setDefaultListenerContainerFactoryBeanName(String defaultListenerContainerFactoryBeanName) {
+		Assert.hasText(defaultListenerContainerFactoryBeanName,
+				"defaultListenerContainerFactoryBeanName must not be empty");
+		this.defaultListenerContainerFactoryBeanName = defaultListenerContainerFactoryBeanName;
+	}
+
+	public String getDefaultListenerContainerFactoryBeanName() {
+		return this.defaultListenerContainerFactoryBeanName;
+	}
 
 	private Consumer<List<MessageConverter>> messageConvertersConsumer = converters -> {
 	};

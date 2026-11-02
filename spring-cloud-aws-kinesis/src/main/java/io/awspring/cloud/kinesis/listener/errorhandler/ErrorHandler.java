@@ -15,15 +15,35 @@
  */
 package io.awspring.cloud.kinesis.listener.errorhandler;
 
-import org.springframework.messaging.Message;
-
 /**
+ * Decides what happens to a record (or batch) whose listener invocation or conversion failed. This is the single
+ * extension point for retry and dead-letter policies: the framework itself never retries a listener and never lets an
+ * exception escape to the Kinesis Client Library, which would silently skip the records.
+ * <p>
+ * The outcome is signalled by how {@link #handle(FailedDelivery)} completes:
+ * <ul>
+ * <li><b>Returns normally</b> - the failure is resolved (for example the retry succeeded, or the record was sent to a
+ * dead-letter destination). Processing continues with the next record and checkpointing proceeds past the failed one
+ * according to the checkpoint mode.</li>
+ * <li><b>Throws</b> - the failure is unresolved. The shard is halted: the remaining records of the batch are not
+ * delivered, no further checkpoint is taken and later batches for the shard are ignored. The records after the last
+ * checkpoint are redelivered once the shard lease is acquired again, after an application restart or when the lease
+ * moves to another worker.</li>
+ * </ul>
+ * Retries are implemented by calling {@link FailedDelivery#retry()}, which re-invokes the listener on the shard thread.
+ * Blocking in the handler blocks only the failed shard, preserving per-shard ordering.
+ *
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 @FunctionalInterface
 public interface ErrorHandler {
 
-	void handle(Message<?> message, Throwable throwable);
+	/**
+	 * Handle a failed delivery.
+	 * @param failedDelivery the failed delivery.
+	 * @throws Exception to leave the failure unresolved and halt the shard.
+	 */
+	void handle(FailedDelivery failedDelivery) throws Exception;
 
 }

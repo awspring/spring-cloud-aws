@@ -26,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
  * {@link io.awspring.cloud.kinesis.support.converter.KinesisMessageConverter}.
  *
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public interface KinesisOperations {
 
@@ -71,19 +71,22 @@ public interface KinesisOperations {
 	CompletableFuture<SendResult> sendAsync(SendRequest request);
 
 	/**
-	 * Sends up to 500 records to the same stream in a single call. Individual records can fail while the call as a
-	 * whole succeeds, so the result reports successful and failed records separately.
+	 * Sends any number of records to the same stream, splitting them into {@code PutRecords} calls of at most 500
+	 * records and 5 MiB each, a conservative size below the current 10 MiB {@code PutRecords} limit, and merging the
+	 * results in request order. Individual records can fail while a call as a whole succeeds, so the result reports
+	 * successful and failed records separately.
 	 * @param streamName the target stream, which every request must target.
 	 * @param requests the records to send.
-	 * @return the successful and failed records of the batch.
+	 * @return the successful and failed records of the batch, in request order.
 	 */
 	BatchSendResult sendBatch(String streamName, List<SendRequest> requests);
 
 	/**
-	 * Asynchronously sends up to 500 records to the same stream in a single call.
+	 * Asynchronously sends any number of records to the same stream, splitting them into {@code PutRecords} calls of at
+	 * most 500 records and 5 MiB each, a conservative size below the current 10 MiB {@code PutRecords} limit.
 	 * @param streamName the target stream, which every request must target.
 	 * @param requests the records to send.
-	 * @return a future completing with the successful and failed records of the batch.
+	 * @return a future completing with the successful and failed records of the batch, in request order.
 	 */
 	CompletableFuture<BatchSendResult> sendBatchAsync(String streamName, List<SendRequest> requests);
 

@@ -23,7 +23,9 @@ import io.awspring.cloud.kinesis.listener.KclMessageListenerContainer;
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointer;
 import io.awspring.cloud.kinesis.operations.KinesisOperations;
+import io.awspring.cloud.kinesis.support.converter.KinesisMessageConverter;
 import io.awspring.cloud.kinesis.support.converter.KinesisMessageHeaders;
+import io.awspring.cloud.kinesis.support.converter.KinesisMessagingMessageConverter;
 import io.awspring.cloud.kinesis.support.resolver.BatchMessagesArgumentResolver;
 import io.awspring.cloud.kinesis.support.resolver.CheckpointerArgumentResolver;
 import java.lang.reflect.Method;
@@ -54,7 +56,7 @@ import software.amazon.kinesis.common.InitialPositionInStream;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 class KclMessageListenerContainerFactoryTests {
 
@@ -124,6 +126,34 @@ class KclMessageListenerContainerFactoryTests {
 				.createContainer(endpoint(new RecordingListener(), "handle", String.class, String.class));
 
 		assertThat(container.getCheckpointMode()).isEqualTo(KclCheckpointMode.RECORD);
+	}
+
+	@Test
+	@DisplayName("each configure call adds to the previous ones instead of replacing them")
+	void configureCallsAccumulate() throws Exception {
+		this.factory.configure(options -> options.autoStartup(false).checkpointRecordCount(300));
+		this.factory.configure(options -> options.checkpointRecordCount(500));
+
+		KclMessageListenerContainer container = (KclMessageListenerContainer) this.factory
+				.createContainer(endpoint(new RecordingListener(), "handle", String.class, String.class));
+
+		assertThat(container.isAutoStartup()).isFalse();
+		assertThat(container.getContainerOptions().getCheckpointRecordCount()).isEqualTo(500L);
+	}
+
+	@Test
+	@DisplayName("containers use the message converter configured on the factory options, or the default one")
+	void appliesConfiguredMessageConverter() throws Exception {
+		KclMessageListenerContainer defaultContainer = (KclMessageListenerContainer) this.factory
+				.createContainer(endpoint(new RecordingListener(), "handle", String.class, String.class));
+		KinesisMessageConverter converter = mock(KinesisMessageConverter.class);
+		this.factory.configure(options -> options.messageConverter(converter));
+
+		KclMessageListenerContainer container = (KclMessageListenerContainer) this.factory
+				.createContainer(endpoint(new RecordingListener(), "handle", String.class, String.class));
+
+		assertThat(defaultContainer.getMessageConverter()).isInstanceOf(KinesisMessagingMessageConverter.class);
+		assertThat(container.getMessageConverter()).isSameAs(converter);
 	}
 
 	@Test
@@ -266,6 +296,18 @@ class KclMessageListenerContainerFactoryTests {
 				.onMessage(MessageBuilder.withPayload("hi".getBytes(StandardCharsets.UTF_8)).build());
 
 		verify(operations).send("out", "HI");
+	}
+
+	@Test
+	@DisplayName("a reply stream without a KinesisOperations fails container creation naming the endpoint and the fix")
+	void replyStreamWithoutOperationsFailsContainerCreation() throws Exception {
+		KclListenerEndpoint endpoint = endpointBuilder(new RecordingListener(), "transform", String.class)
+				.replyStream("out").build();
+		endpoint.setHandlerMethodFactory(handlerMethodFactory());
+
+		org.assertj.core.api.Assertions.assertThatThrownBy(() -> this.factory.createContainer(endpoint))
+				.isInstanceOf(IllegalStateException.class).hasMessageContaining(endpoint.getId())
+				.hasMessageContaining("reply stream").hasMessageContaining("setKinesisOperations");
 	}
 
 	private KclListenerEndpoint.Builder endpointBuilder(Object bean, String methodName, Class<?>... parameterTypes)

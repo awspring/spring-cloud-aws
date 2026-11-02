@@ -18,6 +18,7 @@ package io.awspring.cloud.kinesis.listener;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.awspring.cloud.kinesis.support.converter.KinesisMessagingMessageConverter;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +28,7 @@ import software.amazon.kinesis.common.InitialPositionInStream;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 class KclContainerOptionsTests {
 
@@ -101,18 +102,56 @@ class KclContainerOptionsTests {
 	}
 
 	@Test
+	@DisplayName("the halted shard release delay is unset by default and configurable")
+	void configuresHaltedShardReleaseDelay() {
+		assertThat(KclContainerOptions.builder().build().getHaltedShardReleaseDelay()).isNull();
+		assertThat(KclContainerOptions.builder().haltedShardReleaseDelay(Duration.ofSeconds(30)).build()
+				.getHaltedShardReleaseDelay()).isEqualTo(Duration.ofSeconds(30));
+		assertThat(KclContainerOptions.builder().haltedShardReleaseDelay(Duration.ofSeconds(30))
+				.haltedShardReleaseDelay(null).build().getHaltedShardReleaseDelay()).isNull();
+	}
+
+	@Test
+	@DisplayName("a negative halted shard release delay is rejected")
+	void rejectsNegativeHaltedShardReleaseDelay() {
+		assertThatThrownBy(() -> KclContainerOptions.builder().haltedShardReleaseDelay(Duration.ofSeconds(-1)))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("haltedShardReleaseDelay");
+	}
+
+	@Test
+	@DisplayName("a zero halted shard release delay is rejected")
+	void rejectsZeroHaltedShardReleaseDelay() {
+		assertThatThrownBy(() -> KclContainerOptions.builder().haltedShardReleaseDelay(Duration.ZERO))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("haltedShardReleaseDelay");
+	}
+
+	@Test
+	@DisplayName("the message converter is unset by default and configurable")
+	void configuresMessageConverter() {
+		KinesisMessagingMessageConverter converter = new KinesisMessagingMessageConverter();
+
+		assertThat(KclContainerOptions.builder().build().getMessageConverter()).isNull();
+		assertThat(KclContainerOptions.builder().messageConverter(converter).build().getMessageConverter())
+				.isSameAs(converter);
+	}
+
+	@Test
 	@DisplayName("toBuilder copies all values and allows selective mutation")
 	void toBuilderCopiesAndMutates() {
+		KinesisMessagingMessageConverter converter = new KinesisMessagingMessageConverter();
 		KclContainerOptions original = KclContainerOptions.builder().maxRecords(500).autoStartup(false).phase(7)
-				.metricsNamespace("ns").workerIdentifier("worker-1").build();
+				.metricsNamespace("ns").workerIdentifier("worker-1").messageConverter(converter)
+				.haltedShardReleaseDelay(Duration.ofSeconds(45)).build();
 
 		KclContainerOptions copy = original.toBuilder().maxRecords(999).build();
 
+		assertThat(copy.getMessageConverter()).isSameAs(converter);
 		assertThat(copy.getMaxRecords()).isEqualTo(999);
 		assertThat(copy.isAutoStartup()).isFalse();
 		assertThat(copy.getPhase()).isEqualTo(7);
 		assertThat(copy.getMetricsNamespace()).isEqualTo("ns");
 		assertThat(copy.getWorkerIdentifier()).isEqualTo("worker-1");
+		assertThat(copy.getHaltedShardReleaseDelay()).isEqualTo(Duration.ofSeconds(45));
 		assertThat(original.getMaxRecords()).isEqualTo(500);
 	}
 

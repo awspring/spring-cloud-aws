@@ -24,7 +24,7 @@ import org.springframework.core.type.AnnotationMetadata;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public class KclBootstrapConfiguration implements ImportBeanDefinitionRegistrar {
 

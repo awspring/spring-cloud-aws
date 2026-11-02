@@ -24,6 +24,7 @@ import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.dynamodb.DynamoDbLockRegistry;
 import io.awspring.cloud.dynamodb.DynamoDbLockRepository;
 import io.awspring.cloud.dynamodb.DynamoDbMetadataStore;
+import io.awspring.cloud.kinesis.config.KclBeanNames;
 import io.awspring.cloud.kinesis.config.KclBootstrapConfiguration;
 import io.awspring.cloud.kinesis.config.KclMessageListenerContainerFactory;
 import io.awspring.cloud.kinesis.listener.KclContainerOptions;
@@ -35,6 +36,11 @@ import io.awspring.cloud.kinesis.stream.binder.KinesisMessageChannelBinder;
 import io.awspring.cloud.kinesis.stream.binder.properties.KinesisBinderConfigurationProperties;
 import io.awspring.cloud.kinesis.stream.binder.properties.KinesisExtendedBindingProperties;
 import io.awspring.cloud.kinesis.stream.binder.provisioning.KinesisStreamProvisioner;
+import io.awspring.cloud.kinesis.support.converter.EmbeddedHeadersKinesisMessageConverter;
+import io.awspring.cloud.kinesis.support.converter.KinesisMessageConverter;
+import io.awspring.cloud.kinesis.support.converter.KinesisMessagingMessageConverter;
+import io.awspring.cloud.kinesis.support.observation.KclListenerObservation;
+import io.awspring.cloud.kinesis.support.observation.KinesisTemplateObservation;
 import io.micrometer.observation.ObservationRegistry;
 import java.util.Map;
 import org.springframework.beans.factory.BeanFactory;
@@ -58,6 +64,7 @@ import org.springframework.cloud.stream.binder.BinderFactory;
 import org.springframework.cloud.stream.config.BindingHandlerAdvise.MappingsProvider;
 import org.springframework.cloud.stream.config.ConsumerEndpointCustomizer;
 import org.springframework.cloud.stream.config.ProducerMessageHandlerCustomizer;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
@@ -67,6 +74,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
+import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.util.MimeTypeUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -87,7 +95,7 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Artem Bilan
  * @author Arnaud Lecollaire
  * @author Asiel Caballero
- * @since 4.2.0
+ * @since 4.3.0
  */
 @AutoConfiguration
 @ConditionalOnClass({ KinesisAsyncClient.class, KclBootstrapConfiguration.class })
@@ -140,20 +148,41 @@ public class KinesisAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public KinesisTemplate kinesisTemplate(KinesisAsyncClient kinesisAsyncClient,
-			ObjectProvider<JsonMapper> jsonMapperProvider) {
-		return new KinesisTemplate(kinesisAsyncClient, jsonMapperProvider.getIfAvailable(JsonMapper::new));
+			ObjectProvider<JsonMapper> jsonMapperProvider, ObjectProvider<KinesisMessageConverter> messageConverter,
+			ObjectProvider<ObservationRegistry> observationRegistry,
+			ObjectProvider<KinesisTemplateObservation.Convention> observationConvention) {
+		KinesisMessageConverter converter = messageConverter.getIfUnique();
+		KinesisTemplate template = converter != null ? new KinesisTemplate(kinesisAsyncClient, converter)
+				: new KinesisTemplate(kinesisAsyncClient, jsonMapperProvider.getIfAvailable(JsonMapper::new));
+		if (this.properties.isObservationEnabled()) {
+			observationRegistry.ifAvailable(template::setObservationRegistry);
+			observationConvention.ifAvailable(template::setObservationConvention);
+		}
+		return template;
 	}
 
 	@ConditionalOnMissingBean
-	@Bean
+	@Bean(KclBeanNames.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME)
 	public KclMessageListenerContainerFactory defaultKclListenerContainerFactory(KinesisAsyncClient kinesisAsyncClient,
 			DynamoDbAsyncClient dynamoDbAsyncClient, CloudWatchAsyncClient cloudWatchAsyncClient,
-			ObjectProvider<ErrorHandler> errorHandler, ObjectProvider<KinesisOperations> kinesisOperations) {
+			ObjectProvider<ErrorHandler> errorHandler, ObjectProvider<KinesisOperations> kinesisOperations,
+			ObjectProvider<KinesisMessageConverter> messageConverter,
+			ObjectProvider<ObservationRegistry> observationRegistry,
+			ObjectProvider<KclListenerObservation.Convention> listenerObservationConvention,
+			ApplicationEventPublisher applicationEventPublisher) {
 		KclMessageListenerContainerFactory factory = new KclMessageListenerContainerFactory(kinesisAsyncClient,
 				dynamoDbAsyncClient, cloudWatchAsyncClient);
 		factory.configure(this::configureContainerOptions);
+		messageConverter.ifUnique(converter -> factory.configure(options -> options.messageConverter(converter)));
+		if (this.properties.isObservationEnabled()) {
+			observationRegistry
+					.ifAvailable(registry -> factory.configure(options -> options.observationRegistry(registry)));
+			listenerObservationConvention
+					.ifAvailable(convention -> factory.configure(options -> options.observationConvention(convention)));
+		}
 		errorHandler.ifUnique(factory::setErrorHandler);
 		kinesisOperations.ifUnique(factory::setKinesisOperations);
+		factory.setApplicationEventPublisher(applicationEventPublisher);
 		return factory;
 	}
 
@@ -165,6 +194,7 @@ public class KinesisAutoConfiguration {
 				.to(duration -> options.idleTimeBetweenReadsInMillis(duration.toMillis()));
 		mapper.from(listener.getRetrievalMode()).to(options::retrievalMode);
 		mapper.from(listener.getCheckpointMode()).to(options::checkpointMode);
+		mapper.from(listener.getHaltedShardReleaseDelay()).to(options::haltedShardReleaseDelay);
 		mapper.from(listener.getInitialPosition()).to(options::initialPositionInStream);
 		mapper.from(listener.getGracefulShutdownTimeout()).to(options::gracefulShutdownTimeout);
 		mapper.from(listener.getCheckpointRecordCount()).to(options::checkpointRecordCount);
@@ -176,6 +206,29 @@ public class KinesisAutoConfiguration {
 		mapper.from(listener.getInitialPositionTimestamp()).to(options::initialPositionTimestamp);
 		mapper.from(listener.getBillingMode()).to(options::billingMode);
 		mapper.from(listener.getContentType()).as(MimeTypeUtils::parseMimeType).to(options::payloadContentType);
+	}
+
+	/**
+	 * Registers an {@link EmbeddedHeadersKinesisMessageConverter} as the unique {@link KinesisMessageConverter} when
+	 * {@code spring.cloud.aws.kinesis.embedded-headers} is {@code true} and Spring Integration's
+	 * {@code EmbeddedJsonHeadersMessageMapper} is on the classpath. It is a separate class conditional on that mapper
+	 * so that {@link KinesisAutoConfiguration} never loads Spring Integration.
+	 */
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnClass(EmbeddedJsonHeadersMessageMapper.class)
+	@ConditionalOnProperty(name = "spring.cloud.aws.kinesis.embedded-headers", havingValue = "true")
+	static class EmbeddedHeadersConfiguration {
+
+		@Bean
+		@ConditionalOnMissingBean(KinesisMessageConverter.class)
+		EmbeddedHeadersKinesisMessageConverter embeddedHeadersKinesisMessageConverter(
+				ObjectProvider<JsonMapper> jsonMapperProvider) {
+			KinesisMessagingMessageConverter delegate = new KinesisMessagingMessageConverter();
+			delegate.setPayloadMessageConverter(KinesisMessagingMessageConverter
+					.defaultPayloadMessageConverter(jsonMapperProvider.getIfAvailable(JsonMapper::new)));
+			return new EmbeddedHeadersKinesisMessageConverter(delegate);
+		}
+
 	}
 
 	/**

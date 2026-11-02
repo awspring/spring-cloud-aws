@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 class KinesisConsumerResolverTests {
 

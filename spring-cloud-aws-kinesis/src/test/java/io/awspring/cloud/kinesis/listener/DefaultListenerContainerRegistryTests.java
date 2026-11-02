@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
  * Tests for {@link DefaultListenerContainerRegistry}.
  *
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 class DefaultListenerContainerRegistryTests {
 

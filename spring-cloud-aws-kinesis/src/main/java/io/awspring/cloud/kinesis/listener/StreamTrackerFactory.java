@@ -36,7 +36,7 @@ import software.amazon.kinesis.processor.StreamTracker;
 /**
  *
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 final class StreamTrackerFactory {
 

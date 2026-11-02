@@ -28,7 +28,7 @@ import software.amazon.kinesis.metrics.MetricsLevel;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 @ConfigurationProperties(prefix = KinesisProperties.PREFIX)
 public class KinesisProperties extends AwsClientProperties {
@@ -36,6 +36,34 @@ public class KinesisProperties extends AwsClientProperties {
 	public static final String PREFIX = "spring.cloud.aws.kinesis";
 
 	private Listener listener = new Listener();
+
+	/**
+	 * Whether {@code KinesisTemplate} send operations are recorded as Micrometer observations.
+	 */
+	private boolean observationEnabled = false;
+
+	/**
+	 * Whether records are read and written with headers embedded in the record data in the
+	 * {@code EmbeddedJsonHeadersMessageMapper} format used by the Kinesis binder and the Spring Integration
+	 * {@code KinesisMessageHandler}. Requires {@code spring-integration-core} on the classpath.
+	 */
+	private boolean embeddedHeaders = false;
+
+	public boolean isObservationEnabled() {
+		return this.observationEnabled;
+	}
+
+	public void setObservationEnabled(boolean observationEnabled) {
+		this.observationEnabled = observationEnabled;
+	}
+
+	public boolean isEmbeddedHeaders() {
+		return this.embeddedHeaders;
+	}
+
+	public void setEmbeddedHeaders(boolean embeddedHeaders) {
+		this.embeddedHeaders = embeddedHeaders;
+	}
 
 	public Listener getListener() {
 		return this.listener;
@@ -58,6 +86,9 @@ public class KinesisProperties extends AwsClientProperties {
 
 		@Nullable
 		private KclCheckpointMode checkpointMode;
+
+		@Nullable
+		private Duration haltedShardReleaseDelay;
 
 		@Nullable
 		private InitialPositionInStream initialPosition;
@@ -126,6 +157,21 @@ public class KinesisProperties extends AwsClientProperties {
 
 		public void setCheckpointMode(KclCheckpointMode checkpointMode) {
 			this.checkpointMode = checkpointMode;
+		}
+
+		/**
+		 * How long after a shard halts the container gives up its lease so the shard is reprocessed from its last
+		 * checkpoint without a restart. Unset by default, which keeps the lease and the shard halted until a restart or
+		 * a lease move.
+		 * @return the release delay, or {@code null} if releasing is disabled.
+		 */
+		@Nullable
+		public Duration getHaltedShardReleaseDelay() {
+			return this.haltedShardReleaseDelay;
+		}
+
+		public void setHaltedShardReleaseDelay(Duration haltedShardReleaseDelay) {
+			this.haltedShardReleaseDelay = haltedShardReleaseDelay;
 		}
 
 		@Nullable

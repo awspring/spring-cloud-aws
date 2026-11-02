@@ -32,7 +32,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
  * Properties in this annotation support property placeholders ({@code "${...}"}) and SpEL ({@code "#{...}"}).
  *
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
@@ -69,10 +69,13 @@ public @interface KclListener {
 	String[] streamNames() default {};
 
 	/**
-	 * The KCL application name used for lease coordination. Defaults to the container id when not set.
+	 * The KCL application name used for lease coordination. Required: it names the DynamoDB lease table (unless
+	 * {@link #leaseTableName()} is set), the KCL coordinator and worker metrics tables, the default enhanced fan-out
+	 * consumer and the default CloudWatch namespace, so it must be stable across deployments and unique per listener.
+	 * Must resolve to a valid DynamoDB table name ({@code [a-zA-Z0-9_.-]}, 3-255 characters).
 	 * @return the application name.
 	 */
-	String applicationName() default "";
+	String applicationName();
 
 	/**
 	 * The {@link io.awspring.cloud.kinesis.config.MessageListenerContainerFactory} bean name to be used to process this

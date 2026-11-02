@@ -30,7 +30,7 @@ import software.amazon.kinesis.retrieval.polling.PollingConfig;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 class KclRetrievalConfigurerTests {
 

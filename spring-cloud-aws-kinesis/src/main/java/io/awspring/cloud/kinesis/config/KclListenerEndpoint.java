@@ -33,7 +33,7 @@ import software.amazon.kinesis.common.InitialPositionInStream;
  * {@link io.awspring.cloud.kinesis.annotation.KclListener} annotated method.
  *
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 

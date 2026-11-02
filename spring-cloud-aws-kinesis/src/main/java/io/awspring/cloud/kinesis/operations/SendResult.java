@@ -18,7 +18,7 @@ package io.awspring.cloud.kinesis.operations;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public record SendResult(String sequenceNumber, String shardId) {
 }

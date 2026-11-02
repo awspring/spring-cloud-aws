@@ -49,6 +49,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.config.BeanExpressionContext;
 import org.springframework.beans.factory.config.BeanExpressionResolver;
@@ -74,7 +76,7 @@ import software.amazon.kinesis.common.InitialPositionInStream;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public class KclListenerAnnotationBeanPostProcessor
 		implements BeanPostProcessor, BeanFactoryAware, SmartInitializingSingleton {
@@ -131,7 +133,8 @@ public class KclListenerAnnotationBeanPostProcessor
 		MessageListenerContainerRegistry registry = getBeanFactory().getBean(MessageListenerContainerRegistry.class);
 		for (KclListenerEndpoint endpoint : this.endpoints) {
 			endpoint.setHandlerMethodFactory(handlerMethodFactory);
-			MessageListenerContainer container = resolveContainerFactory(endpoint).createContainer(endpoint);
+			MessageListenerContainer container = resolveContainerFactory(endpoint,
+					registrar.getDefaultListenerContainerFactoryBeanName()).createContainer(endpoint);
 			registry.registerListenerContainer(container);
 			logger.info("Registered @KclListener container '{}' for stream '{}'", container.getId(),
 					endpoint.getStreamNames());
@@ -141,9 +144,7 @@ public class KclListenerAnnotationBeanPostProcessor
 	private KclListenerEndpoint createEndpoint(Object bean, Method method, KclListener annotation) {
 		String id = getEndpointId(annotation.id());
 		Collection<String> streamNames = resolveEndpointNames(annotation.streamNames());
-		String applicationName = StringUtils.hasText(annotation.applicationName())
-				? resolveRequired(annotation.applicationName(), "applicationName")
-				: id;
+		String applicationName = resolveRequired(annotation.applicationName(), "applicationName");
 		String factory = resolve(annotation.factory());
 		String factoryBeanName = StringUtils.hasText(factory) ? factory : null;
 		Method invocableMethod = MethodIntrospector.selectInvocableMethod(method, bean.getClass());
@@ -232,12 +233,35 @@ public class KclListenerAnnotationBeanPostProcessor
 		return resolve(sendTo.value()[0]);
 	}
 
-	private MessageListenerContainerFactory resolveContainerFactory(KclListenerEndpoint endpoint) {
+	/**
+	 * Resolves the factory of an endpoint: the bean named by its {@code factory} attribute, otherwise the bean with the
+	 * registrar's default factory name, otherwise the only (or {@code @Primary})
+	 * {@link MessageListenerContainerFactory} bean.
+	 */
+	private MessageListenerContainerFactory resolveContainerFactory(KclListenerEndpoint endpoint,
+			String defaultFactoryBeanName) {
+		BeanFactory beanFactory = getBeanFactory();
 		String factoryBeanName = endpoint.getFactoryBeanName();
 		if (factoryBeanName != null) {
-			return getBeanFactory().getBean(factoryBeanName, MessageListenerContainerFactory.class);
+			return beanFactory.getBean(factoryBeanName, MessageListenerContainerFactory.class);
 		}
-		return getBeanFactory().getBean(MessageListenerContainerFactory.class);
+		if (beanFactory.containsBean(defaultFactoryBeanName)) {
+			return beanFactory.getBean(defaultFactoryBeanName, MessageListenerContainerFactory.class);
+		}
+		try {
+			return beanFactory.getBean(MessageListenerContainerFactory.class);
+		}
+		catch (NoUniqueBeanDefinitionException ex) {
+			throw new IllegalStateException("@KclListener '" + endpoint.getId() + "' does not set a factory and "
+					+ "there is no bean named '" + defaultFactoryBeanName + "', but several "
+					+ "MessageListenerContainerFactory beans exist " + ex.getBeanNamesFound() + ". Set the factory "
+					+ "attribute, name one of the factories '" + defaultFactoryBeanName + "', mark one @Primary, or "
+					+ "set KclEndpointRegistrar#setDefaultListenerContainerFactoryBeanName", ex);
+		}
+		catch (NoSuchBeanDefinitionException ex) {
+			throw new IllegalStateException("@KclListener '" + endpoint.getId() + "' needs a "
+					+ "MessageListenerContainerFactory bean, but none is defined", ex);
+		}
 	}
 
 	private MessageHandlerMethodFactory resolveHandlerMethodFactory(KclEndpointRegistrar registrar) {

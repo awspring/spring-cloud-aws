@@ -16,6 +16,7 @@
 package io.awspring.cloud.kinesis.support.converter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +25,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.MimeTypeUtils;
 import software.amazon.kinesis.retrieval.KinesisClientRecord;
@@ -90,6 +93,42 @@ class KinesisMessagingMessageConverterTests {
 
 		byte[] raw = { 1, 2, 3 };
 		assertThat(converter.fromMessagingMessage(MessageBuilder.withPayload(raw).build())).isEqualTo(raw);
+	}
+
+	@Test
+	@DisplayName("fromMessagingMessage falls back to the default payload converter when none is set")
+	void fromMessagingMessageUsesDefaultPayloadConverter() {
+		KinesisMessagingMessageConverter converter = new KinesisMessagingMessageConverter();
+
+		assertThat(converter.fromMessagingMessage(MessageBuilder.withPayload("hello").build()))
+				.isEqualTo("hello".getBytes(StandardCharsets.UTF_8));
+		assertThat(new String(converter.fromMessagingMessage(MessageBuilder.withPayload(new Order("o-1")).build()),
+				StandardCharsets.UTF_8)).isEqualTo("{\"id\":\"o-1\"}");
+	}
+
+	@Test
+	@DisplayName("fromMessagingMessage fails with a MessageConversionException when no converter handles the payload")
+	void fromMessagingMessageFailsWhenNoConverterMatches() {
+		KinesisMessagingMessageConverter converter = new KinesisMessagingMessageConverter();
+		converter.setPayloadMessageConverter(new StringMessageConverter());
+
+		assertThatThrownBy(() -> converter.fromMessagingMessage(MessageBuilder.withPayload(42).build()))
+				.isInstanceOf(MessageConversionException.class).hasMessageContaining("java.lang.Integer");
+	}
+
+	@Test
+	@DisplayName("fromMessagingMessage fails with a MessageConversionException when the converter does not produce bytes")
+	void fromMessagingMessageFailsWhenConverterDoesNotProduceBytes() {
+		KinesisMessagingMessageConverter converter = new KinesisMessagingMessageConverter();
+		StringMessageConverter stringConverter = new StringMessageConverter();
+		stringConverter.setSerializedPayloadClass(String.class);
+		converter.setPayloadMessageConverter(stringConverter);
+
+		assertThatThrownBy(() -> converter.fromMessagingMessage(MessageBuilder.withPayload("hello").build()))
+				.isInstanceOf(MessageConversionException.class).hasMessageContaining("byte[]");
+	}
+
+	record Order(String id) {
 	}
 
 	private static byte[] bytes(KinesisClientRecord record) {

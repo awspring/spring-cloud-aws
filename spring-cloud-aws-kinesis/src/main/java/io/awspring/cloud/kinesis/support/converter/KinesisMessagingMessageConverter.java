@@ -24,6 +24,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.ByteArrayMessageConverter;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
@@ -34,7 +35,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public class KinesisMessagingMessageConverter implements KinesisMessageConverter {
 
@@ -44,20 +45,33 @@ public class KinesisMessagingMessageConverter implements KinesisMessageConverter
 	private MimeType contentType;
 
 	@Nullable
-	private MessageConverter payloadMessageConverter;
+	private volatile MessageConverter payloadMessageConverter;
 
 	public void setContentType(@Nullable MimeType contentType) {
 		this.contentType = contentType;
 	}
 
+	/**
+	 * Set the converter serializing payloads to {@code byte[]} in {@link #fromMessagingMessage(Message)}. Defaults to
+	 * {@link #defaultPayloadMessageConverter(JsonMapper)} with a default {@link JsonMapper}.
+	 * @param payloadMessageConverter the converter.
+	 */
 	public void setPayloadMessageConverter(MessageConverter payloadMessageConverter) {
 		Assert.notNull(payloadMessageConverter, "payloadMessageConverter must not be null");
 		this.payloadMessageConverter = payloadMessageConverter;
 	}
 
-	@Nullable
+	/**
+	 * The converter serializing payloads, creating the default one on first use if none was set.
+	 * @return the payload converter.
+	 */
 	public MessageConverter getPayloadMessageConverter() {
-		return this.payloadMessageConverter;
+		MessageConverter converter = this.payloadMessageConverter;
+		if (converter == null) {
+			converter = defaultPayloadMessageConverter(new JsonMapper());
+			this.payloadMessageConverter = converter;
+		}
+		return converter;
 	}
 
 	@Override
@@ -73,11 +87,18 @@ public class KinesisMessagingMessageConverter implements KinesisMessageConverter
 	@Override
 	public byte[] fromMessagingMessage(Message<?> message) {
 		Assert.notNull(message, "message must not be null");
-		Message<?> converted = this.payloadMessageConverter.toMessage(message.getPayload(), message.getHeaders());
+		Object source = message.getPayload();
+		Message<?> converted = getPayloadMessageConverter().toMessage(source, message.getHeaders());
+		if (converted == null) {
+			throw new MessageConversionException(message,
+					"No payload converter could serialize a payload of type " + source.getClass().getName());
+		}
 		Object payload = converted.getPayload();
-		Assert.isInstanceOf(byte[].class, payload,
-				"payloadMessageConverter must produce a byte[] payload but produced " + payload.getClass());
-		return (byte[]) payload;
+		if (!(payload instanceof byte[] bytes)) {
+			throw new MessageConversionException(message, "The payload converter must produce a byte[] payload but "
+					+ "produced " + payload.getClass().getName());
+		}
+		return bytes;
 	}
 
 	public static MessageConverter defaultPayloadMessageConverter(JsonMapper jsonMapper) {

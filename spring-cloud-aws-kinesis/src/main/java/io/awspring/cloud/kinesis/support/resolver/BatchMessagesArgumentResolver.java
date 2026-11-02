@@ -18,9 +18,11 @@ package io.awspring.cloud.kinesis.support.resolver;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.support.MessageBuilder;
@@ -28,7 +30,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public class BatchMessagesArgumentResolver implements HandlerMethodArgumentResolver {
 
@@ -59,24 +61,32 @@ public class BatchMessagesArgumentResolver implements HandlerMethodArgumentResol
 				return messages;
 			}
 			List<Message<?>> converted = new ArrayList<>(messages.size());
+			int index = 0;
 			for (Message<?> element : messages) {
-				converted
-						.add(MessageBuilder.createMessage(convertPayload(element, payloadClass), element.getHeaders()));
+				converted.add(MessageBuilder.createMessage(convertPayload(element, payloadClass, index++),
+						element.getHeaders()));
 			}
 			return converted;
 		}
 		List<Object> converted = new ArrayList<>(messages.size());
+		int index = 0;
 		for (Message<?> element : messages) {
-			converted.add(convertPayload(element, elementClass));
+			converted.add(convertPayload(element, elementClass, index++));
 		}
 		return converted;
 	}
 
-	private Object convertPayload(Message<?> message, Class<?> targetClass) {
+	private Object convertPayload(Message<?> message, Class<?> targetClass, int index) {
 		if (targetClass.isInstance(message.getPayload())) {
 			return message.getPayload();
 		}
-		return this.messageConverter.fromMessage(message, targetClass);
+		@Nullable
+		Object converted = this.messageConverter.fromMessage(message, targetClass);
+		if (converted == null) {
+			throw new MessageConversionException(message, "Failed to convert batch record at index " + index + " to "
+					+ targetClass.getName() + "; the message converter returned null");
+		}
+		return converted;
 	}
 
 }

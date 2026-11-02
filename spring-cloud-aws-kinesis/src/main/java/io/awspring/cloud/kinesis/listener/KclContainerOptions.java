@@ -17,6 +17,9 @@ package io.awspring.cloud.kinesis.listener;
 
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
 import io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode;
+import io.awspring.cloud.kinesis.support.converter.KinesisMessageConverter;
+import io.awspring.cloud.kinesis.support.observation.KclListenerObservation;
+import io.micrometer.observation.ObservationRegistry;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.Duration;
@@ -40,7 +43,7 @@ import software.amazon.kinesis.retrieval.RetrievalConfig;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public final class KclContainerOptions {
 
@@ -61,6 +64,9 @@ public final class KclContainerOptions {
 	private final RetrievalMode retrievalMode;
 
 	private final KclCheckpointMode checkpointMode;
+
+	@Nullable
+	private final Duration haltedShardReleaseDelay;
 
 	private final boolean autoStartup;
 
@@ -89,6 +95,13 @@ public final class KclContainerOptions {
 
 	@Nullable
 	private final MimeType payloadContentType;
+
+	@Nullable
+	private final KinesisMessageConverter messageConverter;
+
+	private final ObservationRegistry observationRegistry;
+
+	private final KclListenerObservation.@Nullable Convention observationConvention;
 
 	@Nullable
 	private final Consumer<CheckpointConfig> checkpointConfigCustomizer;
@@ -121,6 +134,7 @@ public final class KclContainerOptions {
 		this.checkpointInterval = builder.checkpointInterval;
 		this.retrievalMode = builder.retrievalMode;
 		this.checkpointMode = builder.checkpointMode;
+		this.haltedShardReleaseDelay = builder.haltedShardReleaseDelay;
 		this.autoStartup = builder.autoStartup;
 		this.phase = builder.phase;
 		this.metricsLevel = builder.metricsLevel;
@@ -131,6 +145,9 @@ public final class KclContainerOptions {
 		this.leaseTableName = builder.leaseTableName;
 		this.billingMode = builder.billingMode;
 		this.payloadContentType = builder.payloadContentType;
+		this.messageConverter = builder.messageConverter;
+		this.observationRegistry = builder.observationRegistry;
+		this.observationConvention = builder.observationConvention;
 		this.checkpointConfigCustomizer = builder.checkpointConfigCustomizer;
 		this.coordinatorConfigCustomizer = builder.coordinatorConfigCustomizer;
 		this.leaseManagementConfigCustomizer = builder.leaseManagementConfigCustomizer;
@@ -155,6 +172,7 @@ public final class KclContainerOptions {
 		builder.checkpointInterval = this.checkpointInterval;
 		builder.retrievalMode = this.retrievalMode;
 		builder.checkpointMode = this.checkpointMode;
+		builder.haltedShardReleaseDelay = this.haltedShardReleaseDelay;
 		builder.autoStartup = this.autoStartup;
 		builder.phase = this.phase;
 		builder.metricsLevel = this.metricsLevel;
@@ -165,6 +183,9 @@ public final class KclContainerOptions {
 		builder.leaseTableName = this.leaseTableName;
 		builder.billingMode = this.billingMode;
 		builder.payloadContentType = this.payloadContentType;
+		builder.messageConverter = this.messageConverter;
+		builder.observationRegistry = this.observationRegistry;
+		builder.observationConvention = this.observationConvention;
 		builder.checkpointConfigCustomizer = this.checkpointConfigCustomizer;
 		builder.coordinatorConfigCustomizer = this.coordinatorConfigCustomizer;
 		builder.leaseManagementConfigCustomizer = this.leaseManagementConfigCustomizer;
@@ -209,6 +230,17 @@ public final class KclContainerOptions {
 
 	public KclCheckpointMode getCheckpointMode() {
 		return this.checkpointMode;
+	}
+
+	/**
+	 * How long after a shard halts the container releases its lease, so that KCL reassigns the shard and it is
+	 * processed again from its last checkpoint without a restart, or {@code null} to keep the lease (the shard then
+	 * stays halted until the application restarts or the lease moves on its own).
+	 * @return the release delay, or {@code null} if releasing is disabled.
+	 */
+	@Nullable
+	public Duration getHaltedShardReleaseDelay() {
+		return this.haltedShardReleaseDelay;
 	}
 
 	public boolean isAutoStartup() {
@@ -257,6 +289,35 @@ public final class KclContainerOptions {
 	@Nullable
 	public MimeType getPayloadContentType() {
 		return this.payloadContentType;
+	}
+
+	/**
+	 * The converter turning each KCL record into the {@link org.springframework.messaging.Message} handed to the
+	 * listener, or {@code null} for the default
+	 * {@link io.awspring.cloud.kinesis.support.converter.KinesisMessagingMessageConverter}.
+	 * @return the message converter.
+	 */
+	@Nullable
+	public KinesisMessageConverter getMessageConverter() {
+		return this.messageConverter;
+	}
+
+	/**
+	 * The {@link ObservationRegistry} listener invocations are observed with, or {@link ObservationRegistry#NOOP} when
+	 * observation is disabled.
+	 * @return the observation registry.
+	 */
+	public ObservationRegistry getObservationRegistry() {
+		return this.observationRegistry;
+	}
+
+	/**
+	 * The custom {@link KclListenerObservation.Convention} overriding the default observation name and key values, or
+	 * {@code null} to use the default convention.
+	 * @return the observation convention.
+	 */
+	public KclListenerObservation.@Nullable Convention getObservationConvention() {
+		return this.observationConvention;
 	}
 
 	@Nullable
@@ -314,6 +375,9 @@ public final class KclContainerOptions {
 
 		private KclCheckpointMode checkpointMode = KclCheckpointMode.BATCH;
 
+		@Nullable
+		private Duration haltedShardReleaseDelay;
+
 		private boolean autoStartup = true;
 
 		private int phase = SmartLifecycle.DEFAULT_PHASE;
@@ -341,6 +405,13 @@ public final class KclContainerOptions {
 
 		@Nullable
 		private MimeType payloadContentType;
+
+		@Nullable
+		private KinesisMessageConverter messageConverter;
+
+		private ObservationRegistry observationRegistry = ObservationRegistry.NOOP;
+
+		private KclListenerObservation.@Nullable Convention observationConvention;
 
 		@Nullable
 		private Consumer<CheckpointConfig> checkpointConfigCustomizer;
@@ -420,6 +491,26 @@ public final class KclContainerOptions {
 			return this;
 		}
 
+		/**
+		 * Set how long after a shard halts the container gives up the shard's lease, so that KCL reassigns it and the
+		 * shard is processed again from its last checkpoint without restarting the application. The delay also spaces
+		 * out releases of a shard that keeps failing, since each release restarts the processor from the checkpoint
+		 * with fresh state. Defaults to {@code null}: the lease is kept and the shard stays halted until the
+		 * application restarts or the lease moves on its own. When set it must be strictly positive: a zero delay would
+		 * release a shard that keeps failing in a tight loop.
+		 * @param haltedShardReleaseDelay the delay between a halt and the lease release, or {@code null} to disable
+		 *     releasing.
+		 * @return this builder.
+		 */
+		public Builder haltedShardReleaseDelay(@Nullable Duration haltedShardReleaseDelay) {
+			Assert.isTrue(
+					haltedShardReleaseDelay == null
+							|| (!haltedShardReleaseDelay.isNegative() && !haltedShardReleaseDelay.isZero()),
+					"haltedShardReleaseDelay must be positive");
+			this.haltedShardReleaseDelay = haltedShardReleaseDelay;
+			return this;
+		}
+
 		public Builder autoStartup(boolean autoStartup) {
 			this.autoStartup = autoStartup;
 			return this;
@@ -468,8 +559,53 @@ public final class KclContainerOptions {
 			return this;
 		}
 
+		/**
+		 * Set the converter turning each KCL record into the {@link org.springframework.messaging.Message} handed to
+		 * the listener, for example to decompress records or unwrap an envelope. The resulting {@code byte[]} payload
+		 * is then converted to the listener's parameter type by the handler method's message converters. Defaults to
+		 * {@link io.awspring.cloud.kinesis.support.converter.KinesisMessagingMessageConverter}.
+		 * @param messageConverter the message converter.
+		 * @return this builder.
+		 */
+		public Builder messageConverter(KinesisMessageConverter messageConverter) {
+			Assert.notNull(messageConverter, "messageConverter must not be null");
+			this.messageConverter = messageConverter;
+			return this;
+		}
+
+		/**
+		 * Set the content type added to every converted message that has no {@code contentType} header yet, whatever
+		 * converter produced it.
+		 * @param payloadContentType the content type.
+		 * @return this builder.
+		 */
 		public Builder payloadContentType(MimeType payloadContentType) {
 			this.payloadContentType = payloadContentType;
+			return this;
+		}
+
+		/**
+		 * Set the {@link ObservationRegistry} listener invocations are observed with: one observation per record in
+		 * {@link KclListenerMode#SINGLE_RECORD} mode and one per batch in {@link KclListenerMode#BATCH} mode. Defaults
+		 * to {@link ObservationRegistry#NOOP}, which makes observation a no-op.
+		 * @param observationRegistry the registry.
+		 * @return this builder.
+		 */
+		public Builder observationRegistry(ObservationRegistry observationRegistry) {
+			Assert.notNull(observationRegistry, "observationRegistry must not be null");
+			this.observationRegistry = observationRegistry;
+			return this;
+		}
+
+		/**
+		 * Set a custom {@link KclListenerObservation.Convention} overriding the default observation name and key
+		 * values. Defaults to {@code null}, which uses {@link KclListenerObservation.DefaultConvention}.
+		 * @param observationConvention the convention.
+		 * @return this builder.
+		 */
+		public Builder observationConvention(KclListenerObservation.Convention observationConvention) {
+			Assert.notNull(observationConvention, "observationConvention must not be null");
+			this.observationConvention = observationConvention;
 			return this;
 		}
 

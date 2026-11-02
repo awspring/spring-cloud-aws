@@ -23,7 +23,7 @@ import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public class MessagingMessageListenerAdapter extends AbstractMethodInvokingListenerAdapter implements MessageListener {
 

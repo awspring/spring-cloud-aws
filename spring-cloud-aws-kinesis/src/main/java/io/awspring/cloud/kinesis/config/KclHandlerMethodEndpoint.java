@@ -27,7 +27,7 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
  * {@link KclEndpoint} instead.
  *
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public interface KclHandlerMethodEndpoint extends KclEndpoint {
 

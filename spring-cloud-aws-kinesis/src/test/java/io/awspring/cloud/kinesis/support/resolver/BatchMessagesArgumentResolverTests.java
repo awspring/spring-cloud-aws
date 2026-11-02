@@ -69,6 +69,30 @@ class BatchMessagesArgumentResolverTests {
 	}
 
 	@Test
+	@DisplayName("a null conversion for a List<Pojo> element throws naming the index and target type")
+	void nullConversionForPojoThrows() {
+		BatchMessagesArgumentResolver nullResolver = new BatchMessagesArgumentResolver(nullReturningConverter());
+		MethodParameter parameter = pojoListParameter();
+		Message<?> batch = batchOf(json("first"), json("second"));
+
+		org.assertj.core.api.Assertions.assertThatThrownBy(() -> nullResolver.resolveArgument(parameter, batch))
+				.isInstanceOf(org.springframework.messaging.converter.MessageConversionException.class)
+				.hasMessageContaining("index 0").hasMessageContaining(Person.class.getName());
+	}
+
+	@Test
+	@DisplayName("a null conversion for a List<Message<Pojo>> element throws naming the index and target type")
+	void nullConversionForMessagePayloadThrows() {
+		BatchMessagesArgumentResolver nullResolver = new BatchMessagesArgumentResolver(nullReturningConverter());
+		MethodParameter parameter = messageListParameter();
+		Message<?> batch = batchOf(json("alice"), json("bob"));
+
+		org.assertj.core.api.Assertions.assertThatThrownBy(() -> nullResolver.resolveArgument(parameter, batch))
+				.isInstanceOf(org.springframework.messaging.converter.MessageConversionException.class)
+				.hasMessageContaining("index 0").hasMessageContaining(Person.class.getName());
+	}
+
+	@Test
 	@DisplayName("raw Collection<Message<?>> parameter passes the messages through unconverted")
 	@SuppressWarnings("unchecked")
 	void passesThroughWhenElementTypeIsMessage() {
@@ -101,6 +125,20 @@ class BatchMessagesArgumentResolverTests {
 		converters.add(jacksonConverter);
 		converters.add(new SimpleMessageConverter());
 		return new CompositeMessageConverter(converters);
+	}
+
+	private MessageConverter nullReturningConverter() {
+		return new MessageConverter() {
+			@Override
+			public Object fromMessage(Message<?> message, Class<?> targetClass) {
+				return null;
+			}
+
+			@Override
+			public Message<?> toMessage(Object payload, org.springframework.messaging.MessageHeaders headers) {
+				return null;
+			}
+		};
 	}
 
 	private MethodParameter pojoListParameter() {

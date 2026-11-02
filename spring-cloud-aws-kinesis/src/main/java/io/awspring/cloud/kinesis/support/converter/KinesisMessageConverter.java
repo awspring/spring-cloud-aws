@@ -21,7 +21,7 @@ import software.amazon.kinesis.retrieval.KinesisClientRecord;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public interface KinesisMessageConverter {
 

@@ -19,7 +19,7 @@ import org.springframework.messaging.Message;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 @FunctionalInterface
 public interface MessageListener {

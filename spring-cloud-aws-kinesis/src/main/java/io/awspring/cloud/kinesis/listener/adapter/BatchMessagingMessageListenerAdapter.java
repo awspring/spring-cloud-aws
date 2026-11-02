@@ -27,7 +27,7 @@ import org.springframework.messaging.support.MessageBuilder;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public class BatchMessagingMessageListenerAdapter extends AbstractMethodInvokingListenerAdapter
 		implements BatchMessageListener {

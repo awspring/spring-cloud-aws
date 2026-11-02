@@ -28,6 +28,7 @@ import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.function.Consumer;
 import org.jspecify.annotations.Nullable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.invocation.InvocableHandlerMethod;
@@ -41,7 +42,7 @@ import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
  * Client Library.
  *
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public class KclMessageListenerContainerFactory implements MessageListenerContainerFactory {
 
@@ -51,14 +52,17 @@ public class KclMessageListenerContainerFactory implements MessageListenerContai
 
 	private final CloudWatchAsyncClient cloudWatchClient;
 
-	@Nullable
-	private Consumer<KclContainerOptions.Builder> optionsConsumer;
+	private Consumer<KclContainerOptions.Builder> optionsConsumer = options -> {
+	};
 
 	@Nullable
 	private ErrorHandler errorHandler;
 
 	@Nullable
 	private KinesisOperations kinesisOperations;
+
+	@Nullable
+	private ApplicationEventPublisher applicationEventPublisher;
 
 	public KclMessageListenerContainerFactory(KinesisAsyncClient kinesisClient, DynamoDbAsyncClient dynamoDbClient,
 			CloudWatchAsyncClient cloudWatchClient) {
@@ -70,8 +74,16 @@ public class KclMessageListenerContainerFactory implements MessageListenerContai
 		this.cloudWatchClient = cloudWatchClient;
 	}
 
+	/**
+	 * Customize the options of every container created by this factory. Each call adds to the customizations of the
+	 * previous calls, which run first, so a customization of an already configured factory (such as the auto-configured
+	 * one) keeps the existing settings it does not change. The {@code @KclListener} attributes of an endpoint are
+	 * applied after all of them.
+	 * @param optionsConsumer the customization.
+	 */
 	public void configure(Consumer<KclContainerOptions.Builder> optionsConsumer) {
-		this.optionsConsumer = optionsConsumer;
+		Assert.notNull(optionsConsumer, "optionsConsumer must not be null");
+		this.optionsConsumer = this.optionsConsumer.andThen(optionsConsumer);
 	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
@@ -82,13 +94,20 @@ public class KclMessageListenerContainerFactory implements MessageListenerContai
 		this.kinesisOperations = kinesisOperations;
 	}
 
+	/**
+	 * Set the publisher given to every container so it can emit a
+	 * {@link io.awspring.cloud.kinesis.listener.KclShardHaltedEvent} when a shard halts.
+	 * @param applicationEventPublisher the event publisher.
+	 */
+	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+		this.applicationEventPublisher = applicationEventPublisher;
+	}
+
 	@Override
 	public MessageListenerContainer createContainer(KclEndpoint endpoint) {
 		Assert.notNull(endpoint, "endpoint must not be null");
 		KclContainerOptions.Builder optionsBuilder = KclContainerOptions.builder();
-		if (this.optionsConsumer != null) {
-			this.optionsConsumer.accept(optionsBuilder);
-		}
+		this.optionsConsumer.accept(optionsBuilder);
 		applyWhenNonNull(endpoint.getRetrievalMode(), optionsBuilder::retrievalMode);
 		applyWhenNonNull(endpoint.getInitialPositionInStream(), optionsBuilder::initialPositionInStream);
 		applyWhenNonNull(endpoint.getInitialPositionTimestamp(), optionsBuilder::initialPositionTimestamp);
@@ -105,6 +124,7 @@ public class KclMessageListenerContainerFactory implements MessageListenerContai
 		container.setId(endpoint.getId());
 		applyWhenNonNull(endpoint.getCheckpointMode(), container::setCheckpointMode);
 		applyWhenNonNull(this.errorHandler, container::setErrorHandler);
+		applyWhenNonNull(this.applicationEventPublisher, container::setApplicationEventPublisher);
 		configureListener(container, endpoint);
 		return container;
 	}
@@ -122,6 +142,11 @@ public class KclMessageListenerContainerFactory implements MessageListenerContai
 		InvocableHandlerMethod handlerMethod = handlerMethodEndpoint.getHandlerMethodFactory()
 				.createInvocableHandlerMethod(handlerMethodEndpoint.getBean(), handlerMethodEndpoint.getMethod());
 		String replyStream = endpoint.getReplyStream();
+		if (replyStream != null && this.kinesisOperations == null) {
+			throw new IllegalStateException("@KclListener endpoint '" + endpoint.getId() + "' declares a reply stream '"
+					+ replyStream + "' but no KinesisOperations is available to send the reply. Define a "
+					+ "KinesisOperations bean or set it with KclMessageListenerContainerFactory.setKinesisOperations.");
+		}
 		if (isBatchListener(handlerMethodEndpoint.getMethod())) {
 			container.setListenerMode(KclListenerMode.BATCH);
 			container.setBatchMessageListener(

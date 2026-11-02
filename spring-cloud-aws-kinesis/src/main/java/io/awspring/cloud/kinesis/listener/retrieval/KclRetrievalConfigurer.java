@@ -24,7 +24,7 @@ import software.amazon.kinesis.retrieval.RetrievalSpecificConfig;
  * Creates the KCL retrieval configuration for a listener container.
  *
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public interface KclRetrievalConfigurer {
 

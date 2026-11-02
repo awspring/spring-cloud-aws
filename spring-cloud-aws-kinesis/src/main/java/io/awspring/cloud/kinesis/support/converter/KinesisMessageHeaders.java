@@ -17,7 +17,7 @@ package io.awspring.cloud.kinesis.support.converter;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public final class KinesisMessageHeaders {
 

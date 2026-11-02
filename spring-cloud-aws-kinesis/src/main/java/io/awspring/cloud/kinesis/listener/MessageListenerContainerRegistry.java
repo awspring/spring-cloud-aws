@@ -20,7 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 public interface MessageListenerContainerRegistry {
 

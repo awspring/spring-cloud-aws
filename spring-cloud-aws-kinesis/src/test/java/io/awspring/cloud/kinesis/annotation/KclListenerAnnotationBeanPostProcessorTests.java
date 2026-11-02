@@ -16,10 +16,13 @@
 package io.awspring.cloud.kinesis.annotation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.awspring.cloud.kinesis.config.KclBeanNames;
 import io.awspring.cloud.kinesis.config.KclBootstrapConfiguration;
 import io.awspring.cloud.kinesis.config.KclEndpoint;
 import io.awspring.cloud.kinesis.config.KclHandlerMethodEndpoint;
+import io.awspring.cloud.kinesis.config.KclListenerConfigurer;
 import io.awspring.cloud.kinesis.config.MessageListenerContainerFactory;
 import io.awspring.cloud.kinesis.listener.MessageListener;
 import io.awspring.cloud.kinesis.listener.MessageListenerContainer;
@@ -38,13 +41,14 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.messaging.handler.annotation.SendTo;
 import software.amazon.kinesis.common.InitialPositionInStream;
 
 /**
  * @author Matej Nedic
- * @since 4.2.0
+ * @since 4.3.0
  */
 class KclListenerAnnotationBeanPostProcessorTests {
 
@@ -68,15 +72,11 @@ class KclListenerAnnotationBeanPostProcessorTests {
 	}
 
 	@Test
-	@DisplayName("blank applicationName defaults to the container id")
-	void applicationNameDefaultsToId() {
-		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
-				DefaultAppNameConfig.class)) {
-			CapturingContainerFactory factory = context.getBean(CapturingContainerFactory.class);
-			assertThat(factory.endpoints).hasSize(1);
-			KclEndpoint endpoint = factory.endpoints.get(0);
-			assertThat(endpoint.getApplicationName()).isEqualTo(endpoint.getId());
-		}
+	@DisplayName("an applicationName resolving to empty fails startup")
+	void emptyApplicationNameFails() {
+		assertThatThrownBy(() -> new AnnotationConfigApplicationContext(DefaultAppNameConfig.class).close())
+				.hasRootCauseInstanceOf(IllegalArgumentException.class).rootCause()
+				.hasMessageContaining("applicationName");
 	}
 
 	@Test
@@ -85,7 +85,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(NoIdConfig.class)) {
 			KclEndpoint endpoint = context.getBean(CapturingContainerFactory.class).endpoints.get(0);
 			assertThat(endpoint.getId()).startsWith("io.awspring.cloud.kinesis.KclListenerEndpointContainer#");
-			assertThat(endpoint.getApplicationName()).isEqualTo(endpoint.getId());
+			assertThat(endpoint.getApplicationName()).isEqualTo("test-app");
 		}
 	}
 
@@ -228,6 +228,46 @@ class KclListenerAnnotationBeanPostProcessorTests {
 			assertThat(secondary.endpoints).hasSize(1);
 			assertThat(secondary.endpoints.get(0).getFactoryBeanName()).isEqualTo("secondaryFactory");
 		}
+	}
+
+	@Test
+	@DisplayName("a listener without factory uses the default-named factory when several factories exist")
+	void usesDefaultNamedFactoryAmongSeveral() {
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
+				DefaultNamedFactoryConfig.class)) {
+			assertThat(context.getBean(KclBeanNames.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME,
+					CapturingContainerFactory.class).endpoints).hasSize(1);
+			assertThat(context.getBean("otherFactory", CapturingContainerFactory.class).endpoints).isEmpty();
+		}
+	}
+
+	@Test
+	@DisplayName("a listener without factory uses the @Primary factory when no factory has the default name")
+	void usesPrimaryFactoryWithoutDefaultName() {
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
+				PrimaryFactoryConfig.class)) {
+			assertThat(context.getBean("secondFactory", CapturingContainerFactory.class).endpoints).hasSize(1);
+			assertThat(context.getBean("firstFactory", CapturingContainerFactory.class).endpoints).isEmpty();
+		}
+	}
+
+	@Test
+	@DisplayName("the default factory name can be changed through the registrar")
+	void usesDefaultFactoryNameFromRegistrar() {
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
+				RegistrarDefaultFactoryConfig.class)) {
+			assertThat(context.getBean("secondFactory", CapturingContainerFactory.class).endpoints).hasSize(1);
+			assertThat(context.getBean("firstFactory", CapturingContainerFactory.class).endpoints).isEmpty();
+		}
+	}
+
+	@Test
+	@DisplayName("several factories without a default name or @Primary fail startup with guidance")
+	void ambiguousFactoriesFailWithGuidance() {
+		assertThatThrownBy(() -> new AnnotationConfigApplicationContext(AmbiguousFactoryConfig.class).close())
+				.hasStackTraceContaining("several MessageListenerContainerFactory beans exist")
+				.hasStackTraceContaining("firstFactory").hasStackTraceContaining("secondFactory")
+				.hasStackTraceContaining(KclBeanNames.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME);
 	}
 
 	@Test
@@ -381,6 +421,96 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	@Configuration
 	@Import(KclBootstrapConfiguration.class)
+	static class DefaultNamedFactoryConfig {
+
+		@Bean(KclBeanNames.DEFAULT_LISTENER_CONTAINER_FACTORY_BEAN_NAME)
+		CapturingContainerFactory defaultFactory() {
+			return new CapturingContainerFactory();
+		}
+
+		@Bean
+		CapturingContainerFactory otherFactory() {
+			return new CapturingContainerFactory();
+		}
+
+		@Bean
+		NoIdListener noIdListener() {
+			return new NoIdListener();
+		}
+
+	}
+
+	@Configuration
+	@Import(KclBootstrapConfiguration.class)
+	static class PrimaryFactoryConfig {
+
+		@Bean
+		CapturingContainerFactory firstFactory() {
+			return new CapturingContainerFactory();
+		}
+
+		@Bean
+		@Primary
+		CapturingContainerFactory secondFactory() {
+			return new CapturingContainerFactory();
+		}
+
+		@Bean
+		NoIdListener noIdListener() {
+			return new NoIdListener();
+		}
+
+	}
+
+	@Configuration
+	@Import(KclBootstrapConfiguration.class)
+	static class RegistrarDefaultFactoryConfig {
+
+		@Bean
+		CapturingContainerFactory firstFactory() {
+			return new CapturingContainerFactory();
+		}
+
+		@Bean
+		CapturingContainerFactory secondFactory() {
+			return new CapturingContainerFactory();
+		}
+
+		@Bean
+		KclListenerConfigurer defaultFactoryConfigurer() {
+			return registrar -> registrar.setDefaultListenerContainerFactoryBeanName("secondFactory");
+		}
+
+		@Bean
+		NoIdListener noIdListener() {
+			return new NoIdListener();
+		}
+
+	}
+
+	@Configuration
+	@Import(KclBootstrapConfiguration.class)
+	static class AmbiguousFactoryConfig {
+
+		@Bean
+		CapturingContainerFactory firstFactory() {
+			return new CapturingContainerFactory();
+		}
+
+		@Bean
+		CapturingContainerFactory secondFactory() {
+			return new CapturingContainerFactory();
+		}
+
+		@Bean
+		NoIdListener noIdListener() {
+			return new NoIdListener();
+		}
+
+	}
+
+	@Configuration
+	@Import(KclBootstrapConfiguration.class)
 	static class SendToConfig {
 
 		@Bean
@@ -525,7 +655,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class LatestPositionListener {
 
-		@KclListener(id = "latest-position", streamNames = "orders", initialPositionInStream = "LATEST")
+		@KclListener(applicationName = "test-app", id = "latest-position", streamNames = "orders", initialPositionInStream = "LATEST")
 		void handle(String payload) {
 		}
 
@@ -533,7 +663,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class PlaceholderPositionListener {
 
-		@KclListener(id = "placeholder-position", streamNames = "orders", initialPositionInStream = "${app.initial-position}")
+		@KclListener(applicationName = "test-app", id = "placeholder-position", streamNames = "orders", initialPositionInStream = "${app.initial-position}")
 		void handle(String payload) {
 		}
 
@@ -541,7 +671,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class EmptyPositionListener {
 
-		@KclListener(id = "empty-position", streamNames = "orders", initialPositionInStream = "")
+		@KclListener(applicationName = "test-app", id = "empty-position", streamNames = "orders", initialPositionInStream = "")
 		void handle(String payload) {
 		}
 
@@ -549,7 +679,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class AtTimestampPositionListener {
 
-		@KclListener(id = "at-timestamp-position", streamNames = "orders", initialPositionInStream = "AT_TIMESTAMP", initialPositionTimestamp = "${app.initial-timestamp}", checkpointMode = "PERIODIC", checkpointInterval = "#{T(java.time.Duration).ofSeconds(15)}", checkpointRecordCount = "${app.checkpoint-count}", autoStartup = "${app.auto-startup}")
+		@KclListener(applicationName = "test-app", id = "at-timestamp-position", streamNames = "orders", initialPositionInStream = "AT_TIMESTAMP", initialPositionTimestamp = "${app.initial-timestamp}", checkpointMode = "PERIODIC", checkpointInterval = "#{T(java.time.Duration).ofSeconds(15)}", checkpointRecordCount = "${app.checkpoint-count}", autoStartup = "${app.auto-startup}")
 		void handle(String payload) {
 		}
 
@@ -589,7 +719,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class PerStreamIdentityListener {
 
-		@KclListener(id = "per-stream", streamNames = "orders", retrievalMode = "ENHANCED_FAN_OUT", consumerName = "arn:aws:kinesis:eu-west-1:123456789012:stream/orders", leaseTableName = "orders-leases", metricsNamespace = "orders-metrics")
+		@KclListener(applicationName = "test-app", id = "per-stream", streamNames = "orders", retrievalMode = "ENHANCED_FAN_OUT", consumerName = "arn:aws:kinesis:eu-west-1:123456789012:stream/orders", leaseTableName = "orders-leases", metricsNamespace = "orders-metrics")
 		void handle(String payload) {
 		}
 
@@ -597,7 +727,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class ConsumerNameListener {
 
-		@KclListener(id = "consumer-name", streamNames = "orders", retrievalMode = "ENHANCED_FAN_OUT", consumerName = "orders-consumer")
+		@KclListener(applicationName = "test-app", id = "consumer-name", streamNames = "orders", retrievalMode = "ENHANCED_FAN_OUT", consumerName = "orders-consumer")
 		void handle(String payload) {
 		}
 
@@ -621,7 +751,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class MultiStreamListener {
 
-		@KclListener(id = "multi-stream", streamNames = { "orders", "shipments" })
+		@KclListener(applicationName = "test-app", id = "multi-stream", streamNames = { "orders", "shipments" })
 		void handle(String payload) {
 		}
 
@@ -629,7 +759,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class NoIdListener {
 
-		@KclListener(streamNames = "events")
+		@KclListener(applicationName = "test-app", streamNames = "events")
 		void handle(String payload) {
 		}
 
@@ -637,7 +767,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class ModesListener {
 
-		@KclListener(id = "modes", streamNames = "orders", checkpointMode = "RECORD", retrievalMode = "ENHANCED_FAN_OUT")
+		@KclListener(applicationName = "test-app", id = "modes", streamNames = "orders", checkpointMode = "RECORD", retrievalMode = "ENHANCED_FAN_OUT")
 		void handle(String payload) {
 		}
 
@@ -645,7 +775,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class NamedFactoryListener {
 
-		@KclListener(id = "named", streamNames = "orders", factory = "secondaryFactory")
+		@KclListener(applicationName = "test-app", id = "named", streamNames = "orders", factory = "secondaryFactory")
 		void handle(String payload) {
 		}
 
@@ -653,7 +783,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class SendToListener {
 
-		@KclListener(id = "send-to", streamNames = "orders")
+		@KclListener(applicationName = "test-app", id = "send-to", streamNames = "orders")
 		@SendTo("out-stream")
 		String handle(String payload) {
 			return payload;
@@ -663,7 +793,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class PlaceholderListener {
 
-		@KclListener(id = "placeholder", streamNames = "${app.stream}")
+		@KclListener(applicationName = "test-app", id = "placeholder", streamNames = "${app.stream}")
 		void handle(String payload) {
 		}
 
@@ -671,7 +801,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class ValueAliasListener {
 
-		@KclListener(value = "aliased-stream", id = "value-alias")
+		@KclListener(applicationName = "test-app", value = "aliased-stream", id = "value-alias")
 		void handle(String payload) {
 		}
 
@@ -679,11 +809,11 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class MultiListener {
 
-		@KclListener(id = "first", streamNames = "first-stream")
+		@KclListener(applicationName = "test-app", id = "first", streamNames = "first-stream")
 		void handleFirst(String payload) {
 		}
 
-		@KclListener(id = "second", streamNames = "second-stream")
+		@KclListener(applicationName = "test-app", id = "second", streamNames = "second-stream")
 		void handleSecond(String payload) {
 		}
 
@@ -706,7 +836,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class NoAppNameListener {
 
-		@KclListener(id = "no-app", streamNames = "events")
+		@KclListener(id = "no-app", streamNames = "events", applicationName = "${app.missing-name:}")
 		void handle(String payload) {
 		}
 
@@ -827,8 +957,8 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class SpelStreamNamesListener {
 
-		@KclListener(id = "spel-streams", streamNames = { "#{@streamNamesProvider.arrayNames()}",
-				"#{@streamNamesProvider.iterableNames()}" })
+		@KclListener(applicationName = "test-app", id = "spel-streams", streamNames = {
+				"#{@streamNamesProvider.arrayNames()}", "#{@streamNamesProvider.iterableNames()}" })
 		void handle(String payload) {
 		}
 
@@ -873,7 +1003,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 		}
 
 		@Override
-		@KclListener(id = "jdk-proxy", streamNames = "orders")
+		@KclListener(applicationName = "test-app", id = "jdk-proxy", streamNames = "orders")
 		public void handle(String payload) {
 			this.invocationState.payload = payload;
 		}
