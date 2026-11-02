@@ -18,12 +18,15 @@ package io.awspring.cloud.autoconfigure.kinesis.binder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import brave.handler.MutableSpan;
 import brave.handler.SpanHandler;
-import brave.test.TestSpanHandler;
+import brave.propagation.TraceContext;
 import io.awspring.cloud.kinesis.integration.KinesisHeaders;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.brave.bridge.BraveFinishedSpan;
 import io.micrometer.tracing.test.simple.SpansAssert;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -85,7 +88,7 @@ public class KinesisBinderObservationTests implements LocalstackContainerTest {
 
 	static final String KINESIS_STREAM = "test_observation_stream";
 
-	private static final TestSpanHandler SPANS = new TestSpanHandler();
+	private static final List<MutableSpan> SPANS = new CopyOnWriteArrayList<>();
 
 	@Autowired
 	private CountDownLatch messageBarrier;
@@ -103,8 +106,8 @@ public class KinesisBinderObservationTests implements LocalstackContainerTest {
 		assertThat(message.getHeaders()).containsKeys("traceparent");
 		assertThat(message.getPayload()).isEqualTo("test data");
 
-		await().until(() -> SPANS.spans().size() == 3);
-		SpansAssert.assertThat(SPANS.spans().stream().map(BraveFinishedSpan::fromBrave).toList()).haveSameTraceId()
+		await().until(() -> SPANS.size() == 3);
+		SpansAssert.assertThat(SPANS.stream().map(BraveFinishedSpan::fromBrave).toList()).haveSameTraceId()
 				.hasASpanWithName("kinesisSupplier-out-0 send",
 						spanAssert -> spanAssert.hasKindEqualTo(Span.Kind.PRODUCER)
 								.hasTag(IntegrationObservation.ProducerTags.COMPONENT_TYPE, "producer"))
@@ -125,7 +128,17 @@ public class KinesisBinderObservationTests implements LocalstackContainerTest {
 
 		@Bean
 		SpanHandler spanHandler() {
-			return SPANS;
+			return new SpanHandler() {
+
+				@Override
+				public boolean end(TraceContext context, MutableSpan span, Cause cause) {
+					if (cause != Cause.ABANDONED) {
+						SPANS.add(span);
+					}
+					return true;
+				}
+
+			};
 		}
 
 		@Bean
