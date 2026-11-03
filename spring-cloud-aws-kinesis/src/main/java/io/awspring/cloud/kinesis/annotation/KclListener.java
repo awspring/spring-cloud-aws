@@ -69,10 +69,10 @@ public @interface KclListener {
 	String[] streamNames() default {};
 
 	/**
-	 * The KCL application name used for lease coordination. Required: it names the DynamoDB lease table (unless
-	 * {@link #leaseTableName()} is set), the KCL coordinator and worker metrics tables, the default enhanced fan-out
-	 * consumer and the default CloudWatch namespace, so it must be stable across deployments and unique per listener.
-	 * Must resolve to a valid DynamoDB table name ({@code [a-zA-Z0-9_.-]}, 3-255 characters).
+	 * The KCL application name used for lease coordination. Required: it names the DynamoDB lease table, which also
+	 * holds the KCL coordinator state and worker metrics (unless {@link #leaseTableName()} is set), the default
+	 * enhanced fan-out consumer and the default CloudWatch namespace, so it must be stable across deployments and
+	 * unique per listener. Must resolve to a valid DynamoDB table name ({@code [a-zA-Z0-9_.-]}, 3-255 characters).
 	 * @return the application name.
 	 */
 	String applicationName();

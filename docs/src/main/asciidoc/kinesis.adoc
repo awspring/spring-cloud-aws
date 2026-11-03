@@ -355,15 +355,18 @@ NOTE: These properties are application-wide *defaults* shared by every listener 
 
 ==== DynamoDB metadata tables
 
-KCL 3.x stores its coordination state in https://docs.aws.amazon.com/streams/latest/dev/kcl-dynamoDB.html[DynamoDB] and creates *three* tables per application, not one:
+KCL stores its coordination state in https://docs.aws.amazon.com/streams/latest/dev/kcl-dynamoDB.html[DynamoDB].
+A new application on KCL 3.5 or later uses the https://docs.aws.amazon.com/streams/latest/dev/kcl-single-table-format.html[single table format]: it creates one table per application, the *lease* table, named after `applicationName`.
+Besides the shard leases and checkpoints, that table holds the other KCL entities as extra items:
 
-- the *lease* table (named after `applicationName`), holding shard leases and checkpoints;
-- `<applicationName>-WorkerMetricStats`, holding per-worker metrics used for load balancing;
-- `<applicationName>-CoordinatorState`, holding coordinator state.
+- one worker metrics item per worker, used for load balancing;
+- coordinator state items, such as `Leader` (the leader election lock) and `Migration3.0` (the client version state).
 
-TIP: KCL 3.5 can consolidate all three tables into the lease table (_single table format_). It stays off by default: enable it with `CoordinatorConfig#migrateAllEntitiesToLeaseTable(true)` through the coordinator config customizer, following the two-phase deployment AWS describes in https://docs.aws.amazon.com/streams/latest/dev/kcl-single-table-format.html[Single table format for KCL].
+KCL does not create `<applicationName>-WorkerMetricStats` or `<applicationName>-CoordinatorState` tables for a new application.
 
-The `@KclListener(leaseTableName = "...")` attribute renames *only* the lease table. The `-WorkerMetricStats` and `-CoordinatorState` table names stay derived from `applicationName` and cannot be overridden through the annotation (use the coordinator/lease KCL config customizers for finer control). All three are created with the configured billing mode, which defaults to on-demand (`PAY_PER_REQUEST`) as https://docs.aws.amazon.com/streams/latest/dev/kcl-dynamoDB.html[AWS recommends].
+NOTE: An application that first ran on KCL 3.0 to 3.4 already has those two separate tables, and KCL 3.5 keeps using them. To consolidate them into the lease table, set `CoordinatorConfig#migrateAllEntitiesToLeaseTable(true)` through the coordinator config customizer, following the two-phase deployment AWS describes in https://docs.aws.amazon.com/streams/latest/dev/kcl-single-table-format.html[Single table format for KCL]. The flag defaults to `false` and has no effect on a new application, which starts in the single table format.
+
+The `@KclListener(leaseTableName = "...")` attribute renames the lease table, and with it every KCL entity of a new application. For an application still on the separate tables, the `-WorkerMetricStats` and `-CoordinatorState` table names stay derived from `applicationName` and cannot be overridden through the annotation (use the coordinator/lease KCL config customizers for finer control). Tables are created with the configured billing mode, which defaults to on-demand (`PAY_PER_REQUEST`) as https://docs.aws.amazon.com/streams/latest/dev/kcl-dynamoDB.html[AWS recommends].
 
 ==== Advanced KCL configuration
 
