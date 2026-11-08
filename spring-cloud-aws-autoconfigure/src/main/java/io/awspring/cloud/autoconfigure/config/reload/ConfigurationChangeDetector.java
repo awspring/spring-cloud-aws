@@ -19,7 +19,6 @@ import io.awspring.cloud.core.config.AwsPropertySource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
@@ -94,7 +93,7 @@ public abstract class ConfigurationChangeDetector<T extends AwsPropertySource<?,
 
 		return environment.getPropertySources().stream()
 				.filter(it -> (it.getClass().isAssignableFrom(propertySourceClass))).map(it -> (T) it)
-				.collect(Collectors.toList());
+				.toList();
 	}
 
 	public Class<T> getPropertySourceClass() {
