@@ -97,6 +97,10 @@ A summary of these artifacts is provided below.
 | Provides integrations with SNS
 | io.awspring.cloud:spring-cloud-aws-starter-sns
 
+| Verified Permissions
+| Provides Spring Security authorization with Amazon Verified Permissions
+| io.awspring.cloud:spring-cloud-aws-starter-verified-permissions
+
 | SQS
 | Provides integrations with SQS
 | io.awspring.cloud:spring-cloud-aws-starter-sqs
@@ -149,6 +153,8 @@ include::ses.adoc[]
 include::sns.adoc[]
 
 include::sqs.adoc[]
+
+include::verified-permissions.adoc[]
 
 include::imds.adoc[]
 
