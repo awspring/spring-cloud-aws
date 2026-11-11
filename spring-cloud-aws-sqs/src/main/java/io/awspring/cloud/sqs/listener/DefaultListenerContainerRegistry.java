@@ -25,7 +25,11 @@ import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.Assert;
 
 /**
@@ -40,10 +44,15 @@ import org.springframework.util.Assert;
  * Only containers created via {@link io.awspring.cloud.sqs.annotation.SqsListener} annotations are registered by the
  * framework.
  *
+ * By default, containers are started in this registry's lifecycle phase. They can instead be started once the
+ * {@link ApplicationContext} is refreshed, see {@link #setStartAfterContextRefresh(boolean)}.
+ *
  * @author Tomaz Fernandes
+ * @author Sharang Gupta
  * @since 3.0
  */
-public class DefaultListenerContainerRegistry implements MessageListenerContainerRegistry {
+public class DefaultListenerContainerRegistry implements MessageListenerContainerRegistry, ApplicationContextAware,
+		ApplicationListener<ContextRefreshedEvent> {
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultListenerContainerRegistry.class);
 
@@ -54,6 +63,52 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 	private volatile boolean running = false;
 
 	private int phase = MessageListenerContainer.DEFAULT_PHASE;
+
+	private boolean startAfterContextRefresh = false;
+
+	private volatile boolean contextRefreshed = false;
+
+	@Nullable
+	private ApplicationContext applicationContext;
+
+	/**
+	 * Set whether the containers should be started only after the {@link ApplicationContext} is refreshed, rather than
+	 * in this registry's lifecycle phase. Containers with {@code autoStartup} set to false are not started either way.
+	 * Default is false.
+	 * @param startAfterContextRefresh true to start the containers after the context is refreshed.
+	 * @since 4.3
+	 */
+	public void setStartAfterContextRefresh(boolean startAfterContextRefresh) {
+		this.startAfterContextRefresh = startAfterContextRefresh;
+	}
+
+	/**
+	 * Return whether the containers are started only after the {@link ApplicationContext} is refreshed.
+	 * @return true if the containers are started after the context is refreshed.
+	 * @since 4.3
+	 */
+	public boolean isStartAfterContextRefresh() {
+		return this.startAfterContextRefresh;
+	}
+
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext) {
+		this.applicationContext = applicationContext;
+	}
+
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		if (!event.getApplicationContext().equals(this.applicationContext)) {
+			return;
+		}
+		synchronized (this.lifecycleMonitor) {
+			this.contextRefreshed = true;
+			if (this.startAfterContextRefresh && this.running) {
+				logger.debug("Context refreshed, starting containers");
+				startContainers();
+			}
+		}
+	}
 
 	@Override
 	public void registerListenerContainer(MessageListenerContainer<?> listenerContainer) {
@@ -81,11 +136,17 @@ public class DefaultListenerContainerRegistry implements MessageListenerContaine
 		synchronized (this.lifecycleMonitor) {
 			logger.debug("Starting {}", getClass().getSimpleName());
 			this.running = true;
-			List<MessageListenerContainer<?>> containersToStart = this.listenerContainers.values().stream()
-					.filter(SmartLifecycle::isAutoStartup).collect(Collectors.toList());
-			LifecycleHandler.get().start(containersToStart);
+			if (!this.startAfterContextRefresh || this.contextRefreshed) {
+				startContainers();
+			}
 			logger.debug("{} started", getClass().getSimpleName());
 		}
+	}
+
+	private void startContainers() {
+		List<MessageListenerContainer<?>> containersToStart = this.listenerContainers.values().stream()
+				.filter(SmartLifecycle::isAutoStartup).collect(Collectors.toList());
+		LifecycleHandler.get().start(containersToStart);
 	}
 
 	@Override

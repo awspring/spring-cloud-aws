@@ -23,9 +23,11 @@ import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
+import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
 import io.awspring.cloud.sqs.listener.SqsContainerOptionsBuilder;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
@@ -71,6 +73,7 @@ import tools.jackson.databind.json.JsonMapper;
  * @author Dongha Kim
  * @author Jeongmin Kim
  * @author Matej Nedic
+ * @author Sharang Gupta
  * @since 3.0
  */
 @AutoConfiguration
@@ -206,6 +209,15 @@ public class SqsAutoConfiguration {
 		}
 		factory.configure(options -> options.messageConverter(messagingMessageConverter));
 		return factory;
+	}
+
+	@ConditionalOnProperty(name = "spring.cloud.aws.sqs.listener.start-after-context-refresh", havingValue = "true")
+	@ConditionalOnMissingBean(name = SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME)
+	@Bean(name = SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME)
+	public DefaultListenerContainerRegistry defaultListenerContainerRegistry() {
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.setStartAfterContextRefresh(true);
+		return registry;
 	}
 
 	private void configureProperties(SqsContainerOptionsBuilder options) {

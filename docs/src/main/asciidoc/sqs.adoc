@@ -1117,6 +1117,7 @@ The Spring Boot Starter for SQS provides the following auto-configuration proper
 | <<pollTimeout, `spring.cloud.aws.sqs.listener.poll-timeout`>> | Maximum amount of time to wait for messages in a poll. | No | 10 seconds
 | <<maxDelayBetweenPolls, `spring.cloud.aws.sqs.listener.max-delay-between-polls`>> | Maximum amount of time to wait between polls. | No | 10 seconds
 | `spring.cloud.aws.sqs.listener.auto-startup` | Defines whether SQS listeners are started automatically or not. | No | true
+| <<Starting containers after the context is refreshed, `spring.cloud.aws.sqs.listener.start-after-context-refresh`>> | Defines whether SQS listeners are started only after the application context is refreshed. | No | false
 | `spring.cloud.aws.sqs.queue-not-found-strategy`  | The strategy to be used by SqsTemplate and SqsListeners when a queue does not exist. | No | CREATE
 | `spring.cloud.aws.sqs.observation-enabled` | Enables observability support for SQS operations. | No | false
 |===
@@ -1317,6 +1318,27 @@ Containers created from `@SqsListener` annotations are registered in a `MessageL
 The containers themselves are not Spring-managed beans, and the registry is responsible for managing these containers' lifecycle during application startup and shutdown.
 
 NOTE: The `DefaultListenerContainerRegistry` implementation provided by the framework allows the phase value to be set through the `setPhase` method. The default value is `MessageListenerContainer.DEFAULT_PHASE`.
+
+===== Starting containers after the context is refreshed
+
+By default, the registry starts the containers in its `SmartLifecycle` phase, while the `ApplicationContext` is being refreshed.
+The `DefaultListenerContainerRegistry` can instead start them once the `ApplicationContext` has been refreshed, so that requests made to `SQS` at container startup do not delay the rest of the application's startup.
+With Spring Boot, set the `spring.cloud.aws.sqs.listener.start-after-context-refresh` property to `true`.
+Otherwise, declare the registry bean with the option enabled:
+
+[source, java]
+----
+@Bean(name = SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME)
+DefaultListenerContainerRegistry defaultListenerContainerRegistry() {
+    DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+    registry.setStartAfterContextRefresh(true);
+    return registry;
+}
+----
+
+Containers with `autoStartup` set to `false` are not started in either case.
+
+NOTE: If a container fails to start after the context is refreshed, the application fails to start, as it does by default.
 
 At startup, the containers will make requests to `SQS` to retrieve the queues' URLs for the provided queue names or ARNs, and for retrieving `QueueAttributes` if so configured.
 Providing queue URLs instead of names and not requesting queue attributes can result in slightly better startup times since there is no need for such requests.
