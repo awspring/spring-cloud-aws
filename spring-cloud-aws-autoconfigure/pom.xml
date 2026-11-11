@@ -13,6 +13,10 @@
 	<artifactId>spring-cloud-aws-autoconfigure</artifactId>
 	<name>Spring Cloud AWS Autoconfigure</name>
 
+	<properties>
+		<automatic.module.name>io.awspring.cloud.autoconfigure</automatic.module.name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

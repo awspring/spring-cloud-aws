@@ -31,6 +31,7 @@
 
 	<properties>
 		<main.basedir>${basedir}/../..</main.basedir>
+		<automatic.module.name>io.awspring.cloud.test</automatic.module.name>
 	</properties>
 	<dependencies>
 		<dependency>

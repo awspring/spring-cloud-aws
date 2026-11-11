@@ -12,6 +12,10 @@
 	<artifactId>spring-cloud-aws-kinesis-stream-binder</artifactId>
 	<name>Spring Cloud Stream AWS Kinesis Binder</name>
 
+	<properties>
+		<automatic.module.name>io.awspring.cloud.kinesis.stream.binder</automatic.module.name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>io.awspring.cloud</groupId>

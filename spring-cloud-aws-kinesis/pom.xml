@@ -12,6 +12,10 @@
 	<artifactId>spring-cloud-aws-kinesis</artifactId>
 	<name>Spring Cloud AWS Kinesis Integration</name>
 
+	<properties>
+		<automatic.module.name>io.awspring.cloud.kinesis</automatic.module.name>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
