@@ -22,6 +22,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.util.StringUtils;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
@@ -126,5 +132,49 @@ class ParameterStorePropertySourceTest {
 		ParameterStorePropertySource copy = propertySource.copy();
 		assertThat(propertySource.getContext()).isEqualTo(copy.getContext());
 		assertThat(propertySource.getPrefix()).isEqualTo(copy.getPrefix());
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "/config/myservice", "/config/myservice?prefix=", "/config/myservice?prefix=myservice." })
+	@ExtendWith(OutputCaptureExtension.class)
+	void warnsWhenParameterPathHasNoTrailingSlash(String context, CapturedOutput output) {
+		new ParameterStorePropertySource(context, ssmClient);
+
+		assertThat(output).contains("Parameter path '/config/myservice' does not end with '/'");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "/config/myservice/", "/config/myservice?extension=properties",
+			"/config/myservice?prefix=myservice" })
+	@ExtendWith(OutputCaptureExtension.class)
+	void doesNotWarnWhenPropertyNamesGetNoLeadingDot(String context, CapturedOutput output) {
+		new ParameterStorePropertySource(context, ssmClient);
+
+		assertThat(output).doesNotContain("does not end with '/'");
+	}
+
+	@Test
+	@ExtendWith(OutputCaptureExtension.class)
+	void copyDoesNotRepeatTheTrailingSlashWarning(CapturedOutput output) {
+		ParameterStorePropertySource propertySource = new ParameterStorePropertySource("/config/myservice", ssmClient);
+
+		propertySource.copy();
+
+		assertThat(StringUtils.countOccurrencesOf(output.toString(), "does not end with '/'")).isOne();
+	}
+
+	@Test
+	void copyPreservesPropertiesFileMode() {
+		when(ssmClient.getParametersByPath(any(GetParametersByPathRequest.class)))
+				.thenReturn(GetParametersByPathResponse.builder().parameters(
+						Parameter.builder().name("/config/myservice/application").value("key1=value1").build())
+						.build());
+		ParameterStorePropertySource copy = new ParameterStorePropertySource(
+				"/config/myservice/?extension=properties", ssmClient).copy();
+
+		copy.init();
+
+		assertThat(copy.getPropertyNames()).containsExactly("key1");
+		assertThat(copy.getProperty("key1")).isEqualTo("value1");
 	}
 }

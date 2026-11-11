@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.util.StringUtils;
 import software.amazon.awssdk.services.ssm.SsmClient;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathRequest;
 import software.amazon.awssdk.services.ssm.model.GetParametersByPathResponse;
@@ -37,6 +38,7 @@ import software.amazon.awssdk.services.ssm.model.Parameter;
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
  * @author Matej Nedic
+ * @author Sharang Gupta
  * @since 2.0.0
  */
 public class ParameterStorePropertySource extends AwsPropertySource<ParameterStorePropertySource, SsmClient> {
@@ -72,6 +74,16 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 		this.context = context;
 		this.parameterPath = resolveParameterPath(context);
 		this.prefix = resolvePrefix(context);
+		warnIfParameterPathHasNoTrailingSlash();
+	}
+
+	private ParameterStorePropertySource(ParameterStorePropertySource original) {
+		super(original.getName(), original.source);
+		this.context = original.context;
+		this.parameterPath = original.parameterPath;
+		this.prefix = original.prefix;
+		this.propertiesType = original.propertiesType;
+		this.prefixType = original.prefixType;
 	}
 
 	@Override
@@ -81,9 +93,26 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 		getParameters(paramsRequest);
 	}
 
+	private void warnIfParameterPathHasNoTrailingSlash() {
+		if (!this.propertiesType && !this.parameterPath.endsWith("/") && !leadingDotSeparatesPrefix()) {
+			LOG.warn("Parameter path '" + this.parameterPath + "' does not end with '/', so the property names "
+					+ "loaded from it get a leading '.', such as '.name' for '" + this.parameterPath + "/name'. "
+					+ "Add a trailing '/' to the path: '" + this.parameterPath + "/'.");
+		}
+	}
+
+	/**
+	 * Whether the leading '.' of the property names resolved from a path without a trailing '/' separates them from a
+	 * prefix that does not end with '.', such as {@code myservice} in {@code /config/myservice?prefix=myservice}.
+	 */
+	private boolean leadingDotSeparatesPrefix() {
+		return StringUtils.hasLength(this.prefix) && !this.prefix.endsWith(".");
+	}
+
 	@Override
 	public ParameterStorePropertySource copy() {
-		return new ParameterStorePropertySource(context, source);
+		// copies the resolved state, so that reload polling does not repeat the trailing '/' warning
+		return new ParameterStorePropertySource(this);
 	}
 
 	@Override
