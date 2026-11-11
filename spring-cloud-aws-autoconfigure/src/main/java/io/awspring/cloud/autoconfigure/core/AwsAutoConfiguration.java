@@ -15,11 +15,13 @@
  */
 package io.awspring.cloud.autoconfigure.core;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 
 /**
@@ -41,7 +43,7 @@ public class AwsAutoConfiguration {
 
 	@Bean
 	public AwsClientBuilderConfigurer awsClientBuilderConfigurer(AwsCredentialsProvider credentialsProvider,
-			AwsRegionProvider awsRegionProvider) {
-		return new AwsClientBuilderConfigurer(credentialsProvider, awsRegionProvider, awsProperties);
+			AwsRegionProvider awsRegionProvider, ObjectProvider<MetricPublisher> metricPublishers) {
+		return new AwsClientBuilderConfigurer(credentialsProvider, awsRegionProvider, awsProperties, metricPublishers);
 	}
 }

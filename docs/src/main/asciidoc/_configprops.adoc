@@ -9,6 +9,14 @@
 |spring.cloud.aws.appconfig.reload.period | `+++1m+++` | Refresh period for {@link PollingAwsPropertySourceChangeDetector}.
 |spring.cloud.aws.appconfig.reload.strategy |  | Reload strategy to run when properties change.
 |spring.cloud.aws.appconfig.separator | `+++#+++` | 
+|spring.cloud.aws.client.metrics.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
+|spring.cloud.aws.client.metrics.enabled | `+++true+++` | Enables publishing the metrics of the AWS SDK clients to CloudWatch when software.amazon.awssdk:cloudwatch-metric-publisher is on the classpath.
+|spring.cloud.aws.client.metrics.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.client.metrics.maximum-calls-per-upload |  | Maximum number of PutMetricData calls per upload. The AWS SDK default is 10.
+|spring.cloud.aws.client.metrics.metric-level |  | Level of the metrics to publish. The AWS SDK default is INFO.
+|spring.cloud.aws.client.metrics.namespace |  | CloudWatch namespace of the metrics. The AWS SDK default is "AwsSdk/JavaSdk2".
+|spring.cloud.aws.client.metrics.region |  | Overrides the default region.
+|spring.cloud.aws.client.metrics.upload-frequency |  | How often the metrics are uploaded to CloudWatch. The AWS SDK default is one minute.
 |spring.cloud.aws.cloudwatch.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.cloudwatch.endpoint |  | Overrides the default endpoint.
 |spring.cloud.aws.cloudwatch.region |  | Overrides the default region.
