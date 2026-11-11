@@ -90,7 +90,6 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 			sessionToken = appConfigClient.startConfigurationSession(request).initialConfigurationToken();
 		}
 
-
 		GetLatestConfigurationRequest request = GetLatestConfigurationRequest.builder().configurationToken(sessionToken)
 				.build();
 		GetLatestConfigurationResponse response = this.source.getLatestConfiguration(request);
@@ -114,7 +113,7 @@ public class AppConfigPropertySource extends AwsPropertySource<AppConfigProperty
 			return false;
 		}
 		return detail.invalidParameters().values().stream().map(InvalidParameterDetail::problem)
-			.anyMatch(prob -> prob == InvalidParameterProblem.EXPIRED || prob == InvalidParameterProblem.CORRUPTED);
+				.anyMatch(prob -> prob == InvalidParameterProblem.EXPIRED || prob == InvalidParameterProblem.CORRUPTED);
 	}
 
 	@Override
