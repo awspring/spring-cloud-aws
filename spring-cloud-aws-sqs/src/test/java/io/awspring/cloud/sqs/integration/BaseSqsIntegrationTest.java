@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 
-@Testcontainers(disabledWithoutDocker = true)
+@Testcontainers
 abstract class BaseSqsIntegrationTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(BaseSqsIntegrationTest.class);
