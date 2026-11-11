@@ -106,6 +106,11 @@
 |spring.cloud.aws.sqs.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
 |spring.cloud.aws.sqs.enabled | `+++true+++` | Enables SQS integration.
 |spring.cloud.aws.sqs.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.sqs.extended.bucket |  | Name of the S3 bucket used to store large message payloads. Required to enable payload offloading.
+|spring.cloud.aws.sqs.extended.cleanup-s3-payload | `+++true+++` | Whether to delete the payload object from S3 when the corresponding message is deleted from the queue.
+|spring.cloud.aws.sqs.extended.ignore-payload-not-found | `+++false+++` | Whether messages whose payload is not found in S3 should be silently deleted from the queue instead of failing.
+|spring.cloud.aws.sqs.extended.s3-key-prefix |  | Prefix prepended to the S3 keys under which message payloads are stored.
+|spring.cloud.aws.sqs.extended.use-legacy-reserved-attribute-name | `+++true+++` | Whether to use the legacy reserved message attribute name ({@code SQSLargePayloadSize}) when sending large-payload messages. Set to {@code false} to use the current reserved attribute name.
 |spring.cloud.aws.sqs.listener.auto-startup |  | Defines whether SQS listeners will start automatically or not.
 |spring.cloud.aws.sqs.listener.max-concurrent-messages |  | The maximum concurrent messages that can be processed simultaneously for each queue. Note that if acknowledgement batching is being used, the actual maximum number of messages inflight might be higher.
 |spring.cloud.aws.sqs.listener.max-delay-between-polls |  | The maximum amount of time to wait between consecutive polls to SQS.
