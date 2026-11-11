@@ -863,6 +863,43 @@ public void listen(SnsNotification<Pojo> notification) {
 }
 ----
 
+====== SNS message attributes as headers
+
+When raw message delivery is disabled on an SNS-to-SQS subscription, SNS message attributes are nested in the notification envelope, rather than native SQS message attributes.
+To expose them as Spring Message headers, opt in to `SnsAwareSqsHeaderMapper` for the queues receiving these notifications.
+The default `SqsHeaderMapper` does not inspect or parse the message body for SNS attributes.
+
+NOTE: `SnsAwareSqsHeaderMapper` is a Jackson 3-only feature and requires `tools.jackson.databind.json.JsonMapper`.
+Jackson 2 support is deprecated; no Jackson 2 version of this mapper is provided.
+
+Pass the application's configured `JsonMapper` to both the converter and the header mapper.
+The following example uses a dedicated factory, so other listeners keep their default message conversion:
+
+[source,java]
+----
+@Bean
+SqsMessageListenerContainerFactory<Object> snsSqsListenerContainerFactory(
+        SqsAsyncClient sqsAsyncClient, JsonMapper jsonMapper) {
+    SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter(jsonMapper);
+    converter.setHeaderMapper(new SnsAwareSqsHeaderMapper(jsonMapper));
+
+    return SqsMessageListenerContainerFactory.<Object>builder()
+            .sqsAsyncClient(sqsAsyncClient)
+            .configure(options -> options.messageConverter(converter))
+            .build();
+}
+
+@SqsListener(value = "sns-queue", factory = "snsSqsListenerContainerFactory")
+public void listen(@SnsNotificationMessage Pojo payload, @Headers Map<String, Object> headers) {
+    Object attribute = headers.get("myAttribute");
+}
+----
+
+The `JsonMapper` parameter is the bean from the application context, including the one supplied by Spring Boot's auto-configuration.
+SNS String, Number, and Binary attributes are mapped to their corresponding header values.
+Existing SQS and additional headers take precedence when names collide.
+Raw delivery already exposes attributes as native SQS message attributes and does not require this mapper.
+
 ===== Specifying a MessageListenerContainerFactory
 A `MessageListenerContainerFactory` can be specified through the `factory` property.
 Such factory will then be used to create the container for the annotated method.

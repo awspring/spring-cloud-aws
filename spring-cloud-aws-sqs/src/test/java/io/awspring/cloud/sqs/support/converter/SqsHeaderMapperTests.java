@@ -145,6 +145,16 @@ class SqsHeaderMapperTests {
 	}
 
 	@Test
+	void shouldNotMapSnsAttributesByDefault() {
+		Message message = Message.builder().messageId(UUID.randomUUID().toString()).body("""
+				{"Type":"Notification","Message":"payload",
+				 "MessageAttributes":{"attribute":{"Type":"String","Value":"snsValue"}}}
+				""").build();
+
+		assertThat(new SqsHeaderMapper().toHeaders(message)).doesNotContainKey("attribute");
+	}
+
+	@Test
 	void shouldCreateMessageWithSystemAttributesFromHeaders() {
 		MessageHeaders headers = new MessageHeaders(
 				Map.of(SqsHeaders.MessageSystemAttributes.SQS_MESSAGE_GROUP_ID_HEADER, "value1",
