@@ -17,17 +17,27 @@ package io.awspring.cloud.autoconfigure.sqs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
 
 import com.amazon.sqs.javamessaging.AmazonSQSExtendedAsyncClient;
 import io.awspring.cloud.autoconfigure.ConfiguredAwsClient;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
+import io.awspring.cloud.sqs.annotation.SqsListener;
+import io.awspring.cloud.sqs.config.Endpoint;
 import io.awspring.cloud.sqs.config.EndpointRegistrar;
+import io.awspring.cloud.sqs.config.MessageListenerContainerFactory;
+import io.awspring.cloud.sqs.config.SqsBeanNames;
 import io.awspring.cloud.sqs.config.SqsBootstrapConfiguration;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.ContainerOptions;
 import io.awspring.cloud.sqs.listener.ContainerOptionsBuilder;
+import io.awspring.cloud.sqs.listener.DefaultListenerContainerRegistry;
+import io.awspring.cloud.sqs.listener.MessageListenerContainer;
+import io.awspring.cloud.sqs.listener.MessageListenerContainerRegistry;
 import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.listener.acknowledgement.AsyncAcknowledgementResultCallback;
@@ -46,11 +56,13 @@ import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.boot.LazyInitializationBeanFactoryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.converter.CompositeMessageConverter;
 import org.springframework.messaging.converter.JacksonJsonMessageConverter;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -63,6 +75,7 @@ import tools.jackson.databind.json.JsonMapper;
  *
  * @author Tomaz Fernandes
  * @author Wei Jiang
+ * @author Sharang Gupta
  */
 class SqsAutoConfigurationTest {
 
@@ -342,6 +355,104 @@ class SqsAutoConfigurationTest {
 			assertThat(context).hasSingleBean(SqsAsyncClient.class);
 			assertThat(context.getBean(SqsAsyncClient.class)).isNotInstanceOf(AmazonSQSExtendedAsyncClient.class);
 		});
+	}
+
+	@Test
+	void startsContainersInLifecyclePhaseByDefault() {
+		this.contextRunner.run(context -> {
+			assertThat(context).hasSingleBean(MessageListenerContainerRegistry.class);
+			assertThat(context.getBean(SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME)).isInstanceOfSatisfying(
+					DefaultListenerContainerRegistry.class,
+					registry -> assertThat(registry.isStartAfterContextRefresh()).isFalse());
+		});
+	}
+
+	@Test
+	void startsContainersAfterContextRefreshWhenConfigured() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.listener.start-after-context-refresh=true")
+				.run(context -> {
+					assertThat(context).hasSingleBean(MessageListenerContainerRegistry.class);
+					assertThat(context.getBean(SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME)).isInstanceOfSatisfying(
+							DefaultListenerContainerRegistry.class,
+							registry -> assertThat(registry.isStartAfterContextRefresh()).isTrue());
+				});
+	}
+
+	@Test
+	void startAfterContextRefreshBacksOffWhenRegistryIsProvided() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.listener.start-after-context-refresh=true")
+				.withUserConfiguration(CustomRegistryConfiguration.class).run(context -> {
+					assertThat(context).hasSingleBean(MessageListenerContainerRegistry.class);
+					assertThat(context.getBean(SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME))
+							.isSameAs(CustomRegistryConfiguration.REGISTRY);
+				});
+	}
+
+	@Test
+	void startsListenerContainerAfterContextRefreshWithLazyInitialization() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.sqs.listener.start-after-context-refresh=true")
+				.withBean(LazyInitializationBeanFactoryPostProcessor.class)
+				.withUserConfiguration(StubListenerConfiguration.class).run(context -> {
+					assertThat(context).hasNotFailed();
+					MessageListenerContainerRegistry registry = context.getBean(MessageListenerContainerRegistry.class);
+					assertThat(registry.getListenerContainers()).containsExactly(StubListenerConfiguration.CONTAINER);
+					then(StubListenerConfiguration.CONTAINER).should().start();
+				});
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class CustomRegistryConfiguration {
+
+		static final DefaultListenerContainerRegistry REGISTRY = new DefaultListenerContainerRegistry();
+
+		@Bean(name = SqsBeanNames.ENDPOINT_REGISTRY_BEAN_NAME)
+		DefaultListenerContainerRegistry customRegistry() {
+			return REGISTRY;
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	static class StubListenerConfiguration {
+
+		static final String STUB_FACTORY_BEAN_NAME = "stubContainerFactory";
+
+		@SuppressWarnings("unchecked")
+		static final MessageListenerContainer<Object> CONTAINER = mock(MessageListenerContainer.class);
+
+		@Bean(name = STUB_FACTORY_BEAN_NAME)
+		MessageListenerContainerFactory<MessageListenerContainer<Object>> stubContainerFactory() {
+			given(CONTAINER.getId()).willReturn("stub-container");
+			given(CONTAINER.isAutoStartup()).willReturn(true);
+			return new MessageListenerContainerFactory<>() {
+
+				@Override
+				public MessageListenerContainer<Object> createContainer(String... logicalEndpointNames) {
+					return CONTAINER;
+				}
+
+				@Override
+				public MessageListenerContainer<Object> createContainer(Endpoint endpoint) {
+					return CONTAINER;
+				}
+
+			};
+		}
+
+		@Lazy(false)
+		@Bean
+		StubListener stubListener() {
+			return new StubListener();
+		}
+
+	}
+
+	static class StubListener {
+
+		@SqsListener(queueNames = "stub-queue", factory = StubListenerConfiguration.STUB_FACTORY_BEAN_NAME)
+		void listen(String message) {
+		}
+
 	}
 
 	@Configuration(proxyBeanMethods = false)

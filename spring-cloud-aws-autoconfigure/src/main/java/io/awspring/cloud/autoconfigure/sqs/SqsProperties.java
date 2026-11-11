@@ -136,6 +136,11 @@ public class SqsProperties extends AwsClientProperties {
 		@Nullable
 		private Boolean autoStartup;
 
+		/**
+		 * Whether SQS listeners are started only after the application context is refreshed, rather than during it.
+		 */
+		private boolean startAfterContextRefresh = false;
+
 		@Nullable
 		public Integer getMaxConcurrentMessages() {
 			return this.maxConcurrentMessages;
@@ -179,6 +184,14 @@ public class SqsProperties extends AwsClientProperties {
 
 		public void setAutoStartup(Boolean autoStartup) {
 			this.autoStartup = autoStartup;
+		}
+
+		public boolean isStartAfterContextRefresh() {
+			return this.startAfterContextRefresh;
+		}
+
+		public void setStartAfterContextRefresh(boolean startAfterContextRefresh) {
+			this.startAfterContextRefresh = startAfterContextRefresh;
 		}
 	}
 

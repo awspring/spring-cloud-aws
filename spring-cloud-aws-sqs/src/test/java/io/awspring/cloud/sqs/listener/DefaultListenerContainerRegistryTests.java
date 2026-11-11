@@ -21,19 +21,25 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContextException;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.Ordered;
 
 /**
  * Tests for {@link DefaultListenerContainerRegistry}.
  *
  * @author Tomaz Fernandes
+ * @author Sharang Gupta
  */
 @SuppressWarnings("unchecked")
 class DefaultListenerContainerRegistryTests {
@@ -208,5 +214,162 @@ class DefaultListenerContainerRegistryTests {
 			then(faultyContainer).should(times(1)).stop();
 			assertThat(registry.isRunning()).isFalse();
 		}
+	}
+
+	@Test
+	void shouldStartContainersDuringLifecycleStartByDefault() {
+		MessageListenerContainer<Object> container = autoStartupContainer("test-container-id");
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.registerListenerContainer(container);
+		ContainerStartProbe probe = new ContainerStartProbe(container);
+
+		try (GenericApplicationContext context = new GenericApplicationContext()) {
+			context.registerBean(DefaultListenerContainerRegistry.class, () -> registry);
+			context.registerBean(ContainerStartProbe.class, () -> probe);
+			context.refresh();
+
+			assertThat(registry.isStartAfterContextRefresh()).isFalse();
+			assertThat(probe.startedBeforeContextRefreshed).isTrue();
+			then(container).should(times(1)).start();
+		}
+	}
+
+	@Test
+	void shouldStartContainersAfterContextRefreshWhenConfigured() {
+		MessageListenerContainer<Object> container = autoStartupContainer("test-container-id");
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.setStartAfterContextRefresh(true);
+		registry.registerListenerContainer(container);
+		ContainerStartProbe probe = new ContainerStartProbe(container);
+
+		try (GenericApplicationContext context = new GenericApplicationContext()) {
+			context.registerBean(DefaultListenerContainerRegistry.class, () -> registry);
+			context.registerBean(ContainerStartProbe.class, () -> probe);
+			context.refresh();
+
+			assertThat(probe.startedBeforeContextRefreshed).isFalse();
+			assertThat(registry.isRunning()).isTrue();
+			then(container).should(times(1)).start();
+		}
+		then(container).should().stop();
+	}
+
+	@Test
+	void shouldNotStartContainersBeforeContextRefreshWhenConfigured() {
+		MessageListenerContainer<Object> container = autoStartupContainer("test-container-id");
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.setStartAfterContextRefresh(true);
+		registry.registerListenerContainer(container);
+
+		registry.start();
+
+		assertThat(registry.isRunning()).isTrue();
+		then(container).should(never()).start();
+	}
+
+	@Test
+	void shouldNotStartContainerWithAutoStartupFalseAfterContextRefresh() {
+		MessageListenerContainer<Object> container = mock(MessageListenerContainer.class);
+		given(container.getId()).willReturn("test-container-id");
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.setStartAfterContextRefresh(true);
+		registry.registerListenerContainer(container);
+
+		try (GenericApplicationContext context = new GenericApplicationContext()) {
+			context.registerBean(DefaultListenerContainerRegistry.class, () -> registry);
+			context.refresh();
+
+			then(container).should(never()).start();
+		}
+	}
+
+	@Test
+	void shouldNotStartContainersWhenAnotherContextIsRefreshed() {
+		MessageListenerContainer<Object> container = autoStartupContainer("test-container-id");
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.setStartAfterContextRefresh(true);
+		registry.registerListenerContainer(container);
+
+		try (GenericApplicationContext context = new GenericApplicationContext();
+				GenericApplicationContext otherContext = new GenericApplicationContext()) {
+			registry.setApplicationContext(context);
+			registry.start();
+			registry.onApplicationEvent(new ContextRefreshedEvent(otherContext));
+
+			then(container).should(never()).start();
+		}
+	}
+
+	@Test
+	void shouldStartContainersOnRestartOnceContextIsRefreshed() {
+		MessageListenerContainer<Object> container = autoStartupContainer("test-container-id");
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.setStartAfterContextRefresh(true);
+		registry.registerListenerContainer(container);
+
+		try (GenericApplicationContext context = new GenericApplicationContext()) {
+			context.registerBean(DefaultListenerContainerRegistry.class, () -> registry);
+			context.refresh();
+			registry.stop();
+			registry.start();
+
+			then(container).should(times(2)).start();
+		}
+	}
+
+	@Test
+	void shouldFailContextRefreshWhenContainerFailsToStartAfterContextRefresh() {
+		MessageListenerContainer<Object> container = autoStartupContainer("test-container-id");
+		String containerFailedToStartMessage = "Container failed to start";
+		willAnswer(invocation -> {
+			throw new IllegalStateException(containerFailedToStartMessage);
+		}).given(container).start();
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		registry.setStartAfterContextRefresh(true);
+		registry.registerListenerContainer(container);
+
+		try (GenericApplicationContext context = new GenericApplicationContext()) {
+			context.registerBean(DefaultListenerContainerRegistry.class, () -> registry);
+			assertThatThrownBy(context::refresh).hasRootCauseInstanceOf(IllegalStateException.class)
+					.hasRootCauseMessage(containerFailedToStartMessage);
+
+			then(container).should(times(1)).stop();
+			assertThat(registry.isRunning()).isFalse();
+		}
+	}
+
+	private MessageListenerContainer<Object> autoStartupContainer(String id) {
+		MessageListenerContainer<Object> container = mock(MessageListenerContainer.class);
+		given(container.getId()).willReturn(id);
+		given(container.isAutoStartup()).willReturn(true);
+		return container;
+	}
+
+	/**
+	 * Records whether the container was already started when the first {@link ContextRefreshedEvent} listener runs.
+	 */
+	private static class ContainerStartProbe implements ApplicationListener<ContextRefreshedEvent>, Ordered {
+
+		private final AtomicBoolean started = new AtomicBoolean();
+
+		private volatile boolean startedBeforeContextRefreshed;
+
+		ContainerStartProbe(MessageListenerContainer<Object> container) {
+			willAnswer(invocation -> {
+				this.started.set(true);
+				return null;
+			}).given(container).start();
+		}
+
+		@Override
+		public void onApplicationEvent(ContextRefreshedEvent event) {
+			this.startedBeforeContextRefreshed = this.started.get();
+		}
+
+		@Override
+		public int getOrder() {
+			return Ordered.HIGHEST_PRECEDENCE;
+		}
+
 	}
 }
