@@ -928,6 +928,40 @@ class SqsTemplateTests {
 		});
 	}
 
+	@Test
+	void shouldConvertToPayloadClassOfEachReceive() throws Exception {
+		String queue = "test-queue";
+		SampleRecord payload = new SampleRecord("first-prop", "second-prop");
+		String payloadString = new ObjectMapper().writeValueAsString(payload);
+
+		GetQueueUrlResponse urlResponse = GetQueueUrlResponse.builder().queueUrl(queue).build();
+		given(mockClient.getQueueUrl(any(GetQueueUrlRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(urlResponse));
+		mockQueueAttributes(mockClient, Map.of());
+		ReceiveMessageResponse receiveMessageResponse = ReceiveMessageResponse.builder()
+				.messages(builder -> builder.messageId(UUID.randomUUID().toString())
+						.receiptHandle("test-receipt-handle").body(payloadString).build())
+				.build();
+		given(mockClient.receiveMessage(any(ReceiveMessageRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(receiveMessageResponse));
+		DeleteMessageBatchResponse deleteResponse = DeleteMessageBatchResponse.builder()
+				.successful(builder -> builder.id(UUID.randomUUID().toString())).build();
+		given(mockClient.deleteMessageBatch(any(DeleteMessageBatchRequest.class)))
+				.willReturn(CompletableFuture.completedFuture(deleteResponse));
+		SqsOperations template = SqsTemplate.newSyncTemplate(mockClient);
+
+		Optional<Message<?>> rawMessage = template.receive(from -> from.queue(queue));
+		assertThat(rawMessage).isPresent()
+				.hasValueSatisfying(message -> assertThat(message.getPayload()).isEqualTo(payloadString));
+		Optional<Message<SampleRecord>> convertedMessage = template.receive(from -> from.queue(queue),
+				SampleRecord.class);
+		assertThat(convertedMessage).isPresent()
+				.hasValueSatisfying(message -> assertThat(message.getPayload()).isEqualTo(payload));
+		Optional<Message<?>> rawMessageAgain = template.receive(from -> from.queue(queue));
+		assertThat(rawMessageAgain).isPresent()
+				.hasValueSatisfying(message -> assertThat(message.getPayload()).isEqualTo(payloadString));
+	}
+
 	record SampleRecord(String firstProperty, String secondProperty) {
 	}
 
