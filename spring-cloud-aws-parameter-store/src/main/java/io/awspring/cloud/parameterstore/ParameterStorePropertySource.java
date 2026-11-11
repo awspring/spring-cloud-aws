@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.ssm.model.Parameter;
  * @author Eddú Meléndez
  * @author Maciej Walkowiak
  * @author Matej Nedic
+ * @author Sharang Gupta
  * @since 2.0.0
  */
 public class ParameterStorePropertySource extends AwsPropertySource<ParameterStorePropertySource, SsmClient> {
@@ -113,7 +114,7 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 				}
 			}
 			else {
-				String key = parameter.name().replace(this.parameterPath, "").replace('/', '.').replaceAll("_(\\d)_",
+				String key = stripLeadingParameterPath(parameter.name()).replace('/', '.').replaceAll("_(\\d)_",
 						"[$1]");
 				LOG.debug("Populating property retrieved from AWS Parameter Store: " + key);
 				String propertyKey = prefix != null ? prefix + key : key;
@@ -123,6 +124,11 @@ public class ParameterStorePropertySource extends AwsPropertySource<ParameterSto
 		if (paramsResult.nextToken() != null) {
 			getParameters(paramsRequest.toBuilder().nextToken(paramsResult.nextToken()).build());
 		}
+	}
+
+	private String stripLeadingParameterPath(String parameterName) {
+		return parameterName.startsWith(this.parameterPath) ? parameterName.substring(this.parameterPath.length())
+				: parameterName;
 	}
 
 	@Nullable
