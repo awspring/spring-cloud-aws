@@ -39,6 +39,8 @@ jobs:
           cache: maven
       - name: Validate AsciiDoc
         run: ./mvnw -V -B verify -Pdocs-classic -DskipTests
+      - name: Check that the configuration properties table is up to date
+        run: git diff --exit-code docs/src/main/asciidoc/_configprops.adoc
   sonar:
     name: Run Sonar Analysis
     runs-on: ubuntu-latest
