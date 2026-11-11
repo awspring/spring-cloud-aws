@@ -49,6 +49,18 @@ class CompositeInvocableHandlerTest {
 		public String handle(Object payload) {
 			return "Handled object: " + payload;
 		}
+
+		public String handle(Message<String> message) {
+			return "Handled message: " + message.getPayload();
+		}
+
+		public String handleRaw(Message message) {
+			return "Handled raw: " + message.getPayload();
+		}
+
+		public String handlePayloadAndMessage(String payload, Message<String> message) {
+			return "Handled payload and message: " + payload;
+		}
 	}
 
 	@Test
@@ -106,8 +118,69 @@ class CompositeInvocableHandlerTest {
 				.hasMessageContaining("Ambiguous handler method for payload type");
 	}
 
+	@Test
+	void invokesHandlerWithMessageParameterMatchingPayloadType() throws Exception {
+		Message<String> message = mock(Message.class);
+		when(message.getPayload()).thenReturn("testPayload");
+
+		InvocableHandlerMethod messageHandler = mockHandler(Message.class, "messageHandlerResult");
+		InvocableHandlerMethod intHandler = mockHandler(Integer.class, "shouldNotBeCalled");
+
+		CompositeInvocableHandler handler = new CompositeInvocableHandler(List.of(messageHandler, intHandler), null);
+
+		assertThat(handler.invoke(message)).isEqualTo("messageHandlerResult");
+		verify(messageHandler).invoke(message);
+		verify(intHandler, never()).invoke(message);
+	}
+
+	@Test
+	void throwsWhenPlainAndMessageHandlersMatchSamePayloadType() throws Exception {
+		Message<String> message = mock(Message.class);
+		when(message.getPayload()).thenReturn("testPayload");
+
+		InvocableHandlerMethod stringHandler = mockHandler(String.class, "stringHandlerResult");
+		InvocableHandlerMethod messageHandler = mockHandler(Message.class, "messageHandlerResult");
+
+		CompositeInvocableHandler handler = new CompositeInvocableHandler(List.of(stringHandler, messageHandler), null);
+
+		assertThatThrownBy(() -> handler.invoke(message)).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("Ambiguous handler method for payload type");
+	}
+
+	@Test
+	void rawMessageParameterDoesNotMatchAndFallsBackToDefault() throws Exception {
+		Message<String> message = mock(Message.class);
+		when(message.getPayload()).thenReturn("testPayload");
+
+		InvocableHandlerMethod rawHandler = mockHandler("handleRaw", "shouldNotBeCalled", Message.class);
+		InvocableHandlerMethod defaultHandler = mockHandler(Object.class, "defaultResult");
+
+		CompositeInvocableHandler composite = new CompositeInvocableHandler(List.of(rawHandler), defaultHandler);
+
+		assertThat(composite.invoke(message)).isEqualTo("defaultResult");
+	}
+
+	@Test
+	void throwsWhenPayloadAndMessageParametersOnSameMethod() throws Exception {
+		Message<String> message = mock(Message.class);
+		when(message.getPayload()).thenReturn("testPayload");
+
+		InvocableHandlerMethod handler = mockHandler("handlePayloadAndMessage", "result", String.class, Message.class);
+		InvocableHandlerMethod intHandler = mockHandler(Integer.class, "shouldNotBeCalled");
+
+		CompositeInvocableHandler composite = new CompositeInvocableHandler(List.of(handler, intHandler), null);
+
+		assertThatThrownBy(() -> composite.invoke(message)).isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("Ambiguous payload parameter for");
+	}
+
 	private InvocableHandlerMethod mockHandler(Class<?> paramType, Object returnValue) throws Exception {
-		Method method = Listener.class.getDeclaredMethod("handle", paramType);
+		return mockHandler("handle", returnValue, paramType);
+	}
+
+	private InvocableHandlerMethod mockHandler(String methodName, Object returnValue, Class<?>... paramTypes)
+			throws Exception {
+		Method method = Listener.class.getDeclaredMethod(methodName, paramTypes);
 		InvocableHandlerMethod handler = mock(InvocableHandlerMethod.class);
 		when(handler.getMethod()).thenReturn(method);
 		when(handler.invoke(any())).thenReturn(returnValue);
