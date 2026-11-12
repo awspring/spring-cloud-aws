@@ -72,6 +72,8 @@ Transfer Manager works best with the CRT-based S3 client. To auto-configure a CR
 </dependency>
 ----
 
+The `aws-crt-client` dependency brings in the matching `software.amazon.awssdk.crt:aws-crt` library, whose version is managed by Spring Cloud AWS together with the AWS SDK version, so there is no need to declare it explicitly.
+
 When no `S3AsyncClient` bean is created, the default `S3AsyncClient` provided by the AWS SDK is used. To benefit from maximum throughput, multipart upload/download, and resumable file upload, consider using a CRT-based `S3AsyncClient`.
 
 === S3 objects as Spring Resources
