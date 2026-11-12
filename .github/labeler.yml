@@ -32,6 +32,8 @@
     - any-glob-to-any-file:
       - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/ses/*
       - spring-cloud-aws-ses/**/*
+      - spring-cloud-aws-autoconfigure/src/*/java/io/awspring/cloud/autoconfigure/sesv2/*
+      - spring-cloud-aws-sesv2/**/*
 "component: sns":
   - changed-files:
     - any-glob-to-any-file:

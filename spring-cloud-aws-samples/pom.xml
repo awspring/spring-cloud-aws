@@ -21,6 +21,7 @@
 		<module>spring-cloud-aws-s3-sample</module>
 		<module>spring-cloud-aws-secrets-manager-sample</module>
 		<module>spring-cloud-aws-ses-sample</module>
+		<module>spring-cloud-aws-sesv2-sample</module>
 		<module>spring-cloud-aws-sns-sample</module>
 		<module>spring-cloud-aws-sqs-sample</module>
     </modules>
