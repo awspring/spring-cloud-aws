@@ -58,7 +58,7 @@ To have a highly available consumer group for your Kinesis stream:
 These configurations alone guarantee HA, message ordering and guaranteed message delivery.
 However, even distribution across instances is not guaranteed as of now.
 There is a very high chance that a single instance in a consumer group will pick up all the shards for consuming.
-But, when that instance goes down (couldn't send a heartbeat for any reason), another instance in the consumer group will start processing from the last checkpoint of the previous consumer (for shardIterator type `TRIM_HORIZON`).
+But, when that instance goes down (couldn't send a heartbeat for any reason), another instance in the consumer group will start processing from the last checkpoint of the previous consumer (regardless of the configured `shardIteratorType`).
 
 So, configuring consumer concurrency is important to achieve throughput.
 It can be configured using `spring.cloud.stream.bindings.<bindingTarget>.consumer.concurrency`.
@@ -257,17 +257,28 @@ The amount of time the consumer will wait to attempt another `GetRecords` operat
 +
 Default: `1000`
 shardIteratorType::
-The `com.amazonaws.services.kinesis.model.ShardIteratorType` name with an optional `sequenceNumber` for the `AT_SEQUENCE_NUMBER/AFTER_SEQUENCE_NUMBER` or milliseconds for the `AT_TIMESTAMP` after `:`.
-For example: `AT_TIMESTAMP:1515090166767`.
-If `shardIteratorType` is set to `TRIM_HORIZON` explicitly for existing groups, then the stored sequence number is ignored, and the shard iterator is reset to `TRIM_HORIZON`.
+The initial position in the stream for shards which do not have a stored checkpoint for the consumer group yet.
+The value is a `software.amazon.awssdk.services.kinesis.model.ShardIteratorType` name, optionally followed by `:` and a value:
++
+* `LATEST` - start after the most recent record in the shard.
+* `TRIM_HORIZON` - start from the oldest untrimmed record in the shard.
+* `AT_TIMESTAMP:<epoch millis>` - start from the given timestamp, for example `AT_TIMESTAMP:1515090166767`.
+* `AT_SEQUENCE_NUMBER:<sequence number>` or `AFTER_SEQUENCE_NUMBER:<sequence number>` - start at or after the given sequence number.
+Not supported when `kplKclEnabled` is `true`.
++
+The shard iterator type is applied only when there is no checkpoint for a shard in the metadata store (or in the KCL lease table when `kplKclEnabled` is `true`).
+When a checkpoint exists, consumption always resumes after the stored sequence number (`AFTER_SEQUENCE_NUMBER`), regardless of this property.
+In particular, setting `shardIteratorType` to `TRIM_HORIZON` for an existing consumer group does not reset its stored checkpoints.
+To re-read a stream from the beginning, use a new consumer group, or remove the stored checkpoints for the group (for example, via the `resetCheckpoints()` managed operation of the `KinesisMessageDrivenChannelAdapter`).
 +
 Default: `LATEST` for anonymous groups and `TRIM_HORIZON` otherwise.
+An explicitly configured value is used for both anonymous and named groups.
 
 NOTE: When the `TRIM_HORIZON` shard iterator type is used, take into account the time lag that occurs while the `ShardIterator` points to the last untrimmed record in the shard (the oldest data record in the shard).
 So the `getRecords()` will move from that point to the last point, which takes time.
-It is by default 1 day, and it can be extended to 7 days.
-This happens only for new consumer groups.
-Any subsequent starts of the consumer in the same group are adjusted according to the stored checkpoint via the `AFTER_SEQUENCE_NUMBER` iterator type.
+The stream data retention period is 1 day by default, and it can be extended up to 365 days.
+This happens only for shards without a stored checkpoint, for example, for new consumer groups.
+Any subsequent starts of the consumer in the same group resume from the stored checkpoint via the `AFTER_SEQUENCE_NUMBER` iterator type.
 
 shardId::
 An explicit shard id to consume from.
