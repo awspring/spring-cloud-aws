@@ -458,24 +458,29 @@ class SqsAutoConfigurationTest {
 			assertThat(context.getBean(SqsMessageListenerContainerFactory.class)).extracting("containerOptionsBuilder")
 					.asInstanceOf(type(ContainerOptionsBuilder.class)).extracting(ContainerOptionsBuilder::build)
 					.satisfies(options -> {
-						assertThat(options).extracting("componentsTaskExecutor").isInstanceOf(SimpleAsyncTaskExecutor.class);
-						SimpleAsyncTaskExecutor executor = (SimpleAsyncTaskExecutor) options.getComponentsTaskExecutor();
+						assertThat(options).extracting("componentsTaskExecutor")
+								.isInstanceOf(SimpleAsyncTaskExecutor.class);
+						SimpleAsyncTaskExecutor executor = (SimpleAsyncTaskExecutor) options
+								.getComponentsTaskExecutor();
 						try {
 							executor.submit(() -> {
 								assertThat(isVirtualThread(Thread.currentThread())).isTrue();
 							}).get();
-						} catch (Exception e) {
+						}
+						catch (Exception e) {
 							throw new RuntimeException(e);
 						}
 
 						assertThat(options).extracting("acknowledgementResultTaskExecutor")
 								.isInstanceOf(SimpleAsyncTaskExecutor.class);
-						SimpleAsyncTaskExecutor ackExecutor = (SimpleAsyncTaskExecutor) options.getAcknowledgementResultTaskExecutor();
+						SimpleAsyncTaskExecutor ackExecutor = (SimpleAsyncTaskExecutor) options
+								.getAcknowledgementResultTaskExecutor();
 						try {
 							ackExecutor.submit(() -> {
 								assertThat(isVirtualThread(Thread.currentThread())).isTrue();
 							}).get();
-						} catch (Exception e) {
+						}
+						catch (Exception e) {
 							throw new RuntimeException(e);
 						}
 					});
@@ -489,6 +494,21 @@ class SqsAutoConfigurationTest {
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	@Test
+	@EnabledForJreRange(max = JRE.JAVA_20)
+	void withVirtualThreadsEnabledOnUnsupportedJavaVersionFallsBackToDefaultExecutors() {
+		this.contextRunner.withPropertyValues("spring.threads.virtual.enabled=true").run(context -> {
+			assertThat(context).hasNotFailed();
+			assertThat(context).hasSingleBean(SqsMessageListenerContainerFactory.class);
+			assertThat(context.getBean(SqsMessageListenerContainerFactory.class)).extracting("containerOptionsBuilder")
+					.asInstanceOf(type(ContainerOptionsBuilder.class)).extracting(ContainerOptionsBuilder::build)
+					.satisfies(options -> {
+						assertThat(options).extracting("componentsTaskExecutor").isNull();
+						assertThat(options).extracting("acknowledgementResultTaskExecutor").isNull();
+					});
+		});
 	}
 
 	@Test

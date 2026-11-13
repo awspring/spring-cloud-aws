@@ -54,6 +54,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClas
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
+import org.springframework.boot.thread.Threading;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -206,7 +207,9 @@ public class SqsAutoConfiguration {
 			observationConventionProvider
 					.ifAvailable(convention -> factory.configure(options -> options.observationConvention(convention)));
 		}
-		if (environment.getProperty("spring.threads.virtual.enabled", Boolean.class, false)) {
+		// Threading.VIRTUAL checks both spring.threads.virtual.enabled and that the JVM is Java 21+,
+		// so on older JVMs this is a no-op and the container keeps its default platform-thread executors.
+		if (Threading.VIRTUAL.isActive(environment)) {
 			SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("sqs-listener-");
 			executor.setVirtualThreads(true);
 			factory.configure(options -> options.componentsTaskExecutor(executor));
