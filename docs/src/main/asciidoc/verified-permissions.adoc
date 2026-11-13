@@ -83,6 +83,26 @@ Photo find(String id) { ... }
 
 `authorize(...)` returns an `AvpAuthorizationResult`, so the Verified Permissions diagnostics reach denial handlers and events. `isAuthorized(...)` returns a `boolean`.
 
+=== Using URL rules
+
+The module does not add its own URL rule type. `AuthorizationManager` has one method, so a rule in `authorizeHttpRequests` can call the `avp` bean from a lambda:
+
+[source,java]
+----
+@Bean
+SecurityFilterChain security(HttpSecurity http, VerifiedPermissionsAuthorizer avp) throws Exception {
+    return http
+        .authorizeHttpRequests(requests -> requests
+            .requestMatchers(HttpMethod.GET, "/photos/{id}")
+            .access((authentication, request) -> avp.authorize(authentication.get(), "ViewPhoto",
+                    new EntityRef("Photo", request.getVariables().get("id")), Map.of()))
+            .anyRequest().authenticated())
+        .build();
+}
+----
+
+The path variable comes from the matcher pattern, so `/photos/{id}` must contain `{id}`. Pass it as an `EntityRef` so that an `EntityLoader` reads the authoritative entity. As with method security, an unauthenticated caller is denied without calling Verified Permissions, and a denied authenticated caller gets a 403 response.
+
 === Checking from code
 
 Inject `VerifiedPermissionsAuthorizer`:
