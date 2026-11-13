@@ -1,0 +1,289 @@
+[#spring-cloud-aws-verified-permissions]
+== Verified Permissions integration
+
+https://aws.amazon.com/verified-permissions/[Amazon Verified Permissions] evaluates Cedar policies stored in a policy store and answers whether a principal may perform an action on a resource.
+Spring Cloud AWS connects it to Spring Security, so authorization decisions can be made with annotations on Spring MVC and non-web applications.
+
+Maven coordinates, using <<index.adoc#bill-of-materials, Spring Cloud AWS BOM>>.
+[source,xml]
+----
+<dependency>
+    <groupId>io.awspring.cloud</groupId>
+    <artifactId>spring-cloud-aws-starter-verified-permissions</artifactId>
+</dependency>
+----
+
+A policy store must be set; startup fails without one:
+
+[source,properties]
+----
+spring.cloud.aws.verified-permissions.policy-store-id=policy-store-alias/photos
+spring.cloud.aws.verified-permissions.namespace=PhotoFlash
+----
+
+`policy-store-id` accepts a policy store id or an alias written as `policy-store-alias/<name>`.
+Types and actions without a namespace get the configured one, so `Photo` is sent as `PhotoFlash::Photo` and action `ViewPhoto` as `PhotoFlash::Action::"ViewPhoto"`.
+
+The starter does not change any security filter chain.
+The AVP annotations are applied by advisors that the auto-configuration registers, so they work wherever Spring AOP auto-proxying is active, which Spring Boot enables by default.
+Enable `@EnableMethodSecurity` to also use Spring Security's own annotations, such as `@PreAuthorize` with the `avp` bean.
+Set `spring.cloud.aws.verified-permissions.method-security.enabled=false` to turn the advisors off.
+
+WebFlux is not supported. A reactive web application fails at startup instead of running annotated methods unchecked, unless `method-security.enabled=false`.
+
+=== Securing methods
+
+[source,java]
+----
+@Service
+class PhotoService {
+
+    @AvpPreAuthorize(action = "ViewPhoto", resourceType = "Photo", resourceId = "#id")
+    Photo view(String id) { ... }
+
+    @AvpPreAuthorize(action = "DeletePhoto", resourceType = "Photo", resourceId = "#id")
+    void delete(String id) { ... }
+
+    @AvpPreAuthorize(action = "UploadPhoto", resourceType = "Album", resourceId = "#albumId",
+            context = "{'size': #file.size}")
+    void upload(String albumId, MultipartFile file) { ... }
+
+    @AvpPostAuthorize(action = "ViewPhoto")
+    Photo find(String id) { ... }
+
+    @AvpPostFilter(action = "ViewPhoto")
+    List<Photo> album(String albumId) { ... }
+}
+----
+
+- `resource`, `resourceId` and `context` are SpEL expressions evaluated like `@PreAuthorize`.
+- Pass caller input as a type and id (or an `EntityRef`) so that an `EntityLoader` reads the authoritative entity. An `Entity` or `@AvpEntity` object passed as `resource` is trusted exactly as given, so never authorize an object bound from a request body: the caller would control its attributes and parents.
+- When `action` is left out, the method name is used with its first letter in upper case (`deletePhoto` becomes `DeletePhoto`).
+- `@AvpPostAuthorize` uses `returnObject` as the resource by default. A `null` resource is denied by default.
+- `@AvpPostFilter` sends the returned elements to `BatchIsAuthorized` in groups of 30 and returns a new collection with the allowed elements, in their original order. A returned `Stream` is filtered lazily, 30 elements at a time, and closing the result closes the source.
+- Pre-authorization runs after Spring Security's own pre-check. Post-authorization and post-filter ordering lets Spring Security's built-in post advice complete before the AVP advice during interceptor unwinding.
+
+A denial throws Spring Security's `AuthorizationDeniedException`, which results in a 403 response. Its `getAuthorizationResult()` is an `AvpAuthorizationResult`, which carries the action, the resource, the ids of the policies that decided, and any evaluation errors.
+
+Callers that are not authenticated are denied without calling Verified Permissions.
+When a call to Verified Permissions fails, for example through throttling, networking or IAM, a `VerifiedPermissionsException` is thrown. Access is never granted on failure.
+
+=== Using `@PreAuthorize`
+
+The `avp` bean can be used from any Spring Security expression:
+
+[source,java]
+----
+@PreAuthorize("hasRole('ADMIN') or @avp.isAuthorized('DeletePhoto', 'Photo', #id)")
+void delete(String id) { ... }
+
+@PostAuthorize("@avp.authorize('ViewPhoto', returnObject)")
+Photo find(String id) { ... }
+----
+
+`authorize(...)` returns an `AvpAuthorizationResult`, so the Verified Permissions diagnostics reach denial handlers and events. `isAuthorized(...)` returns a `boolean`.
+
+=== Using URL rules
+
+The module does not add its own URL rule type. `AuthorizationManager` has one method, so a rule in `authorizeHttpRequests` can call the `avp` bean from a lambda:
+
+[source,java]
+----
+@Bean
+SecurityFilterChain security(HttpSecurity http, VerifiedPermissionsAuthorizer avp) throws Exception {
+    return http
+        .authorizeHttpRequests(requests -> requests
+            .requestMatchers(HttpMethod.GET, "/photos/{id}")
+            .access((authentication, request) -> avp.authorize(authentication.get(), "ViewPhoto",
+                    new EntityRef("Photo", request.getVariables().get("id")), Map.of()))
+            .anyRequest().authenticated())
+        .build();
+}
+----
+
+The path variable comes from the matcher pattern, so `/photos/{id}` must contain `{id}`. Pass it as an `EntityRef` so that an `EntityLoader` reads the authoritative entity. As with method security, an unauthenticated caller is denied without calling Verified Permissions, and a denied authenticated caller gets a 403 response.
+
+=== Checking from code
+
+Inject `VerifiedPermissionsAuthorizer`:
+
+[source,java]
+----
+@GetMapping("/photos/{id}/actions")
+Set<String> actions(@PathVariable String id) {
+    return avp.allowedActions(photos.find(id), "ViewPhoto", "EditPhoto", "DeletePhoto");
+}
+----
+
+- `allowedActions` asks for several actions on one resource in one batch call, for example to decide which buttons to show.
+- `filterAllowed(resources, action)` returns the resources the user may act on.
+
+For full control over the request, use `VerifiedPermissionsOperations` with `AuthorizationRequest` and `BatchAuthorizationRequest`.
+
+=== Mapping resources
+
+A resource can be:
+
+- an `EntityRef`, such as `EntityRef.of("Photo", id)`;
+- an `Entity` with attributes and parents;
+- an object annotated with `@AvpEntity`;
+- any object that an `EntityResolver` bean maps.
+
+[source,java]
+----
+@AvpEntity("Photo")
+public record Photo(@AvpEntityId String id,
+        @AvpAttribute(entityType = "User") String owner,
+        @AvpAttribute boolean isPrivate,
+        @AvpParent("Album") String albumId) {
+}
+----
+
+The entity is sent with its annotated attributes. Only annotated fields are sent.
+`@AvpAttribute(entityType = ...)` turns an id into an entity reference, so a policy can use `resource.owner == principal`.
+`@AvpParent` lets a policy use `resource in Album::"a1"`.
+
+Supported attribute types:
+
+- `String`, `boolean` and integral numbers;
+- `BigDecimal`, sent as a Cedar `decimal`;
+- `InetAddress`, sent as `ipaddr`;
+- `Instant` and other date-time types, sent as `datetime`;
+- `Duration`, sent as `duration`;
+- collections and arrays, sent as sets;
+- maps, sent as records;
+- `EntityRef`;
+- `ExtensionValue`, for giving an extension value as a string.
+
+`null` values are left out. The extension types need a Cedar 4 policy store.
+
+The extension points are `EntityResolver`, `EntityLoader`, `PrincipalEntityContributor`, `ContextProvider`, `PolicyStoreResolver`, and `TokenModeResolver`.
+
+=== Loading resources and related entities
+
+An `EntityRef` can be enriched before authorization by an ordered `EntityLoader` bean.
+Loaders are batch-first and return a map keyed by `EntityRef`.
+If a loader supports the root resource but does not return it, authorization is denied locally with `resource not found` and Verified Permissions is not called.
+If no loader supports the type, the existing identifier-only behavior remains available.
+`filterAllowed`, `allowedActions` and `@AvpPostFilter` load all `EntityRef` roots of a collection with one `loadAll` call per loader and policy store, and resolve the principal graph once per policy store and token mode.
+`EntityLoadContext.calls()` lists every authorization call a batch serves; `call()` is the first.
+A loaded root is reused within one request only for the same policy store target and authentication, and concurrent callers in one request wait for a single load.
+A loader must therefore return the same entity whatever the action or resource of the call.
+
+Loaded resources, principal entities, parents, and entity-valued attributes are expanded into one graph, following references up to `entity-loading.max-depth` levels (default 2).
+Cycles are ignored after the first visit, and a reference with or without the configured namespace prefix counts as the same entity.
+Related identifiers that no loader returns remain usable for membership policies. An application that needs a complete graph can throw from its `EntityLoader` when an entity is missing.
+Each batch item carries only its own graph, so every 30-item AWS request contains the union for that chunk rather than the entities for the full input collection.
+
+The library does not enforce Verified Permissions quotas such as request size or entity count; requests that exceed them fail with the error returned by the service.
+
+`PrincipalEntityContributor` beans add principal attributes, parents, and related entities without replacing token extraction or anonymous handling.
+Contributors run in Spring order. Later attributes replace earlier attributes and parents are unioned.
+They run only in `entity` mode because token principals are supplied by the identity source.
+
+`ContextProvider` beans add trusted global context.
+A provider can protect keys that later providers and annotation context must not replace.
+On Spring MVC request threads, `ServletAuthorizationContext.request()` returns the current `HttpServletRequest`.
+`@AvpPostFilter(context = "...")` evaluates context for each `filterObject`, with `authentication` bound to the current user.
+
+=== Per-call store and token selection
+
+`PolicyStoreResolver` and `TokenModeResolver` select the target and token mode for every call.
+The selected `PolicyStoreTarget` carries the policy store, namespace, token-managed entity types, and a cache partition.
+Applications should derive store selection from trusted authentication data, not directly from a caller-controlled policy-store header.
+All AVP method annotations can set `tokenMode` for an explicit per-call override; resolver and property defaults apply otherwise.
+
+=== Authorization caching
+
+Request-local entity lookup and in-flight authorization deduplication are enabled by default and remain separate from cross-request caching.
+Cross-request decision caching is disabled by default.
+Enable it only when bounded authorization staleness is acceptable:
+
+[source,properties]
+----
+spring.cloud.aws.verified-permissions.cache.enabled=true
+spring.cloud.aws.verified-permissions.cache.ttl=10s
+spring.cloud.aws.verified-permissions.cache.max-size=10000
+spring.cloud.aws.verified-permissions.cache.token-expiry-skew=5s
+----
+
+The built-in production strategy is `caffeine`, which is selected by default when caching is enabled.
+Add `com.github.ben-manes.caffeine:caffeine` to the application; startup fails with an actionable configuration error when it is absent.
+The `concurrent` strategy is a small, dependency-free cache for tests and small applications.
+It removes an expired entry when that key is read. At `max-size`, it sweeps out expired entries at most once per second; if none have expired, the new decision is left uncached. It does no LRU or size-based eviction.
+A custom `DecisionCache` bean replaces the built-in strategy.
+Cache keys include the cache partition, policy store, namespace, token mode, a digest of the principal or token, action, resource, context, and entity graph.
+Raw tokens are never retained as keys.
+Results with evaluation errors and failed calls are not cached.
+Token decisions are not cached when trusted expiry is unavailable, and otherwise expire no later than token expiry minus the configured skew.
+Changing a policy should evict its cache partition or change the partition epoch.
+Verified Permissions validates token expiry but does not check identity-provider revocation, so a revoked token can remain usable until token expiry and a cached decision can remain stale for at most the shorter configured cache TTL.
+
+Batch and filter calls use the same cross-request cache and request-local deduplication as single calls.
+
+=== Principals and tokens
+
+`spring.cloud.aws.verified-permissions.token-mode` selects how the principal is sent:
+
+[cols="1,3"]
+|===
+| Token mode | Behaviour
+
+| `entity` (default)
+| The principal is `User::"<authentication name>"`. Authorities starting with `ROLE_` become parents of type `Role`, so `ROLE_ADMIN` becomes `Role::"ADMIN"`. Calls use `IsAuthorized` and `BatchIsAuthorized`.
+
+| `identity-token`
+| The raw OIDC ID token is sent with `IsAuthorizedWithToken`, from a JWT resource server authentication or an OIDC login. Its claims become principal attributes.
+
+| `access-token`
+| The raw JWT access token is sent. Its claims are placed in `context.token`, not on the principal.
+|===
+
+In token modes the policy store must have an identity source. Verified Permissions builds the user and group entities from the token itself, so requests that include entities of `principal-entity-type` or `group-entity-type` are rejected before they are sent.
+
+Opaque tokens cannot be validated by Verified Permissions. With opaque tokens, use token mode `entity` and provide a `PrincipalResolver` bean that maps the introspected attributes.
+
+Verified Permissions checks a token's signature, expiry and audience. It does not contact the identity provider, so a revoked token stays valid until it expires.
+
+To change principal mapping completely, declare a `PrincipalResolver` bean.
+
+=== Configuration
+
+[cols="2,1,3"]
+|===
+| Property | Default | Description
+
+| `spring.cloud.aws.verified-permissions.enabled` | `true` | Enables the integration.
+| `spring.cloud.aws.verified-permissions.policy-store-id` | | Policy store id or `policy-store-alias/<name>`. Required.
+| `spring.cloud.aws.verified-permissions.namespace` | | Namespace added to types and actions without one.
+| `spring.cloud.aws.verified-permissions.token-mode` | `entity` | `entity`, `identity-token` or `access-token`.
+| `spring.cloud.aws.verified-permissions.principal-entity-type` | `User` | Principal type for token mode `entity`.
+| `spring.cloud.aws.verified-permissions.group-entity-type` | `Role` | Group type for token mode `entity`.
+| `spring.cloud.aws.verified-permissions.role-prefix` | `ROLE_` | Authorities with this prefix become groups.
+| `spring.cloud.aws.verified-permissions.method-security.enabled` | `true` | Registers the `avp` bean and the annotation interceptors.
+| `spring.cloud.aws.verified-permissions.method-security.deny-null-post-resource` | `true` | Denies a null post-authorization resource; when `false` it is not checked.
+| `spring.cloud.aws.verified-permissions.entity-loading.max-depth` | `2` | Maximum related-entity traversal depth.
+| `spring.cloud.aws.verified-permissions.request-deduplication.enabled` | `true` | Enables request-local entity and decision deduplication.
+| `spring.cloud.aws.verified-permissions.cache.enabled` | `false` | Enables bounded cross-request decision caching.
+| `spring.cloud.aws.verified-permissions.cache.strategy` | `caffeine` | `caffeine` for production, or `concurrent` for tests and small applications.
+| `spring.cloud.aws.verified-permissions.cache.ttl` | `10s` | Maximum decision lifetime.
+| `spring.cloud.aws.verified-permissions.cache.max-size` | `10000` | Maximum cross-request entries.
+| `spring.cloud.aws.verified-permissions.cache.token-expiry-skew` | `5s` | Safety margin before trusted token expiry.
+| `spring.cloud.aws.verified-permissions.endpoint` | | Overrides the service endpoint.
+| `spring.cloud.aws.verified-permissions.region` | | Overrides the region.
+|===
+
+The client can be customized with a `VerifiedPermissionsClientCustomizer` bean.
+
+=== IAM permissions
+
+[cols="2,1"]
+|===
+| Operations | IAM action
+
+| `IsAuthorized`, `BatchIsAuthorized`
+| `verifiedpermissions:IsAuthorized`
+
+| `IsAuthorizedWithToken`, `BatchIsAuthorizedWithToken`
+| `verifiedpermissions:IsAuthorizedWithToken`
+|===
