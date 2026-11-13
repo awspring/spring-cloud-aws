@@ -54,9 +54,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClas
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.PropertyMapper;
+import org.springframework.boot.thread.Threading;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -186,7 +189,7 @@ public class SqsAutoConfiguration {
 			ObjectProvider<AcknowledgementResultCallback<Object>> acknowledgementResultCallback,
 			ObjectProvider<AsyncAcknowledgementResultCallback<Object>> asyncAcknowledgementResultCallback,
 			ObjectProvider<JacksonMessageConverterMigration> messageConverterFactory,
-			MessagingMessageConverter<?> messagingMessageConverter) {
+			MessagingMessageConverter<?> messagingMessageConverter, Environment environment) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
 		factory.configure(this::configureProperties);
@@ -203,6 +206,17 @@ public class SqsAutoConfiguration {
 					.ifAvailable(registry -> factory.configure(options -> options.observationRegistry(registry)));
 			observationConventionProvider
 					.ifAvailable(convention -> factory.configure(options -> options.observationConvention(convention)));
+		}
+		// Threading.VIRTUAL checks both spring.threads.virtual.enabled and that the JVM is Java 21+,
+		// so on older JVMs this is a no-op and the container keeps its default platform-thread executors.
+		if (Threading.VIRTUAL.isActive(environment)) {
+			SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor("sqs-listener-");
+			executor.setVirtualThreads(true);
+			factory.configure(options -> options.componentsTaskExecutor(executor));
+
+			SimpleAsyncTaskExecutor ackExecutor = new SimpleAsyncTaskExecutor("sqs-ack-");
+			ackExecutor.setVirtualThreads(true);
+			factory.configure(options -> options.acknowledgementResultTaskExecutor(ackExecutor));
 		}
 		factory.configure(options -> options.messageConverter(messagingMessageConverter));
 		return factory;
