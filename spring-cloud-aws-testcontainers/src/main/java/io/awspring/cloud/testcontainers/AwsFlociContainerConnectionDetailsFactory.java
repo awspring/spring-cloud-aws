@@ -18,7 +18,6 @@ package io.awspring.cloud.testcontainers;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.floci.testcontainers.FlociContainer;
 import java.net.URI;
-
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionDetailsFactory;
 import org.springframework.boot.testcontainers.service.connection.ContainerConnectionSource;

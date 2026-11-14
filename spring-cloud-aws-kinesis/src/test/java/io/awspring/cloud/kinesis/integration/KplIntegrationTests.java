@@ -103,6 +103,7 @@ class KplIntegrationTests implements LocalstackContainerTest {
 			KplMessageHandler kinesisMessageHandler = new KplMessageHandler(
 					new KinesisProducer(kinesisProducerConfiguration));
 			kinesisMessageHandler.setPartitionKey("1");
+			kinesisMessageHandler.setSendTimeout(30_000);
 			return kinesisMessageHandler;
 		}
 

@@ -20,6 +20,7 @@ import io.awspring.cloud.sqs.listener.QueueNotFoundStrategy;
 import java.time.Duration;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
  * Properties related to AWS SQS.
@@ -58,6 +59,7 @@ public class SqsProperties extends AwsClientProperties {
 	 */
 	private Boolean convertMessageIdToUuid = true;
 
+	@NestedConfigurationProperty
 	private SqsExtendedClientProperties extended = new SqsExtendedClientProperties();
 
 	public Boolean getConvertMessageIdToUuid() {
