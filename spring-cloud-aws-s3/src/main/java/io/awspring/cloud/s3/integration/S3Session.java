@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.ObjectAttributes;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.utils.IoUtils;
@@ -46,6 +47,7 @@ import software.amazon.awssdk.utils.IoUtils;
  * @author Anwar Chirakkattil
  * @author Xavier François
  * @author Rogerio Lino
+ * @author Karol Kosiacki
  *
  * @since 4.0
  */
@@ -184,7 +186,8 @@ public class S3Session implements Session<S3Object> {
 	public boolean exists(String path) {
 		String[] bucketKey = splitPathToBucketAndKey(path, true);
 		try {
-			this.amazonS3.getObjectAttributes(request -> request.bucket(bucketKey[0]).key(bucketKey[1]));
+			this.amazonS3.getObjectAttributes(
+					request -> request.bucket(bucketKey[0]).key(bucketKey[1]).objectAttributes(ObjectAttributes.E_TAG));
 		}
 		catch (NoSuchKeyException ex) {
 			return false;
