@@ -121,6 +121,22 @@ public class KinesisBinderTests extends
 	}
 
 	@Test
+	public void testConsumerSendTimeoutIsAppliedToTheEndpoint() throws Exception {
+		KinesisTestBinder binder = getBinder();
+		DirectChannel output = createBindableChannel("output", new BindingProperties());
+		ExtendedConsumerProperties<KinesisConsumerProperties> consumerProperties = createConsumerProperties();
+		consumerProperties.getExtension().setSendTimeout(5_000);
+
+		Binding<?> binding = binder.bindConsumer("sendTimeout" + System.currentTimeMillis(), "test", output,
+				consumerProperties);
+
+		assertThat(TestUtils.getPropertyValue(binding, "lifecycle.messagingTemplate.sendTimeout", Long.class))
+				.isEqualTo(5_000L);
+
+		binding.unbind();
+	}
+
+	@Test
 	public void testAutoCreateStreamForNonExistingStream() throws Exception {
 		KinesisTestBinder binder = getBinder();
 		DirectChannel output = createBindableChannel("output", new BindingProperties());

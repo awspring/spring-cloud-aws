@@ -308,6 +308,15 @@ The KCL graceful shutdown timeout in milliseconds.
 +
 Default: 0 - regular shutdown process
 
+sendTimeout::
+Timeout, in milliseconds, to wait for a record to be accepted by the output channel.
+A negative value waits indefinitely.
+Beware that a reactive consumer applies back-pressure by blocking the caller, and the KCL
+calls the record processor on the shard's own thread: if the channel never drains, that shard
+stops consuming with no exception and no recovery, while its lease keeps being renewed.
++
+Default: -1 - wait indefinitely
+
 dynamoDbStreams::
 Consume from DynamoDB Streams.
 +
