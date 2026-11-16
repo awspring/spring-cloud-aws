@@ -203,6 +203,7 @@ public class S3ConfigDataLoaderIntegrationTests {
 		uploadFileToBucket("key1=value1", "reload.properties", TEXT_TYPE);
 
 		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.verified-permissions.enabled=false",
 				"--spring.config.import=aws-s3:test-bucket/reload.properties",
 				"--spring.cloud.aws.s3.config.reload.strategy=refresh",
 				"--spring.cloud.aws.s3.config.reload.period=PT1S",
@@ -246,7 +247,8 @@ public class S3ConfigDataLoaderIntegrationTests {
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,
 			String endpointProperty) {
-		return application.run("--spring.config.import=" + springConfigImport,
+		return application.run("--spring.cloud.aws.verified-permissions.enabled=false",
+				"--spring.config.import=" + springConfigImport,
 				"--spring.cloud.aws.s3.region=" + localstack.getRegion(),
 				"--" + endpointProperty + "=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",

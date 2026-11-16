@@ -119,5 +119,23 @@
 |spring.cloud.aws.sqs.observation-enabled | `+++false+++` | 
 |spring.cloud.aws.sqs.queue-not-found-strategy |  | 
 |spring.cloud.aws.sqs.region |  | Overrides the default region.
+|spring.cloud.aws.verified-permissions.cache.enabled | `+++false+++` | Whether cross-request decision caching is enabled.
+|spring.cloud.aws.verified-permissions.cache.max-size | `+++10000+++` | Maximum number of cached decisions.
+|spring.cloud.aws.verified-permissions.cache.strategy | `+++caffeine+++` | Built-in cache strategy. Caffeine is the production default; concurrent is for tests and small applications.
+|spring.cloud.aws.verified-permissions.cache.token-expiry-skew | `+++5s+++` | Safety margin subtracted from trusted token expiry.
+|spring.cloud.aws.verified-permissions.cache.ttl | `+++10s+++` | Maximum decision lifetime.
+|spring.cloud.aws.verified-permissions.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
+|spring.cloud.aws.verified-permissions.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.verified-permissions.entity-loading.max-depth | `+++2+++` | Maximum related-entity traversal depth.
+|spring.cloud.aws.verified-permissions.group-entity-type | `+++Role+++` | Parent type used for mapped authorities.
+|spring.cloud.aws.verified-permissions.method-security.deny-null-post-resource | `+++true+++` | Whether a null post-authorization resource is denied instead of skipped.
+|spring.cloud.aws.verified-permissions.method-security.enabled | `+++true+++` | Whether AVP method-security infrastructure is registered.
+|spring.cloud.aws.verified-permissions.namespace |  | Cedar namespace added to unqualified types.
+|spring.cloud.aws.verified-permissions.policy-store-id |  | Policy store id or alias.
+|spring.cloud.aws.verified-permissions.principal-entity-type | `+++User+++` | Entity type used for entity principals.
+|spring.cloud.aws.verified-permissions.region |  | Overrides the default region.
+|spring.cloud.aws.verified-permissions.request-deduplication.enabled | `+++true+++` | Whether request-local entity and decision deduplication is enabled.
+|spring.cloud.aws.verified-permissions.role-prefix | `+++ROLE_+++` | Prefix removed from authorities mapped to groups.
+|spring.cloud.aws.verified-permissions.token-mode | `+++entity+++` | Default principal mode.
 
 |===
