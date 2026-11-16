@@ -72,6 +72,7 @@ class CloudWatchExportAutoConfigurationIntegrationTests {
 				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.verified-permissions.enabled=false",
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=us-east-1", "--management.cloudwatch.metrics.export.step=5s",

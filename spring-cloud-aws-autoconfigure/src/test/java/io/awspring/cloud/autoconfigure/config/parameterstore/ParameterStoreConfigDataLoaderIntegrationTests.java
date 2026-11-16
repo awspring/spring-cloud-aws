@@ -104,6 +104,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.verified-permissions.enabled=false",
 				"--spring.config.import=aws-parameterstore:/config/spring/",
 				"--spring.cloud.aws.parameterstore.enabled=false", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
@@ -317,6 +318,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.verified-permissions.enabled=false",
 				"--spring.config.import=aws-parameterstore:/config/spring/",
 				"--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--spring.cloud.aws.endpoint=http://non-existing-host/",
@@ -336,6 +338,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.verified-permissions.enabled=false",
 				"--spring.config.import=aws-parameterstore:/config/spring/",
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
@@ -390,6 +393,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
+					"--spring.cloud.aws.verified-permissions.enabled=false",
 					"--spring.config.import=aws-parameterstore:/config/spring/",
 					"--spring.cloud.aws.parameterstore.reload.strategy=refresh",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
@@ -418,6 +422,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
+					"--spring.cloud.aws.verified-permissions.enabled=false",
 					"--spring.config.import=aws-parameterstore:/config/spring/",
 					"--spring.cloud.aws.parameterstore.reload.strategy=refresh",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
@@ -446,6 +451,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
+					"--spring.cloud.aws.verified-permissions.enabled=false",
 					"--spring.config.import=aws-parameterstore:/config/spring/",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
 					"--spring.cloud.aws.parameterstore.region=" + REGION,
@@ -473,6 +479,7 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
+					"--spring.cloud.aws.verified-permissions.enabled=false",
 					"--spring.config.import=aws-parameterstore:/config/spring/",
 					"--spring.cloud.aws.parameterstore.reload.strategy=restart_context",
 					"--spring.cloud.aws.parameterstore.reload.period=PT1S",
@@ -497,8 +504,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,
 			String endpointProperty) {
-		return application.run("--spring.config.import=" + springConfigImport,
-				"--spring.cloud.aws.parameterstore.region=" + REGION,
+		return application.run("--spring.cloud.aws.verified-permissions.enabled=false",
+				"--spring.config.import=" + springConfigImport, "--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--" + endpointProperty + "=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.parameterstore=debug");
@@ -515,8 +522,8 @@ class ParameterStoreConfigDataLoaderIntegrationTests {
 
 	private ConfigurableApplicationContext runApplicationWrongEndpoint(SpringApplication application,
 			String springConfigImport, String endpointProperty) {
-		return application.run("--spring.config.import=" + springConfigImport,
-				"--spring.cloud.aws.parameterstore.region=" + REGION,
+		return application.run("--spring.cloud.aws.verified-permissions.enabled=false",
+				"--spring.config.import=" + springConfigImport, "--spring.cloud.aws.parameterstore.region=" + REGION,
 				"--" + endpointProperty + "=" + localstack.getEndpoint() + 1,
 				"--spring.cloud.aws.credentials.access-key=tst", "--spring.cloud.aws.credentials.secret-key=empty",
 				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.parameterstore=debug");

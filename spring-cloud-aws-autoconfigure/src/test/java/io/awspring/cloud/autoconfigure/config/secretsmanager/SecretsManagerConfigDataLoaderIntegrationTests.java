@@ -330,6 +330,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.verified-permissions.enabled=false",
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 				"--spring.cloud.aws.secretsmanager.enabled=false", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
@@ -348,6 +349,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.verified-permissions.enabled=false",
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 				"--spring.cloud.aws.secretsmanager.region=" + REGION,
 				"--spring.cloud.aws.endpoint=http://non-existing-host/",
@@ -369,6 +371,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.verified-permissions.enabled=false",
 				"--spring.config.import=optional:aws-secretsmanager:/config/spring;/config/second",
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(), "--spring.cloud.aws.region.static=" + REGION,
 				"--spring.cloud.aws.credentials.sts.role-arn=develop",
@@ -387,6 +390,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 				new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 		try (ConfigurableApplicationContext context = application.run(
+				"--spring.cloud.aws.verified-permissions.enabled=false",
 				"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 				"--spring.cloud.aws.endpoint=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
@@ -412,6 +416,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
+					"--spring.cloud.aws.verified-permissions.enabled=false",
 					"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 					"--spring.cloud.aws.secretsmanager.region=" + REGION,
 					"--spring.cloud.aws.secretsmanager.reload.strategy=refresh",
@@ -441,6 +446,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
+					"--spring.cloud.aws.verified-permissions.enabled=false",
 					"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 					"--spring.cloud.aws.secretsmanager.region=" + REGION,
 					"--spring.cloud.aws.secretsmanager.reload.period=PT1S",
@@ -469,6 +475,7 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 					new DefaultResourceLoader(new FilteredClassLoader(AmazonSQSExtendedAsyncClient.class)));
 
 			try (ConfigurableApplicationContext context = application.run(
+					"--spring.cloud.aws.verified-permissions.enabled=false",
 					"--spring.config.import=aws-secretsmanager:/config/spring;/config/second",
 					"--spring.cloud.aws.secretsmanager.region=" + REGION,
 					"--spring.cloud.aws.secretsmanager.reload.strategy=RESTART_CONTEXT",
@@ -499,8 +506,8 @@ class SecretsManagerConfigDataLoaderIntegrationTests {
 
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,
 			String endpointProperty) {
-		return application.run("--spring.config.import=" + springConfigImport,
-				"--spring.cloud.aws.secretsmanager.region=" + REGION,
+		return application.run("--spring.cloud.aws.verified-permissions.enabled=false",
+				"--spring.config.import=" + springConfigImport, "--spring.cloud.aws.secretsmanager.region=" + REGION,
 				"--" + endpointProperty + "=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=noop", "--spring.cloud.aws.credentials.secret-key=noop",
 				"--spring.cloud.aws.region.static=eu-west-1", "--logging.level.io.awspring.cloud.secretsmanager=debug");

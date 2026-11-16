@@ -315,6 +315,7 @@ class AppConfigConfigDataLoaderIntegrationTests {
 	private ConfigurableApplicationContext runApplication(SpringApplication application, String springConfigImport,
 			String endpointProperty, String... extraArgs) {
 		List<String> args = new ArrayList<>(List.of("--spring.config.import=" + springConfigImport,
+				"--spring.cloud.aws.verified-permissions.enabled=false",
 				"--spring.cloud.aws.appconfig.region=" + REGION,
 				"--" + endpointProperty + "=" + localstack.getEndpoint(),
 				"--spring.cloud.aws.credentials.access-key=" + localstack.getAccessKey(),
