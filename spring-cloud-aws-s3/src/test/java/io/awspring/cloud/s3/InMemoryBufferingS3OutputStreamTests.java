@@ -191,7 +191,8 @@ class InMemoryBufferingS3OutputStreamTests {
 				outputStream.write(new byte[2 * DEFAULT_BUFFER_CAPACITY_IN_BYTES]);
 				outputStream.write('!');
 			}
-		}).isSameAs(partFailure);
+		}).isInstanceOf(S3Exception.class).hasMessage("Failed to upload part.")
+				.satisfies(thrown -> assertThat(thrown.getCause()).isSameAs(partFailure));
 
 		verify(s3Client, never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
 		verify(s3Client, times(2)).uploadPart(any(UploadPartRequest.class), any(RequestBody.class));
@@ -214,7 +215,8 @@ class InMemoryBufferingS3OutputStreamTests {
 		InMemoryBufferingS3OutputStream outputStream = new InMemoryBufferingS3OutputStream(
 				new Location("bucket", "key", null), s3Client, null, null, DEFAULT_BUFFER_CAPACITY);
 		outputStream.write(new byte[DEFAULT_BUFFER_CAPACITY_IN_BYTES + 1]);
-		assertThatThrownBy(outputStream::close).isSameAs(partFailure);
+		assertThatThrownBy(outputStream::close).isInstanceOf(S3Exception.class).hasMessage("Failed to upload part.")
+				.satisfies(thrown -> assertThat(thrown.getCause()).isSameAs(partFailure));
 		assertThat(partFailure.getSuppressed()).singleElement()
 				.satisfies(suppressed -> assertThat(suppressed.getCause()).isSameAs(abortFailure));
 		outputStream.close();
