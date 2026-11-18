@@ -60,6 +60,7 @@ spring.config.import[1]=aws-parameterstore=/config/optional-params/
 
 If you add indexed parameter names such as `/config/application/cloud.aws.stack_0_.name`, `/config/application/cloud.aws.stack_1_.name`, ... to Parameter Store,
 these will become accessible as array properties `cloud.aws.stack[0].name`, `cloud.aws.stack[1].name`, ... in Spring.
+An index is a number without leading zeros between underscores, followed by a `.` or `/`, another index or the end of the name: `/config/application/hosts_10_` becomes `hosts[10]`, while `/config/application/RETRY_3_TIMES` keeps its name.
 
 ==== Adding prefix to property keys
 
