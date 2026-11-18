@@ -38,7 +38,8 @@ import software.amazon.awssdk.services.s3.model.*;
  * {@link PutObjectRequest} is used for efficiency. This implementation is thread-safe, but makes no guarantees to
  * prevent data from interleaving. <br>
  * <br>
- * This stream <b>must</b> be closed to complete the upload.
+ * This stream <b>must</b> be closed to complete the upload. An SDK failure while uploading a part closes the stream and
+ * attempts to abort the upload. If that abort fails, {@link #abort()} can retry cleanup.
  *
  * @author Sam Garfinkel
  * @since 3.0
@@ -69,6 +70,8 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 
 	@Nullable
 	private CreateMultipartUploadResponse multipartUploadResponse;
+
+	private boolean partAbortPending;
 
 	private int partCounter = 1;
 
@@ -120,12 +123,13 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 	@Override
 	public void abort() {
 		synchronized (this.monitor) {
-			if (isClosed()) {
+			if (isClosed() && !partAbortPending) {
 				throw new IllegalStateException("Stream is already closed. Too late to abort.");
 			}
 			if (isMultiPartUpload()) {
 				abortMultiPartUpload(multipartUploadResponse);
 			}
+			partAbortPending = false;
 			outputStream = null;
 		}
 	}
@@ -181,15 +185,29 @@ public class InMemoryBufferingS3OutputStream extends S3OutputStream {
 	}
 
 	private CompletedPart uploadPart(byte[] content, CreateMultipartUploadResponse createMultipartUploadResponse) {
-		final UploadPartResponse response = s3Client.uploadPart(UploadPartRequest.builder().bucket(location.getBucket())
-				.key(location.getObject()).contentLength((long) content.length)
-				.uploadId(createMultipartUploadResponse.uploadId()).partNumber(partCounter).applyMutation(builder -> {
-					getHash(content).ifPresent(builder::contentMD5);
-					if (objectMetadata != null) {
-						objectMetadata.apply(builder);
-					}
-				}).build(), RequestBody.fromBytes(content));
-		return CompletedPart.builder().partNumber(partCounter++).eTag(response.eTag()).build();
+		try {
+			final UploadPartResponse response = s3Client
+					.uploadPart(UploadPartRequest.builder().bucket(location.getBucket()).key(location.getObject())
+							.contentLength((long) content.length).uploadId(createMultipartUploadResponse.uploadId())
+							.partNumber(partCounter).applyMutation(builder -> {
+								getHash(content).ifPresent(builder::contentMD5);
+								if (objectMetadata != null) {
+									objectMetadata.apply(builder);
+								}
+							}).build(), RequestBody.fromBytes(content));
+			return CompletedPart.builder().partNumber(partCounter++).eTag(response.eTag()).build();
+		}
+		catch (SdkException e) {
+			outputStream = null;
+			try {
+				abortMultiPartUpload(createMultipartUploadResponse);
+			}
+			catch (RuntimeException abortFailure) {
+				partAbortPending = true;
+				e.addSuppressed(abortFailure);
+			}
+			throw new S3Exception("Failed to upload part.", e);
+		}
 	}
 
 	private void completeMultiPartUpload(CreateMultipartUploadResponse response) {

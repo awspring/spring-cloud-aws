@@ -18,15 +18,18 @@ package io.awspring.cloud.s3;
 import static io.awspring.cloud.s3.InMemoryBufferingS3OutputStream.DEFAULT_BUFFER_CAPACITY;
 import static io.awspring.cloud.s3.InMemoryBufferingS3OutputStream.DEFAULT_BUFFER_CAPACITY_IN_BYTES;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -38,6 +41,9 @@ import software.amazon.awssdk.services.s3.model.*;
  * @author Sam Garfinkel
  */
 class InMemoryBufferingS3OutputStreamTests {
+
+	private static final AbortMultipartUploadRequest abortRequest = AbortMultipartUploadRequest.builder()
+			.bucket("bucket").key("key").uploadId("uploadId").build();
 
 	private final S3Client s3Client = mock(S3Client.class);
 
@@ -167,6 +173,60 @@ class InMemoryBufferingS3OutputStreamTests {
 			assertThat(requestCaptor.getValue().key()).isEqualTo("key");
 			assertThat(requestCaptor.getValue().uploadId()).isEqualTo("uploadId");
 		}
+	}
+
+	@Test
+	void abortsAndDoesNotCompleteWhenWritingAPartFails() {
+		SdkClientException partFailure = SdkClientException.create("Read timed out", new SocketTimeoutException());
+		when(s3Client.createMultipartUpload(any(CreateMultipartUploadRequest.class)))
+				.thenReturn(CreateMultipartUploadResponse.builder().uploadId("uploadId").build());
+
+		when(s3Client.uploadPart(any(UploadPartRequest.class), any(RequestBody.class)))
+				.thenReturn(UploadPartResponse.builder().eTag("part1").build()).thenThrow(partFailure)
+				.thenReturn(UploadPartResponse.builder().eTag("part2").build());
+
+		assertThatThrownBy(() -> {
+			try (InMemoryBufferingS3OutputStream outputStream = new InMemoryBufferingS3OutputStream(
+					new Location("bucket", "key", null), s3Client, null, null, DEFAULT_BUFFER_CAPACITY)) {
+				outputStream.write(new byte[2 * DEFAULT_BUFFER_CAPACITY_IN_BYTES]);
+				outputStream.write('!');
+			}
+		}).isInstanceOf(S3Exception.class).hasMessage("Failed to upload part.")
+				.satisfies(thrown -> assertThat(thrown.getCause()).isSameAs(partFailure));
+
+		verify(s3Client, never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
+		verify(s3Client, times(2)).uploadPart(any(UploadPartRequest.class), any(RequestBody.class));
+		verify(s3Client).abortMultipartUpload(abortRequest);
+	}
+
+	@Test
+	void canRetryAbortWhenAutomaticAbortFails() throws IOException {
+		SdkException partFailure = SdkException.builder().message("Part upload failed").build();
+		SdkException abortFailure = SdkException.builder().message("Abort failed").build();
+		when(s3Client.createMultipartUpload(any(CreateMultipartUploadRequest.class)))
+				.thenReturn(CreateMultipartUploadResponse.builder().uploadId("uploadId").build());
+
+		when(s3Client.uploadPart(any(UploadPartRequest.class), any(RequestBody.class)))
+				.thenReturn(UploadPartResponse.builder().eTag("etag").build()).thenThrow(partFailure);
+
+		when(s3Client.abortMultipartUpload(abortRequest)).thenThrow(abortFailure)
+				.thenReturn(AbortMultipartUploadResponse.builder().build());
+
+		InMemoryBufferingS3OutputStream outputStream = new InMemoryBufferingS3OutputStream(
+				new Location("bucket", "key", null), s3Client, null, null, DEFAULT_BUFFER_CAPACITY);
+		outputStream.write(new byte[DEFAULT_BUFFER_CAPACITY_IN_BYTES + 1]);
+		assertThatThrownBy(outputStream::close).isInstanceOf(S3Exception.class).hasMessage("Failed to upload part.")
+				.satisfies(thrown -> assertThat(thrown.getCause()).isSameAs(partFailure));
+		assertThat(partFailure.getSuppressed()).singleElement()
+				.satisfies(suppressed -> assertThat(suppressed.getCause()).isSameAs(abortFailure));
+		outputStream.close();
+		verify(s3Client).abortMultipartUpload(abortRequest);
+
+		outputStream.abort();
+		assertThatThrownBy(outputStream::abort).isInstanceOf(IllegalStateException.class);
+		verify(s3Client, times(2)).abortMultipartUpload(abortRequest);
+		verify(s3Client, times(2)).uploadPart(any(UploadPartRequest.class), any(RequestBody.class));
+		verify(s3Client, never()).completeMultipartUpload(any(CompleteMultipartUploadRequest.class));
 	}
 
 	@Test
