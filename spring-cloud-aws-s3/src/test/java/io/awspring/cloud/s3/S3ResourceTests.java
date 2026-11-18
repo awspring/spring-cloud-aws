@@ -20,9 +20,13 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3Utilities;
 
 /**
@@ -68,6 +72,53 @@ class S3ResourceTests {
 
 		assertThat(resource.getLocation().getObject()).isEqualTo("path/");
 		assertThat(resource.getURL().getPath()).endsWith("/");
+	}
+
+	@Test
+	void getUrlOfBucketUsesTheEndpointOfTheClient() throws IOException {
+		assertThat(bucketUrl("s3://first-bucket/",
+				S3Utilities.builder().region(Region.EU_WEST_1).endpoint(URI.create("http://localhost:4566"))))
+				.hasToString("http://first-bucket.localhost:4566/");
+	}
+
+	@Test
+	void getUrlOfBucketUsesPathStyleAccessOfTheClient() throws IOException {
+		assertThat(bucketUrl("s3://first-bucket/",
+				S3Utilities.builder().region(Region.EU_WEST_1).endpoint(URI.create("http://127.0.0.1:4566"))
+						.s3Configuration(S3Configuration.builder().pathStyleAccessEnabled(true).build())))
+				.hasToString("http://127.0.0.1:4566/first-bucket/");
+	}
+
+	@Test
+	void getUrlOfBucketUsesTheRegionOfTheClient() throws IOException {
+		assertThat(bucketUrl("s3://first-bucket/", S3Utilities.builder().region(Region.EU_WEST_1)))
+				.hasToString("https://first-bucket.s3.eu-west-1.amazonaws.com/");
+	}
+
+	@Test
+	void getUrlOfBucketKeepsTheGlobalHostInUsEast1() throws IOException {
+		assertThat(bucketUrl("s3://first-bucket/", S3Utilities.builder().region(Region.US_EAST_1)))
+				.hasToString("https://first-bucket.s3.amazonaws.com/");
+	}
+
+	@Test
+	void getUrlOfBucketWithDotsUsesPathStyleAccess() throws IOException {
+		assertThat(bucketUrl("s3://my.dotted.bucket/", S3Utilities.builder().region(Region.EU_WEST_1)))
+				.hasToString("https://s3.eu-west-1.amazonaws.com/my.dotted.bucket/");
+	}
+
+	@Test
+	void getUrlOfBucketUsesTransferAccelerationOfTheClient() throws IOException {
+		assertThat(bucketUrl("s3://first-bucket/",
+				S3Utilities.builder().region(Region.EU_WEST_1)
+						.s3Configuration(S3Configuration.builder().accelerateModeEnabled(true).build())))
+				.hasToString("https://first-bucket.s3-accelerate.amazonaws.com/");
+	}
+
+	private static URL bucketUrl(String location, S3Utilities.Builder utilities) throws IOException {
+		S3Client s3Client = mock(S3Client.class);
+		when(s3Client.utilities()).thenReturn(utilities.build());
+		return new S3Resource(location, s3Client, mock(S3OutputStreamProvider.class)).getURL();
 	}
 
 }
