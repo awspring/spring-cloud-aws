@@ -20,7 +20,6 @@ import io.awspring.cloud.sns.core.TopicArnResolver;
 import io.awspring.cloud.sns.core.batch.converter.SnsMessageConverter;
 import io.awspring.cloud.sns.core.batch.executor.BatchExecutionStrategy;
 import java.util.Collection;
-import java.util.stream.Collectors;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -81,7 +80,7 @@ public class SnsBatchTemplate implements SnsBatchOperations {
 		Assert.notNull(topicName, "topicName is required");
 		Assert.notNull(payloads, "payloads are required");
 		var batchList = payloads.stream().map(it -> MessageBuilder.withPayload(it).build())
-				.map(snsMessageConverter::convertMessage).collect(Collectors.toList());
+				.map(snsMessageConverter::convertMessage).toList();
 		return batchExecutionStrategy.send(topicArnResolver.resolveTopicArn(topicName), batchList);
 	}
 
@@ -100,7 +99,7 @@ public class SnsBatchTemplate implements SnsBatchOperations {
 		Assert.notNull(notifications, "notifications are required");
 		var batchList = notifications.stream()
 				.map(it -> MessageBuilder.withPayload(it.getPayload()).copyHeaders(it.getHeaders()).build())
-				.map(snsMessageConverter::convertMessage).collect(Collectors.toList());
+				.map(snsMessageConverter::convertMessage).toList();
 		return batchExecutionStrategy.send(topicArnResolver.resolveTopicArn(topicName), batchList);
 	}
 
