@@ -18,7 +18,6 @@ package io.awspring.cloud.s3.integration;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.integration.file.remote.AbstractFileInfo;
 import org.springframework.integration.file.remote.AbstractRemoteFileStreamingMessageSource;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
@@ -47,7 +46,7 @@ public class S3StreamingMessageSource extends AbstractRemoteFileStreamingMessage
 
 	@Override
 	protected List<AbstractFileInfo<S3Object>> asFileInfoList(Collection<S3Object> collection) {
-		return collection.stream().map(S3FileInfo::new).collect(Collectors.toList());
+		return collection.stream().map(S3FileInfo::new).toList();
 	}
 
 	@Override

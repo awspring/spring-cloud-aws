@@ -17,7 +17,6 @@ package io.awspring.cloud.sqs.listener;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
@@ -41,7 +40,7 @@ public class ListenerExecutionFailedException extends RuntimeException implement
 	public <T> ListenerExecutionFailedException(String message, Throwable cause,
 			Collection<Message<T>> failedMessages) {
 		super(message, cause);
-		this.failedMessages = failedMessages.stream().map(msg -> (Message<?>) msg).collect(Collectors.toList());
+		this.failedMessages = failedMessages.stream().map(msg -> (Message<?>) msg).toList();
 	}
 
 	/**
