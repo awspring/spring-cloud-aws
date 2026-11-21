@@ -97,8 +97,6 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 
 	private final Map<String, CompletableFuture<QueueAttributes>> queueAttributesCache = new ConcurrentHashMap<>();
 
-	private final Map<String, SqsMessageConversionContext> conversionContextCache = new ConcurrentHashMap<>();
-
 	private final SqsAsyncClient sqsAsyncClient;
 
 	private final Collection<QueueAttributeName> queueAttributeNames;
@@ -563,16 +561,11 @@ public class SqsTemplate extends AbstractMessagingTemplate<Message> implements S
 	@Override
 	protected <T> MessageConversionContext getReceiveMessageConversionContext(String endpointName,
 			@Nullable Class<T> payloadClass) {
-		return this.conversionContextCache.computeIfAbsent(endpointName,
-				newEndpoint -> doGetSqsMessageConversionContext(endpointName, payloadClass));
-	}
-
-	private <T> SqsMessageConversionContext doGetSqsMessageConversionContext(String newEndpoint,
-			@Nullable Class<T> payloadClass) {
+		// Not cached per endpoint: the payload class can differ between receive calls to the same queue
 		SqsMessageConversionContext conversionContext = new SqsMessageConversionContext();
 		conversionContext.setSqsAsyncClient(this.sqsAsyncClient);
 		// At this point we'll already have retrieved and cached the queue attributes
-		conversionContext.setQueueAttributes(getAttributesImmediately(newEndpoint));
+		conversionContext.setQueueAttributes(getAttributesImmediately(endpointName));
 		if (payloadClass != null) {
 			conversionContext.setPayloadClass(payloadClass);
 		}

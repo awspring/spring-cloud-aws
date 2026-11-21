@@ -24,14 +24,14 @@
 
 	<properties>
 		<spotless.version>2.31.0</spotless.version>
-		<awssdk-v2.version>2.47.4</awssdk-v2.version>
-		<kcl.version>3.5.0</kcl.version>
-		<kpl.version>1.0.7</kpl.version>
-		<amazon.dax.version>2.0.10</amazon.dax.version>
-		<dynamodb-streams.version>2.3.0</dynamodb-streams.version>
-		<amazon.encryption.s3.version>4.0.1</amazon.encryption.s3.version>
+		<awssdk-v2.version>2.57.1</awssdk-v2.version>
+		<kcl.version>3.5.3</kcl.version>
+		<kpl.version>1.1.0</kpl.version>
+		<amazon.dax.version>2.0.11</amazon.dax.version>
+		<dynamodb-streams.version>2.5.0</dynamodb-streams.version>
+		<amazon.encryption.s3.version>4.0.3</amazon.encryption.s3.version>
 		<amazon.s3.accessgrants>2.4.1</amazon.s3.accessgrants>
-		<amazon.sqs.extended.client>2.1.2</amazon.sqs.extended.client>
+		<amazon.sqs.extended.client>2.1.3</amazon.sqs.extended.client>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<spring-cloud-commons.version>5.0.2</spring-cloud-commons.version>
 		<spring-cloud-stream.version>5.0.2</spring-cloud-stream.version>
