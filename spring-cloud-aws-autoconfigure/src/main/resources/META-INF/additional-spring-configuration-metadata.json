@@ -35,6 +35,12 @@
 			"name": "spring.cloud.aws.appconfig.enabled",
 			"description": "Enables App Config integration.",
 			"type": "java.lang.Boolean"
+		},
+		{
+			"defaultValue": true,
+			"name": "spring.cloud.aws.kinesis.enabled",
+			"description": "Enables Kinesis integration.",
+			"type": "java.lang.Boolean"
 		}
 	]
 }
