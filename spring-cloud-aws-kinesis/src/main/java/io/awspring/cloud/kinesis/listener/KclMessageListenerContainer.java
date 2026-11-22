@@ -92,7 +92,10 @@ public class KclMessageListenerContainer implements MessageListenerContainer {
 
 	private ErrorHandler errorHandler = new LoggingErrorHandler();
 
-	private final Set<HaltedShard> haltedShards = ConcurrentHashMap.newKeySet();
+	/**
+	 * The halted shards, each mapped to its lease key, which {@link #releaseHaltedShard(HaltedShard)} needs.
+	 */
+	private final Map<HaltedShard, String> haltedShards = new ConcurrentHashMap<>();
 
 	@Nullable
 	private ApplicationEventPublisher applicationEventPublisher;
@@ -251,7 +254,32 @@ public class KclMessageListenerContainer implements MessageListenerContainer {
 	 * @return an immutable snapshot of the halted shards.
 	 */
 	public Set<HaltedShard> getHaltedShards() {
-		return Set.copyOf(this.haltedShards);
+		return Set.copyOf(this.haltedShards.keySet());
+	}
+
+	/**
+	 * Releases a halted shard now, so it is processed again from its last checkpoint without restarting the
+	 * application. This is the manual counterpart of
+	 * {@link KclContainerOptions.Builder#haltedShardReleaseDelay(java.time.Duration) the automatic release}: with the
+	 * automatic release disabled, a shard stays halted until this method is called, for example from a
+	 * {@link KclShardHaltedEvent} listener or an operator endpoint once the cause is fixed. With the automatic release
+	 * enabled, calling it releases the shard ahead of the delay.
+	 * <p>
+	 * The shard is released on the worker that halted it, so this only has an effect on the instance reporting the
+	 * shard in {@link #getHaltedShards()}.
+	 * @param haltedShard the shard to release, as reported by {@link #getHaltedShards()} or a
+	 *     {@link KclShardHaltedEvent}.
+	 * @return {@code true} if the shard was halted on this container and has been released, {@code false} if it is not
+	 * halted here or the container is not running.
+	 */
+	public boolean releaseHaltedShard(HaltedShard haltedShard) {
+		Assert.notNull(haltedShard, "haltedShard must not be null");
+		String leaseKey = this.haltedShards.get(haltedShard);
+		if (leaseKey == null || this.scheduler == null) {
+			return false;
+		}
+		releaseLease(leaseKey);
+		return true;
 	}
 
 	@Override
@@ -459,8 +487,10 @@ public class KclMessageListenerContainer implements MessageListenerContainer {
 
 			@Override
 			public ShardRecordProcessor shardRecordProcessor(StreamIdentifier streamIdentifier) {
-				// KCL prefixes the lease key with the serialized StreamIdentifier only in multi-stream mode; a
-				// single-stream application keeps the bare shard id as its lease key even though this overload runs.
+				// KCL prefixes the lease key with the serialized StreamIdentifier only in
+				// multi-stream mode; a
+				// single-stream application keeps the bare shard id as its lease key even
+				// though this overload runs.
 				String leaseKeyPrefix = KclMessageListenerContainer.this.streamNames.size() > 1
 						? streamIdentifier.serialize()
 						: null;
@@ -469,7 +499,8 @@ public class KclMessageListenerContainer implements MessageListenerContainer {
 
 		};
 		ConfigsBuilder configsBuilder = new ConfigsBuilder(
-				StreamTrackerFactory.createStreamTracker(this.streamNames, initialPosition, this.kinesisClient),
+				StreamTrackerFactory.createStreamTracker(this.streamNames, initialPosition, this.kinesisClient,
+						this.options.getFormerStreamsLeaseDeletionDelay()),
 				this.applicationName, this.kinesisClient, this.dynamoDbClient, this.cloudWatchClient,
 				this.options.getWorkerIdentifier(), processorFactory);
 		if (this.options.getLeaseTableName() != null) {
@@ -487,7 +518,8 @@ public class KclMessageListenerContainer implements MessageListenerContainer {
 		KclShardRecordProcessor.ShardHaltCallback haltCallback = new KclShardRecordProcessor.ShardHaltCallback() {
 			@Override
 			public void onShardHalted(@Nullable String shardId, Throwable cause, @Nullable Long millisBehindLatest) {
-				KclMessageListenerContainer.this.onShardHalted(streamName, shardId, cause, millisBehindLatest);
+				KclMessageListenerContainer.this.onShardHalted(streamName, leaseKeyPrefix, shardId, cause,
+						millisBehindLatest);
 			}
 
 			@Override
@@ -508,10 +540,13 @@ public class KclMessageListenerContainer implements MessageListenerContainer {
 				releaser, this.releaseScheduler, haltCallback);
 	}
 
-	private void onShardHalted(String streamName, @Nullable String shardId, Throwable cause,
-			@Nullable Long millisBehindLatest) {
+	private void onShardHalted(String streamName, @Nullable String leaseKeyPrefix, @Nullable String shardId,
+			Throwable cause, @Nullable Long millisBehindLatest) {
 		if (shardId != null) {
-			this.haltedShards.add(new HaltedShard(streamName, shardId));
+			// Single-stream lease key is the shard id; multi-stream is '<serialized
+			// StreamIdentifier>:<shardId>'.
+			String leaseKey = leaseKeyPrefix != null ? leaseKeyPrefix + ":" + shardId : shardId;
+			this.haltedShards.put(new HaltedShard(streamName, shardId), leaseKey);
 		}
 		ApplicationEventPublisher publisher = this.applicationEventPublisher;
 		if (publisher != null) {
@@ -541,6 +576,11 @@ public class KclMessageListenerContainer implements MessageListenerContainer {
 	 * still within the lease duration, so a short failover time or a release delay longer than the lease duration would
 	 * make it return {@code null}. {@code dropLease} reads only the key, so a {@link Lease} carrying just the key
 	 * removes it from the renewer's held leases either way.
+	 * <p>
+	 * This relies on KCL internals: {@link Scheduler#shardInfoShardConsumerMap()} and {@link ShardConsumer#leaseLost()}
+	 * are public but not documented as stable API, and the rebuild-after-{@code leaseLost()} behaviour is an
+	 * implementation detail of the scheduler's processing loop. {@code KclHaltedShardReleaseIntegrationTest} covers
+	 * this path end to end, so check it first when a KCL upgrade breaks the release of halted shards.
 	 */
 	private void releaseLease(String leaseKey) {
 		Scheduler currentScheduler = this.scheduler;

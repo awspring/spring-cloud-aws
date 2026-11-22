@@ -109,10 +109,40 @@ class KinesisAutoConfigurationTest {
 	}
 
 	@Test
-	void haltedShardReleaseDelayIsUnsetByDefault() {
+	void haltedShardReleaseDelayDefaultsToThirtySeconds() {
 		this.contextRunner.run(context -> {
 			KclMessageListenerContainerFactory factory = context.getBean(KclMessageListenerContainerFactory.class);
-			assertThat(containerOptions(factory).getHaltedShardReleaseDelay()).isNull();
+			assertThat(containerOptions(factory).getHaltedShardReleaseDelay()).isEqualTo(Duration.ofSeconds(30));
+		});
+	}
+
+	@Test
+	void zeroHaltedShardReleaseDelayDisablesTheAutomaticRelease() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.kinesis.listener.halted-shard-release-delay:0s")
+				.run(context -> {
+					KclMessageListenerContainerFactory factory = context
+							.getBean(KclMessageListenerContainerFactory.class);
+					assertThat(containerOptions(factory).getHaltedShardReleaseDelay()).isNull();
+				});
+	}
+
+	@Test
+	void mapsFormerStreamsLeaseDeletionDelayOntoContainerOptions() {
+		this.contextRunner
+				.withPropertyValues("spring.cloud.aws.kinesis.listener.former-streams-lease-deletion-delay:6h")
+				.run(context -> {
+					KclMessageListenerContainerFactory factory = context
+							.getBean(KclMessageListenerContainerFactory.class);
+					assertThat(containerOptions(factory).getFormerStreamsLeaseDeletionDelay())
+							.isEqualTo(Duration.ofHours(6));
+				});
+	}
+
+	@Test
+	void formerStreamsLeaseDeletionDelayDefaultsToOneHour() {
+		this.contextRunner.run(context -> {
+			KclMessageListenerContainerFactory factory = context.getBean(KclMessageListenerContainerFactory.class);
+			assertThat(containerOptions(factory).getFormerStreamsLeaseDeletionDelay()).isEqualTo(Duration.ofHours(1));
 		});
 	}
 

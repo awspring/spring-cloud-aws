@@ -16,9 +16,11 @@
 package io.awspring.cloud.kinesis.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import io.awspring.cloud.kinesis.listener.KclListenerMode;
 import io.awspring.cloud.kinesis.listener.KclMessageListenerContainer;
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointer;
@@ -299,6 +301,69 @@ class KclMessageListenerContainerFactoryTests {
 	}
 
 	@Test
+	@DisplayName("a reply to a single record is sent with that record's partition key")
+	void sendToReusesTheRecordPartitionKey() throws Exception {
+		KinesisOperations operations = mock(KinesisOperations.class);
+		this.factory.setKinesisOperations(operations);
+		KclListenerEndpoint endpoint = endpointBuilder(new RecordingListener(), "transform", String.class)
+				.replyStream("out").build();
+		endpoint.setHandlerMethodFactory(handlerMethodFactory());
+		KclMessageListenerContainer container = (KclMessageListenerContainer) this.factory.createContainer(endpoint);
+
+		container.getMessageListener().onMessage(MessageBuilder.withPayload("hi".getBytes(StandardCharsets.UTF_8))
+				.setHeader(KinesisMessageHeaders.PARTITION_KEY, "customer-42").build());
+
+		verify(operations).send("out", "customer-42", "HI");
+	}
+
+	@Test
+	@DisplayName("a reply to a batch is sent without a partition key from the input")
+	void sendToFromBatchUsesNoInputPartitionKey() throws Exception {
+		KinesisOperations operations = mock(KinesisOperations.class);
+		this.factory.setKinesisOperations(operations);
+		KclListenerEndpoint endpoint = endpointBuilder(new RecordingListener(), "countBatch", List.class)
+				.replyStream("out").build();
+		endpoint.setHandlerMethodFactory(handlerMethodFactory());
+		KclMessageListenerContainer container = (KclMessageListenerContainer) this.factory.createContainer(endpoint);
+
+		container.getBatchMessageListener()
+				.onMessage(List.of(
+						MessageBuilder.withPayload("a".getBytes(StandardCharsets.UTF_8))
+								.setHeader(KinesisMessageHeaders.PARTITION_KEY, "k1").build(),
+						MessageBuilder.withPayload("b".getBytes(StandardCharsets.UTF_8))
+								.setHeader(KinesisMessageHeaders.PARTITION_KEY, "k2").build()));
+
+		verify(operations).send("out", "2");
+	}
+
+	@Test
+	@DisplayName("listenerMode SINGLE_RECORD delivers a collection payload one record at a time")
+	void singleRecordModeOverridesCollectionDetection() throws Exception {
+		RecordingListener listener = new RecordingListener();
+		KclListenerEndpoint endpoint = endpointBuilder(listener, "handleOrders", List.class)
+				.listenerMode(KclListenerMode.SINGLE_RECORD).build();
+		endpoint.setHandlerMethodFactory(handlerMethodFactory());
+		KclMessageListenerContainer container = (KclMessageListenerContainer) this.factory.createContainer(endpoint);
+
+		assertThat(container.getListenerMode()).isEqualTo(KclListenerMode.SINGLE_RECORD);
+		container.getMessageListener().onMessage(
+				MessageBuilder.withPayload("[{\"id\":\"a\"},{\"id\":\"b\"}]".getBytes(StandardCharsets.UTF_8)).build());
+
+		assertThat(listener.orderIds).containsExactly("a", "b");
+	}
+
+	@Test
+	@DisplayName("listenerMode BATCH without a Collection parameter fails container creation")
+	void batchModeWithoutCollectionParameterFails() throws Exception {
+		KclListenerEndpoint endpoint = endpointBuilder(new RecordingListener(), "transform", String.class)
+				.listenerMode(KclListenerMode.BATCH).build();
+		endpoint.setHandlerMethodFactory(handlerMethodFactory());
+
+		assertThatThrownBy(() -> this.factory.createContainer(endpoint)).isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("listenerMode BATCH").hasMessageContaining("Collection parameter");
+	}
+
+	@Test
 	@DisplayName("a reply stream without a KinesisOperations fails container creation naming the endpoint and the fix")
 	void replyStreamWithoutOperationsFailsContainerCreation() throws Exception {
 		KclListenerEndpoint endpoint = endpointBuilder(new RecordingListener(), "transform", String.class)
@@ -381,6 +446,10 @@ class KclMessageListenerContainerFactoryTests {
 
 		String transform(String payload) {
 			return payload.toUpperCase(Locale.ROOT);
+		}
+
+		String countBatch(List<Message<?>> messages) {
+			return String.valueOf(messages.size());
 		}
 
 	}

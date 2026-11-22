@@ -28,10 +28,10 @@ import org.springframework.util.backoff.FixedBackOff;
  * {@link ErrorHandler} retrying a failed delivery according to a {@link BackOff}, then handing it to a
  * {@link FailedDeliveryRecoverer} once the back-off stops.
  * <p>
- * Every retry re-invokes the listener through {@link FailedDelivery#retry()} after sleeping for the interval returned
- * by the back-off, on the shard thread. Only the failed shard waits, and its records stay in order. Deliveries that are
- * not {@link FailedDelivery#isRetryable() retryable} (records that failed conversion) go to the recoverer straight
- * away.
+ * Every retry runs the failed stage through {@link FailedDelivery#retry()} after sleeping for the interval returned by
+ * the back-off, on the shard thread. Listener failures re-invoke the listener; reply-publication failures resend the
+ * cached listener result. Only the failed shard waits, and its records stay in order. Deliveries that are not
+ * {@link FailedDelivery#isRetryable() retryable} (records that failed conversion) go to the recoverer straight away.
  * <p>
  * The default recoverer logs the failure and rethrows it, which halts the shard so that no record is skipped. Provide a
  * recoverer to dead-letter the record and continue instead.

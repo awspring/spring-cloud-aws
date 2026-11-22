@@ -47,6 +47,7 @@ The `@KclListener` annotation supports the following attributes (all string-valu
 | `id` | Container id / registry key. Defaults to a generated `io.awspring.cloud.kinesis.KclListenerEndpointContainer#<n>` id.
 | `factory` | Bean name of the `KclMessageListenerContainerFactory` to use. When empty, the bean named `defaultKclListenerContainerFactory` is used (the auto-configured factory has that name), otherwise the only (or `@Primary`) factory bean. A `KclListenerConfigurer` can change the default name with `registrar.setDefaultListenerContainerFactoryBeanName(...)`.
 | `checkpointMode` | Overrides the checkpoint mode for this listener (`BATCH`, `RECORD`, `PERIODIC`, `MANUAL`). Falls back to the factory/property value when empty.
+| `listenerMode` | `SINGLE_RECORD` or `BATCH`. When empty, a method with a non-header `Collection` parameter receives batches (see <<Batch listeners and replies>>).
 | `retrievalMode` | Overrides the retrieval mode for this listener (`POLLING`, `ENHANCED_FAN_OUT`). Falls back to the factory/property value when empty.
 | `initialPositionInStream` | Where to start reading a shard when no checkpoint exists yet: `TRIM_HORIZON` (oldest retained record) or `LATEST` (only records arriving after the listener starts). Overrides the factory/property value when set. Empty by default, so the factory/property value applies, which itself defaults to `TRIM_HORIZON`.
 | `consumerName` | The pre-registered enhanced fan-out consumer for this stream, given either as its *name* or as its *ARN* (`ENHANCED_FAN_OUT` retrieval only) — a value starting with `arn:` is resolved as an ARN, anything else as a name. When empty, a consumer derived from `applicationName` is registered or reused.
@@ -112,6 +113,16 @@ Most listeners consume a single stream, and that remains the recommended shape. 
 * One `applicationName`, lease table, checkpoint mode, initial position, metrics namespace and scheduler.
 * `POLLING` retrieval only: `ENHANCED_FAN_OUT` with several streams fails at startup, because a consumer is registered against one stream.
 
+[[kinesis-former-streams-lease-deletion]]
+When a stream is removed from a multi-stream listener, KCL deletes its leases, and with them its checkpoints, after `formerStreamsLeaseDeletionDelay` (default `1h`). The delay protects rolling deployments: while old and new instances share the lease table, whichever is the KCL leader treats the streams missing from its own list as removed, so an old leader would otherwise delete the leases of a stream the new version just added, and that stream would restart from its initial position. Set the delay longer than your longest rollout:
+
+[source,properties]
+----
+spring.cloud.aws.kinesis.listener.former-streams-lease-deletion-delay=6h
+----
+
+`Duration.ZERO` deletes the leases on the next stream sync. Changing a listener between one stream and several also changes the lease key format (the shard id alone, or prefixed with the stream identifier), so the existing checkpoints are not picked up; use a new `applicationName` for that change.
+
 WARNING: Adding a second stream to a listener that already ran with a single stream changes KCL's lease key format, which is incompatible with the existing lease table. Use a new `applicationName` (or `leaseTableName`) when making that switch.
 
 ==== Error handling
@@ -129,14 +140,14 @@ public interface ErrorHandler {
 How `handle` completes decides what happens next:
 
 - *Returns normally*: the failure is resolved (the retry succeeded, or the record was dead-lettered). Processing continues with the next record, and the checkpoint mode advances past the failed one.
-- *Throws*: the failure is unresolved and the *shard is halted*. The remaining records of the batch are not delivered, no further checkpoint is taken (including the end-of-shard and shutdown checkpoints), and later batches for that shard are ignored. The records after the last checkpoint are redelivered once the lease is acquired again: after the configured release delay (see <<kinesis-halted-shard-release>>), or otherwise after a restart or when the lease moves to another worker. Other shards keep running.
+- *Throws*: the failure is unresolved and the *shard is halted*. The remaining records of the batch are not delivered, no further checkpoint is taken (including the end-of-shard and shutdown checkpoints), and later batches for that shard are ignored. The records after the last checkpoint are redelivered once the shard is released: by default 30 seconds after the halt (see <<kinesis-halted-shard-release>>). Other shards keep running.
 
 `FailedDelivery` carries:
 
 - `getMessage()`: the failed record. For a batch listener, a message whose payload is the whole `Collection<Message<?>>` batch. For a record that failed conversion, a message whose payload is the raw `KinesisClientRecord`.
 - `getCause()`: the original failure. Listener exceptions are wrapped in `ListenerExecutionFailedException`, and the exception thrown by your method is its cause.
 - `getStreamName()` and `getShardId()`.
-- `retry()`: re-invokes the listener with the same message on the shard thread. It returns if the listener succeeded and throws its exception otherwise. `getAttempts()` counts invocations, starting at `1` for the original delivery.
+- `retry()`: retries the failed delivery stage on the shard thread. A listener failure re-invokes the listener with the same message; a reply-publication failure resends the cached return value without invoking the listener again. It returns on success and throws on another failure. `getAttempts()` counts delivery attempts, starting at `1` for the original attempt.
 - `isRetryable()`: `false` for conversion failures, since there is no message to hand to the listener.
 
 The default `LoggingErrorHandler` logs and rethrows, so the shard halts. No record is skipped, at the cost of the shard not progressing until its lease is reacquired. The auto-configuration applies a single `ErrorHandler` bean to the default factory.
@@ -173,7 +184,7 @@ NOTE: The handler runs on the shard thread, so blocking in it (back-off, retries
 [[kinesis-halted-shard-release]]
 ===== Releasing a halted shard
 
-A halted shard keeps its lease. KCL goes on renewing that lease and fetching batches the halted processor ignores, so without a release the shard stays halted until the application restarts or KCL moves the lease to another worker. A release delay makes the container give the shard up on its own, so a transient outage longer than the retry budget does not stop the shard until the next deployment:
+A halted shard keeps its lease, and KCL goes on renewing it, so the shard does not move to another worker on its own. The container therefore releases it after `haltedShardReleaseDelay`, 30 seconds by default. A transient failure, such as a throttled or unavailable downstream service, then recovers without a restart. Change the delay with:
 
 [source,java]
 ----
@@ -189,9 +200,29 @@ or with the property:
 spring.cloud.aws.kinesis.listener.halted-shard-release-delay=60s
 ----
 
-Once the shard halts, the container waits the delay, then gives up the lease so KCL starts a fresh processor for the shard from its last checkpoint. The records after that checkpoint are delivered again, in order, with no restart. Because the fresh processor starts with clean state, a record that always fails halts the shard again; the delay then applies between releases, so a poison record does not spin in a tight loop. Configure a `FailedDeliveryRecoverer` (see above) to dead-letter such a record instead of releasing forever.
+Once the shard halts, the container waits the delay, then gives up the lease so KCL starts a fresh processor for the shard from its last checkpoint. The records after that checkpoint are delivered again, in order. Because the fresh processor starts with clean state, a record that always fails halts the shard again; the delay then applies between releases, so a poison record is retried once per delay instead of in a tight loop. Configure a `FailedDeliveryRecoverer` (see above) to dead-letter such a record instead.
 
-Leaving the delay unset keeps the previous behaviour: the shard stays halted and its lease is held until a restart or until KCL moves the lease. The delay, when set, must be strictly positive: a zero delay would release a shard that keeps failing in a tight loop.
+To stop the shard until you decide to resume it, disable the automatic release with `haltedShardReleaseDelay(null)`, `Duration.ZERO`, or `halted-shard-release-delay=0s`. The shard then stays halted until `KclMessageListenerContainer.releaseHaltedShard(HaltedShard)` is called, the application restarts, or the lease moves to another worker. `releaseHaltedShard` also works while the automatic release is enabled, to resume a shard ahead of the delay. It only acts on the instance that halted the shard and returns `false` elsewhere, so in a multi-instance deployment call it on every instance, for example from an operator endpoint:
+
+[source,java]
+----
+@PostMapping("/admin/kinesis/{containerId}/resume")
+int resume(@PathVariable String containerId) {
+    KclMessageListenerContainer container =
+            (KclMessageListenerContainer) registry.getContainerById(containerId);
+    int released = 0;
+    for (HaltedShard shard : container.getHaltedShards()) {
+        if (container.releaseHaltedShard(shard)) {
+            released++;
+        }
+    }
+    return released;
+}
+----
+
+`KclShardHaltedEvent` is published on the shard thread, so use it to alert (see <<kinesis-halted-shard-signal>>) and resume later; blocking in the event listener blocks the shard.
+
+IMPORTANT: A shard that stays halted also blocks its child shards after a reshard. KCL starts the children only once the parent has been processed to its end, and a halted shard never takes its end-of-shard checkpoint. Choose an indefinite halt knowingly.
 
 [[kinesis-halted-shard-signal]]
 ===== Observing halted shards
@@ -209,11 +240,27 @@ void onShardHalted(KclShardHaltedEvent event) {
 
 `KclMessageListenerContainer.getHaltedShards()` returns the shards currently halted and not yet recovered, each as a `HaltedShard(streamName, shardId)`. The stream is part of the identity, so shards of different streams in a multi-stream application never collide. A shard is removed from the set once its processor ends, or when a fresh processor for the same stream and shard initializes, so a shard that was released and reacquired no longer appears.
 
+NOTE: `getHaltedShards()`, `releaseHaltedShard` and `KclShardHaltedEvent` only cover the shards of the instance they run on. In a deployment with several instances, each instance reports the shards it holds, so a health indicator built on `getHaltedShards()` shows only that instance's shards. For a view across all instances, alert on the KCL CloudWatch metrics, such as `MillisBehindLatest`, or on the events of every instance.
+
 ==== Batch listeners and replies
 
 A listener with a `Collection` parameter receives a batch. The declared element type is honoured: use `List<Message<?>>` for the raw messages, `List<Order>` for converted payloads, or `List<Message<Order>>` for converted payloads with their headers.
 
-To forward a result, return a value and annotate the method with `@SendTo("another-stream")`; the container publishes the return value to that stream through the auto-configured `KinesisTemplate` (which must be present as a bean). Void methods and `null` returns forward nothing. A listener that declares a reply stream without a `KinesisOperations` available fails container creation, naming the endpoint, rather than silently dropping the reply. Provide a `KinesisOperations` bean or set it with `KclMessageListenerContainerFactory.setKinesisOperations`.
+If converting a record in a KCL batch fails, the listener first receives the successfully converted records that precede it. The conversion failure is then passed to the error handler. If the handler resolves it, later records are delivered as a new batch segment. Each segment's `KclCheckpointer` is bound to its last delivered record, so checkpointing a segment cannot skip records that have not yet reached the listener. A batch with no conversion failures is still delivered in one invocation.
+
+When each record is itself a collection, for example a JSON array, set the listener mode explicitly so the method receives one record at a time and the record is converted into the declared collection type:
+
+[source,java]
+----
+@KclListener(streamNames = "order-batches", applicationName = "order-batches-app", listenerMode = "SINGLE_RECORD")
+public void handle(List<Order> ordersInOneRecord) { }
+----
+
+`listenerMode = "BATCH"` requires a `Collection` parameter and fails container creation otherwise.
+
+To forward a result, return a value and annotate the method with `@SendTo("another-stream")`; the container publishes the return value to that stream through the auto-configured `KinesisTemplate` (which must be present as a bean). Void methods and `null` returns forward nothing. A reply to a single record is sent with that record's partition key, so replies keep the per-key order of the input; a reply to a batch has no single input key and is sent with a random partition key. A listener that declares a reply stream without a `KinesisOperations` available fails container creation, naming the endpoint, rather than silently dropping the reply. Provide a `KinesisOperations` bean or set it with `KclMessageListenerContainerFactory.setKinesisOperations`.
+
+A method can also return a `Message<?>`: the message is published with its headers, and its `Kinesis_partitionKey` header is used as the partition key when present, otherwise the partition key of the input record. If publishing the reply fails, the listener method has already run, so the failure reaches the error handler as a `ReplyPublicationFailedException` and `FailedDelivery.retry()` only resends the cached return value; the listener method is not invoked again.
 
 ==== Reading records with embedded headers
 
@@ -254,6 +301,18 @@ CompletableFuture<SendResult> result = kinesisTemplate.sendAsync("orders", "part
 
 `byte[]` and `String` payloads are sent as-is; any other payload is serialized to JSON with the configured `JsonMapper`.
 Each call returns a `SendResult`, which exposes the `sequenceNumber` and `shardId` that Kinesis assigned to the record.
+
+To send a Spring `Message` instead of a bare payload, use the `Message` overloads (`send(stream, message)`, `send(stream, partitionKey, message)` and their `sendAsync` variants). The message is passed to the `KinesisMessageConverter` as the message, not nested as a payload. Without an explicit partition key, the `Kinesis_partitionKey` header is used, or a random key when absent. Message headers, and custom headers added with `SendRequest.Builder.header(...)`, reach the consumer only when the converter embeds headers (see <<Reading records with embedded headers>>). Trace-propagation headers are added to the message before conversion.
+
+[source,java]
+----
+kinesisTemplate.send("orders", "k1", MessageBuilder.withPayload(order).setHeader("tenant", "acme").build());
+
+kinesisTemplate.send(SendRequest.builder().streamName("orders").partitionKey("k1")
+        .payload(order).header("tenant", "acme").build());   // or .message(message)
+----
+
+A `SendRequest` holds an immutable snapshot of its custom headers; custom headers override message headers of the same name.
 
 For finer-grained control, build a `SendRequest`. In addition to the stream name, partition key and payload, it supports an explicit hash key (to target a specific shard directly) and a sequence number for ordering:
 
@@ -337,7 +396,8 @@ The following configuration properties are available:
 | `spring.cloud.aws.kinesis.listener.idle-time-between-reads` | `1s` | Idle time between polling reads (`POLLING` retrieval only).
 | `spring.cloud.aws.kinesis.listener.retrieval-mode` | `POLLING` | Retrieval mode: `POLLING` or `ENHANCED_FAN_OUT`.
 | `spring.cloud.aws.kinesis.listener.checkpoint-mode` | `BATCH` | Checkpoint mode: `BATCH`, `RECORD`, `PERIODIC` or `MANUAL`.
-| `spring.cloud.aws.kinesis.listener.halted-shard-release-delay` | | How long after a shard halts its lease is released so the shard is reprocessed from its last checkpoint without a restart (see <<kinesis-halted-shard-release>>). Must be strictly positive when set. Unset by default, which keeps the lease and the shard halted until a restart or until KCL moves the lease.
+| `spring.cloud.aws.kinesis.listener.halted-shard-release-delay` | `30s` | How long after a shard halts its lease is released so the shard is reprocessed from its last checkpoint without a restart (see <<kinesis-halted-shard-release>>). `0s` disables the automatic release: the shard stays halted until `releaseHaltedShard` is called, a restart, or until KCL moves the lease.
+| `spring.cloud.aws.kinesis.listener.former-streams-lease-deletion-delay` | `1h` | How long a multi-stream listener waits before deleting the leases, and checkpoints, of a stream it no longer consumes (see <<kinesis-former-streams-lease-deletion>>). Set it longer than your longest rolling deployment.
 | `spring.cloud.aws.kinesis.listener.initial-position` | `TRIM_HORIZON` | Position used when no checkpoint exists. A `@KclListener` whose `initialPositionInStream` attribute is set overrides this property; the attribute is empty by default, so this property applies unless the listener sets it.
 | `spring.cloud.aws.kinesis.listener.graceful-shutdown-timeout` | `20s` | Maximum time to wait for the scheduler to shut down.
 | `spring.cloud.aws.kinesis.listener.checkpoint-record-count` | `1000` | Records after which a periodic checkpoint is taken.
@@ -345,7 +405,7 @@ The following configuration properties are available:
 | `spring.cloud.aws.kinesis.listener.metrics-level` | `DETAILED` | CloudWatch metrics granularity: `NONE`, `SUMMARY` or `DETAILED`. Left unset by the container, so the KCL default of `DETAILED` applies.
 | `spring.cloud.aws.kinesis.listener.metrics-namespace` | | Default CloudWatch namespace under which KCL publishes its metrics, overridable per listener with `@KclListener(metricsNamespace = "...")`. Left unset by the container, so the KCL default (the application name) applies.
 | `spring.cloud.aws.kinesis.listener.auto-startup` | `true` | Whether the listener containers start automatically with the application context.
-| `spring.cloud.aws.kinesis.listener.phase` | | `SmartLifecycle` phase for the listener containers. Left unset, so the default phase applies.
+| `spring.cloud.aws.kinesis.listener.phase` | `Integer.MAX_VALUE` | `SmartLifecycle` phase for the listener containers. The registry starts containers in ascending phase order and stops them in descending order, and runs in the highest container phase relative to the rest of the application, so listeners start after and stop before the beans of that phase. The default phase starts listeners last and stops them first.
 | `spring.cloud.aws.kinesis.listener.initial-position-timestamp` | | Timestamp used when `initial-position` is `AT_TIMESTAMP`. Applies to a `@KclListener` that leaves `initialPositionInStream` empty (the default) or sets it to `AT_TIMESTAMP`.
 | `spring.cloud.aws.kinesis.listener.billing-mode` | `PAY_PER_REQUEST` | DynamoDB table billing mode: `PAY_PER_REQUEST` (on-demand) or `PROVISIONED`. Left unset by the container, so the KCL default of on-demand (`PAY_PER_REQUEST`) applies, which is the mode https://docs.aws.amazon.com/streams/latest/dev/kcl-dynamoDB.html[AWS recommends].
 | `spring.cloud.aws.kinesis.listener.content-type` | | Optional content-type applied to inbound messages (for example `application/json`) to enable strict message-converter matching. Unset by default, so `byte[]`, `String` and JSON POJO payloads all convert.
@@ -367,6 +427,24 @@ KCL does not create `<applicationName>-WorkerMetricStats` or `<applicationName>-
 NOTE: An application that first ran on KCL 3.0 to 3.4 already has those two separate tables, and KCL 3.5 keeps using them. To consolidate them into the lease table, set `CoordinatorConfig#migrateAllEntitiesToLeaseTable(true)` through the coordinator config customizer, following the two-phase deployment AWS describes in https://docs.aws.amazon.com/streams/latest/dev/kcl-single-table-format.html[Single table format for KCL]. The flag defaults to `false` and has no effect on a new application, which starts in the single table format.
 
 The `@KclListener(leaseTableName = "...")` attribute renames the lease table, and with it every KCL entity of a new application. For an application still on the separate tables, the `-WorkerMetricStats` and `-CoordinatorState` table names stay derived from `applicationName` and cannot be overridden through the annotation (use the coordinator/lease KCL config customizers for finer control). Tables are created with the configured billing mode, which defaults to on-demand (`PAY_PER_REQUEST`) as https://docs.aws.amazon.com/streams/latest/dev/kcl-dynamoDB.html[AWS recommends].
+
+==== IAM permissions
+
+The role a listener runs with needs the permissions AWS lists in https://docs.aws.amazon.com/streams/latest/dev/kcl-iam-permissions.html[IAM permissions required for KCL consumer applications]. In short, with `<app>` the lease table name (`leaseTableName`, or `applicationName` when it is not set):
+
+[cols="1,3,3"]
+|===
+| Service | Actions | Resource
+
+| Kinesis | `DescribeStream`, `DescribeStreamSummary`, `GetRecords`, `GetShardIterator`, `ListShards`, `RegisterStreamConsumer` | Each consumed stream
+| Kinesis (`ENHANCED_FAN_OUT` only) | `SubscribeToShard`, `DescribeStreamConsumer` | `<stream ARN>/consumer/*`
+| DynamoDB | `CreateTable`, `DescribeTable`, `UpdateTable`, `Scan`, `GetItem`, `PutItem`, `UpdateItem`, `DeleteItem` | `table/<app>`
+| DynamoDB | `Query` | `table/<app>/index/*`
+| DynamoDB (applications that started on KCL 3.0 to 3.4) | `CreateTable`, `DescribeTable`, `Scan`, `GetItem`, `PutItem`, `UpdateItem`, `DeleteItem`, `ConditionCheckItem` | `table/<applicationName>-WorkerMetricStats`, `table/<applicationName>-CoordinatorState`
+| CloudWatch | `PutMetricData` | `*`
+|===
+
+A new application on KCL 3.5 keeps everything in the lease table (see <<DynamoDB metadata tables>>) and does not need the `-WorkerMetricStats` and `-CoordinatorState` permissions. Grant them while an older application is migrating to the single table format.
 
 ==== Advanced KCL configuration
 

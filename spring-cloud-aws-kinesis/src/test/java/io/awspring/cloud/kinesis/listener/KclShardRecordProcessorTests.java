@@ -229,6 +229,40 @@ class KclShardRecordProcessorTests {
 	}
 
 	@Test
+	@DisplayName("a failed reply publication is retried by resending the reply, not by invoking the listener again")
+	void replyFailureRetryDoesNotInvokeListener() throws Exception {
+		RecordProcessorCheckpointer checkpointer = mock(RecordProcessorCheckpointer.class);
+		int[] listenerCalls = { 0 };
+		int[] resends = { 0 };
+		Runnable[] resend = new Runnable[1];
+		resend[0] = () -> {
+			if (++resends[0] < 2) {
+				throw new ReplyPublicationFailedException("again", new RuntimeException("down"), resend[0]);
+			}
+		};
+		KclShardRecordProcessor processor = singleRecordProcessor(KclCheckpointMode.BATCH, message -> {
+			listenerCalls[0]++;
+			throw new ReplyPublicationFailedException("reply failed", new RuntimeException("down"), resend[0]);
+		}, failedDelivery -> {
+			while (true) {
+				try {
+					failedDelivery.retry();
+					return;
+				}
+				catch (RuntimeException ex) {
+					// retry again
+				}
+			}
+		});
+
+		processor.processRecords(input(checkpointer, record("pk", "seq-1", "a")));
+
+		assertThat(listenerCalls[0]).isEqualTo(1);
+		assertThat(resends[0]).isEqualTo(2);
+		assertThat(processor.isHalted()).isFalse();
+	}
+
+	@Test
 	@DisplayName("a batch listener failure hands the whole batch to the error handler with a retry hook")
 	void batchListenerFailureRetriesWholeBatch() throws Exception {
 		RecordProcessorCheckpointer checkpointer = mock(RecordProcessorCheckpointer.class);
@@ -405,7 +439,8 @@ class KclShardRecordProcessorTests {
 			// The halted shard reaches its end before the release fires.
 			processor.shardEnded(ShardEndedInput.builder().checkpointer(checkpointer).build());
 
-			// The release is not cancelled by shardEnded while halted, so the shard is still released and reprocessed.
+			// The release is not cancelled by shardEnded while halted, so the shard is
+			// still released and reprocessed.
 			await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertThat(released).containsExactly("shard-1"));
 			// A halted shard never checkpoints the end of the shard.
 			verify(checkpointer, never()).checkpoint();
@@ -651,7 +686,8 @@ class KclShardRecordProcessorTests {
 		Message<?> firstOfBatch = batches.get(0).iterator().next();
 		firstOfBatch.getHeaders().get(KinesisMessageHeaders.CHECKPOINTER, KclCheckpointer.class).checkpoint();
 
-		// The batch checkpointer commits the latest position of the batch, not a single record.
+		// The batch checkpointer commits the latest position of the batch, not a single
+		// record.
 		verify(checkpointer).checkpoint();
 		verify(checkpointer, never()).checkpoint(org.mockito.ArgumentMatchers.anyString());
 	}
@@ -669,7 +705,8 @@ class KclShardRecordProcessorTests {
 		processor.processRecords(input(checkpointer, record("pk-real", "seq-real", "body")));
 
 		MessageHeaders headers = received.get(0).getHeaders();
-		// The converter dropped the sequence number and spoofed the partition key; the overlay restores the truth.
+		// The converter dropped the sequence number and spoofed the partition key; the
+		// overlay restores the truth.
 		assertThat(headers.get(KinesisMessageHeaders.SEQUENCE_NUMBER)).isEqualTo("seq-real");
 		assertThat(headers.get(KinesisMessageHeaders.PARTITION_KEY)).isEqualTo("pk-real");
 		assertThat(headers.get(KinesisMessageHeaders.SHARD_ID)).isEqualTo("shard-1");
@@ -692,6 +729,160 @@ class KclShardRecordProcessorTests {
 
 		verify(checkpointer).checkpoint("seq-real");
 		verify(checkpointer, never()).checkpoint("seq-spoofed");
+	}
+
+	@Test
+	@DisplayName("SINGLE_RECORD: a conversion failure is handled after the earlier records were delivered and checkpointed")
+	void singleRecordConversionFailureKeepsOrder() throws Exception {
+		RecordProcessorCheckpointer checkpointer = mock(RecordProcessorCheckpointer.class);
+		List<String> events = new ArrayList<>();
+		org.mockito.Mockito.doAnswer(invocation -> events.add("checkpoint:" + invocation.getArgument(0)))
+				.when(checkpointer).checkpoint(org.mockito.ArgumentMatchers.anyString());
+		KclShardRecordProcessor processor = new KclShardRecordProcessor(new FailingOnBodyConverter("bad"),
+				KclListenerMode.SINGLE_RECORD, KclCheckpointMode.RECORD, 1000L, Duration.ofSeconds(60),
+				message -> events.add("listener:" + message.getHeaders().get(KinesisMessageHeaders.SEQUENCE_NUMBER)),
+				null,
+				failedDelivery -> events.add(
+						"error:" + failedDelivery.getMessage().getHeaders().get(KinesisMessageHeaders.SEQUENCE_NUMBER)),
+				"my-stream");
+		processor.initialize(InitializationInput.builder().shardId("shard-1").build());
+
+		processor.processRecords(input(checkpointer, record("pk", "seq-1", "a"), record("pk", "seq-2", "bad"),
+				record("pk", "seq-3", "c")));
+
+		assertThat(events).containsExactly("listener:seq-1", "checkpoint:seq-1", "error:seq-2", "checkpoint:seq-2",
+				"listener:seq-3", "checkpoint:seq-3");
+	}
+
+	@Test
+	@DisplayName("BATCH: a conversion failure delivers the preceding segment first, then the following segment")
+	void batchConversionFailureSplitsSegments() throws Exception {
+		RecordProcessorCheckpointer checkpointer = mock(RecordProcessorCheckpointer.class);
+		List<String> events = new ArrayList<>();
+		List<Collection<Message<?>>> batches = new ArrayList<>();
+		KclShardRecordProcessor processor = new KclShardRecordProcessor(new FailingOnBodyConverter("bad"),
+				KclListenerMode.BATCH, KclCheckpointMode.MANUAL, 1000L, Duration.ofSeconds(60), null, messages -> {
+					batches.add(messages);
+					events.add("batch:" + messages.size());
+				}, failedDelivery -> events.add("error"), "my-stream");
+		processor.initialize(InitializationInput.builder().shardId("shard-1").build());
+
+		processor.processRecords(input(checkpointer, record("pk", "seq-1", "a"), record("pk", "seq-2", "b"),
+				record("pk", "seq-3", "bad"), record("pk", "seq-4", "d"), record("pk", "seq-5", "e")));
+
+		assertThat(events).containsExactly("batch:2", "error", "batch:2");
+		// Calling checkpoint() on any message of a segment never passes that segment's
+		// last delivered record.
+		checkpointerOf(batches.get(0).iterator().next()).checkpoint();
+		verify(checkpointer).checkpoint("seq-2");
+		checkpointerOf(batches.get(1).iterator().next()).checkpoint();
+		verify(checkpointer).checkpoint("seq-5");
+		verify(checkpointer, never()).checkpoint();
+		verify(checkpointer, never()).checkpoint("seq-3");
+	}
+
+	@Test
+	@DisplayName("BATCH: the failed-conversion message's checkpointer is bound to the failed record")
+	void batchConversionFailureCheckpointerBoundToFailedRecord() throws Exception {
+		RecordProcessorCheckpointer checkpointer = mock(RecordProcessorCheckpointer.class);
+		KclShardRecordProcessor processor = new KclShardRecordProcessor(new FailingOnBodyConverter("bad"),
+				KclListenerMode.BATCH, KclCheckpointMode.MANUAL, 1000L, Duration.ofSeconds(60), null, messages -> {
+				}, failedDelivery -> checkpointerOf(failedDelivery.getMessage()).checkpoint(), "my-stream");
+		processor.initialize(InitializationInput.builder().shardId("shard-1").build());
+
+		processor.processRecords(input(checkpointer, record("pk", "seq-1", "a"), record("pk", "seq-2", "bad"),
+				record("pk", "seq-3", "c")));
+
+		verify(checkpointer).checkpoint("seq-2");
+		verify(checkpointer, never()).checkpoint();
+	}
+
+	@Test
+	@DisplayName("BATCH: an unresolved conversion failure halts after delivering the preceding segment only")
+	void batchUnresolvedConversionFailureHalts() throws Exception {
+		RecordProcessorCheckpointer checkpointer = mock(RecordProcessorCheckpointer.class);
+		List<Integer> sizes = new ArrayList<>();
+		KclShardRecordProcessor processor = new KclShardRecordProcessor(new FailingOnBodyConverter("bad"),
+				KclListenerMode.BATCH, KclCheckpointMode.BATCH, 1000L, Duration.ofSeconds(60), null,
+				messages -> sizes.add(messages.size()), RETHROWING, "my-stream");
+		processor.initialize(InitializationInput.builder().shardId("shard-1").build());
+
+		assertThatCode(() -> processor.processRecords(input(checkpointer, record("pk", "seq-1", "a"),
+				record("pk", "seq-2", "bad"), record("pk", "seq-3", "c")))).doesNotThrowAnyException();
+
+		assertThat(sizes).containsExactly(1);
+		assertThat(processor.isHalted()).isTrue();
+		verify(checkpointer, never()).checkpoint();
+	}
+
+	@Test
+	@DisplayName("BATCH checkpoint mode with a resolved conversion failure checkpoints once after all segments")
+	void batchModeCheckpointsOnceAfterSegments() throws Exception {
+		RecordProcessorCheckpointer checkpointer = mock(RecordProcessorCheckpointer.class);
+		KclShardRecordProcessor processor = new KclShardRecordProcessor(new FailingOnBodyConverter("bad"),
+				KclListenerMode.BATCH, KclCheckpointMode.BATCH, 1000L, Duration.ofSeconds(60), null, messages -> {
+				}, failedDelivery -> {
+				}, "my-stream");
+		processor.initialize(InitializationInput.builder().shardId("shard-1").build());
+
+		processor.processRecords(input(checkpointer, record("pk", "seq-1", "a"), record("pk", "seq-2", "bad"),
+				record("pk", "seq-3", "c")));
+
+		verify(checkpointer, times(1)).checkpoint();
+	}
+
+	@Test
+	@DisplayName("a throwing halt callback still schedules the lease release and does not leak to KCL")
+	void throwingHaltCallbackStillReleases() throws Exception {
+		RecordProcessorCheckpointer checkpointer = mock(RecordProcessorCheckpointer.class);
+		List<String> released = new CopyOnWriteArrayList<>();
+		ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+		try {
+			KclShardRecordProcessor processor = new KclShardRecordProcessor(new KinesisMessagingMessageConverter(),
+					null, KclListenerMode.SINGLE_RECORD, KclCheckpointMode.BATCH, 1000L, Duration.ofSeconds(60),
+					message -> {
+						throw new RuntimeException("boom");
+					}, null, new LoggingErrorHandler(), "my-stream", null, Duration.ofMillis(50), released::add,
+					scheduler, (shardId, cause, lag) -> {
+						throw new IllegalStateException("callback failed");
+					});
+			processor.initialize(InitializationInput.builder().shardId("shard-1").build());
+
+			assertThatCode(() -> processor.processRecords(input(checkpointer, record("pk", "seq-1", "a"))))
+					.doesNotThrowAnyException();
+
+			assertThat(processor.isHalted()).isTrue();
+			await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertThat(released).containsExactly("shard-1"));
+		}
+		finally {
+			scheduler.shutdownNow();
+		}
+	}
+
+	private static KclCheckpointer checkpointerOf(Message<?> message) {
+		return message.getHeaders().get(KinesisMessageHeaders.CHECKPOINTER, KclCheckpointer.class);
+	}
+
+	/**
+	 * Fails conversion of a record whose body equals the configured value.
+	 */
+	private static class FailingOnBodyConverter extends KinesisMessagingMessageConverter {
+
+		private final String failingBody;
+
+		FailingOnBodyConverter(String failingBody) {
+			this.failingBody = failingBody;
+		}
+
+		@Override
+		public Message<byte[]> toMessagingMessage(KinesisClientRecord record, @Nullable String shardId,
+				String streamName) {
+			if (this.failingBody.equals(StandardCharsets.UTF_8.decode(record.data().duplicate()).toString())) {
+				throw new IllegalArgumentException("cannot convert");
+			}
+			return super.toMessagingMessage(record, shardId, streamName);
+		}
+
 	}
 
 	/**

@@ -21,10 +21,12 @@ import org.springframework.context.ApplicationEvent;
 /**
  * Published when a shard is halted because the {@link io.awspring.cloud.kinesis.listener.errorhandler.ErrorHandler}
  * left a failure unresolved, or an unexpected failure occurred while processing. A halted shard delivers no further
- * records and takes no further checkpoint until its lease is reacquired, so operators can alert on this event rather
- * than parsing logs.
+ * records and takes no further checkpoint until it is released, so operators can alert on this event rather than
+ * parsing logs.
  * <p>
- * The {@link #getSource() source} is the {@link KclMessageListenerContainer} that owns the shard.
+ * The {@link #getSource() source} is the {@link KclMessageListenerContainer} that owns the shard. When the automatic
+ * release is disabled, a listener of this event can resume the shard itself through
+ * {@link KclMessageListenerContainer#releaseHaltedShard(HaltedShard)}.
  *
  * @author Matej Nedic
  * @since 4.3.0

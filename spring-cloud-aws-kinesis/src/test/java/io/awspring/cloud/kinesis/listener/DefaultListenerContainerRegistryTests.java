@@ -16,14 +16,18 @@
 package io.awspring.cloud.kinesis.listener;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.SmartLifecycle;
 
 /**
  * Tests for {@link DefaultListenerContainerRegistry}.
@@ -120,6 +124,89 @@ class DefaultListenerContainerRegistryTests {
 		}
 	}
 
+	@Test
+	@DisplayName("start() starts containers in ascending phase order and stop() stops them in descending order")
+	void ordersContainersByPhase() {
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		List<String> events = new CopyOnWriteArrayList<>();
+		registry.registerListenerContainer(new PhasedContainer("late", 10, events));
+		registry.registerListenerContainer(new PhasedContainer("early", -5, events));
+		registry.registerListenerContainer(new PhasedContainer("middle", 0, events));
+
+		registry.start();
+		registry.stop();
+
+		assertThat(events).containsExactly("start:early", "start:middle", "start:late", "stop:late", "stop:middle",
+				"stop:early");
+	}
+
+	@Test
+	@DisplayName("the registry runs in the highest container phase unless a phase is set")
+	void registryPhase() {
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		assertThat(registry.getPhase()).isEqualTo(SmartLifecycle.DEFAULT_PHASE);
+
+		List<String> events = new CopyOnWriteArrayList<>();
+		registry.registerListenerContainer(new PhasedContainer("a", 3, events));
+		registry.registerListenerContainer(new PhasedContainer("b", 7, events));
+		assertThat(registry.getPhase()).isEqualTo(7);
+
+		registry.setPhase(42);
+		assertThat(registry.getPhase()).isEqualTo(42);
+	}
+
+	@Test
+	@DisplayName("a container failing to start stops the started ones and leaves the registry not running")
+	void failedStartRollsBack() {
+		DefaultListenerContainerRegistry registry = new DefaultListenerContainerRegistry();
+		List<String> events = new CopyOnWriteArrayList<>();
+		PhasedContainer started = new PhasedContainer("started", 0, events);
+		registry.registerListenerContainer(started);
+		registry.registerListenerContainer(new PhasedContainer("failing", 1, events) {
+			@Override
+			public void start() {
+				throw new IllegalStateException("cannot start");
+			}
+		});
+
+		assertThatThrownBy(registry::start).isInstanceOf(IllegalStateException.class).hasMessage("cannot start");
+
+		assertThat(registry.isRunning()).isFalse();
+		assertThat(started.isRunning()).isFalse();
+		assertThat(events).containsExactly("start:started", "stop:started");
+	}
+
+	private static class PhasedContainer extends TestContainer {
+
+		private final int phase;
+
+		private final List<String> events;
+
+		PhasedContainer(String id, int phase, List<String> events) {
+			super(id, true);
+			this.phase = phase;
+			this.events = events;
+		}
+
+		@Override
+		public int getPhase() {
+			return this.phase;
+		}
+
+		@Override
+		public void start() {
+			this.events.add("start:" + getId());
+			super.start();
+		}
+
+		@Override
+		public void stop() {
+			this.events.add("stop:" + getId());
+			super.stop();
+		}
+
+	}
+
 	private static class TestContainer implements MessageListenerContainer {
 
 		private String id;
@@ -169,6 +256,7 @@ class DefaultListenerContainerRegistryTests {
 		int startCount() {
 			return this.startCount;
 		}
+
 	}
 
 	private static class BarrierContainer implements MessageListenerContainer {
@@ -232,5 +320,7 @@ class DefaultListenerContainerRegistryTests {
 		void resetAwaited() {
 			this.awaited.set(false);
 		}
+
 	}
+
 }

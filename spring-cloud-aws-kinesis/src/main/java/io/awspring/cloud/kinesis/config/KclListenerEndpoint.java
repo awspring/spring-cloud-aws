@@ -15,6 +15,7 @@
  */
 package io.awspring.cloud.kinesis.config;
 
+import io.awspring.cloud.kinesis.listener.KclListenerMode;
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
 import io.awspring.cloud.kinesis.listener.retrieval.KinesisConsumerResolver;
 import io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode;
@@ -63,6 +64,9 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 	private final Boolean autoStartup;
 
 	@Nullable
+	private final KclListenerMode listenerMode;
+
+	@Nullable
 	private final RetrievalMode retrievalMode;
 
 	@Nullable
@@ -105,6 +109,7 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 		this.checkpointInterval = builder.checkpointInterval;
 		this.checkpointRecordCount = builder.checkpointRecordCount;
 		this.autoStartup = builder.autoStartup;
+		this.listenerMode = builder.listenerMode;
 		this.retrievalMode = builder.retrievalMode;
 		this.initialPositionInStream = builder.initialPositionInStream;
 		this.initialPositionTimestamp = builder.initialPositionTimestamp;
@@ -183,6 +188,12 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 	@Override
 	public Boolean getAutoStartup() {
 		return this.autoStartup;
+	}
+
+	@Nullable
+	@Override
+	public KclListenerMode getListenerMode() {
+		return this.listenerMode;
 	}
 
 	@Nullable
@@ -266,6 +277,9 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 		private Boolean autoStartup;
 
 		@Nullable
+		private KclListenerMode listenerMode;
+
+		@Nullable
 		private RetrievalMode retrievalMode;
 
 		@Nullable
@@ -343,6 +357,11 @@ public class KclListenerEndpoint implements KclHandlerMethodEndpoint {
 
 		public Builder autoStartup(@Nullable Boolean autoStartup) {
 			this.autoStartup = autoStartup;
+			return this;
+		}
+
+		public Builder listenerMode(@Nullable KclListenerMode listenerMode) {
+			this.listenerMode = listenerMode;
 			return this;
 		}
 

@@ -21,18 +21,24 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.kinesis.coordinator.Scheduler;
+import software.amazon.kinesis.leases.Lease;
+import software.amazon.kinesis.leases.LeaseCoordinator;
 import software.amazon.kinesis.lifecycle.events.InitializationInput;
 import software.amazon.kinesis.lifecycle.events.LeaseLostInput;
 import software.amazon.kinesis.lifecycle.events.ProcessRecordsInput;
@@ -70,7 +76,8 @@ class KclMessageListenerContainerTests {
 		first.processRecords(input(record("pk", "seq-1", "a")));
 		assertThat(container.getHaltedShards()).containsExactly(new HaltedShard("stream", "shard-1"));
 
-		// The shard is released and a fresh processor initializes for it; the stale halted entry is cleared.
+		// The shard is released and a fresh processor initializes for it; the stale
+		// halted entry is cleared.
 		KclShardRecordProcessor second = recordProcessor(container, "stream", null);
 		second.initialize(init("shard-1"));
 
@@ -101,6 +108,81 @@ class KclMessageListenerContainerTests {
 		processorA.leaseLost(LeaseLostInput.builder().build());
 
 		assertThat(container.getHaltedShards()).containsExactly(new HaltedShard("stream-b", "shardId-000000000000"));
+	}
+
+	@Test
+	void releaseHaltedShardDropsTheLeaseOfASingleStreamShard() {
+		KclMessageListenerContainer container = container();
+		container.setMessageListener(message -> {
+			throw new RuntimeException("boom");
+		});
+		LeaseCoordinator leaseCoordinator = runningScheduler(container);
+		KclShardRecordProcessor processor = recordProcessor(container, "stream", null);
+		processor.initialize(init("shard-1"));
+		processor.processRecords(input(record("pk", "seq-1", "a")));
+
+		boolean released = container.releaseHaltedShard(new HaltedShard("stream", "shard-1"));
+
+		assertThat(released).isTrue();
+		assertThat(droppedLeaseKey(leaseCoordinator)).isEqualTo("shard-1");
+	}
+
+	@Test
+	void releaseHaltedShardUsesTheMultiStreamLeaseKey() {
+		KclMessageListenerContainer container = new KclMessageListenerContainer(mock(KinesisAsyncClient.class),
+				mock(DynamoDbAsyncClient.class), mock(CloudWatchAsyncClient.class), List.of("stream-a", "stream-b"),
+				"application", KclContainerOptions.builder().build());
+		container.setMessageListener(message -> {
+			throw new RuntimeException("boom");
+		});
+		LeaseCoordinator leaseCoordinator = runningScheduler(container);
+		KclShardRecordProcessor processor = recordProcessor(container, "stream-b", "stream-b-prefix");
+		processor.initialize(init("shardId-000000000000"));
+		processor.processRecords(input(record("pk", "seq-1", "a")));
+
+		boolean released = container.releaseHaltedShard(new HaltedShard("stream-b", "shardId-000000000000"));
+
+		assertThat(released).isTrue();
+		assertThat(droppedLeaseKey(leaseCoordinator)).isEqualTo("stream-b-prefix:shardId-000000000000");
+	}
+
+	@Test
+	void releaseHaltedShardIgnoresAShardThatIsNotHalted() {
+		KclMessageListenerContainer container = container();
+		LeaseCoordinator leaseCoordinator = runningScheduler(container);
+
+		boolean released = container.releaseHaltedShard(new HaltedShard("stream", "shard-1"));
+
+		assertThat(released).isFalse();
+		verifyNoInteractions(leaseCoordinator);
+	}
+
+	@Test
+	void releaseHaltedShardIsANoOpWhenTheContainerIsNotRunning() {
+		KclMessageListenerContainer container = container();
+		container.setMessageListener(message -> {
+			throw new RuntimeException("boom");
+		});
+		KclShardRecordProcessor processor = recordProcessor(container, "stream", null);
+		processor.initialize(init("shard-1"));
+		processor.processRecords(input(record("pk", "seq-1", "a")));
+
+		assertThat(container.releaseHaltedShard(new HaltedShard("stream", "shard-1"))).isFalse();
+	}
+
+	private static LeaseCoordinator runningScheduler(KclMessageListenerContainer container) {
+		Scheduler scheduler = mock(Scheduler.class);
+		LeaseCoordinator leaseCoordinator = mock(LeaseCoordinator.class);
+		when(scheduler.leaseCoordinator()).thenReturn(leaseCoordinator);
+		when(scheduler.shardInfoShardConsumerMap()).thenReturn(new ConcurrentHashMap<>());
+		ReflectionTestUtils.setField(container, "scheduler", scheduler);
+		return leaseCoordinator;
+	}
+
+	private static String droppedLeaseKey(LeaseCoordinator leaseCoordinator) {
+		ArgumentCaptor<Lease> lease = ArgumentCaptor.forClass(Lease.class);
+		verify(leaseCoordinator).dropLease(lease.capture());
+		return lease.getValue().leaseKey();
 	}
 
 	private static KclShardRecordProcessor recordProcessor(KclMessageListenerContainer container, String streamName,

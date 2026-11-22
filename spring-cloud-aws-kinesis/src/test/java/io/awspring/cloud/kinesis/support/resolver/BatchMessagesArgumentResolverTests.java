@@ -104,6 +104,19 @@ class BatchMessagesArgumentResolverTests {
 		assertThat((List<Message<?>>) resolved).hasSize(2);
 	}
 
+	@Test
+	@DisplayName("a single record whose payload is a JSON array is converted into the declared List<Pojo>")
+	@SuppressWarnings("unchecked")
+	void convertsSingleRecordCollectionPayload() {
+		Message<byte[]> record = MessageBuilder
+				.withPayload("[{\"name\":\"first\"},{\"name\":\"second\"}]".getBytes(StandardCharsets.UTF_8))
+				.setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON).build();
+
+		Object resolved = resolver.resolveArgument(pojoListParameter(), record);
+
+		assertThat((List<Person>) resolved).extracting(Person::name).containsExactly("first", "second");
+	}
+
 	private Message<byte[]> json(String name) {
 		byte[] payload = ("{\"name\":\"" + name + "\"}").getBytes(StandardCharsets.UTF_8);
 		return MessageBuilder.withPayload(payload)

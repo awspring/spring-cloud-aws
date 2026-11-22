@@ -250,7 +250,8 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 			doProcessRecords(processRecordsInput);
 		}
 		catch (Throwable ex) {
-			// Never let an exception reach KCL: it would skip the records and continue with the next batch.
+			// Never let an exception reach KCL: it would skip the records and continue
+			// with the next batch.
 			halt(ex);
 		}
 	}
@@ -261,45 +262,44 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 			checkpointIdlePeriodicIfDue(processRecordsInput);
 			return;
 		}
-		boolean singleRecord = this.listenerMode != KclListenerMode.BATCH;
 		KclCheckpointer checkpointer = new DefaultKclCheckpointer(processRecordsInput.checkpointer());
-		List<Message<?>> messages = new ArrayList<>(records.size());
-		for (KinesisClientRecord record : records) {
-			try {
-				messages.add(toListenerMessage(record, checkpointer, singleRecord));
-			}
-			catch (Exception ex) {
-				Message<?> rawMessage = failedConversionMessage(record, checkpointer, singleRecord);
-				if (!resolve(new FailedDelivery(rawMessage, ex, this.streamName, this.shardId, null))) {
-					return;
-				}
-			}
-		}
 		if (this.listenerMode == KclListenerMode.BATCH) {
-			processBatch(messages, checkpointer);
+			processBatch(records, checkpointer);
 		}
 		else {
-			processSingle(messages, checkpointer);
+			processSingle(records, checkpointer);
 		}
 	}
 
-	private void processBatch(List<Message<?>> messages, KclCheckpointer checkpointer) {
-		if (!messages.isEmpty()) {
-			BatchMessageListener listener = requireBatchListener();
-			Observation observation = startObservation(KclListenerObservation.Context.forBatch(this.streamName,
-					this.shardId, messages.size(), this.millisBehindLatest));
-			boolean resolved = observe(observation, () -> listener.onMessage(messages),
-					ex -> new FailedDelivery(
-							withCheckpointer(MessageBuilder.withPayload(messages).build(), checkpointer), ex,
-							this.streamName, this.shardId, () -> listener.onMessage(messages)));
-			if (!resolved) {
-				return;
+	/**
+	 * Delivers the records of a batch as one invocation when every record converts. A conversion failure splits the
+	 * batch: the records converted before it are delivered first, then the failure is handled, then processing
+	 * continues with the following records as a new segment. Each segment's checkpointer is bound to its last record,
+	 * so a manual {@code checkpoint()} never passes a record that was not delivered yet.
+	 */
+	private void processBatch(List<KinesisClientRecord> records, KclCheckpointer checkpointer) {
+		BatchMessageListener listener = requireBatchListener();
+		List<Message<?>> segment = new ArrayList<>(records.size());
+		boolean conversionFailed = false;
+		for (KinesisClientRecord record : records) {
+			try {
+				segment.add(toListenerMessage(record, checkpointer, true));
 			}
+			catch (Exception ex) {
+				conversionFailed = true;
+				if (!deliverSegment(listener, segment, checkpointer, false)
+						|| !resolveConversionFailure(record, checkpointer, ex)) {
+					return;
+				}
+				segment = new ArrayList<>();
+			}
+		}
+		if (!deliverSegment(listener, segment, checkpointer, !conversionFailed)) {
+			return;
 		}
 		switch (this.checkpointMode) {
 		case BATCH, RECORD -> autoCheckpoint(checkpointer, null);
 		case PERIODIC -> {
-			this.recordsSinceCheckpoint += messages.size();
 			if (periodicCheckpointDue()) {
 				autoCheckpoint(checkpointer, null);
 			}
@@ -309,12 +309,54 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 		}
 	}
 
-	private void processSingle(List<Message<?>> messages, KclCheckpointer checkpointer) {
+	/**
+	 * Delivers one segment of converted messages. A segment spanning the whole batch keeps the batch checkpointer
+	 * (whose latest position is the segment's last record); any other segment is bound to its last record.
+	 * @return {@code true} if the segment was empty, delivered, or its failure was resolved.
+	 */
+	private boolean deliverSegment(BatchMessageListener listener, List<Message<?>> segment,
+			KclCheckpointer checkpointer, boolean wholeBatch) {
+		if (segment.isEmpty()) {
+			return true;
+		}
+		KclCheckpointer segmentCheckpointer = wholeBatch ? checkpointer
+				: checkpointer.boundTo(segment.get(segment.size() - 1));
+		List<Message<?>> messages = new ArrayList<>(segment.size());
+		for (Message<?> message : segment) {
+			messages.add(withCheckpointer(message, segmentCheckpointer));
+		}
+		Observation observation = startObservation(KclListenerObservation.Context.forBatch(this.streamName,
+				this.shardId, messages.size(), this.millisBehindLatest));
+		boolean resolved = observe(observation, () -> listener.onMessage(messages),
+				ex -> new FailedDelivery(
+						withCheckpointer(MessageBuilder.withPayload(messages).build(), segmentCheckpointer), ex,
+						this.streamName, this.shardId, retryInvocation(ex, () -> listener.onMessage(messages))));
+		if (resolved && this.checkpointMode == KclCheckpointMode.PERIODIC) {
+			this.recordsSinceCheckpoint += messages.size();
+		}
+		return resolved;
+	}
+
+	/**
+	 * Processes records strictly in order: convert, deliver, checkpoint, then the next record. A conversion failure is
+	 * therefore handled only after every earlier record was delivered.
+	 */
+	private void processSingle(List<KinesisClientRecord> records, KclCheckpointer checkpointer) {
 		MessageListener listener = requireMessageListener();
-		for (Message<?> message : messages) {
+		for (KinesisClientRecord record : records) {
+			Message<?> message;
+			try {
+				message = toListenerMessage(record, checkpointer, true);
+			}
+			catch (Exception ex) {
+				if (!resolveConversionFailure(record, checkpointer, ex)) {
+					return;
+				}
+				continue;
+			}
 			Observation observation = startObservation(singleRecordContext(message));
 			boolean resolved = observe(observation, () -> listener.onMessage(message), ex -> new FailedDelivery(message,
-					ex, this.streamName, this.shardId, () -> listener.onMessage(message)));
+					ex, this.streamName, this.shardId, retryInvocation(ex, () -> listener.onMessage(message))));
 			if (!resolved) {
 				return;
 			}
@@ -331,6 +373,23 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 		if (this.checkpointMode == KclCheckpointMode.BATCH) {
 			autoCheckpoint(checkpointer, null);
 		}
+	}
+
+	private boolean resolveConversionFailure(KinesisClientRecord record, KclCheckpointer checkpointer, Exception ex) {
+		Message<?> rawMessage = failedConversionMessage(record, checkpointer);
+		if (!resolve(new FailedDelivery(rawMessage, ex, this.streamName, this.shardId, null))) {
+			return false;
+		}
+		if (this.listenerMode == KclListenerMode.SINGLE_RECORD && this.checkpointMode == KclCheckpointMode.RECORD) {
+			autoCheckpoint(checkpointer, rawMessage);
+		}
+		else if (this.checkpointMode == KclCheckpointMode.PERIODIC) {
+			this.recordsSinceCheckpoint++;
+			if (periodicCheckpointDue()) {
+				autoCheckpoint(checkpointer, rawMessage);
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -413,6 +472,18 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 		}
 	}
 
+	/**
+	 * A failed reply publication is retried by resending the cached listener result, not by invoking the listener
+	 * again.
+	 */
+	private static FailedDelivery.RetryAction retryInvocation(Exception failure,
+			FailedDelivery.RetryAction listenerInvocation) {
+		if (failure instanceof ReplyPublicationFailedException replyFailure) {
+			return replyFailure::resend;
+		}
+		return listenerInvocation;
+	}
+
 	private static Throwable unwrapListenerFailure(Throwable cause) {
 		return cause instanceof ListenerExecutionFailedException && cause.getCause() != null ? cause.getCause() : cause;
 	}
@@ -446,10 +517,18 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 			return;
 		}
 		this.halted = true;
-		if (this.haltCallback != null) {
-			this.haltCallback.onShardHalted(this.shardId, cause, this.millisBehindLatest);
+		try {
+			if (this.haltCallback != null) {
+				this.haltCallback.onShardHalted(this.shardId, cause, this.millisBehindLatest);
+			}
 		}
-		scheduleRelease();
+		catch (Throwable ex) {
+			logger.warn("The halt callback of shard {} of stream {} failed; the lease release is still scheduled",
+					this.shardId, this.streamName, ex);
+		}
+		finally {
+			scheduleRelease();
+		}
 	}
 
 	private void scheduleRelease() {
@@ -458,7 +537,8 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 			return;
 		}
 		ShardReleaser releaser = this.shardReleaser;
-		// Single-stream lease key is the shard id; multi-stream is '<serialized StreamIdentifier>:<shardId>'.
+		// Single-stream lease key is the shard id; multi-stream is '<serialized
+		// StreamIdentifier>:<shardId>'.
 		String key = this.leaseKeyPrefix != null ? this.leaseKeyPrefix + ":" + this.shardId : this.shardId;
 		try {
 			this.pendingRelease = this.releaseScheduler.schedule(() -> {
@@ -469,6 +549,9 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 		}
 		catch (RejectedExecutionException ex) {
 			logger.debug("Lease release for shard {} not scheduled, the container is stopping", this.shardId);
+		}
+		catch (RuntimeException ex) {
+			logger.warn("Lease release for shard {} could not be scheduled", this.shardId, ex);
 		}
 	}
 
@@ -490,11 +573,16 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 	@Override
 	public void shardEnded(ShardEndedInput shardEndedInput) {
 		if (this.halted) {
-			// A halted shard reached its end. Checkpointing SHARD_END would mark the unprocessed records as done, so
-			// KCL fails the shutdown task and retries it. The pending release is kept scheduled (not cancelled here):
-			// releasing the lease shuts the halted consumer down and KCL rebuilds a fresh one that replays from the
-			// last checkpoint, so the halted records are redelivered and their SHARD_END checkpoint is taken then.
-			// Cancelling the release, as before, left a halted shard-ended consumer stuck and blocked its child shards.
+			// A halted shard reached its end. Checkpointing SHARD_END would mark the
+			// unprocessed records as done, so
+			// KCL fails the shutdown task and retries it. The pending release is kept
+			// scheduled (not cancelled here):
+			// releasing the lease shuts the halted consumer down and KCL rebuilds a fresh
+			// one that replays from the
+			// last checkpoint, so the halted records are redelivered and their SHARD_END
+			// checkpoint is taken then.
+			// Cancelling the release, as before, left a halted shard-ended consumer stuck
+			// and blocked its child shards.
 			logger.error(
 					"Shard {} of stream {} ended while halted; not checkpointing the end of the shard, "
 							+ "the lease is released so the shard is reprocessed from its last checkpoint and its "
@@ -538,7 +626,7 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 	 * and never a record that has not been delivered yet.
 	 */
 	private Message<?> toListenerMessage(KinesisClientRecord record, KclCheckpointer checkpointer,
-			boolean singleRecord) {
+			boolean bindToRecord) {
 		Message<byte[]> converted = this.converter.toMessagingMessage(record, this.shardId, this.streamName);
 		Assert.state(converted != null, () -> this.converter.getClass().getName()
 				+ " returned a null message for record " + record.sequenceNumber());
@@ -548,7 +636,7 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 			builder.setHeaderIfAbsent(MessageHeaders.CONTENT_TYPE, this.payloadContentType);
 		}
 		Message<?> message = builder.build();
-		return withCheckpointer(message, singleRecord ? checkpointer.boundTo(message) : checkpointer);
+		return withCheckpointer(message, bindToRecord ? checkpointer.boundTo(message) : checkpointer);
 	}
 
 	/**
@@ -556,12 +644,11 @@ class KclShardRecordProcessor implements ShardRecordProcessor {
 	 * carrying the canonical Kinesis headers and a working checkpointer, so the {@link FailedDelivery} can be
 	 * checkpointed past even though the record never became a listener message.
 	 */
-	private Message<?> failedConversionMessage(KinesisClientRecord record, KclCheckpointer checkpointer,
-			boolean singleRecord) {
+	private Message<?> failedConversionMessage(KinesisClientRecord record, KclCheckpointer checkpointer) {
 		MessageBuilder<KinesisClientRecord> builder = MessageBuilder.withPayload(record);
 		overlayCanonicalHeaders(builder, record);
 		Message<?> message = builder.build();
-		return withCheckpointer(message, singleRecord ? checkpointer.boundTo(message) : checkpointer);
+		return withCheckpointer(message, checkpointer.boundTo(message));
 	}
 
 	/**

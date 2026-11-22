@@ -15,18 +15,20 @@
  */
 package io.awspring.cloud.kinesis.listener.errorhandler;
 
+import io.awspring.cloud.kinesis.listener.ReplyPublicationFailedException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
 /**
  * A failed delivery handed to an {@link ErrorHandler}: the message that could not be processed, the failure, and a
- * {@link #retry()} hook that re-invokes the listener with the same message.
+ * {@link #retry()} action for the stage that failed. A listener failure retries the listener with the same message; a
+ * reply-publication failure republishes the cached listener result without invoking the listener again.
  * <p>
  * For a single-record listener the message is the failed record. For a batch listener it is a message whose payload is
  * the whole {@code Collection<Message<?>>} batch. When the record could not be converted into a message at all, the
  * payload is the raw {@link software.amazon.kinesis.retrieval.KinesisClientRecord} and the delivery is not
- * {@link #isRetryable() retryable}, since there is no message to hand to the listener.
+ * {@link #isRetryable() retryable}, since there is no converted delivery stage to retry.
  *
  * @author Matej Nedic
  * @since 4.3.0
@@ -43,7 +45,7 @@ public final class FailedDelivery {
 	private final String shardId;
 
 	@Nullable
-	private final ListenerInvocation retryInvocation;
+	private RetryAction retryAction;
 
 	private int attempts = 1;
 
@@ -53,11 +55,10 @@ public final class FailedDelivery {
 	 * @param cause the failure.
 	 * @param streamName the stream the record was read from.
 	 * @param shardId the shard the record was read from.
-	 * @param retryInvocation re-invokes the listener with the same message, or {@code null} when the delivery cannot be
-	 *     retried.
+	 * @param retryAction retries the failed delivery stage, or {@code null} when the delivery cannot be retried.
 	 */
 	public FailedDelivery(Message<?> message, Throwable cause, String streamName, @Nullable String shardId,
-			@Nullable ListenerInvocation retryInvocation) {
+			@Nullable RetryAction retryAction) {
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(cause, "cause must not be null");
 		Assert.notNull(streamName, "streamName must not be null");
@@ -65,7 +66,7 @@ public final class FailedDelivery {
 		this.cause = cause;
 		this.streamName = streamName;
 		this.shardId = shardId;
-		this.retryInvocation = retryInvocation;
+		this.retryAction = retryAction;
 	}
 
 	public Message<?> getMessage() {
@@ -92,15 +93,15 @@ public final class FailedDelivery {
 
 	/**
 	 * Whether {@link #retry()} can be called. A record that failed conversion is not retryable.
-	 * @return whether the listener can be re-invoked.
+	 * @return whether the failed delivery stage can be retried.
 	 */
 	public boolean isRetryable() {
-		return this.retryInvocation != null;
+		return this.retryAction != null;
 	}
 
 	/**
-	 * The number of listener invocations made for this delivery so far, starting at {@code 1} for the original delivery
-	 * and incremented by every {@link #retry()} call.
+	 * The number of delivery attempts so far, starting at {@code 1} for the original attempt and incremented by every
+	 * {@link #retry()} call.
 	 * @return the number of attempts.
 	 */
 	public int getAttempts() {
@@ -108,24 +109,32 @@ public final class FailedDelivery {
 	}
 
 	/**
-	 * Re-invoke the listener with the same message, on the calling (shard) thread. Returns normally if the listener
-	 * succeeded and throws the listener's exception otherwise.
-	 * @throws Exception the listener failure.
+	 * Retry the failed delivery stage on the calling shard thread. Returns normally if the retry succeeds and throws
+	 * the listener or reply-publication exception otherwise.
+	 * @throws Exception the retry failure.
 	 * @throws IllegalStateException if this delivery is not {@link #isRetryable() retryable}.
 	 */
 	public void retry() throws Exception {
-		Assert.state(this.retryInvocation != null, "This delivery cannot be retried, the record failed conversion");
+		RetryAction action = this.retryAction;
+		Assert.state(action != null, "This delivery cannot be retried, the record failed conversion");
 		this.attempts++;
-		this.retryInvocation.invoke();
+		try {
+			action.retry();
+		}
+		catch (ReplyPublicationFailedException ex) {
+			// The listener has now succeeded. Further attempts must only republish its cached result.
+			this.retryAction = ex::resend;
+			throw ex;
+		}
 	}
 
 	/**
-	 * Re-invokes the listener for a failed delivery.
+	 * Retries the failed stage of a delivery.
 	 */
 	@FunctionalInterface
-	public interface ListenerInvocation {
+	public interface RetryAction {
 
-		void invoke() throws Exception;
+		void retry() throws Exception;
 
 	}
 

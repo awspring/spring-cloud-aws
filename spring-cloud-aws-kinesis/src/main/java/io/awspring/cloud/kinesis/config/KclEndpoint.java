@@ -16,6 +16,7 @@
 package io.awspring.cloud.kinesis.config;
 
 import io.awspring.cloud.kinesis.listener.KclContainerOptions;
+import io.awspring.cloud.kinesis.listener.KclListenerMode;
 import io.awspring.cloud.kinesis.listener.MessageListenerContainer;
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
 import io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode;
@@ -91,6 +92,16 @@ public interface KclEndpoint {
 	 */
 	@Nullable
 	default Boolean getAutoStartup() {
+		return null;
+	}
+
+	/**
+	 * Whether the endpoint receives records one at a time or as a batch.
+	 * @return the listener mode, or {@code null} to detect it from the listener method: a method with a
+	 * {@code Collection} parameter that is not a header receives batches.
+	 */
+	@Nullable
+	default KclListenerMode getListenerMode() {
 		return null;
 	}
 

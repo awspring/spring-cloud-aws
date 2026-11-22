@@ -102,13 +102,19 @@ class KclContainerOptionsTests {
 	}
 
 	@Test
-	@DisplayName("the halted shard release delay is unset by default and configurable")
+	@DisplayName("the halted shard release delay defaults to 30 seconds and is configurable")
 	void configuresHaltedShardReleaseDelay() {
-		assertThat(KclContainerOptions.builder().build().getHaltedShardReleaseDelay()).isNull();
-		assertThat(KclContainerOptions.builder().haltedShardReleaseDelay(Duration.ofSeconds(30)).build()
-				.getHaltedShardReleaseDelay()).isEqualTo(Duration.ofSeconds(30));
-		assertThat(KclContainerOptions.builder().haltedShardReleaseDelay(Duration.ofSeconds(30))
-				.haltedShardReleaseDelay(null).build().getHaltedShardReleaseDelay()).isNull();
+		assertThat(KclContainerOptions.builder().build().getHaltedShardReleaseDelay())
+				.isEqualTo(Duration.ofSeconds(30));
+		assertThat(KclContainerOptions.builder().haltedShardReleaseDelay(Duration.ofSeconds(90)).build()
+				.getHaltedShardReleaseDelay()).isEqualTo(Duration.ofSeconds(90));
+	}
+
+	@Test
+	@DisplayName("a null halted shard release delay disables the automatic release")
+	void nullHaltedShardReleaseDelayDisablesRelease() {
+		assertThat(KclContainerOptions.builder().haltedShardReleaseDelay(null).build().getHaltedShardReleaseDelay())
+				.isNull();
 	}
 
 	@Test
@@ -119,10 +125,28 @@ class KclContainerOptionsTests {
 	}
 
 	@Test
-	@DisplayName("a zero halted shard release delay is rejected")
-	void rejectsZeroHaltedShardReleaseDelay() {
-		assertThatThrownBy(() -> KclContainerOptions.builder().haltedShardReleaseDelay(Duration.ZERO))
-				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("haltedShardReleaseDelay");
+	@DisplayName("a zero halted shard release delay disables the automatic release")
+	void zeroHaltedShardReleaseDelayDisablesRelease() {
+		assertThat(KclContainerOptions.builder().haltedShardReleaseDelay(Duration.ZERO).build()
+				.getHaltedShardReleaseDelay()).isNull();
+	}
+
+	@Test
+	@DisplayName("the former streams lease deletion delay defaults to one hour and is configurable")
+	void configuresFormerStreamsLeaseDeletionDelay() {
+		assertThat(KclContainerOptions.builder().build().getFormerStreamsLeaseDeletionDelay())
+				.isEqualTo(Duration.ofHours(1));
+		assertThat(KclContainerOptions.builder().formerStreamsLeaseDeletionDelay(Duration.ofHours(6)).build()
+				.getFormerStreamsLeaseDeletionDelay()).isEqualTo(Duration.ofHours(6));
+		assertThat(KclContainerOptions.builder().formerStreamsLeaseDeletionDelay(Duration.ZERO).build()
+				.getFormerStreamsLeaseDeletionDelay()).isZero();
+	}
+
+	@Test
+	@DisplayName("a negative former streams lease deletion delay is rejected")
+	void rejectsNegativeFormerStreamsLeaseDeletionDelay() {
+		assertThatThrownBy(() -> KclContainerOptions.builder().formerStreamsLeaseDeletionDelay(Duration.ofSeconds(-1)))
+				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("formerStreamsLeaseDeletionDelay");
 	}
 
 	@Test

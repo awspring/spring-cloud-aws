@@ -24,6 +24,7 @@ import io.awspring.cloud.kinesis.config.KclEndpoint;
 import io.awspring.cloud.kinesis.config.KclHandlerMethodEndpoint;
 import io.awspring.cloud.kinesis.config.KclListenerConfigurer;
 import io.awspring.cloud.kinesis.config.MessageListenerContainerFactory;
+import io.awspring.cloud.kinesis.listener.KclListenerMode;
 import io.awspring.cloud.kinesis.listener.MessageListener;
 import io.awspring.cloud.kinesis.listener.MessageListenerContainer;
 import io.awspring.cloud.kinesis.listener.MessageListenerContainerRegistry;
@@ -163,6 +164,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 			assertThat(endpoint.getConsumerName()).isNull();
 			assertThat(endpoint.getLeaseTableName()).isEqualTo("orders-leases");
 			assertThat(endpoint.getMetricsNamespace()).isEqualTo("orders-metrics");
+			assertThat(endpoint.getListenerMode()).isEqualTo(KclListenerMode.SINGLE_RECORD);
 		}
 	}
 
@@ -186,6 +188,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 			assertThat(endpoint.getConsumerName()).isNull();
 			assertThat(endpoint.getLeaseTableName()).isNull();
 			assertThat(endpoint.getMetricsNamespace()).isNull();
+			assertThat(endpoint.getListenerMode()).isNull();
 		}
 	}
 
@@ -719,7 +722,7 @@ class KclListenerAnnotationBeanPostProcessorTests {
 
 	static class PerStreamIdentityListener {
 
-		@KclListener(applicationName = "test-app", id = "per-stream", streamNames = "orders", retrievalMode = "ENHANCED_FAN_OUT", consumerName = "arn:aws:kinesis:eu-west-1:123456789012:stream/orders", leaseTableName = "orders-leases", metricsNamespace = "orders-metrics")
+		@KclListener(applicationName = "test-app", id = "per-stream", streamNames = "orders", retrievalMode = "ENHANCED_FAN_OUT", consumerName = "arn:aws:kinesis:eu-west-1:123456789012:stream/orders", leaseTableName = "orders-leases", metricsNamespace = "orders-metrics", listenerMode = "SINGLE_RECORD")
 		void handle(String payload) {
 		}
 

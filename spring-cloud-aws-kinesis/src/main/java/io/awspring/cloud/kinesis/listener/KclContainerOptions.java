@@ -68,6 +68,8 @@ public final class KclContainerOptions {
 	@Nullable
 	private final Duration haltedShardReleaseDelay;
 
+	private final Duration formerStreamsLeaseDeletionDelay;
+
 	private final boolean autoStartup;
 
 	private final int phase;
@@ -135,6 +137,7 @@ public final class KclContainerOptions {
 		this.retrievalMode = builder.retrievalMode;
 		this.checkpointMode = builder.checkpointMode;
 		this.haltedShardReleaseDelay = builder.haltedShardReleaseDelay;
+		this.formerStreamsLeaseDeletionDelay = builder.formerStreamsLeaseDeletionDelay;
 		this.autoStartup = builder.autoStartup;
 		this.phase = builder.phase;
 		this.metricsLevel = builder.metricsLevel;
@@ -173,6 +176,7 @@ public final class KclContainerOptions {
 		builder.retrievalMode = this.retrievalMode;
 		builder.checkpointMode = this.checkpointMode;
 		builder.haltedShardReleaseDelay = this.haltedShardReleaseDelay;
+		builder.formerStreamsLeaseDeletionDelay = this.formerStreamsLeaseDeletionDelay;
 		builder.autoStartup = this.autoStartup;
 		builder.phase = this.phase;
 		builder.metricsLevel = this.metricsLevel;
@@ -233,14 +237,25 @@ public final class KclContainerOptions {
 	}
 
 	/**
-	 * How long after a shard halts the container releases its lease, so that KCL reassigns the shard and it is
-	 * processed again from its last checkpoint without a restart, or {@code null} to keep the lease (the shard then
-	 * stays halted until the application restarts or the lease moves on its own).
-	 * @return the release delay, or {@code null} if releasing is disabled.
+	 * How long after a shard halts the container releases its lease, so that the shard is processed again from its last
+	 * checkpoint without a restart, or {@code null} if automatic release is disabled (the shard then stays halted until
+	 * {@link KclMessageListenerContainer#releaseHaltedShard(HaltedShard)} is called, the application restarts or the
+	 * lease moves on its own).
+	 * @return the release delay, or {@code null} if automatic release is disabled.
 	 */
 	@Nullable
 	public Duration getHaltedShardReleaseDelay() {
 		return this.haltedShardReleaseDelay;
+	}
+
+	/**
+	 * How long a multi-stream application waits before deleting the leases, and with them the checkpoints, of a stream
+	 * it no longer consumes.
+	 * @return the deletion delay.
+	 * @see Builder#formerStreamsLeaseDeletionDelay(Duration)
+	 */
+	public Duration getFormerStreamsLeaseDeletionDelay() {
+		return this.formerStreamsLeaseDeletionDelay;
 	}
 
 	public boolean isAutoStartup() {
@@ -357,6 +372,10 @@ public final class KclContainerOptions {
 
 	public static final class Builder {
 
+		private static final Duration DEFAULT_HALTED_SHARD_RELEASE_DELAY = Duration.ofSeconds(30);
+
+		private static final Duration DEFAULT_FORMER_STREAMS_LEASE_DELETION_DELAY = Duration.ofHours(1);
+
 		private String workerIdentifier = defaultWorkerIdentifier();
 
 		private int maxRecords = 10000;
@@ -376,7 +395,9 @@ public final class KclContainerOptions {
 		private KclCheckpointMode checkpointMode = KclCheckpointMode.BATCH;
 
 		@Nullable
-		private Duration haltedShardReleaseDelay;
+		private Duration haltedShardReleaseDelay = DEFAULT_HALTED_SHARD_RELEASE_DELAY;
+
+		private Duration formerStreamsLeaseDeletionDelay = DEFAULT_FORMER_STREAMS_LEASE_DELETION_DELAY;
 
 		private boolean autoStartup = true;
 
@@ -492,22 +513,45 @@ public final class KclContainerOptions {
 		}
 
 		/**
-		 * Set how long after a shard halts the container gives up the shard's lease, so that KCL reassigns it and the
-		 * shard is processed again from its last checkpoint without restarting the application. The delay also spaces
-		 * out releases of a shard that keeps failing, since each release restarts the processor from the checkpoint
-		 * with fresh state. Defaults to {@code null}: the lease is kept and the shard stays halted until the
-		 * application restarts or the lease moves on its own. When set it must be strictly positive: a zero delay would
-		 * release a shard that keeps failing in a tight loop.
-		 * @param haltedShardReleaseDelay the delay between a halt and the lease release, or {@code null} to disable
-		 *     releasing.
+		 * Set how long after a shard halts the container gives up the shard's lease, so that the shard is processed
+		 * again from its last checkpoint without restarting the application. A transient failure, such as a throttled
+		 * or unavailable downstream service, then recovers on its own, while a record that keeps failing is retried
+		 * once per delay instead of in a tight loop. Defaults to 30 seconds.
+		 * <p>
+		 * {@code null} or {@link Duration#ZERO} disables the automatic release: the shard stays halted until
+		 * {@link KclMessageListenerContainer#releaseHaltedShard(HaltedShard)} is called, the application restarts or
+		 * the lease moves on its own. A shard halted this way also blocks its child shards when it is resharded, since
+		 * they only start once the parent has been processed to its end.
+		 * @param haltedShardReleaseDelay the delay between a halt and the lease release, or {@code null} or
+		 *     {@link Duration#ZERO} to disable the automatic release.
 		 * @return this builder.
 		 */
 		public Builder haltedShardReleaseDelay(@Nullable Duration haltedShardReleaseDelay) {
-			Assert.isTrue(
-					haltedShardReleaseDelay == null
-							|| (!haltedShardReleaseDelay.isNegative() && !haltedShardReleaseDelay.isZero()),
-					"haltedShardReleaseDelay must be positive");
-			this.haltedShardReleaseDelay = haltedShardReleaseDelay;
+			Assert.isTrue(haltedShardReleaseDelay == null || !haltedShardReleaseDelay.isNegative(),
+					"haltedShardReleaseDelay must not be negative");
+			this.haltedShardReleaseDelay = haltedShardReleaseDelay == null || haltedShardReleaseDelay.isZero() ? null
+					: haltedShardReleaseDelay;
+			return this;
+		}
+
+		/**
+		 * Set how long a multi-stream application waits before deleting the leases of a stream it no longer consumes.
+		 * Leases hold the checkpoints, so once they are deleted a stream that is consumed again starts from the initial
+		 * position. Only relevant when a listener consumes several streams.
+		 * <p>
+		 * During a rolling deployment that changes the stream list, workers running the old and the new list share the
+		 * lease table, and whichever of them is the KCL leader treats the streams missing from its own list as removed.
+		 * The delay must therefore be longer than the longest rollout, otherwise an old leader deletes the leases of a
+		 * stream the new version just added. Defaults to 1 hour; {@link Duration#ZERO} deletes the leases on the next
+		 * stream sync.
+		 * @param formerStreamsLeaseDeletionDelay the delay before the leases of a removed stream are deleted.
+		 * @return this builder.
+		 */
+		public Builder formerStreamsLeaseDeletionDelay(Duration formerStreamsLeaseDeletionDelay) {
+			Assert.notNull(formerStreamsLeaseDeletionDelay, "formerStreamsLeaseDeletionDelay must not be null");
+			Assert.isTrue(!formerStreamsLeaseDeletionDelay.isNegative(),
+					"formerStreamsLeaseDeletionDelay must not be negative");
+			this.formerStreamsLeaseDeletionDelay = formerStreamsLeaseDeletionDelay;
 			return this;
 		}
 

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.awspring.cloud.kinesis.support.converter.KinesisMessageConverter;
+import io.awspring.cloud.kinesis.support.converter.KinesisMessageHeaders;
 import io.awspring.cloud.kinesis.support.converter.KinesisMessagingMessageConverter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.PutRecordResponse;
@@ -162,6 +164,102 @@ class KinesisTemplateTests {
 	}
 
 	@Test
+	@DisplayName("a message is handed to the converter as the message, with custom and propagation-free headers")
+	@SuppressWarnings("unchecked")
+	void sendMessageWithCustomHeaders() {
+		KinesisAsyncClient client = mock(KinesisAsyncClient.class);
+		when(client.putRecord(any(Consumer.class))).thenReturn(CompletableFuture
+				.completedFuture(PutRecordResponse.builder().sequenceNumber("seq-m").shardId("shard-1").build()));
+		List<Message<?>> converted = new ArrayList<>();
+		KinesisMessageConverter converter = recordingConverter(converted);
+		KinesisTemplate template = new KinesisTemplate(client, converter);
+
+		Message<String> message = MessageBuilder.withPayload("hello").setHeader("a", "message-a")
+				.setHeader("b", "message-b").build();
+		template.send(SendRequest.builder().streamName("orders").partitionKey("pk-1").message(message)
+				.header("b", "custom-b").header("c", "custom-c").build());
+
+		assertThat(converted).hasSize(1);
+		Message<?> seen = converted.get(0);
+		assertThat(seen.getPayload()).isEqualTo("hello");
+		assertThat(seen.getHeaders()).containsEntry("a", "message-a").containsEntry("b", "custom-b").containsEntry("c",
+				"custom-c");
+	}
+
+	@Test
+	@DisplayName("send(stream, Message) uses the partition key header, keeps headers and does not nest the message")
+	@SuppressWarnings("unchecked")
+	void sendMessageOverloadUsesPartitionKeyHeader() {
+		KinesisAsyncClient client = mock(KinesisAsyncClient.class);
+		when(client.putRecord(any(Consumer.class))).thenReturn(CompletableFuture
+				.completedFuture(PutRecordResponse.builder().sequenceNumber("seq-m").shardId("shard-1").build()));
+		List<Message<?>> converted = new ArrayList<>();
+		KinesisTemplate template = new KinesisTemplate(client, recordingConverter(converted));
+
+		template.send("orders", MessageBuilder.withPayload("hello").setHeader("x", "y")
+				.setHeader(KinesisMessageHeaders.PARTITION_KEY, "header-key").build());
+
+		ArgumentCaptor<Consumer<PutRecordRequest.Builder>> captor = ArgumentCaptor.forClass(Consumer.class);
+		verify(client).putRecord(captor.capture());
+		PutRecordRequest.Builder builder = PutRecordRequest.builder();
+		captor.getValue().accept(builder);
+		assertThat(builder.build().partitionKey()).isEqualTo("header-key");
+		assertThat(converted.get(0).getPayload()).isEqualTo("hello");
+		assertThat(converted.get(0).getHeaders()).containsEntry("x", "y");
+	}
+
+	@Test
+	@DisplayName("sendAsync with a Message and an explicit partition key keeps the headers")
+	@SuppressWarnings("unchecked")
+	void sendAsyncMessage() {
+		KinesisAsyncClient client = mock(KinesisAsyncClient.class);
+		when(client.putRecord(any(Consumer.class))).thenReturn(CompletableFuture
+				.completedFuture(PutRecordResponse.builder().sequenceNumber("seq-a").shardId("shard-2").build()));
+		List<Message<?>> converted = new ArrayList<>();
+		KinesisTemplate template = new KinesisTemplate(client, recordingConverter(converted));
+
+		SendResult result = template
+				.sendAsync("orders", "pk-2", MessageBuilder.withPayload("hi").setHeader("h", 1).build()).join();
+
+		assertThat(result.sequenceNumber()).isEqualTo("seq-a");
+		ArgumentCaptor<Consumer<PutRecordRequest.Builder>> captor = ArgumentCaptor.forClass(Consumer.class);
+		verify(client).putRecord(captor.capture());
+		PutRecordRequest.Builder builder = PutRecordRequest.builder();
+		captor.getValue().accept(builder);
+		assertThat(builder.build().partitionKey()).isEqualTo("pk-2");
+		assertThat(converted.get(0).getHeaders()).containsEntry("h", 1);
+	}
+
+	@Test
+	@DisplayName("SendRequest snapshots custom headers and exposes them immutably")
+	void sendRequestHeadersAreImmutableSnapshot() {
+		java.util.Map<String, Object> headers = new java.util.HashMap<>();
+		headers.put("k", "v");
+		SendRequest request = SendRequest.builder().streamName("s").partitionKey("p").payload("x").headers(headers)
+				.build();
+		headers.put("late", "added");
+
+		assertThat(request.headers()).containsOnlyKeys("k");
+		org.assertj.core.api.Assertions.assertThatThrownBy(() -> request.headers().put("z", "z"))
+				.isInstanceOf(UnsupportedOperationException.class);
+	}
+
+	private static KinesisMessageConverter recordingConverter(List<Message<?>> converted) {
+		return new KinesisMessageConverter() {
+			@Override
+			public Message<byte[]> toMessagingMessage(KinesisClientRecord record, String shardId, String streamName) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public byte[] fromMessagingMessage(Message<?> message) {
+				converted.add(message);
+				return String.valueOf(message.getPayload()).getBytes(StandardCharsets.UTF_8);
+			}
+		};
+	}
+
+	@Test
 	@DisplayName("SendRequest accepts a partition key of exactly 256 characters")
 	void partitionKeyAtBoundaryIsAccepted() {
 		String boundary = "a".repeat(256);
@@ -207,7 +305,8 @@ class KinesisTemplateTests {
 		});
 		KinesisTemplate template = new KinesisTemplate(client, new JsonMapper());
 
-		// Each record is a 2 MiB byte[], so at most 2 fit in one 5 MiB request: 5 records -> 2/2/1.
+		// Each record is a 2 MiB byte[], so at most 2 fit in one 5 MiB request: 5 records
+		// -> 2/2/1.
 		byte[] twoMiB = new byte[2 * 1024 * 1024];
 		List<SendRequest> requests = IntStream.range(0, 5)
 				.mapToObj(
@@ -219,7 +318,8 @@ class KinesisTemplateTests {
 		assertThat(result.successful()).hasSize(5);
 		assertThat(calls.stream().map(List::size)).containsExactly(2, 2, 1);
 
-		// Every request stays at or below the 5 MiB call size, measured as data bytes plus UTF-8 partition-key bytes.
+		// Every request stays at or below the 5 MiB call size, measured as data bytes
+		// plus UTF-8 partition-key bytes.
 		for (List<PutRecordsRequestEntry> call : calls) {
 			long size = call.stream().mapToLong(entry -> entry.data().asByteArray().length
 					+ entry.partitionKey().getBytes(StandardCharsets.UTF_8).length).sum();
@@ -310,7 +410,8 @@ class KinesisTemplateTests {
 		when(client.putRecords(any(PutRecordsRequest.class))).thenReturn(CompletableFuture.completedFuture(
 				PutRecordsResponse.builder().failedRecordCount(1).records(failure("InternalFailure", "boom")).build()));
 		KinesisTemplate template = new KinesisTemplate(client, new JsonMapper());
-		// One retry allowed: initial call + one resend = 2 calls, then the back-off stops.
+		// One retry allowed: initial call + one resend = 2 calls, then the back-off
+		// stops.
 		template.setBatchRetryBackOff(new org.springframework.util.backoff.FixedBackOff(1, 1));
 
 		List<SendRequest> requests = List
@@ -393,8 +494,10 @@ class KinesisTemplateTests {
 	@DisplayName("entries() keeps every request in order and marks success or failure across two chunks")
 	void entriesPreserveRequestOrderAcrossChunks() {
 		KinesisAsyncClient client = mock(KinesisAsyncClient.class);
-		// 700 records split into chunks of 500 and 200. In each chunk fail the records at even
-		// within-chunk positions, so successes and failures interleave across both chunks.
+		// 700 records split into chunks of 500 and 200. In each chunk fail the records at
+		// even
+		// within-chunk positions, so successes and failures interleave across both
+		// chunks.
 		when(client.putRecords(any(PutRecordsRequest.class))).thenAnswer(invocation -> {
 			List<PutRecordsRequestEntry> records = ((PutRecordsRequest) invocation.getArgument(0)).records();
 			PutRecordsResultEntry[] entries = new PutRecordsResultEntry[records.size()];

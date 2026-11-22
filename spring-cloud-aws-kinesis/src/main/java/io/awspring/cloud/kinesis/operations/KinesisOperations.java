@@ -16,7 +16,10 @@
 package io.awspring.cloud.kinesis.operations;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import org.springframework.messaging.Message;
+import org.springframework.util.StringUtils;
 
 /**
  * Operations for sending records to Kinesis Data Streams.
@@ -89,5 +92,68 @@ public interface KinesisOperations {
 	 * @return a future completing with the successful and failed records of the batch, in request order.
 	 */
 	CompletableFuture<BatchSendResult> sendBatchAsync(String streamName, List<SendRequest> requests);
+
+	/**
+	 * Sends a message, keeping its headers. The partition key is the
+	 * {@link io.awspring.cloud.kinesis.support.converter.KinesisMessageHeaders#PARTITION_KEY} header when present,
+	 * otherwise a random one.
+	 * @param streamName the target stream.
+	 * @param message the message to send.
+	 * @return the sequence number and shard the record was written to.
+	 * @since 4.3.0
+	 */
+	default SendResult send(String streamName, Message<?> message) {
+		return send(messageRequest(streamName, null, message));
+	}
+
+	/**
+	 * Sends a message with the given partition key, keeping its headers.
+	 * @param streamName the target stream.
+	 * @param partitionKey the partition key.
+	 * @param message the message to send.
+	 * @return the sequence number and shard the record was written to.
+	 * @since 4.3.0
+	 */
+	default SendResult send(String streamName, String partitionKey, Message<?> message) {
+		return send(messageRequest(streamName, partitionKey, message));
+	}
+
+	/**
+	 * Asynchronously sends a message, keeping its headers. The partition key is resolved as in
+	 * {@link #send(String, Message)}.
+	 * @param streamName the target stream.
+	 * @param message the message to send.
+	 * @return a future completing with the sequence number and shard the record was written to.
+	 * @since 4.3.0
+	 */
+	default CompletableFuture<SendResult> sendAsync(String streamName, Message<?> message) {
+		return sendAsync(messageRequest(streamName, null, message));
+	}
+
+	/**
+	 * Asynchronously sends a message with the given partition key, keeping its headers.
+	 * @param streamName the target stream.
+	 * @param partitionKey the partition key.
+	 * @param message the message to send.
+	 * @return a future completing with the sequence number and shard the record was written to.
+	 * @since 4.3.0
+	 */
+	default CompletableFuture<SendResult> sendAsync(String streamName, String partitionKey, Message<?> message) {
+		return sendAsync(messageRequest(streamName, partitionKey, message));
+	}
+
+	private static SendRequest messageRequest(String streamName, String partitionKey, Message<?> message) {
+		if (message == null) {
+			throw new IllegalArgumentException("message must not be null");
+		}
+		String key = partitionKey;
+		if (key == null) {
+			Object header = message.getHeaders()
+					.get(io.awspring.cloud.kinesis.support.converter.KinesisMessageHeaders.PARTITION_KEY);
+			key = header != null && StringUtils.hasText(header.toString()) ? header.toString()
+					: UUID.randomUUID().toString();
+		}
+		return SendRequest.builder().streamName(streamName).partitionKey(key).message(message).build();
+	}
 
 }

@@ -137,11 +137,11 @@ public class KinesisAutoConfiguration {
 	@ConditionalOnMissingBean
 	@Bean
 	public CloudWatchAsyncClient kinesisCloudWatchAsyncClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-			ObjectProvider<CloudwatchAsyncClientCustomizer> cloudwatchAsyncClientCustomizers,
+			ObjectProvider<KinesisCloudWatchAsyncClientCustomizer> cloudWatchAsyncClientCustomizers,
 			ObjectProvider<AwsAsyncClientCustomizer> awsAsyncClientCustomizers,
 			ObjectProvider<AwsConnectionDetails> connectionDetails) {
 		return awsClientBuilderConfigurer.configureAsyncClient(CloudWatchAsyncClient.builder(), this.properties,
-				connectionDetails.getIfAvailable(), cloudwatchAsyncClientCustomizers.orderedStream(),
+				connectionDetails.getIfAvailable(), cloudWatchAsyncClientCustomizers.orderedStream(),
 				awsAsyncClientCustomizers.orderedStream()).build();
 	}
 
@@ -195,6 +195,7 @@ public class KinesisAutoConfiguration {
 		mapper.from(listener.getRetrievalMode()).to(options::retrievalMode);
 		mapper.from(listener.getCheckpointMode()).to(options::checkpointMode);
 		mapper.from(listener.getHaltedShardReleaseDelay()).to(options::haltedShardReleaseDelay);
+		mapper.from(listener.getFormerStreamsLeaseDeletionDelay()).to(options::formerStreamsLeaseDeletionDelay);
 		mapper.from(listener.getInitialPosition()).to(options::initialPositionInStream);
 		mapper.from(listener.getGracefulShutdownTimeout()).to(options::gracefulShutdownTimeout);
 		mapper.from(listener.getCheckpointRecordCount()).to(options::checkpointRecordCount);

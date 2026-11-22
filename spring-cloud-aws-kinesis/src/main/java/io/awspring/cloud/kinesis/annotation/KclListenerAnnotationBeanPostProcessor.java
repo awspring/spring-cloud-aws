@@ -19,6 +19,7 @@ import io.awspring.cloud.kinesis.config.KclEndpointRegistrar;
 import io.awspring.cloud.kinesis.config.KclListenerConfigurer;
 import io.awspring.cloud.kinesis.config.KclListenerEndpoint;
 import io.awspring.cloud.kinesis.config.MessageListenerContainerFactory;
+import io.awspring.cloud.kinesis.listener.KclListenerMode;
 import io.awspring.cloud.kinesis.listener.MessageListenerContainer;
 import io.awspring.cloud.kinesis.listener.MessageListenerContainerRegistry;
 import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
@@ -154,6 +155,7 @@ public class KclListenerAnnotationBeanPostProcessor
 				.checkpointInterval(resolveValue(annotation.checkpointInterval(), Duration::parse))
 				.checkpointRecordCount(resolveValue(annotation.checkpointRecordCount(), Long::valueOf))
 				.autoStartup(resolveBoolean(annotation.autoStartup()))
+				.listenerMode(resolveValue(annotation.listenerMode(), KclListenerMode::valueOf))
 				.retrievalMode(resolveRetrievalMode(annotation.retrievalMode()))
 				.initialPositionInStream(resolveInitialPositionInStream(annotation.initialPositionInStream()))
 				.initialPositionTimestamp(resolveValue(annotation.initialPositionTimestamp(), Instant::parse))

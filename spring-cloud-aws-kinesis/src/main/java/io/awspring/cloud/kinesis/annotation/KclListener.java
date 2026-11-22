@@ -110,6 +110,16 @@ public @interface KclListener {
 	String autoStartup() default "";
 
 	/**
+	 * Whether the listener receives records one at a time ({@code SINGLE_RECORD}) or as a batch ({@code BATCH}), see
+	 * {@link io.awspring.cloud.kinesis.listener.KclListenerMode}. If not specified, the mode is detected from the
+	 * method: a method with a {@code Collection} parameter that is not a header receives batches. Set
+	 * {@code SINGLE_RECORD} for a method whose payload is itself a collection, such as a record holding a JSON array
+	 * converted into a {@code List<Order>}.
+	 * @return the listener mode.
+	 */
+	String listenerMode() default "";
+
+	/**
 	 * The {@link io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode} to be used for this endpoint. If not
 	 * specified, the mode defined on the container factory is used.
 	 * @return the retrieval mode.

@@ -21,8 +21,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Default {@link ErrorHandler}: logs the failure and leaves it unresolved, so the shard is halted and the records after
- * the last checkpoint are redelivered once the lease is acquired again. No record is skipped, at the cost of the shard
- * not progressing until then. Provide a custom {@link ErrorHandler} to retry or dead-letter instead.
+ * the last checkpoint are redelivered once the shard is released (by default 30 seconds after the halt, see
+ * {@link io.awspring.cloud.kinesis.listener.KclContainerOptions.Builder#haltedShardReleaseDelay(java.time.Duration)}).
+ * No record is skipped, at the cost of the shard not progressing until then. Provide a custom {@link ErrorHandler} to
+ * retry or dead-letter instead.
  *
  * @author Matej Nedic
  * @since 4.3.0

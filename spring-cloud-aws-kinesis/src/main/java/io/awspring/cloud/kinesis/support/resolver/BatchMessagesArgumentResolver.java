@@ -24,6 +24,7 @@ import org.springframework.core.ResolvableType;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -49,6 +50,11 @@ public class BatchMessagesArgumentResolver implements HandlerMethodArgumentResol
 	@Override
 	@SuppressWarnings("unchecked")
 	public Object resolveArgument(MethodParameter parameter, Message<?> message) {
+		if (!(message.getPayload() instanceof Collection<?>)) {
+			// A single-record listener whose payload is itself a collection, e.g. a JSON
+			// array as List<Order>.
+			return convertSingleRecordPayload(parameter, message);
+		}
 		Collection<Message<?>> messages = (Collection<Message<?>>) message.getPayload();
 		ResolvableType elementType = ResolvableType.forMethodParameter(parameter).asCollection().getGeneric(0);
 		Class<?> elementClass = elementType.resolve();
@@ -72,6 +78,17 @@ public class BatchMessagesArgumentResolver implements HandlerMethodArgumentResol
 		int index = 0;
 		for (Message<?> element : messages) {
 			converted.add(convertPayload(element, elementClass, index++));
+		}
+		return converted;
+	}
+
+	private Object convertSingleRecordPayload(MethodParameter parameter, Message<?> message) {
+		Object converted = this.messageConverter instanceof SmartMessageConverter smartConverter
+				? smartConverter.fromMessage(message, parameter.getParameterType(), parameter)
+				: this.messageConverter.fromMessage(message, parameter.getParameterType());
+		if (converted == null) {
+			throw new MessageConversionException(message, "Failed to convert the record payload to "
+					+ parameter.getGenericParameterType() + "; the message converter returned null");
 		}
 		return converted;
 	}

@@ -147,7 +147,15 @@ public class KclMessageListenerContainerFactory implements MessageListenerContai
 					+ replyStream + "' but no KinesisOperations is available to send the reply. Define a "
 					+ "KinesisOperations bean or set it with KclMessageListenerContainerFactory.setKinesisOperations.");
 		}
-		if (isBatchListener(handlerMethodEndpoint.getMethod())) {
+		KclListenerMode listenerMode = endpoint.getListenerMode();
+		boolean hasCollectionParameter = isBatchListener(handlerMethodEndpoint.getMethod());
+		if (listenerMode == KclListenerMode.BATCH && !hasCollectionParameter) {
+			throw new IllegalStateException("@KclListener endpoint '" + endpoint.getId() + "' sets listenerMode BATCH "
+					+ "but its method " + handlerMethodEndpoint.getMethod() + " has no Collection parameter to "
+					+ "receive the batch");
+		}
+		boolean batch = listenerMode != null ? listenerMode == KclListenerMode.BATCH : hasCollectionParameter;
+		if (batch) {
 			container.setListenerMode(KclListenerMode.BATCH);
 			container.setBatchMessageListener(
 					new BatchMessagingMessageListenerAdapter(handlerMethod, this.kinesisOperations, replyStream));

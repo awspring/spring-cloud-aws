@@ -33,6 +33,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.backoff.BackOff;
@@ -187,7 +188,7 @@ public class KinesisTemplate implements KinesisOperations {
 		KinesisTemplateObservation.Context context = KinesisTemplateObservation.Context.forRecord(request.streamName(),
 				request.partitionKey());
 		return observe(context, () -> {
-			SdkBytes data = SdkBytes.fromByteArray(serialize(request.payload(), context));
+			SdkBytes data = SdkBytes.fromByteArray(serialize(request, context));
 			return this.kinesisAsyncClient
 					.putRecord(builder -> builder.streamName(request.streamName()).partitionKey(request.partitionKey())
 							.explicitHashKey(request.explicitHashKey())
@@ -225,7 +226,7 @@ public class KinesisTemplate implements KinesisOperations {
 			List<RecordEntry> records = new ArrayList<>(requestSnapshot.size());
 			for (int i = 0; i < requestSnapshot.size(); i++) {
 				SendRequest request = requestSnapshot.get(i);
-				records.add(toRecordEntry(i, request, serialize(request.payload(), context)));
+				records.add(toRecordEntry(i, request, serialize(request, context)));
 			}
 			List<List<RecordEntry>> chunks = splitIntoChunks(records);
 			return sendChunksSequentially(streamName, chunks).thenApply(outcomes -> {
@@ -368,8 +369,9 @@ public class KinesisTemplate implements KinesisOperations {
 	}
 
 	/**
-	 * One request entry: its request-order index, the original request (for the result), the serialized data
-	 * (serialized once and reused across retries) and its counted size.
+	 * One request entry: its request-order index, the original request (for the result),
+	 * the serialized data (serialized once and reused across retries) and its counted
+	 * size.
 	 */
 	private record RecordEntry(int index, SendRequest request, byte[] data, int sizeBytes) {
 
@@ -381,14 +383,16 @@ public class KinesisTemplate implements KinesisOperations {
 			return this.request.partitionKey();
 		}
 
-		@Nullable
-		String explicitHashKey() {
+		@Nullable String explicitHashKey() {
 			return this.request.explicitHashKey();
 		}
 
 		PutRecordsRequestEntry toPutRecordsRequestEntry() {
-			return PutRecordsRequestEntry.builder().partitionKey(partitionKey()).explicitHashKey(explicitHashKey())
-					.data(SdkBytes.fromByteArray(this.data)).build();
+			return PutRecordsRequestEntry.builder()
+				.partitionKey(partitionKey())
+				.explicitHashKey(explicitHashKey())
+				.data(SdkBytes.fromByteArray(this.data))
+				.build();
 		}
 	}
 
@@ -517,12 +521,21 @@ public class KinesisTemplate implements KinesisOperations {
 	}
 
 	/**
-	 * Serializes the payload, adding the trace-propagation headers the observation injected so that a converter which
-	 * embeds headers (see {@code EmbeddedHeadersKinesisMessageConverter}) carries them to the consumer. Converters that
-	 * ignore headers drop them, so plain records are unaffected.
+	 * Serializes the request, adding the trace-propagation headers the observation injected so that a converter which
+	 * embeds headers (see {@code EmbeddedHeadersKinesisMessageConverter}) carries them to the consumer. A message
+	 * request is passed on as the message itself, not nested as a payload. Converters that ignore headers drop them, so
+	 * plain records are unaffected.
 	 */
-	private byte[] serialize(Object payload, KinesisTemplateObservation.Context context) {
-		MessageBuilder<Object> builder = MessageBuilder.withPayload(payload);
+	private byte[] serialize(SendRequest request, KinesisTemplateObservation.Context context) {
+		Message<?> source = request.message();
+		MessageBuilder<Object> builder;
+		if (source == null) {
+			builder = MessageBuilder.withPayload(request.payload());
+		}
+		else {
+			builder = MessageBuilder.withPayload(request.payload()).copyHeaders(source.getHeaders());
+		}
+		builder.copyHeaders(request.headers());
 		context.getPropagationHeaders().forEach(builder::setHeaderIfAbsent);
 		return this.messageConverter.fromMessagingMessage(builder.build());
 	}

@@ -91,6 +91,9 @@ public class KinesisProperties extends AwsClientProperties {
 		private Duration haltedShardReleaseDelay;
 
 		@Nullable
+		private Duration formerStreamsLeaseDeletionDelay;
+
+		@Nullable
 		private InitialPositionInStream initialPosition;
 
 		@Nullable
@@ -172,6 +175,15 @@ public class KinesisProperties extends AwsClientProperties {
 
 		public void setHaltedShardReleaseDelay(Duration haltedShardReleaseDelay) {
 			this.haltedShardReleaseDelay = haltedShardReleaseDelay;
+		}
+
+		@Nullable
+		public Duration getFormerStreamsLeaseDeletionDelay() {
+			return this.formerStreamsLeaseDeletionDelay;
+		}
+
+		public void setFormerStreamsLeaseDeletionDelay(Duration formerStreamsLeaseDeletionDelay) {
+			this.formerStreamsLeaseDeletionDelay = formerStreamsLeaseDeletionDelay;
 		}
 
 		@Nullable

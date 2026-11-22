@@ -19,11 +19,14 @@ import io.awspring.cloud.autoconfigure.AwsClientCustomizer;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClientBuilder;
 
 /**
- * Callback interface that can be used to customize a {@link CloudWatchAsyncClientBuilder}.
+ * Callback interface that can be used to customize the {@link CloudWatchAsyncClientBuilder} of the client KCL publishes
+ * its metrics with. It is distinct from
+ * {@link io.awspring.cloud.autoconfigure.metrics.CloudWatchAsyncClientCustomizer}, which customizes the client of the
+ * Micrometer CloudWatch registry.
  *
  * @author Matej Nedic
  * @since 4.3.0
  */
 @FunctionalInterface
-public interface CloudwatchAsyncClientCustomizer extends AwsClientCustomizer<CloudWatchAsyncClientBuilder> {
+public interface KinesisCloudWatchAsyncClientCustomizer extends AwsClientCustomizer<CloudWatchAsyncClientBuilder> {
 }
