@@ -863,6 +863,24 @@ public void listen(SnsNotification<Pojo> notification) {
 }
 ----
 
+===== S3 event notifications
+
+Since 4.3.0, an `@SqsListener` method can receive an S3 event notification that S3 sends directly to an SQS queue as the AWS SDK's `S3EventNotification`.
+To use it, add the `software.amazon.awssdk:s3-event-notifications` dependency.
+Spring Cloud AWS then parses the message body with the SDK's `S3EventNotification.fromJson`:
+
+[source, java]
+----
+@SqsListener("my-queue")
+public void listen(S3EventNotification notification) {
+    notification.getRecords().forEach(record ->
+        System.out.println(record.getEventName() + " " + record.getS3().getObject().getKey()));
+}
+----
+
+S3 sends an `s3:TestEvent` message when you configure the notification.
+That message has no records, so the listener receives an `S3EventNotification` with an empty record list.
+
 ===== Specifying a MessageListenerContainerFactory
 A `MessageListenerContainerFactory` can be specified through the `factory` property.
 Such factory will then be used to create the container for the annotated method.

@@ -26,6 +26,7 @@ import io.awspring.cloud.sqs.support.converter.legacy.JacksonMessageConverterMig
 import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
 import io.awspring.cloud.sqs.support.resolver.BatchVisibilityHandlerMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.QueueAttributesMethodArgumentResolver;
+import io.awspring.cloud.sqs.support.resolver.S3EventNotificationArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.SqsMessageMethodArgumentResolver;
 import io.awspring.cloud.sqs.support.resolver.VisibilityHandlerMethodArgumentResolver;
 import java.lang.reflect.Method;
@@ -39,6 +40,7 @@ import org.springframework.core.MethodIntrospector;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -52,6 +54,10 @@ import org.springframework.util.ReflectionUtils;
 public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnnotationBeanPostProcessor<SqsListener> {
 
 	private static final String GENERATED_ID_PREFIX = "io.awspring.cloud.sqs.sqsListenerEndpointContainer#";
+
+	private static final boolean S3_EVENT_NOTIFICATIONS_PRESENT = ClassUtils.isPresent(
+			"software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification",
+			SqsListenerAnnotationBeanPostProcessor.class.getClassLoader());
 
 	@Override
 	protected Class<SqsListener> getAnnotationClass() {
@@ -99,9 +105,14 @@ public class SqsListenerAnnotationBeanPostProcessor extends AbstractListenerAnno
 
 	@Override
 	protected Collection<HandlerMethodArgumentResolver> createAdditionalArgumentResolvers() {
-		return Arrays.asList(new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
-				new BatchVisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
-				new SqsMessageMethodArgumentResolver(), new QueueAttributesMethodArgumentResolver());
+		List<HandlerMethodArgumentResolver> argumentResolvers = new ArrayList<>(
+				Arrays.asList(new VisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
+						new BatchVisibilityHandlerMethodArgumentResolver(SqsHeaders.SQS_VISIBILITY_TIMEOUT_HEADER),
+						new SqsMessageMethodArgumentResolver(), new QueueAttributesMethodArgumentResolver()));
+		if (S3_EVENT_NOTIFICATIONS_PRESENT) {
+			argumentResolvers.add(new S3EventNotificationArgumentResolver());
+		}
+		return argumentResolvers;
 	}
 
 	@Override
