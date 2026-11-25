@@ -35,6 +35,7 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.metadata.SimpleMetadataStore;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.EmbeddedHeadersJsonMessageMapper;
 import org.springframework.integration.support.locks.DefaultLockRegistry;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.messaging.Message;
@@ -137,9 +138,7 @@ class KinesisIntegrationTests implements LocalstackContainerTest {
 		public MessageHandler kinesisMessageHandler() {
 			KinesisMessageHandler kinesisMessageHandler = new KinesisMessageHandler(AMAZON_KINESIS_ASYNC);
 			kinesisMessageHandler.setPartitionKey("1");
-			kinesisMessageHandler.setEmbeddedHeadersMapper(
-					new org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper(
-							"embedded_header"));
+			kinesisMessageHandler.setEmbeddedHeadersMapper(new EmbeddedHeadersJsonMessageMapper("embedded_header"));
 			return kinesisMessageHandler;
 		}
 
@@ -163,9 +162,7 @@ class KinesisIntegrationTests implements LocalstackContainerTest {
 			adapter.setErrorMessageStrategy(new KinesisMessageHeaderErrorMessageStrategy());
 			adapter.setCheckpointStore(checkpointStore());
 			adapter.setLockRegistry(lockRegistry());
-			adapter.setEmbeddedHeadersMapper(
-					new org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper(
-							"embedded_header"));
+			adapter.setEmbeddedHeadersMapper(new EmbeddedHeadersJsonMessageMapper("embedded_header"));
 			adapter.setBindSourceRecord(true);
 			adapter.setDescribeStreamBackoff(10);
 			adapter.setConsumerBackoff(10);

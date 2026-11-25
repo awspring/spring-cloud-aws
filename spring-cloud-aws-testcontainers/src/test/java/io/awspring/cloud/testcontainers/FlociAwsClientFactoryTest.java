@@ -23,6 +23,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 /**
  * Tests for {@link FlociAwsClientFactory}.
@@ -38,7 +39,8 @@ class FlociAwsClientFactoryTest {
 	@Test
 	void createsClient() {
 		var factory = new FlociAwsClientFactory(flociContainer);
-		try (var s3Client = factory.create(S3Client.builder())) {
+		var serviceConfig = S3Configuration.builder().pathStyleAccessEnabled(true).build();
+		try (var s3Client = factory.create(S3Client.builder().serviceConfiguration(serviceConfig))) {
 			s3Client.createBucket(r -> r.bucket("my-bucket"));
 			assertThat(s3Client.listBuckets().buckets()).hasSize(1);
 		}
