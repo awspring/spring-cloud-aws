@@ -18,6 +18,9 @@ For using Spring Cloud Stream with AWS Kinesis, the dedicated starter for Kinesi
 
 The binder is configured by `KinesisAutoConfiguration`, the same auto-configuration used for `@KclListener` and `KinesisTemplate`.
 The `KinesisAsyncClient`, `DynamoDbAsyncClient`, `CloudWatchAsyncClient` and `DynamoDbStreamsClient` used by the binder are configured with the `spring.cloud.aws.kinesis.*` properties and can be overridden by declaring beans of these types.
+The `DynamoDbStreamsClient` can be given its own `region`, `endpoint` and `dualstack-enabled` with the `spring.cloud.aws.kinesis.dynamodb-streams.*` properties; each one that is not set falls back to the matching `spring.cloud.aws.kinesis.*` property.
+Its builder can be customized with a `KinesisDynamoDbStreamsClientCustomizer` bean.
+These settings are separate from the `spring.cloud.aws.dynamodb.*` properties and `DynamoDbClientCustomizer` of the DynamoDB integration.
 
 == Kinesis binder overview
 

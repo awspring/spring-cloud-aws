@@ -16,6 +16,7 @@
 package io.awspring.cloud.autoconfigure.kinesis;
 
 import io.awspring.cloud.autoconfigure.AwsAsyncClientCustomizer;
+import io.awspring.cloud.autoconfigure.AwsClientProperties;
 import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
 import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
@@ -77,6 +78,7 @@ import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.util.MimeTypeUtils;
+import org.springframework.util.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.AwsRegionProvider;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
@@ -276,10 +278,27 @@ public class KinesisAutoConfiguration {
 		@Bean
 		@ConditionalOnMissingBean
 		DynamoDbStreamsClient dynamoDbStreamsClient(AwsClientBuilderConfigurer awsClientBuilderConfigurer,
-				KinesisProperties properties, ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers,
+				KinesisProperties properties,
+				ObjectProvider<KinesisDynamoDbStreamsClientCustomizer> dynamoDbStreamsClientCustomizers,
+				ObjectProvider<AwsSyncClientCustomizer> awsSyncClientCustomizers,
 				ObjectProvider<AwsConnectionDetails> connectionDetails) {
-			return awsClientBuilderConfigurer.configureSyncClient(DynamoDbStreamsClient.builder(), properties,
-					connectionDetails.getIfAvailable(), null, awsSyncClientCustomizers.orderedStream()).build();
+			return awsClientBuilderConfigurer.configureSyncClient(DynamoDbStreamsClient.builder(),
+					dynamoDbStreamsClientProperties(properties), connectionDetails.getIfAvailable(),
+					dynamoDbStreamsClientCustomizers.orderedStream(), awsSyncClientCustomizers.orderedStream()).build();
+		}
+
+		/**
+		 * Resolves the {@code spring.cloud.aws.kinesis.dynamodb-streams.*} properties, falling back to the
+		 * {@code spring.cloud.aws.kinesis.*} property for each one that is not set.
+		 */
+		static AwsClientProperties dynamoDbStreamsClientProperties(KinesisProperties properties) {
+			KinesisProperties.DynamodbStreams streams = properties.getDynamodbStreams();
+			KinesisProperties.DynamodbStreams resolved = new KinesisProperties.DynamodbStreams();
+			resolved.setEndpoint(streams.getEndpoint() != null ? streams.getEndpoint() : properties.getEndpoint());
+			resolved.setRegion(StringUtils.hasText(streams.getRegion()) ? streams.getRegion() : properties.getRegion());
+			resolved.setDualstackEnabled(streams.getDualstackEnabled() != null ? streams.getDualstackEnabled()
+					: properties.getDualstackEnabled());
+			return resolved;
 		}
 
 		@Bean

@@ -17,7 +17,10 @@ package io.awspring.cloud.autoconfigure.kinesis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.awspring.cloud.autoconfigure.AwsSyncClientCustomizer;
 import io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration;
+import io.awspring.cloud.autoconfigure.core.AwsClientBuilderConfigurer;
+import io.awspring.cloud.autoconfigure.core.AwsConnectionDetails;
 import io.awspring.cloud.autoconfigure.core.CredentialsProviderAutoConfiguration;
 import io.awspring.cloud.autoconfigure.core.RegionProviderAutoConfiguration;
 import io.awspring.cloud.kinesis.config.KclBeanNames;
@@ -27,21 +30,27 @@ import io.awspring.cloud.kinesis.listener.checkpoint.KclCheckpointMode;
 import io.awspring.cloud.kinesis.listener.retrieval.RetrievalMode;
 import io.awspring.cloud.kinesis.operations.KinesisTemplate;
 import io.awspring.cloud.kinesis.stream.binder.KinesisMessageChannelBinder;
+import io.awspring.cloud.kinesis.stream.binder.properties.KinesisBinderConfigurationProperties;
 import io.awspring.cloud.kinesis.support.converter.EmbeddedHeadersKinesisMessageConverter;
 import io.awspring.cloud.kinesis.support.converter.KinesisMessageConverter;
 import io.awspring.cloud.kinesis.support.converter.KinesisMessagingMessageConverter;
 import io.awspring.cloud.kinesis.support.observation.KclListenerObservation;
 import io.awspring.cloud.kinesis.support.observation.KinesisTemplateObservation;
 import io.micrometer.observation.ObservationRegistry;
+import java.net.URI;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cloud.stream.config.BindingHandlerAdvise.MappingsProvider;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.streams.DynamoDbStreamsClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 
 /**
@@ -81,6 +90,52 @@ class KinesisAutoConfigurationTest {
 			assertThat(context).doesNotHaveBean(KinesisMessageChannelBinder.class);
 			assertThat(context).doesNotHaveBean(KinesisAutoConfiguration.KinesisBinderConfiguration.class);
 		});
+	}
+
+	@Test
+	void dynamoDbStreamsClientFallsBackToKinesisProperties() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.kinesis.region:eu-central-1",
+				"spring.cloud.aws.kinesis.endpoint:http://localhost:4566").run(context -> {
+					try (DynamoDbStreamsClient client = dynamoDbStreamsClient(context)) {
+						assertThat(client.serviceClientConfiguration().region()).isEqualTo(Region.EU_CENTRAL_1);
+						assertThat(client.serviceClientConfiguration().endpointOverride())
+								.contains(URI.create("http://localhost:4566"));
+					}
+				});
+	}
+
+	@Test
+	void dynamoDbStreamsPropertiesOverrideKinesisProperties() {
+		this.contextRunner.withPropertyValues("spring.cloud.aws.kinesis.region:eu-central-1",
+				"spring.cloud.aws.kinesis.endpoint:http://localhost:4566",
+				"spring.cloud.aws.kinesis.dynamodb-streams.region:us-east-2",
+				"spring.cloud.aws.kinesis.dynamodb-streams.endpoint:http://localhost:4577").run(context -> {
+					try (DynamoDbStreamsClient client = dynamoDbStreamsClient(context)) {
+						assertThat(client.serviceClientConfiguration().region()).isEqualTo(Region.US_EAST_2);
+						assertThat(client.serviceClientConfiguration().endpointOverride())
+								.contains(URI.create("http://localhost:4577"));
+					}
+				});
+	}
+
+	@Test
+	void appliesKinesisDynamoDbStreamsClientCustomizer() {
+		AtomicBoolean customized = new AtomicBoolean();
+		this.contextRunner.withBean(KinesisDynamoDbStreamsClientCustomizer.class, () -> builder -> customized.set(true))
+				.run(context -> {
+					try (DynamoDbStreamsClient client = dynamoDbStreamsClient(context)) {
+						assertThat(customized).isTrue();
+					}
+				});
+	}
+
+	private static DynamoDbStreamsClient dynamoDbStreamsClient(AssertableApplicationContext context) {
+		return new KinesisAutoConfiguration.KinesisBinderConfiguration(new KinesisBinderConfigurationProperties())
+				.dynamoDbStreamsClient(context.getBean(AwsClientBuilderConfigurer.class),
+						context.getBean(KinesisProperties.class),
+						context.getBeanProvider(KinesisDynamoDbStreamsClientCustomizer.class),
+						context.getBeanProvider(AwsSyncClientCustomizer.class),
+						context.getBeanProvider(AwsConnectionDetails.class));
 	}
 
 	@Test

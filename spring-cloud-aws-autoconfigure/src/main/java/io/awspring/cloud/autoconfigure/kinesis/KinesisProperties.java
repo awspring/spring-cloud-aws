@@ -37,6 +37,8 @@ public class KinesisProperties extends AwsClientProperties {
 
 	private Listener listener = new Listener();
 
+	private DynamodbStreams dynamodbStreams = new DynamodbStreams();
+
 	/**
 	 * Whether {@code KinesisTemplate} send operations are recorded as Micrometer observations.
 	 */
@@ -71,6 +73,23 @@ public class KinesisProperties extends AwsClientProperties {
 
 	public void setListener(Listener listener) {
 		this.listener = listener;
+	}
+
+	public DynamodbStreams getDynamodbStreams() {
+		return this.dynamodbStreams;
+	}
+
+	public void setDynamodbStreams(DynamodbStreams dynamodbStreams) {
+		this.dynamodbStreams = dynamodbStreams;
+	}
+
+	/**
+	 * Client properties of the {@code DynamoDbStreamsClient} the Kinesis binder consumes DynamoDB Streams with. Each
+	 * property that is not set falls back to the matching {@code spring.cloud.aws.kinesis.*} property. These properties
+	 * do not affect the clients of the DynamoDB integration configured with {@code spring.cloud.aws.dynamodb.*}.
+	 */
+	public static class DynamodbStreams extends AwsClientProperties {
+
 	}
 
 	public static class Listener {

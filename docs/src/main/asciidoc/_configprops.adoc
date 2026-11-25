@@ -45,6 +45,9 @@
 |spring.cloud.aws.endpoint |  | Overrides the default endpoint for all auto-configured AWS clients.
 |spring.cloud.aws.fips-enabled |  | Configure whether the SDK should use the AWS fips endpoints.
 |spring.cloud.aws.kinesis.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
+|spring.cloud.aws.kinesis.dynamodb-streams.dualstack-enabled |  | Configure whether the AWS client should use the AWS dualstack endpoint. Note that not each AWS service supports dual-stack. For complete list check <a href="https://docs.aws.amazon.com/vpc/latest/userguide/aws-ipv6-support.html">AWS services that support IPv6</a>
+|spring.cloud.aws.kinesis.dynamodb-streams.endpoint |  | Overrides the default endpoint.
+|spring.cloud.aws.kinesis.dynamodb-streams.region |  | Overrides the default region.
 |spring.cloud.aws.kinesis.embedded-headers | `+++false+++` | Whether records are read and written with headers embedded in the record data in the {@code EmbeddedJsonHeadersMessageMapper} format used by the Kinesis binder and the Spring Integration {@code KinesisMessageHandler}. Requires {@code spring-integration-core} on the classpath.
 |spring.cloud.aws.kinesis.enabled | `+++true+++` | Enables Kinesis integration.
 |spring.cloud.aws.kinesis.endpoint |  | Overrides the default endpoint.
