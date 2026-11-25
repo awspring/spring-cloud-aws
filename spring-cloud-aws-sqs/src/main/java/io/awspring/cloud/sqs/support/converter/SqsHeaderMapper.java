@@ -250,7 +250,13 @@ public class SqsHeaderMapper implements ContextAwareHeaderMapper<Message> {
 				callback -> accessor.setHeader(MessagingHeaders.ACKNOWLEDGMENT_CALLBACK_HEADER, callback));
 	}
 
-	private Object getNumberValue(String attributeValue, String attributeType) {
+	/**
+	 * Convert a numeric message attribute to its corresponding Java value.
+	 * @param attributeValue the attribute value.
+	 * @param attributeType the SNS or SQS attribute data type.
+	 * @return the converted number.
+	 */
+	protected Object getNumberValue(String attributeValue, String attributeType) {
 		try {
 			return NumberParser.parseNumber(attributeValue, attributeType);
 		}
