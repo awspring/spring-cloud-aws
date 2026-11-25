@@ -148,7 +148,8 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 
 		receive = this.kinesisReceiveChannel.receive(30_000);
 		assertThat(receive).isNotNull();
-		assertThat(receive.getHeaders()).containsEntry(KinesisHeaders.RECEIVED_SEQUENCE_NUMBER, String.class);
+		assertThat(receive.getHeaders()).extractingByKey(KinesisHeaders.RECEIVED_SEQUENCE_NUMBER)
+				.isInstanceOf(String.class);
 
 		receive = this.kinesisReceiveChannel.receive(10);
 		assertThat(receive).isNull();
