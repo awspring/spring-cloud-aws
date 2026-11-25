@@ -848,7 +848,7 @@ The default `SqsHeaderMapper` does not inspect or parse the message body for SNS
 NOTE: `SnsAwareSqsHeaderMapper` is a Jackson 3-only feature and requires `tools.jackson.databind.json.JsonMapper`.
 Jackson 2 support is deprecated; no Jackson 2 version of this mapper is provided.
 
-Pass the application's configured `JsonMapper` to both the converter and the header mapper.
+The `JsonMapper` used for message conversion should also be provided to the header mapper.
 The following example uses a dedicated factory, so other listeners keep their default message conversion:
 
 [source,java]
