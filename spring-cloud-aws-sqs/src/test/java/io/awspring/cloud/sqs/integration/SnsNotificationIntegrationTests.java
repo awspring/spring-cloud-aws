@@ -26,12 +26,17 @@ import io.awspring.cloud.sqs.config.SqsListenerConfigurer;
 import io.awspring.cloud.sqs.config.SqsMessageListenerContainerFactory;
 import io.awspring.cloud.sqs.listener.acknowledgement.AcknowledgementResultCallback;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
+import io.awspring.cloud.sqs.support.converter.SnsAwareSqsHeaderMapper;
 import io.awspring.cloud.sqs.support.converter.SnsNotification;
+import io.awspring.cloud.sqs.support.converter.SqsMessagingMessageConverter;
 import io.awspring.cloud.sqs.support.converter.legacy.LegacyJackson2MessageConverterMigration;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -44,14 +49,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.test.context.TestPropertySource;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration tests for SNS notifications in SQS.
  *
  * @author Damien Chomat
+ * @author WooSeong Kim
  */
 @SpringBootTest
 @TestPropertySource(properties = { "sns.notification.string.queue.name=" + SNS_NOTIFICATION_STRING_QUEUE_NAME,
@@ -62,6 +71,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 	protected static final String SNS_NOTIFICATION_QUEUE_BASE = "sns_notification_test_queue";
 	protected static final String SNS_NOTIFICATION_STRING_QUEUE_NAME = SNS_NOTIFICATION_QUEUE_BASE + "_string";
 	protected static final String SNS_NOTIFICATION_JSON_QUEUE_NAME = SNS_NOTIFICATION_QUEUE_BASE + "_json";
+	private static final String SNS_NOTIFICATION_HEADERS_QUEUE_NAME = SNS_NOTIFICATION_QUEUE_BASE + "_headers";
 
 	@Autowired
 	LatchContainer latchContainer;
@@ -77,6 +87,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		SqsAsyncClient client = createAsyncClient();
 		createQueue(client, SNS_NOTIFICATION_STRING_QUEUE_NAME).join();
 		createQueue(client, SNS_NOTIFICATION_JSON_QUEUE_NAME).join();
+		createQueue(client, SNS_NOTIFICATION_HEADERS_QUEUE_NAME).join();
 	}
 
 	@Test
@@ -234,6 +245,30 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		assertThat(receivedNotification.getMessageAttributes().get("key").getValue()).isEqualTo("value");
 	}
 
+	@Test
+	void shouldReceiveSnsMessageAttributesAsHeaders() throws Exception {
+		String snsJson = """
+				{
+				  "Type": "Notification",
+				  "MessageId": "message-id-attributes-as-headers",
+				  "TopicArn": "topic-arn",
+				  "Message": "test-message",
+				  "Timestamp": "2023-01-01T00:00:00Z",
+				  "MessageAttributes": {
+				    "stringAttribute": { "Type": "String", "Value": "snsValue" },
+				    "numberAttribute": { "Type": "Number", "Value": "10" },
+				    "binaryAttribute": { "Type": "Binary", "Value": "bXlCaW5hcnk=" }
+				  }
+				}
+				""";
+
+		sqsTemplate.send(SNS_NOTIFICATION_HEADERS_QUEUE_NAME, snsJson);
+
+		assertThat(latchContainer.snsAttributeHeaders.get(60, TimeUnit.SECONDS))
+				.containsEntry("stringAttribute", "snsValue").containsEntry("numberAttribute", BigDecimal.TEN)
+				.containsEntry("binaryAttribute", SdkBytes.fromUtf8String("myBinary"));
+	}
+
 	static class SnsNotificationListener {
 		private final LatchContainer latchContainer;
 
@@ -265,6 +300,11 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 			latchContainer.storeNotification(messageId, notification);
 			latchContainer.jsonPayloadLatch.countDown();
 		}
+
+		@SqsListener(value = SNS_NOTIFICATION_HEADERS_QUEUE_NAME, factory = "snsSqsListenerContainerFactory")
+		public void listenHeaders(@Headers Map<String, Object> headers) {
+			latchContainer.snsAttributeHeaders.complete(headers);
+		}
 	}
 
 	static class LatchContainer {
@@ -274,6 +314,7 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 		public final CountDownLatch jsonPayloadLatch = new CountDownLatch(1);
 		public final CountDownLatch requiredFieldsLatch = new CountDownLatch(1);
 		public final CountDownLatch allFieldsLatch = new CountDownLatch(1);
+		private final CompletableFuture<Map<String, Object>> snsAttributeHeaders = new CompletableFuture<>();
 
 		// Keep the notification storage by message ID for verification
 		private final ConcurrentHashMap<String, SnsNotification<?>> receivedSnsNotifications = new ConcurrentHashMap<>();
@@ -331,6 +372,19 @@ class SnsNotificationIntegrationTests extends BaseSqsIntegrationTest {
 							.acknowledgementShutdownTimeout(Duration.ZERO).maxDelayBetweenPolls(Duration.ofSeconds(5))
 							.queueAttributeNames(Collections.singletonList(QueueAttributeName.QUEUE_ARN))
 							.pollTimeout(Duration.ofSeconds(5)))
+					.build();
+		}
+
+		@Bean
+		SqsMessageListenerContainerFactory<Object> snsSqsListenerContainerFactory() {
+			JsonMapper jsonMapper = new JsonMapper();
+			SqsMessagingMessageConverter converter = new SqsMessagingMessageConverter(jsonMapper);
+			converter.setHeaderMapper(new SnsAwareSqsHeaderMapper(jsonMapper));
+
+			return SqsMessageListenerContainerFactory.builder()
+					.sqsAsyncClientSupplier(BaseSqsIntegrationTest::createAsyncClient)
+					.configure(options -> options.messageConverter(converter).listenerShutdownTimeout(Duration.ZERO)
+							.acknowledgementShutdownTimeout(Duration.ZERO).pollTimeout(Duration.ofSeconds(5)))
 					.build();
 		}
 
