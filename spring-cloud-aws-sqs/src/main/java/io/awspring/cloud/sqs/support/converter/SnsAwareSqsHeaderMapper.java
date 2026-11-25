@@ -15,18 +15,19 @@
  */
 package io.awspring.cloud.sqs.support.converter;
 
+import io.awspring.cloud.sqs.support.converter.SnsNotification.MessageAttribute;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.sqs.model.Message;
 import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -42,9 +43,6 @@ import tools.jackson.databind.json.JsonMapper;
 public class SnsAwareSqsHeaderMapper extends SqsHeaderMapper {
 
 	private static final Logger logger = LoggerFactory.getLogger(SnsAwareSqsHeaderMapper.class);
-
-	private static final TypeReference<Map<String, SnsNotification.MessageAttribute>> SNS_MESSAGE_ATTRIBUTES_TYPE = new TypeReference<>() {
-	};
 
 	private final JsonMapper jsonMapper;
 
@@ -74,40 +72,52 @@ public class SnsAwareSqsHeaderMapper extends SqsHeaderMapper {
 		if (body == null || !body.contains("\"MessageAttributes\"")) {
 			return Map.of();
 		}
+		JsonNode jsonNode;
 		try {
-			JsonNode jsonNode = jsonMapper.readTree(body);
-			if (!isSnsNotification(jsonNode)) {
-				return Map.of();
-			}
-			JsonNode messageAttributes = jsonNode.get("MessageAttributes");
-			if (messageAttributes == null || !messageAttributes.isObject()) {
-				return Map.of();
-			}
-			Map<String, SnsNotification.MessageAttribute> attributes = jsonMapper.convertValue(messageAttributes,
-					SNS_MESSAGE_ATTRIBUTES_TYPE);
-			return attributes.entrySet().stream()
-					.collect(Collectors.toMap(Map.Entry::getKey, entry -> getValue(entry.getValue())));
+			jsonNode = jsonMapper.readTree(body);
 		}
 		catch (JacksonException | IllegalArgumentException e) {
 			logger.trace("Could not map SNS message attributes for message " + source.messageId(), e);
 			return Map.of();
 		}
+		if (!isSnsNotification(jsonNode)) {
+			return Map.of();
+		}
+		JsonNode messageAttributes = jsonNode.get("MessageAttributes");
+		if (messageAttributes == null || !messageAttributes.isObject()) {
+			return Map.of();
+		}
+		Map<String, Object> headers = new HashMap<>();
+		for (Map.Entry<String, JsonNode> entry : messageAttributes.properties()) {
+			try {
+				MessageAttribute attribute = jsonMapper.convertValue(entry.getValue(), MessageAttribute.class);
+				headers.put(entry.getKey(), getValue(attribute));
+			}
+			catch (JacksonException | IllegalArgumentException | ClassCastException | MessagingException e) {
+				logger.warn("Skipping invalid SNS message attribute '{}' for message {} ({})", entry.getKey(),
+						source.messageId(), e.getClass().getSimpleName());
+			}
+		}
+		return headers;
 	}
 
 	private boolean isSnsNotification(JsonNode jsonNode) {
 		JsonNode type = jsonNode.get("Type");
-		return type != null && "Notification".equals(type.asString()) && jsonNode.has("Message");
+		return type != null && type.isString() && "Notification".equals(type.asString()) && jsonNode.has("Message");
 	}
 
-	private Object getValue(SnsNotification.MessageAttribute value) {
-		String dataType = value.getType();
+	private Object getValue(@Nullable MessageAttribute attribute) {
+		Assert.notNull(attribute, "attribute must not be null");
+		String dataType = attribute.getType();
 		Assert.notNull(dataType, "dataType must not be null");
+		String value = attribute.getValue();
+		Assert.notNull(value, "attribute value must not be null");
 		String baseDataType = dataType.contains(".") ? dataType.substring(0, dataType.indexOf('.')) : dataType;
 
 		return switch (baseDataType) {
-		case MessageAttributeDataTypes.NUMBER -> getNumberValue(value.getValue(), dataType);
-		case MessageAttributeDataTypes.BINARY -> SdkBytes.fromByteArray(Base64.getDecoder().decode(value.getValue()));
-		default -> value.getValue();
+		case MessageAttributeDataTypes.NUMBER -> getNumberValue(value, dataType);
+		case MessageAttributeDataTypes.BINARY -> SdkBytes.fromByteArray(Base64.getDecoder().decode(value));
+		default -> value;
 		};
 	}
 

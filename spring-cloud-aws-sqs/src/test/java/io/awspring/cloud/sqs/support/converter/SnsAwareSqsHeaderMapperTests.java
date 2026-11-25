@@ -82,6 +82,27 @@ class SnsAwareSqsHeaderMapperTests {
 		assertThat(headers.get("binaryAttribute")).isEqualTo(SdkBytes.fromUtf8String("myBinary"));
 	}
 
+	@ParameterizedTest(name = "{0}")
+	@ValueSource(strings = { "{\"Type\":\"Number.com.example.Missing\",\"Value\":\"10\"}",
+			"{\"Type\":\"String\",\"Value\":null}", "{\"Type\":\"Binary\",\"Value\":\"!\"}", "false", "null" })
+	void shouldSkipOnlyInvalidSnsMessageAttribute(String invalidAttribute) {
+		SnsAwareSqsHeaderMapper mapper = new SnsAwareSqsHeaderMapper(new JsonMapper());
+		Message message = Message.builder().messageId(UUID.randomUUID().toString()).body("""
+				{
+				  "Type": "Notification",
+				  "Message": "payload",
+				  "MessageAttributes": {
+				    "invalidAttribute": %s,
+				    "validAttribute": { "Type": "String", "Value": "snsValue" }
+				  }
+				}
+				""".formatted(invalidAttribute)).build();
+
+		MessageHeaders headers = mapper.toHeaders(message);
+
+		assertThat(headers).containsEntry("validAttribute", "snsValue").doesNotContainKey("invalidAttribute");
+	}
+
 	@Test
 	void shouldPreferSqsMessageAttributesOverSnsMessageAttributes() {
 		SnsAwareSqsHeaderMapper mapper = new SnsAwareSqsHeaderMapper(new JsonMapper());
@@ -126,6 +147,7 @@ class SnsAwareSqsHeaderMapperTests {
 	@ParameterizedTest
 	@NullSource
 	@ValueSource(strings = { "payload", "{}", "null", "{\"MessageAttributes\":",
+			"{\"Type\":{},\"Message\":\"payload\",\"MessageAttributes\":{}}",
 			"{\"Type\":\"Notification\",\"Message\":\"payload\",\"MessageAttributes\":[]}" })
 	void shouldLeaveNonNotificationAndMalformedBodiesUnchanged(String body) {
 		Message message = Message.builder().messageId(UUID.randomUUID().toString()).body(body).build();
