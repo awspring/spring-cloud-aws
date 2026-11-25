@@ -32,6 +32,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.json.EmbeddedHeadersJsonMessageMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -178,8 +179,7 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 			KplMessageHandler kinesisMessageHandler = new KplMessageHandler(
 					new KinesisProducer(kinesisProducerConfiguration));
 			kinesisMessageHandler.setPartitionKey("1");
-			kinesisMessageHandler.setEmbeddedHeadersMapper(
-					new org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper("test_header"));
+			kinesisMessageHandler.setEmbeddedHeadersMapper(new EmbeddedHeadersJsonMessageMapper("test_header"));
 			return kinesisMessageHandler;
 		}
 
@@ -193,8 +193,7 @@ class KplKclIntegrationTests implements LocalstackContainerTest {
 			adapter.setOutputChannel(kinesisReceiveChannel);
 			adapter.setErrorChannel(errorChannel);
 			adapter.setErrorMessageStrategy(new KinesisMessageHeaderErrorMessageStrategy());
-			adapter.setEmbeddedHeadersMapper(
-					new org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper("test_header"));
+			adapter.setEmbeddedHeadersMapper(new EmbeddedHeadersJsonMessageMapper("test_header"));
 			adapter.setStreamInitialSequence(
 					InitialPositionInStreamExtended.newInitialPosition(InitialPositionInStream.TRIM_HORIZON));
 			adapter.setBindSourceRecord(true);

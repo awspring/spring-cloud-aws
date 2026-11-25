@@ -33,6 +33,7 @@ import org.springframework.core.serializer.support.SerializingConverter;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.expression.FunctionExpression;
+import org.springframework.integration.support.json.EmbeddedHeadersJsonMessageMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -101,7 +102,7 @@ class KinesisMessageHandlerTests {
 		assertThat(putRecordRequest.sequenceNumberForOrdering()).isEqualTo("10");
 		assertThat(putRecordRequest.explicitHashKey()).isNull();
 
-		Message<?> messageToCheck = new org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper()
+		Message<?> messageToCheck = new EmbeddedHeadersJsonMessageMapper("testHeader")
 				.toMessage(putRecordRequest.data().asByteArray());
 
 		assertThat(messageToCheck.getHeaders()).contains(entry("testHeader", "testValue"));
@@ -171,8 +172,7 @@ class KinesisMessageHandlerTests {
 				}
 
 			});
-			kinesisMessageHandler.setEmbeddedHeadersMapper(
-					new org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper("testHeader"));
+			kinesisMessageHandler.setEmbeddedHeadersMapper(new EmbeddedHeadersJsonMessageMapper("testHeader"));
 			return kinesisMessageHandler;
 		}
 

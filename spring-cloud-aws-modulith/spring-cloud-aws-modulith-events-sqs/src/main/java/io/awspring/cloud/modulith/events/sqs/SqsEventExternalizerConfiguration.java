@@ -30,10 +30,10 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.modulith.events.EventExternalizationConfiguration;
 import org.springframework.modulith.events.config.EventExternalizationAutoConfiguration;
 import org.springframework.modulith.events.support.BrokerRouting;
-import org.springframework.modulith.events.support.DelegatingEventExternalizer;
+import org.springframework.modulith.events.support.EventExternalizerModuleListener;
 
 /**
- * Auto-configuration to set up a {@link DelegatingEventExternalizer} to externalize events to SQS.
+ * Auto-configuration to set up a {@link EventExternalizerModuleListener} to externalize events to SQS.
  *
  * @author Maciej Walkowiak
  * @author Oliver Drotbohm
@@ -48,7 +48,7 @@ class SqsEventExternalizerConfiguration {
 	private static final Logger logger = LoggerFactory.getLogger(SqsEventExternalizerConfiguration.class);
 
 	@Bean
-	DelegatingEventExternalizer sqsEventExternalizer(EventExternalizationConfiguration configuration,
+	EventExternalizerModuleListener sqsEventExternalizer(EventExternalizationConfiguration configuration,
 			SqsOperations operations, BeanFactory factory) {
 
 		logger.debug("Registering domain event externalization to SQS…");
@@ -56,7 +56,7 @@ class SqsEventExternalizerConfiguration {
 		var context = new StandardEvaluationContext();
 		context.setBeanResolver(new BeanFactoryResolver(factory));
 
-		return new DelegatingEventExternalizer(configuration, (target, payload) -> {
+		return new EventExternalizerModuleListener(configuration, (payload, target) -> {
 
 			var routing = BrokerRouting.of(target, context);
 
@@ -71,6 +71,6 @@ class SqsEventExternalizerConfiguration {
 					options.messageGroupId(key);
 				}
 			}));
-		});
+		}, factory);
 	}
 }

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.modulith.events.EventExternalizationConfiguration;
-import org.springframework.modulith.events.support.DelegatingEventExternalizer;
+import org.springframework.modulith.events.support.EventExternalizerModuleListener;
 
 /**
  * Integration tests for {@link SqsEventExternalizerConfiguration}.
@@ -37,7 +37,7 @@ class SqsEventExternalizerConfigurationIntegrationTests {
 	void registersExternalizerByDefault() {
 
 		basicSetup().run(ctxt -> {
-			assertThat(ctxt).hasSingleBean(DelegatingEventExternalizer.class);
+			assertThat(ctxt).hasSingleBean(EventExternalizerModuleListener.class);
 		});
 	}
 
@@ -45,7 +45,7 @@ class SqsEventExternalizerConfigurationIntegrationTests {
 	void disablesExternalizationIfConfigured() {
 
 		basicSetup().withPropertyValues("spring.modulith.events.externalization.enabled=false").run(ctxt -> {
-			assertThat(ctxt).doesNotHaveBean(DelegatingEventExternalizer.class);
+			assertThat(ctxt).doesNotHaveBean(EventExternalizerModuleListener.class);
 		});
 	}
 

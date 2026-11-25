@@ -58,6 +58,7 @@ import org.springframework.integration.handler.AbstractMessageProducingHandler;
 import org.springframework.integration.mapping.BytesMessageMapper;
 import org.springframework.integration.metadata.ConcurrentMetadataStore;
 import org.springframework.integration.support.ErrorMessageStrategy;
+import org.springframework.integration.support.json.EmbeddedHeadersJsonMessageMapper;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.integration.support.management.IntegrationManagement;
 import org.springframework.messaging.Message;
@@ -144,8 +145,7 @@ public class KinesisMessageChannelBinder extends
 		this.cloudWatchClient = cloudWatchClient;
 		this.dynamoDBClient = dynamoDBClient;
 		this.dynamoDBStreams = dynamoDBStreams;
-		this.embeddedHeadersMapper = new org.springframework.integration.support.json.EmbeddedJsonHeadersMessageMapper(
-				headersToMap(configurationProperties));
+		this.embeddedHeadersMapper = new EmbeddedHeadersJsonMessageMapper(headersToMap(configurationProperties));
 	}
 
 	public void setExtendedBindingProperties(KinesisExtendedBindingProperties extendedBindingProperties) {

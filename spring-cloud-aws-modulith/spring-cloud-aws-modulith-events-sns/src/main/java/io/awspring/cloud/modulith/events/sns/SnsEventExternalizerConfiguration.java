@@ -32,10 +32,10 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.modulith.events.EventExternalizationConfiguration;
 import org.springframework.modulith.events.config.EventExternalizationAutoConfiguration;
 import org.springframework.modulith.events.support.BrokerRouting;
-import org.springframework.modulith.events.support.DelegatingEventExternalizer;
+import org.springframework.modulith.events.support.EventExternalizerModuleListener;
 
 /**
- * Auto-configuration to set up a {@link DelegatingEventExternalizer} to externalize events to SNS.
+ * Auto-configuration to set up a {@link EventExternalizerModuleListener} to externalize events to SNS.
  *
  * @author Maciej Walkowiak
  * @author Oliver Drotbohm
@@ -50,7 +50,7 @@ class SnsEventExternalizerConfiguration {
 	private static final Logger logger = LoggerFactory.getLogger(SnsEventExternalizerConfiguration.class);
 
 	@Bean
-	DelegatingEventExternalizer snsEventExternalizer(EventExternalizationConfiguration configuration,
+	EventExternalizerModuleListener snsEventExternalizer(EventExternalizationConfiguration configuration,
 			SnsOperations operations, BeanFactory factory) {
 
 		logger.debug("Registering domain event externalization to SNS…");
@@ -58,7 +58,7 @@ class SnsEventExternalizerConfiguration {
 		var context = new StandardEvaluationContext();
 		context.setBeanResolver(new BeanFactoryResolver(factory));
 
-		return new DelegatingEventExternalizer(configuration, (target, payload) -> {
+		return new EventExternalizerModuleListener(configuration, (payload, target) -> {
 
 			var routing = BrokerRouting.of(target, context);
 			var builder = SnsNotification.builder(payload).headers(configuration.getHeadersFor(payload));
@@ -72,6 +72,6 @@ class SnsEventExternalizerConfiguration {
 			operations.sendNotification(routing.getTarget(payload), builder.build());
 
 			return CompletableFuture.completedFuture(null);
-		});
+		}, factory);
 	}
 }
